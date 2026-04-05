@@ -15,6 +15,7 @@ const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/f
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
 const folderSettingsTransferJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
+const bulkAssignmentSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -99,6 +100,12 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderSettingsTransferJs, /const normalizeFolderSettingsPayload = \(payload\) =>/);
     assert.match(folderSettingsTransferJs, /const buildClipboardEntry = \(type,\s*folder,\s*options = \{\}\) =>/);
     assert.match(folderSettingsTransferJs, /root\.FolderViewPlusFolderSettingsTransferModuleLoaded = true/);
+    assert.match(bulkAssignmentSharedJs, /^\/\/ @ts-check/m);
+    assert.match(bulkAssignmentSharedJs, /root\.FolderViewPlusBulkAssignmentShared = factory\(\);/);
+    assert.match(bulkAssignmentSharedJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(bulkAssignmentSharedJs, /const buildBulkAssignmentPlan = \(type,\s*folderId,\s*namesInput = null\) =>/);
+    assert.match(bulkAssignmentSharedJs, /const executeBulkAssignmentPlan = async \(type,\s*planInput,\s*options = \{\}\) =>/);
+    assert.match(bulkAssignmentSharedJs, /root\.FolderViewPlusBulkAssignmentSharedModuleLoaded = true/);
 });
 
 test('runtime pages and folder editor load the shared contract before their consumers', () => {
@@ -125,6 +132,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderHierarchyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js');
     const folderParentPickerIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.parent-picker.js');
     const folderSettingsTransferIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
+    const folderBulkAssignmentSharedIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js');
     const folderStateIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.state.js');
     const folderMembersIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.members.js');
     const folderIconsIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.icons.js');
@@ -172,6 +180,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderHierarchyIndex >= 0, 'folder editor page missing hierarchy module include');
     assert.ok(folderParentPickerIndex >= 0, 'folder editor page missing parent picker module include');
     assert.ok(folderSettingsTransferIndex >= 0, 'folder editor page missing folder settings transfer module include');
+    assert.ok(folderBulkAssignmentSharedIndex >= 0, 'folder editor page missing shared bulk assignment module include');
     assert.ok(folderStateIndex >= 0, 'folder editor page missing state module include');
     assert.ok(folderMembersIndex >= 0, 'folder editor page missing members module include');
     assert.ok(folderIconsIndex >= 0, 'folder editor page missing icons module include');
@@ -184,7 +193,8 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderPreviewIndex < folderPreviewRuntimeIndex, 'preview renderer must load before folder.editor.preview-runtime.js');
     assert.ok(folderHierarchyIndex < folderParentPickerIndex, 'hierarchy module must load before folder.editor.parent-picker.js');
     assert.ok(folderParentPickerIndex < folderSettingsTransferIndex, 'parent picker module must load before folder.settings-transfer.js');
-    assert.ok(folderSettingsTransferIndex < folderStateIndex, 'folder.settings-transfer.js must load before folder.editor.state.js');
+    assert.ok(folderSettingsTransferIndex < folderBulkAssignmentSharedIndex, 'folder.settings-transfer.js must load before folderviewplus.bulk-assignment.shared.js');
+    assert.ok(folderBulkAssignmentSharedIndex < folderStateIndex, 'folderviewplus.bulk-assignment.shared.js must load before folder.editor.state.js');
     assert.ok(folderStateIndex < folderMembersIndex, 'state module must load before folder.editor.members.js');
     assert.ok(folderMembersIndex < folderIconsIndex, 'members module must load before folder.editor.icons.js');
     assert.ok(folderIconsIndex < folderModernIndex, 'icons module must load before folder.js');
@@ -192,6 +202,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'"), 'folder editor page missing boot-loaded hierarchy runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'"), 'folder editor page missing boot-loaded parent picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.settings-transfer.js'"), 'folder editor page missing boot-loaded folder settings transfer runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js'"), 'folder editor page missing boot-loaded shared bulk assignment runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.chrome.js'"), 'folder editor page missing boot-loaded chrome runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.state.js'"), 'folder editor page missing boot-loaded state runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.members.js'"), 'folder editor page missing boot-loaded members runtime');

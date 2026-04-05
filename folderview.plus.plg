@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.05.03">
-<!ENTITY md5 "461cc9d7985638873c8346e0bea4541c">
+<!ENTITY version "2026.04.05.04">
+<!ENTITY md5 "20ae8068cea9db09fbff89ea0a98b90f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.05.04
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
 
 ###2026.04.05.03
 - Fix: Multi-row Docker preview Console and Logs buttons now keep their action wiring after compact preview rendering, so they open the terminal and logs instead of falling back to a top-of-page anchor jump.

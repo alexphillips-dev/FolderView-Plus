@@ -337,6 +337,7 @@ try {
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.rules.js',
             '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+            '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
             '/plugins/folderview.plus/scripts/folder.editor.state.js',
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.editor.icons.js',

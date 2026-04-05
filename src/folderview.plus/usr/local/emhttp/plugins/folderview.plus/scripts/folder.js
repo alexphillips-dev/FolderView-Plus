@@ -203,6 +203,7 @@ const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
 const folderEditorPreviewRuntimeModule = window.FolderViewPlusFolderEditorPreviewRuntime || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
+const requestClient = window.FolderViewPlusRequest || null;
 const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
     ? themeResolver.bindThemeAwareSurface.bind(themeResolver)
     : null;
@@ -218,6 +219,7 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
 const utils = window.FolderViewPlusUtils || null;
 const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
 const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
+const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
 const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
 const folderEditorIconsModule = window.FolderViewPlusFolderEditorIcons || null;
@@ -310,6 +312,12 @@ const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1'
 const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
 const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
+const MEMBER_BULK_SCOPE_OPTIONS = Object.freeze([
+    { value: 'shown', label: 'Move shown' },
+    { value: 'included_shown', label: 'Move included shown' },
+    { value: 'excluded_shown', label: 'Move excluded shown' },
+    { value: 'all_included', label: 'Move all included' }
+]);
 const BUILT_IN_ICON_FALLBACK = [{
     id: 'default-folder',
     name: 'Default Folder',
@@ -331,6 +339,9 @@ if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'fu
 }
 if (!folderEditorMembersModule || typeof folderEditorMembersModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.members.js');
+}
+if (!bulkAssignmentSharedModule || typeof bulkAssignmentSharedModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folderviewplus.bulk-assignment.shared.js');
 }
 if (!folderEditorIconsModule || typeof folderEditorIconsModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.icons.js');
@@ -361,6 +372,7 @@ let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
 let folderEditorIconsApi = null;
+let folderBulkAssignmentSharedApi = null;
 let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
@@ -375,6 +387,7 @@ let pendingRegexWorkerJobs = new Map();
 let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
+let memberBulkMoveInFlight = false;
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
@@ -1290,6 +1303,49 @@ const getFolderSettingsTransferApi = (() => {
     };
 })();
 
+const getFolderBulkAssignmentSharedApi = (() => {
+    return () => {
+        if (folderBulkAssignmentSharedApi || typeof bulkAssignmentSharedModule?.createApi !== 'function') {
+            return folderBulkAssignmentSharedApi;
+        }
+        folderBulkAssignmentSharedApi = bulkAssignmentSharedModule.createApi({
+            window,
+            utils,
+            getFolderMap: () => allFoldersById,
+            getFolderNameForId: (_managedType, id) => String(allFoldersById?.[id]?.name || id || '').trim(),
+            requestBulkAssign: async (managedType, folderId, items) => {
+                if (!requestClient || typeof requestClient.postJson !== 'function') {
+                    throw new Error('Bulk assignment request API unavailable.');
+                }
+                const response = await requestClient.postJson('/plugins/folderview.plus/server/bulk_assign.php', {
+                    type: managedType,
+                    folderId,
+                    items: JSON.stringify(items || [])
+                });
+                if (!response?.ok) {
+                    throw new Error(response?.error || 'Bulk assignment failed.');
+                }
+                return response.result || {};
+            },
+            createBackup: async (managedType, reason) => {
+                if (!requestClient || typeof requestClient.postJson !== 'function') {
+                    return null;
+                }
+                const response = await requestClient.postJson('/plugins/folderview.plus/server/backup.php', {
+                    type: managedType,
+                    action: 'create',
+                    reason
+                });
+                if (!response?.ok) {
+                    throw new Error(response?.error || 'Backup failed.');
+                }
+                return response.backup || null;
+            }
+        });
+        return folderBulkAssignmentSharedApi;
+    };
+})();
+
 const updateUnsavedIndicator = () => getFolderEditorStateApi()?.updateUnsavedIndicator() === true;
 
 const markCleanState = () => {
@@ -2024,6 +2080,7 @@ const updateMemberStats = () => {
     $('#fvMemberChipManual').text(`${manual} manual`);
     $('#fvMemberChipRegex').text(`${regex} regex`);
     $('#fvMemberChipAvailable').text(`${available} available`);
+    updateMemberBulkMoveUi();
 };
 
 const getFolderEditorMembersApi = () => {
@@ -2826,6 +2883,22 @@ const initEditorChrome = () => {
                     <span id="fvMemberChipRegex" class="fv-member-chip">0 regex</span>
                     <span id="fvMemberChipAvailable" class="fv-member-chip">0 available</span>
                 </div>
+                <div class="fv-member-bulk-row">
+                    <div class="fv-member-bulk-copy">
+                        <strong>Bulk move</strong>
+                        <span>Use the current filters to move Docker containers or VMs directly into another folder without leaving this editor.</span>
+                    </div>
+                    <div class="fv-member-bulk-controls">
+                        <select id="fvMemberBulkScope" aria-label="Bulk move scope">
+                            ${MEMBER_BULK_SCOPE_OPTIONS.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join('')}
+                        </select>
+                        <select id="fvMemberBulkTarget" aria-label="Bulk move target folder">
+                            <option value="">Move to folder...</option>
+                        </select>
+                        <button type="button" id="fvMemberBulkMove"><i class="fa fa-exchange"></i> Move to folder</button>
+                    </div>
+                    <span id="fvMemberBulkSummary" class="fv-member-bulk-summary">No movable members in the current scope.</span>
+                </div>
             </div>
         `);
     }
@@ -2889,10 +2962,17 @@ const initEditorChrome = () => {
         $('#fvMemberStateFilter').val('all');
         applyMemberFilters();
     });
+    $('#fvMemberBulkScope').off('change').on('change', () => updateMemberBulkMoveUi());
+    $('#fvMemberBulkTarget').off('change').on('change', () => updateMemberBulkMoveUi());
+    $('#fvMemberBulkMove').off('click').on('click', () => {
+        void applyEditorMemberBulkMove();
+    });
 
     syncMemberSearchUiState();
     $('#fvMemberFilter').attr('aria-label', 'Filter member list');
     $('#fvMemberStateFilter').attr('aria-label', 'Filter member state');
+    renderMemberBulkMoveTargets();
+    updateMemberBulkMoveUi();
 
     editorMode = loadEditorModePreference();
     activeEditorSection = normalizeActiveEditorSection('general', editorMode);
@@ -3237,6 +3317,8 @@ const startFolderEditorRuntime = async () => {
         refreshParentFolderChooser(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
     }
+    renderMemberBulkMoveTargets();
+    updateMemberBulkMoveUi();
 
     // get the list of element docker/vm
     let typeFilter;
@@ -3991,7 +4073,7 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
 /**
  * Create the element select table
  */
-const updateList = () => {
+const updateList = (afterRender = null) => {
     const table = $('.sortable > tbody');
     table.empty();
     const token = ++memberListRenderToken;
@@ -4050,6 +4132,9 @@ const updateList = () => {
         if (isFormInitialized) {
             validateForm();
             updateUnsavedIndicator();
+        }
+        if (typeof afterRender === 'function') {
+            afterRender();
         }
     };
 
@@ -4243,6 +4328,321 @@ const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
         };
     })
     .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
+
+const getMemberBulkMoveTargets = () => getFolderSettingsApplyTargets();
+
+const describeMemberBulkMoveScope = (scope) => {
+    const normalized = String(scope || '').trim().toLowerCase();
+    const match = MEMBER_BULK_SCOPE_OPTIONS.find((entry) => entry.value === normalized);
+    return match ? match.label : 'Move shown';
+};
+
+const getCurrentMemberBulkMoveScope = () => String($('#fvMemberBulkScope').val() || 'shown').trim().toLowerCase() || 'shown';
+
+const collectCurrentMemberBulkMoveScope = () => {
+    const scope = getCurrentMemberBulkMoveScope();
+    const details = getFolderEditorMembersApi()?.collectBulkMoveScope(scope);
+    return details && typeof details === 'object'
+        ? details
+        : { scope, names: [], skippedRegexNames: [], candidateCount: 0, movableCount: 0 };
+};
+
+function renderMemberBulkMoveTargets() {
+    const select = $('#fvMemberBulkTarget');
+    if (!select.length) {
+        return;
+    }
+    const previousValue = String(select.val() || '').trim();
+    const targets = getMemberBulkMoveTargets();
+    const options = ['<option value="">Move to folder...</option>'];
+    targets.forEach((target) => {
+        const detail = target.parentName && target.parentName !== 'Top level'
+            ? `${target.name} (${target.parentName})`
+            : target.name;
+        options.push(`<option value="${escapeHtml(target.id)}">${escapeHtml(detail)}</option>`);
+    });
+    select.html(options.join(''));
+    if (previousValue && targets.some((target) => target.id === previousValue)) {
+        select.val(previousValue);
+    } else {
+        select.val('');
+    }
+}
+
+const syncMemberSnapshotBaseline = () => {
+    const baseline = parseSnapshotState(initialSnapshot || computeFormSnapshot());
+    const current = parseSnapshotState(computeFormSnapshot());
+    baseline.members = Array.isArray(current.members) ? current.members : [];
+    initialSnapshot = JSON.stringify(baseline);
+    updateUnsavedIndicator();
+    updateSectionStateIndicators();
+    updateChangeSummaryPanel();
+};
+
+const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
+    const safeTargetFolderId = String(targetFolderId || '').trim();
+    const uniqueNames = Array.from(new Set((Array.isArray(movedNames) ? movedNames : []).map((name) => String(name || '').trim()).filter(Boolean)));
+    if (!safeTargetFolderId || uniqueNames.length <= 0) {
+        return;
+    }
+    const movedSet = new Set(uniqueNames);
+    for (const [folderKey, folderRecord] of Object.entries(allFoldersById || {})) {
+        const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+        const nextMembers = (utils?.normalizeFolderMembers ? utils.normalizeFolderMembers(normalizedFolder.containers || []) : [])
+            .filter((memberName) => !movedSet.has(String(memberName || '').trim()));
+        allFoldersById[folderKey] = {
+            ...normalizedFolder,
+            containers: nextMembers
+        };
+    }
+    if (allFoldersById[safeTargetFolderId]) {
+        const targetFolder = normalizeFolderRecordForEditor(allFoldersById[safeTargetFolderId]);
+        const targetMembers = utils?.normalizeFolderMembers
+            ? utils.normalizeFolderMembers(targetFolder.containers || [])
+            : [];
+        uniqueNames.forEach((name) => {
+            if (!targetMembers.includes(name)) {
+                targetMembers.push(name);
+            }
+        });
+        allFoldersById[safeTargetFolderId] = {
+            ...targetFolder,
+            containers: targetMembers
+        };
+    }
+
+    const movedSelectedMembers = [];
+    selected = selected.filter((member) => {
+        const safeName = String(member?.Name || '').trim();
+        if (safeName && movedSet.has(safeName)) {
+            movedSelectedMembers.push(member);
+            return false;
+        }
+        return true;
+    });
+    choose = mergeMembersByName(choose, movedSelectedMembers);
+    updateList(() => {
+        syncMemberSnapshotBaseline();
+        renderMemberBulkMoveTargets();
+        updateMemberBulkMoveUi();
+    });
+};
+
+const restoreEditorBulkMoveBackup = async (backupName) => {
+    const safeBackupName = String(backupName || '').trim();
+    if (!safeBackupName) {
+        throw new Error('Backup name is required.');
+    }
+    if (!requestClient || typeof requestClient.postJson !== 'function') {
+        throw new Error('Backup restore API unavailable.');
+    }
+    const response = await requestClient.postJson('/plugins/folderview.plus/server/backup.php', {
+        type,
+        action: 'restore',
+        name: safeBackupName
+    });
+    if (!response?.ok) {
+        throw new Error(response?.error || 'Undo failed.');
+    }
+    return response.restore || {};
+};
+
+const offerMemberBulkMoveUndo = async (backup, successMessage) => {
+    const backupName = String(backup?.name || '').trim();
+    if (!backupName) {
+        swal({
+            title: 'Bulk move complete',
+            text: successMessage,
+            type: 'success'
+        });
+        return;
+    }
+    swal({
+        title: 'Bulk move complete',
+        text: `${successMessage}\n\nBackup created: ${backupName}\nUndo will reload this editor.`,
+        type: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Undo',
+        cancelButtonText: 'Close',
+        closeOnConfirm: false,
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await restoreEditorBulkMoveBackup(backupName);
+            suppressUnloadPrompt = true;
+            location.reload();
+        } catch (error) {
+            swal({
+                title: 'Undo failed',
+                text: extractAjaxErrorMessage(error, 'bulk move undo'),
+                type: 'error'
+            });
+        }
+    });
+};
+
+async function applyEditorMemberBulkMove() {
+    if (memberBulkMoveInFlight) {
+        return false;
+    }
+    if (getSectionChangeItems('members').length > 0) {
+        swal({
+            title: 'Save member edits first',
+            text: 'Bulk move is disabled while the Members section has unsaved local changes. Submit or reset those member edits first, then run the move.',
+            type: 'warning'
+        });
+        return false;
+    }
+    const targetFolderId = String($('#fvMemberBulkTarget').val() || '').trim();
+    if (!targetFolderId) {
+        swal({
+            title: 'Select a folder',
+            text: 'Choose a target folder for the bulk move first.',
+            type: 'error'
+        });
+        return false;
+    }
+    const sharedApi = getFolderBulkAssignmentSharedApi();
+    if (!sharedApi) {
+        swal({
+            title: 'Bulk move unavailable',
+            text: 'The shared bulk assignment engine did not load on this page.',
+            type: 'error'
+        });
+        return false;
+    }
+    const scopeDetails = collectCurrentMemberBulkMoveScope();
+    const plan = sharedApi.buildBulkAssignmentPlan(type, targetFolderId, scopeDetails.names || []);
+    const scopeLabel = describeMemberBulkMoveScope(scopeDetails.scope);
+    if (!plan.targetFolderId) {
+        swal({
+            title: 'Missing target folder',
+            text: 'Select a target folder before applying the bulk move.',
+            type: 'error'
+        });
+        return false;
+    }
+    if (!plan.selectedNames.length && scopeDetails.skippedRegexNames.length > 0) {
+        swal({
+            title: 'Nothing movable in this scope',
+            text: 'The current scope only contains regex-controlled members. Edit the folder rules instead of using bulk move for those entries.',
+            type: 'info'
+        });
+        return false;
+    }
+    if (!plan.selectedNames.length) {
+        swal({
+            title: 'Nothing selected',
+            text: 'There are no movable members in the current scope.',
+            type: 'info'
+        });
+        return false;
+    }
+
+    const regexSkipText = scopeDetails.skippedRegexNames.length > 0
+        ? `\nRegex-controlled skipped: ${scopeDetails.skippedRegexNames.length}`
+        : '';
+    const summary = [
+        `Scope: ${scopeLabel}`,
+        `Target: ${plan.targetFolderName || plan.targetFolderId}`,
+        `Create: ${plan.creates.length}`,
+        `Move: ${plan.moves.length}`,
+        `Unchanged: ${plan.unchanged.length}`,
+        `Invalid: ${plan.invalidNames.length}`,
+        `Duplicates dropped: ${plan.duplicateNames.length}${regexSkipText}`
+    ].join('\n');
+
+    swal({
+        title: `${scopeLabel}?`,
+        text: `${summary}\n\nA backup snapshot will be created first.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Move',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: false,
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        memberBulkMoveInFlight = true;
+        updateMemberBulkMoveUi();
+        try {
+            const preludeLines = sharedApi.buildBulkAssignmentPreludeLines(plan, {
+                extraSkipped: (scopeDetails.skippedRegexNames || []).map((name) => ({
+                    name,
+                    detail: 'Skipped because this member is currently controlled by folder rules or labels.'
+                }))
+            });
+            const executionResult = await sharedApi.executeBulkAssignmentPlan(type, plan, {
+                typeLabel: type === 'docker' ? 'Docker' : 'VM',
+                operationScope: 'editor-bulk-move',
+                operationLabel: `${type === 'docker' ? 'Docker' : 'VM'} editor bulk move`,
+                backupReason: 'before-folder-editor-bulk-move',
+                preludeLines,
+                offerUndo: false,
+                trackDiagnostics: false,
+                onProgress: ({ chunkNumber, chunkCount, chunkSize }) => {
+                    $('#fvMemberBulkSummary').text(`Applying chunk ${chunkNumber}/${chunkCount} (${chunkSize} item${chunkSize === 1 ? '' : 's'})...`);
+                    updateMemberBulkMoveUi();
+                }
+            });
+            if (executionResult?.cancelled) {
+                $('#fvMemberBulkSummary').text(executionResult.summary || 'Bulk move is already running.');
+                return;
+            }
+            applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
+            const successMessage = executionResult?.summary || `Moved ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'}.`;
+            $('#fvMemberBulkSummary').text(successMessage);
+            swal.close();
+            await offerMemberBulkMoveUndo(executionResult?.backup || null, successMessage);
+        } catch (error) {
+            $('#fvMemberBulkSummary').text('Bulk move failed.');
+            swal({
+                title: 'Bulk move failed',
+                text: extractAjaxErrorMessage(error, 'member bulk move'),
+                type: 'error'
+            });
+        } finally {
+            memberBulkMoveInFlight = false;
+            updateMemberBulkMoveUi();
+        }
+    });
+    return false;
+}
+
+function updateMemberBulkMoveUi() {
+    const summaryNode = $('#fvMemberBulkSummary');
+    const moveButton = $('#fvMemberBulkMove');
+    const targetSelect = $('#fvMemberBulkTarget');
+    const scopeDetails = collectCurrentMemberBulkMoveScope();
+    const targetFolderId = String(targetSelect.val() || '').trim();
+    if (moveButton.length) {
+        moveButton.prop('disabled', memberBulkMoveInFlight || !targetFolderId || (scopeDetails.movableCount || 0) <= 0);
+        moveButton.html(memberBulkMoveInFlight
+            ? '<i class="fa fa-refresh fa-spin"></i> Moving...'
+            : '<i class="fa fa-exchange"></i> Move to folder');
+    }
+    if (!summaryNode.length) {
+        return;
+    }
+    if (memberBulkMoveInFlight) {
+        return;
+    }
+    if ((scopeDetails.movableCount || 0) <= 0) {
+        summaryNode.text(scopeDetails.skippedRegexNames.length > 0
+            ? 'Current scope only contains regex-controlled members. Those stay controlled by rules.'
+            : 'No movable members in the current scope.');
+        return;
+    }
+    const regexNote = scopeDetails.skippedRegexNames.length > 0
+        ? ` • ${scopeDetails.skippedRegexNames.length} regex-controlled skipped`
+        : '';
+    summaryNode.text(`${scopeDetails.movableCount} ready to move${regexNote}`);
+}
 
 const buildFolderSettingsApplyDialogHtml = (entry, targets) => {
     const summaryHtml = buildFolderSettingsSummaryHtml(entry);

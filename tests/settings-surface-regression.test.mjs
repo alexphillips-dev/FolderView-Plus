@@ -15,6 +15,7 @@ const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderv
 const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
@@ -30,12 +31,14 @@ test('settings page loads smart-detect config before starter templates and diagn
     const supportBundleBrowserIndex = settingsPage.indexOf('folderviewplus.support-bundle-browser.js');
     const supportBundleTelemetryIndex = settingsPage.indexOf('folderviewplus.support-bundle-telemetry.js');
     const diagnosticsIndex = settingsPage.indexOf('folderviewplus.activity-diagnostics.js');
+    const bulkAssignmentSharedIndex = settingsPage.indexOf('folderviewplus.bulk-assignment.shared.js');
     assert.ok(configIndex >= 0, 'smart-detect config include is missing');
     assert.ok(templatesIndex >= 0, 'starter templates include is missing');
     assert.ok(supportBundlePreviewIndex >= 0, 'support bundle preview include is missing');
     assert.ok(supportBundleBrowserIndex >= 0, 'support bundle browser include is missing');
     assert.ok(supportBundleTelemetryIndex >= 0, 'support bundle telemetry include is missing');
     assert.ok(diagnosticsIndex >= 0, 'activity diagnostics include is missing');
+    assert.ok(bulkAssignmentSharedIndex >= 0, 'bulk assignment shared include is missing');
     assert.ok(configIndex < templatesIndex, 'smart-detect config must load before starter templates');
     assert.ok(templatesIndex < supportBundlePreviewIndex, 'starter templates must load before support bundle preview module');
     assert.ok(supportBundlePreviewIndex < supportBundleBrowserIndex, 'support bundle preview module must load before support bundle browser helper');
@@ -43,6 +46,7 @@ test('settings page loads smart-detect config before starter templates and diagn
     assert.ok(supportBundlePreviewIndex < supportBundleTelemetryIndex, 'support bundle preview module must load before support bundle telemetry');
     assert.ok(supportBundleTelemetryIndex < diagnosticsIndex, 'support bundle telemetry module must load before diagnostics');
     assert.ok(configIndex < diagnosticsIndex, 'smart-detect config must load before diagnostics');
+    assert.ok(diagnosticsIndex < bulkAssignmentSharedIndex, 'activity diagnostics must load before bulk assignment shared module');
 });
 
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {

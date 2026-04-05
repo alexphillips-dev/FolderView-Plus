@@ -435,7 +435,10 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 
 test('release-on-main validates remote raw publish artifacts before publishing releases', () => {
     assert.match(releaseOnMainWorkflow, /Detect release artifact changes/);
+    assert.match(releaseOnMainWorkflow, /MANUAL_DISPATCH='.*workflow_dispatch.*'/);
     assert.match(releaseOnMainWorkflow, /should_publish/);
+    assert.match(releaseOnMainWorkflow, /manual_dispatch=\$\{MANUAL_DISPATCH\}/);
+    assert.match(releaseOnMainWorkflow, /if \[\[ "\$\{MANUAL_DISPATCH\}" == '1' \]\]; then/);
     assert.match(releaseOnMainWorkflow, /Skip release publish for non-release main pushes/);
     assert.match(releaseOnMainWorkflow, /Validate remote raw publish artifacts/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'30'/);
@@ -585,6 +588,11 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(i18nGuard, /Missing base locale file/);
     assert.match(langUsageGuard, /Language usage guard passed/);
     assert.match(langUsageGuard, /data-i18n/);
+    assert.match(langUsageGuard, /i18nCallRegexes/);
+    assert.match(langUsageGuard, /\$\\\.i18n/);
+    assert.match(langUsageGuard, /jq\\\.i18n/);
+    assert.match(langUsageGuard, /i18nWrapperRegex/);
+    assert.match(langUsageGuard, /i18nLabel\|i18nText/);
     assert.match(themeScopeGuard, /Theme scope guard passed/);
     assert.match(themeScopeGuard, /#fv-settings-root/);
     assert.match(themeRuntimeGuard, /Theme runtime guard passed/);

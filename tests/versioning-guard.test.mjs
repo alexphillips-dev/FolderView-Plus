@@ -40,6 +40,7 @@ const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.s
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
+const syncMainToDevPath = path.join(repoRoot, 'scripts/sync_main_to_dev.sh');
 const prePushHookPath = path.join(repoRoot, '.githooks/pre-push');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const jsUnusedSymbolsGuardPath = path.join(repoRoot, 'scripts/js_unused_symbols_guard.mjs');
@@ -68,6 +69,7 @@ const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
+const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
 const themeMatrixSmokeNode = fs.readFileSync(themeMatrixSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
@@ -425,6 +427,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
     assert.match(backmergeWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'0'/);
     assert.match(backmergeWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'0'/);
+    assert.match(backmergeWorkflow, /pull-requests:\s*write/);
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
@@ -445,6 +448,12 @@ test('release-on-main validates remote raw publish artifacts before publishing r
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'10'/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
     assert.doesNotMatch(releaseMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
+});
+
+test('release notes builder supports curated per-version override files', () => {
+    assert.match(buildReleaseNotes, /OVERRIDE_FILE="docs\/releases\/\$\{VERSION\}\.md"/);
+    assert.match(buildReleaseNotes, /\[\[ -f "\$\{OVERRIDE_FILE\}" \]\]/);
+    assert.match(buildReleaseNotes, /cat "\$\{OVERRIDE_FILE\}"/);
 });
 
 test('release workflows serialize concurrent runs with shared release concurrency group', () => {
@@ -494,9 +503,24 @@ test('back-merge workflow validates merged dev state before pushing', () => {
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /Sync main into dev/);
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
-    assert.match(backmergeWorkflow, /Push dev when updated/);
+    assert.match(backmergeWorkflow, /Push back-merge branch when updated/);
+    assert.match(backmergeWorkflow, /Create or update back-merge PR/);
+    assert.match(backmergeWorkflow, /git push --force-with-lease origin dev:"\$\{BACKMERGE_BRANCH\}"/);
+    assert.match(backmergeWorkflow, /gh pr create --base dev --head "\$\{BACKMERGE_BRANCH\}"/);
+    assert.match(backmergeWorkflow, /gh pr edit "\$\{EXISTING_PR\}"/);
     assert.match(backmergeWorkflow, /Collect back-merge debug artifacts on failure/);
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
+});
+
+test('back-merge sync script keeps dev linear and drops stable release artifacts', () => {
+    assert.match(syncMainToDev, /git log "\$\{MAIN_REF\}" --first-parent --grep='\^Merge dev into main for ' --format='%H' -n 1/);
+    assert.match(syncMainToDev, /git rev-list --reverse --first-parent --no-merges "\$\{SYNC_BASE\}\.\.\$\{MAIN_REF\}"/);
+    assert.match(syncMainToDev, /git cherry-pick -x "\$\{COMMIT\}"/);
+    assert.match(syncMainToDev, /git diff --name-only --diff-filter=U/);
+    assert.match(syncMainToDev, /git checkout --ours -- "\$\{CONFLICT_PATHS\[@\]\}"/);
+    assert.match(syncMainToDev, /git cherry-pick --continue/);
+    assert.match(syncMainToDev, /git restore --source=HEAD\^ --staged --worktree folderview\.plus\.plg folderview\.plus\.xml archive/);
+    assert.doesNotMatch(syncMainToDev, /git merge --no-ff --no-commit/);
 });
 
 test('install smoke supports configurable archive directory override', () => {

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
-DEV_BRANCH="dev"
+DEV_BRANCH="${FVPLUS_BACKMERGE_LOCAL_BRANCH:-dev}"
 MAIN_REF="origin/main"
 DEV_REF="origin/dev"
 
@@ -20,6 +20,26 @@ release_only_path() {
       return 1
       ;;
   esac
+}
+
+latest_dev_merge_into_main() {
+  git log "${MAIN_REF}" --first-parent --grep='^Merge dev into main for ' --format='%H' -n 1
+}
+
+resolve_release_only_conflicts() {
+  local path=""
+  mapfile -t CONFLICT_PATHS < <(git diff --name-only --diff-filter=U || true)
+  if [ "${#CONFLICT_PATHS[@]}" -eq 0 ]; then
+    return 1
+  fi
+  for path in "${CONFLICT_PATHS[@]}"; do
+    if ! release_only_path "${path}"; then
+      return 1
+    fi
+  done
+  git checkout --ours -- "${CONFLICT_PATHS[@]}"
+  git add -- "${CONFLICT_PATHS[@]}"
+  return 0
 }
 
 main_differs_from_dev_only_by_release_artifacts() {
@@ -38,6 +58,7 @@ main_differs_from_dev_only_by_release_artifacts() {
 
 if git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
   git checkout "${DEV_BRANCH}"
+  git reset --hard "${DEV_REF}"
 else
   git checkout -b "${DEV_BRANCH}" "${DEV_REF}"
 fi
@@ -52,43 +73,65 @@ if main_differs_from_dev_only_by_release_artifacts; then
   exit 0
 fi
 
-MERGED_CLEANLY=1
-if ! git merge --no-ff --no-commit "${MAIN_REF}"; then
-  MERGED_CLEANLY=0
+SYNC_BASE="$(latest_dev_merge_into_main || true)"
+if [ -z "${SYNC_BASE}" ]; then
+  SYNC_BASE="$(git merge-base "${DEV_REF}" "${MAIN_REF}")"
 fi
 
-if [ "${MERGED_CLEANLY}" -eq 0 ]; then
-  mapfile -t CONFLICTS < <(git diff --name-only --diff-filter=U)
+mapfile -t MAIN_ONLY_COMMITS < <(git rev-list --reverse --first-parent --no-merges "${SYNC_BASE}..${MAIN_REF}" || true)
 
-  if [ "${#CONFLICTS[@]}" -eq 0 ]; then
-    echo "Merge reported conflicts but none were detected." >&2
-    exit 1
+if [ "${#MAIN_ONLY_COMMITS[@]}" -eq 0 ]; then
+  echo "No linear main-only commits to sync."
+  exit 0
+fi
+
+applied_commits=0
+
+for COMMIT in "${MAIN_ONLY_COMMITS[@]}"; do
+  mapfile -t COMMIT_PATHS < <(git show --pretty=format: --name-only "${COMMIT}" | sed '/^[[:space:]]*$/d')
+  if [ "${#COMMIT_PATHS[@]}" -eq 0 ]; then
+    continue
   fi
 
-  for FILE in "${CONFLICTS[@]}"; do
-    if ! release_only_path "${FILE}"; then
-      echo "Unexpected merge conflict in ${FILE}; aborting auto back-merge." >&2
-      git merge --abort
-      exit 1
+  commit_has_non_release_paths=0
+  commit_touched_release_paths=0
+  for FILE in "${COMMIT_PATHS[@]}"; do
+    if release_only_path "${FILE}"; then
+      commit_touched_release_paths=1
+    else
+      commit_has_non_release_paths=1
     fi
   done
 
-  git checkout HEAD -- archive folderview.plus.plg
-  git add archive folderview.plus.plg
-fi
-
-# Always force dev channel URLs in case main touched these lines without conflicts.
-sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/dev/folderview.plus.plg">|' folderview.plus.plg
-sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/dev/archive/\&name;-\&version;.txz</URL>|' folderview.plus.plg
-git add folderview.plus.plg
-
-if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
-  if git diff --cached --quiet; then
-    git commit --allow-empty -m "Sync main into dev (auto back-merge)"
-  else
-    git commit -m "Sync main into dev (auto back-merge)"
+  if [ "${commit_has_non_release_paths}" -eq 0 ]; then
+    echo "Skipping release-only commit ${COMMIT}."
+    continue
   fi
-  echo "Back-merge commit created."
-else
-  echo "No merge head present; nothing to commit."
+
+  if ! git cherry-pick -x "${COMMIT}"; then
+    if resolve_release_only_conflicts && git cherry-pick --continue; then
+      :
+    else
+      echo "Cherry-pick failed for ${COMMIT}; aborting auto back-merge." >&2
+      git cherry-pick --abort
+      exit 1
+    fi
+  fi
+
+  if [ "${commit_touched_release_paths}" -eq 1 ]; then
+    git restore --source=HEAD^ --staged --worktree folderview.plus.plg folderview.plus.xml archive
+    if ! git diff --cached --quiet || ! git diff --quiet; then
+      git add folderview.plus.plg folderview.plus.xml archive
+      git commit --amend --no-edit
+    fi
+  fi
+
+  applied_commits=1
+done
+
+if [ "${applied_commits}" -eq 0 ]; then
+  echo "No non-release commits required syncing."
+  exit 0
 fi
+
+echo "Back-merge branch updated linearly."

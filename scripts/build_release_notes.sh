@@ -11,6 +11,7 @@ fvplus::require_commands awk sed bash
 VERSION=""
 OUTPUT=""
 INSTALL_BRANCH="${FVPLUS_RELEASE_INSTALL_BRANCH:-main}"
+OVERRIDE_FILE=""
 
 usage() {
   cat <<'EOF'
@@ -45,6 +46,19 @@ fi
 
 if [[ -z "${OUTPUT}" ]]; then
   fvplus::fail "--output is required"
+fi
+
+OVERRIDE_FILE="docs/releases/${VERSION}.md"
+
+if [[ -f "${OVERRIDE_FILE}" ]]; then
+  cat > "${OUTPUT}" <<EOF
+## FolderView Plus ${VERSION}
+
+Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${INSTALL_BRANCH}/folderview.plus.plg\`
+
+$(cat "${OVERRIDE_FILE}")
+EOF
+  exit 0
 fi
 
 NOTES_BLOCK="$(awk -v version="${VERSION}" '

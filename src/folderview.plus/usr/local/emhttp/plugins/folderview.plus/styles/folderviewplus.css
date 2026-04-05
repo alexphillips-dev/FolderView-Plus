@@ -658,16 +658,6 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     padding-left: 0;
 }
 
-.fv-col-resize-guide {
-    position: fixed;
-    width: 2px;
-    background: rgba(84, 166, 255, 0.94);
-    box-shadow: 0 0 0 1px rgba(84, 166, 255, 0.22), 0 0 12px rgba(84, 166, 255, 0.24);
-    pointer-events: none;
-    z-index: 100000;
-    border-radius: 999px;
-}
-
 .name-cell-content {
     display: inline-grid;
     grid-template-columns: 14px 30px 1fr;

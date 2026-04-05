@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: folderview-plus-backmerge-main-to-dev
@@ -16,6 +17,8 @@ concurrency:
 jobs:
   backmerge:
     runs-on: ubuntu-latest
+    env:
+      BACKMERGE_BRANCH: backmerge/main-to-dev
 
     steps:
       - name: Checkout repository
@@ -63,16 +66,48 @@ jobs:
           chmod +x scripts/run_ci_suite.sh
           bash scripts/run_ci_suite.sh
 
-      - name: Push dev when updated
+      - name: Push back-merge branch when updated
+        id: push_backmerge
         run: |
-          git fetch origin dev
+          git fetch origin dev "${BACKMERGE_BRANCH}" || true
           LOCAL_DEV="$(git rev-parse dev)"
           REMOTE_DEV="$(git rev-parse origin/dev)"
           if [ "${LOCAL_DEV}" = "${REMOTE_DEV}" ]; then
             echo "No dev changes produced by back-merge."
+            echo "updated=0" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
-          git push origin dev
+          git push --force-with-lease origin dev:"${BACKMERGE_BRANCH}"
+          echo "updated=1" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or update back-merge PR
+        if: steps.push_backmerge.outputs.updated == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="Sync main into dev"
+          BODY_FILE="$(mktemp)"
+          cat > "${BODY_FILE}" <<'EOF'
+          ## Summary
+
+          Automated back-merge of main-only fixes into `dev`.
+
+          This PR contains the commits present on `main` but not on `dev`, excluding stable release artifacts:
+          - `folderview.plus.plg`
+          - `folderview.plus.xml`
+          - `archive/*.txz`
+          - `archive/*.sha256`
+          EOF
+
+          EXISTING_PR="$(gh pr list --state open --base dev --head "${BACKMERGE_BRANCH}" --json number --jq '.[0].number')"
+          if [ -n "${EXISTING_PR}" ]; then
+            gh pr edit "${EXISTING_PR}" --title "${TITLE}" --body-file "${BODY_FILE}"
+            echo "Updated back-merge PR #${EXISTING_PR}."
+          else
+            gh pr create --base dev --head "${BACKMERGE_BRANCH}" --title "${TITLE}" --body-file "${BODY_FILE}"
+            echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev."
+          fi
 
       - name: Collect back-merge debug artifacts on failure
         if: failure()

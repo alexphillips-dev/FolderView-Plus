@@ -277,6 +277,9 @@ test('diagnostics tab keeps inner side gutters for summary and workbench modules
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
     assert.match(settingsCss, /\.fv-diagnostics-module-wrap\s*>\s*\.rules-panel\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-workbench\s*\{[\s\S]*align-items:\s*start;/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane\s*\{[\s\S]*align-content:\s*start;/);
+    assert.match(settingsCss, /\.fv-diagnostics-action-list\s*\{[\s\S]*align-content:\s*start;/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card,[\s\S]*\.fv-support-bundle-redaction-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);

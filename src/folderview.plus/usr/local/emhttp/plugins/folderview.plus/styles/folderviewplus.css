@@ -4229,11 +4229,13 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 0.85rem;
+    align-items: start;
 }
 
 .fv-diagnostics-lane {
     display: grid;
     gap: 0.7rem;
+    align-content: start;
 }
 
 .fv-diagnostics-lane-head {
@@ -4249,6 +4251,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-action-list {
     display: grid;
     gap: 0.65rem;
+    align-content: start;
 }
 
 .fv-diagnostics-action-card {

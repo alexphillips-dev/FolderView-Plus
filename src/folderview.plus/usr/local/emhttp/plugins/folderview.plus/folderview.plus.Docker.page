@@ -55,6 +55,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/runtime.column-layout.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js')?>"></script>

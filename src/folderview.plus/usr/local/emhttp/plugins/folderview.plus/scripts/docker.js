@@ -4324,6 +4324,20 @@ const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = f
     }
 };
 
+const copyDockerFolderSettingsFromMenu = async (id) => {
+    const actionsApi = getDockerRuntimeActionsApi();
+    if (actionsApi && typeof actionsApi.copyDockerFolderSettingsFromMenu === 'function') {
+        await actionsApi.copyDockerFolderSettingsFromMenu(id);
+    }
+};
+
+const pasteDockerFolderSettingsFromMenu = async (id) => {
+    const actionsApi = getDockerRuntimeActionsApi();
+    if (actionsApi && typeof actionsApi.pasteDockerFolderSettingsFromMenu === 'function') {
+        await actionsApi.pasteDockerFolderSettingsFromMenu(id);
+    }
+};
+
 const cloneDockerFolderFromMenu = async (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.cloneDockerFolderFromMenu === 'function') {
@@ -4860,6 +4874,22 @@ const addDockerFolderContext = (id) => {
             }
         });
     }
+    cloneSubMenu.push({
+        text: getDockerMenuLabel('copy-folder-settings', 'Copy Folder Settings'),
+        icon: 'fa-files-o',
+        action: (evt) => {
+            evt.preventDefault();
+            copyDockerFolderSettingsFromMenu(id);
+        }
+    });
+    cloneSubMenu.push({
+        text: getDockerMenuLabel('paste-folder-settings', 'Paste Folder Settings'),
+        icon: 'fa-clipboard',
+        action: (evt) => {
+            evt.preventDefault();
+            pasteDockerFolderSettingsFromMenu(id);
+        }
+    });
     opts.push({
         text: getDockerMenuLabel('clone-menu', 'Clone'),
         icon: 'fa-clone',

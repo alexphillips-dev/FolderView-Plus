@@ -408,7 +408,7 @@
         if (!actionBarMain) {
             return;
         }
-        Array.from(form.querySelectorAll('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')).forEach((entry) => {
+        Array.from(form.querySelectorAll('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')).forEach((entry) => {
             actionBarMain.appendChild(entry);
         });
     };
@@ -662,7 +662,7 @@
             if (child.matches('.fv-section-shell')) {
                 return;
             }
-            if (child.matches('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')) {
+            if (child.matches('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')) {
                 child.style.display = 'none';
                 return;
             }

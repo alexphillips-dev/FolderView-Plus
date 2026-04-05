@@ -59,6 +59,11 @@
         const getDockerMenuLabel = typeof deps.getDockerMenuLabel === 'function'
             ? deps.getDockerMenuLabel
             : ((_key, fallback) => String(fallback || _key || '').trim());
+        const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
+        const folderSettingsTransfer = deps.folderSettingsTransfer
+            || (typeof win?.FolderViewPlusFolderSettingsTransfer?.createApi === 'function'
+                ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
+                : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
         const eventUrl = String(deps.eventURL || win?.eventURL || '').trim();
         const debugEnabled = deps.debugEnabled === true;
@@ -110,6 +115,35 @@
             } catch (_error) {
                 return safeFallback;
             }
+        };
+
+        const parseJsonPayloadSafe = (payload) => {
+            if (!payload) {
+                return {};
+            }
+            if (typeof payload === 'string') {
+                try {
+                    return JSON.parse(payload);
+                } catch (_error) {
+                    return {};
+                }
+            }
+            if (typeof payload === 'object') {
+                return payload;
+            }
+            return {};
+        };
+
+        const postJsonWithFallback = async (url, payload, options = {}) => {
+            if (requestClient && typeof requestClient.postJson === 'function') {
+                try {
+                    return await requestClient.postJson(url, payload, options);
+                } catch (_error) {
+                    // Fall through to the legacy jQuery path if the request client is not ready.
+                }
+            }
+            const response = await jq.post(url, payload).promise();
+            return parseJsonPayloadSafe(response);
         };
 
         const summarizeFolderActionCounts = (containersMap) => {
@@ -566,6 +600,119 @@
             };
         };
 
+        const buildFolderSettingsSummaryHtml = (entry) => {
+            const summary = folderSettingsTransfer?.summarizeClipboardEntry(entry) || {
+                sourceName: 'Copied folder settings',
+                copiedActionCount: 0,
+                droppedMemberBoundActionCount: 0,
+                labels: ['Folder settings']
+            };
+            const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
+            const skippedHint = summary.droppedMemberBoundActionCount > 0
+                ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+                : '';
+            return [
+                `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
+                `<div style="margin-top:8px;"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
+                skippedHint
+            ].join('');
+        };
+
+        const copyDockerFolderSettingsFromMenu = async (id) => {
+            await runDockerGuardedAction('copy-folder-settings', async () => {
+                if (!ensureDockerFolderUnlocked(id, 'Copy folder settings')) {
+                    return;
+                }
+                if (!folderSettingsTransfer) {
+                    throw new Error('Folder settings transfer module is unavailable.');
+                }
+                const source = getFolderById(id);
+                if (!source || typeof source !== 'object') {
+                    return;
+                }
+                const clipboardEntry = folderSettingsTransfer.buildClipboardEntry('docker', source, {
+                    sourceId: id,
+                    sourceName: String(source?.name || id).trim(),
+                    sourceContext: 'docker-runtime'
+                });
+                if (!clipboardEntry || folderSettingsTransfer.writeClipboardEntry(clipboardEntry) !== true) {
+                    throw new Error('Unable to copy folder settings into the clipboard.');
+                }
+                swalFn({
+                    title: 'Folder settings copied',
+                    text: buildFolderSettingsSummaryHtml(clipboardEntry),
+                    type: 'success',
+                    html: true,
+                    confirmButtonText: 'OK'
+                });
+            }, {
+                userMessage: getDockerMenuLabel('copy-folder-settings-failed', 'Failed to copy folder settings.'),
+                userVisible: true
+            });
+        };
+
+        const pasteDockerFolderSettingsFromMenu = async (id) => {
+            await runDockerGuardedAction('paste-folder-settings', async () => {
+                if (!ensureDockerFolderUnlocked(id, 'Paste folder settings')) {
+                    return;
+                }
+                if (!folderSettingsTransfer) {
+                    throw new Error('Folder settings transfer module is unavailable.');
+                }
+                const targetFolder = getFolderById(id);
+                if (!targetFolder || typeof targetFolder !== 'object') {
+                    return;
+                }
+                const clipboardEntry = folderSettingsTransfer.readClipboardEntry('docker');
+                if (!clipboardEntry) {
+                    swalFn({
+                        title: 'No folder settings copied',
+                        text: 'Copy folder settings from another Docker folder first.',
+                        type: 'info',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+                const summaryHtml = [
+                    `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
+                    `<div style="margin-top:10px;">${buildFolderSettingsSummaryHtml(clipboardEntry)}</div>`
+                ].join('');
+                swalFn({
+                    title: 'Paste folder settings',
+                    text: summaryHtml,
+                    type: 'warning',
+                    html: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Paste',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: false,
+                    showLoaderOnConfirm: true
+                }, async (confirmed) => {
+                    if (!confirmed) {
+                        return;
+                    }
+                    try {
+                        getSpinner()?.show('slow');
+                        await postJsonWithFallback('/plugins/folderview.plus/server/apply_folder_settings.php', {
+                            type: 'docker',
+                            targetIds: JSON.stringify([id]),
+                            settings: JSON.stringify(clipboardEntry.payload)
+                        }, {
+                            retries: 1,
+                            retryDelayMs: 260
+                        });
+                        swal.close();
+                        refreshDockerList();
+                    } finally {
+                        getSpinner()?.hide('slow');
+                    }
+                });
+            }, {
+                userMessage: getDockerMenuLabel('paste-folder-settings-failed', 'Failed to paste folder settings.'),
+                userVisible: true
+            });
+        };
+
         const buildDockerFolderCloneIdFallback = (reservedIds = new Set()) => {
             const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             const reserved = reservedIds instanceof Set ? reservedIds : new Set();
@@ -869,6 +1016,8 @@
             collectFolderWebuiTargets,
             showFolderWebuiPopupWarning,
             openFolderWebuisFromMenu,
+            copyDockerFolderSettingsFromMenu,
+            pasteDockerFolderSettingsFromMenu,
             cloneDockerFolderFromMenu,
             buildDockerFolderClonePayload,
             generateDockerFolderCloneId,

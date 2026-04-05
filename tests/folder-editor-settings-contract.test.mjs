@@ -35,7 +35,7 @@ const modernSchema = schemaContext.window.FolderViewPlusFolderEditorSchema.creat
 const schemaFieldsBySection = modernSchema.SECTION_FIELD_NAMES;
 const schemaFields = Object.values(schemaFieldsBySection).flat();
 const pageFieldNames = new Set(Array.from(folderPage.matchAll(/name="([^"]+)"/g)).map((match) => match[1]));
-const submitFormBlock = folderJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\};/)?.[1] || '';
+const buildFolderPayloadBlock = folderJs.match(/const buildFolderPayloadFromForm = \(e\) => \{([\s\S]*?)\n\};/)?.[1] || '';
 
 const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -78,9 +78,10 @@ test('modern folder editor load path covers every schema-backed field', () => {
 });
 
 test('modern folder editor save path references every schema-backed field', () => {
-    assert.match(submitFormBlock, /parentId:\s*normalizeParentFolderId\(e\.parent_folder_id\?\.value \|\| ''\)/);
+    assert.match(folderJs, /const folder = buildFolderPayloadFromForm\(e\);/);
+    assert.match(buildFolderPayloadBlock, /parentId:\s*normalizeParentFolderId\(e\.parent_folder_id\?\.value \|\| ''\)/);
 
     const fieldsSavedDirectly = schemaFields.filter((fieldName) => fieldName !== 'parent_folder_id');
-    const missingSavedFields = fieldsSavedDirectly.filter((fieldName) => !submitFormBlock.includes(fieldName));
+    const missingSavedFields = fieldsSavedDirectly.filter((fieldName) => !buildFolderPayloadBlock.includes(fieldName));
     assert.deepEqual(missingSavedFields, []);
 });

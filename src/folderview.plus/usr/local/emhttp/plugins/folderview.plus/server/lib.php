@@ -1118,6 +1118,48 @@
         return $normalized;
     }
 
+    function normalizeFolderSettingsTransferPayload(array $payload): array {
+        fvplus_assert_folder_settings_payload_shape($payload);
+
+        $normalized = [];
+        $normalized['icon'] = truncateUtf8String(trim((string)($payload['icon'] ?? '')), 2048);
+        $normalized['settings'] = [];
+        if (array_key_exists('settings', $payload) && is_array($payload['settings'])) {
+            $settingsCarrier = normalizeFolderContentPayload(['settings' => $payload['settings']]);
+            $normalized['settings'] = is_array($settingsCarrier['settings'] ?? null) ? $settingsCarrier['settings'] : [];
+        }
+
+        $normalizedActions = [];
+        if (array_key_exists('actions', $payload) && is_array($payload['actions'])) {
+            foreach ($payload['actions'] as $action) {
+                if (!is_array($action)) {
+                    continue;
+                }
+                $normalizedAction = normalizeFolderNestedValue($action);
+                if (!is_array($normalizedAction)) {
+                    continue;
+                }
+                $actionType = (int)($normalizedAction['type'] ?? 0);
+                if ($actionType !== 1) {
+                    continue;
+                }
+                if (isset($normalizedAction['containers'])) {
+                    unset($normalizedAction['containers']);
+                }
+                if (isset($normalizedAction['conatiners'])) {
+                    unset($normalizedAction['conatiners']);
+                }
+                $normalizedActions[] = $normalizedAction;
+            }
+        }
+        if (($normalized['settings']['override_default_actions'] ?? false) === true && count($normalizedActions) <= 0) {
+            $normalized['settings']['override_default_actions'] = false;
+        }
+        $normalized['actions'] = array_values($normalizedActions);
+
+        return $normalized;
+    }
+
     function normalizeFolderParentIdValue($value): string {
         if (!is_string($value) && !is_numeric($value)) {
             return '';
@@ -3473,6 +3515,68 @@
         } catch (Throwable $err) {
             // Keep update flow non-fatal.
         }
+    }
+
+    function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {
+        $type = ensureType($type);
+        $normalizedSettings = normalizeFolderSettingsTransferPayload($settingsPayload);
+        $normalizedTargetIds = [];
+        foreach ($targetIds as $targetId) {
+            $safeTargetId = truncateUtf8String(trim((string)$targetId), 64);
+            if ($safeTargetId === '' || in_array($safeTargetId, $normalizedTargetIds, true)) {
+                continue;
+            }
+            $normalizedTargetIds[] = $safeTargetId;
+        }
+        if (count($normalizedTargetIds) <= 0) {
+            throw new RuntimeException('Select at least one target folder.');
+        }
+
+        $fileData = readRawFolderMap($type);
+        foreach ($normalizedTargetIds as $targetId) {
+            if (!is_array($fileData[$targetId] ?? null)) {
+                throw new RuntimeException('Target folder not found.');
+            }
+        }
+
+        $backup = createBackupSnapshot($type, 'before-apply-folder-settings');
+        $updatedAt = gmdate('c');
+        foreach ($normalizedTargetIds as $targetId) {
+            $existingFolder = normalizeFolderContentPayload((array)$fileData[$targetId]);
+            $createdAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
+            if ($createdAt === '') {
+                $createdAt = gmdate('c');
+            }
+            $existingFolder['icon'] = $normalizedSettings['icon'] ?? '';
+            $existingFolder['settings'] = is_array($normalizedSettings['settings'] ?? null) ? $normalizedSettings['settings'] : [];
+            $existingFolder['actions'] = is_array($normalizedSettings['actions'] ?? null) ? $normalizedSettings['actions'] : [];
+            $existingFolder['createdAt'] = $createdAt;
+            $existingFolder['updatedAt'] = $updatedAt;
+            $fileData[$targetId] = normalizeFolderContentPayload($existingFolder);
+            $fileData[$targetId]['createdAt'] = $createdAt;
+            $fileData[$targetId]['updatedAt'] = $updatedAt;
+        }
+
+        $fileData = normalizeFolderParentLinks($fileData);
+        writeRawFolderMap($type, $fileData);
+        syncManualOrderWithFolders($type, $fileData);
+        try {
+            appendDiagnosticsHistoryEvent('folder_settings_apply', $type, [
+                'folderIds' => $normalizedTargetIds,
+                'targetCount' => count($normalizedTargetIds),
+                'backupName' => (string)($backup['name'] ?? ''),
+                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep apply flow non-fatal.
+        }
+
+        return [
+            'updatedIds' => $normalizedTargetIds,
+            'updatedCount' => count($normalizedTargetIds),
+            'backup' => $backup,
+            'settings' => $normalizedSettings
+        ];
     }
 
     function deleteFolder(string $type, string $id) : void {

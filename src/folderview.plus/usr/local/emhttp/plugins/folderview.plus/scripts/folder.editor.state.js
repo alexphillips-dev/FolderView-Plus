@@ -254,7 +254,7 @@
             if (!shell.length) {
                 return;
             }
-            const controls = $('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator');
+            const controls = $('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator');
             controls.each((_, element) => {
                 shell.append(element);
             });

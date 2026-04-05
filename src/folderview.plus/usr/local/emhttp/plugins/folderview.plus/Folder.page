@@ -336,6 +336,7 @@ try {
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.rules.js',
+            '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
             '/plugins/folderview.plus/scripts/folder.editor.state.js',
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.editor.icons.js',
@@ -1388,6 +1389,7 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
+        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." onclick="applyFolderSettingsToFolders(); return false;">
         <input class="folder-btn-copy" type="button" value="Save as copy" onclick="submitForm(this.form, true); return false;">
         <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">

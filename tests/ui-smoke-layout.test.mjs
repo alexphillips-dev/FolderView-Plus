@@ -196,6 +196,8 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderPage, /folder\.editor\.preview\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.match(folderPage, /class="folder-btn-apply-settings"/);
+    assert.match(folderPage, /applyFolderSettingsToFolders\(\); return false;/);
     assert.match(folderPage, /folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
     assert.match(folderChromeJs, /FolderViewPlusRefreshModernEditorChromeLayout/);
@@ -232,6 +234,8 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderJs, /let folderEditorPreviewRuntimeApi = null;/);
     assert.match(folderJs, /const getFolderEditorPreviewRuntimeApi = \(\) =>/);
     assert.match(folderJs, /folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule\.createApi\(/);
+    assert.match(folderJs, /const applyFolderSettingsToFolders = async \(\) => \{/);
+    assert.match(folderJs, /window\.applyFolderSettingsToFolders = applyFolderSettingsToFolders;/);
     assert.match(folderJs, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout/);
     assert.match(folderJs, /\.off\('click\.fvEditorSectionSync'\)/);
     assert.match(folderJs, /\.on\('click\.fvEditorSectionSync', function onModernSectionClick\(\) \{\s*setActiveEditorSection\(\$\(this\)\.data\('target'\)\);/);
@@ -261,6 +265,7 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-top:\s*#cf7a22;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-bottom:\s*#b76518;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
+    assert.match(folderCss, /#fvEditorActionBar \.folder-btn-apply-settings,/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-hover-top\),\s*var\(--fv-editor-button-hover-bottom\)\) !important;/);
     assert.match(folderCss, /#fvEditorChrome\[data-fv-theme-class="light"\] \.fv-editor-mode > button\.is-active[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);

@@ -23,6 +23,7 @@ require_lib_exceptions=("cpu.php")
 legacy_json_endpoints=("read.php" "read_info.php" "read_order.php" "read_unraid_order.php")
 plain_text_endpoints=("cpu.php" "version.php")
 mutation_endpoints=(
+  "apply_folder_settings.php"
   "create.php"
   "update.php"
   "delete.php"

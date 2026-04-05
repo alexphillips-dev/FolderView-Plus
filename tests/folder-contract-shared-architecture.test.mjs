@@ -14,6 +14,7 @@ const folderEditorPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
+const folderSettingsTransferJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -92,17 +93,25 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderEditorIconsJs, /const bindIconPickerEvents = async \(\) =>/);
     assert.match(folderEditorIconsJs, /const renderBuiltInIconPicker = \(\) =>/);
     assert.match(folderEditorIconsJs, /root\.FolderViewPlusFolderEditorIconsModuleLoaded = true/);
+    assert.match(folderSettingsTransferJs, /^\/\/ @ts-check/m);
+    assert.match(folderSettingsTransferJs, /root\.FolderViewPlusFolderSettingsTransfer = factory\(\);/);
+    assert.match(folderSettingsTransferJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderSettingsTransferJs, /const normalizeFolderSettingsPayload = \(payload\) =>/);
+    assert.match(folderSettingsTransferJs, /const buildClipboardEntry = \(type,\s*folder,\s*options = \{\}\) =>/);
+    assert.match(folderSettingsTransferJs, /root\.FolderViewPlusFolderSettingsTransferModuleLoaded = true/);
 });
 
 test('runtime pages and folder editor load the shared contract before their consumers', () => {
     const dockerThemeResolverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
     const dockerContractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+    const dockerSettingsTransferIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
     const dockerSharedRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const dockerRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const dockerSharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerTypeCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
     const vmThemeResolverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
     const vmContractIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+    const vmSettingsTransferIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
     const vmSharedRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const vmRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
     const vmSharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
@@ -115,6 +124,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderPreviewRuntimeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js');
     const folderHierarchyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js');
     const folderParentPickerIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.parent-picker.js');
+    const folderSettingsTransferIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
     const folderStateIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.state.js');
     const folderMembersIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.members.js');
     const folderIconsIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.icons.js');
@@ -124,11 +134,14 @@ test('runtime pages and folder editor load the shared contract before their cons
 
     assert.ok(dockerThemeResolverIndex >= 0, 'docker page missing shared theme resolver include');
     assert.ok(dockerContractIndex >= 0, 'docker page missing shared folder contract include');
+    assert.ok(dockerSettingsTransferIndex >= 0, 'docker page missing folder settings transfer include');
     assert.ok(dockerSharedRuntimeIndex >= 0, 'docker page missing shared runtime include');
     assert.ok(dockerRuntimeIndex >= 0, 'docker page missing docker runtime include');
     assert.ok(dockerThemeResolverIndex < dockerSharedRuntimeIndex, 'theme resolver must load before docker.runtime.shared.js');
     assert.ok(dockerThemeResolverIndex < dockerRuntimeIndex, 'theme resolver must load before docker.js');
     assert.ok(dockerContractIndex < dockerSharedRuntimeIndex, 'shared contract must load before docker.runtime.shared.js');
+    assert.ok(dockerContractIndex < dockerSettingsTransferIndex, 'shared contract must load before folder.settings-transfer.js on docker page');
+    assert.ok(dockerSettingsTransferIndex < dockerRuntimeIndex, 'folder.settings-transfer.js must load before docker.js');
     assert.ok(dockerContractIndex < dockerRuntimeIndex, 'shared contract must load before docker.js');
     assert.ok(dockerSharedCssIndex >= 0, 'docker page missing shared runtime stylesheet');
     assert.ok(dockerTypeCssIndex >= 0, 'docker page missing docker stylesheet');
@@ -136,11 +149,14 @@ test('runtime pages and folder editor load the shared contract before their cons
 
     assert.ok(vmThemeResolverIndex >= 0, 'vm page missing shared theme resolver include');
     assert.ok(vmContractIndex >= 0, 'vm page missing shared folder contract include');
+    assert.ok(vmSettingsTransferIndex >= 0, 'vm page missing folder settings transfer include');
     assert.ok(vmSharedRuntimeIndex >= 0, 'vm page missing shared runtime include');
     assert.ok(vmRuntimeIndex >= 0, 'vm page missing vm runtime include');
     assert.ok(vmThemeResolverIndex < vmSharedRuntimeIndex, 'theme resolver must load before shared runtime on VMs page');
     assert.ok(vmThemeResolverIndex < vmRuntimeIndex, 'theme resolver must load before vm.js');
     assert.ok(vmContractIndex < vmSharedRuntimeIndex, 'shared contract must load before shared runtime on VMs page');
+    assert.ok(vmContractIndex < vmSettingsTransferIndex, 'shared contract must load before folder.settings-transfer.js on VMs page');
+    assert.ok(vmSettingsTransferIndex < vmRuntimeIndex, 'folder.settings-transfer.js must load before vm.js');
     assert.ok(vmContractIndex < vmRuntimeIndex, 'shared contract must load before vm.js');
     assert.ok(vmSharedCssIndex >= 0, 'vm page missing shared runtime stylesheet');
     assert.ok(vmTypeCssIndex >= 0, 'vm page missing vm stylesheet');
@@ -155,6 +171,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderBootLoaderIndex >= 0, 'folder editor page missing runtime boot loader');
     assert.ok(folderHierarchyIndex >= 0, 'folder editor page missing hierarchy module include');
     assert.ok(folderParentPickerIndex >= 0, 'folder editor page missing parent picker module include');
+    assert.ok(folderSettingsTransferIndex >= 0, 'folder editor page missing folder settings transfer module include');
     assert.ok(folderStateIndex >= 0, 'folder editor page missing state module include');
     assert.ok(folderMembersIndex >= 0, 'folder editor page missing members module include');
     assert.ok(folderIconsIndex >= 0, 'folder editor page missing icons module include');
@@ -166,13 +183,15 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderSchemaIndex < folderPreviewIndex, 'shared schema must load before folder.editor.preview.js');
     assert.ok(folderPreviewIndex < folderPreviewRuntimeIndex, 'preview renderer must load before folder.editor.preview-runtime.js');
     assert.ok(folderHierarchyIndex < folderParentPickerIndex, 'hierarchy module must load before folder.editor.parent-picker.js');
-    assert.ok(folderParentPickerIndex < folderStateIndex, 'parent picker module must load before folder.editor.state.js');
+    assert.ok(folderParentPickerIndex < folderSettingsTransferIndex, 'parent picker module must load before folder.settings-transfer.js');
+    assert.ok(folderSettingsTransferIndex < folderStateIndex, 'folder.settings-transfer.js must load before folder.editor.state.js');
     assert.ok(folderStateIndex < folderMembersIndex, 'state module must load before folder.editor.members.js');
     assert.ok(folderMembersIndex < folderIconsIndex, 'members module must load before folder.editor.icons.js');
     assert.ok(folderIconsIndex < folderModernIndex, 'icons module must load before folder.js');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/icon-picker.runtime.js'"), 'folder editor page missing boot-loaded icon picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'"), 'folder editor page missing boot-loaded hierarchy runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'"), 'folder editor page missing boot-loaded parent picker runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.settings-transfer.js'"), 'folder editor page missing boot-loaded folder settings transfer runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.chrome.js'"), 'folder editor page missing boot-loaded chrome runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.state.js'"), 'folder editor page missing boot-loaded state runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.members.js'"), 'folder editor page missing boot-loaded members runtime');

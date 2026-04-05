@@ -217,6 +217,7 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     : null;
 const utils = window.FolderViewPlusUtils || null;
 const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
+const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
 const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
 const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
 const folderEditorIconsModule = window.FolderViewPlusFolderEditorIcons || null;
@@ -1275,6 +1276,17 @@ const getFolderEditorStateApi = () => {
     return folderEditorStateApi;
 };
 
+const getFolderSettingsTransferApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi || typeof folderSettingsTransferModule?.createApi !== 'function') {
+            return cachedApi;
+        }
+        cachedApi = folderSettingsTransferModule.createApi({ window });
+        return cachedApi;
+    };
+})();
+
 const updateUnsavedIndicator = () => getFolderEditorStateApi()?.updateUnsavedIndicator() === true;
 
 const markCleanState = () => {
@@ -1977,7 +1989,7 @@ const validateForm = () => {
                 .text('No warnings.');
         }
     }
-    $('.folder-btn-submit, .folder-btn-copy').prop('disabled', !valid);
+    $('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy').prop('disabled', !valid);
     return valid;
 };
 
@@ -4079,11 +4091,8 @@ const generateCopyName = (baseName, parentId = '') => {
     return suggestSiblingName(`${trimmed} Copy`, parentId, '');
 };
 
-const submitForm = async (e, saveAsCopy = false) => {
-    if (!validateForm()) {
-        return false;
-    }
-    const actions = $('input[name*="custom_action"]').map((i, e) => JSON.parse(atob($(e).val()))).get();
+const buildFolderPayloadFromForm = (e) => {
+    const actions = $('input[name*="custom_action"]').map((i, el) => JSON.parse(atob($(el).val()))).get();
     const healthWarnThresholdRaw = String(e.health_warn_stopped_percent?.value || '').trim();
     const healthWarnThreshold = parseOptionalThresholdInput(healthWarnThresholdRaw);
     const healthCriticalThresholdRaw = String(e.health_critical_stopped_percent?.value || '').trim();
@@ -4095,7 +4104,7 @@ const submitForm = async (e, saveAsCopy = false) => {
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
     const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
     const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
-    const folder = {
+    return {
         name: e.name.value.toString().trim(),
         parentId: normalizeParentFolderId(e.parent_folder_id?.value || ''),
         icon: e.icon.value.toString(),
@@ -4153,9 +4162,185 @@ const submitForm = async (e, saveAsCopy = false) => {
             dashboard_overflow: normalizeDashboardOverflowMode(e.dashboard_overflow?.value),
         },
         regex: e.regex.value.toString(),
-        containers: [...$('input[name*="containers"]:checked').map((i, e) => $(e).val())],
+        containers: [...$('input[name*="containers"]:checked').map((i, el) => $(el).val())],
         actions
+    };
+};
+
+const buildFolderSettingsSummaryHtml = (entry) => {
+    const transferApi = getFolderSettingsTransferApi();
+    const summary = transferApi?.summarizeClipboardEntry(entry) || {
+        sourceName: 'Current folder settings',
+        copiedActionCount: 0,
+        droppedMemberBoundActionCount: 0,
+        labels: ['Folder settings']
+    };
+    const pillHtml = summary.labels.map((label) => (
+        `<span style="display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,154,60,0.22);background:rgba(255,154,60,0.10);margin:0 6px 6px 0;">${escapeHtml(label)}</span>`
+    )).join('');
+    const skippedHint = summary.droppedMemberBoundActionCount > 0
+        ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        : '';
+    return [
+        `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
+        `<div style="margin-top:8px;"><strong>Will apply:</strong> ${pillHtml || '<span>Folder settings</span>'}</div>`,
+        skippedHint
+    ].join('');
+};
+
+const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
+    .filter(([id]) => String(id || '').trim() !== '' && String(id || '').trim() !== String(activeFolderEditorFolderId || '').trim())
+    .map(([id, folder]) => {
+        const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+        const parentName = parentId && allFoldersById[parentId]
+            ? String(allFoldersById[parentId]?.name || parentId).trim()
+            : 'Top level';
+        return {
+            id: String(id || '').trim(),
+            name: String(folder?.name || id).trim() || String(id || '').trim(),
+            parentName
+        };
+    })
+    .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
+
+const buildFolderSettingsApplyDialogHtml = (entry, targets) => {
+    const summaryHtml = buildFolderSettingsSummaryHtml(entry);
+    const targetHtml = targets.map((target) => `
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;text-align:left;">
+            <input class="fv-folder-settings-target" type="checkbox" value="${escapeHtml(target.id)}" style="margin-top:2px;">
+            <span>
+                <strong>${escapeHtml(target.name)}</strong>
+                <span style="display:block;opacity:0.72;">${escapeHtml(target.parentName)}</span>
+            </span>
+        </label>
+    `).join('');
+    return [
+        '<div class="fv-folder-settings-apply-dialog" style="text-align:left;">',
+        `<div style="margin-bottom:12px;">${summaryHtml}</div>`,
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">',
+        `<strong>Apply to ${targets.length} folder${targets.length === 1 ? '' : 's'}</strong>`,
+        '<span>',
+        '<button type="button" class="btn btn-small" id="fv-folder-settings-select-all" style="margin-right:6px;">Select all</button>',
+        '<button type="button" class="btn btn-small" id="fv-folder-settings-clear-all">Clear</button>',
+        '</span>',
+        '</div>',
+        '<div style="max-height:280px;overflow:auto;padding-right:4px;">',
+        targetHtml,
+        '</div>',
+        '</div>'
+    ].join('');
+};
+
+const bindFolderSettingsApplyDialogHelpers = () => {
+    $(document)
+        .off('click.fvFolderSettingsSelectAll', '#fv-folder-settings-select-all')
+        .on('click.fvFolderSettingsSelectAll', '#fv-folder-settings-select-all', (event) => {
+            event.preventDefault();
+            $('.fv-folder-settings-target').prop('checked', true);
+        });
+    $(document)
+        .off('click.fvFolderSettingsClearAll', '#fv-folder-settings-clear-all')
+        .on('click.fvFolderSettingsClearAll', '#fv-folder-settings-clear-all', (event) => {
+            event.preventDefault();
+            $('.fv-folder-settings-target').prop('checked', false);
+        });
+};
+
+const unbindFolderSettingsApplyDialogHelpers = () => {
+    $(document).off('click.fvFolderSettingsSelectAll', '#fv-folder-settings-select-all');
+    $(document).off('click.fvFolderSettingsClearAll', '#fv-folder-settings-clear-all');
+};
+
+const applyFolderSettingsToFolders = async () => {
+    if (!validateForm()) {
+        return false;
     }
+    const form = getForm();
+    if (!form) {
+        return false;
+    }
+    const transferApi = getFolderSettingsTransferApi();
+    if (!transferApi) {
+        if (typeof swal === 'function') {
+            swal({
+                title: 'Apply unavailable',
+                text: 'Folder settings transfer is unavailable on this page load.',
+                type: 'error'
+            });
+        }
+        return false;
+    }
+    const sourceFolder = buildFolderPayloadFromForm(form);
+    const clipboardEntry = transferApi.buildClipboardEntry(type, sourceFolder, {
+        sourceId: activeFolderEditorFolderId,
+        sourceName: String(sourceFolder?.name || 'Current folder').trim(),
+        sourceContext: 'folder-editor'
+    });
+    const targets = getFolderSettingsApplyTargets();
+    if (!targets.length) {
+        swal({
+            title: 'No target folders',
+            text: `There are no other ${type === 'docker' ? 'Docker' : 'VM'} folders to update yet.`,
+            type: 'info'
+        });
+        return false;
+    }
+    transferApi.writeClipboardEntry(clipboardEntry);
+    bindFolderSettingsApplyDialogHelpers();
+    swal({
+        title: 'Apply folder settings',
+        text: buildFolderSettingsApplyDialogHtml(clipboardEntry, targets),
+        type: 'warning',
+        html: true,
+        showCancelButton: true,
+        confirmButtonText: 'Apply',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: false,
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            unbindFolderSettingsApplyDialogHelpers();
+            return;
+        }
+        const selectedIds = $('.fv-folder-settings-target:checked').map((_, node) => String($(node).val() || '').trim()).get().filter(Boolean);
+        if (!selectedIds.length) {
+            if (typeof swal.showInputError === 'function') {
+                swal.showInputError('Select at least one target folder.');
+            }
+            return false;
+        }
+        try {
+            await securePost('/plugins/folderview.plus/server/apply_folder_settings.php', {
+                type,
+                targetIds: JSON.stringify(selectedIds),
+                settings: JSON.stringify(clipboardEntry.payload)
+            });
+            unbindFolderSettingsApplyDialogHelpers();
+            swal.close();
+            swal({
+                title: 'Folder settings applied',
+                text: `Applied to ${selectedIds.length} folder${selectedIds.length === 1 ? '' : 's'}. A backup snapshot was created before the update.`,
+                type: 'success'
+            });
+        } catch (error) {
+            unbindFolderSettingsApplyDialogHelpers();
+            const message = extractAjaxErrorMessage(error, 'apply folder settings');
+            swal({
+                title: 'Apply failed',
+                text: message,
+                type: 'error'
+            });
+        }
+        return true;
+    });
+    return false;
+};
+
+const submitForm = async (e, saveAsCopy = false) => {
+    if (!validateForm()) {
+        return false;
+    }
+    const folder = buildFolderPayloadFromForm(e);
     if (saveAsCopy) {
         folder.name = generateCopyName(folder.name, folder.parentId);
     }
@@ -4376,6 +4561,7 @@ window.updateIcon = updateIcon;
 window.updateRegex = updateRegex;
 window.updateForm = updateForm;
 window.submitForm = submitForm;
+window.applyFolderSettingsToFolders = applyFolderSettingsToFolders;
 window.cancelBtn = cancelBtn;
 window.resetUnsavedChanges = resetUnsavedChanges;
 window.applyEditorPluginDefaults = applyEditorPluginDefaults;

@@ -26,6 +26,7 @@ const diagnosticsEndpointPath = path.join(
 const diagnosticsEndpointPhp = fs.readFileSync(diagnosticsEndpointPath, 'utf8');
 
 const endpointsUsingHelpers = [
+    'apply_folder_settings.php',
     'backup.php',
     'bulk_assign.php',
     'bulk_folder_action.php',
@@ -67,6 +68,17 @@ test('JSON endpoints use centralized response helper wrapper', () => {
 test('backup restore validates payload type against requested type', () => {
     assert.match(libPhp, /function validateBackupPayloadType\s*\(array \$decoded, string \$type\): void/);
     assert.match(libPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
+});
+
+test('lib.php supports guarded folder settings transfer for existing folders', () => {
+    assert.match(libPhp, /function normalizeFolderSettingsTransferPayload\(array \$payload\): array/);
+    assert.match(libPhp, /fvplus_assert_folder_settings_payload_shape\(\$payload\);/);
+    assert.match(libPhp, /function applyFolderSettingsPayload\(string \$type, array \$targetIds, array \$settingsPayload\): array/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-apply-folder-settings'\)/);
+    assert.match(libPhp, /appendDiagnosticsHistoryEvent\('folder_settings_apply', \$type,/);
+    assert.match(libPhp, /\$existingFolder\['icon'\] = \$normalizedSettings\['icon'\] \?\? '';/);
+    assert.match(libPhp, /\$existingFolder\['settings'\] = is_array\(\$normalizedSettings\['settings'\] \?\? null\) \? \$normalizedSettings\['settings'\] : \[\];/);
+    assert.match(libPhp, /\$existingFolder\['actions'\] = is_array\(\$normalizedSettings\['actions'\] \?\? null\) \? \$normalizedSettings\['actions'\] : \[\];/);
 });
 
 test('lib.php normalizes compose manager and compose project labels', () => {

@@ -93,6 +93,17 @@ if (!/upload-artifact@v4/.test(backmergeWorkflow)) {
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
 }
+if (!/pull-requests:\s*write/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must have pull-requests: write permission.');
+}
+if (!/Create or update back-merge PR/.test(backmergeWorkflow) ||
+    !/gh pr create/.test(backmergeWorkflow) ||
+    !/gh pr edit/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must open or update a PR into dev instead of pushing directly.');
+}
+if (/git push origin dev/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must not push directly to protected dev.');
+}
 
 for (const workflowPath of [
   '.github/workflows/ci.yml',

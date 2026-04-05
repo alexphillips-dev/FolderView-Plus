@@ -1124,8 +1124,11 @@ const queueBackgroundMutationPost = (url, data = {}) => {
     }
 };
 
-const flushPostSaveDockerSync = async () => {
+const flushPostSaveDockerSync = async (options = {}) => {
     if (type !== 'docker') {
+        return;
+    }
+    if (!shouldSyncDockerOrderAfterSave(options.folder, options)) {
         return;
     }
     const scheduled = queueBackgroundMutationPost('/plugins/folderview.plus/server/sync_order.php', { type });
@@ -4167,6 +4170,44 @@ const buildFolderPayloadFromForm = (e) => {
     };
 };
 
+const buildDockerSyncComparableFolder = (folderRecord) => {
+    const normalized = normalizeFolderRecordForEditor(folderRecord || {});
+    const containers = Array.from(new Set(
+        (Array.isArray(normalized.containers) ? normalized.containers : [])
+            .map((entry) => String(entry || '').trim())
+            .filter(Boolean)
+    )).sort();
+    return {
+        name: String(normalized.name || '').trim(),
+        regex: String(normalized.regex || ''),
+        containers
+    };
+};
+
+const shouldSyncDockerOrderAfterSave = (nextFolder, options = {}) => {
+    if (type !== 'docker') {
+        return false;
+    }
+    if (options.force === true) {
+        return true;
+    }
+    const currentFolderId = String(options.folderId || activeFolderEditorFolderId || folderId || '').trim();
+    if (!currentFolderId) {
+        return true;
+    }
+    const previousFolderRecord = options.previousFolder && typeof options.previousFolder === 'object'
+        ? options.previousFolder
+        : allFoldersById[currentFolderId];
+    if (!previousFolderRecord || typeof previousFolderRecord !== 'object') {
+        return true;
+    }
+    const previousComparable = buildDockerSyncComparableFolder(previousFolderRecord);
+    const nextComparable = buildDockerSyncComparableFolder(nextFolder || {});
+    return previousComparable.name !== nextComparable.name
+        || previousComparable.regex !== nextComparable.regex
+        || JSON.stringify(previousComparable.containers) !== JSON.stringify(nextComparable.containers);
+};
+
 const buildFolderSettingsSummaryHtml = (entry) => {
     const transferApi = getFolderSettingsTransferApi();
     const summary = transferApi?.summarizeClipboardEntry(entry) || {
@@ -4341,6 +4382,10 @@ const submitForm = async (e, saveAsCopy = false) => {
         return false;
     }
     const folder = buildFolderPayloadFromForm(e);
+    const currentFolderId = String(activeFolderEditorFolderId || folderId || '').trim();
+    const previousFolder = !saveAsCopy && currentFolderId && allFoldersById[currentFolderId]
+        ? normalizeFolderRecordForEditor(allFoldersById[currentFolderId])
+        : null;
     if (saveAsCopy) {
         folder.name = generateCopyName(folder.name, folder.parentId);
     }
@@ -4363,7 +4408,12 @@ const submitForm = async (e, saveAsCopy = false) => {
             });
         }
 
-        await flushPostSaveDockerSync();
+        await flushPostSaveDockerSync({
+            force: saveAsCopy || !currentFolderId,
+            folder,
+            folderId: currentFolderId,
+            previousFolder
+        });
     } catch (error) {
         const message = extractAjaxErrorMessage(error, 'folder save');
         if (typeof swal === 'function') {

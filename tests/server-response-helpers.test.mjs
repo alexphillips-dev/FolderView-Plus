@@ -119,6 +119,23 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
 });
 
+test('lib.php coalesces docker order sync and uses lightweight state snapshots', () => {
+    assert.match(libPhp, /function dockerSyncOrderLockPath\(\): string/);
+    assert.match(libPhp, /function dockerSyncOrderPendingPath\(\): string/);
+    assert.match(libPhp, /function markDockerSyncOrderPending\(\): void/);
+    assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
+    assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
+    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): void/);
+    assert.match(libPhp, /\$infoByName = readInfoState\('docker'\);/);
+    assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB\)/);
+    assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return;/);
+    assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
+    assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
+    assert.match(libPhp, /\$currentPrefsRaw = @file_get_contents\(\$prefsFile\);/);
+    assert.match(libPhp, /if \(\(string\)\$currentPrefsRaw !== \$ini\) \{/);
+    assert.match(libPhp, /if \(\(string\)\$currentAutoStartContent !== \$nextAutoStartContent\) \{/);
+});
+
 test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /const FVPLUS_RUNTIME_CONFLICT_PLUGINS\s*=\s*\[/);
     assert.match(libPhp, /'folder\.view3'\s*=>\s*\[/);

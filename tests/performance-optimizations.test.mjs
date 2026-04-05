@@ -330,9 +330,12 @@ test('folder editor save queues docker order sync off the submit critical path i
     assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
     assert.match(folderEditorJs, /navigator\.sendBeacon/);
     assert.match(folderEditorJs, /keepalive:\s*true/);
-    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(\) =>/);
+    assert.match(folderEditorJs, /const shouldSyncDockerOrderAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
+    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(options = \{\}\) =>/);
     assert.match(folderEditorJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
+    assert.match(folderEditorJs, /if \(!shouldSyncDockerOrderAfterSave\(options\.folder,\s*options\)\) \{\s*return;\s*\}/);
     const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
-    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\);/);
+    assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| folderId \|\| ''\)\.trim\(\);/);
+    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\{[\s\S]*force:\s*saveAsCopy \|\| !currentFolderId,[\s\S]*previousFolder[\s\S]*\}\);/);
     assert.doesNotMatch(modernSubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
 });

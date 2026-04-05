@@ -3310,15 +3310,44 @@
         ];
     }
 
-    function syncContainerOrder(string $type): void {
+    function dockerSyncOrderLockPath(): string {
         global $configDir;
-        fv3_debug_log("syncContainerOrder called for type: $type");
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        return $configDir . '/docker-sync-order.lock';
+    }
 
-        if ($type !== 'docker') { return; }
+    function dockerSyncOrderPendingPath(): string {
+        global $configDir;
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        return $configDir . '/docker-sync-order.pending';
+    }
+
+    function markDockerSyncOrderPending(): void {
+        @file_put_contents(dockerSyncOrderPendingPath(), (string)microtime(true));
+    }
+
+    function clearDockerSyncOrderPending(): void {
+        $pendingPath = dockerSyncOrderPendingPath();
+        if (file_exists($pendingPath)) {
+            @unlink($pendingPath);
+        }
+    }
+
+    function hasDockerSyncOrderPending(): bool {
+        return file_exists(dockerSyncOrderPendingPath());
+    }
+
+    function syncContainerOrderUnlocked(): void {
+        global $configDir;
 
         $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
         if (!file_exists($prefsFile)) { return; }
 
+        $currentPrefsRaw = @file_get_contents($prefsFile);
         $currentPrefs = @parse_ini_file($prefsFile);
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
 
@@ -3326,10 +3355,20 @@
         $folders = file_exists($foldersFile) ? (json_decode(file_get_contents($foldersFile), true) ?: []) : [];
 
         $dockerClient = new DockerClient();
-        $allContainerNames = array_column($dockerClient->getDockerContainers(), 'Name');
+        $allContainerNames = [];
+        foreach ((array)$dockerClient->getDockerContainers() as $containerMeta) {
+            $name = trim((string)($containerMeta['Name'] ?? ''));
+            if ($name === '' || in_array($name, $allContainerNames, true)) {
+                continue;
+            }
+            $allContainerNames[] = $name;
+        }
         $prefs = readTypePrefs('docker');
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $infoByName = readInfo('docker');
+        $infoByName = readInfoState('docker');
+        if (count($allContainerNames) <= 0) {
+            $allContainerNames = array_keys($infoByName);
+        }
         $ruleTargetByName = [];
         $labelTargetByName = [];
         foreach ($allContainerNames as $name) {
@@ -3343,11 +3382,11 @@
         $folderContainers = [];
         $assignedContainers = [];
         foreach ($folders as $folderId => $folder) {
-            $members = $folder['containers'] ?? [];
+            $members = normalizeFolderMembers($folder['containers'] ?? []);
             if (!empty($folder['regex'])) {
                 $regex = '/' . str_replace('/', '\/', $folder['regex']) . '/';
                 foreach ($allContainerNames as $name) {
-                    if (@preg_match($regex, $name) && !in_array($name, $members)) {
+                    if (@preg_match($regex, $name) && !in_array($name, $members, true)) {
                         $members[] = $name;
                     }
                 }
@@ -3425,8 +3464,12 @@
         foreach ($newOrder as $i => $name) {
             $ini .= ($i + 1) . '="' . $name . '"' . "\n";
         }
-        file_put_contents($prefsFile, $ini);
-        fv3_debug_log("syncContainerOrder: wrote userprefs.cfg with " . count($newOrder) . " entries");
+        if ((string)$currentPrefsRaw !== $ini) {
+            file_put_contents($prefsFile, $ini);
+            fv3_debug_log("syncContainerOrder: wrote userprefs.cfg with " . count($newOrder) . " entries");
+        } else {
+            fv3_debug_log("syncContainerOrder: userprefs.cfg already up to date");
+        }
 
         // Reorder autostart file to match new container order
         $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
@@ -3459,8 +3502,52 @@
             foreach ($autoStartMap as $line) {
                 $newAutoStart[] = $line;
             }
-            file_put_contents($autoStartFile, implode("\n", $newAutoStart) . "\n");
-            fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries");
+            $nextAutoStartContent = count($newAutoStart) > 0
+                ? implode("\n", $newAutoStart) . "\n"
+                : '';
+            $currentAutoStartContent = @file_get_contents($autoStartFile);
+            if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
+                file_put_contents($autoStartFile, $nextAutoStartContent);
+                fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries");
+            } else {
+                fv3_debug_log("syncContainerOrder: autostart file already up to date");
+            }
+        }
+    }
+
+    function syncContainerOrder(string $type): void {
+        fv3_debug_log("syncContainerOrder called for type: $type");
+
+        if ($type !== 'docker') { return; }
+
+        $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
+        if (!is_resource($lockHandle)) {
+            fv3_debug_log('syncContainerOrder: unable to open lock file, falling back to unlocked run');
+            syncContainerOrderUnlocked();
+            return;
+        }
+
+        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            markDockerSyncOrderPending();
+            fv3_debug_log('syncContainerOrder: coalesced while another sync is already running');
+            @fclose($lockHandle);
+            return;
+        }
+
+        try {
+            $attempt = 0;
+            do {
+                $attempt++;
+                clearDockerSyncOrderPending();
+                $startedAt = microtime(true);
+                syncContainerOrderUnlocked();
+                $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+                $shouldRerun = hasDockerSyncOrderPending();
+                fv3_debug_log("syncContainerOrder: pass $attempt completed in {$durationMs}ms" . ($shouldRerun ? ' (pending rerun requested)' : ''));
+            } while ($shouldRerun && $attempt < 3);
+        } finally {
+            @flock($lockHandle, LOCK_UN);
+            @fclose($lockHandle);
         }
     }
 

@@ -769,7 +769,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             case 2:
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2 fv-preview-trigger${autostartClass}">
-                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                        <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     </span>
                 `;
                 triggerSelector = '.fv-docker-preview-card';
@@ -778,7 +778,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             case 4:
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode} fv-preview-trigger${autostartClass}">
-                        <span class="inner fv-preview-trigger">
+                        <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
                             <span class="fv-preview-status-compact" title="${previewStatusTitle}">
@@ -795,8 +795,8 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             default:
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1 fv-preview-trigger${autostartClass}">
-                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
-                        <span class="inner fv-preview-trigger">
+                        <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                        <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
                             <span class="fv-preview-status-compact" title="${previewStatusTitle}">
@@ -981,7 +981,32 @@ const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
 };
 $(document)
     .off('click.fvDockerMemberMenuTrigger')
-    .off('click.fvDockerMemberMenuAction');
+    .off('click.fvDockerMemberMenuAction')
+    .off('click.fvDockerPreviewTooltipProxy')
+    .on('click.fvDockerPreviewTooltipProxy', '.fv-preview-tooltip-proxy', function(event) {
+        const $proxy = $(event.target).closest('.fv-preview-tooltip-proxy');
+        if (!$proxy.length) {
+            return;
+        }
+        const $trigger = $proxy.closest('[id^="folder-preview-"]');
+        if (!$trigger.length) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const ensureInitialized = $trigger.data('fvTooltipEnsureInitialized');
+        if (typeof ensureInitialized === 'function') {
+            ensureInitialized('click');
+            return;
+        }
+        if ($trigger.data('fvTooltipsterInitialized') === true) {
+            try {
+                $trigger.tooltipster('open');
+            } catch (_error) {
+                // Ignore open failures and let the next interaction retry.
+            }
+        }
+    });
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -1656,6 +1681,7 @@ const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
             }, 0);
         }
     };
+    $target.data('fvTooltipEnsureInitialized', ensureInitialized);
     $target.one('mouseenter.fvLazyTooltip click.fvLazyTooltip touchstart.fvLazyTooltip', (event) => {
         ensureInitialized(event?.type || '');
     });

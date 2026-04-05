@@ -52,7 +52,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger/);
     assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger/);
     assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger/);
+    assert.match(dockerJs, /fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
+    assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
     assert.match(dockerJs, /const flattenPreviewWrappers = typeof dockerRuntimeShared\.flattenPreviewWrappers === 'function'/);
@@ -81,6 +83,11 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /\.removeAttr\('data-container-name'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerPreviewTooltipProxy'\)/);
+    assert.match(dockerJs, /\.on\('click\.fvDockerPreviewTooltipProxy', '\.fv-preview-tooltip-proxy', function\(event\) \{/);
+    assert.match(dockerJs, /const \$trigger = \$proxy\.closest\('\[id\^="folder-preview-"\]'\);/);
+    assert.match(dockerJs, /const ensureInitialized = \$trigger\.data\('fvTooltipEnsureInitialized'\);/);
+    assert.match(dockerJs, /ensureInitialized\('click'\);/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
     assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openWebuiInNewTab\(webuiUrl\);/s);

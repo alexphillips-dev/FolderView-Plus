@@ -56,6 +56,8 @@ if [[ -f "${OVERRIDE_FILE}" ]]; then
 
 Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${INSTALL_BRANCH}/folderview.plus.plg\`
 
+### Changes
+
 $(cat "${OVERRIDE_FILE}")
 EOF
   exit 0

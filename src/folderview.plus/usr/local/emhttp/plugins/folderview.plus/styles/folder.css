@@ -195,7 +195,6 @@
 #fvEditorActionBar .folder-btn-reset,
 #fvEditorActionBar .folder-btn-cancel,
 .fv-member-tools > button,
-.fv-smart-defaults-row > button,
 .fv-icon-input-actions > button {
     min-height: 34px;
     border-radius: 10px;
@@ -214,7 +213,6 @@
 #fvEditorActionBar .folder-btn-reset:hover,
 #fvEditorActionBar .folder-btn-cancel:hover,
 .fv-member-tools > button:hover,
-.fv-smart-defaults-row > button:hover,
 .fv-icon-input-actions > button:hover {
     border-color: var(--fv-editor-border-strong);
     background: var(--fv-editor-control-surface-hover);
@@ -1840,14 +1838,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     line-height: 1.2;
 }
 
-.fv-smart-defaults-row {
-    margin-top: 0.62em;
-}
-
-.fv-smart-defaults-row > button {
-    min-height: 30px;
-}
-
 .fv-swatch-item {
     display: inline-flex;
     align-items: center;
@@ -1869,34 +1859,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border: 1px solid var(--fv-editor-control-border);
     border-radius: 4px;
     display: inline-block;
-}
-
-.fv-regex-simulator {
-    margin-top: 0;
-    display: grid;
-    gap: 0.4em;
-}
-
-.fv-regex-simulator > input {
-    width: min(100%, 420px);
-}
-
-.fv-regex-result.match {
-    color: var(--fv-editor-success);
-}
-
-.fv-regex-result.no-match {
-    color: var(--fv-editor-warning);
-}
-
-.fv-regex-result.error {
-    color: var(--fv-editor-danger);
-}
-
-.fv-regex-meta {
-    margin-top: 0.35em;
-    font-size: 1.03rem;
-    opacity: 0.86;
 }
 
 /* Member tools + table */
@@ -3450,7 +3412,6 @@ table.sortable td:nth-child(3) {
     #fvEditorActionBar .folder-btn-reset,
     #fvEditorActionBar .folder-btn-cancel,
     .fv-member-tools > button,
-    .fv-smart-defaults-row > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-mode-switch > button,
@@ -3479,7 +3440,6 @@ table.sortable td:nth-child(3) {
     #fvEditorActionBar .folder-btn-reset,
     #fvEditorActionBar .folder-btn-cancel,
     .fv-member-tools > button,
-    .fv-smart-defaults-row > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-mode-switch > button,
@@ -3499,7 +3459,6 @@ table.sortable td:nth-child(3) {
     #fvEditorActionBar .folder-btn-reset,
     #fvEditorActionBar .folder-btn-cancel,
     .fv-member-tools > button,
-    .fv-smart-defaults-row > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-mode-switch > button,
@@ -3523,7 +3482,6 @@ table.sortable td:nth-child(3) {
     #fvEditorActionBar .folder-btn-reset,
     #fvEditorActionBar .folder-btn-cancel,
     .fv-member-tools > button,
-    .fv-smart-defaults-row > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-mode-switch > button,
@@ -3548,7 +3506,6 @@ table.sortable td:nth-child(3) {
     #fvEditorActionBar .folder-btn-reset,
     #fvEditorActionBar .folder-btn-cancel,
     .fv-member-tools > button,
-    .fv-smart-defaults-row > button,
     .fv-icon-input-actions > button,
     .fv-section-nav > button,
     .fv-third-party-mode-switch > button,

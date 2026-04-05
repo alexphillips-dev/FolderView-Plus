@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.04.30">
-<!ENTITY md5 "dd1b0fed79fe68ff0a103af91648fa81">
+<!ENTITY version "2026.04.05.02">
+<!ENTITY md5 "cd8719810d7d754488e9d517df518bac">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.05.02
+- Fix: Release validation now recognizes locale keys referenced through shared i18n wrappers, preventing false failures in the language-usage guard.
+- Fix: Manual Release On Main dispatches now force the publish path correctly so failed stable releases can be retried without editing workflow files again.
+- Fix: Removed dead selector leftovers from Docker, Folder Editor, and Settings styles so strict dead-code validation passes cleanly during stable release publishing.
+- Quality: Rebuilt the stable package and archive metadata for the April 5, 2026 release cut so GitHub release automation publishes a fully synchronized main-channel artifact set.
 
 ###2026.04.04.30
 - Feature: Added Copy Folder Settings and Paste Folder Settings to Docker and VM folder menus, plus Apply to folders in the editor to batch-apply the current folder configuration to existing folders without changing names, parents, members, regex, or ids.

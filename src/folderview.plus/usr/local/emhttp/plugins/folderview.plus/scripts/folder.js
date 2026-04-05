@@ -4339,13 +4339,13 @@ const describeMemberBulkMoveScope = (scope) => {
 
 const getCurrentMemberBulkMoveScope = () => String($('#fvMemberBulkScope').val() || 'shown').trim().toLowerCase() || 'shown';
 
-const collectCurrentMemberBulkMoveScope = () => {
+function collectCurrentMemberBulkMoveScope() {
     const scope = getCurrentMemberBulkMoveScope();
     const details = getFolderEditorMembersApi()?.collectBulkMoveScope(scope);
     return details && typeof details === 'object'
         ? details
         : { scope, names: [], skippedRegexNames: [], candidateCount: 0, movableCount: 0 };
-};
+}
 
 function renderMemberBulkMoveTargets() {
     const select = $('#fvMemberBulkTarget');

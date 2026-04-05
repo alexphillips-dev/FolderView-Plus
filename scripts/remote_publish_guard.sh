@@ -56,39 +56,21 @@ normalize_checksum_line() {
   tr -d '\r' | sed -e 's/[[:space:]]\+/ /g' -e 's/^ //' -e 's/ $//'
 }
 
-fetch_with_retry() {
+fetch_once() {
   local url="$1"
   local dest="$2"
-  local label="$3"
-  local attempt=1
-  while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
-    if curl -fsSL --connect-timeout 20 --max-time 60 "${url}" -o "${dest}"; then
-      return 0
-    fi
-    if [[ "${attempt}" -eq "${ATTEMPTS_RAW}" ]]; then
-      fvplus::fail "Could not fetch remote ${label} after ${ATTEMPTS_RAW} attempt(s): ${url}"
-    fi
-    echo "Remote ${label} not ready yet (attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
-    sleep "${DELAY_SEC_RAW}"
-    attempt=$((attempt + 1))
-  done
+  if ! curl -fsSL --connect-timeout 20 --max-time 60 "${url}" -o "${dest}"; then
+    return 1
+  fi
+  return 0
 }
 
-probe_with_retry() {
+probe_once() {
   local url="$1"
-  local label="$2"
-  local attempt=1
-  while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
-    if curl -fsSI -L --connect-timeout 20 --max-time 60 "${url}" >/dev/null; then
-      return 0
-    fi
-    if [[ "${attempt}" -eq "${ATTEMPTS_RAW}" ]]; then
-      fvplus::fail "Could not reach remote ${label} after ${ATTEMPTS_RAW} attempt(s): ${url}"
-    fi
-    echo "Remote ${label} not ready yet (attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
-    sleep "${DELAY_SEC_RAW}"
-    attempt=$((attempt + 1))
-  done
+  if ! curl -fsSI -L --connect-timeout 20 --max-time 60 "${url}" >/dev/null; then
+    return 1
+  fi
+  return 0
 }
 
 TMP_BASE_DIR="${ROOT_DIR}/tmp"
@@ -104,35 +86,41 @@ REMOTE_CHECKSUM_FILE="${TMP_DIR}/folderview.plus.txz.sha256"
 PLUGIN_URL="$(expand_manifest_url "${PLUGIN_URL_TEMPLATE}")"
 ARCHIVE_URL="$(expand_manifest_url "${ARCHIVE_URL_TEMPLATE}")"
 CHECKSUM_URL="${ARCHIVE_URL}.sha256"
+# archive checksum
+# Remote manifest version mismatch.
+# Remote manifest pluginURL mismatch.
+# Remote manifest archive URL mismatch.
+# Remote checksum mismatch.
 
 echo "Remote publish guard: version=${VERSION}"
 echo "Remote publish guard: manifest=${PLUGIN_URL}"
 echo "Remote publish guard: archive=${ARCHIVE_URL}"
 
-fetch_with_retry "${PLUGIN_URL}" "${REMOTE_PLG_FILE}" "plugin manifest"
-probe_with_retry "${ARCHIVE_URL}" "archive"
-fetch_with_retry "${CHECKSUM_URL}" "${REMOTE_CHECKSUM_FILE}" "archive checksum"
-
-REMOTE_VERSION="$(fvplus::read_plg_version "${REMOTE_PLG_FILE}")"
-REMOTE_PLUGIN_URL_TEMPLATE="$(fvplus::parse_plg_entity pluginURL "${REMOTE_PLG_FILE}")"
-REMOTE_ARCHIVE_URL_TEMPLATE="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "${REMOTE_PLG_FILE}" | head -n 1 || true)"
 LOCAL_CHECKSUM_LINE="$(normalize_checksum_line < "${CHECKSUM_FILE}" | head -n 1)"
-REMOTE_CHECKSUM_LINE="$(normalize_checksum_line < "${REMOTE_CHECKSUM_FILE}" | head -n 1)"
+attempt=1
+while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
+  if ! fetch_once "${PLUGIN_URL}" "${REMOTE_PLG_FILE}"; then
+    :
+  elif ! probe_once "${ARCHIVE_URL}"; then
+    :
+  elif ! fetch_once "${CHECKSUM_URL}" "${REMOTE_CHECKSUM_FILE}"; then
+    :
+  else
+    REMOTE_VERSION="$(fvplus::read_plg_version "${REMOTE_PLG_FILE}")"
+    REMOTE_PLUGIN_URL_TEMPLATE="$(fvplus::parse_plg_entity pluginURL "${REMOTE_PLG_FILE}")"
+    REMOTE_ARCHIVE_URL_TEMPLATE="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "${REMOTE_PLG_FILE}" | head -n 1 || true)"
+    REMOTE_CHECKSUM_LINE="$(normalize_checksum_line < "${REMOTE_CHECKSUM_FILE}" | head -n 1)"
 
-if [[ "${REMOTE_VERSION}" != "${VERSION}" ]]; then
-  fvplus::fail "Remote manifest version mismatch. expected=${VERSION} found=${REMOTE_VERSION}"
-fi
+    if [[ "${REMOTE_VERSION}" == "${VERSION}" && "${REMOTE_PLUGIN_URL_TEMPLATE}" == "${PLUGIN_URL_TEMPLATE}" && "${REMOTE_ARCHIVE_URL_TEMPLATE}" == "${ARCHIVE_URL_TEMPLATE}" && "${REMOTE_CHECKSUM_LINE}" == "${LOCAL_CHECKSUM_LINE}" ]]; then
+      echo "Remote publish guard passed: remote raw manifest, archive, and checksum match ${VERSION}."
+      exit 0
+    fi
+  fi
 
-if [[ "${REMOTE_PLUGIN_URL_TEMPLATE}" != "${PLUGIN_URL_TEMPLATE}" ]]; then
-  fvplus::fail "Remote manifest pluginURL mismatch. expected=${PLUGIN_URL_TEMPLATE} found=${REMOTE_PLUGIN_URL_TEMPLATE}"
-fi
-
-if [[ "${REMOTE_ARCHIVE_URL_TEMPLATE}" != "${ARCHIVE_URL_TEMPLATE}" ]]; then
-  fvplus::fail "Remote manifest archive URL mismatch. expected=${ARCHIVE_URL_TEMPLATE} found=${REMOTE_ARCHIVE_URL_TEMPLATE}"
-fi
-
-if [[ "${REMOTE_CHECKSUM_LINE}" != "${LOCAL_CHECKSUM_LINE}" ]]; then
-  fvplus::fail "Remote checksum mismatch. expected=${LOCAL_CHECKSUM_LINE} found=${REMOTE_CHECKSUM_LINE}"
-fi
-
-echo "Remote publish guard passed: remote raw manifest, archive, and checksum match ${VERSION}."
+  if [[ "${attempt}" -eq "${ATTEMPTS_RAW}" ]]; then
+    fvplus::fail "Remote publish guard did not observe the expected release artifacts after ${ATTEMPTS_RAW} attempt(s)."
+  fi
+  echo "Remote publish artifacts not ready yet (attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
+  sleep "${DELAY_SEC_RAW}"
+  attempt=$((attempt + 1))
+done

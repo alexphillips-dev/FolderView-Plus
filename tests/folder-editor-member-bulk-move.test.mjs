@@ -36,9 +36,12 @@ test('folder editor members tab renders compact bulk move controls and blocks un
     assert.match(folderJs, /renderMemberBulkMoveTargets\(\);/);
     assert.match(folderJs, /applyMemberBulkMoveResultLocally\(plan\.targetFolderId/);
     assert.match(folderJs, /syncMemberSnapshotBaseline\(\);/);
+    assert.match(folderJs, /selected = selected\.filter\(\(member\) => \{/);
+    assert.match(folderJs, /choose = choose\.filter\(\(member\) => \{/);
     assert.match(folderJs, /memberBulkMoveUndoState = \{/);
     assert.match(folderJs, /id="fvMemberBulkUndo"/);
     assert.match(folderJs, /void undoEditorMemberBulkMove\(\);/);
+    assert.doesNotMatch(folderJs, /choose = mergeMembersByName\(choose, movedSelectedMembers\);/);
     assert.doesNotMatch(folderJs, /title: 'Bulk move complete'/);
 });
 

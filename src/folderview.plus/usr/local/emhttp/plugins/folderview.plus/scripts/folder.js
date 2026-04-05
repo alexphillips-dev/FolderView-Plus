@@ -4422,16 +4422,14 @@ const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
         };
     }
 
-    const movedSelectedMembers = [];
     selected = selected.filter((member) => {
         const safeName = String(member?.Name || '').trim();
-        if (safeName && movedSet.has(safeName)) {
-            movedSelectedMembers.push(member);
-            return false;
-        }
-        return true;
+        return !(safeName && movedSet.has(safeName));
     });
-    choose = mergeMembersByName(choose, movedSelectedMembers);
+    choose = choose.filter((member) => {
+        const safeName = String(member?.Name || '').trim();
+        return !(safeName && movedSet.has(safeName));
+    });
     updateList(() => {
         syncMemberSnapshotBaseline();
         renderMemberBulkMoveTargets();

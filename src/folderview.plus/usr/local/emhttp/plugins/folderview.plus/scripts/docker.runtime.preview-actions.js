@@ -39,6 +39,8 @@
                 .attr('href', webuiUrl)
                 .attr('target', '_blank')
                 .attr('rel', webuiLinkRel)
+                .attr('data-fv-preview-action', 'webui')
+                .attr('data-webui-url', webuiUrl)
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
@@ -49,6 +51,9 @@
 
         const buildDockerPreviewConsoleButton = (containerName, shellValue) => jq('<span class="folder-element-custom-btn folder-element-console"></span>').append(
             jq('<a href="#"></a>')
+                .attr('data-fv-preview-action', 'console')
+                .attr('data-container-name', containerName)
+                .attr('data-shell-value', shellValue)
                 .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
@@ -59,6 +64,9 @@
 
         const buildDockerPreviewLogsButton = (containerName) => jq('<span class="folder-element-custom-btn folder-element-logs"></span>').append(
             jq('<a href="#"></a>')
+                .attr('data-fv-preview-action', 'logs')
+                .attr('data-container-name', containerName)
+                .attr('data-shell-value', '.log')
                 .append('<i class="fa fa-bars" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();

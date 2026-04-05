@@ -30,6 +30,7 @@
         const documentRef = deps.document || win?.document || null;
         const $ = deps.$ || win?.jQuery || win?.$ || null;
         const utils = deps.utils || {};
+        const sharedModule = deps.sharedModule || win?.FolderViewPlusBulkAssignmentShared || null;
         const swal = typeof deps.swal === 'function' ? deps.swal : (() => {});
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
         const normalizeManagedType = typeof deps.normalizeManagedType === 'function'
@@ -92,15 +93,43 @@
         const setTimeoutRef = typeof deps.setTimeoutRef === 'function'
             ? deps.setTimeoutRef
             : (typeof win?.setTimeout === 'function' ? win.setTimeout.bind(win) : setTimeout);
+        const sharedApi = sharedModule && typeof sharedModule.createApi === 'function'
+            ? sharedModule.createApi({
+                window: win,
+                utils,
+                normalizeManagedType,
+                getFolderMap,
+                getFolderNameForId,
+                getInfoByType,
+                apiPostJson,
+                assertRuntimeConflictActionAllowed,
+                createBackup,
+                refreshType,
+                refreshBackups,
+                claimOperationLock: claimAdvancedOperationLock,
+                releaseOperationLock: releaseAdvancedOperationLock,
+                showActionSummaryToast,
+                trackDiagnosticsEvent,
+                offerUndoAction,
+                setTimeoutRef
+            })
+            : null;
 
         let bulkAssignStateByType = {
             docker: createBulkAssignUiState(),
             vm: createBulkAssignUiState()
         };
 
-        const sanitizeBulkItemName = (value) => String(value || '').trim();
+        const sanitizeBulkItemName = (value) => (
+            sharedApi && typeof sharedApi.sanitizeBulkItemName === 'function'
+                ? sharedApi.sanitizeBulkItemName(value)
+                : String(value || '').trim()
+        );
 
         const isValidBulkItemName = (name) => {
+            if (sharedApi && typeof sharedApi.isValidBulkItemName === 'function') {
+                return sharedApi.isValidBulkItemName(name);
+            }
             if (!name) {
                 return false;
             }
@@ -119,6 +148,9 @@
         };
 
         const getBulkAssignableNames = (type) => {
+            if (sharedApi && typeof sharedApi.getBulkAssignableNames === 'function') {
+                return sharedApi.getBulkAssignableNames(type);
+            }
             const names = new Set();
             const infoByName = getInfoByType(type) || {};
             for (const name of Object.keys(infoByName || {})) {
@@ -152,6 +184,9 @@
         };
 
         const getBulkMemberFolderLookup = (type, foldersInput = null) => {
+            if (sharedApi && typeof sharedApi.getBulkMemberFolderLookup === 'function') {
+                return sharedApi.getBulkMemberFolderLookup(type, foldersInput);
+            }
             const resolvedType = normalizeManagedType(type);
             const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
             const byName = {};
@@ -347,6 +382,9 @@
         };
 
         const buildBulkAssignmentPlan = (type, folderId, namesInput = null) => {
+            if (sharedApi && typeof sharedApi.buildBulkAssignmentPlan === 'function') {
+                return sharedApi.buildBulkAssignmentPlan(type, folderId, namesInput);
+            }
             const resolvedType = normalizeManagedType(type);
             const folders = getFolderMap(resolvedType);
             const targetFolderId = String(folderId || '').trim();
@@ -792,19 +830,6 @@
             updateBulkSelectedCount(type);
         };
 
-        const bulkAssign = async (type, folderId, items) => {
-            assertRuntimeConflictActionAllowed(`Bulk assign ${type === 'docker' ? 'Docker' : 'VM'} items`);
-            const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
-                type,
-                folderId,
-                items: JSON.stringify(items || [])
-            });
-            if (!response.ok) {
-                throw new Error(response.error || 'Bulk assignment failed.');
-            }
-            return response.result;
-        };
-
         const retryFailedBulkItems = async (type) => {
             if (!$) {
                 return;
@@ -889,10 +914,6 @@
             if (!confirmed) {
                 return;
             }
-            if (!claimAdvancedOperationLock(resolvedType, 'bulk', `${typeLabel} bulk assignment`)) {
-                return;
-            }
-            let backup = null;
             state.applying = true;
             updateBulkPrimaryAction(resolvedType, plan);
             updateBulkResultActions(resolvedType);
@@ -901,105 +922,51 @@
                 summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in chunks...`,
                 lines: []
             });
-            const failedNames = [];
             try {
-                backup = await createBackup(resolvedType, 'before-bulk-assign');
-                const chunks = [];
-                for (let index = 0; index < plan.actionableNames.length; index += BULK_ASSIGN_CHUNK_SIZE) {
-                    chunks.push(plan.actionableNames.slice(index, index + BULK_ASSIGN_CHUNK_SIZE));
-                }
-                for (let index = 0; index < chunks.length; index += 1) {
-                    const chunk = chunks[index];
-                    const chunkNumber = index + 1;
-                    renderBulkResultPanel(resolvedType, {
-                        level: 'progress',
-                        summary: `Applying chunk ${chunkNumber}/${chunks.length} (${chunk.length} item${chunk.length === 1 ? '' : 's'})...`,
-                        lines: resultLines
-                    });
-                    try {
-                        const result = await bulkAssign(resolvedType, plan.targetFolderId, chunk);
-                        const assignedSet = new Set(
-                            (Array.isArray(result?.assigned) ? result.assigned : [])
-                                .map((name) => sanitizeBulkItemName(name))
-                                .filter(Boolean)
-                        );
-                        const invalidSet = new Set(
-                            (Array.isArray(result?.skippedInvalid) ? result.skippedInvalid : [])
-                                .map((name) => sanitizeBulkItemName(name))
-                                .filter(Boolean)
-                        );
-                        for (const name of chunk) {
-                            if (assignedSet.has(name)) {
-                                resultLines.push({ status: 'success', name, detail: `Assigned to ${plan.targetFolderName}.` });
-                            } else if (invalidSet.has(name)) {
-                                resultLines.push({ status: 'invalid', name, detail: 'Blocked by request guard validation.' });
-                            } else {
-                                failedNames.push(name);
-                                resultLines.push({ status: 'failed', name, detail: 'Not applied by server response.' });
-                            }
+                const executionResult = sharedApi && typeof sharedApi.executeBulkAssignmentPlan === 'function'
+                    ? await sharedApi.executeBulkAssignmentPlan(resolvedType, plan, {
+                        typeLabel,
+                        preludeLines: resultLines,
+                        chunkSize: BULK_ASSIGN_CHUNK_SIZE,
+                        chunkPauseMs: BULK_ASSIGN_CHUNK_PAUSE_MS,
+                        onProgress: ({ chunkNumber, chunkCount, chunkSize: currentChunkSize, resultLines: nextLines }) => {
+                            renderBulkResultPanel(resolvedType, {
+                                level: 'progress',
+                                summary: `Applying chunk ${chunkNumber}/${chunkCount} (${currentChunkSize} item${currentChunkSize === 1 ? '' : 's'})...`,
+                                lines: nextLines
+                            });
                         }
-                    } catch (error) {
-                        const message = error?.message || 'Chunk request failed.';
-                        for (const name of chunk) {
-                            failedNames.push(name);
-                            resultLines.push({ status: 'failed', name, detail: message });
-                        }
-                    }
-                    if (index < chunks.length - 1) {
-                        await new Promise((resolve) => setTimeoutRef(resolve, BULK_ASSIGN_CHUNK_PAUSE_MS));
-                    }
-                }
-                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-                const assignedCount = resultLines.filter((row) => row.status === 'success').length;
-                const skippedCount = resultLines.filter((row) => row.status === 'skip').length;
-                const invalidCount = resultLines.filter((row) => row.status === 'invalid').length;
-                const summaryBits = [
-                    `${assignedCount} assigned`,
-                    `${failedNames.length} failed`,
-                    `${skippedCount} skipped`,
-                    `${invalidCount} invalid`
-                ];
-                const statusLevel = failedNames.length > 0 ? 'warning' : 'success';
-                const statusMessage = summaryBits.join(' | ');
-                state.failedNames = Array.from(new Set(failedNames));
+                    })
+                    : null;
+                const fallbackExecutionResult = executionResult || {
+                    failedNames: [],
+                    level: 'error',
+                    summary: 'Bulk assignment engine unavailable.',
+                    lines: resultLines,
+                    assignedCount: 0,
+                    skippedCount: 0,
+                    invalidCount: 0
+                };
+                state.failedNames = Array.isArray(fallbackExecutionResult.failedNames)
+                    ? fallbackExecutionResult.failedNames
+                    : [];
                 state.lastTargetFolderId = plan.targetFolderId;
                 state.lastResult = {
-                    level: statusLevel,
-                    summary: statusMessage,
-                    lines: resultLines
+                    level: String(fallbackExecutionResult.level || 'info'),
+                    summary: String(fallbackExecutionResult.summary || 'Bulk assignment update'),
+                    lines: Array.isArray(fallbackExecutionResult.lines) ? fallbackExecutionResult.lines : resultLines
                 };
                 renderBulkResultPanel(resolvedType, state.lastResult);
                 updateBulkResultActions(resolvedType);
                 state.selected = state.failedNames.length ? new Set(state.failedNames) : new Set();
                 renderBulkItemOptions(resolvedType);
-                showActionSummaryToast({
-                    title: `${typeLabel} bulk assignment complete`,
-                    message: statusMessage,
-                    level: statusLevel,
-                    type: resolvedType,
-                    focusFolderId: plan.targetFolderId
-                });
-                if (failedNames.length > 0) {
+                if (state.failedNames.length > 0) {
                     swal({
                         title: 'Some items failed',
-                        text: `Assigned: ${assignedCount}\nFailed: ${failedNames.length}\n\nUse "Retry failed" to try those items again.`,
+                        text: `Assigned: ${Number(fallbackExecutionResult.assignedCount) || 0}\nFailed: ${state.failedNames.length}\n\nUse "Retry failed" to try those items again.`,
                         type: 'warning'
                     });
                 }
-                await trackDiagnosticsEvent({
-                    eventType: 'bulk_assign',
-                    type: resolvedType,
-                    details: {
-                        folderId: plan.targetFolderId,
-                        itemCount: plan.selectedNames.length,
-                        assignedCount,
-                        skippedCount: skippedCount,
-                        skippedInvalidCount: invalidCount,
-                        failedCount: failedNames.length,
-                        chunkCount: Math.max(1, Math.ceil(plan.actionableNames.length / BULK_ASSIGN_CHUNK_SIZE))
-                    }
-                });
-                await offerUndoAction(resolvedType, backup, 'Bulk assignment');
             } catch (error) {
                 state.lastResult = {
                     level: 'error',
@@ -1010,7 +977,6 @@
                 showError('Bulk assignment failed', error);
             } finally {
                 state.applying = false;
-                releaseAdvancedOperationLock(resolvedType, 'bulk');
                 syncBulkWorkflowUi(resolvedType);
                 updateBulkResultActions(resolvedType);
             }

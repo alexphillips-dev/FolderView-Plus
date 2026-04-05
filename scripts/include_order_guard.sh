@@ -18,7 +18,7 @@ const fs = require('fs');
 
 const pageFile = process.argv[2];
 const source = fs.readFileSync(pageFile, 'utf8');
-const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)?\.js/g)].map((match) => match[0]);
+const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((match) => match[0]);
 
 const expectedOrder = [
   'folderviewplus.fatal-banner.js',
@@ -43,6 +43,7 @@ const expectedOrder = [
   'folderviewplus.row-details.js',
   'folderviewplus.settings-health.js',
   'folderviewplus.settings-workspaces.js',
+  'folderviewplus.bulk-assignment.shared.js',
   'folderviewplus.bulk-assignment.js',
   'folderviewplus.runtime-actions.js',
   'folderviewplus.wizard-smart-detect.js',

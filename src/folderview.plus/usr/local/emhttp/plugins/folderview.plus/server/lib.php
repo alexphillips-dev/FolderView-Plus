@@ -73,6 +73,117 @@
         }
     }
 
+    function fvplus_append_query_arg(string $url, string $key, string $value): string {
+        $safeUrl = trim($url);
+        $safeKey = trim($key);
+        if ($safeUrl === '' || $safeKey === '' || $value === '') {
+            return $safeUrl;
+        }
+        $fragment = '';
+        $fragmentPos = strpos($safeUrl, '#');
+        if ($fragmentPos !== false) {
+            $fragment = substr($safeUrl, $fragmentPos);
+            $safeUrl = substr($safeUrl, 0, $fragmentPos);
+        }
+        $pattern = '/([?&])' . preg_quote($safeKey, '/') . '=[^&]*/';
+        if (preg_match($pattern, $safeUrl)) {
+            $replaced = preg_replace($pattern, '$1' . $safeKey . '=' . $value, $safeUrl, 1);
+            return (is_string($replaced) ? $replaced : $safeUrl) . $fragment;
+        }
+        $separator = strpos($safeUrl, '?') === false ? '?' : '&';
+        return $safeUrl . $separator . $safeKey . '=' . $value . $fragment;
+    }
+
+    function fvplus_read_asset_version_token(): string {
+        static $versionToken = null;
+        if (is_string($versionToken) && $versionToken !== '') {
+            return $versionToken;
+        }
+        global $configDir;
+        $version = trim(readInstalledVersion());
+        if ($version === '' || $version === '0.0.0') {
+            $versionPath = "$configDir/version";
+            $mtime = @filemtime($versionPath);
+            if (is_int($mtime) && $mtime > 0) {
+                $version = (string)$mtime;
+            }
+        }
+        if ($version === '') {
+            $version = '0';
+        }
+        $versionToken = rawurlencode($version);
+        return $versionToken;
+    }
+
+    function fvplus_normalize_plugin_asset_public_path(string $path): string {
+        global $sourceDir, $documentRoot;
+        $safePath = trim($path);
+        if ($safePath === '') {
+            return '';
+        }
+        if (strpos($safePath, '/plugins/folderview.plus/') === 0) {
+            return $safePath;
+        }
+        $normalizedPath = str_replace('\\', '/', $safePath);
+        $publicPrefixPos = strpos($normalizedPath, '/plugins/folderview.plus/');
+        if ($publicPrefixPos !== false) {
+            return substr($normalizedPath, $publicPrefixPos);
+        }
+        $resolvedPath = realpath($safePath);
+        if (!is_string($resolvedPath) || $resolvedPath === '') {
+            return '';
+        }
+        $resolvedPath = str_replace('\\', '/', $resolvedPath);
+        $roots = [
+            realpath($sourceDir),
+            realpath($documentRoot . '/plugins/folderview.plus')
+        ];
+        foreach ($roots as $root) {
+            if (!is_string($root) || $root === '') {
+                continue;
+            }
+            $normalizedRoot = rtrim(str_replace('\\', '/', $root), '/');
+            if ($resolvedPath === $normalizedRoot) {
+                return '/plugins/folderview.plus';
+            }
+            $prefix = $normalizedRoot . '/';
+            if (strpos($resolvedPath, $prefix) === 0) {
+                return '/plugins/folderview.plus/' . ltrim(substr($resolvedPath, strlen($prefix)), '/');
+            }
+        }
+        return '';
+    }
+
+    function fvplus_versioned_plugin_asset_path(string $path): string {
+        $publicPath = fvplus_normalize_plugin_asset_public_path($path);
+        if ($publicPath === '') {
+            return trim($path);
+        }
+        return fvplus_append_query_arg($publicPath, 'v', fvplus_read_asset_version_token());
+    }
+
+    function fvplus_asset_url(string $path): string {
+        $safePath = trim($path);
+        if ($safePath === '') {
+            return '';
+        }
+        $pluginAssetPath = fvplus_normalize_plugin_asset_public_path($safePath);
+        if ($pluginAssetPath !== '') {
+            return htmlspecialchars(fvplus_versioned_plugin_asset_path($pluginAssetPath), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+        ob_start();
+        autov($safePath);
+        $captured = trim((string)ob_get_clean());
+        if ($captured !== '') {
+            return $captured;
+        }
+        return htmlspecialchars($safePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    function fvplus_asset(string $path): void {
+        echo fvplus_asset_url($path);
+    }
+
     function fv3_cache_root(): string {
         static $cacheRoot = null;
         if (is_string($cacheRoot) && $cacheRoot !== '') {

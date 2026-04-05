@@ -100,7 +100,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerPreviewTooltipProxy'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerPreviewActionFallback'\)/);
     assert.match(dockerJs, /\.on\('click\.fvDockerPreviewTooltipProxy', '\.fv-preview-tooltip-proxy', function\(event\) \{/);
+    assert.match(dockerJs, /\.on\('click\.fvDockerPreviewActionFallback', '\.folder-preview \.folder-element-webui > a, \.folder-preview \.folder-element-console > a, \.folder-preview \.folder-element-logs > a', function\(event\) \{/);
     assert.match(dockerJs, /const \$trigger = \$proxy\.closest\('\[id\^="folder-preview-"\]'\);/);
     assert.match(dockerJs, /const ensureInitialized = \$trigger\.data\('fvTooltipEnsureInitialized'\);/);
     assert.match(dockerJs, /const tooltipInitialized = \$trigger\.data\('fvTooltipsterInitialized'\) === true;/);
@@ -108,8 +110,18 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /ensureInitialized\('click'\);/);
     assert.match(dockerJs, /if \(tooltipInitialized === true\) \{/);
     assert.match(dockerJs, /\$trigger\.tooltipster\('open'\);/);
+    assert.match(dockerJs, /const action = String\(\$link\.attr\('data-fv-preview-action'\) \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
+    assert.match(dockerJs, /openWebuiInNewTab\(webuiUrl\);/);
+    assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'webui'\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-webui-url', webuiUrl\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'console'\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-container-name', containerName\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-shell-value', shellValue\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'logs'\)/);
+    assert.match(dockerPreviewActionsScript, /\.attr\('data-shell-value', '\.log'\)/);
     assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openWebuiInNewTab\(webuiUrl\);/s);
     assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*shellValue\);/s);
     assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*'\.log'\);/s);

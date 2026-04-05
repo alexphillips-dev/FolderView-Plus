@@ -14,6 +14,7 @@
     const MEMBER_SEARCH_PLACEHOLDER = 'Search members';
     const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
     const MEMBER_REGEX_SEARCH_HINT = 'Use a regex pattern such as sentry-.* to filter member names.';
+    const MEMBER_BULK_SCOPE_VALUES = Object.freeze(new Set(['shown', 'included_shown', 'excluded_shown', 'all_included']));
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -205,12 +206,67 @@
             }
         };
 
+        const collectBulkMoveScope = (scope = 'shown') => {
+            if (!$) {
+                return {
+                    scope: 'shown',
+                    names: [],
+                    skippedRegexNames: [],
+                    candidateCount: 0,
+                    movableCount: 0
+                };
+            }
+            const resolvedScope = MEMBER_BULK_SCOPE_VALUES.has(String(scope || '').trim().toLowerCase())
+                ? String(scope || '').trim().toLowerCase()
+                : 'shown';
+            const names = [];
+            const skippedRegexNames = [];
+            const seen = new Set();
+            $('table.sortable > tbody > tr').each((_, row) => {
+                const $row = $(row);
+                const membership = String($row.attr('data-membership') || 'available').trim().toLowerCase();
+                const visible = $row.is(':visible');
+                const checked = $row.find('input.container-switch').prop('checked') === true;
+                const name = String($row.attr('data-name') || '').trim();
+                let includedByScope = false;
+                if (resolvedScope === 'all_included') {
+                    includedByScope = checked;
+                } else if (resolvedScope === 'included_shown') {
+                    includedByScope = visible && checked;
+                } else if (resolvedScope === 'excluded_shown') {
+                    includedByScope = visible && !checked;
+                } else {
+                    includedByScope = visible;
+                }
+                if (!includedByScope || !name) {
+                    return;
+                }
+                if (membership === 'regex') {
+                    skippedRegexNames.push(name);
+                    return;
+                }
+                if (seen.has(name)) {
+                    return;
+                }
+                seen.add(name);
+                names.push(name);
+            });
+            return {
+                scope: resolvedScope,
+                names,
+                skippedRegexNames,
+                candidateCount: names.length + skippedRegexNames.length,
+                movableCount: names.length
+            };
+        };
+
         return Object.freeze({
             applyMemberFilters,
             setVisibleMemberSelection,
             syncMemberArraysFromTable,
             moveMemberRow,
-            syncMemberSearchUiState
+            syncMemberSearchUiState,
+            collectBulkMoveScope
         });
     };
 

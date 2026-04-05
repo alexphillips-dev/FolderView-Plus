@@ -14,6 +14,7 @@ const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/f
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
 const folderSettingsTransferJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
+const bulkAssignmentSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js');
 const settingsActionSupportJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js');
 const bulkAssignmentJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js');
 const settingsRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js');
@@ -32,6 +33,7 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         folderEditorMembersJs,
         folderEditorIconsJs,
         folderSettingsTransferJs,
+        bulkAssignmentSharedJs,
         settingsActionSupportJs,
         bulkAssignmentJs,
         settingsRuntimeActionsJs,

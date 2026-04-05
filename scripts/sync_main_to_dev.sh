@@ -13,13 +13,27 @@ git fetch origin main dev --tags
 release_only_path() {
   local path="${1:-}"
   case "${path}" in
-    folderview.plus.plg|folderview.plus.xml|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256)
+    folderview.plus.plg|folderview.plus.xml|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256|docs/releases/*.md)
       return 0
       ;;
     *)
       return 1
       ;;
   esac
+}
+
+restore_release_only_paths_from_previous() {
+  local file=""
+  local -a restore_paths=()
+  for file in "$@"; do
+    if release_only_path "${file}"; then
+      restore_paths+=("${file}")
+    fi
+  done
+  if [ "${#restore_paths[@]}" -eq 0 ]; then
+    return 0
+  fi
+  git restore --source=HEAD^ --staged --worktree -- "${restore_paths[@]}"
 }
 
 latest_dev_merge_into_main() {
@@ -69,7 +83,7 @@ if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then
 fi
 
 if main_differs_from_dev_only_by_release_artifacts; then
-  echo "Main differs from dev only by release artifacts/manifest. Skipping back-merge."
+  echo "Main differs from dev only by release artifacts/metadata. Skipping back-merge."
   exit 0
 fi
 
@@ -119,9 +133,9 @@ for COMMIT in "${MAIN_ONLY_COMMITS[@]}"; do
   fi
 
   if [ "${commit_touched_release_paths}" -eq 1 ]; then
-    git restore --source=HEAD^ --staged --worktree folderview.plus.plg folderview.plus.xml archive
+    restore_release_only_paths_from_previous "${COMMIT_PATHS[@]}"
     if ! git diff --cached --quiet || ! git diff --quiet; then
-      git add folderview.plus.plg folderview.plus.xml archive
+      git add --all
       git commit --amend --no-edit
     fi
   fi

@@ -49,6 +49,7 @@ const rowDetailsModule = window.FolderViewPlusRowDetails || null;
 const settingsHealthModule = window.FolderViewPlusSettingsHealth || null;
 const settingsWorkspacesModule = window.FolderViewPlusSettingsWorkspaces || null;
 const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
+const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
 const settingsRuntimeActionsModule = window.FolderViewPlusSettingsRuntimeActions || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
@@ -361,6 +362,12 @@ if (!settingsTreeModule || window.FolderViewPlusSettingsTreeModuleLoaded !== tru
     setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'missing', 'settings tree helpers unavailable');
 } else {
     setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'ok', 'settings tree helpers ready');
+}
+if (!bulkAssignmentSharedModule || window.FolderViewPlusBulkAssignmentSharedModuleLoaded !== true || typeof bulkAssignmentSharedModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.bulk-assignment.shared.js');
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.shared.js', 'missing', 'bulk assignment shared api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.shared.js', 'ok', 'bulk assignment shared api ready');
 }
 if (!bulkAssignmentModule || window.FolderViewPlusBulkAssignmentModuleLoaded !== true || typeof bulkAssignmentModule.createApi !== 'function') {
     bootstrapMissingModules.push('folderviewplus.bulk-assignment.js');
@@ -2963,6 +2970,7 @@ const getBulkAssignmentApi = (() => {
             document,
             $,
             utils,
+            sharedModule: bulkAssignmentSharedModule,
             swal,
             escapeHtml,
             normalizeManagedType,

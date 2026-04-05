@@ -337,6 +337,7 @@ try {
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.rules.js',
             '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+            '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
             '/plugins/folderview.plus/scripts/folder.editor.state.js',
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.editor.icons.js',
@@ -475,19 +476,19 @@ try {
 <?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
 <link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
-<link type="text/css" rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/folder.css')?>">
-<link type="text/css" rel="stylesheet" href="<?php autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
-<script src="<?php autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
-<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
     <form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">

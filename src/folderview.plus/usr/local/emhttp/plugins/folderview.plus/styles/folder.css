@@ -1926,6 +1926,69 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.42em;
 }
 
+.fv-member-bulk-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55em;
+    padding-top: 0.2em;
+    border-top: 1px solid var(--fv-editor-control-border);
+}
+
+.fv-member-bulk-copy {
+    display: grid;
+    gap: 0.16em;
+}
+
+.fv-member-bulk-copy > strong {
+    color: var(--fv-editor-text-primary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+}
+
+.fv-member-bulk-copy > span {
+    color: var(--fv-editor-muted);
+    line-height: 1.4;
+}
+
+.fv-member-bulk-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.fv-member-bulk-controls > select {
+    min-width: 180px;
+}
+
+.fv-member-bulk-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55em;
+    color: var(--fv-editor-muted);
+    font-size: 0.96rem;
+    line-height: 1.35;
+}
+
+.fv-member-bulk-summary-text {
+    min-width: 0;
+}
+
+.fv-member-bulk-inline-action {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.28em 0.9em;
+    background: linear-gradient(180deg, var(--fv-editor-button-bg-top), var(--fv-editor-button-bg-bottom));
+    color: var(--fv-editor-button-fg);
+    box-shadow: var(--fv-editor-button-shadow);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .fv-member-chip {
     display: inline-flex;
     align-items: center;
@@ -3331,6 +3394,15 @@ table.sortable td:nth-child(3) {
         justify-content: flex-start;
     }
 
+    .fv-member-bulk-controls {
+        width: 100%;
+    }
+
+    .fv-member-bulk-controls > select,
+    .fv-member-bulk-controls > button {
+        flex: 1 1 180px;
+    }
+
     .fv-member-stats {
         justify-self: start;
     }
@@ -3815,6 +3887,11 @@ body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
     .fv-member-tools-main > input[type="text"],
     .fv-member-tools-main > select {
         min-width: 180px;
+        width: 100%;
+    }
+
+    .fv-member-bulk-controls > select,
+    .fv-member-bulk-controls > button {
         width: 100%;
     }
 

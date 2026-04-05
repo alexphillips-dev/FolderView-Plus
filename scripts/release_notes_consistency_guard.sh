@@ -8,11 +8,29 @@ cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node awk sed mktemp grep
 
+env_truthy() {
+  case "$(printf '%s' "${1:-0}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
 mkdir -p "${ROOT_DIR}/tmp"
 TMP_DIR="$(mktemp -d "${ROOT_DIR}/tmp/release-notes-guard.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 OUTPUT_FILE="${TMP_DIR}/release_notes.md"
+
+if env_truthy "${FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:-0}"; then
+  chmod +x scripts/ensure_plg_changes_entry.sh
+  FVPLUS_TARGET_RELEASE_VERSION="${VERSION}" \
+  FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1 \
+  bash scripts/ensure_plg_changes_entry.sh --check-only --require-explicit --version "${VERSION}"
+fi
 
 chmod +x scripts/build_release_notes.sh
 bash scripts/build_release_notes.sh --version "${VERSION}" --output "${OUTPUT_FILE}"

@@ -27,6 +27,7 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const langScriptPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 const versionPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/version.php');
 const cpuPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/cpu.php');
 const readOrderPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_order.php');
@@ -69,15 +70,31 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
     assert.match(libPhp, /function emitNoCachePageHeaders\(\): void/);
     assert.match(libPhp, /function emitNoCacheMetaTags\(\): void/);
     assert.match(libPhp, /function emitPluginPageVersionSentinelScript\(string \$pageKey\): void/);
+    assert.match(libPhp, /function fvplus_versioned_plugin_asset_path\(string \$path\): string/);
+    assert.match(libPhp, /function fvplus_asset_url\(string \$path\): string/);
+    assert.match(libPhp, /function fvplus_asset\(string \$path\): void/);
     assert.match(libPhp, /fvplus\.page-version:/);
     assert.match(libPhp, /win\.location\.reload\(\);/);
 });
 
-test('folder editor page uses explicit php autov tags for editor assets', () => {
+test('plugin pages use versioned asset helper for shipped plugin assets', () => {
+    for (const { file, source } of pluginPageSources) {
+        assert.doesNotMatch(source, /autov\(['"]\/plugins\/folderview\.plus\//, `stale plugin autov helper remained in ${file}`);
+        assert.doesNotMatch(source, /<(?:script|link)[^>]+(?:src|href)="\/plugins\/folderview\.plus\/[^"?]+\.(?:js|css)(?:")/, `direct plugin asset include remained in ${file}`);
+    }
+});
+
+test('folder editor page uses explicit php versioned tags for editor assets', () => {
     assert.doesNotMatch(folderPage, /<\?autov\(/);
-    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.utils\.js'\)\?>"><\/script>/);
-    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.request\.js'\)\?>"><\/script>/);
-    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.theme-resolver\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.utils\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.request\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.theme-resolver\.js'\)\?>"><\/script>/);
+});
+
+test('language bootstrap version-tags plugin translation assets', () => {
+    assert.match(langScriptPhp, /require_once\('\/usr\/local\/emhttp\/plugins\/folderview\.plus\/server\/lib\.php'\);/);
+    assert.match(langScriptPhp, /fvplus_asset\('\/plugins\/folderview\.plus\/scripts\/include\/jquery\.i18n\.js'\)/);
+    assert.match(langScriptPhp, /fvplus_versioned_plugin_asset_path\('\/plugins\/folderview\.plus\/langs\/en\.json'\)/);
 });
 
 test('live GET endpoints that drive page freshness emit no-cache headers', () => {

@@ -28,24 +28,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Remove today's packages to avoid collision detection in pkg_build.sh
-      - name: Clean existing packages for today
-        run: |
-          TODAY=$(date +"%Y.%m.%d")
-          rm -f archive/folderview.plus-${TODAY}*.txz
-          echo "Cleaned packages for $TODAY"
-
-      - name: Build stable package
-        run: |
-          chmod +x pkg_build.sh
-          bash pkg_build.sh
-
-      - name: Ensure CHANGES entry for release version
-        run: |
-          chmod +x scripts/ensure_plg_changes_entry.sh
-          bash scripts/ensure_plg_changes_entry.sh
-
-      - name: Run release validation suite
+      - name: Prepare and push stable release
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
           FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
@@ -54,6 +37,7 @@ jobs:
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
+          FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES: '1'
           FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
           FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
@@ -73,29 +57,8 @@ jobs:
           FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
           FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
         run: |
-          chmod +x scripts/run_ci_suite.sh
-          bash scripts/run_ci_suite.sh --release
-
-      - name: Extract stable version
-        id: version
-        run: |
-          VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          FILENAME="folderview.plus-${VERSION}.txz"
-          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
-          echo "Stable version: $VERSION"
-
-      - name: Commit stable release to main
-        run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No release file changes to commit."
-          else
-            git commit -m "Stable release ${{ steps.version.outputs.version }}"
-          fi
-
-      - name: Push main
-        run: git push origin main
+          chmod +x scripts/release_prepare.sh
+          bash scripts/release_prepare.sh --push-main
 
       - name: Upload debug artifacts on failure
         if: failure()

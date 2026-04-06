@@ -1,0 +1,35 @@
+Menu="Dashboard"
+Icon="folder-icon.png"
+Type="xmenu"
+Tabs="true"
+Markdown="false"
+---
+<?php
+$type = 'dashboard';
+require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
+emitRequestTokenMetaTag();
+$fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
+if (!empty($fvplusRuntimeConflicts)) {
+    fvplus_render_runtime_conflict_notice('Dashboard');
+    return;
+}
+?>
+<?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('dashboard'); ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/customEvents.js')?>"></script>
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
+?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.layout-quickrail.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.folder-match-cache.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.js')?>"></script>
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/dashboard.css')?>">
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');
+?>

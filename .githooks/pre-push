@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "${ROOT_DIR}"
+
+echo "[pre-push] Running main branch history guard..."
+bash scripts/main_branch_history_guard.sh
+
+echo "[pre-push] Running dev version bump guard..."
+bash scripts/dev_version_bump_guard.sh
+
+echo "[pre-push] Running release guard checks..."
+bash scripts/release_guard.sh
+
+echo "[pre-push] Running install smoke checks..."
+bash scripts/install_smoke.sh
+
+echo "[pre-push] Running include order guard..."
+bash scripts/include_order_guard.sh
+
+echo "[pre-push] Running dead-code selector guard..."
+bash scripts/dead_code_guard.sh
+
+echo "[pre-push] Running performance budget guard..."
+if ! FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh; then
+  echo "[pre-push] Perf ratchet failed. If growth is intentional, run: bash scripts/perf_baseline_refresh.sh" >&2
+  exit 1
+fi
+
+echo "[pre-push] Running automated tests..."
+node --test tests/*.mjs
+
+echo "[pre-push] All checks passed."

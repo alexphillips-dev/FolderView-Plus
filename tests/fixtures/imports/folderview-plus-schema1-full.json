@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "pluginVersion": "2026.03.14.4",
+  "exportedAt": "2026-03-14T18:45:00.000Z",
+  "type": "docker",
+  "mode": "full",
+  "folders": {
+    "CloudFolderId": {
+      "name": "Cloud",
+      "icon": "/plugins/folderview.plus/images/icons/folder-cloud.svg",
+      "regex": "^(nextcloud|cloudberrybackup)",
+      "containers": [],
+      "settings": {
+        "preview": 1
+      },
+      "actions": []
+    }
+  }
+}

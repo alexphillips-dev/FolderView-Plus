@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "basePath": "/plugins/folderview.plus/images/icons/",
+  "icons": [
+    { "id": "default", "name": "Default Folder", "file": "folder-default.svg", "tags": ["default", "folder"] },
+    { "id": "media", "name": "Media", "file": "folder-media.svg", "tags": ["media", "plex", "arr"] },
+    { "id": "network", "name": "Networking", "file": "folder-network.svg", "tags": ["network", "proxy", "dns"] },
+    { "id": "automation", "name": "Automation", "file": "folder-automation.svg", "tags": ["automation", "home"] },
+    { "id": "database", "name": "Database", "file": "folder-database.svg", "tags": ["database", "db", "sql"] },
+    { "id": "gaming", "name": "Gaming", "file": "folder-gaming.svg", "tags": ["gaming", "games"] },
+    { "id": "cloud", "name": "Cloud", "file": "folder-cloud.svg", "tags": ["cloud", "backup", "remote"] },
+    { "id": "home", "name": "Home Automation", "file": "folder-home.svg", "tags": ["home", "automation", "iot"] },
+    { "id": "security", "name": "Security", "file": "folder-security.svg", "tags": ["security", "camera", "auth"] },
+    { "id": "backup", "name": "Backup", "file": "folder-backup.svg", "tags": ["backup", "archive"] },
+    { "id": "tools", "name": "Tools", "file": "folder-tools.svg", "tags": ["tools", "utilities"] },
+    { "id": "dev", "name": "Development", "file": "folder-dev.svg", "tags": ["dev", "development", "code"] }
+  ]
+}

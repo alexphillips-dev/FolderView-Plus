@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "tool": "eslint@9",
+  "scope": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/**/*.js",
+  "generatedAt": "2026-04-01T23:33:54.750Z",
+  "findings": []
+}

@@ -1,0 +1,1525 @@
+Title="Folder"
+Icon="folder-icon.png"
+Type="xmenu"
+Tabs="true"
+Markdown="false"
+---
+
+<script>
+    folderi18n = () => {
+        $('body').i18n();
+    }
+</script>
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
+emitRequestTokenMetaTag();
+$folderEditorPageType = '';
+$folderEditorPageMode = 'modern';
+$folderEditorPageModeSource = 'modern-only';
+$folderEditorRequestedId = '';
+$folderEditorResolvedId = '';
+$folderEditorPageBuildVersion = readInstalledVersion();
+$folderEditorCookieType = '';
+$folderEditorCookieId = '';
+$folderEditorBootstrapContext = [
+    'requestedId' => '',
+    'resolvedId' => '',
+    'resolvedBy' => '',
+    'folder' => null
+];
+try {
+    $folderEditorCookieRaw = trim((string)($_COOKIE['fv_folder_editor_bootstrap'] ?? ''));
+    if ($folderEditorCookieRaw !== '') {
+        $folderEditorCookiePayload = json_decode(rawurldecode($folderEditorCookieRaw), true);
+        if (is_array($folderEditorCookiePayload)) {
+            $folderEditorCookieType = trim((string)($folderEditorCookiePayload['type'] ?? ''));
+            $folderEditorCookieId = trim((string)($folderEditorCookiePayload['id'] ?? ''));
+        }
+    }
+} catch (Throwable $folderEditorCookieError) {
+    $folderEditorCookieType = '';
+    $folderEditorCookieId = '';
+}
+try {
+    $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
+    $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
+    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
+    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
+    $folderEditorRequestedId = trim((string)(
+        $_GET['id']
+        ?? $_REQUEST['id']
+        ?? $_GET['folderId']
+        ?? $_REQUEST['folderId']
+        ?? $_GET['folder']
+        ?? $_REQUEST['folder']
+        ?? $_GET['name']
+        ?? $_REQUEST['name']
+        ?? $folderEditorCookieId
+        ?? ''
+    ));
+    if ($folderEditorRequestedId !== '') {
+        $folderEditorBootstrapContext = resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
+        $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
+    }
+} catch (Throwable $folderEditorPageError) {
+    $folderEditorPageType = '';
+    $folderEditorPageMode = 'modern';
+    $folderEditorPageModeSource = 'modern-only';
+    $folderEditorRequestedId = '';
+    $folderEditorResolvedId = '';
+    $folderEditorBootstrapContext = [
+        'requestedId' => '',
+        'resolvedId' => '',
+        'resolvedBy' => '',
+        'folder' => null
+    ];
+}
+?>
+<script>
+    window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorResolvedMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorModeSource = <?php echo json_encode($folderEditorPageModeSource, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorPageBuildVersion = <?php echo json_encode($folderEditorPageBuildVersion, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorRuntimeLoaded = false;
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';
+    window.FolderViewPlusFolderEditorRuntimeLastError = '';
+    window.FolderViewPlusFolderEditorRuntimeScriptState = 'not-registered';
+    window.FolderViewPlusFolderEditorRuntimeScriptSource = '';
+    window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent = function markFolderEditorRuntimeScriptEvent(state, source) {
+        try {
+            window.FolderViewPlusFolderEditorRuntimeScriptState = String(state || '').trim() || 'unknown';
+            window.FolderViewPlusFolderEditorRuntimeScriptSource = String(source || '').trim();
+            if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function'
+                && window.FolderViewPlusFolderEditorRuntimeLoaded !== true
+                && (window.FolderViewPlusFolderEditorRuntimeScriptState === 'load'
+                    || window.FolderViewPlusFolderEditorRuntimeScriptState === 'error')) {
+                window.FolderViewPlusReportFolderEditorBootstrap({
+                    summary: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
+                        ? 'Folder editor runtime script failed to load.'
+                        : 'Folder editor runtime script loaded but did not start.',
+                    details: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
+                        ? 'The editor page could not load its runtime script file.'
+                        : 'The editor page loaded the runtime script file, but the runtime marker is still missing.',
+                    debug: [
+                        'build=' + String(window.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                        'pageMode=' + String(window.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                        'pageType=' + String(window.FolderViewPlusFolderEditorPageType || '(empty)'),
+                        'pageRequested=' + String(window.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                        'pageResolved=' + String(window.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                        'runtimeState=' + String(window.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                        'runtimeSrc=' + String(window.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                        'runtimeLoaded=' + (window.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
+                        'stage=' + String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
+                    ].join('\n'),
+                    tone: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'invalid' : 'warning',
+                    stage: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'runtime-script-error' : 'runtime-script-loaded'
+                });
+            }
+        } catch (_error) {
+            // Best effort only.
+        }
+    };
+    window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    (function applyFolderEditorHostThemeName(rawThemeName) {
+        const safeThemeName = String(rawThemeName || '').trim().toLowerCase();
+        if (!safeThemeName) {
+            return;
+        }
+        const applyAttrs = () => {
+            try {
+                document.documentElement?.setAttribute('data-fvplus-host-theme', safeThemeName);
+                document.documentElement?.setAttribute('data-fv-host-theme', safeThemeName);
+                document.body?.setAttribute('data-fvplus-host-theme', safeThemeName);
+                document.body?.setAttribute('data-fv-host-theme', safeThemeName);
+            } catch (_error) {
+                // Best effort only.
+            }
+        };
+        applyAttrs();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyAttrs, { once: true });
+        }
+    })(window.FolderViewPlusHostThemeName);
+</script>
+<script>
+    (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
+        const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
+        const bannerState = {
+            summary: 'Folder editor bootstrap diagnostics are idle.',
+            details: 'No startup issues have been reported yet.',
+            debug: 'Bootstrap: waiting for folder editor runtime.',
+            tone: 'info'
+        };
+        const buildDiagnosticsSnapshot = () => ({
+            checkedAt: new Date().toISOString(),
+            summary: String(bannerState.summary || '(empty)'),
+            details: String(bannerState.details || '(empty)'),
+            tone: String(bannerState.tone || 'info'),
+            debug: String(bannerState.debug || 'none'),
+            environment: {
+                pageMode: String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                pageType: String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+                requestedId: String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                resolvedId: String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                pluginVersion: String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                runtimeLoaded: win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no',
+                runtimeStage: String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)'),
+                runtimeState: String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                runtimeSrc: String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                url: String(win.location?.href || '(empty)')
+            }
+        });
+        const buildDiagnosticsText = () => {
+            const snapshot = buildDiagnosticsSnapshot();
+            return [
+                'FolderView Plus Folder Editor Bootstrap Diagnostics',
+                `summary: ${snapshot.summary}`,
+                `details: ${snapshot.details}`,
+                `severity: ${snapshot.tone}`,
+                '',
+                '[environment]',
+                `pageMode: ${snapshot.environment.pageMode}`,
+                `pageType: ${snapshot.environment.pageType}`,
+                `requestedId: ${snapshot.environment.requestedId}`,
+                `resolvedId: ${snapshot.environment.resolvedId}`,
+                `pluginVersion: ${snapshot.environment.pluginVersion}`,
+                `runtimeLoaded: ${snapshot.environment.runtimeLoaded}`,
+                `runtimeStage: ${snapshot.environment.runtimeStage}`,
+                `runtimeState: ${snapshot.environment.runtimeState}`,
+                `runtimeSrc: ${snapshot.environment.runtimeSrc}`,
+                `url: ${snapshot.environment.url}`,
+                '',
+                '[debug]',
+                snapshot.debug
+            ].join('\n');
+        };
+        const persistDiagnosticsSnapshot = () => {
+            try {
+                if (win.localStorage && typeof win.localStorage.setItem === 'function') {
+                    win.localStorage.setItem(EDITOR_DEBUG_SURFACE_STORAGE_KEY, JSON.stringify(buildDiagnosticsSnapshot()));
+                }
+            } catch (_error) {
+                // Bootstrap diagnostics are best-effort only.
+            }
+        };
+        win.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics() {
+            return buildDiagnosticsSnapshot();
+        };
+        const applySurfaceState = () => {
+            const host = doc.getElementById('fvFolderEditorBootstrapBanner');
+            const summaryNode = doc.getElementById('fvFolderEditorBootstrapSummary');
+            const detailsNode = doc.getElementById('fvFolderEditorBootstrapDetailsText');
+            const debugNode = doc.getElementById('fvFolderEditorBootstrapDebug');
+            const disclosure = doc.getElementById('fvFolderEditorBootstrapDisclosure');
+            if (!host || !summaryNode || !detailsNode || !debugNode || !disclosure) {
+                return;
+            }
+            const className = bannerState.tone === 'invalid'
+                ? 'invalid'
+                : bannerState.tone === 'warning'
+                    ? 'warning'
+                    : bannerState.tone === 'ready'
+                        ? 'ready'
+                        : 'info';
+            [summaryNode, detailsNode].forEach((node) => {
+                node.classList.remove('invalid', 'warning', 'info', 'ready');
+                node.classList.add(className);
+            });
+            summaryNode.textContent = String(bannerState.summary || '');
+            detailsNode.textContent = String(bannerState.details || '');
+            debugNode.textContent = String(bannerState.debug || '');
+            const shouldShow = bannerState.tone === 'invalid' || bannerState.tone === 'warning';
+            host.hidden = !shouldShow;
+            if (shouldShow) {
+                disclosure.open = true;
+            }
+        };
+        const syncSurfaceState = () => {
+            persistDiagnosticsSnapshot();
+            if (doc.readyState === 'loading') {
+                doc.addEventListener('DOMContentLoaded', applySurfaceState, { once: true });
+            } else {
+                applySurfaceState();
+            }
+        };
+        win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics() {
+            const text = buildDiagnosticsText();
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = doc.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    doc.body.appendChild(textarea);
+                    textarea.select();
+                    doc.execCommand('copy');
+                    doc.body.removeChild(textarea);
+                }
+                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
+                if (button) {
+                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
+                    button.setAttribute('data-default-html', originalHtml);
+                    button.textContent = 'Copied';
+                    win.setTimeout(() => {
+                        button.innerHTML = originalHtml;
+                    }, 1400);
+                }
+            } catch (_error) {
+                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
+                if (button) {
+                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
+                    button.setAttribute('data-default-html', originalHtml);
+                    button.textContent = 'Copy failed';
+                    win.setTimeout(() => {
+                        button.innerHTML = originalHtml;
+                    }, 1800);
+                }
+            }
+        };
+        win.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap({
+            summary = '',
+            details = '',
+            debug = '',
+            tone = 'warning',
+            stage = ''
+        } = {}) {
+            if (summary) {
+                bannerState.summary = String(summary);
+            }
+            if (details) {
+                bannerState.details = String(details);
+            }
+            if (debug) {
+                bannerState.debug = String(debug);
+            }
+            bannerState.tone = tone === 'invalid'
+                ? 'invalid'
+                : tone === 'warning'
+                    ? 'warning'
+                    : tone === 'ready'
+                        ? 'ready'
+                        : 'info';
+            if (stage) {
+                win.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
+            }
+            syncSurfaceState();
+        };
+        doc.addEventListener('click', (event) => {
+            const target = event.target instanceof Element ? event.target.closest('#fvFolderEditorBootstrapCopy') : null;
+            if (!target) {
+                return;
+            }
+            event.preventDefault();
+            void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
+        });
+        syncSurfaceState();
+    })(window, document);
+</script>
+<script>
+    (function bootFolderEditorRuntimePage(win, doc) {
+        const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
+        const assetVersion = encodeURIComponent(buildVersion);
+        const runtimeMode = 'modern';
+        const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
+        const scriptQueue = [
+            '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+            '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
+            '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+            '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
+            '/plugins/folderview.plus/scripts/folder.editor.rules.js',
+            '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+            '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
+            '/plugins/folderview.plus/scripts/folder.editor.state.js',
+            '/plugins/folderview.plus/scripts/folder.editor.members.js',
+            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
+            '/plugins/folderview.plus/scripts/folder.js'
+        ];
+        const formatDebug = () => [
+            'build=' + buildVersion,
+            'bootNonce=' + bootNonce,
+            'pageMode=' + String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+            'pageType=' + String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+            'pageRequested=' + String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+            'pageResolved=' + String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+            'runtimeState=' + String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+            'runtimeSrc=' + String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+            'runtimeLoaded=' + (win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
+            'stage=' + String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
+        ].join('\n');
+        const report = (summary, details, tone, stage) => {
+            if (typeof win.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+                win.FolderViewPlusReportFolderEditorBootstrap({
+                    summary,
+                    details,
+                    debug: formatDebug(),
+                    tone,
+                    stage
+                });
+                return;
+            }
+            const apply = () => {
+                const summaryNode = doc.getElementById('fvValidationSummary');
+                const detailsNode = doc.getElementById('fvValidationDetails');
+                const debugNode = doc.getElementById('fvEditorBootstrapDebug');
+                [summaryNode, detailsNode].forEach((node) => {
+                    if (!node) {
+                        return;
+                    }
+                    node.classList.remove('invalid', 'warning', 'info', 'ready');
+                    node.classList.add(tone === 'invalid' ? 'invalid' : (tone === 'warning' ? 'warning' : 'info'));
+                });
+                if (summaryNode) {
+                    summaryNode.textContent = summary;
+                }
+                if (detailsNode) {
+                    detailsNode.textContent = details;
+                }
+                if (debugNode) {
+                    debugNode.textContent = formatDebug();
+                }
+            };
+            if (doc.readyState === 'loading') {
+                doc.addEventListener('DOMContentLoaded', apply, { once: true });
+            } else {
+                apply();
+            }
+        };
+        const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
+            const script = doc.createElement('script');
+            const separator = relativePath.includes('?') ? '&' : '?';
+            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}`;
+            script.src = src;
+            script.async = false;
+            script.defer = false;
+            script.dataset.fvFolderEditorBootManaged = '1';
+            if (isRuntimeScript) {
+                script.id = 'fv-folder-editor-runtime-script';
+                script.dataset.runtime = runtimeMode;
+            }
+            script.onload = () => {
+                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
+                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', src);
+                }
+                resolve();
+            };
+            script.onerror = () => {
+                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
+                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', src);
+                }
+                reject(new Error(`Failed to load ${relativePath}`));
+            };
+            doc.body.appendChild(script);
+        });
+        const run = () => {
+            win.FolderViewPlusFolderEditorRuntimeLoaded = false;
+            win.FolderViewPlusFolderEditorRuntimeBootStage = 'page-boot-loader';
+            win.FolderViewPlusFolderEditorRuntimeLastError = '';
+            win.FolderViewPlusFolderEditorRuntimeScriptState = 'injecting';
+            win.FolderViewPlusFolderEditorRuntimeScriptSource = '';
+            doc.querySelectorAll(managedSelector).forEach((node) => node.remove());
+            let chain = Promise.resolve();
+            scriptQueue.forEach((relativePath, index) => {
+                chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
+            });
+            chain.catch((error) => {
+                report(
+                    'Folder editor runtime assets failed to load.',
+                    String(error?.message || error || 'Unknown runtime asset failure.'),
+                    'invalid',
+                    'runtime-asset-load-failed'
+                );
+            });
+        };
+        if (doc.readyState === 'loading') {
+            doc.addEventListener('DOMContentLoaded', run, { once: true });
+        } else {
+            run();
+        }
+        win.setTimeout(() => {
+            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
+                return;
+            }
+            report(
+                'Folder editor runtime has not started yet.',
+                'The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.',
+                'warning',
+                'runtime-script-pending'
+            );
+        }, 900);
+        win.setTimeout(() => {
+            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
+                return;
+            }
+            report(
+                'Folder editor runtime still has not started.',
+                'The editor page has now attempted a direct runtime script injection and still did not receive a startup marker.',
+                'invalid',
+                'runtime-script-still-pending'
+            );
+        }, 2500);
+    })(window, document);
+</script>
+<?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
+<script src="<?php autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.switchbutton.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.ui.css')?>">
+<?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
+<link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
+<?php endif; ?>
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
+
+<div class="canvas">
+    <form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">
+        <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
+            <div class="fv-editor-status-row">
+                <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
+                <pre id="fvFolderEditorBootstrapDetailsText" class="fv-validation-details warning">Copy the diagnostics below if the folder editor failed to open the requested folder.</pre>
+                <div class="fv-editor-status-tools">
+                    <button type="button" id="fvFolderEditorBootstrapCopy" class="fv-section-tool" data-default-html="<i class=&quot;fa fa-clipboard&quot; aria-hidden=&quot;true&quot;></i> Copy diagnostics"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy diagnostics</button>
+                </div>
+                <details id="fvFolderEditorBootstrapDisclosure" class="fv-editor-bootstrap-disclosure">
+                    <summary class="fv-editor-bootstrap-summary">Bootstrap diagnostics</summary>
+                    <pre id="fvFolderEditorBootstrapDebug" class="fv-editor-bootstrap-debug">Bootstrap: waiting for folder editor runtime.</pre>
+                </details>
+            </div>
+        </div>
+        <div id="fvModernEditorStage" class="fv-modern-editor-stage is-pending" aria-live="polite">
+            <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">
+                <div class="fv-editor-boot-placeholder-copy">
+                    <span class="fv-editor-kicker">Folder editor</span>
+                    <strong>Loading modern editor</strong>
+                    <span>Preparing the editor shell and loading the selected folder.</span>
+                </div>
+            </div>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="name">Name:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="text" name="name" value="" required>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]name-tooltip">
+                    The name of the folder, not that difficult.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt>Parent folder:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="parent_folder_id">
+                        <option value="">No parent (top level)</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>Optional. Child folders are nested under this parent in Docker and VM tab views.</p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="icon">Icon:</dt>
+                <dd class="fv-icon-dd">
+                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                    <input type="text" name="icon" value=""  oninput="updateIcon(this)">
+                    <div class="fv-icon-input-actions">
+                        <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
+                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
+                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> Custom icons</button>
+                        <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
+                        <button type="button" id="fv-icon-upload"><i class="fa fa-arrow-up" aria-hidden="true"></i> Upload</button>
+                    </div>
+                    <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
+                    <div class="fv-icon-upload-options">
+                        <label><input type="checkbox" id="fv-icon-upload-replace"> Replace same name</label>
+                        <label><input type="checkbox" id="fv-icon-upload-dedupe" checked> Deduplicate exact file</label>
+                    </div>
+                    <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
+                        <div class="fv-icon-upload-progress-top">
+                            <span id="fv-icon-upload-progress-text">Preparing upload...</span>
+                            <button type="button" id="fv-icon-upload-cancel"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button>
+                        </div>
+                        <div class="fv-icon-upload-progress-track">
+                            <div id="fv-icon-upload-progress-fill" class="fv-icon-upload-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div id="fv-icon-upload-status" class="fv-icon-upload-status" aria-live="polite"></div>
+                    <div id="fv-icon-picker-panel" class="fv-icon-picker-panel" hidden>
+                        <div class="fv-icon-picker-toolbar">
+                            <input type="text" id="fv-icon-picker-search" placeholder="Search built-in icons">
+                            <button type="button" id="fv-icon-picker-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-icon-picker-grid" class="fv-icon-picker-grid"></div>
+                        <div class="fv-icon-picker-pager">
+                            <button type="button" id="fv-icon-picker-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="fv-icon-picker-page-label">Page 1 / 1</span>
+                            <button type="button" id="fv-icon-picker-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
+                    </div>
+                    <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
+                        <div class="fv-icon-picker-toolbar fv-third-party-toolbar-main">
+                            <span class="fv-third-party-hint">Source: /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons</span>
+                            <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Find</div>
+                            <div class="fv-third-party-mode-switch" role="group" aria-label="Picker mode">
+                                <button type="button" id="fv-third-party-mode-basic" class="is-active">Basic</button>
+                                <button type="button" id="fv-third-party-mode-advanced">Advanced</button>
+                            </div>
+                            <div class="fv-third-party-control-row fv-third-party-icon-controls">
+                                <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
+                                <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                <select id="fv-third-party-view" title="Scope">
+                                    <option value="folder">Scope: selected pack</option>
+                                    <option value="all">Scope: all packs</option>
+                                    <option value="favorites">Scope: favorites</option>
+                                    <option value="recent">Scope: recent</option>
+                                    <option value="suggested">Scope: suggested</option>
+                                    <option value="duplicates">Scope: duplicates</option>
+                                </select>
+                                <select id="fv-third-party-sort" title="Sort">
+                                    <option value="usage">Sort: most used</option>
+                                    <option value="name">Sort: name</option>
+                                    <option value="count">Sort: icon count</option>
+                                    <option value="newest">Sort: newest</option>
+                                </select>
+                                <button type="button" id="fv-third-party-filter-toggle" class="fv-third-party-advanced-only" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
+                            </div>
+                            <div class="fv-third-party-presets">
+                                <button type="button" id="fv-third-party-preset-recent">Recent</button>
+                                <button type="button" id="fv-third-party-preset-favorites">Favorites</button>
+                                <button type="button" id="fv-third-party-preset-most-used">Most used</button>
+                                <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
+                            </div>
+                        </div>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Pack</div>
+                            <div class="fv-third-party-control-row fv-third-party-pack-primary">
+                                <select id="fv-third-party-pack-select" title="Pick icon pack"></select>
+                                <button type="button" id="fv-third-party-pack-actions-toggle" class="fv-third-party-advanced-only"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
+                            </div>
+                            <div class="fv-third-party-control-row fv-third-party-pack-controls fv-third-party-advanced-only">
+                                <input type="text" id="fv-third-party-pack-search" placeholder="Filter packs by name">
+                                <select id="fv-third-party-pack-kind" title="Pack type">
+                                    <option value="all">Pack type: all</option>
+                                    <option value="folders">Pack type: folders</option>
+                                    <option value="icons">Pack type: icons</option>
+                                </select>
+                            </div>
+                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel fv-third-party-advanced-only" hidden>
+                                <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
+                                <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
+                                <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden</button>
+                                <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Find duplicates</button>
+                            </div>
+                        </div>
+                        <div class="fv-third-party-section fv-third-party-advanced-only">
+                            <div class="fv-third-party-section-title">Filters</div>
+                            <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
+                                <div class="fv-third-party-inline-actions">
+                                    <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
+                                </div>
+                                <div class="fv-third-party-tag-shell">
+                                    <div class="fv-third-party-tag-shell-top">
+                                        <strong>Tags</strong>
+                                        <button type="button" id="fv-third-party-tag-clear">Clear tags</button>
+                                    </div>
+                                    <input type="text" id="fv-third-party-tag-search" placeholder="Filter tags">
+                                    <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Results</div>
+                            <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | Scope: selected pack | Filters: none</div>
+                            <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Step 1: pick a pack. Step 2: choose an icon.</div>
+                            <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
+                        </div>
+                        <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid fv-third-party-icon-grid"></div>
+                        <div class="fv-icon-picker-pager">
+                            <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="fv-third-party-icon-page-label">Page 1 / 1</span>
+                            <button type="button" id="fv-third-party-icon-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-third-party-icon-status" class="fv-icon-picker-status"></div>
+                    </div>
+                    <div id="fv-custom-icon-panel" class="fv-icon-picker-panel fv-custom-icon-panel" hidden>
+                        <div class="fv-icon-picker-toolbar">
+                            <input type="text" id="fv-custom-icon-search" placeholder="Search custom icons">
+                            <button type="button" id="fv-custom-icon-refresh" title="Refresh custom icons" aria-label="Refresh custom icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-custom-icon-stats" class="fv-custom-icon-stats">Loading custom icon quota...</div>
+                        <div id="fv-custom-icon-list" class="fv-custom-icon-list"></div>
+                        <div class="fv-icon-picker-pager">
+                            <button type="button" id="fv-custom-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="fv-custom-icon-page-label">Page 1 / 1</span>
+                            <button type="button" id="fv-custom-icon-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-custom-icon-status" class="fv-icon-picker-status"></div>
+                    </div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]icon-tooltip">
+                    A link to an image (<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#supported_image_formats" target="_blank" rel="noopener noreferrer">Supported formats</a>)
+                    <br>
+                    It also supports <b>data:image/{type};base64,</b> format (<a href="https://base64.guru/converter/encode/image" target="_blank" rel="noopener noreferrer">Convert image to data strings</a>)
+                    <br>
+                    <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank" rel="noopener noreferrer">Thread with some icons</a>.
+                    <br>
+                    For 3rd-party icon folders, place files under <b>/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/&lt;folder-name&gt;/</b>.
+                    <br>
+                    Uploaded custom icons are saved in <b>/usr/local/emhttp/plugins/folderview.plus/images/custom/</b>.
+                    <br>
+                    You can click the icon of the Docker/VM to set the folder icon.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="folder-webui">Folder WebUI:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" onchange="updateForm()" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]folder-webui-tooltip">Default folder WebUI URL.</p>
+            </blockquote>
+        </div>
+        <ul constraint="folder-webui" style="display: none;">
+            <li>
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="folder-webui-url">WebUI URL:</dt>
+                        <dd>
+                            <img class="img" style="visibility: hidden;">
+                            <input type="text" name="folder_webui_url" value="" placeholder="http://...">
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]folder-webui-url-tooltip">The URL to open when clicking the WebUI button in the folder context menu.</p>
+                    </blockquote>
+                </div>
+            </li>
+        </ul>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="preview">Preview:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="preview" onchange="updateForm()">
+                        <option value="0" data-i18n="preview-option-0">None</option>
+                        <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
+                        <option value="2" data-i18n="preview-option-2">Only icon (clean)</option>
+                        <option value="3" data-i18n="preview-option-3">Only label</option>
+                        <option value="4" data-i18n="preview-option-4">List</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]preview-tooltip">
+                    Choose how folder members are shown in the row preview. Use <b>Only icon</b> for a clean icon-only layout without member names or started/stopped text.
+                </p>
+            </blockquote>
+        </div>
+        <ul>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-hover">Show preview only on hover:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_hover" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-hover-tooltip">
+                            Will make the preview only show when mouse is hovering over.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-update">Orange text on update:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_update" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-update-tooltip">
+                            Will make the name of the container in the preview orange if an update is available.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-text-width">Text width:</dt>
+                        <dd>
+                            <input name="preview_text_width" type="text"/>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-text-width-tooltip">
+                        Will limit the width of the name of the container in the preview. <br>For example <b>12px</b>, <b>1rem</b> (Check <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/length">this</a> for more units). <br>Leave it blank and there is no limit.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt>Preview rows:</dt>
+                        <dd>
+                            <select name="preview_rows">
+                                <option value="1" selected>1 row</option>
+                                <option value="2">2 rows</option>
+                                <option value="3">3 rows</option>
+                                <option value="4">4 rows</option>
+                                <option value="0">Unlimited</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Controls how many rows of compact preview cards are shown in the main Docker row before the rest stay behind the folder overflow path.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-grayscale">Preview icon grayscale:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_grayscale" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-grayscale-tooltip">
+                            Will make the preview icons grayscaled.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_webui" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-webui-tooltip">
+                            Will add a little globe icon that opens the webUI.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-logs">Add preview open logs:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_logs" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-logs-tooltip">
+                            Will add a little log icon that opens the log menu.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-console">Add preview open console:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_console" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-console-tooltip">
+                            Will add a little console icon that opens the console window.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-vertical-bars">Preview vertical bars:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" onchange="updateForm()" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]preview-vertical-bars-tooltip">
+                            Will Show vertical bars between container/VM inside the folder preview.
+                        </p>
+                    </blockquote>
+                </div>
+                <ul constraint="bars-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="bars-color">Vertical bars color:</dt>
+                                <dd>
+                                    <div class="fv-inline-control-row">
+                                        <input type="color" name="preview_vertical_bars_color" style="height:28px;vertical-align:middle;">
+                                        <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
+                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBarDefaults();">
+                                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p data-i18n="[html]bars-color-tooltip">
+                                    Set the color of the vertical bars between containers.
+                                    <br>
+                                    Use the number field to increase bar thickness from 1px to 4px.
+                                    <br>
+                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="border">Show preview border:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" onchange="updateForm()" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]border-tooltip">
+                            Will Show a border on the preview box.
+                        </p>
+                    </blockquote>
+                </div>
+                <ul constraint="border-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="border-color">Border color:</dt>
+                                <dd>
+                                    <div class="fv-inline-control-row">
+                                        <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
+                                        <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
+                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBorderDefaults();">
+                                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p data-i18n="[html]border-color-tooltip">
+                                    Set the color of the preview border.
+                                    <br>
+                                    Use the number field to increase border thickness from 1px to 4px.
+                                    <br>
+                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets both the border color and thickness to defaults.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt>Chevron style:</dt>
+                        <dd>
+                            <img class="img" style="visibility: hidden;">
+                            <select name="dropdown_style" onchange="updateForm()">
+                                <option value="minimal" selected>Minimal</option>
+                                <option value="boxed">Boxed</option>
+                                <option value="ghost">Ghost</option>
+                                <option value="pill">Pill</option>
+                                <option value="filled">Filled</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Choose whether the folder chevron uses the lighter minimal style, a boxed frame, or one of the newer ghost, pill, or filled styles.
+                        </p>
+                    </blockquote>
+                </div>
+                <ul>
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt>Chevron colors:</dt>
+                                <dd>
+                                    <div class="fv-inline-control-row">
+                                        <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
+                                        <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;">
+                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetDropdownColorDefaults();">
+                                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p>
+                                    First picker sets the normal chevron and box color. Second picker sets the hover color.
+                                    <br>
+                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets both chevron colors to defaults.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="docker preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="context">Preview Context:</dt>
+                        <dd>
+                            <img class="img" style="visibility: hidden;">
+                            <select name="context" onchange="updateForm()">
+                                <option value="0" data-i18n="context-option-0">None</option>
+                                <option value="1" data-i18n="context-option-1" selected>Default</option>
+                                <option value="2" data-i18n="context-option-2">Advanced</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p data-i18n="[html]context-tooltip">
+                            Will show the preview context type you choose.
+                        </p>
+                    </blockquote>
+                </div>
+                <ul constraint="context-2 docker" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="context-trigger">Activation mode:</dt>
+                                <dd>
+                                    <img class="img" style="visibility: hidden;">
+                                    <select name="context_trigger">
+                                        <option value="0" data-i18n="context-trigger-option-0" selected>Click</option>
+                                        <option value="1" data-i18n="context-trigger-option-1">Hover</option>
+                                    </select>
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p data-i18n="[html]context-trigger-tooltip">
+                                    How the advanced preview will be shown.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="context-graph">Graph mode:</dt>
+                                <dd>
+                                    <img class="img" style="visibility: hidden;">
+                                    <select name="context_graph">
+                                        <option value="0" data-i18n="context-graph-option-0">None</option>
+                                        <option value="1" data-i18n="context-graph-option-1" selected>Combined</option>
+                                        <option value="2" data-i18n="context-graph-option-2">Split</option>
+                                        <option value="3" data-i18n="context-graph-option-3">CPU only</option>
+                                        <option value="4" data-i18n="context-graph-option-4">MEM only</option>
+                                    </select>
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p data-i18n="[html]context-graph-tooltip">
+                                    Which graph to show.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                    <li constraint="context_graph-1 context_graph-2 context_graph-3 context_graph-4 docker">
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="context-graph-time">Time Frame (s):</dt>
+                                <dd>
+                                    <img class="img" style="visibility: hidden;">
+                                    <input type="number" name="context_graph_time" value="60">
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p data-i18n="[html]context-graph-time-tooltip">
+                                    Time frame for the graph(s) in seconds.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="basic">
+            <dl>
+                <dt>Folder status colors:</dt>
+                <dd class="folder-status-colors-dd">
+                    <div class="fv-inline-control-row">
+                        <div class="folder-status-colors">
+                            <label class="folder-status-color-item">
+                                <span>Started</span>
+                                <input type="color" name="status_color_started" style="height:28px;vertical-align:middle;">
+                            </label>
+                            <label class="folder-status-color-item">
+                                <span>Paused</span>
+                                <input type="color" name="status_color_paused" style="height:28px;vertical-align:middle;">
+                            </label>
+                            <label class="folder-status-color-item">
+                                <span>Stopped</span>
+                                <input type="color" name="status_color_stopped" style="height:28px;vertical-align:middle;">
+                            </label>
+                        </div>
+                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetStatusColorDefaults();">
+                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Set custom colors for this folder's status icon and text across Docker, VMs, and Dashboard views.
+                    <br>
+                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic">
+            <dl>
+                <dt>Accent color:</dt>
+                <dd class="fv-accent-color-dd">
+                    <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
+                    <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
+                        <span class="fv-accent-inline-label">Bar color</span>
+                        <div class="fv-inline-control-row">
+                            <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
+                            <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <i class="fa fa-repeat" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Adds an optional accent bar on the left side of this folder across Docker, VMs, Dashboard, and the editor preview.
+                    <br>
+                    Disabled by default so the folder keeps the standard appearance until you turn it on, then choose the bar color here.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health warn threshold (%):</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="number" name="health_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder override for the stopped percentage warning threshold used in the Health column.
+                    <br>
+                    Leave blank to use the global Docker Health threshold.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health critical threshold (%):</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="number" name="health_critical_stopped_percent" min="0" max="100" step="1" placeholder="Use global/profile threshold">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder override for the stopped percentage critical threshold in health scoring.
+                    <br>
+                    Leave blank to use the current health profile/global setting.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health profile:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_profile">
+                        <option value="" selected>Use global profile</option>
+                        <option value="strict">Strict</option>
+                        <option value="balanced">Balanced</option>
+                        <option value="lenient">Lenient</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder profile preset for health scoring and thresholds.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health updates mode:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_updates_mode">
+                        <option value="" selected>Use global mode</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="warn">Warn</option>
+                        <option value="ignore">Ignore</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how pending updates affect this folder’s health.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health all-stopped mode:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_all_stopped_mode">
+                        <option value="" selected>Use global mode</option>
+                        <option value="critical">Critical</option>
+                        <option value="warn">Warn</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how an all-stopped folder is classified.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic">
+            <dl>
+                <dt>Status warn threshold (%):</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="number" name="status_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder override for the stopped percentage warning threshold used by the Status chip accent.
+                    <br>
+                    Leave blank to use the global Status threshold.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt data-i18n="update-column">Hide update column:</dt>
+                <dd>
+                    <input class="basic-switch" name="update_column" type="checkbox" style="display: none;" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]update-column-tooltip">
+                    Will <b>NUKE</b> the update column for this folder.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="override-default-actions">Override default actions:</dt>
+                <dd>
+                    <input class="basic-switch" name="override_default_actions" type="checkbox" style="display: none;" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]override-default-actions-tooltip">
+                    Will remove the default menu and replace it with the custom actions set below.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="default-action">Hide default action button:</dt>
+                <dd>
+                    <input class="basic-switch" name="default_action" type="checkbox" style="display: none;" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]default-action-tooltip">
+                    Will remove the default action button like start, stop and restart from the folder context menu.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="expand-tab">Expanded on Docker/VM tab:</dt>
+                <dd>
+                    <input class="basic-switch" name="expand_tab" type="checkbox" style="display: none;" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]expand-tab-tooltip">
+                    Will make the folder start expanded on the Docker/VMs tab.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="expand-dashboard">Expanded on Dashboard tab:</dt>
+                <dd>
+                    <input class="basic-switch" name="expand_dashboard" type="checkbox" style="display: none;" />
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]expand-dashboard-tooltip">
+                    Will make the folder start expanded on the Dashboard.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt>Dashboard overflow mode:</dt>
+                <dd>
+                    <select name="dashboard_overflow">
+                        <option value="default">Default</option>
+                        <option value="expand_row">Expand row</option>
+                        <option value="scroll">Scrollable panel</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how expanded dashboard members are shown for this folder.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt data-i18n="regex">Regex:</dt>
+                <dd>
+                    <input type="text" name="regex" oninput="updateRegex(this)" value="">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]regex-tooltip">
+                    Optional automation rule for this folder.
+                    <br>
+                    Matching container or VM names will be auto-included here.
+                    <br>
+                    Example for matching a Pterodactyl egg ID: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.
+                    <br>
+                    Editing this field will replace manual member selections with the current regex matches.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic custom-action-wrapper-parent">
+            <dl>
+                <dt data-i18n="custom-actions-folder">Custom actions:</dt>
+                <dd>
+                    <div class="custom-action-wrapper">​</div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <span data-i18n="[html]custom-actions-folder-tooltip">
+                    Add optional actions to this folder menu.
+                    <br><b>Standard</b> actions control selected containers or VMs directly.
+                    <br><b>Custom</b> actions run a User Scripts task if that plugin is installed.
+                    <br>Use the action list below to edit, remove, and reorder what appears for this folder.
+                </span>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
+                <dt>​</dt>
+                <dd>
+                    <a class="custom-action" data-i18n="[html]custom-action" onclick="customAction()"><i class="fa fa-plus" aria-hidden="true"></i> Add a custom action</a>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]custom-action-tooltip">
+                    Opens the action editor for a new folder action.
+                </p>
+            </blockquote>
+        </div>
+        <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
+        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." onclick="applyFolderSettingsToFolders(); return false;">
+        <input class="folder-btn-copy" type="button" value="Save as copy" onclick="submitForm(this.form, true); return false;">
+        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
+        <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
+        <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
+        <div class="basic order-section">
+            <dl>
+                <dt data-i18n="order">Order:</dt>
+                <dd>
+                    <table class="sortable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Order
+                                </th>
+                                <th data-i18n="table-name">
+                                    Name
+                                </th>
+                                <th data-i18n="table-included">
+                                    Included
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p data-i18n="[html]order-tooltip">
+                    Use the up/down buttons to set your desired order. Regex-selected entries are auto-included and locked.
+                </p>
+            </blockquote>
+        </div>
+    </form>
+</div>
+
+
+<div class="dialogCustomAction" style="display:none"></div>
+
+<div class="templateDialogCustomAction" style="display: none;">
+    <div>
+        <dl>
+            <dt data-i18n="name">Name:</dt>
+            <dd>
+                <input type="text" name="action_name">
+            </dd>
+        </dl>
+    </div>
+    <div>
+        <dl>
+            <dt data-i18n="custom-actions-type">Type:</dt>
+            <dd>
+                <select name="action_type" onchange="((el) => {$('[constraint*=\'action-type-\']').hide(); $(`[constraint*=\'action-type-${el.value}\']`).show();})(this)">
+                    <option value="0" data-i18n="custom-actions-type-0">Standard</option>
+                    <option value="1" data-i18n="custom-actions-type-1">Custom</option>
+                </select>
+            </dd>
+        </dl>
+    </div>
+    <div class="standard" constraint="action-type-0">
+        <div>
+            <dl>
+                <dt data-i18n="custom-actions-action">Action:</dt>
+                <dd>
+                    <select name="action_standard" onchange="((el) => {$('[constraint*=\'action-standard-\']').hide(); $(`[constraint*=\'action-standard-${el.value}\']`).show();})(this)">
+                        <option value="0" data-i18n="custom-actions-action-0">Cycle</option>
+                        <option value="1" data-i18n="custom-actions-action-1">Set</option>
+                        <option value="2" data-i18n="custom-actions-action-2">Restart</option>
+                    </select>
+                </dd>
+            </dl>
+        </div>
+        <div class="cycle" constraint="action-standard-0">
+            <dl>
+                <dt data-i18n="custom-actions-states">States:</dt>
+                <dd>
+                    <select name="action_cycle">
+                        <option value="0" data-i18n="custom-actions-cycle-0">Start - stop</option>
+                        <option value="1" data-i18n="custom-actions-cycle-1">Pause - resume</option>
+                    </select>
+                </dd>
+            </dl>
+        </div>
+        <div class="set" style="display: none;" constraint="action-standard-1">
+            <dl>
+                <dt data-i18n="custom-actions-states">States:</dt>
+                <dd>
+                    <select name="action_set">
+                        <option value="0" data-i18n="custom-actions-set-0">Start</option>
+                        <option value="1" data-i18n="custom-actions-set-1">Stop</option>
+                        <option value="2" data-i18n="custom-actions-set-2">Pause</option>
+                        <option value="3" data-i18n="custom-actions-set-3">Resume</option>
+                    </select>
+                </dd>
+            </dl>
+        </div>
+        <div class="action-subject">
+            <dl>
+                <dt data-i18n="custom-actions-cts">Containers:</dt>
+                <dd>
+                    <select name="action_elements" multiple></select>
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="custom" style="display: none;" constraint="action-type-1">
+        <dl>
+            <dt data-i18n="custom-actions-script">Script:</dt>
+            <dd>
+                <input type="text" name="action_script">
+            </dd>
+        </dl>
+        <dl>
+            <dt data-i18n="custom-actions-arguments">Arguments:</dt>
+            <dd>
+                <input type="text" name="action_script_args">
+            </dd>
+        </dl>
+        <dl>
+            <dt data-i18n="custom-actions-script-sync">Sync:</dt>
+            <dd>
+            <input class="basic-switch-sync" name="action_script_sync" type="checkbox" style="display: none;" />
+            </dd>
+        </dl>
+    </div>
+    <dl>
+        <dt data-i18n="icon">Icon:</dt>
+        <dd>
+            <input type="text" name="action_script_icon">
+        </dd>
+    </dl>
+</div>

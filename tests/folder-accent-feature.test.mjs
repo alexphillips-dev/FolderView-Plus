@@ -1,0 +1,83 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const repoRoot = path.resolve(process.cwd());
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+
+const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
+const folderSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
+const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
+const folderPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js');
+const folderChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
+const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
+const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
+const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
+const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
+const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
+const starterTemplatesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js');
+
+test('accent color contract and editor controls are defined', () => {
+    assert.match(folderContractJs, /const DEFAULT_FOLDER_ACCENT_COLOR = '#ffca63';/);
+    assert.match(folderContractJs, /const isFolderAccentEnabled = \(settings\) =>/);
+    assert.match(folderSchemaJs, /folder_accent_enabled/);
+    assert.match(folderSchemaJs, /folder_accent_color/);
+    assert.match(folderSchemaJs, /folder_accent_enabled:\s*false,/);
+    assert.match(folderSchemaJs, /folder_accent_color:\s*deps\.defaultFolderAccentColor \|\| '#ffca63',/);
+    assert.match(folderSharedJs, /folder_accent_enabled:\s*typeof deps\.isFolderAccentEnabled === 'function'/);
+    assert.match(folderSharedJs, /folder_accent_color:\s*typeof deps\.normalizeHexColor === 'function'/);
+    assert.match(folderSharedJs, /const resetFolderAccentDefaults = \(\) =>/);
+    assert.match(folderPage, /name="folder_accent_enabled"/);
+    assert.match(folderPage, /name="folder_accent_color"/);
+    assert.match(folderPage, /<dt>Accent color:<\/dt>[\s\S]*name="folder_accent_enabled"[\s\S]*class="fv-accent-inline-controls" constraint="accent-color"[\s\S]*name="folder_accent_color"/);
+    assert.doesNotMatch(folderPage, /<dt>Accent color value:<\/dt>/);
+    assert.match(folderPage, /resetFolderAccentDefaults\(\)/);
+    assert.match(folderCss, /\.fv-accent-inline-controls\s*\{/);
+    assert.match(folderCss, /\.fv-accent-inline-label\s*\{/);
+});
+
+test('modern folder editor persists accent color settings end to end', () => {
+    assert.match(folderChromeJs, /findBasicByFieldName\(form, 'folder_accent_enabled'\)/);
+    assert.match(folderPreviewJs, /const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);/);
+    assert.match(folderPreviewJs, /const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);/);
+    assert.match(folderPreviewJs, /has-accent/);
+    assert.match(folderChromeJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderPreviewJs, /\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);/);
+    assert.match(folderPreviewJs, /\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
+    assert.match(folderPreviewJs, /const updateLiveSummary = \(\) => \{[\s\S]*const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);[\s\S]*const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);[\s\S]*\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);[\s\S]*\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
+    assert.match(folderJs, /defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR/);
+    assert.match(folderJs, /setFieldChecked\('folder_accent_enabled', isFolderAccentEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
+    assert.match(folderJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);
+    assert.match(folderJs, /folder_accent_enabled: e\.folder_accent_enabled\.checked,/);
+    assert.match(folderJs, /folder_accent_color: normalizeHexColor\(e\.folder_accent_color\.value\.toString\(\), DEFAULT_FOLDER_ACCENT_COLOR\),/);
+    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
+    assert.match(folderPreviewRuntimeJs, /if \(form\.folder_accent_enabled\?\.checked === true\) \{/);
+    assert.match(folderJs, /const resetFolderAccentDefaults = typeof folderEditorResetHelpers\?\.resetFolderAccentDefaults === 'function'/);
+});
+
+test('accent color renders independently across runtime rows, dashboard cards, and starter defaults', () => {
+    assert.match(sharedRuntimeJs, /const DEFAULT_FOLDER_ACCENT_COLOR = folderContract\?\.DEFAULT_FOLDER_ACCENT_COLOR \|\| '#ffca63';/);
+    assert.match(sharedRuntimeJs, /const applyFolderAccentStyle = \(\$folderRow, settings\) =>/);
+    assert.match(sharedRuntimeJs, /\$folderRow\.toggleClass\('fv-folder-has-accent', enabled\);/);
+    assert.match(sharedRuntimeJs, /style\.setProperty\('--fv-folder-accent-color', getFolderAccentColor\(settings\)\);/);
+    assert.match(dockerJs, /const applyFolderAccentStyle = typeof dockerRuntimeShared\.applyFolderAccentStyle === 'function'/);
+    assert.match(dockerJs, /applyFolderAccentStyle\(\$folderRow, folder\.settings\);/);
+    assert.match(vmJs, /const applyFolderAccentStyle = typeof runtimeShared\.applyFolderAccentStyle === 'function'/);
+    assert.match(vmJs, /applyFolderAccentStyle\(\$folderRow, folder\.settings\);/);
+    assert.match(dashboardJs, /toggleClass\('fv-folder-has-accent', isFolderAccentEnabled\(folder\?\.settings \|\| \{\}\)\)/);
+    assert.match(dashboardJs, /style\.setProperty\(\s*'--fv-folder-accent-color',/);
+    assert.match(dockerCss, /tr\.fv-folder-has-accent td\.ct-name\.folder-name::before/);
+    assert.match(vmCss, /tr\.fv-folder-has-accent td\.vm-name\.folder-name::before/);
+    assert.match(dashboardCss, /\.folder-showcase-outer\.fv-folder-has-accent > span\.outer::before/);
+    assert.match(folderCss, /\.fv-live-preview-row\.has-accent::before/);
+    assert.match(starterTemplatesJs, /folder_accent_enabled:\s*false,/);
+    assert.match(starterTemplatesJs, /folder_accent_color:\s*'#ffca63',/);
+});

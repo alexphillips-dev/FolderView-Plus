@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "pluginVersion": "2026.03.13.11",
+  "exportedAt": "2026-03-13T12:00:00.000Z",
+  "mode": "full",
+  "folders": {
+    "missingType": {
+      "name": "Missing Type Marker",
+      "icon": "",
+      "regex": "",
+      "containers": []
+    }
+  }
+}

@@ -1,0 +1,486 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - reset-main
+  pull_request:
+
+env:
+  FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
+  FVPLUS_I18N_STRICT: '1'
+  FVPLUS_DEAD_CODE_STRICT: '1'
+  FVPLUS_REQUIRE_PERF_BASELINE: '1'
+  FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
+  FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+  FVPLUS_BROWSER_SMOKE_REQUIRED: '0'
+  FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
+  FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+  FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
+  FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
+  FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
+  FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
+  FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+  FVPLUS_THEME_MATRIX_REQUIRED: '0'
+  FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
+  FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
+  FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
+  FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
+  FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
+  FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
+  FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
+  FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED: '1'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      workflow_only: ${{ steps.classify.outputs.workflow_only }}
+      needs_browser: ${{ steps.classify.outputs.needs_browser }}
+      needs_theme: ${{ steps.classify.outputs.needs_theme }}
+      preview_changed: ${{ steps.classify.outputs.preview_changed }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docs:
+              - 'README.md'
+              - 'docs/**'
+              - 'CHANGELOG-fixes.md'
+              - 'CONTRIBUTING.md'
+              - 'LICENSE.md'
+              - 'SECURITY.md'
+              - 'SUPPORT*.md'
+              - 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md'
+            metadata:
+              - 'folderview.plus.plg'
+              - 'folderview.plus.xml'
+              - 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/**'
+            workflows:
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - 'scripts/run_ci_suite.sh'
+              - 'scripts/build_release_notes.sh'
+              - 'scripts/docs_metadata_guard.sh'
+              - 'scripts/release_notes_consistency_guard.sh'
+              - 'scripts/workflow_self_check.sh'
+              - 'tests/versioning-guard.test.mjs'
+            runtime:
+              - 'src/**'
+              - 'tests/**'
+              - 'pkg_build.sh'
+              - 'folderview.plus.plg'
+              - 'folderview.plus.xml'
+            browser:
+              - 'src/**'
+              - 'tests/**'
+              - 'scripts/browser_smoke.sh'
+              - 'scripts/browser_smoke.mjs'
+              - 'scripts/run_ci_suite.sh'
+            theme:
+              - 'src/**'
+              - 'tests/**'
+              - 'scripts/theme_matrix_smoke.sh'
+              - 'scripts/theme_matrix_smoke.mjs'
+              - 'scripts/theme_runtime_guard.sh'
+              - 'scripts/theme_scope_guard.sh'
+              - 'scripts/run_ci_suite.sh'
+            preview:
+              - 'src/**'
+              - 'pkg_build.sh'
+              - 'folderview.plus.plg'
+              - 'folderview.plus.xml'
+
+      - name: Classify CI mode
+        id: classify
+        shell: bash
+        run: |
+          set -euo pipefail
+          docs='${{ steps.changes.outputs.docs }}'
+          metadata='${{ steps.changes.outputs.metadata }}'
+          workflows='${{ steps.changes.outputs.workflows }}'
+          runtime='${{ steps.changes.outputs.runtime }}'
+          browser='${{ steps.changes.outputs.browser }}'
+          theme='${{ steps.changes.outputs.theme }}'
+          preview='${{ steps.changes.outputs.preview }}'
+
+          docs_only=false
+          workflow_only=false
+          if [[ "${docs}" == 'true' && "${metadata}" != 'true' && "${workflows}" != 'true' && "${runtime}" != 'true' ]]; then
+            docs_only=true
+          fi
+          if [[ "${workflows}" == 'true' && "${runtime}" != 'true' && "${metadata}" != 'true' && "${docs}" != 'true' ]]; then
+            workflow_only=true
+          fi
+
+          needs_browser=false
+          needs_theme=false
+          if [[ "${browser}" == 'true' && "${docs_only}" != 'true' && "${workflow_only}" != 'true' ]]; then
+            needs_browser=true
+          fi
+          if [[ "${theme}" == 'true' && "${docs_only}" != 'true' && "${workflow_only}" != 'true' ]]; then
+            needs_theme=true
+          fi
+
+          echo "docs_only=${docs_only}" >> "${GITHUB_OUTPUT}"
+          echo "workflow_only=${workflow_only}" >> "${GITHUB_OUTPUT}"
+          echo "needs_browser=${needs_browser}" >> "${GITHUB_OUTPUT}"
+          echo "needs_theme=${needs_theme}" >> "${GITHUB_OUTPUT}"
+          echo "preview_changed=${preview}" >> "${GITHUB_OUTPUT}"
+
+  lint-and-syntax:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs_only != 'true'
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run lint and syntax lane
+        shell: bash
+        run: |
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh --lane lint
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+  node-tests:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs_only != 'true'
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run targeted node validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/run_ci_suite.sh
+          if [[ '${{ needs.detect-changes.outputs.workflow_only }}' == 'true' ]]; then
+            bash scripts/run_ci_suite.sh --lane workflow-tests
+          else
+            bash scripts/run_ci_suite.sh --lane tests
+          fi
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+  guard-suite:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    env:
+      FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'backmerge/') && github.base_ref == 'dev' && '1' || '0' }}
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run change-aware guard lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/run_ci_suite.sh
+          if [[ '${{ needs.detect-changes.outputs.docs_only }}' == 'true' ]]; then
+            bash scripts/run_ci_suite.sh --lane docs-guards
+          elif [[ '${{ needs.detect-changes.outputs.workflow_only }}' == 'true' ]]; then
+            bash scripts/run_ci_suite.sh --lane workflow-guards
+          else
+            bash scripts/run_ci_suite.sh --lane guards
+          fi
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload guard debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-guard-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            *.log
+            scripts/*.log
+            tmp/**
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.needs_browser == 'true'
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run browser smoke lane
+        shell: bash
+        run: |
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh --lane browser-smoke
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload browser smoke artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-browser-smoke-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            tmp/browser-smoke-artifacts/**
+            *.log
+            scripts/*.log
+
+  theme-matrix:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.needs_theme == 'true'
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run theme matrix lane
+        shell: bash
+        run: |
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh --lane theme-matrix
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload theme matrix artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-theme-matrix-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            tmp/browser-smoke-artifacts/**
+            *.log
+            scripts/*.log
+
+  release-preview:
+    runs-on: ubuntu-latest
+    needs:
+      - detect-changes
+      - lint-and-syntax
+      - node-tests
+      - guard-suite
+    if: github.event_name == 'push' && github.ref_name == 'dev' && needs.detect-changes.outputs.preview_changed == 'true'
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Build preview package
+        shell: bash
+        run: |
+          chmod +x pkg_build.sh
+          bash pkg_build.sh --no-validate
+
+      - name: Build preview release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
+          chmod +x scripts/build_release_notes.sh
+          FVPLUS_RELEASE_INSTALL_BRANCH=dev bash scripts/build_release_notes.sh --version "${VERSION}" --output release_notes.md
+          {
+            echo "branch=dev"
+            echo "version=${VERSION}"
+            echo "archive=archive/folderview.plus-${VERSION}.txz"
+            echo "checksum=archive/folderview.plus-${VERSION}.txz.sha256"
+          } > preview-metadata.txt
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload dev release preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-release-preview-${{ github.run_id }}
+          path: |
+            archive/*.txz
+            archive/*.sha256
+            release_notes.md
+            preview-metadata.txt
+
+  quality:
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - detect-changes
+      - lint-and-syntax
+      - node-tests
+      - guard-suite
+      - browser-smoke
+      - theme-matrix
+      - release-preview
+
+    steps:
+      - name: Summarize CI duration and lane results
+        id: summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp
+          report_path="tmp/ci-duration-report.md"
+          {
+            echo "## CI duration report"
+            echo
+            echo "| Job | Result | Duration (s) |"
+            echo "| --- | --- | ---: |"
+            echo "| lint-and-syntax | ${{ needs.lint-and-syntax.result }} | ${{ needs.lint-and-syntax.outputs.duration_seconds || 'n/a' }} |"
+            echo "| node-tests | ${{ needs.node-tests.result }} | ${{ needs.node-tests.outputs.duration_seconds || 'n/a' }} |"
+            echo "| guard-suite | ${{ needs.guard-suite.result }} | ${{ needs.guard-suite.outputs.duration_seconds || 'n/a' }} |"
+            echo "| browser-smoke | ${{ needs.browser-smoke.result }} | ${{ needs.browser-smoke.outputs.duration_seconds || 'n/a' }} |"
+            echo "| theme-matrix | ${{ needs.theme-matrix.result }} | ${{ needs.theme-matrix.outputs.duration_seconds || 'n/a' }} |"
+            echo "| release-preview | ${{ needs.release-preview.result }} | ${{ needs.release-preview.outputs.duration_seconds || 'n/a' }} |"
+            echo
+            echo "- docs_only: `${{ needs.detect-changes.outputs.docs_only }}`"
+            echo "- workflow_only: `${{ needs.detect-changes.outputs.workflow_only }}`"
+            echo "- needs_browser: `${{ needs.detect-changes.outputs.needs_browser }}`"
+            echo "- needs_theme: `${{ needs.detect-changes.outputs.needs_theme }}`"
+            echo "- preview_changed: `${{ needs.detect-changes.outputs.preview_changed }}`"
+          } | tee "${report_path}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload CI duration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-duration-report-${{ github.run_id }}
+          path: tmp/ci-duration-report.md
+
+      - name: Enforce required CI job results
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+          for entry in \
+            "lint-and-syntax:${{ needs.lint-and-syntax.result }}" \
+            "node-tests:${{ needs.node-tests.result }}" \
+            "guard-suite:${{ needs.guard-suite.result }}" \
+            "browser-smoke:${{ needs.browser-smoke.result }}" \
+            "theme-matrix:${{ needs.theme-matrix.result }}" \
+            "release-preview:${{ needs.release-preview.result }}"; do
+            job_name="${entry%%:*}"
+            result="${entry##*:}"
+            case "${result}" in
+              success|skipped)
+                printf 'CI dependency %s finished with %s\n' "${job_name}" "${result}"
+                ;;
+              *)
+                printf 'ERROR: CI dependency %s finished with %s\n' "${job_name}" "${result}" >&2
+                failed=1
+                ;;
+            esac
+          done
+          if [[ "${failed}" -ne 0 ]]; then
+            exit 1
+          fi

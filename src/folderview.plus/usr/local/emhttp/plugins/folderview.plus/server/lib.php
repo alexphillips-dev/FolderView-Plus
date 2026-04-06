@@ -3490,9 +3490,10 @@
             $labelTargetByName[$name] = getFolderLabelValueFromLabels($labels);
         }
 
+        $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
         $folderContainers = [];
         $assignedContainers = [];
-        foreach ($folders as $folderId => $folder) {
+        foreach ($orderedFolders as $folderId => $folder) {
             $members = normalizeFolderMembers($folder['containers'] ?? []);
             if (!empty($folder['regex'])) {
                 $regex = '/' . str_replace('/', '\/', $folder['regex']) . '/';
@@ -3525,11 +3526,14 @@
         $newOrder = [];
         $seen = [];
         $folderPlaceholders = array_keys($folderContainers);
+        $sortMode = (string)($prefs['sortMode'] ?? 'created');
+        $pinnedIds = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $preserveCurrentPlaceholderOrder = $sortMode === 'created' && count($pinnedIds) === 0;
         $orderedFolderPlaceholders = [];
 
         foreach ($currentOrder as $item) {
             if (in_array($item, $folderPlaceholders, true)) {
-                if (!in_array($item, $orderedFolderPlaceholders, true)) {
+                if ($preserveCurrentPlaceholderOrder && !in_array($item, $orderedFolderPlaceholders, true)) {
                     $orderedFolderPlaceholders[] = $item;
                 }
                 continue;
@@ -3550,10 +3554,14 @@
             }
         }
 
-        foreach ($folderPlaceholders as $placeholder) {
-            if (!in_array($placeholder, $orderedFolderPlaceholders, true)) {
-                $orderedFolderPlaceholders[] = $placeholder;
+        if ($preserveCurrentPlaceholderOrder) {
+            foreach ($folderPlaceholders as $placeholder) {
+                if (!in_array($placeholder, $orderedFolderPlaceholders, true)) {
+                    $orderedFolderPlaceholders[] = $placeholder;
+                }
             }
+        } else {
+            $orderedFolderPlaceholders = $folderPlaceholders;
         }
 
         // Preserve existing folder placeholder order from userprefs and only

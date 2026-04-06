@@ -109,11 +109,16 @@ test('docker runtime only backfills missing folder placeholders when sort mode r
 test('docker order sync preserves current folder placeholder sequence before appending missing placeholders', () => {
     assert.match(
         libPhp,
-        /\$orderedFolderPlaceholders = \[\];[\s\S]*?foreach \(\$currentOrder as \$item\) \{[\s\S]*?if \(in_array\(\$item, \$folderPlaceholders, true\)\) \{[\s\S]*?\$orderedFolderPlaceholders\[\] = \$item;[\s\S]*?continue;[\s\S]*?\}/
+        /\$preserveCurrentPlaceholderOrder = \$sortMode === 'created' && count\(\$pinnedIds\) === 0;/
     );
     assert.match(
         libPhp,
-        /foreach \(\$folderPlaceholders as \$placeholder\) \{[\s\S]*?if \(!in_array\(\$placeholder, \$orderedFolderPlaceholders, true\)\) \{[\s\S]*?\$orderedFolderPlaceholders\[\] = \$placeholder;[\s\S]*?\}[\s\S]*?\}/
+        /if \(\$preserveCurrentPlaceholderOrder\) \{[\s\S]*?foreach \(\$folderPlaceholders as \$placeholder\) \{[\s\S]*?\$orderedFolderPlaceholders\[\] = \$placeholder;[\s\S]*?\}[\s\S]*?\} else \{[\s\S]*?\$orderedFolderPlaceholders = \$folderPlaceholders;[\s\S]*?\}/
     );
     assert.match(libPhp, /foreach \(\$orderedFolderPlaceholders as \$placeholder\) \{/);
+});
+
+test('docker order sync uses prefs-ordered folders when explicit sort or pinning is active', () => {
+    assert.match(libPhp, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
+    assert.match(libPhp, /foreach \(\$orderedFolders as \$folderId => \$folder\) \{/);
 });

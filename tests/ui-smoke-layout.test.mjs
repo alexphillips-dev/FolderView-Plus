@@ -671,6 +671,8 @@ test('prefs endpoint no longer rewrites retired folder editor mode flags', () =>
     );
     assert.doesNotMatch(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
     assert.doesNotMatch(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
+    assert.match(prefsPhp, /\$dockerOrderChanged = \$type === 'docker' && \(/);
+    assert.match(prefsPhp, /if \(\$dockerOrderChanged\) \{\s*syncContainerOrder\('docker'\);\s*\}/);
 });
 
 test('runtime folder editor routes defer editor mode resolution to Folder.page server prefs', () => {

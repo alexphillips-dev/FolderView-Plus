@@ -36,6 +36,14 @@ fvplus_json_try(function (): array {
 
     $saved = writeTypePrefs($type, $next);
     syncManualOrderWithFolders($type, readRawFolderMap($type));
+    $dockerOrderChanged = $type === 'docker' && (
+        (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
+        || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
+        || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
+    );
+    if ($dockerOrderChanged) {
+        syncContainerOrder('docker');
+    }
     try {
         appendDiagnosticsHistoryEvent('prefs_update', $type, [
             'traceId' => getRequestTraceId(),

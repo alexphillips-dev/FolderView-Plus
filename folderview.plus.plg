@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.06.13">
-<!ENTITY md5 "7e2d4646de359a5ed8e089fa77d2bc09">
+<!ENTITY version "2026.04.06.14">
+<!ENTITY md5 "9c500e0ccf32fadb3200ad864b7ba84a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.06.14
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
 
 ###2026.04.06.13
 - Fix: Docker runtime rows, folder state, and container interactions.

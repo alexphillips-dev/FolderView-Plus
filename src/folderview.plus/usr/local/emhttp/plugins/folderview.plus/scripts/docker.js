@@ -2198,6 +2198,7 @@ const syncDockerPinnedFolderUi = () => {
         queueDockerRuntimeResizerBind();
         scheduleDockerRuntimeWidthReflow('pin-toggle', 24);
     }
+    syncDockerCommandCenterView();
 };
 const applyDockerFocusedFolderState = () => {
     const focusId = String(dockerFocusedFolderId || '').trim();
@@ -2207,6 +2208,7 @@ const applyDockerFocusedFolderState = () => {
         $('body').removeClass('fv-folder-focus-active');
         $('#docker_list > tr').removeClass('fv-folder-focus-hidden');
         refreshDockerFolderQuickActionStates();
+        syncDockerCommandCenterView();
         return;
     }
     const visibleSet = getFocusedFolderVisibleSet(focusId);
@@ -2230,6 +2232,7 @@ const applyDockerFocusedFolderState = () => {
         $row.toggleClass('fv-folder-focus-hidden', true);
     });
     refreshDockerFolderQuickActionStates();
+    syncDockerCommandCenterView();
 };
 const toggleDockerFolderFocus = (folderId) => {
     const id = String(folderId || '').trim();
@@ -2256,6 +2259,7 @@ const toggleDockerFolderLock = (folderId) => {
     writeDockerLockedFolderIds(Array.from(dockerLockedFolderIdSet));
     dockerRuntimeStateStore.set({ lockedFolderIds: Array.from(dockerLockedFolderIdSet) });
     refreshDockerFolderQuickActionStates();
+    syncDockerCommandCenterView();
 };
 const applyDockerPinnedFolderIds = (nextPinnedIds) => {
     folderTypePrefs = utils.normalizePrefs({
@@ -2551,6 +2555,280 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
         badge.classList.add('is-warning');
     }
     badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
+};
+
+const DOCKER_RUNTIME_VIEW_MODE_COMMAND_CENTER = 'commandcenter';
+const normalizeDockerRuntimeViewMode = (value) => (
+    typeof utils.normalizeViewMode === 'function'
+        ? utils.normalizeViewMode(value)
+        : (String(value || '').trim().toLowerCase() === DOCKER_RUNTIME_VIEW_MODE_COMMAND_CENTER
+            ? DOCKER_RUNTIME_VIEW_MODE_COMMAND_CENTER
+            : 'table')
+);
+const readDockerRuntimeViewMode = () => normalizeDockerRuntimeViewMode(folderTypePrefs?.viewMode);
+const resolveDockerRuntimeTable = () => document.querySelector('table#docker_containers');
+const resolveDockerRuntimeAddFolderButton = () => document.querySelector('table#docker_containers + input[type="button"][onclick*="createFolderBtn"]');
+const ensureDockerCommandCenterHost = () => {
+    let host = document.getElementById('fvplus-docker-command-center');
+    if (host) {
+        return host;
+    }
+    const table = resolveDockerRuntimeTable();
+    if (!table || !table.parentNode) {
+        return null;
+    }
+    host = document.createElement('section');
+    host.id = 'fvplus-docker-command-center';
+    host.className = 'fv-runtime-command-center';
+    host.setAttribute('data-fv-runtime-type', 'docker');
+    table.parentNode.insertBefore(host, table);
+    return host;
+};
+const setDockerNativeTableVisibility = (hidden) => {
+    const shouldHide = hidden === true;
+    const table = resolveDockerRuntimeTable();
+    if (table instanceof HTMLElement) {
+        table.hidden = shouldHide;
+        table.classList.toggle('fv-command-center-native-hidden', shouldHide);
+        table.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+    const addButton = resolveDockerRuntimeAddFolderButton();
+    if (addButton instanceof HTMLElement) {
+        addButton.hidden = shouldHide;
+        addButton.classList.toggle('fv-command-center-native-hidden', shouldHide);
+        addButton.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+};
+const summarizeDockerCommandCenterEntries = (containersMap) => {
+    const summary = {
+        total: 0,
+        running: 0,
+        paused: 0,
+        stopped: 0,
+        updates: 0,
+        managed: 0
+    };
+    for (const entry of Object.values(containersMap || {})) {
+        summary.total += 1;
+        if (entry?.pause === true) {
+            summary.paused += 1;
+        } else if (entry?.state === true) {
+            summary.running += 1;
+        } else {
+            summary.stopped += 1;
+        }
+        if (entry?.update === true) {
+            summary.updates += 1;
+        }
+        if (entry?.managed === true) {
+            summary.managed += 1;
+        }
+    }
+    return summary;
+};
+const getDockerCommandCenterStateTone = (summary) => {
+    if ((summary?.running || 0) > 0) {
+        return 'running';
+    }
+    if ((summary?.paused || 0) > 0) {
+        return 'paused';
+    }
+    if ((summary?.stopped || 0) > 0) {
+        return 'stopped';
+    }
+    return 'empty';
+};
+const getDockerCommandCenterStateLabel = (summary) => {
+    const total = Number(summary?.total || 0);
+    if (total <= 0) {
+        return 'No services assigned';
+    }
+    if (Number(summary?.running || 0) > 0) {
+        return `${summary.running}/${total} running`;
+    }
+    if (Number(summary?.paused || 0) > 0) {
+        return `${summary.paused}/${total} paused`;
+    }
+    return `${summary.stopped}/${total} stopped`;
+};
+const buildDockerCommandCenterMemberHtml = (entry) => {
+    const stateTone = entry?.pause === true ? 'paused' : (entry?.state === true ? 'running' : 'stopped');
+    const safeName = escapeHtml(String(entry?.name || '').trim());
+    const safeIcon = sanitizeImageSrc(entry?.icon || '');
+    const titleParts = [safeName];
+    if (entry?.update === true) {
+        titleParts.push('Update ready');
+    }
+    if (entry?.managed !== true) {
+        titleParts.push('External manager');
+    }
+    return `<span class="fv-runtime-command-member is-${stateTone}${entry?.update === true ? ' has-update' : ''}" title="${escapeHtml(titleParts.join(' | '))}"><span class="fv-runtime-command-member-icon"><img src="${safeIcon}" alt=""></span><span class="fv-runtime-command-member-label">${safeName}</span>${entry?.update === true ? '<span class="fv-runtime-command-member-flag">Update</span>' : ''}</span>`;
+};
+const buildDockerCommandCenterCardHtml = (id, folder, focusVisibleSet = null) => {
+    const safeId = escapeHtml(String(id || '').trim());
+    const safeName = escapeHtml(String(folder?.name || id).trim() || safeId);
+    const safeIcon = sanitizeImageSrc(folder?.icon || '');
+    const directContainers = getFolderRuntimeContainers(folder);
+    const branchContainers = getScopedRuntimeContainersForFolder(id, true);
+    const summary = summarizeDockerCommandCenterEntries(branchContainers);
+    const stateTone = getDockerCommandCenterStateTone(summary);
+    const stateLabel = getDockerCommandCenterStateLabel(summary);
+    const actionSummary = summarizeFolderActionCounts(branchContainers);
+    const childIds = getFolderChildren(id);
+    const descendantIds = getFolderDescendants(id);
+    const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+    const parentName = parentId && globalFolders[parentId] ? escapeHtml(String(globalFolders[parentId]?.name || parentId)) : '';
+    const memberEntries = Object.values(directContainers || {})
+        .sort((left, right) => {
+            const leftRank = left?.pause === true ? 1 : (left?.state === true ? 0 : 2);
+            const rightRank = right?.pause === true ? 1 : (right?.state === true ? 0 : 2);
+            if (leftRank !== rightRank) {
+                return leftRank - rightRank;
+            }
+            return String(left?.name || '').localeCompare(String(right?.name || ''));
+        });
+    const previewMembers = memberEntries.slice(0, 8).map((entry) => buildDockerCommandCenterMemberHtml(entry)).join('');
+    const overflowCount = Math.max(0, memberEntries.length - 8);
+    const memberHtml = memberEntries.length > 0
+        ? `${previewMembers}${overflowCount > 0 ? `<span class="fv-runtime-command-more">+${overflowCount} more</span>` : ''}`
+        : (childIds.length > 0
+            ? `<span class="fv-runtime-command-empty">Child folders manage ${summary.total} service${summary.total === 1 ? '' : 's'}.</span>`
+            : '<span class="fv-runtime-command-empty">No services assigned.</span>');
+    const pinned = isDockerFolderPinned(id);
+    const locked = isDockerFolderLocked(id);
+    const focused = dockerFocusedFolderId === id;
+    const focusHidden = focusVisibleSet instanceof Set && focusVisibleSet.size > 0 && !focusVisibleSet.has(id);
+    const cardClasses = [
+        'fv-runtime-command-card',
+        `is-${stateTone}`,
+        pinned ? 'is-pinned' : '',
+        locked ? 'is-locked' : '',
+        focused ? 'is-focused' : '',
+        focusHidden ? 'is-focus-hidden' : ''
+    ].filter(Boolean).join(' ');
+    const utilityPills = [
+        pinned ? '<span class="fv-runtime-command-pill is-utility">Pinned</span>' : '',
+        locked ? '<span class="fv-runtime-command-pill is-utility">Locked</span>' : '',
+        focused ? '<span class="fv-runtime-command-pill is-utility">Focused</span>' : '',
+        parentName ? `<span class="fv-runtime-command-pill is-parent">Inside ${parentName}</span>` : ''
+    ].filter(Boolean).join('');
+    return `<article class="${cardClasses}" data-folder-id="${safeId}">
+        <div class="fv-runtime-command-card-head">
+            <div class="fv-runtime-command-avatar">
+                <img src="${safeIcon}" alt="">
+            </div>
+            <div class="fv-runtime-command-headline">
+                <div class="fv-runtime-command-title-row">
+                    <h3>${safeName}</h3>
+                    <span class="fv-runtime-command-status is-${stateTone}">${escapeHtml(stateLabel)}</span>
+                </div>
+                <div class="fv-runtime-command-subtitle">Branch scope: ${summary.total} service${summary.total === 1 ? '' : 's'}${summary.updates > 0 ? ` | ${summary.updates} update${summary.updates === 1 ? '' : 's'} ready` : ''}${descendantIds.length > 0 ? ` | ${descendantIds.length} nested folder${descendantIds.length === 1 ? '' : 's'}` : ''}</div>
+            </div>
+        </div>
+        ${utilityPills ? `<div class="fv-runtime-command-pill-row">${utilityPills}</div>` : ''}
+        <div class="fv-runtime-command-stat-row">
+            <span class="fv-runtime-command-stat"><strong>${summary.running}</strong><span>Running</span></span>
+            <span class="fv-runtime-command-stat"><strong>${summary.paused}</strong><span>Paused</span></span>
+            <span class="fv-runtime-command-stat"><strong>${summary.stopped}</strong><span>Stopped</span></span>
+            <span class="fv-runtime-command-stat"><strong>${childIds.length}</strong><span>Children</span></span>
+        </div>
+        <div class="fv-runtime-command-actions">
+            <button type="button" data-fv-docker-command-action="start" data-folder-id="${safeId}" ${actionSummary.startable > 0 ? '' : 'disabled'}>Start</button>
+            <button type="button" data-fv-docker-command-action="stop" data-folder-id="${safeId}" ${actionSummary.stoppable > 0 ? '' : 'disabled'}>Stop</button>
+            <button type="button" data-fv-docker-command-action="restart" data-folder-id="${safeId}" ${actionSummary.restartable > 0 ? '' : 'disabled'}>Restart</button>
+            <button type="button" data-fv-docker-command-action="${actionSummary.pausable > 0 ? 'pause' : 'resume'}" data-folder-id="${safeId}" ${(actionSummary.pausable > 0 || actionSummary.resumable > 0) ? '' : 'disabled'}>${actionSummary.pausable > 0 ? 'Pause' : 'Resume'}</button>
+        </div>
+        <div class="fv-runtime-command-actions is-secondary">
+            <button type="button" data-fv-docker-command-action="pin" data-folder-id="${safeId}">${pinned ? 'Unpin' : 'Pin'}</button>
+            <button type="button" data-fv-docker-command-action="focus" data-folder-id="${safeId}">${focused ? 'Unfocus' : 'Focus'}</button>
+            <button type="button" data-fv-docker-command-action="lock" data-folder-id="${safeId}">${locked ? 'Unlock' : 'Lock'}</button>
+            <button type="button" data-fv-docker-command-action="edit" data-folder-id="${safeId}">Edit</button>
+        </div>
+        <div class="fv-runtime-command-members">${memberHtml}</div>
+    </article>`;
+};
+const bindDockerCommandCenterActions = (host) => {
+    if (!(host instanceof HTMLElement)) {
+        return;
+    }
+    host.querySelectorAll('[data-fv-docker-command-action]').forEach((button) => {
+        button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+            const folderId = String(target?.getAttribute('data-folder-id') || '').trim();
+            const action = String(target?.getAttribute('data-fv-docker-command-action') || '').trim().toLowerCase();
+            try {
+                if (action === 'create-folder') {
+                    createFolderBtn();
+                    return;
+                }
+                if (!folderId || !globalFolders[folderId]) {
+                    return;
+                }
+                if (action === 'pin') {
+                    await toggleDockerFolderPin(folderId);
+                    syncDockerCommandCenterView();
+                    return;
+                }
+                if (action === 'focus') {
+                    toggleDockerFolderFocus(folderId);
+                    syncDockerCommandCenterView();
+                    return;
+                }
+                if (action === 'lock') {
+                    toggleDockerFolderLock(folderId);
+                    syncDockerCommandCenterView();
+                    return;
+                }
+                if (action === 'edit') {
+                    editFolder(folderId);
+                    return;
+                }
+                if (['start', 'stop', 'pause', 'resume', 'restart'].includes(action)) {
+                    await actionFolder(folderId, action, { includeDescendants: true });
+                }
+            } catch (error) {
+                console.error('folderview.plus docker command center action failed', error);
+            }
+        });
+    });
+};
+const syncDockerCommandCenterView = () => {
+    const enabled = readDockerRuntimeViewMode() === DOCKER_RUNTIME_VIEW_MODE_COMMAND_CENTER;
+    const host = enabled ? ensureDockerCommandCenterHost() : document.getElementById('fvplus-docker-command-center');
+    const folderIds = Object.keys(getPrefsOrderedFolderMap(globalFolders || {}, folderTypePrefs || {}));
+    const shouldRender = enabled && host instanceof HTMLElement && folderIds.length > 0;
+    setDockerNativeTableVisibility(shouldRender);
+    if (!(host instanceof HTMLElement)) {
+        return;
+    }
+    if (!shouldRender) {
+        host.hidden = true;
+        host.innerHTML = '';
+        return;
+    }
+    const focusVisibleSet = dockerFocusedFolderId ? getFocusedFolderVisibleSet(dockerFocusedFolderId) : null;
+    const directMemberNames = new Set();
+    folderIds.forEach((folderId) => {
+        const folder = globalFolders[folderId];
+        const members = Object.keys(getFolderRuntimeContainers(folder) || {});
+        members.forEach((name) => directMemberNames.add(String(name || '').trim()));
+    });
+    const cardsHtml = folderIds
+        .map((folderId) => buildDockerCommandCenterCardHtml(folderId, globalFolders[folderId], focusVisibleSet))
+        .join('');
+    host.hidden = false;
+    host.innerHTML = `<div class="fv-runtime-command-center-header">
+        <div>
+            <div class="fv-runtime-command-center-kicker">Docker Command Center</div>
+            <div class="fv-runtime-command-center-summary">${folderIds.length} folder${folderIds.length === 1 ? '' : 's'} | ${directMemberNames.size} direct service${directMemberNames.size === 1 ? '' : 's'}${dockerFocusedFolderId && globalFolders[dockerFocusedFolderId] ? ` | Focused: ${escapeHtml(String(globalFolders[dockerFocusedFolderId]?.name || dockerFocusedFolderId))}` : ''}</div>
+        </div>
+        <div class="fv-runtime-command-center-toolbar">
+            <button type="button" data-fv-docker-command-action="create-folder">Add folder</button>
+        </div>
+    </div>
+    <div class="fv-runtime-command-center-grid">${cardsHtml}</div>`;
+    bindDockerCommandCenterActions(host);
 };
 
 const dockerModules = window.FolderViewDockerModules || {};
@@ -3092,6 +3370,7 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    syncDockerCommandCenterView();
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
 
@@ -4272,6 +4551,7 @@ const dropDownButton = (id, persistState = true) => {
     if (hierarchyApi && typeof hierarchyApi.dropDownButton === 'function') {
         hierarchyApi.dropDownButton(id, persistState);
     }
+    syncDockerCommandCenterView();
 };
 
 /**
@@ -5382,12 +5662,14 @@ const applyRuntimePrefs = (prefs) => {
     }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);
+        document.body.setAttribute('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode(normalized.viewMode));
     }
     queueDockerRuntimeResizerBind();
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
     scheduleLiveRefresh(normalized);
+    syncDockerCommandCenterView();
 };
 
 window.toggleDockerRuntimeWidthDebug = (enabled = true) => setDockerRuntimeWidthDebugEnabled(enabled);

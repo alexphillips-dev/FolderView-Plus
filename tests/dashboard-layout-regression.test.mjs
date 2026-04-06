@@ -81,6 +81,11 @@ const libPhp = fs.readFileSync(libPhpPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPhpPath, 'utf8');
 
 test('settings exposes dashboard layout controls for docker and vm', () => {
+    assert.match(settingsPage, /id="docker-view-mode"/);
+    assert.match(settingsPage, /<option value="commandcenter">Command Center<\/option>/);
+    assert.match(settingsPage, /id="vm-view-mode"/);
+    assert.match(settingsPage, /changeVisibilityPref\('docker', 'viewMode', this\.value\)/);
+    assert.match(settingsPage, /changeVisibilityPref\('vm', 'viewMode', this\.value\)/);
     assert.match(settingsPage, /id="docker-dashboard-layout"/);
     assert.match(settingsPage, /<option value="legacy">Legacy<\/option>/);
     assert.match(settingsPage, /<option value="compactmatrix">Compact Matrix<\/option>/);
@@ -132,10 +137,13 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 
 test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function normalizeViewMode\(\$value\): string/);
+    assert.match(libPrefsPhp, /\['table', 'commandcenter'\]/);
     assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
     assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
     assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
+    assert.match(libPrefsPhp, /'viewMode'\s*=>\s*'table'/);
     assert.match(libPrefsPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
 });
 

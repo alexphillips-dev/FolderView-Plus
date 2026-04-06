@@ -78,6 +78,16 @@ const parityContracts = [
         vm: /const scheduleVmRuntimeWidthReflow = \(reason = 'event', delayMs = VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/
     },
     {
+        name: 'command center host sync',
+        docker: /const syncDockerCommandCenterView = \(\) =>/,
+        vm: /const syncVmCommandCenterView = \(\) =>/
+    },
+    {
+        name: 'command center add-folder action',
+        docker: /data-fv-docker-command-action="create-folder"/,
+        vm: /data-fv-vm-command-action="create-folder"/
+    },
+    {
         name: 'context menu contains Branch actions',
         docker: /text:\s*'Branch actions'/,
         vm: /text:\s*'Branch actions'/

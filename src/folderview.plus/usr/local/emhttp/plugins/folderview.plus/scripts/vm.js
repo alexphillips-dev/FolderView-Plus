@@ -721,6 +721,7 @@ const applyVmFocusedFolderState = () => {
         $('body').removeClass('fv-folder-focus-active');
         $('#kvm_list > tr').removeClass('fv-folder-focus-hidden');
         refreshVmFolderQuickActionStates();
+        syncVmCommandCenterView();
         return;
     }
     const visibleSet = getFocusedFolderVisibleSet(focusId);
@@ -744,6 +745,7 @@ const applyVmFocusedFolderState = () => {
         $row.toggleClass('fv-folder-focus-hidden', true);
     });
     refreshVmFolderQuickActionStates();
+    syncVmCommandCenterView();
 };
 const toggleVmFolderFocus = (folderId) => {
     const id = String(folderId || '').trim();
@@ -769,6 +771,7 @@ const toggleVmFolderLock = (folderId) => {
     writeVmLockedFolderIds(Array.from(vmLockedFolderIdSet));
     vmRuntimeStateStore.set({ lockedFolderIds: Array.from(vmLockedFolderIdSet) });
     refreshVmFolderQuickActionStates();
+    syncVmCommandCenterView();
 };
 const applyVmPinnedFolderIds = (nextPinnedIds) => {
     folderTypePrefs = utils.normalizePrefs({
@@ -809,10 +812,12 @@ const toggleVmFolderPin = async (folderId) => {
             : [...current, id];
         applyVmPinnedFolderIds(nextPinned);
         refreshVmFolderQuickActionStates();
+        syncVmCommandCenterView();
         const result = await runVmGuardedAction('toggle-folder-pin', async () => {
             const response = await persistVmPinnedFolderIds(nextPinned);
             applyVmPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
             refreshVmFolderQuickActionStates();
+            syncVmCommandCenterView();
         }, {
             userMessage: 'Failed to update pinned folders.',
             userVisible: false
@@ -820,6 +825,7 @@ const toggleVmFolderPin = async (folderId) => {
         if (!result.ok) {
             applyVmPinnedFolderIds(current);
             refreshVmFolderQuickActionStates();
+            syncVmCommandCenterView();
         }
     });
 };
@@ -1089,6 +1095,302 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
 };
 
+const VM_RUNTIME_VIEW_MODE_COMMAND_CENTER = 'commandcenter';
+const normalizeVmRuntimeViewMode = (value) => (
+    typeof utils.normalizeViewMode === 'function'
+        ? utils.normalizeViewMode(value)
+        : (String(value || '').trim().toLowerCase() === VM_RUNTIME_VIEW_MODE_COMMAND_CENTER
+            ? VM_RUNTIME_VIEW_MODE_COMMAND_CENTER
+            : 'table')
+);
+const readVmRuntimeViewMode = () => normalizeVmRuntimeViewMode(folderTypePrefs?.viewMode);
+const resolveVmRuntimeTable = () => document.querySelector('table#kvm_table');
+const resolveVmRuntimeAddFolderButton = () => document.querySelector('table#kvm_table + input[type="button"][onclick*="createFolderBtn"]');
+const ensureVmCommandCenterHost = () => {
+    let host = document.getElementById('fvplus-vm-command-center');
+    if (host) {
+        return host;
+    }
+    const table = resolveVmRuntimeTable();
+    if (!table || !table.parentNode) {
+        return null;
+    }
+    host = document.createElement('section');
+    host.id = 'fvplus-vm-command-center';
+    host.className = 'fv-runtime-command-center';
+    host.setAttribute('data-fv-runtime-type', 'vm');
+    table.parentNode.insertBefore(host, table);
+    return host;
+};
+const setVmNativeTableVisibility = (hidden) => {
+    const shouldHide = hidden === true;
+    const table = resolveVmRuntimeTable();
+    if (table instanceof HTMLElement) {
+        table.hidden = shouldHide;
+        table.classList.toggle('fv-command-center-native-hidden', shouldHide);
+        table.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+    const addButton = resolveVmRuntimeAddFolderButton();
+    if (addButton instanceof HTMLElement) {
+        addButton.hidden = shouldHide;
+        addButton.classList.toggle('fv-command-center-native-hidden', shouldHide);
+        addButton.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+};
+const getVmCommandCenterStateTone = (state) => {
+    const normalized = String(state || '').trim().toLowerCase();
+    if (normalized === 'running') {
+        return 'running';
+    }
+    if (normalized === 'paused' || normalized === 'pmsuspended' || normalized === 'unknown') {
+        return 'paused';
+    }
+    return 'stopped';
+};
+const summarizeVmCommandCenterEntries = (containersMap) => {
+    const summary = {
+        total: 0,
+        running: 0,
+        paused: 0,
+        stopped: 0
+    };
+    for (const entry of Object.values(containersMap || {})) {
+        summary.total += 1;
+        const tone = getVmCommandCenterStateTone(entry?.state);
+        if (tone === 'running') {
+            summary.running += 1;
+        } else if (tone === 'paused') {
+            summary.paused += 1;
+        } else {
+            summary.stopped += 1;
+        }
+    }
+    return summary;
+};
+const getVmCommandCenterCardTone = (summary) => {
+    if ((summary?.running || 0) > 0) {
+        return 'running';
+    }
+    if ((summary?.paused || 0) > 0) {
+        return 'paused';
+    }
+    if ((summary?.stopped || 0) > 0) {
+        return 'stopped';
+    }
+    return 'empty';
+};
+const getVmCommandCenterStateLabel = (summary) => {
+    const total = Number(summary?.total || 0);
+    if (total <= 0) {
+        return 'No VMs assigned';
+    }
+    if (Number(summary?.running || 0) > 0) {
+        return `${summary.running}/${total} running`;
+    }
+    if (Number(summary?.paused || 0) > 0) {
+        return `${summary.paused}/${total} paused`;
+    }
+    return `${summary.stopped}/${total} stopped`;
+};
+const buildVmCommandCenterDirectMap = (folder) => {
+    const containers = folder?.containers;
+    const sourceMap = containers && typeof containers === 'object' && !Array.isArray(containers) ? containers : {};
+    const names = Array.isArray(containers)
+        ? containers.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')
+        : Object.keys(sourceMap).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
+    const collected = {};
+    names.forEach((name) => {
+        if (!name || Object.prototype.hasOwnProperty.call(collected, name)) {
+            return;
+        }
+        const source = sourceMap?.[name] && typeof sourceMap[name] === 'object' ? sourceMap[name] : {};
+        collected[name] = {
+            name,
+            id: String(source?.id || '').trim(),
+            state: String(source?.state || '').trim().toLowerCase()
+        };
+    });
+    return collected;
+};
+const buildVmCommandCenterMemberHtml = (entry) => {
+    const tone = getVmCommandCenterStateTone(entry?.state);
+    const label = escapeHtml(String(entry?.name || '').trim());
+    return `<span class="fv-runtime-command-member is-${tone}" title="${label}"><span class="fv-runtime-command-member-dot"></span><span class="fv-runtime-command-member-label">${label}</span></span>`;
+};
+const buildVmCommandCenterCardHtml = (id, folder, focusVisibleSet = null) => {
+    const safeId = escapeHtml(String(id || '').trim());
+    const safeName = escapeHtml(String(folder?.name || id).trim() || safeId);
+    const safeIcon = sanitizeImageSrc(folder?.icon || '');
+    const directContainers = buildVmCommandCenterDirectMap(folder);
+    const branchContainers = getScopedVmRuntimeContainersForFolder(id, true);
+    const summary = summarizeVmCommandCenterEntries(branchContainers);
+    const tone = getVmCommandCenterCardTone(summary);
+    const stateLabel = getVmCommandCenterStateLabel(summary);
+    const actionSummary = summarizeVmFolderActionCounts(branchContainers);
+    const childIds = getFolderChildren(id);
+    const descendantIds = getFolderDescendants(id);
+    const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+    const parentName = parentId && globalFolders[parentId] ? escapeHtml(String(globalFolders[parentId]?.name || parentId)) : '';
+    const memberEntries = Object.values(directContainers || {})
+        .sort((left, right) => {
+            const leftRank = getVmCommandCenterStateTone(left?.state) === 'running'
+                ? 0
+                : (getVmCommandCenterStateTone(left?.state) === 'paused' ? 1 : 2);
+            const rightRank = getVmCommandCenterStateTone(right?.state) === 'running'
+                ? 0
+                : (getVmCommandCenterStateTone(right?.state) === 'paused' ? 1 : 2);
+            if (leftRank !== rightRank) {
+                return leftRank - rightRank;
+            }
+            return String(left?.name || '').localeCompare(String(right?.name || ''));
+        });
+    const previewMembers = memberEntries.slice(0, 8).map((entry) => buildVmCommandCenterMemberHtml(entry)).join('');
+    const overflowCount = Math.max(0, memberEntries.length - 8);
+    const memberHtml = memberEntries.length > 0
+        ? `${previewMembers}${overflowCount > 0 ? `<span class="fv-runtime-command-more">+${overflowCount} more</span>` : ''}`
+        : (childIds.length > 0
+            ? `<span class="fv-runtime-command-empty">Child folders manage ${summary.total} VM${summary.total === 1 ? '' : 's'}.</span>`
+            : '<span class="fv-runtime-command-empty">No VMs assigned.</span>');
+    const pinned = isVmFolderPinned(id);
+    const locked = isVmFolderLocked(id);
+    const focused = vmFocusedFolderId === id;
+    const focusHidden = focusVisibleSet instanceof Set && focusVisibleSet.size > 0 && !focusVisibleSet.has(id);
+    const cardClasses = [
+        'fv-runtime-command-card',
+        `is-${tone}`,
+        pinned ? 'is-pinned' : '',
+        locked ? 'is-locked' : '',
+        focused ? 'is-focused' : '',
+        focusHidden ? 'is-focus-hidden' : ''
+    ].filter(Boolean).join(' ');
+    const pills = [
+        pinned ? '<span class="fv-runtime-command-pill is-utility">Pinned</span>' : '',
+        locked ? '<span class="fv-runtime-command-pill is-utility">Locked</span>' : '',
+        focused ? '<span class="fv-runtime-command-pill is-utility">Focused</span>' : '',
+        parentName ? `<span class="fv-runtime-command-pill is-parent">Inside ${parentName}</span>` : ''
+    ].filter(Boolean).join('');
+    return `<article class="${cardClasses}" data-folder-id="${safeId}">
+        <div class="fv-runtime-command-card-head">
+            <div class="fv-runtime-command-avatar">
+                <img src="${safeIcon}" alt="">
+            </div>
+            <div class="fv-runtime-command-headline">
+                <div class="fv-runtime-command-title-row">
+                    <h3>${safeName}</h3>
+                    <span class="fv-runtime-command-status is-${tone}">${escapeHtml(stateLabel)}</span>
+                </div>
+                <div class="fv-runtime-command-subtitle">Branch scope: ${summary.total} VM${summary.total === 1 ? '' : 's'}${descendantIds.length > 0 ? ` | ${descendantIds.length} nested folder${descendantIds.length === 1 ? '' : 's'}` : ''}</div>
+            </div>
+        </div>
+        ${pills ? `<div class="fv-runtime-command-pill-row">${pills}</div>` : ''}
+        <div class="fv-runtime-command-stat-row">
+            <span class="fv-runtime-command-stat"><strong>${summary.running}</strong><span>Running</span></span>
+            <span class="fv-runtime-command-stat"><strong>${summary.paused}</strong><span>Paused</span></span>
+            <span class="fv-runtime-command-stat"><strong>${summary.stopped}</strong><span>Stopped</span></span>
+            <span class="fv-runtime-command-stat"><strong>${childIds.length}</strong><span>Children</span></span>
+        </div>
+        <div class="fv-runtime-command-actions">
+            <button type="button" data-fv-vm-command-action="start" data-folder-id="${safeId}" ${actionSummary.startable > 0 ? '' : 'disabled'}>Start</button>
+            <button type="button" data-fv-vm-command-action="stop" data-folder-id="${safeId}" ${actionSummary.stoppable > 0 ? '' : 'disabled'}>Stop</button>
+            <button type="button" data-fv-vm-command-action="restart" data-folder-id="${safeId}" ${actionSummary.restartable > 0 ? '' : 'disabled'}>Restart</button>
+            <button type="button" data-fv-vm-command-action="${actionSummary.pausable > 0 ? 'pause' : 'resume'}" data-folder-id="${safeId}" ${(actionSummary.pausable > 0 || actionSummary.resumable > 0) ? '' : 'disabled'}>${actionSummary.pausable > 0 ? 'Pause' : 'Resume'}</button>
+        </div>
+        <div class="fv-runtime-command-actions is-secondary">
+            <button type="button" data-fv-vm-command-action="pin" data-folder-id="${safeId}">${pinned ? 'Unpin' : 'Pin'}</button>
+            <button type="button" data-fv-vm-command-action="focus" data-folder-id="${safeId}">${focused ? 'Unfocus' : 'Focus'}</button>
+            <button type="button" data-fv-vm-command-action="lock" data-folder-id="${safeId}">${locked ? 'Unlock' : 'Lock'}</button>
+            <button type="button" data-fv-vm-command-action="edit" data-folder-id="${safeId}">Edit</button>
+        </div>
+        <div class="fv-runtime-command-members">${memberHtml}</div>
+    </article>`;
+};
+const bindVmCommandCenterActions = (host) => {
+    if (!(host instanceof HTMLElement)) {
+        return;
+    }
+    host.querySelectorAll('[data-fv-vm-command-action]').forEach((button) => {
+        button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+            const folderId = String(target?.getAttribute('data-folder-id') || '').trim();
+            const action = String(target?.getAttribute('data-fv-vm-command-action') || '').trim().toLowerCase();
+            try {
+                if (action === 'create-folder') {
+                    createFolderBtn();
+                    return;
+                }
+                if (!folderId || !globalFolders[folderId]) {
+                    return;
+                }
+                if (action === 'pin') {
+                    await toggleVmFolderPin(folderId);
+                    syncVmCommandCenterView();
+                    return;
+                }
+                if (action === 'focus') {
+                    toggleVmFolderFocus(folderId);
+                    syncVmCommandCenterView();
+                    return;
+                }
+                if (action === 'lock') {
+                    toggleVmFolderLock(folderId);
+                    syncVmCommandCenterView();
+                    return;
+                }
+                if (action === 'edit') {
+                    editFolder(folderId);
+                    return;
+                }
+                const actionMap = {
+                    start: 'domain-start',
+                    stop: 'domain-stop',
+                    restart: 'domain-restart',
+                    pause: 'domain-pause',
+                    resume: 'domain-resume'
+                };
+                if (Object.prototype.hasOwnProperty.call(actionMap, action)) {
+                    await actionFolder(folderId, actionMap[action], { includeDescendants: true });
+                }
+            } catch (error) {
+                console.error('folderview.plus vm command center action failed', error);
+            }
+        });
+    });
+};
+const syncVmCommandCenterView = () => {
+    const enabled = readVmRuntimeViewMode() === VM_RUNTIME_VIEW_MODE_COMMAND_CENTER;
+    const host = enabled ? ensureVmCommandCenterHost() : document.getElementById('fvplus-vm-command-center');
+    const folderIds = Object.keys(getPrefsOrderedFolderMap(globalFolders || {}, folderTypePrefs || {}));
+    const shouldRender = enabled && host instanceof HTMLElement && folderIds.length > 0;
+    setVmNativeTableVisibility(shouldRender);
+    if (!(host instanceof HTMLElement)) {
+        return;
+    }
+    if (!shouldRender) {
+        host.hidden = true;
+        host.innerHTML = '';
+        return;
+    }
+    const focusVisibleSet = vmFocusedFolderId ? getFocusedFolderVisibleSet(vmFocusedFolderId) : null;
+    const directVmNames = new Set();
+    folderIds.forEach((folderId) => {
+        const members = Object.keys(buildVmCommandCenterDirectMap(globalFolders[folderId]) || {});
+        members.forEach((name) => directVmNames.add(String(name || '').trim()));
+    });
+    host.hidden = false;
+    host.innerHTML = `<div class="fv-runtime-command-center-header">
+        <div>
+            <div class="fv-runtime-command-center-kicker">VM Command Center</div>
+            <div class="fv-runtime-command-center-summary">${folderIds.length} folder${folderIds.length === 1 ? '' : 's'} | ${directVmNames.size} direct VM${directVmNames.size === 1 ? '' : 's'}${vmFocusedFolderId && globalFolders[vmFocusedFolderId] ? ` | Focused: ${escapeHtml(String(globalFolders[vmFocusedFolderId]?.name || vmFocusedFolderId))}` : ''}</div>
+        </div>
+        <div class="fv-runtime-command-center-toolbar">
+            <button type="button" data-fv-vm-command-action="create-folder">Add folder</button>
+        </div>
+    </div>
+    <div class="fv-runtime-command-center-grid">${folderIds.map((folderId) => buildVmCommandCenterCardHtml(folderId, globalFolders[folderId], focusVisibleSet)).join('')}</div>`;
+    bindVmCommandCenterActions(host);
+};
+
 const showVmRuntimeLoadingRow = () => {
     const tbody = $('tbody#kvm_list');
     if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
@@ -1280,6 +1582,7 @@ const createFolders = async () => {
     syncVmRuntimeExpandedStore();
     persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    syncVmCommandCenterView();
     scheduleVmRuntimeWidthReflow('create-folders', 0);
 
     folderDebugMode  = false;
@@ -1763,6 +2066,7 @@ const dropDownButton = (id, persistState = true) => {
     }
     scheduleVmRuntimeWidthReflow('folder-expand-toggle', 32);
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
+    syncVmCommandCenterView();
 };
 
 const readVmFolderContainerNames = (containers) => {
@@ -2970,6 +3274,7 @@ const applyRuntimePrefs = (prefs) => {
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-vm-app-width', appColumnWidth);
+        document.body.setAttribute('data-fvplus-vm-view-mode', normalizeVmRuntimeViewMode(normalized.viewMode));
     }
     bindVmRuntimeViewportWidthSync();
     bindVmRuntimeThemeReflow();
@@ -2977,6 +3282,7 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', vmRuntimePerformanceProfile?.strict === true);
     scheduleLiveRefresh(normalized);
+    syncVmCommandCenterView();
 };
 window.getVmRuntimePerfTelemetrySnapshot = () => {
     if (!vmPerfTelemetry || typeof vmPerfTelemetry.snapshot !== 'function') {

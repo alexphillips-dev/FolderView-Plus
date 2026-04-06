@@ -129,6 +129,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="docker-view-mode">
+                        <span>Runtime view</span>
+                        <select id="docker-view-mode" onchange="changeVisibilityPref('docker', 'viewMode', this.value)">
+                            <option value="table">Folders in table</option>
+                            <option value="commandcenter">Command Center</option>
+                        </select>
+                    </label>
                     <label class="setting-select" for="docker-app-column-width">
                         <span>Application width</span>
                         <select id="docker-app-column-width" onchange="changeVisibilityPref('docker', 'appColumnWidth', this.value)">
@@ -363,6 +370,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="vm-view-mode">
+                        <span>Runtime view</span>
+                        <select id="vm-view-mode" onchange="changeVisibilityPref('vm', 'viewMode', this.value)">
+                            <option value="table">Folders in table</option>
+                            <option value="commandcenter">Command Center</option>
+                        </select>
+                    </label>
                     <label class="setting-select" for="vm-app-column-width">
                         <span>Application width</span>
                         <select id="vm-app-column-width" onchange="changeVisibilityPref('vm', 'appColumnWidth', this.value)">

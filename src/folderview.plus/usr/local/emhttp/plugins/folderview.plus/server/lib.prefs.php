@@ -11,6 +11,7 @@
             'pinnedFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
+            'viewMode' => 'table',
             'appColumnWidth' => 'standard',
             'folderEditorMode' => 'modern',
             'folderEditorModeExplicit' => false,
@@ -165,6 +166,14 @@
         return 'standard';
     }
 
+    function normalizeViewMode($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['table', 'commandcenter'], true)) {
+            return $normalized;
+        }
+        return 'table';
+    }
+
     function normalizeFolderEditorMode($value): string {
         return 'modern';
     }
@@ -212,6 +221,7 @@
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
+        $normalized['viewMode'] = normalizeViewMode($prefs['viewMode'] ?? 'table');
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
         $resolvedFolderEditorMode = resolveFolderEditorModePreference($prefs);
         $normalized['folderEditorModeExplicit'] = false;

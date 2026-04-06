@@ -157,6 +157,12 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
+    assert.match(dockerJs, /const ensureDockerCommandCenterHost = \(\) =>/);
+    assert.match(dockerJs, /const bindDockerCommandCenterActions = \(host\) =>/);
+    assert.match(dockerJs, /const syncDockerCommandCenterView = \(\) =>/);
+    assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode\(normalized\.viewMode\)\)/);
+    assert.match(dockerJs, /data-fv-docker-command-action="create-folder"/);
+    assert.match(dockerJs, /host\.id = 'fvplus-docker-command-center';/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
     assert.match(dockerJs, /window\.hideAllTips = hideAllTips;/);
     assert.match(dockerJs, /window\.addDockerFolderContext = addDockerFolderContext;/);
@@ -188,6 +194,10 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-center\s*\{/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-center-grid\s*\{/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-card\s*\{/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-actions > button\[disabled\]/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
 });
 

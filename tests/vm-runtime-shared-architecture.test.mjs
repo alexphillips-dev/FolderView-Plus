@@ -61,6 +61,12 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /const vmExpandedStateController = runtimeStateObserverModule/);
     assert.match(vmJs, /const vmRuntimeThemeReflowController = runtimeStateObserverModule/);
     assert.match(vmJs, /const runVmGuardedAction = async \(actionName, action, context = \{\}\) =>/);
+    assert.match(vmJs, /const ensureVmCommandCenterHost = \(\) =>/);
+    assert.match(vmJs, /const bindVmCommandCenterActions = \(host\) =>/);
+    assert.match(vmJs, /const syncVmCommandCenterView = \(\) =>/);
+    assert.match(vmJs, /document\.body\.setAttribute\('data-fvplus-vm-view-mode', normalizeVmRuntimeViewMode\(normalized\.viewMode\)\)/);
+    assert.match(vmJs, /data-fv-vm-command-action="create-folder"/);
+    assert.match(vmJs, /host\.id = 'fvplus-vm-command-center';/);
     assert.match(vmJs, /let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile\(/);
     assert.match(vmJs, /window\.getVmRuntimePerfTelemetrySnapshot =/);
     assert.match(vmJs, /window\.getVmRuntimeStateSnapshot =/);
@@ -83,4 +89,6 @@ test('vm CSS keeps VM-specific gutter tokens while shared stylesheet owns shared
     assert.match(runtimeSharedCss, /\.folder-preview\s*\{[\s\S]*align-items:\s*center;/);
     assert.match(runtimeSharedCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\)/);
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-member-dot\s*\{/);
+    assert.match(runtimeSharedCss, /\.fv-runtime-command-card\.is-focus-hidden\s*\{/);
 });

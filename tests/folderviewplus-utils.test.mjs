@@ -600,6 +600,7 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
     assert.deepEqual(prefs.expandedFolderState, {});
+    assert.equal(prefs.viewMode, 'table');
     assert.equal(prefs.appColumnWidth, 'standard');
 });
 
@@ -640,6 +641,23 @@ test('normalizePrefs clamps application width mode', () => {
         appColumnWidth: 'extra-wide'
     });
     assert.equal(fallback.appColumnWidth, 'standard');
+});
+
+test('normalizePrefs supports runtime view mode and sanitizes invalid values', () => {
+    const commandCenter = utils.normalizePrefs({
+        viewMode: 'commandcenter'
+    });
+    assert.equal(commandCenter.viewMode, 'commandcenter');
+
+    const uppercase = utils.normalizePrefs({
+        viewMode: 'COMMANDCENTER'
+    });
+    assert.equal(uppercase.viewMode, 'commandcenter');
+
+    const fallback = utils.normalizePrefs({
+        viewMode: 'orbit'
+    });
+    assert.equal(fallback.viewMode, 'table');
 });
 
 test('normalizePrefs disables legacy runtime toggles until schema is upgraded', () => {

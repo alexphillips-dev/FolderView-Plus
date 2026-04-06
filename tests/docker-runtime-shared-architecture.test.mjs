@@ -160,6 +160,8 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /const createDockerRuntimeCommandCenterController = typeof dockerRuntimeShared\.createRuntimeCommandCenterController === 'function'/);
     assert.match(dockerJs, /const dockerCommandCenterController = createDockerRuntimeCommandCenterController\(/);
+    assert.match(dockerJs, /document\.querySelector\('#docker_list'\)\?\.closest\('table'\)/);
+    assert.match(dockerJs, /document\.querySelector\('#docker_view'\)\?\.closest\('table'\)/);
     assert.match(dockerJs, /const syncDockerCommandCenterView = \(\) =>/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode\(normalized\.viewMode\)\)/);
     assert.match(dockerJs, /data-fv-docker-command-action="create-folder"/);

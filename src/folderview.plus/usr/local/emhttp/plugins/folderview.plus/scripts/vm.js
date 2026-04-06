@@ -1145,7 +1145,11 @@ const normalizeVmRuntimeViewMode = (value) => (
             : 'table')
 );
 const readVmRuntimeViewMode = () => normalizeVmRuntimeViewMode(folderTypePrefs?.viewMode);
-const resolveVmRuntimeTable = () => document.querySelector('table#kvm_table');
+const resolveVmRuntimeTable = () => (
+    document.querySelector('#kvm_list')?.closest('table')
+    || document.querySelector('#kvm_view')?.closest('table')
+    || document.querySelector('table#kvm_table')
+);
 const resolveVmRuntimeAddFolderButton = () => document.querySelector('table#kvm_table + input[type="button"][onclick*="createFolderBtn"]');
 const vmCommandCenterController = createVmRuntimeCommandCenterController({
     hostId: 'fvplus-vm-command-center',

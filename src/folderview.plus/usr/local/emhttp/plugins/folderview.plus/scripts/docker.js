@@ -2574,7 +2574,11 @@ const normalizeDockerRuntimeViewMode = (value) => (
             : 'table')
 );
 const readDockerRuntimeViewMode = () => normalizeDockerRuntimeViewMode(folderTypePrefs?.viewMode);
-const resolveDockerRuntimeTable = () => document.querySelector('table#docker_containers');
+const resolveDockerRuntimeTable = () => (
+    document.querySelector('#docker_list')?.closest('table')
+    || document.querySelector('#docker_view')?.closest('table')
+    || document.querySelector('table#docker_containers')
+);
 const resolveDockerRuntimeAddFolderButton = () => document.querySelector('table#docker_containers + input[type="button"][onclick*="createFolderBtn"]');
 const dockerCommandCenterController = createDockerRuntimeCommandCenterController({
     hostId: 'fvplus-docker-command-center',

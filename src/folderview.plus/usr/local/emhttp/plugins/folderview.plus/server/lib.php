@@ -3526,16 +3526,10 @@
         $newOrder = [];
         $seen = [];
         $folderPlaceholders = array_keys($folderContainers);
-        $sortMode = (string)($prefs['sortMode'] ?? 'created');
-        $pinnedIds = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
-        $preserveCurrentPlaceholderOrder = $sortMode === 'created' && count($pinnedIds) === 0;
-        $orderedFolderPlaceholders = [];
+        $orderedFolderPlaceholders = $folderPlaceholders;
 
         foreach ($currentOrder as $item) {
             if (in_array($item, $folderPlaceholders, true)) {
-                if ($preserveCurrentPlaceholderOrder && !in_array($item, $orderedFolderPlaceholders, true)) {
-                    $orderedFolderPlaceholders[] = $item;
-                }
                 continue;
             }
             if (in_array($item, $assignedContainers, true)) {
@@ -3554,18 +3548,9 @@
             }
         }
 
-        if ($preserveCurrentPlaceholderOrder) {
-            foreach ($folderPlaceholders as $placeholder) {
-                if (!in_array($placeholder, $orderedFolderPlaceholders, true)) {
-                    $orderedFolderPlaceholders[] = $placeholder;
-                }
-            }
-        } else {
-            $orderedFolderPlaceholders = $folderPlaceholders;
-        }
-
-        // Preserve existing folder placeholder order from userprefs and only
-        // fall back to folder definition order for placeholders that are missing.
+        // Folder placeholder order should always follow the normalized
+        // FolderView Plus folder map so explicit sort-mode changes can restore
+        // the expected created/manual/alpha sequence deterministically.
         foreach ($orderedFolderPlaceholders as $placeholder) {
             foreach ($folderContainers[$placeholder] as $ct) {
                 if (!in_array($ct, $seen, true)) {

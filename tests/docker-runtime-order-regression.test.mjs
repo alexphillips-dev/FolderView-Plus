@@ -106,16 +106,13 @@ test('docker runtime only backfills missing folder placeholders when sort mode r
     assert.deepEqual(nextOrder, ['folder-b', 'folder-c', 'folder-a']);
 });
 
-test('docker order sync preserves current folder placeholder sequence before appending missing placeholders', () => {
+test('docker order sync always rebuilds folder placeholders from prefs-ordered folder map', () => {
     assert.match(
         libPhp,
-        /\$preserveCurrentPlaceholderOrder = \$sortMode === 'created' && count\(\$pinnedIds\) === 0;/
-    );
-    assert.match(
-        libPhp,
-        /if \(\$preserveCurrentPlaceholderOrder\) \{[\s\S]*?foreach \(\$folderPlaceholders as \$placeholder\) \{[\s\S]*?\$orderedFolderPlaceholders\[\] = \$placeholder;[\s\S]*?\}[\s\S]*?\} else \{[\s\S]*?\$orderedFolderPlaceholders = \$folderPlaceholders;[\s\S]*?\}/
+        /\$orderedFolderPlaceholders = \$folderPlaceholders;/
     );
     assert.match(libPhp, /foreach \(\$orderedFolderPlaceholders as \$placeholder\) \{/);
+    assert.doesNotMatch(libPhp, /\$preserveCurrentPlaceholderOrder =/);
 });
 
 test('docker order sync uses prefs-ordered folders when explicit sort or pinning is active', () => {

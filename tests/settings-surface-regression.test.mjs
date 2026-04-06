@@ -81,6 +81,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
+    assert.match(diagnosticsJs, /const renderDiagnosticsActionCards = \(actions\) =>/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const collectThemeTelemetrySnapshot = \(\) =>/);
@@ -119,6 +120,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /report\.uiTelemetry\?\.folderEditorDebug/);
     assert.match(diagnosticsJs, /surfaceSummary/);
     assert.match(diagnosticsJs, /Bootstrap banner:/);
+    assert.match(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{/);
+    assert.match(diagnosticsJs, /repairMissingIconsAction\.parentAction = 'repair_paths';/);
+    assert.match(diagnosticsJs, /Theme diagnostics are live before a full health check\./);
+    assert.match(diagnosticsJs, /runThemeDiagnostics\(\);\s*initializeClientDiagnosticsPanels\(\);/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
     assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);
     assert.doesNotMatch(diagnosticsJs, /bundle\.clientTelemetry = existingClientTelemetry;/);

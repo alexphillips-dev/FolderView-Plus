@@ -830,12 +830,16 @@
         $descriptor = diagnosticsPathDescriptor($directory, $privacyMode);
         $extensions = diagnosticsCustomIconExtensions();
         $usageMap = diagnosticsBuildCustomIconUsageMap();
+        $existingIcons = [];
         $fileCount = 0;
         $totalBytes = 0;
         $inUseIconCount = 0;
         $orphanedIconCount = 0;
         $referenceCount = 0;
         $topReferences = [];
+        $missingReferenceCount = 0;
+        $missingReferencedIconCount = 0;
+        $missingReferencedIcons = [];
 
         if (is_dir($directory)) {
             foreach ((array)@scandir($directory) as $name) {
@@ -850,6 +854,7 @@
                 if ($extension === '' || !in_array($extension, $extensions, true)) {
                     continue;
                 }
+                $existingIcons[$name] = true;
                 $fileCount++;
                 $totalBytes += max(0, (int)@filesize($path));
                 $refs = is_array($usageMap[$name] ?? null) ? $usageMap[$name] : [];
@@ -865,6 +870,32 @@
                     $orphanedIconCount++;
                 }
             }
+        }
+
+        foreach ($usageMap as $name => $refs) {
+            if (isset($existingIcons[$name])) {
+                continue;
+            }
+            $refList = is_array($refs) ? array_values($refs) : [];
+            $refCount = count($refList);
+            if ($refCount <= 0) {
+                continue;
+            }
+            $missingReferencedIconCount++;
+            $missingReferenceCount += $refCount;
+            $missingReferencedIcons[] = [
+                'name' => $privacyMode === 'full' ? $name : diagnosticsHashShort($name),
+                'referenceCount' => $refCount,
+                'references' => array_slice(array_map(static function (array $entry) use ($privacyMode): array {
+                    return [
+                        'type' => (string)($entry['type'] ?? ''),
+                        'folderId' => (string)($entry['folderId'] ?? ''),
+                        'folderName' => $privacyMode === 'full'
+                            ? trim((string)($entry['folderName'] ?? ($entry['folderId'] ?? '')))
+                            : diagnosticsHashShort(trim((string)($entry['folderName'] ?? ($entry['folderId'] ?? ''))))
+                    ];
+                }, $refList), 0, 20)
+            ];
         }
 
         usort($topReferences, static function (array $a, array $b): int {
@@ -884,6 +915,12 @@
         if ($descriptor['exists'] === true && $descriptor['writable'] !== true) {
             $issues[] = 'Custom icon directory is not writable.';
         }
+        if ($missingReferenceCount > 0) {
+            $issues[] = sprintf(
+                '%d folder reference(s) point to missing custom icon file(s).',
+                $missingReferenceCount
+            );
+        }
 
         $repairHint = 'mkdir -p ' . escapeshellarg($directory) . ' && chmod -R 775 ' . escapeshellarg($directory);
         return [
@@ -893,6 +930,9 @@
             'inUseIconCount' => $inUseIconCount,
             'orphanedIconCount' => $orphanedIconCount,
             'referenceCount' => $referenceCount,
+            'missingReferenceCount' => $missingReferenceCount,
+            'missingReferencedIconCount' => $missingReferencedIconCount,
+            'missingReferencedIcons' => array_slice($missingReferencedIcons, 0, 20),
             'topReferences' => array_slice($topReferences, 0, 15),
             'issues' => $issues,
             'repairHint' => $repairHint
@@ -1620,6 +1660,13 @@
                 $reason
             );
         }
+        if (((int)($customIcons['missingReferenceCount'] ?? 0)) > 0) {
+            $addAction(
+                'repair_missing_custom_icons',
+                'Reset missing custom icon refs',
+                'Some folders still point to uploaded icons that no longer exist.'
+            );
+        }
 
         return array_values($actions);
     }
@@ -2300,4 +2347,3 @@
             'redactionManifest' => diagnosticsBuildSupportBundleRedactionManifestSection($redactor)
         ];
     }
-

@@ -47,6 +47,11 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
         icon: 'fa-folder-open',
         handler: "repairDiagnostics('repair_paths')"
     }),
+    repair_missing_custom_icons: Object.freeze({
+        label: 'Reset missing custom icon refs',
+        icon: 'fa-picture-o',
+        handler: "repairDiagnostics('repair_missing_custom_icons')"
+    }),
     run_theme_self_heal: Object.freeze({
         label: 'Theme self-heal now',
         icon: 'fa-magic',
@@ -998,34 +1003,117 @@ const resolveDiagnosticsRecommendedActions = (diagnostics) => {
             reason: String(action?.reason || '').trim()
         });
     }
+    const repairPathsAction = deduped.find((action) => action.action === 'repair_paths');
+    const repairMissingIconsAction = deduped.find((action) => action.action === 'repair_missing_custom_icons');
+    if (repairPathsAction && repairMissingIconsAction) {
+        repairMissingIconsAction.parentAction = 'repair_paths';
+    }
     return deduped;
+};
+
+const renderDiagnosticsActionCards = (actions) => {
+    const actionHost = $('#fv-diagnostics-actions');
+    if (!actionHost.length) {
+        return;
+    }
+    if (!Array.isArray(actions) || actions.length === 0) {
+        actionHost.html(`
+            <div class="fv-diagnostics-empty-state is-compact">
+                <strong>No repair actions are recommended right now.</strong>
+                <span>The current health check does not suggest any one-click fixes.</span>
+            </div>
+        `);
+        return;
+    }
+
+    const grouped = [];
+    const byAction = new Map();
+    for (const action of actions) {
+        const entry = { ...action, children: [] };
+        byAction.set(action.action, entry);
+    }
+    for (const action of actions) {
+        const entry = byAction.get(action.action);
+        if (!entry) {
+            continue;
+        }
+        const parentKey = String(action.parentAction || '').trim();
+        if (parentKey && parentKey !== action.action && byAction.has(parentKey)) {
+            byAction.get(parentKey).children.push(entry);
+            continue;
+        }
+        grouped.push(entry);
+    }
+
+    actionHost.html(grouped.map((action) => {
+        const buttonConfigs = [action, ...(Array.isArray(action.children) ? action.children : [])]
+            .map((entry) => ({
+                action: entry.action,
+                config: DIAGNOSTICS_ACTION_CONFIG[entry.action] || DIAGNOSTICS_ACTION_CONFIG.normalize_prefs
+            }));
+        return `
+            <div class="fv-diagnostics-action-card">
+                <div class="fv-diagnostics-action-title">${escapeHtml(action.label)}</div>
+                <div class="fv-diagnostics-action-copy">${escapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
+                <div class="backup-actions">
+                    ${buttonConfigs.map(({ config }) => `
+                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${escapeHtml(config.label)}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join(''));
 };
 
 const renderDiagnosticsSummary = (diagnostics) => {
     const summaryHost = $('#fv-diagnostics-summary');
-    const actionHost = $('#fv-diagnostics-actions');
-    if (!summaryHost.length || !actionHost.length) {
+    if (!summaryHost.length) {
         return;
     }
+    const themeCard = buildThemeDiagnosticsSummaryCard();
     if (!diagnostics || typeof diagnostics !== 'object') {
+        if (!themeCard) {
+            summaryHost.html(`
+                <div class="fv-diagnostics-empty-state">
+                    <strong>Run health check to inspect the plugin state.</strong>
+                    <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+                </div>
+            `);
+            renderDiagnosticsActionCards([]);
+            return;
+        }
+
+        const status = normalizeDiagnosticsStatus(themeCard.status);
+        const config = DIAGNOSTICS_STATUS_CONFIG[status];
+        const countValue = Number(themeCard.count);
+        const themeCheckedAt = formatCheckedAtLabel(lastThemeDiagnostics?.generatedAt);
         summaryHost.html(`
-            <div class="fv-diagnostics-empty-state">
-                <strong>Run health check to inspect the plugin state.</strong>
-                <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+            <div class="fv-diagnostics-overview is-${status}">
+                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</div>
+                <div class="fv-diagnostics-overview-headline">Theme diagnostics are live before a full health check.</div>
+                <div class="fv-diagnostics-overview-detail">Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.</div>
+                <div class="fv-diagnostics-overview-meta">
+                    <span class="fv-diagnostics-pill">Theme checked ${escapeHtml(themeCheckedAt)}</span>
+                </div>
+            </div>
+            <div class="fv-diagnostics-card-grid">
+                <div class="fv-diagnostics-card is-${status}">
+                    <div class="fv-diagnostics-card-top">
+                        <span class="fv-diagnostics-card-label">${escapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
+                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                    </div>
+                    <div class="fv-diagnostics-card-headline">${escapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
+                    <div class="fv-diagnostics-card-detail">${escapeHtml(String(themeCard.detail || ''))}</div>
+                    <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
+                </div>
             </div>
         `);
-        actionHost.html(`
-            <div class="fv-diagnostics-empty-state is-compact">
-                <strong>No recommended fixes yet.</strong>
-                <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
-            </div>
-        `);
+        renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions({ summary: { recommendedActions: [] } }));
         return;
     }
 
     const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
     const cards = Array.isArray(summary.cards) ? [...summary.cards] : [];
-    const themeCard = buildThemeDiagnosticsSummaryCard();
     if (themeCard) {
         cards.push(themeCard);
     }
@@ -1079,29 +1167,7 @@ const renderDiagnosticsSummary = (diagnostics) => {
         <div class="fv-diagnostics-card-grid">${cardsHtml}</div>
     `);
 
-    const actions = resolveDiagnosticsRecommendedActions(diagnostics);
-    if (!actions.length) {
-        actionHost.html(`
-            <div class="fv-diagnostics-empty-state is-compact">
-                <strong>No repair actions are recommended right now.</strong>
-                <span>The current health check does not suggest any one-click fixes.</span>
-            </div>
-        `);
-        return;
-    }
-
-    actionHost.html(actions.map((action) => {
-        const config = DIAGNOSTICS_ACTION_CONFIG[action.action] || DIAGNOSTICS_ACTION_CONFIG.normalize_prefs;
-        return `
-            <div class="fv-diagnostics-action-card">
-                <div class="fv-diagnostics-action-title">${escapeHtml(action.label)}</div>
-                <div class="fv-diagnostics-action-copy">${escapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
-                <div class="backup-actions">
-                    <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${escapeHtml(config.label)}</button>
-                </div>
-            </div>
-        `;
-    }).join(''));
+    renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions(diagnostics));
 };
 
 const renderDiagnostics = (diagnostics) => {
@@ -1276,12 +1342,6 @@ const initializeClientDiagnosticsPanels = () => {
     renderSupportBundlePreview(previewApi ? previewApi.getLastSupportBundlePreview() : null);
     void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
 };
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeClientDiagnosticsPanels, { once: true });
-} else {
-    initializeClientDiagnosticsPanels();
-}
 
 window.collectFolderEditorDebugDiagnostics = collectFolderEditorDebugDiagnostics;
 window.renderFolderEditorDebugDiagnostics = renderFolderEditorDebugDiagnostics;
@@ -1537,6 +1597,16 @@ const runThemeSelfHeal = async () => {
         showError('Theme self-heal failed', error);
     }
 };
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        runThemeDiagnostics();
+        initializeClientDiagnosticsPanels();
+    }, { once: true });
+} else {
+    runThemeDiagnostics();
+    initializeClientDiagnosticsPanels();
+}
 
 Object.assign(window, {
     lastDiagnostics,

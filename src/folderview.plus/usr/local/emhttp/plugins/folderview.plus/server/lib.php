@@ -3826,6 +3826,87 @@
         }
     }
 
+    function fvplusCustomIconDirPath(): string {
+        global $sourceDir;
+        return "$sourceDir/images/custom";
+    }
+
+    function fvplusRepairMissingCustomIconReferences(): array {
+        $customIconDir = fvplusCustomIconDirPath();
+        $existingIcons = [];
+        if (is_dir($customIconDir)) {
+            foreach ((array)@scandir($customIconDir) as $name) {
+                if ($name === '.' || $name === '..' || $name !== basename($name)) {
+                    continue;
+                }
+                $path = "$customIconDir/$name";
+                if (!is_file($path)) {
+                    continue;
+                }
+                $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
+                if ($extension === '' || !in_array($extension, diagnosticsCustomIconExtensions(), true)) {
+                    continue;
+                }
+                $existingIcons[$name] = true;
+            }
+        }
+
+        $repairedFolders = [];
+        $missingIcons = [];
+        $typeCounts = ['docker' => 0, 'vm' => 0];
+
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $folders = readRawFolderMap($type);
+            $updated = false;
+            foreach ($folders as $folderId => &$folder) {
+                if (!is_array($folder)) {
+                    continue;
+                }
+                $iconName = diagnosticsCustomIconNameFromIconValue((string)($folder['icon'] ?? ''));
+                if ($iconName === '' || isset($existingIcons[$iconName])) {
+                    continue;
+                }
+                $missingIcons[$iconName] = true;
+                $folder['icon'] = '';
+                $repairedFolders[] = [
+                    'type' => $type,
+                    'folderId' => (string)$folderId,
+                    'folderName' => trim((string)($folder['name'] ?? (string)$folderId)),
+                    'missingIcon' => $iconName
+                ];
+                $typeCounts[$type] = (int)($typeCounts[$type] ?? 0) + 1;
+                $updated = true;
+            }
+            unset($folder);
+
+            if (!$updated) {
+                continue;
+            }
+
+            createBackupSnapshot($type, 'before-repair-missing-custom-icons');
+            writeRawFolderMap($type, $folders);
+            appendDiagnosticsHistoryEvent(
+                'repair_missing_custom_icons',
+                $type,
+                [
+                    'repairedFolderCount' => (int)($typeCounts[$type] ?? 0),
+                    'missingIconCount' => count($missingIcons)
+                ],
+                'ok',
+                'server'
+            );
+        }
+
+        return [
+            'customIconDir' => $customIconDir,
+            'repairedFolderCount' => count($repairedFolders),
+            'missingIconCount' => count($missingIcons),
+            'missingIcons' => array_values(array_keys($missingIcons)),
+            'repairedFolders' => $repairedFolders,
+            'typeCounts' => $typeCounts
+        ];
+    }
+
     function repairPluginPaths(): array {
         global $configDir;
         $created = [];
@@ -3840,13 +3921,22 @@
                 $created[] = $path;
             }
         }
+        $customIconDir = fvplusCustomIconDirPath();
+        if (!is_dir($customIconDir)) {
+            @mkdir($customIconDir, 0770, true);
+            $created[] = $customIconDir;
+        }
+        if (is_dir($customIconDir)) {
+            @chmod($customIconDir, 0770);
+        }
         foreach (FVPLUS_ALLOWED_TYPES as $type) {
             createFile($type);
             readTypePrefs($type); // Normalize and ensure defaults.
         }
         return [
             'createdPaths' => $created,
-            'configDir' => $configDir
+            'configDir' => $configDir,
+            'customIconDir' => $customIconDir
         ];
     }
 

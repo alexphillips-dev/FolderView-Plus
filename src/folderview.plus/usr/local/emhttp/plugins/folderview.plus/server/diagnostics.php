@@ -4,7 +4,7 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 fvplus_json_try(function (): array {
     $action = (string)($_REQUEST['action'] ?? 'report');
     $privacyMode = normalizeDiagnosticsPrivacyMode((string)($_REQUEST['privacy'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY));
-    $mutatingActions = ['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'create_backup'];
+    $mutatingActions = ['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'repair_missing_custom_icons', 'create_backup'];
     if (in_array($action, $mutatingActions, true)) {
         requireMutationRequestGuard();
     }
@@ -75,6 +75,15 @@ fvplus_json_try(function (): array {
         $repair = repairPluginPaths();
         return [
             'message' => 'Plugin paths repaired.',
+            'repair' => $repair,
+            'diagnostics' => getDiagnosticsSnapshot($privacyMode)
+        ];
+    }
+
+    if ($action === 'repair_missing_custom_icons') {
+        $repair = fvplusRepairMissingCustomIconReferences();
+        return [
+            'message' => 'Missing custom icon references repaired.',
             'repair' => $repair,
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
         ];

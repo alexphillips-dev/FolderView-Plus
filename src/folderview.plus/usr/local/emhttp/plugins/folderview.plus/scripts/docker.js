@@ -2574,12 +2574,52 @@ const normalizeDockerRuntimeViewMode = (value) => (
             : 'table')
 );
 const readDockerRuntimeViewMode = () => normalizeDockerRuntimeViewMode(folderTypePrefs?.viewMode);
-const resolveDockerRuntimeTable = () => (
-    document.querySelector('#docker_list')?.closest('table')
-    || document.querySelector('#docker_view')?.closest('table')
-    || document.querySelector('table#docker_containers')
-);
-const resolveDockerRuntimeAddFolderButton = () => document.querySelector('table#docker_containers + input[type="button"][onclick*="createFolderBtn"]');
+const scoreDockerRuntimeElementVisibility = (element) => {
+    if (!(element instanceof HTMLElement) || !element.isConnected) {
+        return -1;
+    }
+    if (element.hidden === true) {
+        return 0;
+    }
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden') {
+        return 0;
+    }
+    const rect = element.getBoundingClientRect();
+    return (rect.width > 1 && rect.height > 1) ? 3 : 1;
+};
+const pickPreferredDockerRuntimeElement = (elements) => {
+    const candidates = [];
+    const seen = new Set();
+    elements.forEach((element) => {
+        if (!(element instanceof HTMLElement) || seen.has(element)) {
+            return;
+        }
+        seen.add(element);
+        candidates.push(element);
+    });
+    if (!candidates.length) {
+        return null;
+    }
+    candidates.sort((left, right) => scoreDockerRuntimeElementVisibility(right) - scoreDockerRuntimeElementVisibility(left));
+    return candidates[0] || null;
+};
+const resolveDockerRuntimeTable = () => pickPreferredDockerRuntimeElement([
+    document.querySelector('#docker_view')?.closest('table'),
+    document.querySelector('#docker_list')?.closest('table'),
+    document.querySelector('table#docker_containers')
+]);
+const resolveDockerRuntimeAddFolderButton = () => {
+    const preferredTable = resolveDockerRuntimeTable();
+    const adjacentButton = preferredTable instanceof HTMLElement
+        ? preferredTable.parentElement?.querySelector('input[type="button"][onclick*="createFolderBtn"]')
+        : null;
+    return pickPreferredDockerRuntimeElement([
+        adjacentButton,
+        document.querySelector('table#docker_containers + input[type="button"][onclick*="createFolderBtn"]'),
+        ...Array.from(document.querySelectorAll('input[type="button"][onclick*="createFolderBtn"]'))
+    ]);
+};
 const dockerCommandCenterController = createDockerRuntimeCommandCenterController({
     hostId: 'fvplus-docker-command-center',
     runtimeType: 'docker',

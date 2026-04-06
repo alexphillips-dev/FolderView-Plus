@@ -1145,12 +1145,52 @@ const normalizeVmRuntimeViewMode = (value) => (
             : 'table')
 );
 const readVmRuntimeViewMode = () => normalizeVmRuntimeViewMode(folderTypePrefs?.viewMode);
-const resolveVmRuntimeTable = () => (
-    document.querySelector('#kvm_list')?.closest('table')
-    || document.querySelector('#kvm_view')?.closest('table')
-    || document.querySelector('table#kvm_table')
-);
-const resolveVmRuntimeAddFolderButton = () => document.querySelector('table#kvm_table + input[type="button"][onclick*="createFolderBtn"]');
+const scoreVmRuntimeElementVisibility = (element) => {
+    if (!(element instanceof HTMLElement) || !element.isConnected) {
+        return -1;
+    }
+    if (element.hidden === true) {
+        return 0;
+    }
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden') {
+        return 0;
+    }
+    const rect = element.getBoundingClientRect();
+    return (rect.width > 1 && rect.height > 1) ? 3 : 1;
+};
+const pickPreferredVmRuntimeElement = (elements) => {
+    const candidates = [];
+    const seen = new Set();
+    elements.forEach((element) => {
+        if (!(element instanceof HTMLElement) || seen.has(element)) {
+            return;
+        }
+        seen.add(element);
+        candidates.push(element);
+    });
+    if (!candidates.length) {
+        return null;
+    }
+    candidates.sort((left, right) => scoreVmRuntimeElementVisibility(right) - scoreVmRuntimeElementVisibility(left));
+    return candidates[0] || null;
+};
+const resolveVmRuntimeTable = () => pickPreferredVmRuntimeElement([
+    document.querySelector('#kvm_view')?.closest('table'),
+    document.querySelector('#kvm_list')?.closest('table'),
+    document.querySelector('table#kvm_table')
+]);
+const resolveVmRuntimeAddFolderButton = () => {
+    const preferredTable = resolveVmRuntimeTable();
+    const adjacentButton = preferredTable instanceof HTMLElement
+        ? preferredTable.parentElement?.querySelector('input[type="button"][onclick*="createFolderBtn"]')
+        : null;
+    return pickPreferredVmRuntimeElement([
+        adjacentButton,
+        document.querySelector('table#kvm_table + input[type="button"][onclick*="createFolderBtn"]'),
+        ...Array.from(document.querySelectorAll('input[type="button"][onclick*="createFolderBtn"]'))
+    ]);
+};
 const vmCommandCenterController = createVmRuntimeCommandCenterController({
     hostId: 'fvplus-vm-command-center',
     runtimeType: 'vm',

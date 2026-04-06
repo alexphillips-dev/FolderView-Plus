@@ -981,15 +981,25 @@
             ? options.onAction
             : (async () => {});
 
+        const alignHostToTable = (host, table) => {
+            if (!(host instanceof HTMLElement) || !(table instanceof HTMLElement) || !table.parentNode) {
+                return host;
+            }
+            if (host.parentNode !== table.parentNode || host.nextSibling !== table) {
+                table.parentNode.insertBefore(host, table);
+            }
+            return host;
+        };
+
         const ensureHost = () => {
             if (!hostId) {
                 return null;
             }
             let host = document.getElementById(hostId);
-            if (host) {
-                return host;
-            }
             const table = resolveTable();
+            if (host) {
+                return alignHostToTable(host, table);
+            }
             if (!table || !table.parentNode) {
                 return null;
             }
@@ -999,8 +1009,7 @@
             if (runtimeType) {
                 host.setAttribute('data-fv-runtime-type', runtimeType);
             }
-            table.parentNode.insertBefore(host, table);
-            return host;
+            return alignHostToTable(host, table);
         };
 
         const setNativeVisibility = (hidden) => {

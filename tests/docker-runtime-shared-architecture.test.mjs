@@ -102,6 +102,7 @@ test('docker shared runtime module binds to the shared folder contract and expor
     assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
     assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
     assert.match(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
+    assert.match(dockerSharedJs, /const alignHostToTable = \(host,\s*table\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
     assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
@@ -160,8 +161,11 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /const createDockerRuntimeCommandCenterController = typeof dockerRuntimeShared\.createRuntimeCommandCenterController === 'function'/);
     assert.match(dockerJs, /const dockerCommandCenterController = createDockerRuntimeCommandCenterController\(/);
-    assert.match(dockerJs, /document\.querySelector\('#docker_list'\)\?\.closest\('table'\)/);
+    assert.match(dockerJs, /const scoreDockerRuntimeElementVisibility = \(element\) =>/);
+    assert.match(dockerJs, /const pickPreferredDockerRuntimeElement = \(elements\) =>/);
     assert.match(dockerJs, /document\.querySelector\('#docker_view'\)\?\.closest\('table'\)/);
+    assert.match(dockerJs, /document\.querySelector\('#docker_list'\)\?\.closest\('table'\)/);
+    assert.match(dockerJs, /candidates\.sort\(\(left,\s*right\) => scoreDockerRuntimeElementVisibility\(right\) - scoreDockerRuntimeElementVisibility\(left\)\)/);
     assert.match(dockerJs, /const syncDockerCommandCenterView = \(\) =>/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode\(normalized\.viewMode\)\)/);
     assert.match(dockerJs, /data-fv-docker-command-action="create-folder"/);

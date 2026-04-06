@@ -44,7 +44,14 @@ test('docker pin quick action updates visible folder order immediately', () => {
 });
 
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
+    assert.match(dockerPreviewActionsScript, /const getDockerPreviewStatusMeta = \(entry = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /const resolveDockerPreviewStateTargets = \(\$target\) =>/);
+    assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
+    assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
+    assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
     assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
+    assert.match(dockerPreviewActionsScript, /syncDockerPreviewStatus\(\$target,\s*entry\);/);
     assert.match(dockerPreviewActionsScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*jq\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
     assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/s);
     assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/);

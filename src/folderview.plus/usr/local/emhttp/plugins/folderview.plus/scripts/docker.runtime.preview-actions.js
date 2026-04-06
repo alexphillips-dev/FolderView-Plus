@@ -117,6 +117,89 @@
             }
         };
 
+        const getDockerPreviewStatusMeta = (entry = {}) => {
+            const running = entry?.state === true;
+            const paused = running && entry?.pause === true;
+            if (running && paused) {
+                return {
+                    key: 'paused',
+                    icon: 'fa-pause',
+                    compactClassName: 'fv-preview-status-paused',
+                    legacyStateClass: 'paused',
+                    legacyToneClass: 'orange-text'
+                };
+            }
+            if (running) {
+                return {
+                    key: 'started',
+                    icon: 'fa-play',
+                    compactClassName: 'fv-preview-status-started',
+                    legacyStateClass: 'started',
+                    legacyToneClass: 'green-text'
+                };
+            }
+            return {
+                key: 'stopped',
+                icon: 'fa-square',
+                compactClassName: 'fv-preview-status-stopped',
+                legacyStateClass: 'stopped',
+                legacyToneClass: 'red-text'
+            };
+        };
+
+        const resolveDockerPreviewStateTargets = ($target) => {
+            if (!$target || !$target.length) {
+                return {
+                    $compactStatus: jq(),
+                    $stateLabel: jq(),
+                    $icon: jq()
+                };
+            }
+            const $compactStatus = $target.hasClass('fv-preview-status-compact')
+                ? $target
+                : $target.siblings('.fv-preview-status-compact').first();
+            if ($compactStatus.length) {
+                return {
+                    $compactStatus,
+                    $stateLabel: $compactStatus.find('span.state').first(),
+                    $icon: $compactStatus.find('i.fa').first()
+                };
+            }
+            const $stateLabel = $target.find('span.state').first().length
+                ? $target.find('span.state').first()
+                : $target.closest('span.inner, span.outer').find('span.state').first();
+            const $icon = $stateLabel.length
+                ? $stateLabel.prevAll('i.fa').first()
+                : jq();
+            return {
+                $compactStatus: jq(),
+                $stateLabel,
+                $icon
+            };
+        };
+
+        const syncDockerPreviewStatus = ($target, entry = {}) => {
+            const { $compactStatus, $stateLabel, $icon } = resolveDockerPreviewStateTargets($target);
+            if (!$stateLabel.length && !$icon.length && !$compactStatus.length) {
+                return;
+            }
+            const statusMeta = getDockerPreviewStatusMeta(entry);
+            const localizedLabel = typeof jq?.i18n === 'function'
+                ? String(jq.i18n(statusMeta.key) || statusMeta.key).trim()
+                : statusMeta.key;
+            if ($compactStatus.length) {
+                $compactStatus.attr('title', localizedLabel);
+            }
+            if ($icon.length) {
+                $icon
+                    .removeClass('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped')
+                    .addClass(`fa ${statusMeta.icon} ${$compactStatus.length ? statusMeta.compactClassName : `${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`}`);
+            }
+            if ($stateLabel.length) {
+                $stateLabel.text(` ${localizedLabel}`);
+            }
+        };
+
         const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
@@ -138,6 +221,7 @@
                 const containerName = String(entry?.name || '').trim();
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
+                syncDockerPreviewStatus($target, entry);
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });

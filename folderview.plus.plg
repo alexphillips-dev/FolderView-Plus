@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.06.02">
-<!ENTITY md5 "b350ac1b5fc314f4979427fe276b7403">
+<!ENTITY version "2026.04.06.03">
+<!ENTITY md5 "9b269f338f9034d2223ce5a4d750d8f7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.06.03
+- Fix: Docker folder preview click menus now follow live container started, paused, and stopped state after folder actions.
+- Fix: Default-context preview cards and stored member rows now resync runtime state classes before native container menus are opened.
+- Quality: Added regression coverage for Docker preview state-surface synchronization.
+
 
 ###2026.04.06.02
 - Fix: Docker folder preview rows now live-refresh container started, paused, and stopped state after in-place folder actions.

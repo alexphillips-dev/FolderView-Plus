@@ -1458,6 +1458,94 @@
         ], $extra);
     }
 
+    function diagnosticsBuildIntegrityIssueDetail(array $integrity): string {
+        $pathIssues = array_values(array_filter(array_map('strval', (array)($integrity['pathHealth']['issues'] ?? []))));
+        if (!empty($pathIssues)) {
+            return $pathIssues[0];
+        }
+
+        $orphanedCount = max(0, (int)($integrity['orphanedMembers']['count'] ?? 0));
+        if ($orphanedCount > 0) {
+            $orphanedFolderCount = count(array_values(is_array($integrity['orphanedMembers']['folders'] ?? null) ? $integrity['orphanedMembers']['folders'] : []));
+            $orphanedFolderCount = max(1, $orphanedFolderCount);
+            return sprintf(
+                '%d orphaned member reference%s found in %d folder%s.',
+                $orphanedCount,
+                $orphanedCount === 1 ? '' : 's',
+                $orphanedFolderCount,
+                $orphanedFolderCount === 1 ? '' : 's'
+            );
+        }
+
+        $effectiveDuplicateCount = max(0, (int)($integrity['duplicateAssignments']['effective']['count'] ?? 0));
+        if ($effectiveDuplicateCount > 0) {
+            return sprintf(
+                '%d item assignment conflict%s found after rules and members were combined.',
+                $effectiveDuplicateCount,
+                $effectiveDuplicateCount === 1 ? '' : 's'
+            );
+        }
+
+        $invalidRuleCount = max(0, (int)($integrity['invalidAutoRules']['count'] ?? 0));
+        if ($invalidRuleCount > 0) {
+            return sprintf(
+                '%d auto-assignment rule%s failed validation.',
+                $invalidRuleCount,
+                $invalidRuleCount === 1 ? '' : 's'
+            );
+        }
+
+        $invalidRegexCount = max(0, (int)($integrity['invalidFolderRegex']['count'] ?? 0));
+        if ($invalidRegexCount > 0) {
+            return sprintf(
+                '%d folder regex pattern%s failed validation.',
+                $invalidRegexCount,
+                $invalidRegexCount === 1 ? '' : 's'
+            );
+        }
+
+        $invalidIconPathCount = max(0, (int)($integrity['invalidFolderIconPaths']['count'] ?? 0));
+        if ($invalidIconPathCount > 0) {
+            return sprintf(
+                '%d folder icon path%s %s invalid.',
+                $invalidIconPathCount,
+                $invalidIconPathCount === 1 ? '' : 's',
+                $invalidIconPathCount === 1 ? 'is' : 'are'
+            );
+        }
+
+        $missingManualOrderIds = max(0, (int)($integrity['missingManualOrderIds']['count'] ?? 0));
+        if ($missingManualOrderIds > 0) {
+            return sprintf(
+                '%d saved manual-order id%s no longer %s an existing folder.',
+                $missingManualOrderIds,
+                $missingManualOrderIds === 1 ? '' : 's',
+                $missingManualOrderIds === 1 ? 'matches' : 'match'
+            );
+        }
+
+        $missingPinnedFolderIds = max(0, (int)($integrity['missingPinnedFolderIds']['count'] ?? 0));
+        if ($missingPinnedFolderIds > 0) {
+            return sprintf(
+                '%d pinned folder id%s no longer %s an existing folder.',
+                $missingPinnedFolderIds,
+                $missingPinnedFolderIds === 1 ? '' : 's',
+                $missingPinnedFolderIds === 1 ? 'matches' : 'match'
+            );
+        }
+
+        $duplicateNameCount = max(0, (int)($integrity['duplicateFolderNames']['count'] ?? 0));
+        if ($duplicateNameCount > 0) {
+            return sprintf(
+                '%d duplicate folder name%s found.',
+                $duplicateNameCount,
+                $duplicateNameCount === 1 ? '' : 's'
+            );
+        }
+
+        return '';
+    }
+
     function diagnosticsBuildRecommendedActions(array $typesData, array $customIcons): array {
         $actions = [];
         $addAction = static function (string $action, string $label, string $reason) use (&$actions): void {
@@ -1551,6 +1639,7 @@
             $ruleCount = max(0, (int)($typeData['ruleCount'] ?? 0));
             $backupCount = max(0, (int)($typeData['backupCount'] ?? 0));
             $typePathIssues = array_values(array_filter(array_map('strval', (array)($integrity['pathHealth']['issues'] ?? []))));
+            $primaryIssueDetail = $issueCount > 0 ? diagnosticsBuildIntegrityIssueDetail($integrity) : '';
             $pathIssues = array_merge($pathIssues, $typePathIssues);
 
             $status = $issueCount > 0 ? 'error' : 'healthy';
@@ -1564,8 +1653,8 @@
                 $label,
                 $status,
                 $issueCount > 0 ? sprintf('%d issue(s) need attention.', $issueCount) : 'No issues detected.',
-                $issueCount > 0 && count($typePathIssues) > 0
-                    ? $typePathIssues[0]
+                $issueCount > 0 && $primaryIssueDetail !== ''
+                    ? $primaryIssueDetail
                     : sprintf('%d folder(s), %d rule(s), %d backup(s).', $folderCount, $ruleCount, $backupCount),
                 ['count' => $issueCount]
             );

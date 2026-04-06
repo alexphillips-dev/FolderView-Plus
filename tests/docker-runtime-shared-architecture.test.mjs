@@ -101,8 +101,8 @@ test('docker shared runtime module binds to the shared folder contract and expor
     assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
     assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
     assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
-    assert.match(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
-    assert.match(dockerSharedJs, /const alignHostToTable = \(host,\s*table\) =>/);
+    assert.doesNotMatch(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
+    assert.doesNotMatch(dockerSharedJs, /const alignHostToTable = \(host,\s*table\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
     assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
@@ -159,16 +159,10 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
-    assert.match(dockerJs, /const createDockerRuntimeCommandCenterController = typeof dockerRuntimeShared\.createRuntimeCommandCenterController === 'function'/);
-    assert.match(dockerJs, /const dockerCommandCenterController = createDockerRuntimeCommandCenterController\(/);
-    assert.match(dockerJs, /const scoreDockerRuntimeElementVisibility = \(element\) =>/);
-    assert.match(dockerJs, /const pickPreferredDockerRuntimeElement = \(elements\) =>/);
-    assert.match(dockerJs, /document\.querySelector\('#docker_view'\)\?\.closest\('table'\)/);
-    assert.match(dockerJs, /document\.querySelector\('#docker_list'\)\?\.closest\('table'\)/);
-    assert.match(dockerJs, /candidates\.sort\(\(left,\s*right\) => scoreDockerRuntimeElementVisibility\(right\) - scoreDockerRuntimeElementVisibility\(left\)\)/);
-    assert.match(dockerJs, /const syncDockerCommandCenterView = \(\) =>/);
-    assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode\(normalized\.viewMode\)\)/);
-    assert.match(dockerJs, /data-fv-docker-command-action="create-folder"/);
+    assert.doesNotMatch(dockerJs, /createDockerRuntimeCommandCenterController/);
+    assert.doesNotMatch(dockerJs, /syncDockerCommandCenterView/);
+    assert.doesNotMatch(dockerJs, /data-fvplus-docker-view-mode/);
+    assert.doesNotMatch(dockerJs, /data-fv-docker-command-action="create-folder"/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
     assert.match(dockerJs, /window\.hideAllTips = hideAllTips;/);
     assert.match(dockerJs, /window\.addDockerFolderContext = addDockerFolderContext;/);
@@ -200,10 +194,10 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
-    assert.match(runtimeSharedCss, /\.fv-runtime-command-center\s*\{/);
-    assert.match(runtimeSharedCss, /\.fv-runtime-command-center-grid\s*\{/);
-    assert.match(runtimeSharedCss, /\.fv-runtime-command-card\s*\{/);
-    assert.match(runtimeSharedCss, /\.fv-runtime-command-actions > button\[disabled\]/);
+    assert.doesNotMatch(runtimeSharedCss, /\.fv-runtime-command-center\s*\{/);
+    assert.doesNotMatch(runtimeSharedCss, /\.fv-runtime-command-center-grid\s*\{/);
+    assert.doesNotMatch(runtimeSharedCss, /\.fv-runtime-command-card\s*\{/);
+    assert.doesNotMatch(runtimeSharedCss, /\.fv-runtime-command-actions > button\[disabled\]/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
 });
 

@@ -6235,10 +6235,6 @@ const renderHealthControls = (type) => {
 const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
-    const viewMode = typeof utils.normalizeViewMode === 'function'
-        ? utils.normalizeViewMode(prefs.viewMode)
-        : (String(prefs.viewMode || '').trim().toLowerCase() === 'commandcenter' ? 'commandcenter' : 'table');
-    $(`#${type}-view-mode`).val(viewMode);
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
         : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
@@ -7347,10 +7343,6 @@ const changeVisibilityPref = async (type, key, value) => {
     const next = { ...current };
     if (key === 'hideEmptyFolders') {
         next.hideEmptyFolders = value === true;
-    } else if (key === 'viewMode') {
-        next.viewMode = typeof utils.normalizeViewMode === 'function'
-            ? utils.normalizeViewMode(value)
-            : (String(value || '').trim().toLowerCase() === 'commandcenter' ? 'commandcenter' : 'table');
     } else if (key === 'appColumnWidth') {
         next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
             ? utils.normalizeAppColumnWidth(value)

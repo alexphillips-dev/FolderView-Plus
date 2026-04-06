@@ -25,7 +25,7 @@ test('validation helper module defines folder and prefs schema guards', () => {
     assert.match(validationPhp, /Invalid folder settings payload: '.*' is not allowed\./);
     assert.match(validationPhp, /Invalid folder settings payload: actions must be an array\./);
     assert.match(validationPhp, /function fvplus_assert_prefs_payload_shape\(array \$payload\): void/);
-    assert.match(validationPhp, /'viewMode'/);
+    assert.doesNotMatch(validationPhp, /'viewMode'/);
     assert.match(validationPhp, /Invalid prefs payload: 'autoRules' must be an array\./);
     assert.match(validationPhp, /fvplus_validation_assert_assoc_map\(\$payload\['expandedFolderState'\], 'expandedFolderState'/);
 });

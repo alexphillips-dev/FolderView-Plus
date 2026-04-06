@@ -19,7 +19,6 @@
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 2;
-    const VIEW_MODE_OPTIONS = ['table', 'commandcenter'];
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
@@ -411,11 +410,6 @@
         return APP_COLUMN_WIDTH_OPTIONS.includes(normalized) ? normalized : 'standard';
     };
 
-    const normalizeViewMode = (value) => {
-        const normalized = String(value || '').trim().toLowerCase();
-        return VIEW_MODE_OPTIONS.includes(normalized) ? normalized : 'table';
-    };
-
     const normalizeFolderEditorMode = (value) => {
         return 'modern';
     };
@@ -745,7 +739,6 @@
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
-        const viewMode = normalizeViewMode(incoming.viewMode);
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
         const folderEditorModeExplicit = false;
         const folderEditorMode = 'modern';
@@ -777,7 +770,6 @@
             pinnedFolderIds,
             expandedFolderState,
             hideEmptyFolders,
-            viewMode,
             appColumnWidth,
             folderEditorMode,
             folderEditorModeExplicit,
@@ -2009,7 +2001,6 @@
         RULE_EFFECTS,
         LEGACY_FOLDER_LABEL_KEYS,
         RUNTIME_PREFS_SCHEMA,
-        VIEW_MODE_OPTIONS,
         DEFAULT_FOLDER_STATUS_COLORS,
         DEFAULT_HEALTH_PREFS,
         DEFAULT_DASHBOARD_PREFS,
@@ -2024,7 +2015,6 @@
         sanitizeImageSrc,
         normalizeFolderMap,
         normalizeFolderMembers,
-        normalizeViewMode,
         normalizeAppColumnWidth,
         normalizeFolderEditorMode,
         normalizeDashboardLayout,

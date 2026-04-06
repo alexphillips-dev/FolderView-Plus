@@ -85,11 +85,9 @@ test('settings page loads extracted settings metadata before the main runtime', 
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
-    assert.match(page, /id="docker-view-mode"/);
-    assert.match(page, /id="vm-view-mode"/);
-    assert.match(page, /Runtime view/);
-    assert.match(page, /changeVisibilityPref\('docker', 'viewMode', this\.value\)/);
-    assert.match(page, /changeVisibilityPref\('vm', 'viewMode', this\.value\)/);
+    assert.doesNotMatch(page, /id="docker-view-mode"/);
+    assert.doesNotMatch(page, /id="vm-view-mode"/);
+    assert.doesNotMatch(page, /Runtime view/);
     assert.match(page, /id="docker-theme-compat-mode"/);
     assert.match(page, /id="vm-theme-compat-mode"/);
     assert.match(page, /Theme fallback mode/);
@@ -103,7 +101,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
-    assert.match(script, /else if \(key === 'viewMode'\) \{/);
+    assert.doesNotMatch(script, /else if \(key === 'viewMode'\) \{/);
     assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
 });

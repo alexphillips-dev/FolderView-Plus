@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.06.10">
-<!ENTITY md5 "a6da43fe2aa1aaee105da68e03134572">
+<!ENTITY version "2026.04.06.11">
+<!ENTITY md5 "a04a2f44c1c0aff4aef1b9e02f475ef7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.06.11
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
 
 ###2026.04.06.10
 - Fix: Docker and VM Command Center now target the active visible runtime table instead of attaching to hidden legacy table shells.

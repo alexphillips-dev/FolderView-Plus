@@ -1,1 +1,0 @@
-const folderEvents = new EventTarget();

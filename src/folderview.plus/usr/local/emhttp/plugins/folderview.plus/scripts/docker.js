@@ -1897,10 +1897,30 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
         ? baseOrder.map((item) => String(item || ''))
         : Object.values(baseOrder || {}).map((item) => String(item || ''));
     const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const sortMode = ['manual', 'alpha'].includes(String(prefs?.sortMode || '').trim().toLowerCase())
+        ? String(prefs.sortMode).trim().toLowerCase()
+        : 'created';
+    const hasPinnedFolders = Array.isArray(prefs?.pinnedFolderIds) && prefs.pinnedFolderIds.length > 0;
     const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
         .map((id) => `folder-${id}`);
     if (!desiredFolderTokens.length) {
         return order;
+    }
+    if (sortMode !== 'created' || hasPinnedFolders) {
+        let desiredIndex = 0;
+        return order.map((entry) => {
+            if (!folderRegex.test(entry)) {
+                return entry;
+            }
+            while (desiredIndex < desiredFolderTokens.length) {
+                const candidate = desiredFolderTokens[desiredIndex++];
+                const candidateId = candidate.replace(folderRegex, '');
+                if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
+                    return candidate;
+                }
+            }
+            return entry;
+        });
     }
     const liveFolderTokens = new Set();
     order.forEach((entry) => {

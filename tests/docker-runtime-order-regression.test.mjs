@@ -48,7 +48,36 @@ test('docker runtime preserves live folder placeholder order from host order on 
     assert.deepEqual(nextOrder, ['folder-a', 'folder-c', 'folder-b']);
 });
 
-test('docker runtime only backfills missing folder placeholders instead of reordering valid ones', () => {
+test('docker runtime reapplies saved alpha folder order even when host placeholders are stale', () => {
+    assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
+    const reorderFolderSlotsInBaseOrder = new Function(
+        'baseOrder',
+        'folders',
+        'prefs',
+        'folderRegex',
+        'getPrefsOrderedFolderMap',
+        `${reorderFolderSlotsMatch[1]}`
+    );
+
+    const folderRegex = /^folder-/;
+    const folders = {
+        a: { name: '07' },
+        b: { name: '08' },
+        c: { name: '09' }
+    };
+    const getPrefsOrderedFolderMap = () => ({
+        a: folders.a,
+        b: folders.b,
+        c: folders.c
+    });
+
+    const baseOrder = ['folder-c', 'folder-a', 'folder-b'];
+    const nextOrder = reorderFolderSlotsInBaseOrder(baseOrder, folders, { sortMode: 'alpha' }, folderRegex, getPrefsOrderedFolderMap);
+
+    assert.deepEqual(nextOrder, ['folder-a', 'folder-b', 'folder-c']);
+});
+
+test('docker runtime only backfills missing folder placeholders when sort mode remains created', () => {
     assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
     const reorderFolderSlotsInBaseOrder = new Function(
         'baseOrder',

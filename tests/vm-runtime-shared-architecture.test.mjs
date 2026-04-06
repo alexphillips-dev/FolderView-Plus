@@ -61,12 +61,11 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /const vmExpandedStateController = runtimeStateObserverModule/);
     assert.match(vmJs, /const vmRuntimeThemeReflowController = runtimeStateObserverModule/);
     assert.match(vmJs, /const runVmGuardedAction = async \(actionName, action, context = \{\}\) =>/);
-    assert.match(vmJs, /const ensureVmCommandCenterHost = \(\) =>/);
-    assert.match(vmJs, /const bindVmCommandCenterActions = \(host\) =>/);
+    assert.match(vmJs, /const createVmRuntimeCommandCenterController = typeof runtimeShared\.createRuntimeCommandCenterController === 'function'/);
+    assert.match(vmJs, /const vmCommandCenterController = createVmRuntimeCommandCenterController\(/);
     assert.match(vmJs, /const syncVmCommandCenterView = \(\) =>/);
     assert.match(vmJs, /document\.body\.setAttribute\('data-fvplus-vm-view-mode', normalizeVmRuntimeViewMode\(normalized\.viewMode\)\)/);
     assert.match(vmJs, /data-fv-vm-command-action="create-folder"/);
-    assert.match(vmJs, /host\.id = 'fvplus-vm-command-center';/);
     assert.match(vmJs, /let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile\(/);
     assert.match(vmJs, /window\.getVmRuntimePerfTelemetrySnapshot =/);
     assert.match(vmJs, /window\.getVmRuntimeStateSnapshot =/);

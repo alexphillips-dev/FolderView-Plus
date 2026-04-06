@@ -101,6 +101,7 @@ test('docker shared runtime module binds to the shared folder contract and expor
     assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
     assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
     assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
+    assert.match(dockerSharedJs, /const createRuntimeCommandCenterController = \(options = \{\}\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
     assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
@@ -157,12 +158,11 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
-    assert.match(dockerJs, /const ensureDockerCommandCenterHost = \(\) =>/);
-    assert.match(dockerJs, /const bindDockerCommandCenterActions = \(host\) =>/);
+    assert.match(dockerJs, /const createDockerRuntimeCommandCenterController = typeof dockerRuntimeShared\.createRuntimeCommandCenterController === 'function'/);
+    assert.match(dockerJs, /const dockerCommandCenterController = createDockerRuntimeCommandCenterController\(/);
     assert.match(dockerJs, /const syncDockerCommandCenterView = \(\) =>/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-view-mode', normalizeDockerRuntimeViewMode\(normalized\.viewMode\)\)/);
     assert.match(dockerJs, /data-fv-docker-command-action="create-folder"/);
-    assert.match(dockerJs, /host\.id = 'fvplus-docker-command-center';/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
     assert.match(dockerJs, /window\.hideAllTips = hideAllTips;/);
     assert.match(dockerJs, /window\.addDockerFolderContext = addDockerFolderContext;/);

@@ -249,6 +249,7 @@ if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+    || typeof window.FolderViewDockerRuntimeShared.createRuntimeCommandCenterController !== 'function'
     || typeof createDockerRuntimeDiagnosticsBridge !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.shared.js');
@@ -396,6 +397,13 @@ const createDockerRuntimePerfTelemetry = typeof dockerRuntimeShared.createRuntim
 const createDockerSafeUiActionRunner = typeof dockerRuntimeShared.createSafeUiActionRunner === 'function'
     ? dockerRuntimeShared.createSafeUiActionRunner
     : () => ({ run: async (_actionKey, action) => ({ ok: true, value: await action() }) });
+const createDockerRuntimeCommandCenterController = typeof dockerRuntimeShared.createRuntimeCommandCenterController === 'function'
+    ? dockerRuntimeShared.createRuntimeCommandCenterController
+    : (() => Object.freeze({
+        ensureHost: () => null,
+        setNativeVisibility: () => {},
+        render: () => null
+    }));
 const resolveDockerRuntimePerformanceProfile = typeof dockerRuntimeShared.resolveRuntimePerformanceProfile === 'function'
     ? dockerRuntimeShared.resolveRuntimePerformanceProfile
     : (prefs = {}, _counts = {}) => ({
@@ -2568,37 +2576,44 @@ const normalizeDockerRuntimeViewMode = (value) => (
 const readDockerRuntimeViewMode = () => normalizeDockerRuntimeViewMode(folderTypePrefs?.viewMode);
 const resolveDockerRuntimeTable = () => document.querySelector('table#docker_containers');
 const resolveDockerRuntimeAddFolderButton = () => document.querySelector('table#docker_containers + input[type="button"][onclick*="createFolderBtn"]');
-const ensureDockerCommandCenterHost = () => {
-    let host = document.getElementById('fvplus-docker-command-center');
-    if (host) {
-        return host;
+const dockerCommandCenterController = createDockerRuntimeCommandCenterController({
+    hostId: 'fvplus-docker-command-center',
+    runtimeType: 'docker',
+    actionAttribute: 'data-fv-docker-command-action',
+    resolveTable: resolveDockerRuntimeTable,
+    resolveAddButton: resolveDockerRuntimeAddFolderButton,
+    onAction: async ({ action, folderId }) => {
+        if (action === 'create-folder') {
+            createFolderBtn();
+            return;
+        }
+        if (!folderId || !globalFolders[folderId]) {
+            return;
+        }
+        if (action === 'pin') {
+            await toggleDockerFolderPin(folderId);
+            syncDockerCommandCenterView();
+            return;
+        }
+        if (action === 'focus') {
+            toggleDockerFolderFocus(folderId);
+            syncDockerCommandCenterView();
+            return;
+        }
+        if (action === 'lock') {
+            toggleDockerFolderLock(folderId);
+            syncDockerCommandCenterView();
+            return;
+        }
+        if (action === 'edit') {
+            editFolder(folderId);
+            return;
+        }
+        if (['start', 'stop', 'pause', 'resume', 'restart'].includes(action)) {
+            await actionFolder(folderId, action, { includeDescendants: true });
+        }
     }
-    const table = resolveDockerRuntimeTable();
-    if (!table || !table.parentNode) {
-        return null;
-    }
-    host = document.createElement('section');
-    host.id = 'fvplus-docker-command-center';
-    host.className = 'fv-runtime-command-center';
-    host.setAttribute('data-fv-runtime-type', 'docker');
-    table.parentNode.insertBefore(host, table);
-    return host;
-};
-const setDockerNativeTableVisibility = (hidden) => {
-    const shouldHide = hidden === true;
-    const table = resolveDockerRuntimeTable();
-    if (table instanceof HTMLElement) {
-        table.hidden = shouldHide;
-        table.classList.toggle('fv-command-center-native-hidden', shouldHide);
-        table.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
-    }
-    const addButton = resolveDockerRuntimeAddFolderButton();
-    if (addButton instanceof HTMLElement) {
-        addButton.hidden = shouldHide;
-        addButton.classList.toggle('fv-command-center-native-hidden', shouldHide);
-        addButton.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
-    }
-};
+});
 const summarizeDockerCommandCenterEntries = (containersMap) => {
     const summary = {
         total: 0,
@@ -2747,66 +2762,9 @@ const buildDockerCommandCenterCardHtml = (id, folder, focusVisibleSet = null) =>
         <div class="fv-runtime-command-members">${memberHtml}</div>
     </article>`;
 };
-const bindDockerCommandCenterActions = (host) => {
-    if (!(host instanceof HTMLElement)) {
-        return;
-    }
-    host.querySelectorAll('[data-fv-docker-command-action]').forEach((button) => {
-        button.addEventListener('click', async (event) => {
-            event.preventDefault();
-            const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
-            const folderId = String(target?.getAttribute('data-folder-id') || '').trim();
-            const action = String(target?.getAttribute('data-fv-docker-command-action') || '').trim().toLowerCase();
-            try {
-                if (action === 'create-folder') {
-                    createFolderBtn();
-                    return;
-                }
-                if (!folderId || !globalFolders[folderId]) {
-                    return;
-                }
-                if (action === 'pin') {
-                    await toggleDockerFolderPin(folderId);
-                    syncDockerCommandCenterView();
-                    return;
-                }
-                if (action === 'focus') {
-                    toggleDockerFolderFocus(folderId);
-                    syncDockerCommandCenterView();
-                    return;
-                }
-                if (action === 'lock') {
-                    toggleDockerFolderLock(folderId);
-                    syncDockerCommandCenterView();
-                    return;
-                }
-                if (action === 'edit') {
-                    editFolder(folderId);
-                    return;
-                }
-                if (['start', 'stop', 'pause', 'resume', 'restart'].includes(action)) {
-                    await actionFolder(folderId, action, { includeDescendants: true });
-                }
-            } catch (error) {
-                console.error('folderview.plus docker command center action failed', error);
-            }
-        });
-    });
-};
 const syncDockerCommandCenterView = () => {
     const enabled = readDockerRuntimeViewMode() === DOCKER_RUNTIME_VIEW_MODE_COMMAND_CENTER;
-    const host = enabled ? ensureDockerCommandCenterHost() : document.getElementById('fvplus-docker-command-center');
     const folderIds = Object.keys(getPrefsOrderedFolderMap(globalFolders || {}, folderTypePrefs || {}));
-    const shouldRender = enabled && host instanceof HTMLElement && folderIds.length > 0;
-    setDockerNativeTableVisibility(shouldRender);
-    if (!(host instanceof HTMLElement)) {
-        return;
-    }
-    if (!shouldRender) {
-        host.hidden = true;
-        host.innerHTML = '';
-        return;
-    }
     const focusVisibleSet = dockerFocusedFolderId ? getFocusedFolderVisibleSet(dockerFocusedFolderId) : null;
     const directMemberNames = new Set();
     folderIds.forEach((folderId) => {
@@ -2817,18 +2775,14 @@ const syncDockerCommandCenterView = () => {
     const cardsHtml = folderIds
         .map((folderId) => buildDockerCommandCenterCardHtml(folderId, globalFolders[folderId], focusVisibleSet))
         .join('');
-    host.hidden = false;
-    host.innerHTML = `<div class="fv-runtime-command-center-header">
-        <div>
-            <div class="fv-runtime-command-center-kicker">Docker Command Center</div>
-            <div class="fv-runtime-command-center-summary">${folderIds.length} folder${folderIds.length === 1 ? '' : 's'} | ${directMemberNames.size} direct service${directMemberNames.size === 1 ? '' : 's'}${dockerFocusedFolderId && globalFolders[dockerFocusedFolderId] ? ` | Focused: ${escapeHtml(String(globalFolders[dockerFocusedFolderId]?.name || dockerFocusedFolderId))}` : ''}</div>
-        </div>
-        <div class="fv-runtime-command-center-toolbar">
-            <button type="button" data-fv-docker-command-action="create-folder">Add folder</button>
-        </div>
-    </div>
-    <div class="fv-runtime-command-center-grid">${cardsHtml}</div>`;
-    bindDockerCommandCenterActions(host);
+    dockerCommandCenterController.render({
+        enabled,
+        folderCount: folderIds.length,
+        kicker: 'Docker Command Center',
+        summaryHtml: `${folderIds.length} folder${folderIds.length === 1 ? '' : 's'} | ${directMemberNames.size} direct service${directMemberNames.size === 1 ? '' : 's'}${dockerFocusedFolderId && globalFolders[dockerFocusedFolderId] ? ` | Focused: ${escapeHtml(String(globalFolders[dockerFocusedFolderId]?.name || dockerFocusedFolderId))}` : ''}`,
+        toolbarHtml: '<button type="button" data-fv-docker-command-action="create-folder">Add folder</button>',
+        cardsHtml
+    });
 };
 
 const dockerModules = window.FolderViewDockerModules || {};

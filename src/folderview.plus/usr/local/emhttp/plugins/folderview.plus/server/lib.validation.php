@@ -120,6 +120,7 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
         $scalarKeys = [
             'sortMode',
             'hideEmptyFolders',
+            'viewMode',
             'appColumnWidth',
             'setupWizardCompleted',
             'settingsMode',

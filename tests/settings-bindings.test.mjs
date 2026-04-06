@@ -104,6 +104,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
     assert.match(script, /else if \(key === 'viewMode'\) \{/);
+    assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
 });
 

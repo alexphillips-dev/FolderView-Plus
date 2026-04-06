@@ -7363,6 +7363,7 @@ const changeVisibilityPref = async (type, key, value) => {
         renderVisibilityControls(type);
         renderTable(type);
     } catch (error) {
+        renderVisibilityControls(type);
         showError('Visibility preference save failed', error);
     }
 };

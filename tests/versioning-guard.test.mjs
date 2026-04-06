@@ -526,11 +526,14 @@ test('back-merge sync script keeps dev linear and drops stable release artifacts
     assert.match(syncMainToDev, /git rev-list --reverse --first-parent --no-merges "\$\{SYNC_BASE\}\.\.\$\{MAIN_REF\}"/);
     assert.match(syncMainToDev, /git cherry-pick -x "\$\{COMMIT\}"/);
     assert.match(syncMainToDev, /git diff --name-only --diff-filter=U/);
-    assert.match(syncMainToDev, /git checkout --ours -- "\$\{CONFLICT_PATHS\[@\]\}"/);
+    assert.match(syncMainToDev, /commit_paths_for_sync/);
+    assert.match(syncMainToDev, /git show --pretty=format: --name-status --find-renames "\$\{commit\}"/);
+    assert.match(syncMainToDev, /reconcile_release_only_paths_from_ref HEAD "\$\{reconcile_paths\[@\]\}"/);
     assert.match(syncMainToDev, /git cherry-pick --continue/);
     assert.match(syncMainToDev, /docs\/releases\/\*\.md/);
     assert.match(syncMainToDev, /restore_release_only_paths_from_previous/);
-    assert.match(syncMainToDev, /git restore --source=HEAD\^ --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
+    assert.match(syncMainToDev, /git restore --source="\$\{source_ref\}" --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
+    assert.match(syncMainToDev, /git rm -f --ignore-unmatch -- "\$\{remove_paths\[@\]\}"/);
     assert.doesNotMatch(syncMainToDev, /git merge --no-ff --no-commit/);
 });
 

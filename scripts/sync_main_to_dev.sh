@@ -23,17 +23,56 @@ release_only_path() {
 }
 
 restore_release_only_paths_from_previous() {
+  reconcile_release_only_paths_from_ref HEAD^ "$@"
+}
+
+path_exists_at_ref() {
+  local ref="${1:-}"
+  local path="${2:-}"
+  git cat-file -e "${ref}:${path}" 2>/dev/null
+}
+
+reconcile_release_only_paths_from_ref() {
+  local source_ref="${1:-}"
+  shift || true
   local file=""
   local -a restore_paths=()
+  local -a remove_paths=()
   for file in "$@"; do
     if release_only_path "${file}"; then
-      restore_paths+=("${file}")
+      if path_exists_at_ref "${source_ref}" "${file}"; then
+        restore_paths+=("${file}")
+      else
+        remove_paths+=("${file}")
+      fi
     fi
   done
-  if [ "${#restore_paths[@]}" -eq 0 ]; then
-    return 0
+  if [ "${#restore_paths[@]}" -gt 0 ]; then
+    git restore --source="${source_ref}" --staged --worktree -- "${restore_paths[@]}"
   fi
-  git restore --source=HEAD^ --staged --worktree -- "${restore_paths[@]}"
+  if [ "${#remove_paths[@]}" -gt 0 ]; then
+    git rm -f --ignore-unmatch -- "${remove_paths[@]}" >/dev/null 2>&1 || true
+  fi
+}
+
+commit_paths_for_sync() {
+  local commit="${1:-}"
+  local status=""
+  local first_path=""
+  local second_path=""
+  while IFS=$'\t' read -r status first_path second_path; do
+    if [ -z "${status}" ]; then
+      continue
+    fi
+    case "${status}" in
+      R*|C*)
+        printf '%s\n' "${first_path}" "${second_path}"
+        ;;
+      *)
+        printf '%s\n' "${first_path}"
+        ;;
+    esac
+  done < <(git show --pretty=format: --name-status --find-renames "${commit}")
 }
 
 latest_dev_merge_into_main() {
@@ -42,6 +81,8 @@ latest_dev_merge_into_main() {
 
 resolve_release_only_conflicts() {
   local path=""
+  local -a commit_paths=("$@")
+  local -a reconcile_paths=()
   mapfile -t CONFLICT_PATHS < <(git diff --name-only --diff-filter=U || true)
   if [ "${#CONFLICT_PATHS[@]}" -eq 0 ]; then
     return 1
@@ -51,8 +92,8 @@ resolve_release_only_conflicts() {
       return 1
     fi
   done
-  git checkout --ours -- "${CONFLICT_PATHS[@]}"
-  git add -- "${CONFLICT_PATHS[@]}"
+  reconcile_paths=("${commit_paths[@]}" "${CONFLICT_PATHS[@]}")
+  reconcile_release_only_paths_from_ref HEAD "${reconcile_paths[@]}"
   return 0
 }
 
@@ -102,7 +143,7 @@ fi
 applied_commits=0
 
 for COMMIT in "${MAIN_ONLY_COMMITS[@]}"; do
-  mapfile -t COMMIT_PATHS < <(git show --pretty=format: --name-only "${COMMIT}" | sed '/^[[:space:]]*$/d')
+  mapfile -t COMMIT_PATHS < <(commit_paths_for_sync "${COMMIT}" | sed '/^[[:space:]]*$/d')
   if [ "${#COMMIT_PATHS[@]}" -eq 0 ]; then
     continue
   fi
@@ -122,14 +163,37 @@ for COMMIT in "${MAIN_ONLY_COMMITS[@]}"; do
     continue
   fi
 
+  commit_applied=0
+
   if ! git cherry-pick -x "${COMMIT}"; then
-    if resolve_release_only_conflicts && git cherry-pick --continue; then
-      :
+    if resolve_release_only_conflicts "${COMMIT_PATHS[@]}"; then
+      mapfile -t REMAINING_CONFLICT_PATHS < <(git diff --name-only --diff-filter=U || true)
+      if [ "${#REMAINING_CONFLICT_PATHS[@]}" -gt 0 ]; then
+        echo "Cherry-pick failed for ${COMMIT}; aborting auto back-merge." >&2
+        git cherry-pick --abort
+        exit 1
+      fi
+      if git diff --cached --quiet && git diff --quiet; then
+        git cherry-pick --skip
+        continue
+      elif git cherry-pick --continue; then
+        commit_applied=1
+      else
+        echo "Cherry-pick failed for ${COMMIT}; aborting auto back-merge." >&2
+        git cherry-pick --abort
+        exit 1
+      fi
     else
       echo "Cherry-pick failed for ${COMMIT}; aborting auto back-merge." >&2
       git cherry-pick --abort
       exit 1
     fi
+  else
+    commit_applied=1
+  fi
+
+  if [ "${commit_applied}" -eq 0 ]; then
+    continue
   fi
 
   if [ "${commit_touched_release_paths}" -eq 1 ]; then

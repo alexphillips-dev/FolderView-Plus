@@ -37,14 +37,33 @@ test('settings runtime keeps centralized dirty tracking and baseline capture wit
 
 test('folder reordering remains instant-persist and outside staged save/cancel dock', () => {
     assert.match(settingsRuntimeJs, /const moveFolderRow = async \(type, folderId, direction\) =>/);
-    assert.match(settingsRuntimeJs, /await persistManualOrder\(resolvedType, nextOrder, \{ refresh: false \}\);/);
-    assert.match(settingsRuntimeJs, /await refreshType\(resolvedType\);/);
-    assert.match(settingsRuntimeJs, /await createBackup\(resolvedType, `before-reorder-\$\{safeFolderId\}`\);/);
+    assert.match(settingsRuntimeJs, /const applyOptimisticManualOrder = \(type, order\) =>/);
+    assert.match(settingsRuntimeJs, /const createFolderReorderQueueState = \(\) => \(\{/);
+    assert.match(settingsRuntimeJs, /const queueFolderReorderPersist = \(type, \{/);
+    assert.match(settingsRuntimeJs, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
+    assert.match(settingsRuntimeJs, /applyOptimisticManualOrder\(resolvedType, nextOrder\);/);
+    assert.match(settingsRuntimeJs, /focusFolderRow\(resolvedType, safeFolderId\);[\s\S]*queueFolderReorderPersist\(resolvedType, \{/);
     const moveBlockMatch = settingsRuntimeJs.match(/const moveFolderRow = async \(type, folderId, direction\) => \{([\s\S]*?)\n\};/);
     assert.ok(moveBlockMatch, 'Expected moveFolderRow function block to exist.');
     const moveBlock = moveBlockMatch?.[1] || '';
     assert.ok(!/updateActionBarSaveState\(\)/.test(moveBlock), 'moveFolderRow should not touch staged save/cancel state.');
     assert.ok(!/captureSettingsBaseline\(\)/.test(moveBlock), 'moveFolderRow should stay instant-persist.');
+    assert.ok(!/await createBackup\(/.test(moveBlock), 'moveFolderRow should not create backups inline.');
+    assert.ok(!/await persistManualOrder\(/.test(moveBlock), 'moveFolderRow should not persist order inline.');
+    const persistBlockMatch = settingsRuntimeJs.match(/const persistManualOrder = async \(type, order, \{ refresh = true \} = \{\}\) => \{([\s\S]*?)\n\};/);
+    assert.ok(persistBlockMatch, 'Expected persistManualOrder function block to exist.');
+    const persistBlock = persistBlockMatch?.[1] || '';
+    assert.match(persistBlock, /const persistedOrder = sanitizeManualOrderList\(/);
+    assert.match(persistBlock, /prefsByType\[resolvedType\] = nextPrefs;/);
+    assert.ok(!/await postPrefs\(resolvedType, nextPrefs\)/.test(persistBlock), 'persistManualOrder should not issue a duplicate prefs save.');
+    const flushBlockMatch = settingsRuntimeJs.match(/const flushQueuedFolderReorderPersist = async \(type\) => \{([\s\S]*?)\n\};/);
+    assert.ok(flushBlockMatch, 'Expected flushQueuedFolderReorderPersist function block to exist.');
+    const flushBlock = flushBlockMatch?.[1] || '';
+    assert.match(flushBlock, /session\.backupPromise = createBackup\(resolvedType, backupReason\)/);
+    assert.match(flushBlock, /await persistManualOrder\(resolvedType, orderToPersist, \{ refresh: false \}\);/);
+    assert.match(flushBlock, /await recordTreeMoveHistoryFromBackup\(/);
+    assert.match(flushBlock, /prefsByType\[resolvedType\] = baselinePrefs;\s*renderTable\(resolvedType\);/);
+    assert.match(flushBlock, /await refreshType\(resolvedType\);/);
 });
 
 test('legacy staged-save dock helpers stay removed from the settings runtime', () => {

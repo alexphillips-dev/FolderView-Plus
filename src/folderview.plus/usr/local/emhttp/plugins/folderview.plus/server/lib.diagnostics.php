@@ -1614,6 +1614,16 @@
             );
         }
 
+        $orphanedMemberCount = max(0, (int)($dockerIntegrity['orphanedMembers']['count'] ?? 0))
+            + max(0, (int)($vmIntegrity['orphanedMembers']['count'] ?? 0));
+        if ($orphanedMemberCount > 0) {
+            $addAction(
+                'repair_orphaned_members',
+                'Remove orphaned member refs',
+                'Saved folder members still reference Docker or VM items that no longer exist.'
+            );
+        }
+
         $prefsNeedCleanup = false;
         foreach ([$dockerIntegrity, $vmIntegrity] as $integrity) {
             $prefsNeedCleanup = $prefsNeedCleanup

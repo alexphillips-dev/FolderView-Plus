@@ -3907,6 +3907,88 @@
         ];
     }
 
+    function fvplusRepairOrphanedMemberReferences(): array {
+        $repairedFolders = [];
+        $repairedMembers = [];
+        $typeCounts = ['docker' => 0, 'vm' => 0];
+
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $folders = readRawFolderMap($type);
+            $infoByName = readInfo($type);
+            $validNames = array_fill_keys(array_keys(is_array($infoByName) ? $infoByName : []), true);
+            $updated = false;
+            $typeFolderCount = 0;
+
+            foreach ($folders as $folderId => &$folder) {
+                if (!is_array($folder)) {
+                    continue;
+                }
+                $normalizedFolder = normalizeFolderContentPayload($folder);
+                $members = normalizeFolderMembers($normalizedFolder['containers'] ?? []);
+                if (count($members) <= 0) {
+                    $folder = $normalizedFolder;
+                    continue;
+                }
+
+                $orphanedMembers = array_values(array_filter($members, static function ($memberName) use ($validNames): bool {
+                    return !isset($validNames[(string)$memberName]);
+                }));
+                if (count($orphanedMembers) <= 0) {
+                    $folder = $normalizedFolder;
+                    continue;
+                }
+
+                $normalizedFolder['containers'] = array_values(array_filter($members, static function ($memberName) use ($validNames): bool {
+                    return isset($validNames[(string)$memberName]);
+                }));
+                $folder = $normalizedFolder;
+
+                $repairedFolders[] = [
+                    'type' => $type,
+                    'folderId' => (string)$folderId,
+                    'folderName' => trim((string)($normalizedFolder['name'] ?? (string)$folderId)),
+                    'removedCount' => count($orphanedMembers),
+                    'removedMembers' => $orphanedMembers
+                ];
+                foreach ($orphanedMembers as $memberName) {
+                    $repairedMembers[(string)$memberName] = true;
+                }
+                $typeCounts[$type] = (int)($typeCounts[$type] ?? 0) + count($orphanedMembers);
+                $typeFolderCount++;
+                $updated = true;
+            }
+            unset($folder);
+
+            if (!$updated) {
+                continue;
+            }
+
+            createBackupSnapshot($type, 'before-repair-orphaned-members');
+            writeRawFolderMap($type, $folders);
+            if ($type === 'docker') {
+                syncContainerOrder('docker');
+            }
+            appendDiagnosticsHistoryEvent(
+                'repair_orphaned_members',
+                $type,
+                [
+                    'repairedFolderCount' => $typeFolderCount,
+                    'repairedMemberCount' => (int)($typeCounts[$type] ?? 0)
+                ],
+                'ok',
+                'server'
+            );
+        }
+
+        return [
+            'repairedFolderCount' => count($repairedFolders),
+            'repairedMemberCount' => count($repairedMembers),
+            'repairedMembers' => array_values(array_keys($repairedMembers)),
+            'repairedFolders' => $repairedFolders,
+            'typeCounts' => $typeCounts
+        ];
+    }
+
     function repairPluginPaths(): array {
         global $configDir;
         $created = [];

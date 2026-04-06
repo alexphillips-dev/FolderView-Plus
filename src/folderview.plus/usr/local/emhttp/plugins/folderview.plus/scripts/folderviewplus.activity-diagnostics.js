@@ -52,6 +52,11 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
         icon: 'fa-picture-o',
         handler: "repairDiagnostics('repair_missing_custom_icons')"
     }),
+    repair_orphaned_members: Object.freeze({
+        label: 'Remove orphaned member refs',
+        icon: 'fa-chain-broken',
+        handler: "repairDiagnostics('repair_orphaned_members')"
+    }),
     run_theme_self_heal: Object.freeze({
         label: 'Theme self-heal now',
         icon: 'fa-magic',
@@ -469,7 +474,7 @@ const runDiagnosticAction = async (action, type, privacy = 'sanitized') => {
     if (!response.ok) {
         throw new Error(response.error || 'Diagnostics action failed.');
     }
-    return response.diagnostics || {};
+    return response;
 };
 
 const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', source = 'ui', details = {} }) => {
@@ -1196,13 +1201,14 @@ const runDiagnostics = async () => {
     }
 };
 
-const repairDiagnostics = async (action) => {
+const repairDiagnostics = async (action, type = '') => {
     try {
-        const diagnostics = await runDiagnosticAction(action);
+        const response = await runDiagnosticAction(action, type);
+        const diagnostics = response?.diagnostics || {};
         renderDiagnostics(diagnostics);
         swal({
             title: 'Repair complete',
-            text: 'Repair action finished successfully.',
+            text: String(response?.message || 'Repair action finished successfully.'),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
@@ -1274,6 +1280,22 @@ const exportFullSupportBundle = () => {
     void exportSupportBundleByMode('full');
 };
 
+const formatIssueReportCount = (value, fallback = 0) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) && numeric >= 0 ? numeric : fallback;
+};
+
+const formatIssueReportBackupDetail = (countValue, lastBackup) => {
+    const count = formatIssueReportCount(countValue);
+    if (!lastBackup || typeof lastBackup !== 'object') {
+        return `count=${count}, latest=none`;
+    }
+    const name = String(lastBackup.name || '').trim() || 'unknown';
+    const reason = String(lastBackup.reason || '').trim() || 'unspecified';
+    const createdAt = String(lastBackup.createdAt || '').trim() || 'unknown';
+    return `count=${count}, latest=${name}, reason=${reason}, createdAt=${createdAt}`;
+};
+
 const issueReportFromDiagnostics = (diagnostics) => {
     const report = normalizeSupportBundleV2Payload(diagnostics || {}, diagnostics?.bundleMeta?.privacyMode || 'sanitized');
     const lines = [];
@@ -1295,11 +1317,22 @@ const issueReportFromDiagnostics = (diagnostics) => {
     for (const type of ['docker', 'vm']) {
         const typeData = report.pluginState?.[type] || {};
         const integrity = report.healthAndHistory?.integrityFindings?.[type] || {};
-        const issueCount = Number.isFinite(Number(integrity.issuesCount))
-            ? Number(integrity.issuesCount)
-            : Number(integrity.issueCount || 0);
+        const issueCount = formatIssueReportCount(integrity.issuesCount, formatIssueReportCount(integrity.issueCount));
         const counts = typeData.counts || {};
-        lines.push(`- ${type.toUpperCase()}: folders=${counts.folders || 0}, rules=${counts.rules || 0}, backups=${counts.backups || 0}, templates=${counts.templates || 0}, issueCount=${issueCount}`);
+        const folderMeta = typeData.folders || {};
+        const prefs = typeData.prefs || {};
+        const orphanedMembers = formatIssueReportCount(integrity.orphanedMembers?.count);
+        const assignmentConflicts = formatIssueReportCount(integrity.duplicateAssignments?.effective?.count);
+        const invalidRules = formatIssueReportCount(integrity.invalidAutoRules?.count);
+        const pathIssues = Array.isArray(integrity.pathHealth?.issues) ? integrity.pathHealth.issues : [];
+        const pathIssueCount = pathIssues.length;
+        lines.push(`- ${type.toUpperCase()}: folders=${formatIssueReportCount(counts.folders)}, rules=${formatIssueReportCount(counts.rules)}, backups=${formatIssueReportCount(counts.backups)}, templates=${formatIssueReportCount(counts.templates)}, issueCount=${issueCount}`);
+        lines.push(`  Folder details: file=${folderMeta.path || `${type}.json`}, exists=${folderMeta.exists === false ? 'no' : 'yes'}, manualOrder=${formatIssueReportCount(folderMeta.manualOrderCount, formatIssueReportCount(counts.manualOrder))}, pinned=${formatIssueReportCount(folderMeta.pinnedFolderCount, formatIssueReportCount(counts.pinnedFolders))}`);
+        lines.push(`  Rules details: sortMode=${prefs.sortMode || 'created'}, settingsMode=${prefs.settingsMode || 'basic'}, rules=${formatIssueReportCount(counts.rules)}, templates=${formatIssueReportCount(counts.templates)}`);
+        lines.push(`  Backup details: ${formatIssueReportBackupDetail(counts.backups, typeData.lastBackup)}`);
+        if (issueCount > 0 || orphanedMembers > 0 || assignmentConflicts > 0 || invalidRules > 0 || pathIssueCount > 0) {
+            lines.push(`  Integrity details: orphanedMembers=${orphanedMembers}, assignmentConflicts=${assignmentConflicts}, invalidRules=${invalidRules}, pathIssues=${pathIssueCount}`);
+        }
     }
     lines.push('');
 

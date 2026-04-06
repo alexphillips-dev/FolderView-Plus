@@ -93,6 +93,15 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
     assert.match(libPhp, /'customIconDir'\s*=>\s*\$customIconDir/);
 });
 
+test('lib.php can prune orphaned member references from saved folders', () => {
+    assert.match(libPhp, /function fvplusRepairOrphanedMemberReferences\(\): array/);
+    assert.match(libPhp, /\$infoByName = readInfo\(\$type\);/);
+    assert.match(libPhp, /\$normalizedFolder\['containers'\] = array_values\(array_filter\(\$members,/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-orphaned-members'\)/);
+    assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_orphaned_members'/);
+    assert.match(libPhp, /'repairedMemberCount'\s*=>\s*count\(\$repairedMembers\)/);
+});
+
 test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function getComposeProjectValueFromLabels\s*\(/);
     assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
@@ -204,6 +213,7 @@ test('lib.php diagnostics include user-facing summary cards and recommended acti
     assert.match(libDiagnosticsPhp, /'Update check'/);
     assert.match(libDiagnosticsPhp, /'repair_paths',\s*'Repair plugin paths'/);
     assert.match(libDiagnosticsPhp, /'repair_missing_custom_icons',\s*'Reset missing custom icon refs'/);
+    assert.match(libDiagnosticsPhp, /'repair_orphaned_members',\s*'Remove orphaned member refs'/);
     assert.match(libDiagnosticsPhp, /'normalize_prefs',\s*'Validate and normalize prefs'/);
     assert.match(libDiagnosticsPhp, /'sync_docker_order',\s*'Rebuild Docker order index'/);
 });
@@ -260,10 +270,12 @@ test('diagnostics endpoint emits support bundle v2 shape only', () => {
     assert.match(libDiagnosticsPhp, /'saltScope'\s*=>\s*\$privacyMode === 'full' \? 'none' : 'per-bundle'/);
     assert.match(libDiagnosticsPhp, /'saltHash'\s*=>\s*\$privacyMode === 'full' \? null : \(\$redactor\['saltFingerprint'\] \?\? null\)/);
     assert.match(libDiagnosticsPhp, /getDiagnosticsSnapshot\('full'\)/);
-    assert.match(diagnosticsEndpointPhp, /\$mutatingActions = \['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'repair_missing_custom_icons', 'create_backup'\];/);
+    assert.match(diagnosticsEndpointPhp, /\$mutatingActions = \['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'repair_missing_custom_icons', 'repair_orphaned_members', 'create_backup'\];/);
     assert.match(diagnosticsEndpointPhp, /if \(\$action === 'repair_missing_custom_icons'\) \{/);
     assert.match(diagnosticsEndpointPhp, /'repair'\s*=>\s*\$repair,/);
     assert.match(diagnosticsEndpointPhp, /fvplusRepairMissingCustomIconReferences\(\)/);
+    assert.match(diagnosticsEndpointPhp, /if \(\$action === 'repair_orphaned_members'\) \{/);
+    assert.match(diagnosticsEndpointPhp, /fvplusRepairOrphanedMemberReferences\(\)/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'bundleType'\s*=>\s*'FolderViewPlusSupportBundle',\s*[\r\n]+\s*'bundleVersion'\s*=>\s*1,/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'diagnostics'\s*=>\s*\$diagnostics/);
 });

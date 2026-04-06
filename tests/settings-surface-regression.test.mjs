@@ -118,11 +118,17 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /report\.pluginState\?\.\[type\]/);
     assert.match(diagnosticsJs, /report\.healthAndHistory\?\.recentTimeline/);
     assert.match(diagnosticsJs, /report\.uiTelemetry\?\.folderEditorDebug/);
+    assert.match(diagnosticsJs, /Folder details:/);
+    assert.match(diagnosticsJs, /Rules details:/);
+    assert.match(diagnosticsJs, /Backup details:/);
+    assert.match(diagnosticsJs, /Integrity details:/);
     assert.match(diagnosticsJs, /surfaceSummary/);
     assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.match(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{/);
+    assert.match(diagnosticsJs, /repair_orphaned_members:\s*Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /repairMissingIconsAction\.parentAction = 'repair_paths';/);
     assert.match(diagnosticsJs, /Theme diagnostics are live before a full health check\./);
+    assert.match(diagnosticsJs, /return response;/);
     assert.match(diagnosticsJs, /runThemeDiagnostics\(\);\s*initializeClientDiagnosticsPanels\(\);/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
     assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);

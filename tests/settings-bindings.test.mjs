@@ -309,6 +309,9 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /treeCollapsed:\s*\{/);
     assert.match(script, /collapsedTreeParentsByType\[resolvedType\] = new Set/);
     assert.match(script, /const canFolderUseTreeMove = \(type, sourceFolderId, hierarchyMeta = null\) =>/);
+    assert.match(script, /const createFolderReorderQueueState = \(\) => \(\{/);
+    assert.match(script, /const queueFolderReorderPersist = \(type, \{/);
+    assert.match(script, /const flushQueuedFolderReorderPersist = async \(type\) => \{/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
     assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
     assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
@@ -316,7 +319,8 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.doesNotMatch(script, /<td class="parent-cell">/);
     assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
     assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
-    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Reorder folders', safeFolderId\)/);
+    assert.match(script, /queueFolderReorderPersist\(resolvedType, \{/);
+    assert.match(script, /await recordTreeMoveHistoryFromBackup\([\s\S]*'Reorder folders'[\s\S]*focusFolderId/);
 });
 
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {

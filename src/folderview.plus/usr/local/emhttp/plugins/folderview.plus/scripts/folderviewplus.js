@@ -6111,17 +6111,16 @@ const persistManualOrder = async (type, order, { refresh = true } = {}) => {
         throw new Error(reorderResponse.error || 'Failed to persist folder order.');
     }
 
+    const persistedOrder = sanitizeManualOrderList(
+        resolvedType,
+        Array.isArray(reorderResponse.order) ? reorderResponse.order : safeOrder
+    );
     const nextPrefs = utils.normalizePrefs({
         ...prefsByType[resolvedType],
         sortMode: 'manual',
-        manualOrder: safeOrder
+        manualOrder: persistedOrder
     });
-
-    try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
-    } catch (error) {
-        prefsByType[resolvedType] = nextPrefs;
-    }
+    prefsByType[resolvedType] = nextPrefs;
 
     if (refresh) {
         await refreshType(resolvedType);

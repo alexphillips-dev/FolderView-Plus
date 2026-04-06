@@ -33,6 +33,7 @@
             ? deps.layoutFolderPreviewRows
             : (() => {});
         const webuiLinkRel = String(deps.webuiLinkRel || 'noopener noreferrer').trim() || 'noopener noreferrer';
+        const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
 
         const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui"></span>').append(
             jq('<a></a>')
@@ -117,6 +118,181 @@
             }
         };
 
+        const getDockerPreviewStatusMeta = (entry = {}) => {
+            const running = entry?.state === true;
+            const paused = running && entry?.pause === true;
+            if (running && paused) {
+                return {
+                    key: 'paused',
+                    icon: 'fa-pause',
+                    compactClassName: 'fv-preview-status-paused',
+                    legacyStateClass: 'paused',
+                    legacyToneClass: 'orange-text'
+                };
+            }
+            if (running) {
+                return {
+                    key: 'started',
+                    icon: 'fa-play',
+                    compactClassName: 'fv-preview-status-started',
+                    legacyStateClass: 'started',
+                    legacyToneClass: 'green-text'
+                };
+            }
+            return {
+                key: 'stopped',
+                icon: 'fa-square',
+                compactClassName: 'fv-preview-status-stopped',
+                legacyStateClass: 'stopped',
+                legacyToneClass: 'red-text'
+            };
+        };
+
+        const clearDockerRuntimeStateClasses = ($elements) => {
+            if (!$elements || !$elements.length) {
+                return;
+            }
+            $elements.removeClass(dockerRuntimeStateClassList);
+        };
+
+        const syncDockerPreviewStateSurface = ($target, statusMeta, localizedLabel) => {
+            if (!$target || !$target.length) {
+                return;
+            }
+            const $outer = $target.hasClass('outer')
+                ? $target
+                : $target.closest('span.outer').first();
+            if (!$outer.length) {
+                return;
+            }
+            const $hand = $outer.children('span.hand').first();
+            const $inner = $outer.children('span.inner').first();
+            const $appName = $inner.children('span.appname').first();
+            const $appLink = $appName.children('a.exec').first();
+            const $inlineStatus = $appLink.children('.fv-preview-status-inline').first();
+            clearDockerRuntimeStateClasses($outer.add($hand).add($inner).add($appName));
+            $outer.add($hand).add($inner).add($appName).addClass(statusMeta.legacyStateClass);
+            $outer.attr('data-fv-runtime-state', statusMeta.key);
+            if ($appLink.length) {
+                clearDockerRuntimeStateClasses($appLink);
+                $appLink
+                    .addClass(statusMeta.legacyStateClass)
+                    .attr('data-fv-runtime-state', statusMeta.key);
+                if ($appLink.hasClass('fv-preview-status-name')) {
+                    $appLink.addClass(statusMeta.compactClassName);
+                }
+            }
+            if ($inlineStatus.length) {
+                clearDockerRuntimeStateClasses($inlineStatus);
+                $inlineStatus
+                    .addClass(statusMeta.compactClassName)
+                    .attr('title', localizedLabel)
+                    .attr('data-fv-runtime-state', statusMeta.key);
+                $inlineStatus.find('i.fa').first()
+                    .removeClass('fa-play fa-pause fa-square')
+                    .addClass(`fa ${statusMeta.icon}`);
+            }
+        };
+
+        const findDockerFolderStorageRow = (id, containerName) => {
+            const folderId = String(id || '').trim();
+            const safeContainerName = String(containerName || '').trim();
+            if (!folderId || !safeContainerName) {
+                return jq();
+            }
+            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr`);
+            return $rows.filter((_, row) => {
+                const rowId = String(row?.id || '').trim();
+                if (rowId === `ct-${safeContainerName}`) {
+                    return true;
+                }
+                const $row = jq(row);
+                return String($row.find('td.ct-name .appname').first().text() || '').trim() === safeContainerName;
+            }).first();
+        };
+
+        const syncDockerStorageRowStatus = ($row, entry = {}) => {
+            if (!$row || !$row.length) {
+                return;
+            }
+            const statusMeta = getDockerPreviewStatusMeta(entry);
+            const localizedLabel = typeof jq?.i18n === 'function'
+                ? String(jq.i18n(statusMeta.key) || statusMeta.key).trim()
+                : statusMeta.key;
+            const $outer = $row.find('td.ct-name > span.outer').first();
+            const $hand = $outer.children('span.hand').first();
+            const $inner = $outer.children('span.inner').first();
+            const $appName = $inner.children('span.appname').first();
+            const $stateLabel = $inner.children('span.state').first();
+            const $icon = $inner.children('i[id^="load-"]').first();
+            clearDockerRuntimeStateClasses($outer.add($hand).add($inner).add($appName).add($stateLabel));
+            $outer.add($hand).add($inner).add($appName).add($stateLabel).addClass(statusMeta.legacyStateClass);
+            $row.attr('data-fv-runtime-state', statusMeta.key);
+            if ($icon.length) {
+                $icon
+                    .removeClass(dockerRuntimeStateClassList)
+                    .removeClass('fa-play fa-pause fa-square')
+                    .addClass(`fa ${statusMeta.icon} ${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`);
+            }
+            if ($stateLabel.length) {
+                $stateLabel.text(` ${localizedLabel}`);
+            }
+        };
+
+        const resolveDockerPreviewStateTargets = ($target) => {
+            if (!$target || !$target.length) {
+                return {
+                    $compactStatus: jq(),
+                    $stateLabel: jq(),
+                    $icon: jq()
+                };
+            }
+            const $compactStatus = $target.hasClass('fv-preview-status-compact')
+                ? $target
+                : $target.siblings('.fv-preview-status-compact').first();
+            if ($compactStatus.length) {
+                return {
+                    $compactStatus,
+                    $stateLabel: $compactStatus.find('span.state').first(),
+                    $icon: $compactStatus.find('i.fa').first()
+                };
+            }
+            const $stateLabel = $target.find('span.state').first().length
+                ? $target.find('span.state').first()
+                : $target.closest('span.inner, span.outer').find('span.state').first();
+            const $icon = $stateLabel.length
+                ? $stateLabel.prevAll('i.fa').first()
+                : jq();
+            return {
+                $compactStatus: jq(),
+                $stateLabel,
+                $icon
+            };
+        };
+
+        const syncDockerPreviewStatus = ($target, entry = {}) => {
+            const { $compactStatus, $stateLabel, $icon } = resolveDockerPreviewStateTargets($target);
+            if (!$stateLabel.length && !$icon.length && !$compactStatus.length) {
+                return;
+            }
+            const statusMeta = getDockerPreviewStatusMeta(entry);
+            const localizedLabel = typeof jq?.i18n === 'function'
+                ? String(jq.i18n(statusMeta.key) || statusMeta.key).trim()
+                : statusMeta.key;
+            syncDockerPreviewStateSurface($target, statusMeta, localizedLabel);
+            if ($compactStatus.length) {
+                $compactStatus.attr('title', localizedLabel);
+            }
+            if ($icon.length) {
+                $icon
+                    .removeClass('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped')
+                    .addClass(`fa ${statusMeta.icon} ${$compactStatus.length ? statusMeta.compactClassName : `${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`}`);
+            }
+            if ($stateLabel.length) {
+                $stateLabel.text(` ${localizedLabel}`);
+            }
+        };
+
         const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
@@ -130,6 +306,13 @@
             }
             const actionTargets = collectDockerPreviewActionTargets($preview, settings);
             const entries = Object.values(runtimeContainers || {});
+            entries.forEach((entry) => {
+                const containerName = String(entry?.name || '').trim();
+                if (!containerName) {
+                    return;
+                }
+                syncDockerStorageRowStatus(findDockerFolderStorageRow(id, containerName), entry);
+            });
             actionTargets.forEach(($target, index) => {
                 const entry = entries[index];
                 if (!$target || !$target.length || !entry) {
@@ -138,6 +321,7 @@
                 const containerName = String(entry?.name || '').trim();
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
+                syncDockerPreviewStatus($target, entry);
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });

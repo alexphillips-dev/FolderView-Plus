@@ -611,6 +611,7 @@ const getDockerRuntimeActionsApi = () => {
             runDockerGuardedAction: (actionName, action, context = {}) =>
                 runDockerGuardedAction(actionName, action, context),
             getDockerMenuLabel: (key, fallback) => getDockerMenuLabel(key, fallback),
+            refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             loadlist: () => loadlist(),
             eventURL,
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
@@ -4402,7 +4403,6 @@ const folderCustomAction = async (id, actionIndex) => {
     if (!folder || !folder.actions || !folder.actions[actionIndex]) {
         if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] folderCustomAction: Folder or action definition not found for id ${id}, actionIndex ${actionIndex}.`);
         $('div.spinner.fixed').hide('slow');
-        loadlist();
         return;
     }
     let act = folder.actions[actionIndex];
@@ -4521,9 +4521,12 @@ const folderCustomAction = async (id, actionIndex) => {
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Awaiting ${prom.length} promises for custom action.`);
     await Promise.all(prom);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): All promises resolved. Reloading list.`);
-
-    loadlist();
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): All promises resolved. Refreshing runtime state.`);
+    if (act.type === 0) {
+        await refreshDockerRuntimeStateInPlace({ followupDelayMs: 650 });
+    } else {
+        loadlist();
+    }
     $('div.spinner.fixed').hide('slow');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Exit.`);
 };
@@ -5230,6 +5233,39 @@ const fetchDockerStateSignature = async () => {
     const payload = await $.get(buildDockerRuntimeInfoUrl('state')).promise();
     const parsed = parseJsonPayloadSafe(payload);
     return buildDockerStateSignature(parsed, true);
+};
+
+const refreshDockerRuntimeStateInPlace = async (options = {}) => {
+    const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
+    const fallbackToLoadlist = () => {
+        queueLoadlistRefresh({ suppressLoadingUi: true });
+    };
+    const applyStatePayload = async () => {
+        const payload = await $.get(buildDockerRuntimeInfoUrl('state')).promise();
+        const parsed = parseJsonPayloadSafe(payload);
+        if (!parsed || Object.keys(parsed).length <= 0) {
+            throw new Error('Docker runtime state payload was empty.');
+        }
+        dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+        const nextSignature = buildDockerStateSignature(parsed, true);
+        if (nextSignature) {
+            lastLiveRefreshStateSignature = nextSignature;
+        }
+        syncDockerVisibleFoldersFromRuntimeCache();
+        return true;
+    };
+    try {
+        await applyStatePayload();
+        if (followupDelayMs > 0) {
+            window.setTimeout(() => {
+                Promise.resolve(applyStatePayload()).catch(() => fallbackToLoadlist());
+            }, followupDelayMs);
+        }
+        return true;
+    } catch (_error) {
+        fallbackToLoadlist();
+        return false;
+    }
 };
 
 const readDockerHostOrderFromDom = () => {

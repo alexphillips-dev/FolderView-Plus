@@ -5,56 +5,101 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.05.13">
-<!ENTITY md5 "00b9d05e73769e5945b8d637dd710d6d">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.04.06.04">
+<!ENTITY md5 "22f685ec46010ba4c5d51249fb9cbd51">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.04.06.04
+- Fix: Diagnostics health cards now name the real Docker or VM integrity finding instead of falling back to generic folder, rule, and backup counts.
+- Quality: Add contract coverage for orphaned-member and path-issue diagnostics summary rendering.
+
+
+###2026.04.06.03
+- Fix: Docker folder preview click menus now follow live container started, paused, and stopped state after folder actions.
+- Fix: Default-context preview cards and stored member rows now resync runtime state classes before native container menus are opened.
+- Quality: Added regression coverage for Docker preview state-surface synchronization.
+
+
+###2026.04.06.02
+- Fix: Docker folder preview rows now live-refresh container started, paused, and stopped state after in-place folder actions.
+- Fix: Docker preview runtime sync now updates per-container status icons and labels alongside preview action buttons.
+- Quality: Added regression coverage for in-place Docker preview status refresh.
+
+
+###2026.04.05.14
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
 ###2026.04.05.13
-- Feature: Added a compact `Bulk move` workflow directly to the Folder Editor `Members` tab for both Docker and VM folders, so users can move shown or included members into another folder without leaving the editor.
-- Feature: Bulk move supports the scopes `Shown`, `Included shown`, `Excluded shown`, and `All included`.
-- Feature: Bulk move reuses the guarded server-side bulk assignment path instead of duplicating a second editor-only mover.
-- Feature: Each bulk move creates a backup first and exposes an editor-local undo path.
-- Fix: Fixed multi-row Docker preview `Console` and `Logs` actions so they keep their real runtime wiring instead of falling back to a top-of-page anchor jump.
-- Fix: Fixed Folder Editor startup crashes introduced by the new Members-tab bulk move flow when hydration reached the bulk move helpers before those functions finished initializing.
-- Fix: Fixed the Folder Editor post-bulk-move lockup so the page no longer gets trapped behind a blocking success or undo modal after the move completes.
-- Fix: Fixed Members-tab bulk move live refresh so moved Docker containers and VMs disappear from the current folder immediately instead of remaining visible until the folder is submitted or reloaded.
-- Fix: Fixed the leave-page warning after a successful Members-tab bulk move by syncing the member baseline correctly, while keeping the normal unsaved-changes prompt for regular manual member edits.
-- UX: The Members-tab bulk move flow now keeps the editor live after completion and shows a non-blocking inline undo action inside the bulk move summary area.
-- UX: Folder Editor bulk move status messaging now updates in place instead of interrupting the editor with follow-up confirmation dialogs.
-- Compatibility: Added versioned asset URLs for shipped FolderView Plus JavaScript, CSS, vendor includes, and locale assets so plugin updates no longer depend on users manually clearing browser cache to see new changes.
-- Quality: Hardened the main release process so stable cuts now require explicit curated release notes instead of falling back to generic seeded `CHANGES` text.
-- Quality: Added a local `simulate_main_release.sh` path so the full stable-release flow can be rehearsed before merging and pushing `main`.
-- Quality: Unified stable packaging through the shared `release_prepare.sh` entrypoint so the local and GitHub release flows use the same preparation path.
-- Quality: Hardened back-merge handling so release-only artifacts and stable-only metadata do not keep breaking the `main` to `dev` sync path.
-- Quality: Tightened workflow self-checks, release-note consistency validation, include-order coverage, and related release/package guards around the new release path.
-- Quality: Release runs no longer hard-require browser smoke or theme matrix URLs, so stable merges can proceed even when smoke targets are unavailable.
-- Quality: Remote publish validation now retries until raw GitHub artifacts reflect the pushed release, preventing false failures from raw cache lag.
-- Quality: Back-merge restores now skip missing release-only paths cleanly, preventing archive rename conflicts from failing automation.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.05.12
+- UX: Folder editor flows, previews, and bootstrap behavior.
+
+
+###2026.04.05.11
+- Fix: Folder editor Members-tab bulk move now removes reassigned Docker containers and VMs from the live member list immediately instead of keeping them visible until the editor is submitted or reloaded.
+
+
+###2026.04.05.10
+- UX: Folder editor flows, previews, and bootstrap behavior.
+
+
+###2026.04.05.09
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.05.08
+- UX: Folder editor flows, previews, and bootstrap behavior.
+
+
+###2026.04.05.07
+- Fix: Folder editor startup no longer crashes on bulk-move-enabled builds when hydration reaches the current scope and target helpers before those Members-tab bulk move utilities finish initializing.
+
+
+###2026.04.05.06
+- UX: Folder editor flows, previews, and bootstrap behavior.
+
+
+###2026.04.05.05
+- Fix: Folder editor startup no longer crashes on bulk-move-enabled builds when hydration updates Members-tab bulk move UI before the scope collector finishes initializing.
+
+
+###2026.04.05.04
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.05.03
+- Fix: Multi-row Docker preview Console and Logs buttons now keep their action wiring after compact preview rendering, so they open the terminal and logs instead of falling back to a top-of-page anchor jump.
 
 
 ###2026.04.05.02
-- Fix: Release validation now recognizes locale keys referenced through shared i18n wrappers, preventing false failures in the language-usage guard.
-- Fix: Manual Release On Main dispatches now force the publish path correctly so failed stable releases can be retried without editing workflow files again.
-- Fix: Removed dead selector leftovers from Docker, Folder Editor, and Settings styles so strict dead-code validation passes cleanly during stable release publishing.
-- Quality: Rebuilt the stable package and archive metadata for the April 5, 2026 release cut so GitHub release automation publishes a fully synchronized main-channel artifact set.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
 
-###2026.04.04.30
-- Feature: Added Copy Folder Settings and Paste Folder Settings to Docker and VM folder menus, plus Apply to folders in the editor to batch-apply the current folder configuration to existing folders without changing names, parents, members, regex, or ids.
-- Feature: Rebuilt the support bundle as v2 with structured troubleshooting sections, sanitized redaction manifests, export preview, build identity, loaded assets, recent actions, browser error snapshots, and richer plugin-specific diagnostics.
-- UX: Retired the legacy folder editor and moved fully to the modern editor with major improvements to parent selection, icon workflows, live preview, rules, diagnostics, and light-theme editor surfaces.
-- UX: Polished the folder editor and settings UI across parent picker, icon picker, diagnostics workbench, dashboard layouts, and chevron/dropdown chrome for dark and light themes.
-- Fix: Docker update detection now stays aligned with native Unraid update state for containers, folders, root folders, and folder-editor update summaries.
-- Fix: Multi-row Docker previews now open the normal container menu from visible preview cards again while keeping WebUI, Console, and Logs quick actions separate.
-- Fix: Theme-token coverage was expanded across runtime menus, dialogs, diagnostics, icon surfaces, parent-picker surfaces, and folder/status tokens to eliminate remaining hardcoded dark-mode regressions.
-- Fix: Diagnostics, issue reports, and support exports now report theme/runtime state correctly, sanitize sensitive fields in sanitized mode, and include the client/server context needed for support.
-- Fix: Docker order sync now runs only when folder membership or order inputs change, uses lightweight runtime state, coalesces concurrent sync requests, and avoids rewriting unchanged Docker order/autostart files.
-- Refactor: Split major monoliths across settings, folder editor, Docker runtime, and server helper modules so the main runtimes act as coordinators instead of carrying most implementation details directly.
-- Quality: Removed dead runtime code, tightened unused-code guards, expanded regression coverage, and strengthened include-order, performance-budget, install-smoke, and release validation.
-- Quality: Hardened release automation with stronger smoke-test enforcement and subsystem-aware release-note generation so stable releases reflect the actual promoted work.
+
+###2026.04.05.01
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
 
 
 ###2026.04.04.29
@@ -4925,7 +4970,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

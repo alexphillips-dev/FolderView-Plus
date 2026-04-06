@@ -199,7 +199,7 @@
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
-        if (!in_array($sortMode, ['created', 'manual', 'alpha'], true)) {
+        if (!in_array($sortMode, ['created', 'created_newest', 'created_oldest', 'updated_newest', 'manual', 'alpha', 'name_desc'], true)) {
             $sortMode = 'created';
         }
         $normalized['sortMode'] = $sortMode;

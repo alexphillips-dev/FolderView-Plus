@@ -298,6 +298,17 @@ test('sort toggle note has anti-clipping layout guards', () => {
     assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*padding-right:\s*0\.2rem/);
 });
 
+test('settings and setup assistant expose extended folder sort mode options', () => {
+    assert.match(settingsPage, /<option value="created_newest">Created newest first<\/option>/);
+    assert.match(settingsPage, /<option value="created_oldest">Created oldest first<\/option>/);
+    assert.match(settingsPage, /<option value="updated_newest">Last updated newest first<\/option>/);
+    assert.match(settingsPage, /<option value="name_desc">Name \(Z-A\)<\/option>/);
+    assert.match(settingsJs, /value="created_newest" \$\{behavior\.sortMode === 'created_newest' \? 'selected' : ''\}>Created newest first/);
+    assert.match(settingsJs, /value="created_oldest" \$\{behavior\.sortMode === 'created_oldest' \? 'selected' : ''\}>Created oldest first/);
+    assert.match(settingsJs, /value="updated_newest" \$\{behavior\.sortMode === 'updated_newest' \? 'selected' : ''\}>Last updated newest first/);
+    assert.match(settingsJs, /value="name_desc" \$\{behavior\.sortMode === 'name_desc' \? 'selected' : ''\}>Name \(Z-A\)/);
+});
+
 test('folder tables avoid unnecessary horizontal scrollbar in basic view', () => {
     assert.match(settingsCss, /\.folder-table\s*\{[\s\S]*overflow-x:\s*hidden !important/);
     assert.match(settingsCss, /\.folder-table > \*\s*\{[\s\S]*min-width:\s*0/);

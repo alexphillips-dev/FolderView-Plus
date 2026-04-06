@@ -307,11 +307,11 @@ test('buildImportDiffRows reports parent field changes', () => {
     assert.ok(childRow.fields.includes('parent'));
 });
 
-test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
+test('orderFoldersByPrefs supports manual, name, and timestamp sort modes', () => {
     const folders = {
-        z: { name: 'Zulu' },
-        a: { name: 'Alpha' },
-        b: { name: 'Beta' }
+        z: { name: 'Zulu', createdAt: '2026-04-01T12:00:00Z', updatedAt: '2026-04-06T12:00:00Z' },
+        a: { name: 'Alpha', createdAt: '2026-04-03T12:00:00Z', updatedAt: '2026-04-04T12:00:00Z' },
+        b: { name: 'Beta', createdAt: '2026-04-02T12:00:00Z', updatedAt: '2026-04-05T12:00:00Z' }
     };
 
     const manual = utils.orderFoldersByPrefs(folders, {
@@ -322,6 +322,18 @@ test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
 
     const alpha = utils.orderFoldersByPrefs(folders, { sortMode: 'alpha' });
     assert.deepEqual(Object.keys(alpha), ['a', 'b', 'z']);
+
+    const nameDesc = utils.orderFoldersByPrefs(folders, { sortMode: 'name_desc' });
+    assert.deepEqual(Object.keys(nameDesc), ['z', 'b', 'a']);
+
+    const createdNewest = utils.orderFoldersByPrefs(folders, { sortMode: 'created_newest' });
+    assert.deepEqual(Object.keys(createdNewest), ['a', 'b', 'z']);
+
+    const createdOldest = utils.orderFoldersByPrefs(folders, { sortMode: 'created_oldest' });
+    assert.deepEqual(Object.keys(createdOldest), ['z', 'b', 'a']);
+
+    const updatedNewest = utils.orderFoldersByPrefs(folders, { sortMode: 'updated_newest' });
+    assert.deepEqual(Object.keys(updatedNewest), ['z', 'b', 'a']);
 });
 
 test('normalizePrefs provides dashboard defaults', () => {

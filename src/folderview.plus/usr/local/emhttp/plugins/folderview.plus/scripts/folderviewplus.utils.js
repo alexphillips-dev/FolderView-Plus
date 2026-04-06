@@ -569,9 +569,19 @@
         return orderedIds;
     };
 
+    const FOLDER_SORT_MODES = Object.freeze([
+        'created',
+        'created_newest',
+        'created_oldest',
+        'updated_newest',
+        'manual',
+        'alpha',
+        'name_desc'
+    ]);
+
     const normalizePrefs = (prefs) => {
         const incoming = isPlainObject(prefs) ? prefs : {};
-        const sortMode = ['created', 'manual', 'alpha'].includes(incoming.sortMode) ? incoming.sortMode : 'created';
+        const sortMode = FOLDER_SORT_MODES.includes(incoming.sortMode) ? incoming.sortMode : 'created';
         const manualOrder = Array.isArray(incoming.manualOrder) ? incoming.manualOrder.filter((id) => typeof id === 'string' && id !== '') : [];
         const autoRulesRaw = Array.isArray(incoming.autoRules) ? incoming.autoRules : [];
         const defaultSchedule = {
@@ -796,6 +806,32 @@
     const orderFoldersByPrefs = (folders, prefs) => {
         const normalizedFolders = normalizeFolderMap(folders);
         const normalizedPrefs = normalizePrefs(prefs);
+        const baseOrderIds = Object.keys(normalizedFolders);
+        const baseOrderIndex = new Map(baseOrderIds.map((id, index) => [id, index]));
+        const normalizeSortTimestamp = (value) => {
+            const raw = typeof value === 'string' ? value.trim() : '';
+            if (!raw) {
+                return null;
+            }
+            const parsed = Date.parse(raw);
+            return Number.isFinite(parsed) ? parsed : null;
+        };
+        const buildSortedMapFromKeys = (keys) => {
+            const ordered = {};
+            for (const key of keys) {
+                ordered[key] = normalizedFolders[key];
+            }
+            return ordered;
+        };
+        const sortKeysWithComparator = (comparator) => (
+            baseOrderIds.slice().sort((leftId, rightId) => {
+                const compared = comparator(leftId, rightId);
+                if (compared !== 0) {
+                    return compared;
+                }
+                return (baseOrderIndex.get(leftId) ?? 0) - (baseOrderIndex.get(rightId) ?? 0);
+            })
+        );
         const resolvePinnedBranchRootId = (id) => {
             const safeId = String(id || '').trim();
             if (!safeId || !Object.prototype.hasOwnProperty.call(normalizedFolders, safeId)) {
@@ -842,16 +878,55 @@
         };
 
         if (normalizedPrefs.sortMode === 'alpha') {
-            const keys = Object.keys(normalizedFolders).sort((a, b) => {
+            const keys = sortKeysWithComparator((a, b) => {
                 const nameA = String(normalizedFolders[a]?.name ?? a).toLowerCase();
                 const nameB = String(normalizedFolders[b]?.name ?? b).toLowerCase();
                 const cmp = nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
                 return cmp !== 0 ? cmp : a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
             });
-            const ordered = {};
-            for (const key of keys) {
-                ordered[key] = normalizedFolders[key];
+            const ordered = buildSortedMapFromKeys(keys);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
             }
+            return nestedOrdered;
+        }
+
+        if (normalizedPrefs.sortMode === 'name_desc') {
+            const keys = sortKeysWithComparator((a, b) => {
+                const nameA = String(normalizedFolders[a]?.name ?? a).toLowerCase();
+                const nameB = String(normalizedFolders[b]?.name ?? b).toLowerCase();
+                const cmp = nameB.localeCompare(nameA, undefined, { numeric: true, sensitivity: 'base' });
+                return cmp !== 0 ? cmp : b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' });
+            });
+            const ordered = buildSortedMapFromKeys(keys);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
+            }
+            return nestedOrdered;
+        }
+
+        if (
+            normalizedPrefs.sortMode === 'created_newest'
+            || normalizedPrefs.sortMode === 'created_oldest'
+            || normalizedPrefs.sortMode === 'updated_newest'
+        ) {
+            const timestampField = normalizedPrefs.sortMode === 'updated_newest' ? 'updatedAt' : 'createdAt';
+            const descending = normalizedPrefs.sortMode !== 'created_oldest';
+            const keys = sortKeysWithComparator((a, b) => {
+                const timeA = normalizeSortTimestamp(normalizedFolders[a]?.[timestampField]);
+                const timeB = normalizeSortTimestamp(normalizedFolders[b]?.[timestampField]);
+                if (timeA === null || timeB === null || timeA === timeB) {
+                    return 0;
+                }
+                return descending ? timeB - timeA : timeA - timeB;
+            });
+            const ordered = buildSortedMapFromKeys(keys);
             const pinnedApplied = applyPinnedOrder(ordered);
             const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
             const nestedOrdered = {};

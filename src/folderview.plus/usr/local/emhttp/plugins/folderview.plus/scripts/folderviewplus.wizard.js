@@ -487,7 +487,7 @@ const normalizeSetupAssistantEnvironmentPreset = (value) => (
 const normalizeSetupAssistantBehaviorFromValue = (type, value = null) => {
     const base = createSetupAssistantBehavior(type);
     const incoming = value && typeof value === 'object' ? value : {};
-    const normalizedSortMode = ['created', 'manual', 'alpha'].includes(String(incoming.sortMode || ''))
+    const normalizedSortMode = ['created', 'created_newest', 'created_oldest', 'updated_newest', 'manual', 'alpha', 'name_desc'].includes(String(incoming.sortMode || ''))
         ? String(incoming.sortMode)
         : base.sortMode;
     const statusWarnRaw = Number(incoming.statusWarnStoppedPercent);
@@ -2103,7 +2103,7 @@ const applySetupAssistantProfileToPrefs = (prefs, profileId) => {
 
 const applySetupAssistantBehaviorToPrefs = (prefs, behavior) => {
     const source = behavior && typeof behavior === 'object' ? behavior : {};
-    const normalizedSortMode = ['created', 'manual', 'alpha'].includes(String(source.sortMode || ''))
+    const normalizedSortMode = ['created', 'created_newest', 'created_oldest', 'updated_newest', 'manual', 'alpha', 'name_desc'].includes(String(source.sortMode || ''))
         ? String(source.sortMode)
         : 'created';
     const statusWarnRaw = Number(source.statusWarnStoppedPercent);
@@ -2927,8 +2927,12 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                     <span>Sort mode</span>
                     <select data-fv-setup-behavior-sort="${resolvedType}">
                         <option value="created" ${behavior.sortMode === 'created' ? 'selected' : ''}>Created order</option>
+                        <option value="created_newest" ${behavior.sortMode === 'created_newest' ? 'selected' : ''}>Created newest first</option>
+                        <option value="created_oldest" ${behavior.sortMode === 'created_oldest' ? 'selected' : ''}>Created oldest first</option>
+                        <option value="updated_newest" ${behavior.sortMode === 'updated_newest' ? 'selected' : ''}>Last updated newest first</option>
                         <option value="manual" ${behavior.sortMode === 'manual' ? 'selected' : ''}>Manual</option>
                         <option value="alpha" ${behavior.sortMode === 'alpha' ? 'selected' : ''}>Name (A-Z)</option>
+                        <option value="name_desc" ${behavior.sortMode === 'name_desc' ? 'selected' : ''}>Name (Z-A)</option>
                     </select>
                 </label>
                 ${isExpert ? `

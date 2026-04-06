@@ -1897,7 +1897,7 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
         ? baseOrder.map((item) => String(item || ''))
         : Object.values(baseOrder || {}).map((item) => String(item || ''));
     const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const sortMode = ['manual', 'alpha'].includes(String(prefs?.sortMode || '').trim().toLowerCase())
+    const sortMode = ['manual', 'alpha', 'name_desc', 'created_newest', 'created_oldest', 'updated_newest'].includes(String(prefs?.sortMode || '').trim().toLowerCase())
         ? String(prefs.sortMode).trim().toLowerCase()
         : 'created';
     const hasPinnedFolders = Array.isArray(prefs?.pinnedFolderIds) && prefs.pinnedFolderIds.length > 0;

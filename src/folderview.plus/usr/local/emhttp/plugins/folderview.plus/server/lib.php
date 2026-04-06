@@ -1981,6 +1981,25 @@
     function reorderFolderMapByPrefs(string $type, array $folders): array {
         $prefs = readTypePrefs($type);
         $sortMode = $prefs['sortMode'] ?? 'created';
+        $sortKeysByComparator = function(array $sourceKeys, callable $comparator): array {
+            $originalIndex = array_flip($sourceKeys);
+            usort($sourceKeys, function($left, $right) use ($comparator, $originalIndex) {
+                $compared = $comparator($left, $right);
+                if ($compared !== 0) {
+                    return $compared;
+                }
+                return ($originalIndex[$left] ?? 0) <=> ($originalIndex[$right] ?? 0);
+            });
+            return $sourceKeys;
+        };
+        $normalizeSortTimestamp = function($value): ?int {
+            $raw = trim((string)$value);
+            if ($raw === '') {
+                return null;
+            }
+            $parsed = strtotime($raw);
+            return $parsed === false ? null : (int)$parsed;
+        };
         $applyPinnedOrder = function(array $ordered) use ($prefs): array {
             $pinnedIds = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
             if (count($pinnedIds) === 0) {
@@ -2001,11 +2020,45 @@
 
         if ($sortMode === 'alpha') {
             $keys = array_keys($folders);
-            usort($keys, function($a, $b) use ($folders) {
+            $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders) {
                 $nameA = strtolower(trim((string)($folders[$a]['name'] ?? $a)));
                 $nameB = strtolower(trim((string)($folders[$b]['name'] ?? $b)));
                 $cmp = strnatcmp($nameA, $nameB);
                 return $cmp !== 0 ? $cmp : strnatcmp((string)$a, (string)$b);
+            });
+            $ordered = [];
+            foreach ($keys as $key) {
+                $ordered[$key] = $folders[$key];
+            }
+            return $applyPinnedOrder($ordered);
+        }
+
+        if ($sortMode === 'name_desc') {
+            $keys = array_keys($folders);
+            $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders) {
+                $nameA = strtolower(trim((string)($folders[$a]['name'] ?? $a)));
+                $nameB = strtolower(trim((string)($folders[$b]['name'] ?? $b)));
+                $cmp = strnatcmp($nameB, $nameA);
+                return $cmp !== 0 ? $cmp : strnatcmp((string)$b, (string)$a);
+            });
+            $ordered = [];
+            foreach ($keys as $key) {
+                $ordered[$key] = $folders[$key];
+            }
+            return $applyPinnedOrder($ordered);
+        }
+
+        if (in_array($sortMode, ['created_newest', 'created_oldest', 'updated_newest'], true)) {
+            $timestampField = $sortMode === 'updated_newest' ? 'updatedAt' : 'createdAt';
+            $descending = $sortMode !== 'created_oldest';
+            $keys = array_keys($folders);
+            $keys = $sortKeysByComparator($keys, function($a, $b) use ($folders, $normalizeSortTimestamp, $timestampField, $descending) {
+                $timeA = $normalizeSortTimestamp($folders[$a][$timestampField] ?? '');
+                $timeB = $normalizeSortTimestamp($folders[$b][$timestampField] ?? '');
+                if ($timeA === null || $timeB === null || $timeA === $timeB) {
+                    return 0;
+                }
+                return $descending ? ($timeB <=> $timeA) : ($timeA <=> $timeB);
             });
             $ordered = [];
             foreach ($keys as $key) {

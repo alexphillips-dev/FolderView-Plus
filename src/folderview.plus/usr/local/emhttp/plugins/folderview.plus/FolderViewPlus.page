@@ -100,8 +100,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <label class="sort-label" for="docker-sort-mode">Sort mode</label>
                 <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
                     <option value="created">Created order</option>
+                    <option value="created_newest">Created newest first</option>
+                    <option value="created_oldest">Created oldest first</option>
+                    <option value="updated_newest">Last updated newest first</option>
                     <option value="manual">Manual (buttons)</option>
                     <option value="alpha">Name (A-Z)</option>
+                    <option value="name_desc">Name (Z-A)</option>
                 </select>
                 <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
                 <span class="tree-visibility-controls">
@@ -335,8 +339,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <label class="sort-label" for="vm-sort-mode">Sort mode</label>
                 <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
                     <option value="created">Created order</option>
+                    <option value="created_newest">Created newest first</option>
+                    <option value="created_oldest">Created oldest first</option>
+                    <option value="updated_newest">Last updated newest first</option>
                     <option value="manual">Manual (buttons)</option>
                     <option value="alpha">Name (A-Z)</option>
+                    <option value="name_desc">Name (Z-A)</option>
                 </select>
                 <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
                 <span class="tree-visibility-controls">

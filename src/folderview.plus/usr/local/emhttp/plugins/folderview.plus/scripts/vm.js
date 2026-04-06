@@ -2069,9 +2069,9 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                         type: 'error',
                         html: true,
                         confirmButtonText: 'Ok'
-                    }, loadlist);
+                    }, queueLoadlistRefresh);
                 } else {
-                    loadlist();
+                    queueLoadlistRefresh();
                 }
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
@@ -2191,7 +2191,7 @@ const folderCustomAction = async (id, action) => {
                 }
 
                 await Promise.all(prom);
-                loadlist();
+                queueLoadlistRefresh();
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
                 $('div.spinner.fixed').hide('slow');
@@ -2232,7 +2232,7 @@ const cloneVmFolderFromMenu = async (id) => {
                 content: JSON.stringify(clonePayload)
             }).promise();
             await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' }).promise();
-            loadlist();
+            queueLoadlistRefresh();
         } finally {
             $('div.spinner.fixed').hide('slow');
         }
@@ -2347,7 +2347,7 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
                     retryDelayMs: 260
                 });
                 swal.close();
-                loadlist();
+                queueLoadlistRefresh();
             } finally {
                 $('div.spinner.fixed').hide('slow');
             }

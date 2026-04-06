@@ -65,6 +65,9 @@
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
                 : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
+        const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
+            ? deps.refreshDockerRuntimeState
+            : refreshDockerList;
         const eventUrl = String(deps.eventURL || win?.eventURL || '').trim();
         const debugEnabled = deps.debugEnabled === true;
         const consoleRef = deps.console || win?.console || null;
@@ -977,10 +980,10 @@
                         type: 'error',
                         html: true,
                         confirmButtonText: 'Ok'
-                    }, refreshDockerList);
+                    }, () => refreshDockerRuntimeState({ followupDelayMs: 650 }));
                 } else {
-                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): No errors. Reloading list.`);
-                    refreshDockerList();
+                    debugLog(`[FV3_DEBUG] actionFolder (id: ${id}): No errors. Refreshing runtime state in place.`);
+                    await Promise.resolve(refreshDockerRuntimeState({ followupDelayMs: 650 }));
                 }
             } catch (error) {
                 if (consoleRef && typeof consoleRef.error === 'function') {

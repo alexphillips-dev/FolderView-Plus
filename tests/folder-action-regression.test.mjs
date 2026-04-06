@@ -27,6 +27,6 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
     assert.match(vmJs, /applyVmPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*refreshVmFolderQuickActionStates\(\);/s);
     assert.doesNotMatch(vmJs, /applyVmPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*refreshVmFolderQuickActionStates\(\);\s*queueLoadlistRefresh\(/s);
     assert.match(vmJs, /const cacheBust = Date\.now\(\);\s*const safePrefsReq = createVmRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=vm&_=\$\{cacheBust\}`/s);
-    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, loadlist\);\s*\} else \{\s*loadlist\(\);\s*\}\s*\} finally \{/s);
-    assert.doesNotMatch(vmJs, /}, loadlist\);\s*}\s*loadlist\(\);\s*} finally \{/s);
+    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, queueLoadlistRefresh\);\s*\} else \{\s*queueLoadlistRefresh\(\);\s*\}\s*\} finally \{/s);
+    assert.doesNotMatch(vmJs, /}, queueLoadlistRefresh\);\s*}\s*queueLoadlistRefresh\(\);\s*} finally \{/s);
 });

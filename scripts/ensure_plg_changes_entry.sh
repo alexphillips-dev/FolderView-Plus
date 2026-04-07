@@ -280,7 +280,7 @@ classify_changed_path_subsystems() {
   esac
 
   case "${changed}" in
-    README.md|docs/*|CHANGELOG-fixes.md|SECURITY.md|SUPPORT*.md|CONTRIBUTING.md|src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md)
+    README.md|docs/*|.github/SECURITY.md|.github/SUPPORT*.md|.github/CONTRIBUTING.md|src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md)
       printf '%s\n' "docs"
       return
       ;;

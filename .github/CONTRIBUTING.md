@@ -46,7 +46,7 @@ bash scripts/unraid_matrix_smoke.sh
 
 - Include a clear summary of what changed and why.
 - Include screenshots for UI changes (desktop and mobile when relevant).
-- Update docs (`README.md`, `CHANGELOG-fixes.md`, or language files) when behavior changes.
+- Update docs (`README.md`, `docs/CHANGELOG.md`, or language files) when behavior changes.
 - Keep backwards compatibility unless the change is intentional and documented.
 
 ## Coding Standards

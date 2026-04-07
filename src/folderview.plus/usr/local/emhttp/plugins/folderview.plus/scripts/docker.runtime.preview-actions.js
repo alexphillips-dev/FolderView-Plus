@@ -14,6 +14,14 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const jq = deps.$ || win?.jQuery || win?.$;
+        const escapeHtml = typeof deps.escapeHtml === 'function'
+            ? deps.escapeHtml
+            : ((value) => String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;'));
         const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function' ? deps.getSafeWebuiUrl : ((value) => String(value || '').trim());
         const openWebuiInNewTab = typeof deps.openWebuiInNewTab === 'function' ? deps.openWebuiInNewTab : (() => {});
         const openTerminal = typeof deps.openTerminal === 'function' ? deps.openTerminal : (() => {});
@@ -116,6 +124,38 @@
             if (settings.preview_logs && containerName) {
                 $target.append(buildDockerPreviewLogsButton(containerName));
             }
+        };
+
+        const i18nLabel = (key, fallback = '') => {
+            const safeFallback = String(fallback || key || '').trim();
+            try {
+                if (typeof jq?.i18n !== 'function') {
+                    return safeFallback;
+                }
+                const localized = String(jq.i18n(key) || '').trim();
+                return localized && localized !== key ? localized : safeFallback;
+            } catch (_error) {
+                return safeFallback;
+            }
+        };
+
+        const escapeInlineJsSingleQuotedValue = (value) => String(value ?? '')
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'");
+
+        const buildDockerMemberUpdateColumnHtml = (entry = {}) => {
+            const manager = String(entry?.manager || '').trim();
+            if (manager === 'composeman') {
+                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('compose', 'compose'))}</span>`;
+            }
+            if (manager && manager !== 'dockerman') {
+                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('third-party', 'third-party'))}</span>`;
+            }
+            const safeContainerName = escapeInlineJsSingleQuotedValue(String(entry?.name || '').trim());
+            if (entry?.update === true) {
+                return `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
+            }
+            return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`;
         };
 
         const getDockerPreviewStatusMeta = (entry = {}) => {
@@ -239,6 +279,30 @@
             }
         };
 
+        const syncDockerStorageRowUpdateColumn = ($row, entry = {}) => {
+            if (!$row || !$row.length) {
+                return;
+            }
+            const $updateColumn = $row.find('td.updatecolumn').first();
+            if (!$updateColumn.length) {
+                return;
+            }
+            $updateColumn.html(buildDockerMemberUpdateColumnHtml(entry));
+        };
+
+        const syncDockerFolderMemberRows = (id, runtimeContainers) => {
+            const entries = Object.values(runtimeContainers || {});
+            entries.forEach((entry) => {
+                const containerName = String(entry?.name || '').trim();
+                if (!containerName) {
+                    return;
+                }
+                const $row = findDockerFolderStorageRow(id, containerName);
+                syncDockerStorageRowStatus($row, entry);
+                syncDockerStorageRowUpdateColumn($row, entry);
+            });
+        };
+
         const resolveDockerPreviewStateTargets = ($target) => {
             if (!$target || !$target.length) {
                 return {
@@ -306,13 +370,7 @@
             }
             const actionTargets = collectDockerPreviewActionTargets($preview, settings);
             const entries = Object.values(runtimeContainers || {});
-            entries.forEach((entry) => {
-                const containerName = String(entry?.name || '').trim();
-                if (!containerName) {
-                    return;
-                }
-                syncDockerStorageRowStatus(findDockerFolderStorageRow(id, containerName), entry);
-            });
+            syncDockerFolderMemberRows(id, runtimeContainers);
             actionTargets.forEach(($target, index) => {
                 const entry = entries[index];
                 if (!$target || !$target.length || !entry) {
@@ -335,6 +393,8 @@
 
         return Object.freeze({
             appendDockerPreviewActionButtons,
+            buildDockerMemberUpdateColumnHtml,
+            syncDockerFolderMemberRows,
             syncDockerLeafFolderPreviewActions
         });
     };

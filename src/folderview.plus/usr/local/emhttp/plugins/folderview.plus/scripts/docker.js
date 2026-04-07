@@ -525,6 +525,7 @@ const getDockerPreviewActionsApi = () => {
         dockerPreviewActionsApi = dockerPreviewActionsModule.createApi({
             window,
             $,
+            escapeHtml: (value) => escapeHtml(value),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),
             openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
@@ -2789,6 +2790,7 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
             ? buildRuntimeContainerMapForFolder(id, true)
             : getFolderRuntimeContainers(folder);
         folder.runtimeContainers = runtimeContainers;
+        syncDockerFolderMemberRows(id, runtimeContainers);
         if (folderHasChildren(id)) {
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
         } else {
@@ -4013,6 +4015,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set border-bottom on last .folder-${id}-element.`);
     folder.containers = newFolder;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Replaced folder.containers with newFolder:`, JSON.parse(JSON.stringify(newFolder)));
+    syncDockerFolderMemberRows(id, newFolder);
 
     $(`tr.folder-id-${id} div.folder-storage i[id^="load-"]`).get().forEach((e) => {
         folderobserver.observe(e, folderobserverConfig);
@@ -4207,6 +4210,13 @@ const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
         previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
+    }
+};
+
+const syncDockerFolderMemberRows = (id, runtimeContainers) => {
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (previewActionsApi && typeof previewActionsApi.syncDockerFolderMemberRows === 'function') {
+        previewActionsApi.syncDockerFolderMemberRows(id, runtimeContainers);
     }
 };
 

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const supportPolicyPath = path.join(repoRoot, 'SUPPORT_POLICY.md');
+const supportPolicyPath = path.join(repoRoot, 'docs', 'SUPPORT_POLICY.md');
 const readmePath = path.join(repoRoot, 'README.md');
 
 const supportPolicy = fs.readFileSync(supportPolicyPath, 'utf8');
@@ -27,7 +27,7 @@ test('support policy documents selector contracts and deprecation window', () =>
 
 test('readme links to support policy from legacy migration section', () => {
     assert.match(readme, /Legacy CSS\/JS Migration \(FolderView2\/3\)/);
-    assert.match(readme, /SUPPORT_POLICY\.md/);
+    assert.match(readme, /docs\/SUPPORT_POLICY\.md/);
 });
 
 test('readme documents v2 support bundle preview and sanitized redaction defaults', () => {

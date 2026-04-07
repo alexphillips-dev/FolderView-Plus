@@ -57,11 +57,10 @@ jobs:
             docs:
               - 'README.md'
               - 'docs/**'
-              - 'CHANGELOG-fixes.md'
-              - 'CONTRIBUTING.md'
               - 'LICENSE.md'
-              - 'SECURITY.md'
-              - 'SUPPORT*.md'
+              - '.github/CONTRIBUTING.md'
+              - '.github/SECURITY.md'
+              - '.github/SUPPORT*.md'
               - 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md'
             metadata:
               - 'folderview.plus.plg'

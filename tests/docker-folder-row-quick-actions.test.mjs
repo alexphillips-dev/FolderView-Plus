@@ -49,7 +49,7 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStateSurface = \(\$target,\s*statusMeta,\s*localizedLabel\) =>/);
     assert.match(dockerPreviewActionsScript, /\$outer\.attr\('data-fv-runtime-state', statusMeta\.key\);/);
     assert.match(dockerPreviewActionsScript, /\$appLink\.hasClass\('fv-preview-status-name'\)/);
-    assert.match(dockerPreviewActionsScript, /const findDockerFolderStorageRow = \(id,\s*containerName\) =>/);
+    assert.match(dockerPreviewActionsScript, /const findDockerFolderMemberRow = \(id,\s*containerName\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowStatus = \(\$row,\s*entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /\$row\.attr\('data-fv-runtime-state', statusMeta\.key\);/);
     assert.match(dockerPreviewActionsScript, /const resolveDockerPreviewStateTargets = \(\$target\) =>/);

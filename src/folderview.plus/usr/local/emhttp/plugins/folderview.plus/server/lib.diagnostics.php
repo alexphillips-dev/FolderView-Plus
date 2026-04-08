@@ -1388,6 +1388,9 @@
             $started = 0;
             $paused = 0;
             $stopped = 0;
+            $folderManagerTypes = [];
+            $folderManagedCount = 0;
+            $folderUpToDate = true;
             foreach ($members as $name) {
                 $item = $infoByName[$name] ?? null;
                 if (!is_array($item)) {
@@ -1403,6 +1406,19 @@
                     $paused++;
                 } else {
                     $stopped++;
+                }
+                if ($type === 'docker') {
+                    $memberManager = trim((string)($item['info']['State']['manager'] ?? ($item['manager'] ?? '')));
+                    if ($memberManager !== '') {
+                        $folderManagerTypes[$memberManager] = true;
+                    }
+                    if ($memberManager === 'dockerman') {
+                        $folderManagedCount++;
+                        $memberUpdated = $item['info']['State']['Updated'] ?? ($item['Updated'] ?? null);
+                        if ($memberUpdated === false) {
+                            $folderUpToDate = false;
+                        }
+                    }
                 }
             }
 
@@ -1423,6 +1439,8 @@
             } elseif ($statusKind === 'stopped') {
                 $badgeVisible = $showStoppedBadge;
             }
+            $hideUpdateColumn = diagnosticsFolderSettingBool(is_array($folder) ? $folder : [], 'update_column', false);
+            $previewUpdate = diagnosticsFolderSettingBool(is_array($folder) ? $folder : [], 'preview_update', false);
 
             $folderStatusTotals[$statusKind]++;
             $memberTotals['started'] += $started;
@@ -1448,8 +1466,79 @@
                     'text' => $statusText,
                     'badgeVisible' => $badgeVisible,
                     'colors' => diagnosticsFolderStatusColors(is_array($folder) ? $folder : [])
+                ],
+                'settings' => [
+                    'previewUpdate' => $previewUpdate,
+                    'hideUpdateColumn' => $hideUpdateColumn
                 ]
             ];
+            if ($type === 'docker') {
+                $snapshotFolders[$safeFolderId]['renderExpectations'] = diagnosticsDockerFolderRenderExpectations(
+                    array_keys($folderManagerTypes),
+                    $folderUpToDate,
+                    $folderManagedCount,
+                    $showUpdateBadge,
+                    $hideUpdateColumn
+                );
+            }
+        }
+
+        $entityDetails = [];
+        $entityDetailsTotal = 0;
+        $entityDetailsMaxEntries = 200;
+        $managerCounts = [];
+        foreach ($validNames as $name) {
+            $item = $infoByName[$name] ?? null;
+            if (!is_array($item)) {
+                continue;
+            }
+            $entityDetailsTotal++;
+            $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
+            $manager = '';
+            $updated = null;
+            if ($type === 'docker') {
+                $manager = trim((string)($item['info']['State']['manager'] ?? ($item['manager'] ?? '')));
+                $updated = $item['info']['State']['Updated'] ?? ($item['Updated'] ?? null);
+                $managerKey = $manager !== '' ? $manager : 'unclassified';
+                $managerCounts[$managerKey] = (int)($managerCounts[$managerKey] ?? 0) + 1;
+            }
+            if (!is_bool($updated)) {
+                $updated = null;
+            }
+            if ($entityDetailsTotal > $entityDetailsMaxEntries) {
+                continue;
+            }
+            $provenance = [
+                'managerSource' => 'missing',
+                'updateSource' => 'missing'
+            ];
+            $renderExpectations = [
+                'statusToken' => $updated === true ? 'upToDate' : ($updated === false ? 'available' : 'unknown'),
+                'action' => 'none',
+                'forceUpdateEligible' => false
+            ];
+            if ($type === 'docker') {
+                $provenance = [
+                    'managerSource' => diagnosticsDockerStateFieldSource($item, 'manager'),
+                    'updateSource' => diagnosticsDockerStateFieldSource($item, 'updated')
+                ];
+                $renderExpectations = diagnosticsDockerMemberRenderExpectations($manager !== '' ? $manager : null, $updated);
+            }
+            $entityDetails[] = [
+                'name' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)$name : null,
+                'nameHash' => diagnosticsHashShort((string)$name),
+                'state' => $kind,
+                'assigned' => isset($assignedItemSet[$name]),
+                'manager' => $manager !== '' ? $manager : null,
+                'managed' => $manager === 'dockerman',
+                'updated' => $updated,
+                'updateState' => $updated === true ? 'upToDate' : ($updated === false ? 'available' : 'unknown'),
+                'provenance' => $provenance,
+                'renderExpectations' => $renderExpectations
+            ];
+        }
+        if (!empty($managerCounts)) {
+            ksort($managerCounts);
         }
 
         $totalItems = count($validNames);
@@ -1465,6 +1554,13 @@
             'nestedFolderCount' => $nestedFolderCount,
             'maxDepth' => $maxDepth,
             'updateCounts' => $updateCounts,
+            'managerCounts' => $managerCounts,
+            'entityDetails' => [
+                'total' => $entityDetailsTotal,
+                'maxEntries' => $entityDetailsMaxEntries,
+                'truncated' => $entityDetailsTotal > count($entityDetails),
+                'entries' => $entityDetails
+            ],
             'summary' => [
                 'folderTotalsByStatus' => $folderStatusTotals,
                 'memberTotals' => $memberTotals,
@@ -1584,6 +1680,105 @@
         }
 
         return '';
+    }
+
+    function diagnosticsFolderSettingBool(array $folder, string $key, bool $default = false): bool {
+        $settings = is_array($folder['settings'] ?? null) ? $folder['settings'] : [];
+        if (!array_key_exists($key, $settings)) {
+            return $default;
+        }
+        return normalizeBool($settings[$key], $default);
+    }
+
+    function diagnosticsDockerStateFieldSource(array $item, string $field): string {
+        $state = is_array($item['info']['State'] ?? null) ? $item['info']['State'] : [];
+        if ($field === 'manager') {
+            if (trim((string)($state['manager'] ?? '')) !== '') {
+                return 'infoState';
+            }
+            if (trim((string)($item['manager'] ?? '')) !== '') {
+                return 'topLevelFallback';
+            }
+            return 'missing';
+        }
+        if ($field === 'updated') {
+            if (is_bool($state['Updated'] ?? null)) {
+                return 'infoState';
+            }
+            if (is_bool($item['Updated'] ?? null)) {
+                return 'topLevelFallback';
+            }
+            return 'missing';
+        }
+        return 'missing';
+    }
+
+    function diagnosticsDockerMemberRenderExpectations(?string $manager, ?bool $updated): array {
+        $safeManager = trim((string)($manager ?? ''));
+        if ($safeManager === 'composeman') {
+            return [
+                'statusToken' => 'compose',
+                'action' => 'none',
+                'forceUpdateEligible' => false
+            ];
+        }
+        if ($safeManager !== '' && $safeManager !== 'dockerman') {
+            return [
+                'statusToken' => 'thirdParty',
+                'action' => 'none',
+                'forceUpdateEligible' => false
+            ];
+        }
+        if ($safeManager === 'dockerman' && $updated === false) {
+            return [
+                'statusToken' => 'updateReady',
+                'action' => 'applyUpdate',
+                'forceUpdateEligible' => false
+            ];
+        }
+        return [
+            'statusToken' => 'upToDate',
+            'action' => 'forceUpdate',
+            'forceUpdateEligible' => true
+        ];
+    }
+
+    function diagnosticsDockerFolderRenderExpectations(array $managerTypes, bool $upToDate, int $managedCount, bool $showUpdateBadge, bool $hideUpdateColumn): array {
+        $safeManagerTypes = array_values(array_filter(array_map('strval', $managerTypes), static function ($value): bool {
+            return trim($value) !== '';
+        }));
+        $safeManagerTypes = array_values(array_unique($safeManagerTypes));
+        sort($safeManagerTypes);
+
+        $hasDockerMan = in_array('dockerman', $safeManagerTypes, true);
+        $hasCompose = in_array('composeman', $safeManagerTypes, true);
+        $hasThirdParty = count(array_filter($safeManagerTypes, static function ($value): bool {
+            return $value !== 'dockerman' && $value !== 'composeman';
+        })) > 0;
+
+        $statusToken = 'upToDate';
+        $action = 'none';
+        if (!$hasDockerMan && $hasCompose && $hasThirdParty) {
+            $statusToken = 'composeAndThirdParty';
+        } elseif (!$hasDockerMan && $hasCompose) {
+            $statusToken = 'compose';
+        } elseif (!$hasDockerMan) {
+            $statusToken = 'thirdParty';
+        } elseif (!$upToDate) {
+            $statusToken = 'updateReady';
+            $action = 'applyUpdate';
+        } elseif ($managedCount > 0) {
+            $action = 'forceUpdate';
+        }
+
+        return [
+            'updateColumnVisible' => $showUpdateBadge && !$hideUpdateColumn,
+            'statusToken' => $statusToken,
+            'action' => $action,
+            'actionRequiresAdvancedView' => in_array($action, ['applyUpdate', 'forceUpdate'], true),
+            'forceUpdateEligible' => $action === 'forceUpdate',
+            'managerTypes' => $safeManagerTypes
+        ];
     }
 
     function diagnosticsBuildRecommendedActions(array $typesData, array $customIcons): array {
@@ -2131,6 +2326,61 @@
         return $section;
     }
 
+    function diagnosticsBuildSupportBundleRuntimeEntityDetails(string $type, array $stateSnapshot, array &$redactor): array {
+        $details = is_array($stateSnapshot['entityDetails'] ?? null) ? $stateSnapshot['entityDetails'] : [];
+        $entries = [];
+        $fieldPath = 'runtimeState.' . $type . '.entityDetails.entries.*';
+        foreach (array_values(is_array($details['entries'] ?? null) ? $details['entries'] : []) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $name = (string)($entry['name'] ?? '');
+            $manager = trim((string)($entry['manager'] ?? ''));
+            $updated = array_key_exists('updated', $entry) && is_bool($entry['updated']) ? (bool)$entry['updated'] : null;
+            $entries[] = [
+                'name' => diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.name', $name),
+                'nameHash' => diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.nameHash', $name),
+                'state' => in_array((string)($entry['state'] ?? ''), ['started', 'paused', 'stopped'], true)
+                    ? (string)$entry['state']
+                    : 'stopped',
+                'assigned' => (bool)($entry['assigned'] ?? false),
+                'manager' => $manager !== '' ? $manager : null,
+                'managed' => (bool)($entry['managed'] ?? false),
+                'updated' => $updated,
+                'updateState' => in_array((string)($entry['updateState'] ?? ''), ['available', 'upToDate', 'unknown'], true)
+                    ? (string)$entry['updateState']
+                    : 'unknown',
+                'provenance' => [
+                    'managerSource' => in_array((string)($entry['provenance']['managerSource'] ?? ''), ['infoState', 'topLevelFallback', 'missing'], true)
+                        ? (string)$entry['provenance']['managerSource']
+                        : 'missing',
+                    'updateSource' => in_array((string)($entry['provenance']['updateSource'] ?? ''), ['infoState', 'topLevelFallback', 'missing'], true)
+                        ? (string)$entry['provenance']['updateSource']
+                        : 'missing'
+                ],
+                'renderExpectations' => [
+                    'statusToken' => in_array((string)($entry['renderExpectations']['statusToken'] ?? ''), ['compose', 'thirdParty', 'updateReady', 'upToDate', 'available', 'unknown'], true)
+                        ? (string)$entry['renderExpectations']['statusToken']
+                        : 'unknown',
+                    'action' => in_array((string)($entry['renderExpectations']['action'] ?? ''), ['none', 'applyUpdate', 'forceUpdate'], true)
+                        ? (string)$entry['renderExpectations']['action']
+                        : 'none',
+                    'forceUpdateEligible' => (bool)($entry['renderExpectations']['forceUpdateEligible'] ?? false)
+                ]
+            ];
+        }
+        if ((bool)($details['truncated'] ?? false)) {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', 'runtimeState.' . $type . '.entityDetails.entries');
+        }
+        return [
+            'total' => (int)($details['total'] ?? count($entries)),
+            'maxEntries' => (int)($details['maxEntries'] ?? count($entries)),
+            'truncated' => (bool)($details['truncated'] ?? false),
+            'managerCounts' => is_array($stateSnapshot['managerCounts'] ?? null) ? $stateSnapshot['managerCounts'] : [],
+            'entries' => $entries
+        ];
+    }
+
     function diagnosticsBuildSupportBundleRuntimeTypeSection(string $type, array $typeData, array &$redactor): array {
         $stateSnapshot = is_array($typeData['stateSnapshot'] ?? null) ? $typeData['stateSnapshot'] : [];
         $folders = [];
@@ -2149,6 +2399,26 @@
             $folder['folderNameHash'] = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.folderNameHash', $folderName !== '' ? $folderName : $folderId);
             if (!isset($folder['members']) || !is_array($folder['members'])) {
                 $folder['members'] = [];
+            }
+            $folder['settings'] = [
+                'previewUpdate' => (bool)($folder['settings']['previewUpdate'] ?? false),
+                'hideUpdateColumn' => (bool)($folder['settings']['hideUpdateColumn'] ?? false)
+            ];
+            if ($type === 'docker') {
+                $folder['renderExpectations'] = [
+                    'updateColumnVisible' => (bool)($folder['renderExpectations']['updateColumnVisible'] ?? false),
+                    'statusToken' => in_array((string)($folder['renderExpectations']['statusToken'] ?? ''), ['compose', 'composeAndThirdParty', 'thirdParty', 'updateReady', 'upToDate'], true)
+                        ? (string)$folder['renderExpectations']['statusToken']
+                        : 'upToDate',
+                    'action' => in_array((string)($folder['renderExpectations']['action'] ?? ''), ['none', 'applyUpdate', 'forceUpdate'], true)
+                        ? (string)$folder['renderExpectations']['action']
+                        : 'none',
+                    'actionRequiresAdvancedView' => (bool)($folder['renderExpectations']['actionRequiresAdvancedView'] ?? false),
+                    'forceUpdateEligible' => (bool)($folder['renderExpectations']['forceUpdateEligible'] ?? false),
+                    'managerTypes' => array_values(array_filter(array_map('strval', is_array($folder['renderExpectations']['managerTypes'] ?? null) ? $folder['renderExpectations']['managerTypes'] : []), static function ($value): bool {
+                        return trim($value) !== '';
+                    }))
+                ];
             }
             if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full') {
                 $folder['members']['items'] = array_slice(array_map('strval', $memberItems), 0, 40);
@@ -2169,7 +2439,8 @@
         $prefsPath = (string)($typeData['prefsPath'] ?? '');
 
         return [
-            'hostPageDetected' => true,
+            'runtimeSnapshotAvailable' => !empty($stateSnapshot),
+            'snapshotSource' => 'serverDiagnostics',
             'entitySummary' => [
                 'total' => (int)($stateSnapshot['totalItems'] ?? 0),
                 'assigned' => (int)($stateSnapshot['assignedItems'] ?? 0),
@@ -2182,6 +2453,7 @@
                 'maxDepth' => (int)($stateSnapshot['maxDepth'] ?? 0),
                 'folders' => $folders
             ],
+            'entityDetails' => diagnosticsBuildSupportBundleRuntimeEntityDetails($type, $stateSnapshot, $redactor),
             'updateStateSummary' => is_array($stateSnapshot['updateCounts'] ?? null) ? $stateSnapshot['updateCounts'] : [],
             'preflight' => [
                 'foldersPath' => diagnosticsSupportBundleRedactScalar($redactor, 'runtimeState.' . $type . '.preflight.foldersPath', $foldersPath, true),

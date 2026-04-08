@@ -13,6 +13,10 @@ const dockerJs = fs.readFileSync(
 const dockerPreviewActionsModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js')
 );
+const dockerPreviewActionsJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
+    'utf8'
+);
 const dockerRuntimeInfoJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js'),
     'utf8'
@@ -71,7 +75,16 @@ test('docker runtime builds member row update markup from per-container runtime 
     const previewActionsApi = dockerPreviewActionsModule.createApi({
         window: {},
         $: Object.assign(() => ({}), {
-            i18n: (key) => key
+            i18n: (key) => key,
+            cookie: () => ''
+        }),
+        escapeHtml: (value) => String(value ?? '')
+    });
+    const previewActionsAdvancedApi = dockerPreviewActionsModule.createApi({
+        window: {},
+        $: Object.assign(() => ({}), {
+            i18n: (key) => key,
+            cookie: () => 'advanced'
         }),
         escapeHtml: (value) => String(value ?? '')
     });
@@ -101,14 +114,21 @@ test('docker runtime builds member row update markup from per-container runtime 
         manager: 'dockerman',
         update: true
     });
+    const advancedUpToDateHtml = previewActionsAdvancedApi.buildDockerMemberUpdateColumnHtml({
+        name: 'app-two',
+        manager: 'dockerman',
+        update: false
+    });
 
     assert.match(updateReadyHtml, /update-ready/);
     assert.match(updateReadyHtml, /apply-update/);
     assert.match(updateReadyHtml, /updateContainer\('app-one'\)/);
     assert.doesNotMatch(updateReadyHtml, /force-update/);
     assert.match(upToDateHtml, /up-to-date/);
-    assert.match(upToDateHtml, /force-update/);
-    assert.match(upToDateHtml, /updateContainer\('app-two'\)/);
+    assert.doesNotMatch(upToDateHtml, /force-update/);
+    assert.doesNotMatch(upToDateHtml, /updateContainer\('app-two'\)/);
+    assert.match(advancedUpToDateHtml, /force-update/);
+    assert.match(advancedUpToDateHtml, /updateContainer\('app-two'\)/);
     assert.doesNotMatch(upToDateHtml, /apply-update/);
     assert.match(composeHtml, /compose/);
     assert.doesNotMatch(composeHtml, /updateContainer\(/);
@@ -128,4 +148,28 @@ test('docker runtime sync normalizes hidden member rows before expand', () => {
     assert.match(dockerJs, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
     assert.match(dockerJs, /folder\.runtimeContainers = runtimeContainers;\s*syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
     assert.match(dockerJs, /folder\.containers = newFolder;[\s\S]*syncDockerFolderMemberRows\(id,\s*newFolder\);/s);
+});
+
+test('docker runtime sync rewrites both hidden and expanded member rows', () => {
+    assert.match(dockerRuntimeInfoJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
+    assert.match(dockerPreviewActionsModule.createApi({
+        window: {},
+        $: Object.assign(() => ({}), {
+            i18n: (key) => key,
+            cookie: () => 'advanced'
+        }),
+        escapeHtml: (value) => String(value ?? '')
+    }).buildDockerMemberUpdateColumnHtml({ name: 'demo', manager: 'dockerman', update: false }), /force-update/);
+    assert.match(
+        dockerPreviewActionsModule.createApi({
+            window: {},
+            $: Object.assign(() => ({}), {
+                i18n: (key) => key
+            }),
+            escapeHtml: (value) => String(value ?? '')
+        }).syncDockerFolderMemberRows.toString(),
+        /findDockerFolderMemberRow/
+    );
+    assert.match(dockerPreviewActionsJs, /const findDockerFolderMemberRow = \(id,\s*containerName\) => \{/);
+    assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
 });

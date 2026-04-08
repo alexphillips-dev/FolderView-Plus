@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.08.05">
-<!ENTITY md5 "7e071cda88a0e68be4f8f80bf9c1c782">
+<!ENTITY version "2026.04.08.07">
+<!ENTITY md5 "5a1860e2829f71d7d1035a2ce8f3b1e7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.07
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.04.08.06
+- Fix: Docker folder rows now live-refresh their update actions when switching between basic and advanced view, so member rows stop showing stale `apply update` or `force update` states until a manual page reload.
+
 
 ###2026.04.08.05
 - Fix: Docker runtime rows, folder state, and container interactions.

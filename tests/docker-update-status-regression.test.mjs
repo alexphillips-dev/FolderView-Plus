@@ -179,3 +179,11 @@ test('docker tooltip update action also respects the Docker advanced/basic cooki
     assert.match(dockerJs, /const tooltipForceUpdateHtml = tooltipShowAdvanced/);
     assert.match(dockerJs, /tooltipForceUpdateHtml/);
 });
+
+test('docker runtime re-syncs folder rows when the Docker basic or advanced cookie changes live', () => {
+    assert.match(dockerJs, /let lastDockerListViewMode = \$\.cookie\('docker_listview_mode'\) == 'advanced' \? 'advanced' : 'basic';/);
+    assert.match(dockerJs, /const readDockerListViewMode = \(\) => \(\$\.cookie\('docker_listview_mode'\) == 'advanced' \? 'advanced' : 'basic'\);/);
+    assert.match(dockerJs, /const syncDockerListViewModeFromCookie = \(\) => \{[\s\S]*if \(nextMode === lastDockerListViewMode\) \{\s*return;\s*\}[\s\S]*if \(!loadedFolder \|\| !globalFolders \|\| Object\.keys\(globalFolders\)\.length <= 0\) \{\s*return;\s*\}[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*scheduleDockerRuntimeWidthReflow\('listview-mode-change', 12\);/);
+    assert.match(dockerJs, /const startDockerListViewModeObserver = \(\) => \{[\s\S]*dockerListViewModeObserverTimer = window\.setInterval\(\(\) => \{[\s\S]*syncDockerListViewModeFromCookie\(\);[\s\S]*\}, 500\);[\s\S]*document\.addEventListener\('visibilitychange', syncDockerListViewModeFromCookie\);[\s\S]*window\.addEventListener\('focus', syncDockerListViewModeFromCookie\);/);
+    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*startDockerListViewModeObserver\(\);/);
+});

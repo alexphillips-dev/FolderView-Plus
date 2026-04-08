@@ -2807,6 +2807,39 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     applyDockerFocusedFolderState();
 };
 
+const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic');
+
+const syncDockerListViewModeFromCookie = () => {
+    const nextMode = readDockerListViewMode();
+    if (nextMode === lastDockerListViewMode) {
+        return;
+    }
+    lastDockerListViewMode = nextMode;
+    if (!loadedFolder || !globalFolders || Object.keys(globalFolders).length <= 0) {
+        return;
+    }
+    syncDockerVisibleFoldersFromRuntimeCache();
+    scheduleDockerRuntimeWidthReflow('listview-mode-change', 12);
+};
+
+const startDockerListViewModeObserver = () => {
+    if (dockerListViewModeObserverTimer || typeof window.setInterval !== 'function') {
+        return;
+    }
+    dockerListViewModeObserverTimer = window.setInterval(() => {
+        if (document.hidden === true) {
+            return;
+        }
+        syncDockerListViewModeFromCookie();
+    }, 500);
+    if (typeof document.addEventListener === 'function') {
+        document.addEventListener('visibilitychange', syncDockerListViewModeFromCookie);
+    }
+    if (typeof window.addEventListener === 'function') {
+        window.addEventListener('focus', syncDockerListViewModeFromCookie);
+    }
+};
+
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
     const requestPromise = fullInfoPromise && typeof fullInfoPromise.then === 'function'
         ? fullInfoPromise
@@ -5209,6 +5242,8 @@ let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
 let nextDockerRenderSuppressLoadingUi = false;
 let activeDockerRenderSuppressLoadingUi = false;
+let dockerListViewModeObserverTimer = null;
+let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -5482,6 +5517,7 @@ function buildDockerFolderReq() {
 // Prime requests for environments where loadlist isn't called first.
 folderReq = buildDockerFolderReq();
 markDockerFatalBannerStep('Docker request bundle primed');
+startDockerListViewModeObserver();
 
 if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] Global variables initialized:', {

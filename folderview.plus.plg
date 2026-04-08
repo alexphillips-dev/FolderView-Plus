@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.08.09">
-<!ENTITY md5 "b984777824a64d21e9b62dbcdab6d96b">
+<!ENTITY version "2026.04.08.10">
+<!ENTITY md5 "f1dc0afec21f6c79d2f597321ed4b481">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.10
+- Maintenance: Promote the validated Docker update-rendering fixes from the `dev` test cycle into the main release channel.
+- Fix: Docker update actions now stay accurate when switching between basic and advanced view and when expanding previously collapsed folders, so stale `force update` or `apply update` states no longer persist or spread to every child row.
+- Quality: Support bundles now capture Docker list-view mode, clearer build provenance, and richer update diagnostics so basic-versus-advanced rendering issues can be diagnosed from one export.
+- Regression guard: Refreshed the support-bundle performance baseline and added regression coverage around Docker row re-sync behavior and support-bundle telemetry capture.
+
 
 ###2026.04.08.09
 - Fix: Docker folder rows and member rows now refresh their update actions live when switching between basic and advanced view, so stale `force update` or `apply update` states no longer stick until a page reload.

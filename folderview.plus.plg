@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.08.01">
-<!ENTITY md5 "f8bd49f4ec7fe2d7d3e59b38e23205ee">
+<!ENTITY version "2026.04.08.02">
+<!ENTITY md5 "c4b6b577c7e5cbd144bfe2c0167e57ea">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.02
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
 
 ###2026.04.08.01
 - Fix: Docker advanced view now resyncs both hidden and expanded folder member rows from per-container runtime state, so `force update` stays visible for dockerman-managed containers after expand.

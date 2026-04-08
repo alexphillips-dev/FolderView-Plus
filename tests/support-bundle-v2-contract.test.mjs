@@ -289,7 +289,9 @@ $diagnostics = [
                             'manager' => 'dockerman',
                             'managed' => true,
                             'updated' => false,
-                            'updateState' => 'available'
+                            'updateState' => 'available',
+                            'provenance' => ['managerSource' => 'infoState', 'updateSource' => 'infoState'],
+                            'renderExpectations' => ['statusToken' => 'updateReady', 'action' => 'applyUpdate', 'forceUpdateEligible' => false]
                         ],
                         [
                             'name' => 'SonarrStack',
@@ -298,7 +300,9 @@ $diagnostics = [
                             'manager' => 'composeman',
                             'managed' => false,
                             'updated' => null,
-                            'updateState' => 'unknown'
+                            'updateState' => 'unknown',
+                            'provenance' => ['managerSource' => 'infoState', 'updateSource' => 'missing'],
+                            'renderExpectations' => ['statusToken' => 'compose', 'action' => 'none', 'forceUpdateEligible' => false]
                         ],
                         [
                             'name' => 'LegacyTool',
@@ -307,7 +311,9 @@ $diagnostics = [
                             'manager' => null,
                             'managed' => false,
                             'updated' => true,
-                            'updateState' => 'upToDate'
+                            'updateState' => 'upToDate',
+                            'provenance' => ['managerSource' => 'missing', 'updateSource' => 'topLevelFallback'],
+                            'renderExpectations' => ['statusToken' => 'upToDate', 'action' => 'forceUpdate', 'forceUpdateEligible' => true]
                         ]
                     ]
                 ],
@@ -320,6 +326,15 @@ $diagnostics = [
                         'members' => [
                             'count' => 2,
                             'items' => ['PlexMediaServer', 'SonarrStack']
+                        ],
+                        'settings' => ['previewUpdate' => true, 'hideUpdateColumn' => false],
+                        'renderExpectations' => [
+                            'updateColumnVisible' => true,
+                            'statusToken' => 'updateReady',
+                            'action' => 'applyUpdate',
+                            'actionRequiresAdvancedView' => true,
+                            'forceUpdateEligible' => false,
+                            'managerTypes' => ['composeman', 'dockerman']
                         ]
                     ],
                     [
@@ -330,6 +345,15 @@ $diagnostics = [
                         'members' => [
                             'count' => 1,
                             'items' => ['SonarrStack']
+                        ],
+                        'settings' => ['previewUpdate' => false, 'hideUpdateColumn' => true],
+                        'renderExpectations' => [
+                            'updateColumnVisible' => false,
+                            'statusToken' => 'compose',
+                            'action' => 'none',
+                            'actionRequiresAdvancedView' => false,
+                            'forceUpdateEligible' => false,
+                            'managerTypes' => ['composeman']
                         ]
                     ]
                 ]
@@ -407,7 +431,9 @@ $diagnostics = [
                             'manager' => null,
                             'managed' => false,
                             'updated' => null,
-                            'updateState' => 'unknown'
+                            'updateState' => 'unknown',
+                            'provenance' => ['managerSource' => 'missing', 'updateSource' => 'missing'],
+                            'renderExpectations' => ['statusToken' => 'unknown', 'action' => 'none', 'forceUpdateEligible' => false]
                         ]
                     ]
                 ],
@@ -556,9 +582,13 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.healthAndHistory.serverLogTail.lineCount, 2);
         assert.equal(bundle.healthAndHistory.serverLogTail.maxLines, 40);
         assert.ok(bundle.pluginState.docker.prefs?.dashboard && typeof bundle.pluginState.docker.prefs.dashboard === 'object');
+        assert.equal(bundle.runtimeState.docker.runtimeSnapshotAvailable, true);
+        assert.equal(bundle.runtimeState.docker.snapshotSource, 'serverDiagnostics');
         assert.equal(bundle.runtimeState.docker.entitySummary.total, 3);
         assert.equal(bundle.runtimeState.docker.entitySummary.assigned, 2);
         assert.equal(bundle.runtimeState.docker.entitySummary.unassigned, 1);
+        assert.equal(bundle.runtimeState.vm.runtimeSnapshotAvailable, true);
+        assert.equal(bundle.runtimeState.vm.snapshotSource, 'serverDiagnostics');
         assert.equal(bundle.runtimeState.vm.entitySummary.total, 1);
         assert.equal(bundle.runtimeState.vm.entitySummary.unassigned, 1);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.rootFolderCount, 1);
@@ -567,6 +597,13 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].parentId, '');
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].depth, 0);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].depth, 1);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].settings.previewUpdate, true);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].settings.hideUpdateColumn, false);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].renderExpectations.statusToken, 'updateReady');
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].renderExpectations.action, 'applyUpdate');
+        assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].renderExpectations.managerTypes, ['composeman', 'dockerman']);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].settings.hideUpdateColumn, true);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].renderExpectations.updateColumnVisible, false);
         assert.equal(bundle.runtimeState.docker.entityDetails.total, 3);
         assert.equal(bundle.runtimeState.docker.entityDetails.maxEntries, 200);
         assert.equal(bundle.runtimeState.docker.entityDetails.truncated, false);
@@ -579,6 +616,12 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].managed, true);
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updated, false);
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updateState, 'available');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].provenance.managerSource, 'infoState');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].provenance.updateSource, 'infoState');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.statusToken, 'updateReady');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.action, 'applyUpdate');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].provenance.updateSource, 'topLevelFallback');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].renderExpectations.action, 'forceUpdate');
         assert.equal(bundle.runtimeState.vm.entityDetails.total, 1);
         assert.deepEqual(bundle.runtimeState.vm.entityDetails.managerCounts, []);
         assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].state, 'stopped');
@@ -586,6 +629,8 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].manager, null);
         assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].updated, null);
         assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].updateState, 'unknown');
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].provenance.managerSource, 'missing');
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].renderExpectations.statusToken, 'unknown');
         assert.equal(bundle.runtimeState.docker.updateStateSummary.available, 1);
         assert.equal(bundle.runtimeState.docker.updateStateSummary.total, 3);
         assert.equal(bundle.runtimeState.vm.updateStateSummary.unknown, 1);
@@ -676,10 +721,15 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, []);
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.itemHashes.length, 2);
     assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.itemHashes[0], /^[0-9a-f]{16}$/);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].settings.previewUpdate, true);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].renderExpectations.action, 'applyUpdate');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, null);
     assert.match(bundle.runtimeState.docker.entityDetails.entries[0].nameHash, /^[0-9a-f]{16}$/);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].provenance.managerSource, 'infoState');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].provenance.updateSource, 'topLevelFallback');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].manager, null);
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].updateState, 'upToDate');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].renderExpectations.action, 'forceUpdate');
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, null);
     assert.match(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].nameHash, /^[0-9a-f]{16}$/);
     assert.deepEqual(bundle.healthAndHistory.integrityFindings.docker.orphanedMembers.folders[0].items, []);
@@ -752,11 +802,18 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderName, 'Plex Root Secret');
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, ['PlexMediaServer', 'SonarrStack']);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].settings.previewUpdate, true);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].settings.hideUpdateColumn, true);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].renderExpectations.action, 'applyUpdate');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, 'PlexMediaServer');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].manager, 'dockerman');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updated, false);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].provenance.managerSource, 'infoState');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.action, 'applyUpdate');
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].manager, null);
     assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].updateState, 'upToDate');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].provenance.updateSource, 'topLevelFallback');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].renderExpectations.action, 'forceUpdate');
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, 'Plex Root Secret');
     assert.deepEqual(bundle.healthAndHistory.integrityFindings.docker.orphanedMembers.folders[0].items, ['PlexMediaServer']);
     assert.equal(bundle.healthAndHistory.recentTimeline[0].summary, 'name=PlexMediaServer, folderId=root01, itemCount=2');
@@ -790,4 +847,7 @@ test('vm state snapshot marks all entities as unknown for update totals', () => 
     assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].state, 'stopped');
     assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].managed, false);
     assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].updateState, 'unknown');
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].provenance.managerSource, 'missing');
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].renderExpectations.statusToken, 'unknown');
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].renderExpectations.action, 'none');
 });

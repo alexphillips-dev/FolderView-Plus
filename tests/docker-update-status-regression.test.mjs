@@ -187,3 +187,10 @@ test('docker runtime re-syncs folder rows when the Docker basic or advanced cook
     assert.match(dockerJs, /const startDockerListViewModeObserver = \(\) => \{[\s\S]*dockerListViewModeObserverTimer = window\.setInterval\(\(\) => \{[\s\S]*syncDockerListViewModeFromCookie\(\);[\s\S]*\}, 500\);[\s\S]*document\.addEventListener\('visibilitychange', syncDockerListViewModeFromCookie\);[\s\S]*window\.addEventListener\('focus', syncDockerListViewModeFromCookie\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*startDockerListViewModeObserver\(\);/);
 });
+
+test('docker folder expand path re-syncs direct member rows from runtime state after moving them out of storage', () => {
+    assert.match(dockerJs, /syncDockerFolderMemberRows: \(id,\s*runtimeContainers\) => syncDockerFolderMemberRows\(id,\s*runtimeContainers\),/);
+    assert.match(dockerRuntimeHierarchyJs, /const syncDockerFolderMemberRows = typeof deps\.syncDockerFolderMemberRows === 'function'[\s\S]*:\s*\(\(\) => \{\}\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*\$folderRow\.after\(\$directMemberRows\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$rowsToShow = \$directMemberRows\.length \? \$directMemberRows : \$fallbackRows;[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*jq\(`tr\.folder-id-\$\{id\}`\)\.after\(\$rowsToShow\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
+});

@@ -566,6 +566,7 @@ const getDockerRuntimeHierarchyApi = () => {
             scheduleRuntimeWidthReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
             buildRuntimeContainerMapForFolder: (folderId, includeDescendants = false) =>
                 buildRuntimeContainerMapForFolder(folderId, includeDescendants),
+            syncDockerFolderMemberRows: (id, runtimeContainers) => syncDockerFolderMemberRows(id, runtimeContainers),
             applyFolderStatusColorOverrides: ($row, settings) => applyFolderStatusColorOverrides($row, settings),
             applyFolderAccentStyle: ($row, settings) => applyFolderAccentStyle($row, settings),
             applyFolderDropdownStyle: ($row, settings) => applyFolderDropdownStyle($row, settings),

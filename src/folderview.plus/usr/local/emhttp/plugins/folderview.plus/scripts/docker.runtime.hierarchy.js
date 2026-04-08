@@ -71,6 +71,9 @@
         const buildRuntimeContainerMapForFolder = typeof deps.buildRuntimeContainerMapForFolder === 'function'
             ? deps.buildRuntimeContainerMapForFolder
             : (() => ({}));
+        const syncDockerFolderMemberRows = typeof deps.syncDockerFolderMemberRows === 'function'
+            ? deps.syncDockerFolderMemberRows
+            : (() => {});
         const applyFolderStatusColorOverrides = typeof deps.applyFolderStatusColorOverrides === 'function'
             ? deps.applyFolderStatusColorOverrides
             : (() => {});
@@ -454,11 +457,13 @@
                 if (hasChildren) {
                     const $folderRow = jq(`tr.folder-id-${id}`);
                     const $directMemberRows = getDirectMemberRowsForFolder(id);
+                    const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
                     let $childAnchor = $folderRow;
                     if ($directMemberRows.length) {
                         $folderRow.after($directMemberRows);
                         $directMemberRows.removeClass('fv-nested-hidden').show();
                         jq(`.folder-${id}-element > td > i.fa-arrows-v`).remove();
+                        syncDockerFolderMemberRows(id, directRuntimeContainers);
                         $childAnchor = $directMemberRows.last();
                     } else {
                         $folderRow.find('.folder-storage').append($directMemberRows);
@@ -471,9 +476,11 @@
                     const $directMemberRows = getDirectMemberRowsForFolder(id);
                     const $fallbackRows = jq(`.folder-${id}-element`);
                     const $rowsToShow = $directMemberRows.length ? $directMemberRows : $fallbackRows;
+                    const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
                     jq(`tr.folder-id-${id}`).after($rowsToShow);
                     $rowsToShow.removeClass('fv-nested-hidden').show();
                     $rowsToShow.children('td').children('i.fa-arrows-v').remove();
+                    syncDockerFolderMemberRows(id, directRuntimeContainers);
                     debugLog(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
                 }
                 element.attr('active', 'true');

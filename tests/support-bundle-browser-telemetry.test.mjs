@@ -10,6 +10,11 @@ const browserModulePath = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js'
 );
 const browserModuleSource = fs.readFileSync(browserModulePath, 'utf8');
+const telemetryModulePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js'
+);
+const telemetryModuleSource = fs.readFileSync(telemetryModulePath, 'utf8');
 
 const loadBrowserModule = (root = {}) => {
     const context = {
@@ -21,6 +26,20 @@ const loadBrowserModule = (root = {}) => {
     };
     vm.runInNewContext(browserModuleSource, context, {
         filename: browserModulePath
+    });
+    return context.module.exports;
+};
+
+const loadTelemetryModule = (root = {}) => {
+    const context = {
+        globalThis: root,
+        module: { exports: {} },
+        exports: {},
+        URL,
+        console
+    };
+    vm.runInNewContext(telemetryModuleSource, context, {
+        filename: telemetryModulePath
     });
     return context.module.exports;
 };
@@ -59,4 +78,52 @@ test('support bundle browser telemetry resolves useful asset version tokens when
     assert.equal(loadedAssets.entries[2].rawVersionQuery, '');
     assert.equal(loadedAssets.entries[2].versionQuery, '2026.04.04.18');
     assert.equal(loadedAssets.entries[2].versionSource, 'bundleMeta.pluginVersion');
+});
+
+test('support bundle browser telemetry captures the persisted docker list view mode cookie', () => {
+    const root = {
+        document: {
+            cookie: 'foo=bar; docker_listview_mode=advanced; theme=gray'
+        }
+    };
+    const browserModule = loadBrowserModule(root);
+    const collectors = browserModule.createCollectors();
+    const clientStorage = collectors.collectClientStorageDiagnostics();
+
+    assert.equal(clientStorage.dockerListViewModeCookie, 'advanced');
+});
+
+test('support bundle export telemetry keeps the docker list view mode in uiTelemetry client storage', () => {
+    const root = {
+        document: {
+            cookie: 'docker_listview_mode=basic',
+            querySelectorAll() {
+                return [];
+            }
+        },
+        navigator: {
+            cookieEnabled: true
+        },
+        location: {
+            origin: 'https://tower.local',
+            pathname: '/Settings/FolderViewPlus',
+            href: 'https://tower.local/Settings/FolderViewPlus'
+        }
+    };
+    const browserModule = loadBrowserModule(root);
+    root.FolderViewPlusSupportBundleBrowser = browserModule;
+    const telemetryModule = loadTelemetryModule(root);
+    const api = telemetryModule.createApi({
+        normalizeSupportBundleV2Payload: (bundle) => (bundle && typeof bundle === 'object' ? { ...bundle } : {})
+    });
+
+    const payload = api.collectSupportBundleUiTelemetry({
+        bundleMeta: {
+            privacyMode: 'sanitized',
+            pluginVersion: '2026.04.08.04'
+        },
+        uiTelemetry: {}
+    });
+
+    assert.equal(payload.uiTelemetry.clientStorage.dockerListViewModeCookie, 'basic');
 });

@@ -52,6 +52,45 @@ detect_git_tree_sha() {
     printf '%s' "$detected"
 }
 
+detect_git_head_tree_sha() {
+    local detected=""
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        detected="$(git rev-parse 'HEAD^{tree}' 2>/dev/null || true)"
+    fi
+    printf '%s' "$detected"
+}
+
+detect_git_source_snapshot_mode() {
+    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        printf '%s' "unknown"
+        return
+    fi
+    if ! git diff --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
+        printf '%s' "worktree"
+        return
+    fi
+    if ! git diff --cached --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
+        printf '%s' "index"
+        return
+    fi
+    printf '%s' "head"
+}
+
+detect_git_source_tree_sha() {
+    local snapshot_mode="${1:-}"
+    case "$snapshot_mode" in
+        head)
+            detect_git_head_tree_sha
+            ;;
+        index)
+            detect_git_tree_sha
+            ;;
+        *)
+            printf '%s' ""
+            ;;
+    esac
+}
+
 rewrite_manifest_branch_metadata() {
     local target_file="${1:-}"
     local target_version="${2:-}"
@@ -537,14 +576,24 @@ done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" 
 apply_branch_channel_messaging "$tmpdir" "$branch"
 
 build_metadata_path="$tmpdir/usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
-build_git_commit_sha="$(detect_git_commit_sha)"
-build_git_tree_sha="$(detect_git_tree_sha)"
+build_git_head_commit_sha="$(detect_git_commit_sha)"
+build_git_snapshot_mode="$(detect_git_source_snapshot_mode)"
+build_git_tree_sha="$(detect_git_source_tree_sha "$build_git_snapshot_mode")"
+build_git_source_commit_sha=""
+build_git_commit_exact=false
+if [ "$build_git_snapshot_mode" = "head" ] && [ -n "$build_git_head_commit_sha" ]; then
+    build_git_source_commit_sha="$build_git_head_commit_sha"
+    build_git_commit_exact=true
+fi
 build_manifest_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg"
 build_archive_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/${archive_prefix}-${version}.txz"
 cat > "$build_metadata_path" <<EOF
 {
-  "sourceCommitSha": "${build_git_commit_sha}",
+  "sourceCommitSha": "${build_git_source_commit_sha}",
+  "headCommitSha": "${build_git_head_commit_sha}",
   "sourceTreeSha": "${build_git_tree_sha}",
+  "sourceSnapshotMode": "${build_git_snapshot_mode}",
+  "sourceCommitExact": ${build_git_commit_exact},
   "sourceBranch": "${branch}",
   "manifestUrl": "${build_manifest_url}",
   "archiveUrl": "${build_archive_url}",

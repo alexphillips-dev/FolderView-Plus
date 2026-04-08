@@ -492,8 +492,11 @@ const loadSupportBundleFixture = () => {
     fs.writeFileSync(
         path.join(sourceDir, 'build-metadata.json'),
         JSON.stringify({
-            sourceCommitSha: '17429e6caebc02894c461354fcea2ce973adbc72',
+            sourceCommitSha: '',
+            headCommitSha: '17429e6caebc02894c461354fcea2ce973adbc72',
             sourceTreeSha: '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e',
+            sourceSnapshotMode: 'index',
+            sourceCommitExact: false,
             sourceBranch: 'dev',
             manifestUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg',
             archiveUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz',
@@ -561,8 +564,11 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.bundleMeta.buildIdentity.pluginVersion, '2026.04.04.10');
         assert.equal(bundle.bundleMeta.buildIdentity.channel, 'dev');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceBranch, 'dev');
-        assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitSha, '17429e6caebc02894c461354fcea2ce973adbc72');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitSha, null);
+        assert.equal(bundle.bundleMeta.buildIdentity.headCommitSha, '17429e6caebc02894c461354fcea2ce973adbc72');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceTreeSha, '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceSnapshotMode, 'index');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitExact, false);
         assert.equal(bundle.bundleMeta.buildIdentity.packageVersion, '2026.04.04.10');
         assert.equal(bundle.bundleMeta.buildIdentity.manifestPath, 'folderview.plus.plg');
         assert.match(bundle.bundleMeta.buildIdentity.manifestPathHash, /^[0-9a-f]{12}$/);
@@ -620,8 +626,10 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].provenance.updateSource, 'infoState');
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.statusToken, 'updateReady');
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.action, 'applyUpdate');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].renderExpectations.actionRequiresAdvancedView, false);
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].provenance.updateSource, 'topLevelFallback');
         assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].renderExpectations.action, 'forceUpdate');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].renderExpectations.actionRequiresAdvancedView, true);
         assert.equal(bundle.runtimeState.vm.entityDetails.total, 1);
         assert.deepEqual(bundle.runtimeState.vm.entityDetails.managerCounts, []);
         assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].state, 'stopped');

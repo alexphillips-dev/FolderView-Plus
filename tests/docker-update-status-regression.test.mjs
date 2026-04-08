@@ -173,3 +173,24 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
     assert.match(dockerPreviewActionsJs, /const findDockerFolderMemberRow = \(id,\s*containerName\) => \{/);
     assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
 });
+
+test('docker tooltip update action also respects the Docker advanced/basic cookie', () => {
+    assert.match(dockerJs, /const tooltipShowAdvanced = \$\.cookie\('docker_listview_mode'\) == 'advanced';/);
+    assert.match(dockerJs, /const tooltipForceUpdateHtml = tooltipShowAdvanced/);
+    assert.match(dockerJs, /tooltipForceUpdateHtml/);
+});
+
+test('docker runtime re-syncs folder rows when the Docker basic or advanced cookie changes live', () => {
+    assert.match(dockerJs, /let lastDockerListViewMode = \$\.cookie\('docker_listview_mode'\) == 'advanced' \? 'advanced' : 'basic';/);
+    assert.match(dockerJs, /const readDockerListViewMode = \(\) => \(\$\.cookie\('docker_listview_mode'\) == 'advanced' \? 'advanced' : 'basic'\);/);
+    assert.match(dockerJs, /const syncDockerListViewModeFromCookie = \(\) => \{[\s\S]*if \(nextMode === lastDockerListViewMode\) \{\s*return;\s*\}[\s\S]*if \(!loadedFolder \|\| !globalFolders \|\| Object\.keys\(globalFolders\)\.length <= 0\) \{\s*return;\s*\}[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*scheduleDockerRuntimeWidthReflow\('listview-mode-change', 12\);/);
+    assert.match(dockerJs, /const startDockerListViewModeObserver = \(\) => \{[\s\S]*dockerListViewModeObserverTimer = window\.setInterval\(\(\) => \{[\s\S]*syncDockerListViewModeFromCookie\(\);[\s\S]*\}, 500\);[\s\S]*document\.addEventListener\('visibilitychange', syncDockerListViewModeFromCookie\);[\s\S]*window\.addEventListener\('focus', syncDockerListViewModeFromCookie\);/);
+    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*startDockerListViewModeObserver\(\);/);
+});
+
+test('docker folder expand path re-syncs direct member rows from runtime state after moving them out of storage', () => {
+    assert.match(dockerJs, /syncDockerFolderMemberRows: \(id,\s*runtimeContainers\) => syncDockerFolderMemberRows\(id,\s*runtimeContainers\),/);
+    assert.match(dockerRuntimeHierarchyJs, /const syncDockerFolderMemberRows = typeof deps\.syncDockerFolderMemberRows === 'function'[\s\S]*:\s*\(\(\) => \{\}\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*\$folderRow\.after\(\$directMemberRows\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$rowsToShow = \$directMemberRows\.length \? \$directMemberRows : \$fallbackRows;[\s\S]*const directRuntimeContainers = buildRuntimeContainerMapForFolder\(id,\s*false\);[\s\S]*jq\(`tr\.folder-id-\$\{id\}`\)\.after\(\$rowsToShow\);[\s\S]*syncDockerFolderMemberRows\(id,\s*directRuntimeContainers\);/);
+});

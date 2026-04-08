@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.06.19">
-<!ENTITY md5 "6a82795b9b26314528f73f627e1a1bc9">
+<!ENTITY version "2026.04.08.01">
+<!ENTITY md5 "ee58a8355dff34173887dba0e6b23a22">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.01
+- Fix: Docker folder member runtime resync now updates both hidden and expanded members from live per-container state.
+- Fix: Docker folder member rows no longer show `force update` unless Docker advanced view is enabled.
+- Fix: Foldered Docker rows keep `apply update` limited to containers whose runtime state actually reports an update-ready image.
+- Fix: Expanded the support bundle runtime snapshot with per-folder render settings, per-folder render expectations, and per-entity render expectations for Docker troubleshooting.
+- Fix: Added Docker and VM runtime provenance fields such as manager source, update source, and runtime snapshot availability so support exports can separate bad runtime state from bad rendering.
+- Test: Extended support bundle and Docker update-status contract coverage for the new runtime diagnostics fields.
+
 
 ###2026.04.06.19
 - Fix: Restored richer diagnostics fallback details for folder, rules, backup, and integrity issue reports.

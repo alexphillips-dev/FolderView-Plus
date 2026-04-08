@@ -1452,6 +1452,46 @@
             ];
         }
 
+        $entityDetails = [];
+        $entityDetailsTotal = 0;
+        $entityDetailsMaxEntries = 200;
+        $managerCounts = [];
+        foreach ($validNames as $name) {
+            $item = $infoByName[$name] ?? null;
+            if (!is_array($item)) {
+                continue;
+            }
+            $entityDetailsTotal++;
+            $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
+            $manager = '';
+            $updated = null;
+            if ($type === 'docker') {
+                $manager = trim((string)($item['info']['State']['manager'] ?? ($item['manager'] ?? '')));
+                $updated = $item['info']['State']['Updated'] ?? ($item['Updated'] ?? null);
+                $managerKey = $manager !== '' ? $manager : 'unclassified';
+                $managerCounts[$managerKey] = (int)($managerCounts[$managerKey] ?? 0) + 1;
+            }
+            if (!is_bool($updated)) {
+                $updated = null;
+            }
+            if ($entityDetailsTotal > $entityDetailsMaxEntries) {
+                continue;
+            }
+            $entityDetails[] = [
+                'name' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)$name : null,
+                'nameHash' => diagnosticsHashShort((string)$name),
+                'state' => $kind,
+                'assigned' => isset($assignedItemSet[$name]),
+                'manager' => $manager !== '' ? $manager : null,
+                'managed' => $manager === 'dockerman',
+                'updated' => $updated,
+                'updateState' => $updated === true ? 'upToDate' : ($updated === false ? 'available' : 'unknown')
+            ];
+        }
+        if (!empty($managerCounts)) {
+            ksort($managerCounts);
+        }
+
         $totalItems = count($validNames);
         $assignedItems = count($assignedItemSet);
         $unassignedItems = max(0, $totalItems - $assignedItems);
@@ -1465,6 +1505,13 @@
             'nestedFolderCount' => $nestedFolderCount,
             'maxDepth' => $maxDepth,
             'updateCounts' => $updateCounts,
+            'managerCounts' => $managerCounts,
+            'entityDetails' => [
+                'total' => $entityDetailsTotal,
+                'maxEntries' => $entityDetailsMaxEntries,
+                'truncated' => $entityDetailsTotal > count($entityDetails),
+                'entries' => $entityDetails
+            ],
             'summary' => [
                 'folderTotalsByStatus' => $folderStatusTotals,
                 'memberTotals' => $memberTotals,
@@ -2131,6 +2178,44 @@
         return $section;
     }
 
+    function diagnosticsBuildSupportBundleRuntimeEntityDetails(string $type, array $stateSnapshot, array &$redactor): array {
+        $details = is_array($stateSnapshot['entityDetails'] ?? null) ? $stateSnapshot['entityDetails'] : [];
+        $entries = [];
+        $fieldPath = 'runtimeState.' . $type . '.entityDetails.entries.*';
+        foreach (array_values(is_array($details['entries'] ?? null) ? $details['entries'] : []) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $name = (string)($entry['name'] ?? '');
+            $manager = trim((string)($entry['manager'] ?? ''));
+            $updated = array_key_exists('updated', $entry) && is_bool($entry['updated']) ? (bool)$entry['updated'] : null;
+            $entries[] = [
+                'name' => diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.name', $name),
+                'nameHash' => diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.nameHash', $name),
+                'state' => in_array((string)($entry['state'] ?? ''), ['started', 'paused', 'stopped'], true)
+                    ? (string)$entry['state']
+                    : 'stopped',
+                'assigned' => (bool)($entry['assigned'] ?? false),
+                'manager' => $manager !== '' ? $manager : null,
+                'managed' => (bool)($entry['managed'] ?? false),
+                'updated' => $updated,
+                'updateState' => in_array((string)($entry['updateState'] ?? ''), ['available', 'upToDate', 'unknown'], true)
+                    ? (string)$entry['updateState']
+                    : 'unknown'
+            ];
+        }
+        if ((bool)($details['truncated'] ?? false)) {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', 'runtimeState.' . $type . '.entityDetails.entries');
+        }
+        return [
+            'total' => (int)($details['total'] ?? count($entries)),
+            'maxEntries' => (int)($details['maxEntries'] ?? count($entries)),
+            'truncated' => (bool)($details['truncated'] ?? false),
+            'managerCounts' => is_array($stateSnapshot['managerCounts'] ?? null) ? $stateSnapshot['managerCounts'] : [],
+            'entries' => $entries
+        ];
+    }
+
     function diagnosticsBuildSupportBundleRuntimeTypeSection(string $type, array $typeData, array &$redactor): array {
         $stateSnapshot = is_array($typeData['stateSnapshot'] ?? null) ? $typeData['stateSnapshot'] : [];
         $folders = [];
@@ -2182,6 +2267,7 @@
                 'maxDepth' => (int)($stateSnapshot['maxDepth'] ?? 0),
                 'folders' => $folders
             ],
+            'entityDetails' => diagnosticsBuildSupportBundleRuntimeEntityDetails($type, $stateSnapshot, $redactor),
             'updateStateSummary' => is_array($stateSnapshot['updateCounts'] ?? null) ? $stateSnapshot['updateCounts'] : [],
             'preflight' => [
                 'foldersPath' => diagnosticsSupportBundleRedactScalar($redactor, 'runtimeState.' . $type . '.preflight.foldersPath', $foldersPath, true),

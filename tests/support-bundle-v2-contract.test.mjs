@@ -276,6 +276,41 @@ $diagnostics = [
                 'nestedFolderCount' => 1,
                 'maxDepth' => 1,
                 'updateCounts' => ['available' => 1, 'upToDate' => 1, 'unknown' => 1, 'total' => 3],
+                'managerCounts' => ['composeman' => 1, 'dockerman' => 1, 'unclassified' => 1],
+                'entityDetails' => [
+                    'total' => 3,
+                    'maxEntries' => 200,
+                    'truncated' => false,
+                    'entries' => [
+                        [
+                            'name' => 'PlexMediaServer',
+                            'state' => 'started',
+                            'assigned' => true,
+                            'manager' => 'dockerman',
+                            'managed' => true,
+                            'updated' => false,
+                            'updateState' => 'available'
+                        ],
+                        [
+                            'name' => 'SonarrStack',
+                            'state' => 'started',
+                            'assigned' => true,
+                            'manager' => 'composeman',
+                            'managed' => false,
+                            'updated' => null,
+                            'updateState' => 'unknown'
+                        ],
+                        [
+                            'name' => 'LegacyTool',
+                            'state' => 'stopped',
+                            'assigned' => false,
+                            'manager' => null,
+                            'managed' => false,
+                            'updated' => true,
+                            'updateState' => 'upToDate'
+                        ]
+                    ]
+                ],
                 'folders' => [
                     [
                         'folderId' => 'root01',
@@ -359,6 +394,23 @@ $diagnostics = [
                 'nestedFolderCount' => 0,
                 'maxDepth' => 0,
                 'updateCounts' => ['available' => 0, 'upToDate' => 0, 'unknown' => 1, 'total' => 1],
+                'managerCounts' => [],
+                'entityDetails' => [
+                    'total' => 1,
+                    'maxEntries' => 200,
+                    'truncated' => false,
+                    'entries' => [
+                        [
+                            'name' => 'Orion VM Secret',
+                            'state' => 'stopped',
+                            'assigned' => false,
+                            'manager' => null,
+                            'managed' => false,
+                            'updated' => null,
+                            'updateState' => 'unknown'
+                        ]
+                    ]
+                ],
                 'folders' => []
             ]
         ]
@@ -515,6 +567,25 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].parentId, '');
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].depth, 0);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].depth, 1);
+        assert.equal(bundle.runtimeState.docker.entityDetails.total, 3);
+        assert.equal(bundle.runtimeState.docker.entityDetails.maxEntries, 200);
+        assert.equal(bundle.runtimeState.docker.entityDetails.truncated, false);
+        assert.equal(bundle.runtimeState.docker.entityDetails.managerCounts.dockerman, 1);
+        assert.equal(bundle.runtimeState.docker.entityDetails.managerCounts.composeman, 1);
+        assert.equal(bundle.runtimeState.docker.entityDetails.managerCounts.unclassified, 1);
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].state, 'started');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].assigned, true);
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].manager, 'dockerman');
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].managed, true);
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updated, false);
+        assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updateState, 'available');
+        assert.equal(bundle.runtimeState.vm.entityDetails.total, 1);
+        assert.deepEqual(bundle.runtimeState.vm.entityDetails.managerCounts, []);
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].state, 'stopped');
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].assigned, false);
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].manager, null);
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].updated, null);
+        assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].updateState, 'unknown');
         assert.equal(bundle.runtimeState.docker.updateStateSummary.available, 1);
         assert.equal(bundle.runtimeState.docker.updateStateSummary.total, 3);
         assert.equal(bundle.runtimeState.vm.updateStateSummary.unknown, 1);
@@ -525,6 +596,9 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
             assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId, 'root01');
             assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].folderId, 'child01');
             assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
+            assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, 'PlexMediaServer');
+            assert.match(bundle.runtimeState.docker.entityDetails.entries[0].nameHash, /^[0-9a-f]{12}$/);
+            assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].name, 'Orion VM Secret');
         } else {
             const expandedState = bundle.pluginState.docker.prefs.expandedFolderState || {};
             const expandedKeys = Object.keys(expandedState);
@@ -545,6 +619,9 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
                 bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId,
                 bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId
             );
+            assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, null);
+            assert.match(bundle.runtimeState.docker.entityDetails.entries[0].nameHash, /^[0-9a-f]{16}$/);
+            assert.equal(bundle.runtimeState.vm.entityDetails.entries[0].name, null);
         }
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'diagnostics'), false);
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'clientTelemetry'), false);
@@ -599,6 +676,10 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, []);
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.itemHashes.length, 2);
     assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.itemHashes[0], /^[0-9a-f]{16}$/);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, null);
+    assert.match(bundle.runtimeState.docker.entityDetails.entries[0].nameHash, /^[0-9a-f]{16}$/);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].manager, null);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].updateState, 'upToDate');
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, null);
     assert.match(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].nameHash, /^[0-9a-f]{16}$/);
     assert.deepEqual(bundle.healthAndHistory.integrityFindings.docker.orphanedMembers.folders[0].items, []);
@@ -629,6 +710,7 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.equal(bundle.redactionManifest.hashedFields.includes('system.request.userAgentHash'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('pluginState.docker.prefs.expandedFolderState.*'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('runtimeState.docker.folderHierarchySummary.folders.*.folderId'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('runtimeState.docker.entityDetails.entries.*.nameHash'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.integrityFindings.docker.orphanedMembers.folders.*.folderId'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.recentActions.*.targetHash'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.serverLogTail.pathHash'), true);
@@ -670,6 +752,11 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderName, 'Plex Root Secret');
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, ['PlexMediaServer', 'SonarrStack']);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].name, 'PlexMediaServer');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].manager, 'dockerman');
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[0].updated, false);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].manager, null);
+    assert.equal(bundle.runtimeState.docker.entityDetails.entries[2].updateState, 'upToDate');
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, 'Plex Root Secret');
     assert.deepEqual(bundle.healthAndHistory.integrityFindings.docker.orphanedMembers.folders[0].items, ['PlexMediaServer']);
     assert.equal(bundle.healthAndHistory.recentTimeline[0].summary, 'name=PlexMediaServer, folderId=root01, itemCount=2');
@@ -697,4 +784,10 @@ test('vm state snapshot marks all entities as unknown for update totals', () => 
     assert.equal(fixture.vmStateSnapshot.updateCounts.upToDate, 0);
     assert.equal(fixture.vmStateSnapshot.updateCounts.unknown, 1);
     assert.equal(fixture.vmStateSnapshot.updateCounts.total, 1);
+    assert.equal(fixture.vmStateSnapshot.entityDetails.total, 1);
+    assert.equal(fixture.vmStateSnapshot.entityDetails.truncated, false);
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].name, null);
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].state, 'stopped');
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].managed, false);
+    assert.equal(fixture.vmStateSnapshot.entityDetails.entries[0].updateState, 'unknown');
 });

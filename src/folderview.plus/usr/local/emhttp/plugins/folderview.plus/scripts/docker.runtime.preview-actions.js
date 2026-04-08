@@ -234,13 +234,13 @@
             }
         };
 
-        const findDockerFolderStorageRow = (id, containerName) => {
+        const findDockerFolderMemberRow = (id, containerName) => {
             const folderId = String(id || '').trim();
             const safeContainerName = String(containerName || '').trim();
             if (!folderId || !safeContainerName) {
                 return jq();
             }
-            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr`);
+            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
             return $rows.filter((_, row) => {
                 const rowId = String(row?.id || '').trim();
                 if (rowId === `ct-${safeContainerName}`) {
@@ -297,7 +297,7 @@
                 if (!containerName) {
                     return;
                 }
-                const $row = findDockerFolderStorageRow(id, containerName);
+                const $row = findDockerFolderMemberRow(id, containerName);
                 syncDockerStorageRowStatus($row, entry);
                 syncDockerStorageRowUpdateColumn($row, entry);
             });

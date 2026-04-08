@@ -129,3 +129,31 @@ test('docker runtime sync normalizes hidden member rows before expand', () => {
     assert.match(dockerJs, /folder\.runtimeContainers = runtimeContainers;\s*syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
     assert.match(dockerJs, /folder\.containers = newFolder;[\s\S]*syncDockerFolderMemberRows\(id,\s*newFolder\);/s);
 });
+
+test('docker runtime sync rewrites both hidden and expanded member rows', () => {
+    assert.match(dockerRuntimeInfoJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
+    assert.match(dockerPreviewActionsModule.createApi({
+        window: {},
+        $: Object.assign(() => ({}), {
+            i18n: (key) => key
+        }),
+        escapeHtml: (value) => String(value ?? '')
+    }).buildDockerMemberUpdateColumnHtml({ name: 'demo', manager: 'dockerman', update: false }), /force-update/);
+    assert.match(
+        dockerPreviewActionsModule.createApi({
+            window: {},
+            $: Object.assign(() => ({}), {
+                i18n: (key) => key
+            }),
+            escapeHtml: (value) => String(value ?? '')
+        }).syncDockerFolderMemberRows.toString(),
+        /findDockerFolderMemberRow/
+    );
+    assert.match(dockerPreviewActionsModule.createApi({
+        window: {},
+        $: Object.assign(() => ({}), {
+            i18n: (key) => key
+        }),
+        escapeHtml: (value) => String(value ?? '')
+    }).syncDockerFolderMemberRows.toString(), /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
+});

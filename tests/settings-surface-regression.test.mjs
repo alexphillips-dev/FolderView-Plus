@@ -55,6 +55,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
     assert.match(supportBundleBrowserJs, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
+    assert.match(supportBundleBrowserJs, /const readCookieValue = \(name\) => \{/);
+    assert.match(supportBundleBrowserJs, /dockerListViewModeCookie: normalizeDockerListViewMode\(readCookieValue\('docker_listview_mode'\)\),/);
     assert.match(supportBundleBrowserJs, /const collectLoadedAssetTelemetry = \(uiRedactor, options = \{\}\) =>/);
     assert.match(supportBundleBrowserJs, /const fallbackVersionToken = normalizeAssetVersionToken\(options\?\.pluginVersion \|\| ''\);/);
     assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
@@ -66,6 +68,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleTelemetryJs, /const browserModule = root\?\.FolderViewPlusSupportBundleBrowser \|\| null;/);
     assert.match(supportBundleTelemetryJs, /const collectBrowserCapabilities = browserCollectors\?\.collectBrowserCapabilities \|\| \(\(\) => \(\{\}\)\);/);
     assert.match(supportBundleTelemetryJs, /const collectClientStorageDiagnostics = browserCollectors\?\.collectClientStorageDiagnostics \|\| \(\(\) => \(\{/);
+    assert.match(supportBundleTelemetryJs, /dockerListViewModeCookie:\s*null,/);
     assert.match(supportBundleTelemetryJs, /const collectCurrentPageTelemetry = browserCollectors\?\.collectCurrentPageTelemetry \|\| \(\(uiRedactor\) => \{/);
     assert.match(supportBundleTelemetryJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);

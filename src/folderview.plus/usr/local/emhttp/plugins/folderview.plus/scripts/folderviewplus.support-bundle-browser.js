@@ -25,6 +25,35 @@
             ? deps.storageKeys
             : {};
 
+        const readCookieValue = (name) => {
+            const safeName = String(name || '').trim();
+            const rawCookie = String(root?.document?.cookie || '');
+            if (!safeName || !rawCookie) {
+                return '';
+            }
+            const prefix = `${safeName}=`;
+            const parts = rawCookie.split(';');
+            for (const part of parts) {
+                const candidate = String(part || '').trim();
+                if (candidate.startsWith(prefix)) {
+                    try {
+                        return decodeURIComponent(candidate.slice(prefix.length));
+                    } catch (_error) {
+                        return candidate.slice(prefix.length);
+                    }
+                }
+            }
+            return '';
+        };
+
+        const normalizeDockerListViewMode = (value) => {
+            const raw = String(value || '').trim().toLowerCase();
+            if (raw === 'advanced' || raw === 'basic') {
+                return raw;
+            }
+            return null;
+        };
+
         const normalizeAssetVersionToken = (value) => {
             const raw = String(value || '').trim();
             if (!raw || raw === '0' || raw === 'null' || raw === 'undefined' || raw === 'false') {
@@ -51,6 +80,7 @@
         const collectClientStorageDiagnostics = () => ({
             localStorageAvailable: clientStorageIsAvailable('localStorage'),
             sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
+            dockerListViewModeCookie: normalizeDockerListViewMode(readCookieValue('docker_listview_mode')),
             folderEditorDebug: {
                 launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),
                 bootstrapPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.bootstrap || '')),

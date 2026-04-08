@@ -1733,6 +1733,10 @@ const buildDockerTooltipContent = (ct) => {
     const labels = runtimeEntry?.Labels && typeof runtimeEntry.Labels === 'object' ? runtimeEntry.Labels : {};
     const tooltipWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.WebUi);
     const tooltipTsWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.TSWebUi);
+    const tooltipShowAdvanced = $.cookie('docker_listview_mode') == 'advanced';
+    const tooltipForceUpdateHtml = tooltipShowAdvanced
+        ? `<br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('force-update')}</span></a>`
+        : '';
     const $content = $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
         <div class="first-row">
@@ -1747,7 +1751,7 @@ const buildDockerTooltipContent = (ct) => {
             <table class="preview-status">
                 <thead class="status-header"><tr><th class="status-header-version">${$.i18n('version')}</th><th class="status-header-stats">CPU/MEM</th><th class="status-header-autostart">${$.i18n('autostart')}</th></tr></thead>
                 <tbody><tr>
-                    <td><div class="status-version">${runtimeEntry.info.State.manager === 'composeman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>` : runtimeEntry.info.State.manager !== 'dockerman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>` : runtimeEntry.info.State.Updated !== false ? `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${$.i18n('up-to-date')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('force-update')}</span></a>` : `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${$.i18n('update-ready')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('apply-update')}</span></a>`}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
+                    <td><div class="status-version">${runtimeEntry.info.State.manager === 'composeman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>` : runtimeEntry.info.State.manager !== 'dockerman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>` : runtimeEntry.info.State.Updated !== false ? `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${$.i18n('up-to-date')}</span>${tooltipForceUpdateHtml}` : `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${$.i18n('update-ready')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('apply-update')}</span></a>`}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
                     <td><div class="status-stats"><span class="cpu-${ct.shortId}">0%</span><div class="usage-disk mm"><span id="cpu-${ct.shortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${ct.shortId}">0 / 0</span></div></td>
                     <td><div class="status-autostart"><input type="checkbox" style="display:none" class="staus-autostart-checkbox"></div></td>
                 </tr></tbody>

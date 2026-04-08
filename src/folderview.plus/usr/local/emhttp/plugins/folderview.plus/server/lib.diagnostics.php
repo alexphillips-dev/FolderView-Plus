@@ -1719,6 +1719,7 @@
             return [
                 'statusToken' => 'compose',
                 'action' => 'none',
+                'actionRequiresAdvancedView' => false,
                 'forceUpdateEligible' => false
             ];
         }
@@ -1726,6 +1727,7 @@
             return [
                 'statusToken' => 'thirdParty',
                 'action' => 'none',
+                'actionRequiresAdvancedView' => false,
                 'forceUpdateEligible' => false
             ];
         }
@@ -1733,12 +1735,14 @@
             return [
                 'statusToken' => 'updateReady',
                 'action' => 'applyUpdate',
+                'actionRequiresAdvancedView' => false,
                 'forceUpdateEligible' => false
             ];
         }
         return [
             'statusToken' => 'upToDate',
             'action' => 'forceUpdate',
+            'actionRequiresAdvancedView' => true,
             'forceUpdateEligible' => true
         ];
     }
@@ -2203,7 +2207,12 @@
         $buildMetadata = diagnosticsReadSupportBundleBuildMetadata();
         $manifestMetadata = diagnosticsResolveSupportBundleManifestMetadata();
         $sourceCommitSha = trim((string)($buildMetadata['sourceCommitSha'] ?? ''));
+        $headCommitSha = trim((string)($buildMetadata['headCommitSha'] ?? ''));
         $sourceTreeSha = trim((string)($buildMetadata['sourceTreeSha'] ?? ''));
+        $sourceSnapshotMode = trim((string)($buildMetadata['sourceSnapshotMode'] ?? ''));
+        $sourceCommitExact = array_key_exists('sourceCommitExact', $buildMetadata)
+            ? filter_var($buildMetadata['sourceCommitExact'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            : null;
         $sourceBranch = trim((string)($buildMetadata['sourceBranch'] ?? diagnosticsResolveSupportBundleChannel()));
         $buildManifestUrl = trim((string)($buildMetadata['manifestUrl'] ?? ''));
         $buildArchiveUrl = trim((string)($buildMetadata['archiveUrl'] ?? ''));
@@ -2223,7 +2232,12 @@
                 : diagnosticsResolveSupportBundleChannel(),
             'sourceBranch' => $sourceBranch !== '' ? $sourceBranch : null,
             'sourceCommitSha' => $sourceCommitSha !== '' ? $sourceCommitSha : null,
+            'headCommitSha' => $headCommitSha !== '' ? $headCommitSha : null,
             'sourceTreeSha' => $sourceTreeSha !== '' ? $sourceTreeSha : null,
+            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['head', 'index', 'worktree', 'unknown'], true)
+                ? $sourceSnapshotMode
+                : null,
+            'sourceCommitExact' => is_bool($sourceCommitExact) ? $sourceCommitExact : null,
             'packageVersion' => trim((string)($buildMetadata['packageVersion'] ?? '')) ?: (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'manifestPath' => $manifestMetadata['manifestPath'] ?? null,
             'manifestPathHash' => $manifestMetadata['manifestPathHash'] ?? null,
@@ -2365,6 +2379,9 @@
                     'action' => in_array((string)($entry['renderExpectations']['action'] ?? ''), ['none', 'applyUpdate', 'forceUpdate'], true)
                         ? (string)$entry['renderExpectations']['action']
                         : 'none',
+                    'actionRequiresAdvancedView' => array_key_exists('actionRequiresAdvancedView', (array)($entry['renderExpectations'] ?? []))
+                        ? (bool)$entry['renderExpectations']['actionRequiresAdvancedView']
+                        : ((string)($entry['renderExpectations']['action'] ?? '') === 'forceUpdate'),
                     'forceUpdateEligible' => (bool)($entry['renderExpectations']['forceUpdateEligible'] ?? false)
                 ]
             ];
@@ -2413,7 +2430,9 @@
                     'action' => in_array((string)($folder['renderExpectations']['action'] ?? ''), ['none', 'applyUpdate', 'forceUpdate'], true)
                         ? (string)$folder['renderExpectations']['action']
                         : 'none',
-                    'actionRequiresAdvancedView' => (bool)($folder['renderExpectations']['actionRequiresAdvancedView'] ?? false),
+                    'actionRequiresAdvancedView' => array_key_exists('actionRequiresAdvancedView', (array)($folder['renderExpectations'] ?? []))
+                        ? (bool)$folder['renderExpectations']['actionRequiresAdvancedView']
+                        : in_array((string)($folder['renderExpectations']['action'] ?? ''), ['applyUpdate', 'forceUpdate'], true),
                     'forceUpdateEligible' => (bool)($folder['renderExpectations']['forceUpdateEligible'] ?? false),
                     'managerTypes' => array_values(array_filter(array_map('strval', is_array($folder['renderExpectations']['managerTypes'] ?? null) ? $folder['renderExpectations']['managerTypes'] : []), static function ($value): bool {
                         return trim($value) !== '';

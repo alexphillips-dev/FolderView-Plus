@@ -217,6 +217,7 @@
         const collectClientStorageDiagnostics = browserCollectors?.collectClientStorageDiagnostics || (() => ({
             localStorageAvailable: false,
             sessionStorageAvailable: false,
+            dockerListViewModeCookie: null,
             folderEditorDebug: {
                 launchPresent: false,
                 bootstrapPresent: false,

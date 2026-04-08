@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.06.18">
-<!ENTITY md5 "08c16d91844c385df24ecedb66436006">
+<!ENTITY version "2026.04.08.01">
+<!ENTITY md5 "f8bd49f4ec7fe2d7d3e59b38e23205ee">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.01
+- Fix: Docker advanced view now resyncs both hidden and expanded folder member rows from per-container runtime state, so `force update` stays visible for dockerman-managed containers after expand.
+- Feature: Support bundle runtime diagnostics now capture per-entity manager, managed/update state, and manager counts to make update-column issues diagnosable from one export.
+- Quality: Release validation now runs in this workspace with local `php` and `node` runtimes, and the Docker regression coverage was corrected to assert the member-row selector at the implementation point.
+
 
 ###2026.04.06.18
 - Fix: Hidden Docker folder member rows now resync their own update column from per-container runtime state before expand, so a folder with one pending update no longer shows `Apply update` on every container row.

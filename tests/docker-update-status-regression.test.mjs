@@ -13,6 +13,10 @@ const dockerJs = fs.readFileSync(
 const dockerPreviewActionsModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js')
 );
+const dockerPreviewActionsJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
+    'utf8'
+);
 const dockerRuntimeInfoJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js'),
     'utf8'
@@ -149,11 +153,6 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
         }).syncDockerFolderMemberRows.toString(),
         /findDockerFolderMemberRow/
     );
-    assert.match(dockerPreviewActionsModule.createApi({
-        window: {},
-        $: Object.assign(() => ({}), {
-            i18n: (key) => key
-        }),
-        escapeHtml: (value) => String(value ?? '')
-    }).syncDockerFolderMemberRows.toString(), /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
+    assert.match(dockerPreviewActionsJs, /const findDockerFolderMemberRow = \(id,\s*containerName\) => \{/);
+    assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
 });

@@ -5,13 +5,20 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.08.08">
-<!ENTITY md5 "25ea8e560468d72949eacd3f337f3c7a">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.04.08.09">
+<!ENTITY md5 "b984777824a64d21e9b62dbcdab6d96b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.08.09
+- Fix: Docker folder rows and member rows now refresh their update actions live when switching between basic and advanced view, so stale `force update` or `apply update` states no longer stick until a page reload.
+- Fix: Expanding a collapsed Docker folder now re-syncs its direct member rows from cached runtime state after the rows move out of hidden storage, so one updated container no longer makes every child row show `apply update`.
+- Fix: Support bundles now capture clearer Docker update diagnostics, including list-view mode telemetry and build provenance fields, so basic-versus-advanced rendering issues can be diagnosed from one export.
+- Quality: Refreshed the support-bundle performance baseline and added regression coverage for the Docker row refresh and support-bundle telemetry paths.
+
 
 ###2026.04.08.08
 - Fix: Docker folder expand now re-syncs direct member rows from cached runtime state after moving them out of hidden storage, so collapsed folders no longer make every child row show `apply update` after refresh or expand.
@@ -5096,7 +5103,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -139,6 +139,14 @@
             }
         };
 
+        const isDockerAdvancedModeEnabled = () => {
+            try {
+                return typeof jq?.cookie === 'function' && jq.cookie('docker_listview_mode') == 'advanced';
+            } catch (_error) {
+                return false;
+            }
+        };
+
         const escapeInlineJsSingleQuotedValue = (value) => String(value ?? '')
             .replace(/\\/g, '\\\\')
             .replace(/'/g, "\\'");
@@ -155,7 +163,10 @@
             if (entry?.update === true) {
                 return `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
             }
-            return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`;
+            const forceUpdateHtml = isDockerAdvancedModeEnabled()
+                ? `<br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
+                : '';
+            return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span>${forceUpdateHtml}`;
         };
 
         const getDockerPreviewStatusMeta = (entry = {}) => {

@@ -75,7 +75,16 @@ test('docker runtime builds member row update markup from per-container runtime 
     const previewActionsApi = dockerPreviewActionsModule.createApi({
         window: {},
         $: Object.assign(() => ({}), {
-            i18n: (key) => key
+            i18n: (key) => key,
+            cookie: () => ''
+        }),
+        escapeHtml: (value) => String(value ?? '')
+    });
+    const previewActionsAdvancedApi = dockerPreviewActionsModule.createApi({
+        window: {},
+        $: Object.assign(() => ({}), {
+            i18n: (key) => key,
+            cookie: () => 'advanced'
         }),
         escapeHtml: (value) => String(value ?? '')
     });
@@ -105,14 +114,21 @@ test('docker runtime builds member row update markup from per-container runtime 
         manager: 'dockerman',
         update: true
     });
+    const advancedUpToDateHtml = previewActionsAdvancedApi.buildDockerMemberUpdateColumnHtml({
+        name: 'app-two',
+        manager: 'dockerman',
+        update: false
+    });
 
     assert.match(updateReadyHtml, /update-ready/);
     assert.match(updateReadyHtml, /apply-update/);
     assert.match(updateReadyHtml, /updateContainer\('app-one'\)/);
     assert.doesNotMatch(updateReadyHtml, /force-update/);
     assert.match(upToDateHtml, /up-to-date/);
-    assert.match(upToDateHtml, /force-update/);
-    assert.match(upToDateHtml, /updateContainer\('app-two'\)/);
+    assert.doesNotMatch(upToDateHtml, /force-update/);
+    assert.doesNotMatch(upToDateHtml, /updateContainer\('app-two'\)/);
+    assert.match(advancedUpToDateHtml, /force-update/);
+    assert.match(advancedUpToDateHtml, /updateContainer\('app-two'\)/);
     assert.doesNotMatch(upToDateHtml, /apply-update/);
     assert.match(composeHtml, /compose/);
     assert.doesNotMatch(composeHtml, /updateContainer\(/);
@@ -139,7 +155,8 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
     assert.match(dockerPreviewActionsModule.createApi({
         window: {},
         $: Object.assign(() => ({}), {
-            i18n: (key) => key
+            i18n: (key) => key,
+            cookie: () => 'advanced'
         }),
         escapeHtml: (value) => String(value ?? '')
     }).buildDockerMemberUpdateColumnHtml({ name: 'demo', manager: 'dockerman', update: false }), /force-update/);

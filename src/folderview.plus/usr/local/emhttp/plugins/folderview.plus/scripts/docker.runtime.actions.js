@@ -105,6 +105,9 @@
         };
 
         const getSpinner = () => (typeof jq === 'function' ? jq('div.spinner.fixed') : null);
+        const DOCKER_DIALOG_REFRESH_CALLBACK_NAME = '__fvplusDockerDialogRefresh';
+        const DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS = 180;
+        const DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS = 650;
 
         const i18nLabel = (key, fallback = '') => {
             const safeKey = String(key || '').trim();
@@ -118,6 +121,33 @@
             } catch (_error) {
                 return safeFallback;
             }
+        };
+
+        const runDockerDialogRefresh = () => {
+            try {
+                refreshDockerList();
+            } catch (error) {
+                debugWarn('[FV3_DEBUG] Docker dialog refresh: host loadlist refresh failed.', error);
+            }
+            defer(() => {
+                Promise.resolve(refreshDockerRuntimeState({
+                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                })).catch((error) => {
+                    debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime state refresh failed.', error);
+                });
+            }, DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS);
+        };
+
+        const getDockerDialogRefreshCallbackName = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return 'loadlist';
+            }
+            if (typeof win[DOCKER_DIALOG_REFRESH_CALLBACK_NAME] !== 'function') {
+                win[DOCKER_DIALOG_REFRESH_CALLBACK_NAME] = () => {
+                    runDockerDialogRefresh();
+                };
+            }
+            return DOCKER_DIALOG_REFRESH_CALLBACK_NAME;
         };
 
         const parseJsonPayloadSafe = (payload) => {
@@ -459,7 +489,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', 'loadlist');
+            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', getDockerDialogRefreshCallbackName());
         };
 
         const updateFolder = (id, { includeDescendants = true } = {}) => {
@@ -480,7 +510,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', 'loadlist');
+            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', getDockerDialogRefreshCallbackName());
         };
 
         const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) =>

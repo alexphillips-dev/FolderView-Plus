@@ -55,6 +55,7 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     runDockerGuardedAction: deps.runDockerGuardedAction || (async (_actionName, action) => ({ ok: true, value: await action() })),
     getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
     loadlist: deps.loadlist || (() => {}),
+    refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
     eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
     generateDockerFolderCloneId: deps.generateDockerFolderCloneId,
     persistDockerFolderClonePayload: deps.persistDockerFolderClonePayload,
@@ -104,6 +105,80 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
     assert.equal(source.settings.nested.enabled, true);
     assert.deepEqual(source.containers, ['plex']);
     assert.equal(source.actions[0].params.mode, 'safe');
+});
+
+test('docker folder update dialog callback preserves host loadlist and schedules runtime refresh follow-up', async () => {
+    const openDockerCalls = [];
+    let loadlistCalls = 0;
+    const runtimeRefreshCalls = [];
+    const windowContext = {
+        prompt: () => '',
+        crypto: null,
+        msCrypto: null,
+        setTimeout: (handler) => {
+            handler();
+            return 0;
+        }
+    };
+    const actionsApi = dockerRuntimeActionsModule.createApi({
+        window: windowContext,
+        document: { cookie: '' },
+        $: Object.assign(
+            () => ({
+                show: () => {},
+                hide: () => {}
+            }),
+            {
+                post: () => ({
+                    promise: async () => ({})
+                })
+            }
+        ),
+        swal: () => {},
+        openDocker: (...args) => {
+            openDockerCalls.push(args);
+        },
+        hideAllTips: () => {},
+        getGlobalFolders: () => ({
+            media: { name: 'Media' }
+        }),
+        getFolderChildren: () => [],
+        getFolderDescendants: () => [],
+        isDockerFolderLocked: () => false,
+        ensureDockerFolderUnlocked: () => true,
+        normalizeFolderParentId,
+        escapeHtml: (value) => String(value ?? ''),
+        getSafeWebuiUrl: (value) => String(value || '').trim(),
+        openWebuiPopupWindow: () => true,
+        getScopedRuntimeContainersForFolder: () => ({
+            sonarr: { managed: true, update: true },
+            radarr: { managed: true, update: false }
+        }),
+        runDockerGuardedAction: async (_actionName, action) => ({ ok: true, value: await action() }),
+        getDockerMenuLabel: (_key, fallback) => fallback,
+        loadlist: () => {
+            loadlistCalls += 1;
+        },
+        refreshDockerRuntimeState: (options = {}) => {
+            runtimeRefreshCalls.push(options);
+            return Promise.resolve(true);
+        },
+        eventURL: '/plugins/dynamix.docker.manager/include/Events.php',
+        debugEnabled: false,
+        console
+    });
+
+    actionsApi.updateFolder('media');
+
+    assert.equal(openDockerCalls.length, 1);
+    assert.equal(openDockerCalls[0][0], 'update_container sonarr');
+    assert.equal(openDockerCalls[0][3], '__fvplusDockerDialogRefresh');
+    assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
+
+    await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
+
+    assert.equal(loadlistCalls, 1);
+    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }]);
 });
 
 test('docker branch clone order keeps parent folders ahead of nested descendants', () => {

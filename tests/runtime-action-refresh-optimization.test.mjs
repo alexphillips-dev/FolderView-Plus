@@ -16,11 +16,15 @@ test('docker runtime actions refresh visible state in place instead of forcing a
     assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\);/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{ followupDelayMs: 650 \}\);/);
     assert.match(dockerRuntimeActionsJs, /const refreshDockerRuntimeState = typeof deps\.refreshDockerRuntimeState === 'function'/);
+    assert.match(dockerRuntimeActionsJs, /const queueDockerListRefresh = typeof deps\.queueLoadlistRefresh === 'function'/);
     assert.match(dockerRuntimeActionsJs, /refreshDockerRuntimeState\(\{ followupDelayMs: 650 \}\)/);
     assert.match(dockerRuntimeActionsJs, /const DOCKER_DIALOG_REFRESH_CALLBACK_NAME = '__fvplusDockerDialogRefresh';/);
+    assert.match(dockerRuntimeActionsJs, /const DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS = \[3200,\s*9000\];/);
     assert.match(dockerRuntimeActionsJs, /const runDockerDialogRefresh = \(\) => \{[\s\S]*refreshDockerList\(\);[\s\S]*refreshDockerRuntimeState\(\{\s*followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS\s*\}\)/);
+    assert.match(dockerRuntimeActionsJs, /const scheduleDockerDialogRefreshBackstops = \(\) => \{[\s\S]*queueDockerListRefresh\(\{ suppressLoadingUi: true \}\);/);
     assert.match(dockerRuntimeActionsJs, /const getDockerDialogRefreshCallbackName = \(\) => \{[\s\S]*win\[DOCKER_DIALOG_REFRESH_CALLBACK_NAME\] = \(\) => \{[\s\S]*runDockerDialogRefresh\(\);[\s\S]*\};[\s\S]*return DOCKER_DIALOG_REFRESH_CALLBACK_NAME;/);
-    assert.match(dockerRuntimeActionsJs, /openDockerDialog\('update_container ' \+ containersToUpdate,\s*i18nLabel\('updating', folder\.name\),\s*'',\s*getDockerDialogRefreshCallbackName\(\)\);/);
+    assert.match(dockerRuntimeActionsJs, /const openDockerFolderUpdateDialog = \(containersToUpdate,\s*title\) => \{[\s\S]*scheduleDockerDialogRefreshBackstops\(\);[\s\S]*openDockerDialog\('update_container ' \+ containersToUpdate,\s*title,\s*'',\s*getDockerDialogRefreshCallbackName\(\)\);/);
+    assert.match(dockerJs, /queueLoadlistRefresh:\s*\(options = \{\}\) => queueLoadlistRefresh\(options\),/);
     assert.doesNotMatch(
         dockerRuntimeActionsJs,
         /const actionFolder = async \(id,\s*action,\s*\{ includeDescendants = true \} = \{\}\) => \{[\s\S]*?const errors = results\.filter\(\(entry\) => entry\?\.success !== true\);[\s\S]*?refreshDockerList\(\);[\s\S]*?\};/

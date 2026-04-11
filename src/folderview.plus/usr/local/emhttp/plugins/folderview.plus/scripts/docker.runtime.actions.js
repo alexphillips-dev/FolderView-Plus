@@ -65,6 +65,7 @@
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
                 : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
+        const queueDockerListRefresh = typeof deps.queueLoadlistRefresh === 'function' ? deps.queueLoadlistRefresh : (() => {});
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;
@@ -108,6 +109,7 @@
         const DOCKER_DIALOG_REFRESH_CALLBACK_NAME = '__fvplusDockerDialogRefresh';
         const DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS = 180;
         const DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS = 650;
+        const DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS = [3200, 9000];
 
         const i18nLabel = (key, fallback = '') => {
             const safeKey = String(key || '').trim();
@@ -138,6 +140,21 @@
             }, DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS);
         };
 
+        const scheduleDockerDialogRefreshBackstops = () => {
+            DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS.forEach((delayMs) => {
+                defer(() => {
+                    try {
+                        queueDockerListRefresh({ suppressLoadingUi: true });
+                    } catch (error) {
+                        debugWarn('[FV3_DEBUG] Docker dialog refresh: queued backstop refresh failed.', error);
+                        try {
+                            refreshDockerList();
+                        } catch (_refreshError) {}
+                    }
+                }, delayMs);
+            });
+        };
+
         const getDockerDialogRefreshCallbackName = () => {
             if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
                 return 'loadlist';
@@ -148,6 +165,11 @@
                 };
             }
             return DOCKER_DIALOG_REFRESH_CALLBACK_NAME;
+        };
+
+        const openDockerFolderUpdateDialog = (containersToUpdate, title) => {
+            scheduleDockerDialogRefreshBackstops();
+            openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };
 
         const parseJsonPayloadSafe = (payload) => {
@@ -489,7 +511,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', getDockerDialogRefreshCallbackName());
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
         };
 
         const updateFolder = (id, { includeDescendants = true } = {}) => {
@@ -510,7 +532,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', getDockerDialogRefreshCallbackName());
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
         };
 
         const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) =>

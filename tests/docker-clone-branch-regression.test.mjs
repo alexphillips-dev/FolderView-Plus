@@ -55,6 +55,7 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     runDockerGuardedAction: deps.runDockerGuardedAction || (async (_actionName, action) => ({ ok: true, value: await action() })),
     getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
     loadlist: deps.loadlist || (() => {}),
+    queueLoadlistRefresh: deps.queueLoadlistRefresh || (() => {}),
     refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
     eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
     generateDockerFolderCloneId: deps.generateDockerFolderCloneId,
@@ -110,6 +111,7 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
 test('docker folder update dialog callback preserves host loadlist and schedules runtime refresh follow-up', async () => {
     const openDockerCalls = [];
     let loadlistCalls = 0;
+    const queuedRefreshCalls = [];
     const runtimeRefreshCalls = [];
     const windowContext = {
         prompt: () => '',
@@ -159,6 +161,9 @@ test('docker folder update dialog callback preserves host loadlist and schedules
         loadlist: () => {
             loadlistCalls += 1;
         },
+        queueLoadlistRefresh: (options = {}) => {
+            queuedRefreshCalls.push(options);
+        },
         refreshDockerRuntimeState: (options = {}) => {
             runtimeRefreshCalls.push(options);
             return Promise.resolve(true);
@@ -174,6 +179,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.equal(openDockerCalls[0][0], 'update_container sonarr');
     assert.equal(openDockerCalls[0][3], '__fvplusDockerDialogRefresh');
     assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
+    assert.deepEqual(queuedRefreshCalls, [{ suppressLoadingUi: true }, { suppressLoadingUi: true }]);
 
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 

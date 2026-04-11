@@ -614,6 +614,7 @@ const getDockerRuntimeActionsApi = () => {
                 runDockerGuardedAction(actionName, action, context),
             getDockerMenuLabel: (key, fallback) => getDockerMenuLabel(key, fallback),
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
+            queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
             loadlist: () => loadlist(),
             eventURL,
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,

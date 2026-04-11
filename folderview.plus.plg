@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.11.01">
-<!ENTITY md5 "98efc3eef33929ca401959b958ccecb5">
+<!ENTITY version "2026.04.11.02">
+<!ENTITY md5 "9002723525f5d1f100c6835c96a01d35">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.11.02
+- Fix: Docker folder `update all` and `force update` actions now arm delayed refresh backstops after the host update dialog opens, so stale `apply update` badges clear even when the host modal does not fully reconcile the list immediately.
+- Quality: FolderView Plus now wires the Docker action runtime to the debounced list refresh queue for this bulk-update path instead of relying only on the modal callback.
+- Regression guard: Added coverage for the Docker bulk-update dialog refresh callback and backstop refresh scheduling.
+
 
 ###2026.04.11.01
 - Fix: Docker runtime rows, folder state, and container interactions.

@@ -179,12 +179,13 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.equal(openDockerCalls[0][0], 'update_container sonarr');
     assert.equal(openDockerCalls[0][3], '__fvplusDockerDialogRefresh');
     assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
-    assert.deepEqual(queuedRefreshCalls, [{ suppressLoadingUi: true }, { suppressLoadingUi: true }]);
+    assert.deepEqual(queuedRefreshCalls, []);
+    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }]);
 
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 
     assert.equal(loadlistCalls, 1);
-    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }]);
+    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }, { followupDelayMs: 650 }]);
 });
 
 test('docker branch clone order keeps parent folders ahead of nested descendants', () => {

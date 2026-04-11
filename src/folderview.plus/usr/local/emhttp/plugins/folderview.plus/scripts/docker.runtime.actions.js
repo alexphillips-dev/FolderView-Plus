@@ -143,14 +143,18 @@
         const scheduleDockerDialogRefreshBackstops = () => {
             DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS.forEach((delayMs) => {
                 defer(() => {
-                    try {
-                        queueDockerListRefresh({ suppressLoadingUi: true });
-                    } catch (error) {
-                        debugWarn('[FV3_DEBUG] Docker dialog refresh: queued backstop refresh failed.', error);
+                    Promise.resolve(refreshDockerRuntimeState({
+                        followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                    })).catch((error) => {
+                        debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime-state backstop failed.', error);
                         try {
-                            refreshDockerList();
-                        } catch (_refreshError) {}
-                    }
+                            queueDockerListRefresh({ suppressLoadingUi: true });
+                        } catch (_queueError) {
+                            try {
+                                refreshDockerList();
+                            } catch (_refreshError) {}
+                        }
+                    });
                 }, delayMs);
             });
         };

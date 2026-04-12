@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.11.05">
-<!ENTITY md5 "c74df8775e1b03e641ce9a19b7c552df">
+<!ENTITY version "2026.04.12.01">
+<!ENTITY md5 "d3cd4ff64da4bcfbc1ae90f4314b99f9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.12.01
+- Fix: Docker member-row runtime sync now recovers direct folder rows through the canonical direct-member resolver when host DOM updates strip folder-specific row classes, so bulk-update repaints still clear stale `apply update` badges without a full page refresh.
+- Quality: The Docker preview action runtime now falls back from folder-class selectors to direct member recovery before giving up on a row repaint, which hardens update-state sync against host row mutations after bulk updates.
+- Regression guard: Added coverage for the direct-member-row fallback path in the Docker update-status regression suite.
+
 
 ###2026.04.11.05
 - Fix: Docker folder bulk-update reconciliation now survives the host Docker page redraw that lands after the update dialog completes, so stale `apply update` badges clear without a full page refresh.

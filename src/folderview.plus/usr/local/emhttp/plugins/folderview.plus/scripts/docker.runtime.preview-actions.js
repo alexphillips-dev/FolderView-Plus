@@ -25,6 +25,9 @@
         const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function' ? deps.getSafeWebuiUrl : ((value) => String(value || '').trim());
         const openWebuiInNewTab = typeof deps.openWebuiInNewTab === 'function' ? deps.openWebuiInNewTab : (() => {});
         const openTerminal = typeof deps.openTerminal === 'function' ? deps.openTerminal : (() => {});
+        const getDirectMemberRowsForFolder = typeof deps.getDirectMemberRowsForFolder === 'function'
+            ? deps.getDirectMemberRowsForFolder
+            : (() => jq());
         const shouldRenderPreviewWebuiPlaceholder = typeof deps.shouldRenderPreviewWebuiPlaceholder === 'function'
             ? deps.shouldRenderPreviewWebuiPlaceholder
             : (() => false);
@@ -251,8 +254,7 @@
             if (!folderId || !safeContainerName) {
                 return jq();
             }
-            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
-            return $rows.filter((_, row) => {
+            const matchRows = ($rows) => $rows.filter((_, row) => {
                 const rowId = String(row?.id || '').trim();
                 if (rowId === `ct-${safeContainerName}`) {
                     return true;
@@ -260,6 +262,12 @@
                 const $row = jq(row);
                 return String($row.find('td.ct-name .appname').first().text() || '').trim() === safeContainerName;
             }).first();
+            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
+            const $matchedRow = matchRows($rows);
+            if ($matchedRow.length) {
+                return $matchedRow;
+            }
+            return matchRows(getDirectMemberRowsForFolder(folderId));
         };
 
         const syncDockerStorageRowStatus = ($row, entry = {}) => {

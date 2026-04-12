@@ -170,8 +170,11 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
         }).syncDockerFolderMemberRows.toString(),
         /findDockerFolderMemberRow/
     );
+    assert.match(dockerPreviewActionsJs, /const getDirectMemberRowsForFolder = typeof deps\.getDirectMemberRowsForFolder === 'function'/);
     assert.match(dockerPreviewActionsJs, /const findDockerFolderMemberRow = \(id,\s*containerName\) => \{/);
     assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
+    assert.match(dockerPreviewActionsJs, /return matchRows\(getDirectMemberRowsForFolder\(folderId\)\);/);
+    assert.match(dockerJs, /getDirectMemberRowsForFolder: \(id\) => getDirectMemberRowsForFolder\(id\),/);
 });
 
 test('docker tooltip update action also respects the Docker advanced/basic cookie', () => {

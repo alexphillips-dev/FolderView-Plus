@@ -529,6 +529,7 @@ const getDockerPreviewActionsApi = () => {
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),
             openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
+            getDirectMemberRowsForFolder: (id) => getDirectMemberRowsForFolder(id),
             shouldRenderPreviewWebuiPlaceholder: (settings, allowWebui) => shouldRenderPreviewWebuiPlaceholder(settings, allowWebui),
             appendPreviewWebuiPlaceholder: ($target) => appendPreviewWebuiPlaceholder($target),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),

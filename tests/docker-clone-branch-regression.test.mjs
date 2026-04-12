@@ -113,6 +113,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     let loadlistCalls = 0;
     const queuedRefreshCalls = [];
     const runtimeRefreshCalls = [];
+    const folderEvents = new EventTarget();
     const windowContext = {
         prompt: () => '',
         crypto: null,
@@ -158,6 +159,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
         }),
         runDockerGuardedAction: async (_actionName, action) => ({ ok: true, value: await action() }),
         getDockerMenuLabel: (_key, fallback) => fallback,
+        folderEvents,
         loadlist: () => {
             loadlistCalls += 1;
         },
@@ -182,10 +184,22 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.deepEqual(queuedRefreshCalls, []);
     assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }]);
 
+    folderEvents.dispatchEvent(new Event('docker-post-folders-creation'));
+    assert.deepEqual(runtimeRefreshCalls, [
+        { followupDelayMs: 650 },
+        { followupDelayMs: 650 },
+        { followupDelayMs: 650 }
+    ]);
+
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 
     assert.equal(loadlistCalls, 1);
-    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }, { followupDelayMs: 650 }]);
+    assert.deepEqual(runtimeRefreshCalls, [
+        { followupDelayMs: 650 },
+        { followupDelayMs: 650 },
+        { followupDelayMs: 650 },
+        { followupDelayMs: 650 }
+    ]);
 });
 
 test('docker branch clone order keeps parent folders ahead of nested descendants', () => {

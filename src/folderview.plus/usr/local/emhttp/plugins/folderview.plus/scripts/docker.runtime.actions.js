@@ -60,6 +60,9 @@
             ? deps.getDockerMenuLabel
             : ((_key, fallback) => String(fallback || _key || '').trim());
         const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
+        const folderEvents = deps.folderEvents && typeof deps.folderEvents.addEventListener === 'function'
+            ? deps.folderEvents
+            : null;
         const folderSettingsTransfer = deps.folderSettingsTransfer
             || (typeof win?.FolderViewPlusFolderSettingsTransfer?.createApi === 'function'
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
@@ -110,6 +113,9 @@
         const DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS = 180;
         const DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS = 650;
         const DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS = [3200, 9000];
+        const DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS = 120000;
+        let dockerDialogPostRenderReconcileUntil = 0;
+        let dockerDialogPostRenderRefreshPending = false;
 
         const i18nLabel = (key, fallback = '') => {
             const safeKey = String(key || '').trim();
@@ -126,6 +132,7 @@
         };
 
         const runDockerDialogRefresh = () => {
+            dockerDialogPostRenderReconcileUntil = Date.now() + DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS;
             try {
                 refreshDockerList();
             } catch (error) {
@@ -139,6 +146,32 @@
                 });
             }, DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS);
         };
+
+        const isDockerDialogPostRenderReconcileActive = () => Date.now() <= dockerDialogPostRenderReconcileUntil;
+
+        const queueDockerDialogPostRenderRefresh = () => {
+            if (!isDockerDialogPostRenderReconcileActive() || dockerDialogPostRenderRefreshPending) {
+                return;
+            }
+            dockerDialogPostRenderRefreshPending = true;
+            defer(() => {
+                dockerDialogPostRenderRefreshPending = false;
+                if (!isDockerDialogPostRenderReconcileActive()) {
+                    return;
+                }
+                Promise.resolve(refreshDockerRuntimeState({
+                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                })).catch((error) => {
+                    debugWarn('[FV3_DEBUG] Docker dialog refresh: post-render reconcile failed.', error);
+                });
+            }, DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS);
+        };
+
+        if (folderEvents) {
+            folderEvents.addEventListener('docker-post-folders-creation', () => {
+                queueDockerDialogPostRenderRefresh();
+            });
+        }
 
         const scheduleDockerDialogRefreshBackstops = () => {
             DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS.forEach((delayMs) => {
@@ -172,6 +205,7 @@
         };
 
         const openDockerFolderUpdateDialog = (containersToUpdate, title) => {
+            dockerDialogPostRenderReconcileUntil = Date.now() + DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS;
             scheduleDockerDialogRefreshBackstops();
             openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };

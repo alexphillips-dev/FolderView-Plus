@@ -613,6 +613,7 @@ const getDockerRuntimeActionsApi = () => {
             runDockerGuardedAction: (actionName, action, context = {}) =>
                 runDockerGuardedAction(actionName, action, context),
             getDockerMenuLabel: (key, fallback) => getDockerMenuLabel(key, fallback),
+            folderEvents,
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
             loadlist: () => loadlist(),

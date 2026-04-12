@@ -2809,6 +2809,7 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    queueDockerSupportBundlePageSnapshot('runtime-sync');
 };
 
 const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic');
@@ -3157,6 +3158,7 @@ const createFolders = async () => {
     applyDockerFocusedFolderState();
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
+    queueDockerSupportBundlePageSnapshot('render-complete', 260);
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
@@ -5248,15 +5250,174 @@ let nextDockerRenderSuppressLoadingUi = false;
 let activeDockerRenderSuppressLoadingUi = false;
 let dockerListViewModeObserverTimer = null;
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
+let dockerSupportBundleSnapshotTimer = null;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
 const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
+const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
+const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
+const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
     folderCount: 0,
     itemCount: 0
 });
+
+const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return false;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(value));
+        return true;
+    } catch (_error) {
+        return false;
+    }
+};
+
+const normalizeDockerSupportBundleText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+const resolveDockerSupportBundleActionToken = (text) => {
+    const normalized = normalizeDockerSupportBundleText(text).toLowerCase();
+    if (!normalized) {
+        return 'none';
+    }
+    if (normalized.includes('apply update')) {
+        return 'applyUpdate';
+    }
+    if (normalized.includes('force update')) {
+        return 'forceUpdate';
+    }
+    if (normalized.includes('up-to-date')) {
+        return 'upToDate';
+    }
+    if (normalized.includes('update ready')) {
+        return 'updateReady';
+    }
+    return 'other';
+};
+
+const parseDockerSupportBundleFolderId = (row) => {
+    const className = String(row?.className || '').trim();
+    const match = className.match(/(?:^|\s)folder-id-([A-Za-z0-9_-]+)(?:\s|$)/);
+    return match ? String(match[1] || '').trim() : '';
+};
+
+const parseDockerSupportBundleMemberFolderId = (row) => {
+    const className = String(row?.className || '').trim();
+    const match = className.match(/(?:^|\s)folder-([A-Za-z0-9_-]+)-element(?:\s|$)/);
+    return match ? String(match[1] || '').trim() : '';
+};
+
+const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
+    const $tableRows = $('#docker_list > tr');
+    if (!$tableRows.length) {
+        return null;
+    }
+    const folderEntries = [];
+    const memberEntries = [];
+    const summary = {
+        visibleFolderRows: 0,
+        visibleMemberRows: 0,
+        expandedFolderRows: 0,
+        folderApplyUpdateCount: 0,
+        folderForceUpdateCount: 0,
+        memberApplyUpdateCount: 0,
+        memberForceUpdateCount: 0,
+        memberMissingFolderClassCount: 0
+    };
+
+    $tableRows.each((_, row) => {
+        const $row = $(row);
+        if (!$row.is(':visible')) {
+            return;
+        }
+        const folderId = parseDockerSupportBundleFolderId(row);
+        if (folderId) {
+            const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
+            const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
+            const expanded = $(`.dropDown-${folderId}`).attr('active') === 'true';
+            summary.visibleFolderRows += 1;
+            if (expanded) {
+                summary.expandedFolderRows += 1;
+            }
+            if (actionToken === 'applyUpdate') {
+                summary.folderApplyUpdateCount += 1;
+            } else if (actionToken === 'forceUpdate') {
+                summary.folderForceUpdateCount += 1;
+            }
+            if (folderEntries.length < DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT) {
+                folderEntries.push({
+                    folderId,
+                    folderName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()),
+                    expanded,
+                    updateCellText,
+                    actionToken,
+                    statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
+                });
+            }
+            return;
+        }
+        const rawId = String(row?.id || '').trim();
+        if (!rawId.startsWith('ct-')) {
+            return;
+        }
+        const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
+        const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
+        const memberFolderId = parseDockerSupportBundleMemberFolderId(row);
+        summary.visibleMemberRows += 1;
+        if (!memberFolderId) {
+            summary.memberMissingFolderClassCount += 1;
+        }
+        if (actionToken === 'applyUpdate') {
+            summary.memberApplyUpdateCount += 1;
+        } else if (actionToken === 'forceUpdate') {
+            summary.memberForceUpdateCount += 1;
+        }
+        if (memberEntries.length < DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT) {
+            memberEntries.push({
+                containerName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()) || rawId.slice(3),
+                folderId: memberFolderId || '',
+                classTagged: memberFolderId !== '',
+                updateCellText,
+                actionToken,
+                statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
+            });
+        }
+    });
+
+    return {
+        capturedAt: new Date().toISOString(),
+        reason: String(reason || 'runtime-sync').trim() || 'runtime-sync',
+        currentPage: String(location?.pathname || ''),
+        listViewMode: readDockerListViewMode(),
+        folderRows: {
+            count: summary.visibleFolderRows,
+            truncated: summary.visibleFolderRows > folderEntries.length,
+            entries: folderEntries
+        },
+        memberRows: {
+            count: summary.visibleMemberRows,
+            truncated: summary.visibleMemberRows > memberEntries.length,
+            entries: memberEntries
+        },
+        summary
+    };
+};
+
+const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
+    if (dockerSupportBundleSnapshotTimer) {
+        clearTimeout(dockerSupportBundleSnapshotTimer);
+    }
+    dockerSupportBundleSnapshotTimer = setTimeout(() => {
+        dockerSupportBundleSnapshotTimer = null;
+        const snapshot = collectDockerSupportBundlePageSnapshot(reason);
+        if (snapshot) {
+            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+        }
+    }, Math.max(0, Number(delayMs) || 0));
+};
 
 const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) => {
     const folderCount = Object.keys(folders && typeof folders === 'object' ? folders : {}).length;

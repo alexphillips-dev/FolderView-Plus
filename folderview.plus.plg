@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.12.01">
-<!ENTITY md5 "d3cd4ff64da4bcfbc1ae90f4314b99f9">
+<!ENTITY version "2026.04.12.03">
+<!ENTITY md5 "3c25c3199c7a2f6fae9ed49620145318">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.12.03
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.12.02
+- Diagnostics: Support bundles now include the last persisted Docker-page rendered-state snapshot and a recent Docker bulk-update trace, so Settings-page exports can still show what the Docker UI actually rendered after an update flow.
+- Diagnostics: The Docker page now records visible folder/member row action text, expanded state, and missing folder-class counts into a support-bundle snapshot to help isolate stale row repaint issues from correct runtime state.
+- Quality: Added regression coverage for the new Docker support-bundle telemetry collectors and their wiring into the Settings diagnostics export path.
+
 
 ###2026.04.12.01
 - Fix: Docker member-row runtime sync now recovers direct folder rows through the canonical direct-member resolver when host DOM updates strip folder-specific row classes, so bulk-update repaints still clear stale `apply update` badges without a full page refresh.

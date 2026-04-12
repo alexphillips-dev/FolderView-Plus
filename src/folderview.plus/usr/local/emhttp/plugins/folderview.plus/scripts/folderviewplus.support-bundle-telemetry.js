@@ -238,6 +238,8 @@
             count: 0,
             entries: []
         }));
+        const collectDockerPageDiagnostics = browserCollectors?.collectDockerPageDiagnostics || (() => ({ available: false }));
+        const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
@@ -267,6 +269,10 @@
                 'browserConsoleErrors',
                 collectBrowserConsoleErrors()
             );
+            existingUiTelemetry.dockerDiagnostics = {
+                pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
+                bulkUpdateTrace: collectDockerBulkUpdateTrace(uiRedactor)
+            };
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',

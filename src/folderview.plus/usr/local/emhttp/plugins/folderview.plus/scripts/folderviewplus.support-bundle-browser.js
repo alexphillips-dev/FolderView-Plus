@@ -24,6 +24,11 @@
         const storageKeys = deps.storageKeys && typeof deps.storageKeys === 'object' && !Array.isArray(deps.storageKeys)
             ? deps.storageKeys
             : {};
+        const sanitizeUiRecord = (uiRedactor, fieldPath, key, value) => (
+            uiRedactor && typeof uiRedactor.sanitizeValue === 'function'
+                ? uiRedactor.sanitizeValue(fieldPath, key, value)
+                : value
+        );
 
         const readCookieValue = (name) => {
             const safeName = String(name || '').trim();
@@ -175,12 +180,36 @@
             };
         };
 
+        const collectDockerPageDiagnostics = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerPage || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.pageSnapshot', 'pageSnapshot', {
+                available: true,
+                ...record
+            });
+        };
+
+        const collectDockerBulkUpdateTrace = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerBulkUpdateTrace || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.bulkUpdateTrace', 'bulkUpdateTrace', {
+                available: true,
+                ...record
+            });
+        };
+
         return Object.freeze({
             collectBrowserCapabilities,
             collectClientStorageDiagnostics,
             collectCurrentPageTelemetry,
             collectLoadedAssetTelemetry,
-            collectBrowserConsoleErrors
+            collectBrowserConsoleErrors,
+            collectDockerPageDiagnostics,
+            collectDockerBulkUpdateTrace
         });
     };
 

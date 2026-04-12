@@ -400,7 +400,9 @@ const getSupportBundleTelemetryApi = () => {
             storageKeys: {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
                 bootstrap: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
-                surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY
+                surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY,
+                dockerPage: 'fv.support.bundle.docker.page.v1',
+                dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1'
             }
         });
     }

@@ -618,6 +618,8 @@ const getDockerRuntimeActionsApi = () => {
             folderEvents,
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
+            armDockerPostUpdateRuntimeReconcileWindow: (durationMs = 0, options = {}) =>
+                armDockerPostUpdateRuntimeReconcileWindow(durationMs, options),
             suspendDockerHostUpdateSync: (durationMs = 0) => suspendDockerHostUpdateSync(durationMs),
             loadlist: () => loadlist(),
             eventURL,
@@ -672,6 +674,8 @@ const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
+const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
+const DOCKER_BULK_UPDATE_TRACE_LIMIT = 30;
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -697,6 +701,32 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     const resolvedUntil = Math.max(readDockerHostUpdateSyncSuspendedUntil(), nextUntil);
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
+};
+const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return false;
+        }
+        const existingRaw = String(localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
+        const existing = existingRaw ? JSON.parse(existingRaw) : {};
+        const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_BULK_UPDATE_TRACE_LIMIT) : [];
+        entries.push({
+            at: new Date().toISOString(),
+            eventType: String(eventType || '').trim() || 'unknown',
+            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
+        });
+        while (entries.length > DOCKER_BULK_UPDATE_TRACE_LIMIT) {
+            entries.shift();
+        }
+        localStorage.setItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, JSON.stringify({
+            updatedAt: new Date().toISOString(),
+            count: entries.length,
+            entries
+        }));
+        return true;
+    } catch (_error) {
+        return false;
+    }
 };
 const getSafeWebuiUrl = (value) => {
     const raw = String(value || '').trim();
@@ -2896,7 +2926,31 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
         .catch(() => {});
 };
 let dockerPostUpdateRuntimeReconcileTimer = null;
-const queueDockerPostUpdateRuntimeReconcile = (delayMs = 220) => {
+const queueDockerPostUpdateRuntimeReconcilePoll = (delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS) => {
+    if (!isDockerHostUpdateSyncSuspended() || dockerPostUpdateRuntimePollTimer !== null) {
+        return;
+    }
+    const safeDelayMs = Math.max(0, Number(delayMs) || 0);
+    dockerPostUpdateRuntimePollTimer = window.setTimeout(() => {
+        dockerPostUpdateRuntimePollTimer = null;
+        if (!isDockerHostUpdateSyncSuspended()) {
+            return;
+        }
+        appendDockerBulkUpdateTrace('postUpdatePoll', {
+            delayMs: safeDelayMs
+        });
+        Promise.resolve(refreshDockerRuntimeStateInPlace({
+            followupDelayMs: 650
+        }))
+            .catch(() => {})
+            .finally(() => {
+                if (isDockerHostUpdateSyncSuspended()) {
+                    queueDockerPostUpdateRuntimeReconcilePoll(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS);
+                }
+            });
+    }, safeDelayMs);
+};
+const queueDockerPostUpdateRuntimeReconcile = (delayMs = DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS) => {
     if (!isDockerHostUpdateSyncSuspended() || dockerPostUpdateRuntimeReconcileTimer !== null) {
         return;
     }
@@ -2908,8 +2962,33 @@ const queueDockerPostUpdateRuntimeReconcile = (delayMs = 220) => {
         }
         Promise.resolve(refreshDockerRuntimeStateInPlace({
             followupDelayMs: 650
-        })).catch(() => {});
+        }))
+            .catch(() => {})
+            .finally(() => {
+                if (isDockerHostUpdateSyncSuspended()) {
+                    queueDockerPostUpdateRuntimeReconcilePoll(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS);
+                }
+            });
     }, safeDelayMs);
+};
+const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
+    const resolvedUntil = suspendDockerHostUpdateSync(durationMs);
+    const initialDelayMs = Math.max(
+        0,
+        Number(options?.initialDelayMs ?? DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS) || 0
+    );
+    const pollDelayMs = Math.max(
+        0,
+        Number(options?.pollDelayMs ?? DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS) || 0
+    );
+    appendDockerBulkUpdateTrace('reconcileWindowArmed', {
+        durationMs: Math.max(0, Number(durationMs) || 0),
+        initialDelayMs,
+        pollDelayMs
+    });
+    queueDockerPostUpdateRuntimeReconcile(initialDelayMs);
+    queueDockerPostUpdateRuntimeReconcilePoll(pollDelayMs);
+    return resolvedUntil;
 };
 
 let createFoldersInFlight = false;
@@ -5286,6 +5365,8 @@ let activeDockerRenderSuppressLoadingUi = false;
 let dockerListViewModeObserverTimer = null;
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
 let dockerSupportBundleSnapshotTimer = null;
+let dockerPostUpdateRuntimePollTimer = null;
+let dockerUpdateActionClickCaptureBound = false;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -5294,6 +5375,8 @@ const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
 const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
 const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
 const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
+const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
+const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
     folderCount: 0,
     itemCount: 0
@@ -5452,6 +5535,43 @@ const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs =
             writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
         }
     }, Math.max(0, Number(delayMs) || 0));
+};
+const shouldArmDockerPostUpdateReconcileFromClick = (target) => {
+    const actionNode = target instanceof Element
+        ? target.closest('#docker_list td.updatecolumn a.exec, #docker_view td.updatecolumn a.exec')
+        : null;
+    if (!(actionNode instanceof HTMLAnchorElement)) {
+        return false;
+    }
+    const row = actionNode.closest('tr');
+    if (!(row instanceof HTMLTableRowElement)) {
+        return false;
+    }
+    const rawOnClick = String(actionNode.getAttribute('onclick') || '').trim();
+    const updateText = normalizeDockerSupportBundleText(actionNode.closest('td.updatecolumn')?.textContent || '');
+    return /(?:^|[^A-Za-z0-9_])(?:updateFolder|forceUpdateFolder)\(/.test(rawOnClick)
+        || /\b(?:apply update|force update)\b/i.test(updateText);
+};
+const handleDockerUpdateActionClickCapture = (event) => {
+    if (!shouldArmDockerPostUpdateReconcileFromClick(event?.target)) {
+        return;
+    }
+    appendDockerBulkUpdateTrace('updateActionClick', {
+        currentPage: String(location?.pathname || ''),
+        listViewMode: readDockerListViewMode()
+    });
+    armDockerPostUpdateRuntimeReconcileWindow(120000, {
+        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
+        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+    });
+    queueDockerSupportBundlePageSnapshot('update-action-click', 80);
+};
+const bindDockerUpdateActionClickCapture = () => {
+    if (dockerUpdateActionClickCaptureBound || typeof document?.addEventListener !== 'function') {
+        return;
+    }
+    document.addEventListener('click', handleDockerUpdateActionClickCapture, true);
+    dockerUpdateActionClickCaptureBound = true;
 };
 
 const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) => {
@@ -5717,6 +5837,7 @@ function buildDockerFolderReq() {
 // Prime requests for environments where loadlist isn't called first.
 folderReq = buildDockerFolderReq();
 markDockerFatalBannerStep('Docker request bundle primed');
+bindDockerUpdateActionClickCapture();
 startDockerListViewModeObserver();
 
 if (FOLDER_VIEW_DEBUG_MODE) {

@@ -74,6 +74,9 @@
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;
+        const armDockerPostUpdateRuntimeReconcileWindow = typeof deps.armDockerPostUpdateRuntimeReconcileWindow === 'function'
+            ? deps.armDockerPostUpdateRuntimeReconcileWindow
+            : null;
         const suspendDockerHostUpdateSync = typeof deps.suspendDockerHostUpdateSync === 'function'
             ? deps.suspendDockerHostUpdateSync
             : (() => 0);
@@ -256,7 +259,14 @@
 
         const openDockerFolderUpdateDialog = (containersToUpdate, title) => {
             dockerDialogPostRenderReconcileUntil = Date.now() + DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS;
-            suspendDockerHostUpdateSync(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS);
+            if (armDockerPostUpdateRuntimeReconcileWindow) {
+                armDockerPostUpdateRuntimeReconcileWindow(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS, {
+                    initialDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS,
+                    pollDelayMs: Math.max(...DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS)
+                });
+            } else {
+                suspendDockerHostUpdateSync(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS);
+            }
             const containerNames = String(containersToUpdate || '')
                 .split('*')
                 .map((entry) => String(entry || '').trim())

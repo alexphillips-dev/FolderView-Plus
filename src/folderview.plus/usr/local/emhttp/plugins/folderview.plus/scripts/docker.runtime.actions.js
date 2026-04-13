@@ -74,6 +74,9 @@
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;
+        const suspendDockerHostUpdateSync = typeof deps.suspendDockerHostUpdateSync === 'function'
+            ? deps.suspendDockerHostUpdateSync
+            : (() => 0);
         const eventUrl = String(deps.eventURL || win?.eventURL || '').trim();
         const debugEnabled = deps.debugEnabled === true;
         const consoleRef = deps.console || win?.console || null;
@@ -253,6 +256,7 @@
 
         const openDockerFolderUpdateDialog = (containersToUpdate, title) => {
             dockerDialogPostRenderReconcileUntil = Date.now() + DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS;
+            suspendDockerHostUpdateSync(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS);
             const containerNames = String(containersToUpdate || '')
                 .split('*')
                 .map((entry) => String(entry || '').trim())

@@ -57,6 +57,7 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     loadlist: deps.loadlist || (() => {}),
     queueLoadlistRefresh: deps.queueLoadlistRefresh || (() => {}),
     refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
+    suspendDockerHostUpdateSync: deps.suspendDockerHostUpdateSync || (() => 0),
     eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
     generateDockerFolderCloneId: deps.generateDockerFolderCloneId,
     persistDockerFolderClonePayload: deps.persistDockerFolderClonePayload,
@@ -113,6 +114,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     let loadlistCalls = 0;
     const queuedRefreshCalls = [];
     const runtimeRefreshCalls = [];
+    const suspendCalls = [];
     const folderEvents = new EventTarget();
     const windowContext = {
         prompt: () => '',
@@ -170,6 +172,10 @@ test('docker folder update dialog callback preserves host loadlist and schedules
             runtimeRefreshCalls.push(options);
             return Promise.resolve(true);
         },
+        suspendDockerHostUpdateSync: (durationMs) => {
+            suspendCalls.push(durationMs);
+            return Date.now() + Number(durationMs || 0);
+        },
         eventURL: '/plugins/dynamix.docker.manager/include/Events.php',
         debugEnabled: false,
         console
@@ -181,6 +187,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.equal(openDockerCalls[0][0], 'update_container sonarr');
     assert.equal(openDockerCalls[0][3], '__fvplusDockerDialogRefresh');
     assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
+    assert.deepEqual(suspendCalls, [120000]);
     assert.deepEqual(queuedRefreshCalls, []);
     assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }]);
 

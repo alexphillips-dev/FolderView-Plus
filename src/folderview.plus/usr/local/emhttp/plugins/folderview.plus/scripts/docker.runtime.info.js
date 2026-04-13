@@ -20,6 +20,9 @@
         const syncDockerVisibleFoldersFromRuntimeCache = typeof deps.syncDockerVisibleFoldersFromRuntimeCache === 'function'
             ? deps.syncDockerVisibleFoldersFromRuntimeCache
             : (() => {});
+        const isHostUpdateSyncSuspended = typeof deps.isHostUpdateSyncSuspended === 'function'
+            ? deps.isHostUpdateSyncSuspended
+            : (() => false);
         const resolvePreferredWebuiValue = typeof deps.resolvePreferredWebuiValue === 'function'
             ? deps.resolvePreferredWebuiValue
             : ((...candidates) => {
@@ -190,6 +193,9 @@
 
         const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
             if (!doc) {
+                return false;
+            }
+            if (isHostUpdateSyncSuspended()) {
                 return false;
             }
             const requestedNames = Array.isArray(names)

@@ -515,7 +515,8 @@ const getDockerRuntimeInfoApi = () => {
             folderLabelKeys: FOLDER_LABEL_KEYS,
             getGlobalFolders: () => globalFolders,
             getFolderDescendants: (id) => getFolderDescendants(id),
-            folderHasChildren: (id) => folderHasChildren(id)
+            folderHasChildren: (id) => folderHasChildren(id),
+            isHostUpdateSyncSuspended: () => isDockerHostUpdateSyncSuspended()
         });
     }
     return dockerRuntimeInfoApi;
@@ -617,6 +618,7 @@ const getDockerRuntimeActionsApi = () => {
             folderEvents,
             refreshDockerRuntimeState: (options = {}) => refreshDockerRuntimeStateInPlace(options),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
+            suspendDockerHostUpdateSync: (durationMs = 0) => suspendDockerHostUpdateSync(durationMs),
             loadlist: () => loadlist(),
             eventURL,
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
@@ -669,6 +671,7 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
 const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
+const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -679,6 +682,21 @@ const resolvePreferredWebuiValue = (...candidates) => {
         return raw;
     }
     return '';
+};
+const readDockerHostUpdateSyncSuspendedUntil = () => {
+    const rawValue = Number(window?.[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] || 0);
+    return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : 0;
+};
+const isDockerHostUpdateSyncSuspended = () => readDockerHostUpdateSyncSuspendedUntil() > Date.now();
+const suspendDockerHostUpdateSync = (durationMs = 0) => {
+    const safeDurationMs = Math.max(0, Number(durationMs) || 0);
+    if (safeDurationMs <= 0 || !window) {
+        return readDockerHostUpdateSyncSuspendedUntil();
+    }
+    const nextUntil = Date.now() + safeDurationMs;
+    const resolvedUntil = Math.max(readDockerHostUpdateSyncSuspendedUntil(), nextUntil);
+    window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
+    return resolvedUntil;
 };
 const getSafeWebuiUrl = (value) => {
     const raw = String(value || '').trim();
@@ -2877,6 +2895,22 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
         })
         .catch(() => {});
 };
+let dockerPostUpdateRuntimeReconcileTimer = null;
+const queueDockerPostUpdateRuntimeReconcile = (delayMs = 220) => {
+    if (!isDockerHostUpdateSyncSuspended() || dockerPostUpdateRuntimeReconcileTimer !== null) {
+        return;
+    }
+    const safeDelayMs = Math.max(0, Number(delayMs) || 0);
+    dockerPostUpdateRuntimeReconcileTimer = window.setTimeout(() => {
+        dockerPostUpdateRuntimeReconcileTimer = null;
+        if (!isDockerHostUpdateSyncSuspended()) {
+            return;
+        }
+        Promise.resolve(refreshDockerRuntimeStateInPlace({
+            followupDelayMs: 650
+        })).catch(() => {});
+    }, safeDelayMs);
+};
 
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
@@ -2915,7 +2949,7 @@ const createFolders = async () => {
         ? { ...containersInfo }
         : {};
     ensureDockerHostRowUpdateObserver();
-    if (syncDockerHostRowUpdateStatesFromDom()) {
+    if (!isDockerHostUpdateSyncSuspended() && syncDockerHostRowUpdateStatesFromDom()) {
         containersInfo = { ...dockerRuntimeInfoByName };
     }
     let order = readDockerHostOrderFromDom();
@@ -3159,6 +3193,7 @@ const createFolders = async () => {
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
+    queueDockerPostUpdateRuntimeReconcile();
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');

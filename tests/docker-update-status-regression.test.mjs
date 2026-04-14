@@ -61,15 +61,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerRuntimeInfoJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*\}/);
     assert.match(dockerRuntimeInfoJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';/);
-    assert.match(dockerJs, /const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);
-    assert.match(dockerJs, /const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
-    assert.match(dockerJs, /const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv\.support\.bundle\.docker\.traceHealth\.v1';/);
-    assert.match(dockerJs, /const DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES = 98304;/);
-    assert.match(dockerJs, /const DOCKER_TRACE_STORAGE_MAX_BYTES = 32768;/);
-    assert.match(dockerJs, /const DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES = 12288;/);
-    assert.match(dockerJs, /const compactDockerTraceStoragePayload = \(value,\s*maxBytes\) => \{/);
-    assert.match(dockerJs, /const compactDockerPageSnapshotStoragePayload = \(value,\s*maxBytes\) => \{/);
-    assert.match(dockerJs, /const compactDockerDiagnosticsStoragePayload = \(storageKey,\s*value\) => \{/);
+    assert.match(dockerJs, /const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule\?\.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY \|\| 'fv\.support\.bundle\.docker\.page\.v1';/);
+    assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);
+    assert.match(dockerJs, /const dockerRuntimeDiagnosticsModule = window\.FolderViewPlusDockerRuntimeDiagnostics \|\| null;/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_COMMAND_REGEX = \/\^\\s\*update_container\(\?:\\s\|\$\)\/i;/);
     assert.match(dockerJs, /const isDockerHostUpdateCommand = \(command\) => DOCKER_HOST_UPDATE_COMMAND_REGEX\.test\(String\(command \|\| ''\)\.trim\(\)\);/);
     assert.match(dockerJs, /const isDockerHostUpdateSyncSuspended = \(\) => readDockerHostUpdateSyncSuspendedUntil\(\) > Date\.now\(\);/);
@@ -77,8 +71,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const updateDockerTraceHealth = \(traceName,\s*success,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerBulkUpdateTrace = \(eventType,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerRequestBundleTrace = \(eventType,\s*details = \{\}\) => \{/);
-    assert.match(dockerJs, /const compactedValue = compactDockerDiagnosticsStoragePayload\(storageKey,\s*value\);/);
-    assert.match(dockerJs, /localStorage\.setItem\(storageKey,\s*serialized\);/);
+    assert.match(dockerJs, /diagnosticsApi\.updateTraceHealth\(traceName,\s*success,\s*details\)/);
+    assert.match(dockerJs, /diagnosticsApi\.appendBulkUpdateTrace\(eventType,\s*details\)/);
+    assert.match(dockerJs, /diagnosticsApi\.appendRequestBundleTrace\(eventType,\s*details\)/);
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
@@ -87,7 +82,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const queueDockerPostUpdateRenderReconcile = \(reason = 'docker-post-folders-creation'\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)/);
     assert.match(dockerJs, /const bindDockerPostUpdateRenderReconcile = \(\) => \{[\s\S]*window\.folderEvents\.addEventListener\('docker-post-folders-creation', \(\) => \{[\s\S]*queueDockerPostUpdateRenderReconcile\('docker-post-folders-creation'\);[\s\S]*\}\);/);
     assert.match(dockerJs, /function armDockerPostUpdateRuntimeReconcileForHostCommand\(command,\s*origin = 'host-openDocker'\) \{[\s\S]*appendDockerBulkUpdateTrace\('hostUpdateCommand'/);
-    assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*window\.openDocker = wrappedOpenDocker;[\s\S]*markDockerFatalBannerStep\('Docker openDocker hook captured'\);/);
+    assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*captureHostHook\?\.\('window\.openDocker'/);
+    assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*noteHookInvocation\?\.\('window\.openDocker'/);
+    assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*noteHookWrapped\?\.\('window\.openDocker'/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*appendDockerBulkUpdateTrace\('reconcileWindowArmed'/);
     assert.match(dockerJs, /const handleDockerUpdateActionClickCapture = \(event\) => \{[\s\S]*appendDockerBulkUpdateTrace\('updateActionClick'/);
     assert.match(dockerJs, /const bindDockerUpdateActionClickCapture = \(\) => \{[\s\S]*document\.addEventListener\('click', handleDockerUpdateActionClickCapture, true\);/);
@@ -95,18 +92,13 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerHostOpenDockerPatch\(\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
     assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
     assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
-    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*const mismatches = \{/);
-    assert.match(dockerJs, /expectedActionToken/);
-    assert.match(dockerJs, /actionMismatch/);
+    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
+    assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{/);
+    assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
 });
 
 test('docker support bundle snapshot reads only visible update-column text in basic view', () => {
-    assert.match(dockerJs, /const isDockerSupportBundleNodeVisible = \(node,\s*boundary = null\) => \{/);
-    assert.match(dockerJs, /const collectDockerSupportBundleVisibleText = \(node,\s*boundary,\s*segments = \[\]\) => \{/);
-    assert.match(dockerJs, /const readDockerSupportBundleVisibleUpdateCellText = \(\$updateCell\) => \{/);
-    assert.match(dockerJs, /window\.getComputedStyle\(current\)/);
-    const visibleUpdateCellReads = dockerJs.match(/readDockerSupportBundleVisibleUpdateCellText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\)/g) || [];
-    assert.equal(visibleUpdateCellReads.length, 2);
+    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
     assert.doesNotMatch(dockerJs, /const updateCellText = normalizeDockerSupportBundleText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
 });
 

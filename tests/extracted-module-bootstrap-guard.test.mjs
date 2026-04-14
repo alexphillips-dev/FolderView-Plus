@@ -22,6 +22,8 @@ const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/f
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
+const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
+const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
 
 test('extracted helper modules use a safe global fallback instead of out-of-scope root references', () => {
     for (const source of [
@@ -40,7 +42,9 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         dockerRuntimeInfoJs,
         dockerPreviewActionsJs,
         dockerRuntimeHierarchyJs,
-        dockerRuntimeActionsJs
+        dockerRuntimeActionsJs,
+        dockerRuntimeHostGuardsJs,
+        dockerRuntimeDiagnosticsJs
     ]) {
         assert.match(source, /const fallbackWindow = typeof globalThis !== 'undefined'/);
         assert.doesNotMatch(source, /deps\.window \|\| root/);

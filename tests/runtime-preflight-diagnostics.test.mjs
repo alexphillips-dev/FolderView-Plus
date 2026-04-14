@@ -46,12 +46,12 @@ test('docker and vm pages seed runtime preflight into the fatal-banner context a
 });
 
 test('docker and vm runtimes report host-page structure drift explicitly', () => {
-    assert.match(dockerJs, /const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object\.freeze\(\[/);
+    assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);
+    assert.match(dockerJs, /const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object\.freeze\(\s*dockerHostGuardsModule\?\.DEFAULT_REQUIRED_SELECTORS \|\| \[/);
     assert.match(dockerJs, /Docker table shell', selector: 'table#docker_containers'/);
     assert.match(dockerJs, /Docker table body', selector: 'tbody#docker_list'/);
     assert.match(dockerJs, /const ensureDockerHostPageStructure = \(\) =>/);
-    assert.match(dockerJs, /code: 'FVPLUS-DKR-DOM-001'/);
-    assert.match(dockerJs, /category: 'host-page-structure'/);
+    assert.match(dockerJs, /hostGuardsApi\.ensureHostPageStructure\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker host page signature verified'\);/);
 
     assert.match(vmJs, /const VM_HOST_PAGE_REQUIRED_SELECTORS = Object\.freeze\(\[/);

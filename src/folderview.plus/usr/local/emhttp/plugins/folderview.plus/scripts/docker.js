@@ -10,6 +10,8 @@ const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
+const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
+const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -296,6 +298,26 @@ if (
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.actions.js', 'ok', 'Docker action helpers ready');
 }
+if (
+    window.FolderViewPlusDockerHostGuardsModuleLoaded !== true
+    || !dockerHostGuardsModule
+    || typeof dockerHostGuardsModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.host-guards.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.host-guards.js', 'missing', 'Docker host guard helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.host-guards.js', 'ok', 'Docker host guard helpers ready');
+}
+if (
+    window.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded !== true
+    || !dockerRuntimeDiagnosticsModule
+    || typeof dockerRuntimeDiagnosticsModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.diagnostics.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.diagnostics.js', 'missing', 'Docker diagnostics helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.diagnostics.js', 'ok', 'Docker diagnostics helpers ready');
+}
 if (dockerBootstrapMissingModules.length > 0) {
     reportDockerBootstrapDependencyBanner(dockerBootstrapMissingModules);
     const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
@@ -306,48 +328,39 @@ if (dockerBootstrapMissingModules.length > 0) {
     }
     throw error;
 }
-const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze([
-    { label: 'Docker table shell', selector: 'table#docker_containers' },
-    { label: 'Docker table body', selector: 'tbody#docker_list' },
-    { label: 'Docker header row', selector: '#docker_containers > thead > tr' }
-]);
-const collectDockerHostPageStructureIssues = () => {
-    const missing = [];
-    DOCKER_HOST_PAGE_REQUIRED_SELECTORS.forEach((entry) => {
-        if (!entry || !entry.selector) {
-            return;
-        }
-        if (!document.querySelector(entry.selector)) {
-            missing.push(`${entry.label}: ${entry.selector}`);
-        }
-    });
-    return missing;
+const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze(
+    dockerHostGuardsModule?.DEFAULT_REQUIRED_SELECTORS || [
+        { label: 'Docker table shell', selector: 'table#docker_containers' },
+        { label: 'Docker table body', selector: 'tbody#docker_list' },
+        { label: 'Docker header row', selector: '#docker_containers > thead > tr' }
+    ]
+);
+markDockerFatalBannerStep('Docker runtime modules resolved');
+let dockerHostGuardsApi = null;
+let dockerRuntimeDiagnosticsApi = null;
+const getDockerHostGuardsApi = () => {
+    if (!dockerHostGuardsApi && dockerHostGuardsModule && typeof dockerHostGuardsModule.createApi === 'function') {
+        dockerHostGuardsApi = dockerHostGuardsModule.createApi({
+            window,
+            document,
+            requiredSelectors: DOCKER_HOST_PAGE_REQUIRED_SELECTORS,
+            setModuleStatus: (name, status, detail = '') => setDockerFatalBannerModuleStatus(name, status, detail),
+            markStep: (step) => markDockerFatalBannerStep(step),
+            reportFatalRuntimeError: (error, options = {}) => reportDockerFatalRuntimeError(error, options),
+            reportDegradedRuntimeState: (error, options = {}) => reportDockerDegradedRuntimeState(error, options)
+        });
+    }
+    return dockerHostGuardsApi;
 };
 const ensureDockerHostPageStructure = () => {
-    const missing = collectDockerHostPageStructureIssues();
-    if (missing.length <= 0) {
-        setDockerFatalBannerModuleStatus('host-page-structure', 'ok', 'expected Docker host selectors detected');
+    const hostGuardsApi = getDockerHostGuardsApi();
+    if (hostGuardsApi && typeof hostGuardsApi.ensureHostPageStructure === 'function') {
+        hostGuardsApi.ensureHostPageStructure();
         return;
     }
-    setDockerFatalBannerModuleStatus('host-page-structure', 'missing', missing.join(' | '));
-    const error = new Error(`Expected Docker host page selectors were not found: ${missing.join(', ')}`);
-    error.fvplusPhase = 'host-dom';
-    error.fvplusCategory = 'host-page-structure';
-    reportDockerFatalRuntimeError(error, {
-        title: 'Docker page structure changed',
-        message: 'FolderView Plus expected the standard Unraid Docker table markup, but required host page elements were missing.',
-        code: 'FVPLUS-DKR-DOM-001',
-        phase: 'host-dom',
-        category: 'host-page-structure',
-        detailLabel: 'Missing selectors',
-        details: missing
-    });
-    if (fatalBanner) {
-        error.fvplusBannerShown = true;
-    }
-    throw error;
+    setDockerFatalBannerModuleStatus('host-page-structure', 'missing', 'Docker host guard helpers unavailable');
+    throw new Error('Docker host guard helpers unavailable');
 };
-markDockerFatalBannerStep('Docker runtime modules resolved');
 ensureDockerHostPageStructure();
 markDockerFatalBannerStep('Docker host page signature verified');
 const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
@@ -634,6 +647,37 @@ const getDockerRuntimeActionsApi = () => {
     }
     return dockerRuntimeActionsApi;
 };
+const buildDockerDiagnosticsCorrelationContext = () => ({
+    currentPage: String(location?.pathname || ''),
+    listViewMode: readDockerListViewMode(),
+    renderGeneration: dockerRuntimeLastRenderGeneration,
+    requestGeneration: Number(folderReq?.generation || 0),
+    traceSessionId: dockerDiagnosticsTraceSessionId,
+    stateSignature: String(lastLiveRefreshStateSignature || ''),
+    liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
+    hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
+    hookStates: getDockerHostGuardsApi()?.getHookStates?.() || {}
+});
+const getDockerRuntimeDiagnosticsApi = () => {
+    if (
+        !dockerRuntimeDiagnosticsApi
+        && dockerRuntimeDiagnosticsModule
+        && typeof dockerRuntimeDiagnosticsModule.createApi === 'function'
+    ) {
+        dockerRuntimeDiagnosticsApi = dockerRuntimeDiagnosticsModule.createApi({
+            window,
+            document,
+            localStorage,
+            $,
+            readDockerListViewMode: () => readDockerListViewMode(),
+            resolveExpectedFolderActionToken: (folderId) => resolveDockerSupportBundleExpectedFolderActionToken(folderId),
+            resolveExpectedMemberActionToken: (entry = {}) => resolveDockerSupportBundleExpectedMemberActionToken(entry),
+            getRuntimeInfoEntry: (containerName) => dockerRuntimeInfoByName?.[containerName] || {},
+            getCorrelationContext: () => buildDockerDiagnosticsCorrelationContext()
+        });
+    }
+    return dockerRuntimeDiagnosticsApi;
+};
 const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
     const runtimeInfoApi = getDockerRuntimeInfoApi();
     return runtimeInfoApi && typeof runtimeInfoApi.syncDockerHostRowUpdateStatesFromDom === 'function'
@@ -680,15 +724,7 @@ const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
-const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
-const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
-const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.requestBundleTrace.v1';
-const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv.support.bundle.docker.traceHealth.v1';
-const DOCKER_BULK_UPDATE_TRACE_LIMIT = 30;
-const DOCKER_REQUEST_BUNDLE_TRACE_LIMIT = 40;
-const DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES = 98304;
-const DOCKER_TRACE_STORAGE_MAX_BYTES = 32768;
-const DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES = 12288;
+const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY || 'fv.support.bundle.docker.page.v1';
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -717,332 +753,23 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     return resolvedUntil;
 };
 let dockerHostOpenDockerPatchBound = false;
-const measureDockerDiagnosticsStorageBytes = (value) => {
-    try {
-        const serialized = typeof value === 'string' ? value : JSON.stringify(value);
-        if (typeof TextEncoder === 'function') {
-            return new TextEncoder().encode(serialized).length;
-        }
-        return serialized.length * 2;
-    } catch (_error) {
-        return Number.POSITIVE_INFINITY;
-    }
-};
-const cloneDockerDiagnosticsStorageValue = (value) => {
-    try {
-        return JSON.parse(JSON.stringify(value));
-    } catch (_error) {
-        return null;
-    }
-};
-const compactDockerTraceStoragePayload = (value, maxBytes) => {
-    const payload = cloneDockerDiagnosticsStorageValue(value);
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-        return value;
-    }
-    const entries = Array.isArray(payload.entries) ? payload.entries.slice() : [];
-    let trimmed = false;
-    while (entries.length > 1) {
-        const candidate = {
-            ...payload,
-            count: entries.length,
-            entries
-        };
-        if (measureDockerDiagnosticsStorageBytes(candidate) <= maxBytes) {
-            return trimmed ? {
-                ...candidate,
-                storageTrimmed: true
-            } : candidate;
-        }
-        entries.shift();
-        trimmed = true;
-    }
-    const minimalPayload = {
-        ...payload,
-        count: entries.length,
-        entries,
-        storageTrimmed: trimmed
-    };
-    return measureDockerDiagnosticsStorageBytes(minimalPayload) <= maxBytes
-        ? minimalPayload
-        : {
-            updatedAt: payload.updatedAt || new Date().toISOString(),
-            count: 0,
-            entries: [],
-            storageTrimmed: true
-        };
-};
-const compactDockerTraceHealthStoragePayload = (value, maxBytes) => {
-    const payload = cloneDockerDiagnosticsStorageValue(value);
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-        return value;
-    }
-    if (measureDockerDiagnosticsStorageBytes(payload) <= maxBytes) {
-        return payload;
-    }
-    const compacted = {
-        updatedAt: payload.updatedAt || new Date().toISOString()
-    };
-    Object.entries(payload || {}).forEach(([key, record]) => {
-        if (key === 'updatedAt') {
-            return;
-        }
-        if (!record || typeof record !== 'object' || Array.isArray(record)) {
-            return;
-        }
-        compacted[key] = {
-            lastWriteAt: record.lastWriteAt || null,
-            lastWriteSucceeded: record.lastWriteSucceeded === true,
-            failureCount: Number.isFinite(Number(record.failureCount)) ? Number(record.failureCount) : 0,
-            details: {}
-        };
-    });
-    return measureDockerDiagnosticsStorageBytes(compacted) <= maxBytes
-        ? compacted
-        : { updatedAt: compacted.updatedAt, storageTrimmed: true };
-};
-const compactDockerPageSnapshotStoragePayload = (value, maxBytes) => {
-    const payload = cloneDockerDiagnosticsStorageValue(value);
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-        return value;
-    }
-    if (measureDockerDiagnosticsStorageBytes(payload) <= maxBytes) {
-        return payload;
-    }
-    const folderEntries = Array.isArray(payload?.folderRows?.entries) ? payload.folderRows.entries.slice() : [];
-    const memberEntries = Array.isArray(payload?.memberRows?.entries) ? payload.memberRows.entries.slice() : [];
-    const mismatchFolderEntries = Array.isArray(payload?.mismatches?.folderEntries) ? payload.mismatches.folderEntries.slice() : [];
-    const mismatchMemberEntries = Array.isArray(payload?.mismatches?.memberEntries) ? payload.mismatches.memberEntries.slice() : [];
-    const buildCandidate = () => ({
-        ...payload,
-        folderRows: {
-            ...(payload.folderRows && typeof payload.folderRows === 'object' && !Array.isArray(payload.folderRows) ? payload.folderRows : {}),
-            count: payload?.folderRows?.count ?? folderEntries.length,
-            truncated: (payload?.folderRows?.count ?? folderEntries.length) > folderEntries.length,
-            entries: folderEntries
-        },
-        memberRows: {
-            ...(payload.memberRows && typeof payload.memberRows === 'object' && !Array.isArray(payload.memberRows) ? payload.memberRows : {}),
-            count: payload?.memberRows?.count ?? memberEntries.length,
-            truncated: (payload?.memberRows?.count ?? memberEntries.length) > memberEntries.length,
-            entries: memberEntries
-        },
-        mismatches: {
-            ...(payload.mismatches && typeof payload.mismatches === 'object' && !Array.isArray(payload.mismatches) ? payload.mismatches : {}),
-            folderActionCount: payload?.mismatches?.folderActionCount ?? mismatchFolderEntries.length,
-            memberActionCount: payload?.mismatches?.memberActionCount ?? mismatchMemberEntries.length,
-            folderEntries: mismatchFolderEntries,
-            memberEntries: mismatchMemberEntries
-        },
-        storageTrimmed: true
-    });
-    let candidate = buildCandidate();
-    while (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes && memberEntries.length > 24) {
-        memberEntries.splice(24);
-        mismatchMemberEntries.splice(8);
-        candidate = buildCandidate();
-    }
-    while (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes && folderEntries.length > 12) {
-        folderEntries.splice(12);
-        mismatchFolderEntries.splice(8);
-        candidate = buildCandidate();
-    }
-    if (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes) {
-        folderEntries.forEach((entry) => {
-            delete entry.statusText;
-            delete entry.updateCellText;
-        });
-        memberEntries.forEach((entry) => {
-            delete entry.statusText;
-            delete entry.updateCellText;
-        });
-        mismatchFolderEntries.forEach((entry) => {
-            delete entry.updateCellText;
-        });
-        mismatchMemberEntries.forEach((entry) => {
-            delete entry.updateCellText;
-        });
-        candidate = buildCandidate();
-    }
-    if (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes) {
-        candidate = {
-            capturedAt: payload.capturedAt || new Date().toISOString(),
-            reason: payload.reason || 'runtime-sync',
-            currentPage: payload.currentPage || '',
-            listViewMode: payload.listViewMode || 'basic',
-            folderRows: {
-                count: payload?.folderRows?.count ?? folderEntries.length,
-                truncated: true,
-                entries: folderEntries.slice(0, 8)
-            },
-            memberRows: {
-                count: payload?.memberRows?.count ?? memberEntries.length,
-                truncated: true,
-                entries: memberEntries.slice(0, 16)
-            },
-            mismatches: {
-                folderActionCount: payload?.mismatches?.folderActionCount ?? mismatchFolderEntries.length,
-                memberActionCount: payload?.mismatches?.memberActionCount ?? mismatchMemberEntries.length,
-                folderEntries: mismatchFolderEntries.slice(0, 4),
-                memberEntries: mismatchMemberEntries.slice(0, 4)
-            },
-            summary: payload.summary && typeof payload.summary === 'object' && !Array.isArray(payload.summary)
-                ? { ...payload.summary }
-                : {},
-            storageTrimmed: true
-        };
-    }
-    return candidate;
-};
-const compactDockerDiagnosticsStoragePayload = (storageKey, value) => {
-    if (storageKey === DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY || storageKey === DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY) {
-        return compactDockerTraceStoragePayload(value, DOCKER_TRACE_STORAGE_MAX_BYTES);
-    }
-    if (storageKey === DOCKER_TRACE_HEALTH_STORAGE_KEY) {
-        return compactDockerTraceHealthStoragePayload(value, DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES);
-    }
-    if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
-        return compactDockerPageSnapshotStoragePayload(value, DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES);
-    }
-    return value;
-};
-const writeDockerDiagnosticsStorageRecord = (storageKey, value) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            return false;
-        }
-        const compactedValue = compactDockerDiagnosticsStoragePayload(storageKey, value);
-        const serialized = JSON.stringify(compactedValue);
-        localStorage.setItem(storageKey, serialized);
-        return true;
-    } catch (_error) {
-        return false;
-    }
-};
 const updateDockerTraceHealth = (traceName, success, details = {}) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            return false;
-        }
-        const existingRaw = String(localStorage.getItem(DOCKER_TRACE_HEALTH_STORAGE_KEY) || '').trim();
-        let existing = {};
-        if (existingRaw) {
-            try {
-                existing = JSON.parse(existingRaw);
-            } catch (_parseError) {
-                existing = {};
-            }
-        }
-        const safeTraceName = String(traceName || '').trim() || 'unknown';
-        const previous = existing?.[safeTraceName] && typeof existing[safeTraceName] === 'object' && !Array.isArray(existing[safeTraceName])
-            ? existing[safeTraceName]
-            : {};
-        const failureCount = Number.isFinite(Number(previous.failureCount)) ? Number(previous.failureCount) : 0;
-        const nextRecord = {
-            lastWriteAt: new Date().toISOString(),
-            lastWriteSucceeded: success === true,
-            failureCount: success === true ? failureCount : (failureCount + 1),
-            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
-        };
-        const nextPayload = {
-            updatedAt: new Date().toISOString(),
-            ...existing,
-            [safeTraceName]: nextRecord
-        };
-        return writeDockerDiagnosticsStorageRecord(DOCKER_TRACE_HEALTH_STORAGE_KEY, nextPayload);
-    } catch (_error) {
-        return false;
-    }
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    return diagnosticsApi && typeof diagnosticsApi.updateTraceHealth === 'function'
+        ? diagnosticsApi.updateTraceHealth(traceName, success, details)
+        : false;
 };
 const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            updateDockerTraceHealth('bulkUpdateTrace', false, {
-                reason: 'localStorageUnavailable',
-                eventType: String(eventType || '').trim() || 'unknown'
-            });
-            return false;
-        }
-        const existingRaw = String(localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
-        let existing = {};
-        if (existingRaw) {
-            try {
-                existing = JSON.parse(existingRaw);
-            } catch (_parseError) {
-                existing = {};
-            }
-        }
-        const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_BULK_UPDATE_TRACE_LIMIT) : [];
-        entries.push({
-            at: new Date().toISOString(),
-            eventType: String(eventType || '').trim() || 'unknown',
-            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
-        });
-        while (entries.length > DOCKER_BULK_UPDATE_TRACE_LIMIT) {
-            entries.shift();
-        }
-        const writeOk = writeDockerDiagnosticsStorageRecord(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, {
-            updatedAt: new Date().toISOString(),
-            count: entries.length,
-            entries
-        });
-        updateDockerTraceHealth('bulkUpdateTrace', writeOk, {
-            eventType: String(eventType || '').trim() || 'unknown',
-            count: entries.length
-        });
-        return writeOk;
-    } catch (_error) {
-        updateDockerTraceHealth('bulkUpdateTrace', false, {
-            reason: 'exception',
-            eventType: String(eventType || '').trim() || 'unknown'
-        });
-        return false;
-    }
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    return diagnosticsApi && typeof diagnosticsApi.appendBulkUpdateTrace === 'function'
+        ? diagnosticsApi.appendBulkUpdateTrace(eventType, details)
+        : false;
 };
 const appendDockerRequestBundleTrace = (eventType, details = {}) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            updateDockerTraceHealth('requestBundleTrace', false, {
-                reason: 'localStorageUnavailable',
-                eventType: String(eventType || '').trim() || 'unknown'
-            });
-            return false;
-        }
-        const existingRaw = String(localStorage.getItem(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY) || '').trim();
-        let existing = {};
-        if (existingRaw) {
-            try {
-                existing = JSON.parse(existingRaw);
-            } catch (_parseError) {
-                existing = {};
-            }
-        }
-        const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_REQUEST_BUNDLE_TRACE_LIMIT) : [];
-        entries.push({
-            at: new Date().toISOString(),
-            eventType: String(eventType || '').trim() || 'unknown',
-            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
-        });
-        while (entries.length > DOCKER_REQUEST_BUNDLE_TRACE_LIMIT) {
-            entries.shift();
-        }
-        const writeOk = writeDockerDiagnosticsStorageRecord(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY, {
-            updatedAt: new Date().toISOString(),
-            count: entries.length,
-            entries
-        });
-        updateDockerTraceHealth('requestBundleTrace', writeOk, {
-            eventType: String(eventType || '').trim() || 'unknown',
-            count: entries.length
-        });
-        return writeOk;
-    } catch (_error) {
-        updateDockerTraceHealth('requestBundleTrace', false, {
-            reason: 'exception',
-            eventType: String(eventType || '').trim() || 'unknown'
-        });
-        return false;
-    }
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    return diagnosticsApi && typeof diagnosticsApi.appendRequestBundleTrace === 'function'
+        ? diagnosticsApi.appendRequestBundleTrace(eventType, details)
+        : false;
 };
 const getSafeWebuiUrl = (value) => {
     const raw = String(value || '').trim();
@@ -3380,15 +3107,28 @@ function bindDockerHostOpenDockerPatch() {
         return;
     }
     if (typeof window.openDocker !== 'function') {
+        getDockerHostGuardsApi()?.reportMissingHook?.('window.openDocker', 'Docker host openDocker hook was unavailable during bootstrap.', {
+            phase: 'hook-install',
+            category: 'host-hook-missing',
+            detailLabel: 'Missing host hooks',
+            details: ['window.openDocker was not a function when FolderView Plus initialized.']
+        });
         return;
     }
     const currentOpenDocker = window.openDocker;
+    getDockerHostGuardsApi()?.captureHostHook?.('window.openDocker', currentOpenDocker, {
+        step: 'Docker openDocker hook captured',
+        note: 'captured'
+    });
     if (currentOpenDocker && currentOpenDocker.__fvplusDockerUpdatePatched === true) {
         dockerHostOpenDockerPatchBound = true;
         return;
     }
     const originalOpenDocker = currentOpenDocker;
     const wrappedOpenDocker = function(...args) {
+        getDockerHostGuardsApi()?.noteHookInvocation?.('window.openDocker', {
+            note: String(args?.[0] || '').trim() || 'invoked'
+        });
         armDockerPostUpdateRuntimeReconcileForHostCommand(args[0], 'host-openDocker');
         return originalOpenDocker.apply(this, args);
     };
@@ -3398,6 +3138,10 @@ function bindDockerHostOpenDockerPatch() {
     } catch (_error) {}
     window.openDocker = wrappedOpenDocker;
     dockerHostOpenDockerPatchBound = true;
+    getDockerHostGuardsApi()?.noteHookWrapped?.('window.openDocker', {
+        step: 'Docker openDocker hook captured',
+        note: 'wrapped'
+    });
     markDockerFatalBannerStep('Docker openDocker hook captured');
 }
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
@@ -3441,6 +3185,7 @@ const createFolders = async () => {
     const requestBundle = (folderReq && typeof folderReq === 'object') ? folderReq : { render: [], fullInfo: null, generation: dockerBootstrapGeneration };
     const renderRequests = Array.isArray(requestBundle.render) ? requestBundle.render : [];
     const renderGeneration = Number(requestBundle.generation || dockerBootstrapGeneration || 0);
+    dockerRuntimeLastRenderGeneration = renderGeneration;
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(renderRequests);
     dockerPerf.end('createFolders.requests', { requestCount: renderRequests.length });
@@ -5597,17 +5342,22 @@ const addDockerFolderContext = (id) => {
 // Patching the original function to make sure the containers are rendered before insering the folder
 window.listview_original = window.listview; // Ensure original is captured
 if (typeof window.listview_original !== 'function') {
-    reportDockerDegradedRuntimeState('Docker host listview hook was unavailable during bootstrap.', {
+    getDockerHostGuardsApi()?.reportMissingHook?.('window.listview', 'Docker host listview hook was unavailable during bootstrap.', {
         phase: 'hook-install',
         category: 'host-hook-missing',
         detailLabel: 'Missing host hooks',
         details: ['window.listview was not a function when FolderView Plus initialized.']
     });
 } else {
+    getDockerHostGuardsApi()?.captureHostHook?.('window.listview', window.listview_original, {
+        step: 'Docker listview hook captured',
+        note: 'captured'
+    });
     markDockerFatalBannerStep('Docker listview hook captured');
 }
 window.listview = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
+    getDockerHostGuardsApi()?.noteHookInvocation?.('window.listview', { note: 'invoked' });
     appendDockerRequestBundleTrace('listview', {
         currentPage: String(location?.pathname || ''),
         loadedFolder: loadedFolder === true,
@@ -5638,20 +5388,29 @@ window.listview = () => {
     queueDockerRuntimeResizerBind();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Exit.');
 };
+getDockerHostGuardsApi()?.noteHookWrapped?.('window.listview', {
+    step: 'Docker listview hook captured',
+    note: 'wrapped'
+});
 
 window.loadlist_original = window.loadlist; // Ensure original is captured
 if (typeof window.loadlist_original !== 'function') {
-    reportDockerDegradedRuntimeState('Docker host loadlist hook was unavailable during bootstrap.', {
+    getDockerHostGuardsApi()?.reportMissingHook?.('window.loadlist', 'Docker host loadlist hook was unavailable during bootstrap.', {
         phase: 'hook-install',
         category: 'host-hook-missing',
         detailLabel: 'Missing host hooks',
         details: ['window.loadlist was not a function when FolderView Plus initialized.']
     });
 } else {
+    getDockerHostGuardsApi()?.captureHostHook?.('window.loadlist', window.loadlist_original, {
+        step: 'Docker loadlist hook captured',
+        note: 'captured'
+    });
     markDockerFatalBannerStep('Docker loadlist hook captured');
 }
 window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
+    getDockerHostGuardsApi()?.noteHookInvocation?.('window.loadlist', { note: 'invoked' });
     bindDockerHostOpenDockerPatch();
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
@@ -5676,6 +5435,10 @@ window.loadlist = () => {
     queueDockerRuntimeResizerBind();
      if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Exit.');
 };
+getDockerHostGuardsApi()?.noteHookWrapped?.('window.loadlist', {
+    step: 'Docker loadlist hook captured',
+    note: 'wrapped'
+});
 
 // Get the number of CPU, nneded for a right display of the load
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Requesting CPU count.');
@@ -5832,16 +5595,14 @@ let dockerListViewModeObserverBound = false;
 let dockerListViewModeCookieHookBound = false;
 const DOCKER_LIST_VIEW_MODE_CHANGE_EVENT = 'fvplus:docker-listview-mode-change';
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
-let dockerSupportBundleSnapshotTimer = null;
 let dockerUpdateActionClickCaptureBound = false;
+let dockerRuntimeLastRenderGeneration = 0;
+const dockerDiagnosticsTraceSessionId = `fvplus-docker-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
 const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
-const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
-const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
-const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;
 const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
 const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
@@ -5850,7 +5611,10 @@ let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(fol
 });
 
 const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
-    const writeOk = writeDockerDiagnosticsStorageRecord(storageKey, value);
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    const writeOk = diagnosticsApi && typeof diagnosticsApi.writeSupportBundleStorageRecord === 'function'
+        ? diagnosticsApi.writeSupportBundleStorageRecord(storageKey, value)
+        : false;
     if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
         updateDockerTraceHealth('pageSnapshot', writeOk, {
             reason: String(value?.reason || '').trim() || 'runtime-sync'
@@ -5860,94 +5624,6 @@ const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
 };
 
 const normalizeDockerSupportBundleText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
-
-const isDockerSupportBundleNodeVisible = (node, boundary = null) => {
-    if (!node || node.nodeType !== 1) {
-        return true;
-    }
-    const boundaryElement = boundary && boundary.nodeType === 1 ? boundary : null;
-    let current = node;
-    while (current && current.nodeType === 1) {
-        if (current.hidden === true) {
-            return false;
-        }
-        const ariaHidden = String(current.getAttribute?.('aria-hidden') || '').trim().toLowerCase();
-        if (ariaHidden === 'true') {
-            return false;
-        }
-        const inlineStyle = String(current.getAttribute?.('style') || '').trim().toLowerCase();
-        if (/\bdisplay\s*:\s*none\b/.test(inlineStyle) || /\bvisibility\s*:\s*hidden\b/.test(inlineStyle)) {
-            return false;
-        }
-        if (typeof window?.getComputedStyle === 'function') {
-            const computedStyle = window.getComputedStyle(current);
-            if (computedStyle && (computedStyle.display === 'none' || computedStyle.visibility === 'hidden')) {
-                return false;
-            }
-        }
-        if (boundaryElement && current === boundaryElement) {
-            break;
-        }
-        current = current.parentElement;
-    }
-    return true;
-};
-
-const collectDockerSupportBundleVisibleText = (node, boundary, segments = []) => {
-    if (!node) {
-        return segments;
-    }
-    if (node.nodeType === 3) {
-        const text = normalizeDockerSupportBundleText(node.textContent || '');
-        if (text) {
-            segments.push(text);
-        }
-        return segments;
-    }
-    if (node.nodeType !== 1 || !isDockerSupportBundleNodeVisible(node, boundary)) {
-        return segments;
-    }
-    const tagName = String(node.tagName || '').toUpperCase();
-    if (tagName === 'SCRIPT' || tagName === 'STYLE') {
-        return segments;
-    }
-    Array.from(node.childNodes || []).forEach((childNode) => {
-        collectDockerSupportBundleVisibleText(childNode, boundary, segments);
-    });
-    return segments;
-};
-
-const readDockerSupportBundleVisibleUpdateCellText = ($updateCell) => {
-    const updateCell = $updateCell?.get ? $updateCell.get(0) : null;
-    if (!updateCell) {
-        return '';
-    }
-    const segments = [];
-    Array.from(updateCell.childNodes || []).forEach((childNode) => {
-        collectDockerSupportBundleVisibleText(childNode, updateCell, segments);
-    });
-    return normalizeDockerSupportBundleText(segments.join(' '));
-};
-
-const resolveDockerSupportBundleActionToken = (text) => {
-    const normalized = normalizeDockerSupportBundleText(text).toLowerCase();
-    if (!normalized) {
-        return 'none';
-    }
-    if (normalized.includes('apply update')) {
-        return 'applyUpdate';
-    }
-    if (normalized.includes('force update')) {
-        return 'forceUpdate';
-    }
-    if (normalized.includes('up-to-date')) {
-        return 'upToDate';
-    }
-    if (normalized.includes('update ready')) {
-        return 'updateReady';
-    }
-    return 'other';
-};
 const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.resolveDockerMemberUpdateState === 'function') {
@@ -5977,176 +5653,23 @@ const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
     return 'unknown';
 };
 
-const parseDockerSupportBundleFolderId = (row) => {
-    const className = String(row?.className || '').trim();
-    const match = className.match(/(?:^|\s)folder-id-([A-Za-z0-9_-]+)(?:\s|$)/);
-    return match ? String(match[1] || '').trim() : '';
-};
-
-const parseDockerSupportBundleMemberFolderId = (row) => {
-    const className = String(row?.className || '').trim();
-    const match = className.match(/(?:^|\s)folder-([A-Za-z0-9_-]+)-element(?:\s|$)/);
-    return match ? String(match[1] || '').trim() : '';
-};
-
 const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
-    const $tableRows = $('#docker_list > tr');
-    if (!$tableRows.length) {
-        return null;
-    }
-    const currentListViewMode = readDockerListViewMode();
-    const folderEntries = [];
-    const memberEntries = [];
-    const mismatches = {
-        folderActionCount: 0,
-        memberActionCount: 0,
-        folderEntries: [],
-        memberEntries: []
-    };
-    const summary = {
-        visibleFolderRows: 0,
-        visibleMemberRows: 0,
-        expandedFolderRows: 0,
-        folderApplyUpdateCount: 0,
-        folderForceUpdateCount: 0,
-        memberApplyUpdateCount: 0,
-        memberForceUpdateCount: 0,
-        memberMissingFolderClassCount: 0,
-        folderActionMismatchCount: 0,
-        memberActionMismatchCount: 0
-    };
-
-    $tableRows.each((_, row) => {
-        const $row = $(row);
-        if (!$row.is(':visible')) {
-            return;
-        }
-        const folderId = parseDockerSupportBundleFolderId(row);
-        if (folderId) {
-            const updateCellText = readDockerSupportBundleVisibleUpdateCellText($row.find('td.updatecolumn').first());
-            const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
-            const expectedActionToken = resolveDockerSupportBundleExpectedFolderActionToken(folderId);
-            const expanded = $(`.dropDown-${folderId}`).attr('active') === 'true';
-            const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
-            summary.visibleFolderRows += 1;
-            if (expanded) {
-                summary.expandedFolderRows += 1;
-            }
-            if (actionToken === 'applyUpdate') {
-                summary.folderApplyUpdateCount += 1;
-            } else if (actionToken === 'forceUpdate') {
-                summary.folderForceUpdateCount += 1;
-            }
-            if (mismatch) {
-                summary.folderActionMismatchCount += 1;
-                mismatches.folderActionCount += 1;
-                if (mismatches.folderEntries.length < DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT) {
-                    mismatches.folderEntries.push({
-                        folderId,
-                        folderName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()),
-                        expectedActionToken,
-                        renderedActionToken: actionToken,
-                        updateCellText
-                    });
-                }
-            }
-            if (folderEntries.length < DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT) {
-                folderEntries.push({
-                    folderId,
-                    folderName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()),
-                    expanded,
-                    updateCellText,
-                    actionToken,
-                    expectedActionToken,
-                    actionMismatch: mismatch,
-                    statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
-                });
-            }
-            return;
-        }
-        const rawId = String(row?.id || '').trim();
-        if (!rawId.startsWith('ct-')) {
-            return;
-        }
-        const containerName = normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()) || rawId.slice(3);
-        const updateCellText = readDockerSupportBundleVisibleUpdateCellText($row.find('td.updatecolumn').first());
-        const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
-        const memberFolderId = parseDockerSupportBundleMemberFolderId(row);
-        const runtimeEntry = dockerRuntimeInfoByName?.[containerName] || {};
-        const expectedActionToken = resolveDockerSupportBundleExpectedMemberActionToken(runtimeEntry);
-        const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
-        summary.visibleMemberRows += 1;
-        if (!memberFolderId) {
-            summary.memberMissingFolderClassCount += 1;
-        }
-        if (actionToken === 'applyUpdate') {
-            summary.memberApplyUpdateCount += 1;
-        } else if (actionToken === 'forceUpdate') {
-            summary.memberForceUpdateCount += 1;
-        }
-        if (mismatch) {
-            summary.memberActionMismatchCount += 1;
-            mismatches.memberActionCount += 1;
-            if (mismatches.memberEntries.length < DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT) {
-                mismatches.memberEntries.push({
-                    containerName,
-                    folderId: memberFolderId || '',
-                    expectedActionToken,
-                    renderedActionToken: actionToken,
-                    updateCellText
-                });
-            }
-        }
-        if (memberEntries.length < DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT) {
-            memberEntries.push({
-                containerName,
-                folderId: memberFolderId || '',
-                classTagged: memberFolderId !== '',
-                updateCellText,
-                actionToken,
-                expectedActionToken,
-                actionMismatch: mismatch,
-                statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
-            });
-        }
-    });
-
-    return {
-        capturedAt: new Date().toISOString(),
-        reason: String(reason || 'runtime-sync').trim() || 'runtime-sync',
-        currentPage: String(location?.pathname || ''),
-        listViewMode: currentListViewMode,
-        folderRows: {
-            count: summary.visibleFolderRows,
-            truncated: summary.visibleFolderRows > folderEntries.length,
-            entries: folderEntries
-        },
-        memberRows: {
-            count: summary.visibleMemberRows,
-            truncated: summary.visibleMemberRows > memberEntries.length,
-            entries: memberEntries
-        },
-        mismatches: {
-            folderActionCount: mismatches.folderActionCount,
-            memberActionCount: mismatches.memberActionCount,
-            folderEntries: mismatches.folderEntries,
-            memberEntries: mismatches.memberEntries
-        },
-        summary
-    };
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    return diagnosticsApi && typeof diagnosticsApi.collectPageSnapshot === 'function'
+        ? diagnosticsApi.collectPageSnapshot(reason)
+        : null;
 };
 
 const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
-    if (dockerSupportBundleSnapshotTimer) {
-        clearTimeout(dockerSupportBundleSnapshotTimer);
+    const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
+    if (!(diagnosticsApi && typeof diagnosticsApi.queuePageSnapshot === 'function')) {
+        return;
     }
-    dockerSupportBundleSnapshotTimer = setTimeout(() => {
-        dockerSupportBundleSnapshotTimer = null;
-        const snapshot = collectDockerSupportBundlePageSnapshot(reason);
-        if (snapshot) {
-            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
-        }
-    }, Math.max(0, Number(delayMs) || 0));
+    diagnosticsApi.queuePageSnapshot(reason, delayMs);
+    const snapshot = collectDockerSupportBundlePageSnapshot(reason);
+    if (snapshot) {
+        writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+    }
 };
 const shouldArmDockerPostUpdateReconcileFromClick = (target) => {
     const actionNode = target instanceof Element

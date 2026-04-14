@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.14.13">
-<!ENTITY md5 "07376d047fc962390c36ae7661cd5085">
+<!ENTITY version "2026.04.14.15">
+<!ENTITY md5 "fe4f555eb370a953b773daedc4949ad6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.14.15
+- UX: Icon picker, bundled icon packs, and custom icon management.
+- Docs: Project documentation and support guidance.
+
 
 ###2026.04.14.13
 - UX: Folder editor flows, previews, and bootstrap behavior.

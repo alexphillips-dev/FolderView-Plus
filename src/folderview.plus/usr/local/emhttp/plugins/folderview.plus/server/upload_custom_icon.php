@@ -114,7 +114,15 @@ function customIconDirectoryHealth(): array {
 }
 
 function customIconLockPath(): string {
-    return customIconDirPath() . '/.upload.lock';
+    $tmpRoot = function_exists('sys_get_temp_dir') ? trim((string)sys_get_temp_dir()) : '/tmp';
+    if ($tmpRoot === '') {
+        $tmpRoot = '/tmp';
+    }
+    $normalized = rtrim(str_replace('\\', '/', $tmpRoot), '/');
+    if ($normalized === '') {
+        $normalized = '/tmp';
+    }
+    return $normalized . '/folderview.plus-custom-icons.lock';
 }
 
 function withCustomIconLock(bool $exclusive, callable $callback) {
@@ -1326,7 +1334,7 @@ function handleCustomIconUploadAction(): array {
 }
 
 function handleCustomIconListAction(): array {
-    return withCustomIconLock(true, static function (): array {
+    return withCustomIconLock(false, static function (): array {
         $customDir = ensureCustomIconDirExists(false);
         $search = trim((string)($_REQUEST['query'] ?? ''));
         $sort = trim((string)($_REQUEST['sort'] ?? 'newest'));
@@ -1341,7 +1349,7 @@ function handleCustomIconListAction(): array {
 }
 
 function handleCustomIconStatsAction(): array {
-    return withCustomIconLock(true, static function (): array {
+    return withCustomIconLock(false, static function (): array {
         $customDir = ensureCustomIconDirExists(false);
         syncCustomIconMetadataIndex($customDir);
         $usageMap = customIconUsageMap();
@@ -1441,7 +1449,7 @@ function handleCustomIconRenameAction(): array {
 }
 
 function handleCustomIconUsageAction(): array {
-    return withCustomIconLock(true, static function (): array {
+    return withCustomIconLock(false, static function (): array {
         $name = normalizeCustomIconFileNameInput((string)($_REQUEST['name'] ?? ''));
         $usageMap = customIconUsageMap();
         $refs = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];

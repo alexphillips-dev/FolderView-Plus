@@ -134,11 +134,21 @@ test('upload endpoint stores metadata and supports dedupe or replace flows', () 
 test('upload endpoint includes self-heal directory checks and fix hints', () => {
     assert.match(uploadPhp, /function customIconDirectoryHealth\s*\(/);
     assert.match(uploadPhp, /function customIconRepairHintCommand\s*\(/);
+    assert.match(uploadPhp, /function customIconLockPath\(\): string/);
+    assert.match(uploadPhp, /sys_get_temp_dir/);
+    assert.match(uploadPhp, /return \$normalized \. '\/folderview\.plus-custom-icons\.lock';/);
     assert.match(uploadPhp, /'runtimePath'\s*=>\s*\$runtimePath/);
     assert.match(uploadPhp, /'publicMode'\s*=>\s*\(string\)\(\$health\['publicMode'\] \?\? 'missing'\)/);
     assert.match(uploadPhp, /'migratedFileCount'\s*=>\s*max\(0,\s*\(int\)\(\$health\['migratedFileCount'\] \?\? 0\)\)/);
     assert.match(uploadPhp, /fvplusEnsureCustomIconStorageReady\(false\)/);
     assert.match(uploadPhp, /repairHint/);
+});
+
+test('upload endpoint uses shared locks for read-only custom icon actions and tmp-backed lock storage', () => {
+    assert.match(uploadPhp, /function handleCustomIconListAction\(\): array \{[\s\S]*?withCustomIconLock\(false,/);
+    assert.match(uploadPhp, /function handleCustomIconStatsAction\(\): array \{[\s\S]*?withCustomIconLock\(false,/);
+    assert.match(uploadPhp, /function handleCustomIconUsageAction\(\): array \{[\s\S]*?withCustomIconLock\(false,/);
+    assert.match(uploadPhp, /function handleCustomIconUploadAction\(\): array \{[\s\S]*?withCustomIconLock\(true,/);
 });
 
 test('upload and third-party endpoints share the same icon extension allowlist', () => {

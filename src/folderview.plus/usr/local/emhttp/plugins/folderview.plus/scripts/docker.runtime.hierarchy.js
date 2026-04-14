@@ -154,42 +154,85 @@
 
         const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
 
+        const resolveFolderUpdateColumnState = (managerTypes, upToDate, managed, options = {}) => {
+            const managerTypeSet = managerTypes instanceof Set
+                ? managerTypes
+                : new Set(Array.isArray(managerTypes) ? managerTypes : []);
+            const showAdvanced = options?.advanced === true
+                || (options?.advanced !== false && jq?.cookie('docker_listview_mode') == 'advanced');
+            const hasDockerMan = managerTypeSet.has('dockerman');
+            const hasCompose = managerTypeSet.has('composeman');
+            const has3rdParty = [...managerTypeSet].some((type) => type !== 'dockerman' && type !== 'composeman');
+
+            if (!hasDockerMan && hasCompose && has3rdParty) {
+                return {
+                    statusToken: 'composeAndThirdParty',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false,
+                    showAdvanced
+                };
+            }
+            if (!hasDockerMan && hasCompose) {
+                return {
+                    statusToken: 'compose',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false,
+                    showAdvanced
+                };
+            }
+            if (!hasDockerMan) {
+                return {
+                    statusToken: 'thirdParty',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false,
+                    showAdvanced
+                };
+            }
+            if (!upToDate) {
+                return {
+                    statusToken: 'updateReady',
+                    actionToken: 'applyUpdate',
+                    actionRequiresAdvancedView: false,
+                    showAdvanced
+                };
+            }
+            return {
+                statusToken: 'upToDate',
+                actionToken: managed > 0 && showAdvanced ? 'forceUpdate' : 'upToDate',
+                actionRequiresAdvancedView: managed > 0,
+                showAdvanced
+            };
+        };
+
         const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed) => {
             if (!$updateColumn?.length || !jq) {
                 return;
             }
 
-            const showAdvanced = jq.cookie('docker_listview_mode') == 'advanced';
-            const hasDockerMan = managerTypes.has('dockerman');
-            const hasCompose = managerTypes.has('composeman');
-            const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
-
+            const state = resolveFolderUpdateColumnState(managerTypes, upToDate, managed);
             $updateColumn.empty();
 
-            if (!hasDockerMan && hasCompose && has3rdParty) {
+            if (state.statusToken === 'composeAndThirdParty') {
                 $updateColumn.append(
                     jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
                 );
                 return;
             }
-
-            if (!hasDockerMan && hasCompose) {
+            if (state.statusToken === 'compose') {
                 $updateColumn.append(
                     jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('compose')}</span>`)
                 );
                 return;
             }
-
-            if (!hasDockerMan) {
+            if (state.statusToken === 'thirdParty') {
                 $updateColumn.append(
                     jq(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${jq.i18n('third-party')}</span>`)
                 );
                 return;
             }
-
-            if (!upToDate) {
+            if (state.statusToken === 'updateReady') {
                 $updateColumn.append(
-                    jq(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${jq.i18n('update-ready')}</span></div>`)
+                    jq(`<div class="advanced" style="display: ${state.showAdvanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${jq.i18n('update-ready')}</span></div>`)
                 );
                 $updateColumn.append(
                     jq(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('apply-update')}</span></a>`)
@@ -200,9 +243,9 @@
             $updateColumn.append(
                 jq(`<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${jq.i18n('up-to-date')}</span>`)
             );
-            if (managed > 0) {
+            if (state.actionToken === 'forceUpdate') {
                 $updateColumn.append(
-                    jq(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('force-update')}</span></a></div>`)
+                    jq(`<div class="advanced" style="display: ${state.showAdvanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${jq.i18n('force-update')}</span></a></div>`)
                 );
             }
         };
@@ -552,6 +595,7 @@
             getFolderDescendants,
             getFolderAncestors,
             folderHasChildren,
+            resolveFolderUpdateColumnState,
             renderFolderUpdateColumn,
             updateFolderRowStatusFromContainers,
             renderNestedAggregatePreview,

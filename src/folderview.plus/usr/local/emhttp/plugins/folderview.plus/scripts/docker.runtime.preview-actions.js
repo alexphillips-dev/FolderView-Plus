@@ -154,19 +154,57 @@
             .replace(/\\/g, '\\\\')
             .replace(/'/g, "\\'");
 
-        const buildDockerMemberUpdateColumnHtml = (entry = {}) => {
-            const manager = String(entry?.manager || '').trim();
+        const resolveDockerMemberUpdateState = (entry = {}, options = {}) => {
+            const manager = String(entry?.manager || '').trim().toLowerCase();
+            const updateReady = entry?.update === true;
+            const advanced = options?.advanced === true
+                || (options?.advanced !== false && isDockerAdvancedModeEnabled());
+
             if (manager === 'composeman') {
-                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('compose', 'compose'))}</span>`;
+                return {
+                    manager,
+                    statusToken: 'compose',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false
+                };
             }
             if (manager && manager !== 'dockerman') {
+                return {
+                    manager,
+                    statusToken: 'thirdParty',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false
+                };
+            }
+            if (updateReady) {
+                return {
+                    manager: manager || 'dockerman',
+                    statusToken: 'updateReady',
+                    actionToken: 'applyUpdate',
+                    actionRequiresAdvancedView: false
+                };
+            }
+            return {
+                manager: manager || 'dockerman',
+                statusToken: 'upToDate',
+                actionToken: advanced ? 'forceUpdate' : 'upToDate',
+                actionRequiresAdvancedView: true
+            };
+        };
+
+        const buildDockerMemberUpdateColumnHtml = (entry = {}, options = {}) => {
+            const state = resolveDockerMemberUpdateState(entry, options);
+            if (state.statusToken === 'compose') {
+                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('compose', 'compose'))}</span>`;
+            }
+            if (state.statusToken === 'thirdParty') {
                 return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('third-party', 'third-party'))}</span>`;
             }
             const safeContainerName = escapeInlineJsSingleQuotedValue(String(entry?.name || '').trim());
-            if (entry?.update === true) {
+            if (state.statusToken === 'updateReady') {
                 return `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
             }
-            const forceUpdateHtml = isDockerAdvancedModeEnabled()
+            const forceUpdateHtml = state.actionToken === 'forceUpdate'
                 ? `<br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
                 : '';
             return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span>${forceUpdateHtml}`;
@@ -432,6 +470,7 @@
 
         return Object.freeze({
             appendDockerPreviewActionButtons,
+            resolveDockerMemberUpdateState,
             buildDockerMemberUpdateColumnHtml,
             syncDockerFolderMemberRows,
             syncDockerLeafFolderPreviewActions

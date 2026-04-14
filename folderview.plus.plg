@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.14.07">
-<!ENTITY md5 "07796eaadfd04908c991b4a21095b943">
+<!ENTITY version "2026.04.14.09">
+<!ENTITY md5 "086dddefcb67c1f05be00d59b46a5ac6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.14.09
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.14.08
+- Fix: Docker folder rows, member rows, tooltips, and support-bundle expected-action checks now resolve update-state through shared helper logic instead of separate inline rules, which reduces stale or divergent Docker update rendering paths.
+- Fix: Docker basic and advanced mode syncing now reacts to `docker_listview_mode` cookie writes and passive page lifecycle events instead of a 500ms polling loop, which hardens live row refreshes while removing continuous observer churn.
+- Quality: Browser smoke now exercises the Docker `loadlist()` rebuild path and persisted diagnostics records, including request-bundle traces, page snapshots, and live list-view toggles.
+
 
 ###2026.04.14.07
 - Fix: Docker runtime rows, folder state, and container interactions.

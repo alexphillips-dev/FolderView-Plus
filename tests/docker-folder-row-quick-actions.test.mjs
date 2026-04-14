@@ -58,7 +58,8 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
     assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
     assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
-    assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /const resolveDockerMemberUpdateState = \(entry = \{\},\s*options = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowUpdateColumn = \(\$row,\s*entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*syncDockerStorageRowStatus\(\$row,\s*entry\);[\s\S]*syncDockerStorageRowUpdateColumn\(\$row,\s*entry\);/s);
     assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
@@ -76,12 +77,13 @@ test('docker hydration refresh updates collapsed folder update columns from runt
     assert.match(dockerScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{/);
     assert.match(dockerScript, /renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*const showAdvanced = jq\.cookie\('docker_listview_mode'\) == 'advanced';/);
+    assert.match(dockerRuntimeHierarchyScript, /const resolveFolderUpdateColumnState = \(managerTypes,\s*upToDate,\s*managed,\s*options = \{\}\) => \{/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*const state = resolveFolderUpdateColumnState\(managerTypes,\s*upToDate,\s*managed\);/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*updateFolder\('\$\{id\}'\);/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*forceUpdateFolder\('\$\{id\}'\);/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('update-ready'\)/);
     assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*jq\.i18n\('up-to-date'\)/);
-    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*display: \$\{showAdvanced \? 'block' : 'none'\}/);
+    assert.match(dockerRuntimeHierarchyScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{[\s\S]*display: \$\{state\.showAdvanced \? 'block' : 'none'\}/);
     assert.match(dockerScript, /const createFolder = \(folder,\s*id,\s*positionInMainOrder,\s*liveOrderArray,\s*containersInfo,\s*foldersDone,\s*matchCacheEntry = null,\s*depthLevel = 0\) => \{[\s\S]*renderFolderUpdateColumn\(id,\s*\$\(`tr\.folder-id-\$\{id\} > td\.updatecolumn`\),\s*managerTypes,\s*upToDate,\s*managed\);/);
     assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*hierarchyApi\.updateFolderRowStatusFromContainers\(id,\s*folder,\s*runtimeContainers\);/);
     assert.match(dockerRuntimeHierarchyScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*const \$updateColumn = \$folderRow\.find\('td\.updatecolumn'\);/);

@@ -1903,12 +1903,19 @@ const resolveDockerTooltipRuntimeEntry = (entry) => {
 
 const buildDockerTooltipContent = (ct) => {
     const runtimeEntry = resolveDockerTooltipRuntimeEntry(ct);
+    const previewActionsApi = getDockerPreviewActionsApi();
     const labels = runtimeEntry?.Labels && typeof runtimeEntry.Labels === 'object' ? runtimeEntry.Labels : {};
     const tooltipWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.WebUi);
     const tooltipTsWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.TSWebUi);
     const tooltipShowAdvanced = $.cookie('docker_listview_mode') == 'advanced';
-    const tooltipForceUpdateHtml = tooltipShowAdvanced
-        ? `<br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('force-update')}</span></a>`
+    const tooltipUpdateHtml = previewActionsApi && typeof previewActionsApi.buildDockerMemberUpdateColumnHtml === 'function'
+        ? previewActionsApi.buildDockerMemberUpdateColumnHtml({
+            name: runtimeEntry?.info?.Name,
+            manager: runtimeEntry?.info?.State?.manager,
+            update: runtimeEntry?.info?.State?.Updated === false
+        }, {
+            advanced: tooltipShowAdvanced
+        })
         : '';
     const $content = $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
@@ -1924,7 +1931,7 @@ const buildDockerTooltipContent = (ct) => {
             <table class="preview-status">
                 <thead class="status-header"><tr><th class="status-header-version">${$.i18n('version')}</th><th class="status-header-stats">CPU/MEM</th><th class="status-header-autostart">${$.i18n('autostart')}</th></tr></thead>
                 <tbody><tr>
-                    <td><div class="status-version">${runtimeEntry.info.State.manager === 'composeman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>` : runtimeEntry.info.State.manager !== 'dockerman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>` : runtimeEntry.info.State.Updated !== false ? `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${$.i18n('up-to-date')}</span>${tooltipForceUpdateHtml}` : `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${$.i18n('update-ready')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('apply-update')}</span></a>`}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
+                    <td><div class="status-version">${tooltipUpdateHtml}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
                     <td><div class="status-stats"><span class="cpu-${ct.shortId}">0%</span><div class="usage-disk mm"><span id="cpu-${ct.shortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${ct.shortId}">0 / 0</span></div></td>
                     <td><div class="status-autostart"><input type="checkbox" style="display:none" class="staus-autostart-checkbox"></div></td>
                 </tr></tbody>
@@ -2983,12 +2990,59 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
 
 const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic');
 
-const syncDockerListViewModeFromCookie = () => {
+const emitDockerListViewModeChange = (mode, source = 'cookie-write') => {
+    if (typeof window?.dispatchEvent !== 'function' || typeof window?.CustomEvent !== 'function') {
+        return;
+    }
+    window.dispatchEvent(new CustomEvent(DOCKER_LIST_VIEW_MODE_CHANGE_EVENT, {
+        detail: {
+            mode,
+            source: String(source || 'cookie-write').trim() || 'cookie-write'
+        }
+    }));
+};
+
+const bindDockerListViewModeCookieHook = () => {
+    if (dockerListViewModeCookieHookBound || typeof $.cookie !== 'function') {
+        return;
+    }
+    const currentCookie = $.cookie;
+    if (currentCookie?.__fvplusDockerListViewModePatched === true) {
+        dockerListViewModeCookieHookBound = true;
+        return;
+    }
+    const wrappedCookie = function(...args) {
+        const result = currentCookie.apply(this, args);
+        if (args.length >= 2 && String(args[0] || '').trim() === 'docker_listview_mode') {
+            emitDockerListViewModeChange(readDockerListViewMode(), 'cookie-write');
+        }
+        return result;
+    };
+    try {
+        wrappedCookie.__fvplusDockerListViewModePatched = true;
+        wrappedCookie.__fvplusOriginal = currentCookie;
+    } catch (_error) {}
+    $.cookie = wrappedCookie;
+    if (window?.jQuery && window.jQuery.cookie === currentCookie) {
+        window.jQuery.cookie = wrappedCookie;
+    }
+    if (window?.$ && window.$.cookie === currentCookie) {
+        window.$.cookie = wrappedCookie;
+    }
+    dockerListViewModeCookieHookBound = true;
+};
+
+const syncDockerListViewModeFromCookie = (source = 'passive') => {
     const nextMode = readDockerListViewMode();
     if (nextMode === lastDockerListViewMode) {
         return;
     }
     lastDockerListViewMode = nextMode;
+    appendDockerRequestBundleTrace('listViewModeSync', {
+        currentPage: String(location?.pathname || ''),
+        mode: nextMode,
+        source: String(source || 'passive').trim() || 'passive'
+    });
     if (!loadedFolder || !globalFolders || Object.keys(globalFolders).length <= 0) {
         return;
     }
@@ -2997,21 +3051,26 @@ const syncDockerListViewModeFromCookie = () => {
 };
 
 const startDockerListViewModeObserver = () => {
-    if (dockerListViewModeObserverTimer || typeof window.setInterval !== 'function') {
+    bindDockerListViewModeCookieHook();
+    if (dockerListViewModeObserverBound) {
         return;
     }
-    dockerListViewModeObserverTimer = window.setInterval(() => {
-        if (document.hidden === true) {
-            return;
-        }
-        syncDockerListViewModeFromCookie();
-    }, 500);
+    if (typeof window?.addEventListener === 'function') {
+        window.addEventListener(DOCKER_LIST_VIEW_MODE_CHANGE_EVENT, (event) => {
+            syncDockerListViewModeFromCookie(event?.detail?.source || 'event');
+        });
+        window.addEventListener('focus', () => syncDockerListViewModeFromCookie('focus'));
+        window.addEventListener('pageshow', () => syncDockerListViewModeFromCookie('pageshow'));
+    }
     if (typeof document.addEventListener === 'function') {
-        document.addEventListener('visibilitychange', syncDockerListViewModeFromCookie);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden === true) {
+                return;
+            }
+            syncDockerListViewModeFromCookie('visibilitychange');
+        });
     }
-    if (typeof window.addEventListener === 'function') {
-        window.addEventListener('focus', syncDockerListViewModeFromCookie);
-    }
+    dockerListViewModeObserverBound = true;
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
@@ -5399,6 +5458,7 @@ if (typeof window.loadlist_original !== 'function') {
 window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     bindDockerHostOpenDockerPatch();
+    bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
@@ -5573,7 +5633,9 @@ let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
 let nextDockerRenderSuppressLoadingUi = false;
 let activeDockerRenderSuppressLoadingUi = false;
-let dockerListViewModeObserverTimer = null;
+let dockerListViewModeObserverBound = false;
+let dockerListViewModeCookieHookBound = false;
+const DOCKER_LIST_VIEW_MODE_CHANGE_EVENT = 'fvplus:docker-listview-mode-change';
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
 let dockerSupportBundleSnapshotTimer = null;
 let dockerUpdateActionClickCaptureBound = false;
@@ -5693,17 +5755,11 @@ const resolveDockerSupportBundleActionToken = (text) => {
     return 'other';
 };
 const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
-    const manager = String(entry?.manager || '').trim().toLowerCase();
-    const updateReady = entry?.update === true;
-    const advanced = readDockerListViewMode() === 'advanced';
-    if (manager === 'dockerman') {
-        return updateReady ? 'applyUpdate' : (advanced ? 'forceUpdate' : 'upToDate');
-    }
-    if (manager === 'composeman') {
-        return 'other';
-    }
-    if (manager) {
-        return 'other';
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (previewActionsApi && typeof previewActionsApi.resolveDockerMemberUpdateState === 'function') {
+        return previewActionsApi.resolveDockerMemberUpdateState(entry, {
+            advanced: readDockerListViewMode() === 'advanced'
+        }).actionToken;
     }
     return 'unknown';
 };
@@ -5715,18 +5771,14 @@ const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
     if (!status) {
         return 'unknown';
     }
-    const managerTypes = new Set(Array.isArray(status.managerTypes) ? status.managerTypes : []);
-    const hasDockerMan = managerTypes.has('dockerman');
-    const hasCompose = managerTypes.has('composeman');
-    const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
-    if (status.upToDate !== true) {
-        return 'applyUpdate';
-    }
-    if (hasDockerMan) {
-        return readDockerListViewMode() === 'advanced' ? 'forceUpdate' : 'upToDate';
-    }
-    if (hasCompose || has3rdParty) {
-        return 'other';
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.resolveFolderUpdateColumnState === 'function') {
+        return hierarchyApi.resolveFolderUpdateColumnState(
+            new Set(Array.isArray(status.managerTypes) ? status.managerTypes : []),
+            status.upToDate === true,
+            Number(status.managed || 0),
+            { advanced: readDockerListViewMode() === 'advanced' }
+        ).actionToken;
     }
     return 'unknown';
 };

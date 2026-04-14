@@ -59,6 +59,7 @@ const sanitizeToken = (value) => String(value || '')
 const runtimeReports = [];
 const dashboardReports = [];
 const folderEditorReports = [];
+const dockerDiagnosticsReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -419,6 +420,153 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
         pass: report?.pass === true,
         checks: Array.isArray(report?.checks) ? report.checks : [],
         screenshotPath
+    };
+};
+
+const runDockerDiagnosticsSmoke = async (page, { browserName, url }) => {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await page.waitForTimeout(1200);
+
+    const report = await page.evaluate(async () => {
+        const pageKey = 'fv.support.bundle.docker.page.v1';
+        const requestKey = 'fv.support.bundle.docker.requestBundleTrace.v1';
+        const traceHealthKey = 'fv.support.bundle.docker.traceHealth.v1';
+        const readRecord = (storageKey) => {
+            try {
+                const raw = window.localStorage?.getItem(storageKey);
+                return raw ? JSON.parse(raw) : null;
+            } catch (_error) {
+                return null;
+            }
+        };
+        const waitForRecord = async (predicate, timeoutMs = 6000, stepMs = 100) => {
+            const startedAt = Date.now();
+            while ((Date.now() - startedAt) < timeoutMs) {
+                const value = predicate();
+                if (value) {
+                    return value;
+                }
+                await new Promise((resolve) => window.setTimeout(resolve, stepMs));
+            }
+            return null;
+        };
+        const rows = Array.from(document.querySelectorAll('#docker_list > tr, #docker_view > tr'))
+            .filter((row) => row instanceof HTMLElement && row.offsetParent !== null);
+        if (!rows.length) {
+            return {
+                skipped: true,
+                reason: 'No visible Docker rows found for diagnostics smoke.'
+            };
+        }
+        if (typeof window.loadlist !== 'function') {
+            return {
+                skipped: true,
+                reason: 'window.loadlist is unavailable on the Docker page.'
+            };
+        }
+        const currentMode = /\bdocker_listview_mode=advanced\b/i.test(String(document.cookie || ''))
+            ? 'advanced'
+            : 'basic';
+        const nextMode = currentMode === 'advanced' ? 'basic' : 'advanced';
+        const canToggleMode = typeof window.$?.cookie === 'function';
+        const beforeRequestTrace = readRecord(requestKey);
+        const beforeRequestCount = Number(beforeRequestTrace?.count || 0);
+
+        window.loadlist();
+        const requestTrace = await waitForRecord(() => {
+            const record = readRecord(requestKey);
+            if (!record || Number(record?.count || 0) < beforeRequestCount) {
+                return null;
+            }
+            const entries = Array.isArray(record?.entries) ? record.entries : [];
+            const sawLoadlist = entries.some((entry) => entry?.eventType === 'loadlist');
+            const sawBuildReq = entries.some((entry) => entry?.eventType === 'buildDockerFolderReq');
+            const sawListview = entries.some((entry) => entry?.eventType === 'listview');
+            return sawLoadlist && sawBuildReq && sawListview ? record : null;
+        });
+        const pageSnapshotAfterLoadlist = await waitForRecord(() => {
+            const record = readRecord(pageKey);
+            return record?.currentPage === '/Docker' ? record : null;
+        });
+
+        let toggleResult = {
+            supported: canToggleMode,
+            toggledTo: null,
+            toggleObserved: false,
+            restoreObserved: false
+        };
+        if (canToggleMode) {
+            window.$.cookie('docker_listview_mode', nextMode);
+            const toggledSnapshot = await waitForRecord(() => {
+                const record = readRecord(pageKey);
+                return record?.listViewMode === nextMode ? record : null;
+            }, 5000);
+            toggleResult = {
+                ...toggleResult,
+                toggledTo: nextMode,
+                toggleObserved: Boolean(toggledSnapshot),
+                restoreObserved: false
+            };
+            window.$.cookie('docker_listview_mode', currentMode);
+            const restoredSnapshot = await waitForRecord(() => {
+                const record = readRecord(pageKey);
+                return record?.listViewMode === currentMode ? record : null;
+            }, 5000);
+            toggleResult.restoreObserved = Boolean(restoredSnapshot);
+        }
+
+        const finalPageSnapshot = readRecord(pageKey);
+        const traceHealth = readRecord(traceHealthKey);
+        const finalRequestTrace = readRecord(requestKey);
+
+        return {
+            skipped: false,
+            pass: Boolean(requestTrace) && Boolean(pageSnapshotAfterLoadlist)
+                && (!canToggleMode || (toggleResult.toggleObserved && toggleResult.restoreObserved)),
+            listViewMode: currentMode,
+            visibleFolderRows: Number(finalPageSnapshot?.summary?.visibleFolderRows || 0),
+            folderActionMismatchCount: Number(finalPageSnapshot?.summary?.folderActionMismatchCount || 0),
+            memberActionMismatchCount: Number(finalPageSnapshot?.summary?.memberActionMismatchCount || 0),
+            requestTraceAvailable: Boolean(finalRequestTrace),
+            requestTraceCount: Number(finalRequestTrace?.count || 0),
+            traceHealthAvailable: Boolean(traceHealth),
+            requestTraceWriteSucceeded: traceHealth?.requestBundleTrace?.lastWriteSucceeded === true,
+            pageSnapshotWriteSucceeded: traceHealth?.pageSnapshot?.lastWriteSucceeded === true,
+            toggleResult
+        };
+    });
+
+    const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-docker-diagnostics.png`;
+    const screenshotPath = path.join(artifactRoot, screenshotName);
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+
+    if (report?.skipped) {
+        console.warn(`Docker diagnostics smoke skipped for ${browserName}: ${report.reason}`);
+        return {
+            browserName,
+            url,
+            skipped: true,
+            pass: false,
+            reason: report.reason,
+            screenshotPath
+        };
+    }
+
+    if (!report?.pass) {
+        throw new Error(
+            `Docker diagnostics smoke failed for ${browserName}: ${JSON.stringify(report)}. `
+            + `Screenshot: ${screenshotPath}`
+        );
+    }
+
+    console.log(`Docker diagnostics smoke passed: ${browserName} ${JSON.stringify(report)}`);
+    return {
+        browserName,
+        url,
+        skipped: false,
+        pass: true,
+        screenshotPath,
+        ...report
     };
 };
 
@@ -1015,6 +1163,17 @@ const runBrowserSmoke = async (browserName, browserType) => {
             }
         }
 
+        const dockerRuntimeTarget = runtimeTargets.find((entry) => entry.type === 'docker');
+        if (dockerRuntimeTarget) {
+            const diagnosticsReport = await runDockerDiagnosticsSmoke(page, {
+                browserName,
+                url: dockerRuntimeTarget.url
+            });
+            if (diagnosticsReport) {
+                dockerDiagnosticsReports.push(diagnosticsReport);
+            }
+        }
+
         if (dashboardUrl) {
             const dashboardReport = await runDashboardQuickRailSmoke(page, {
                 browserName,
@@ -1063,6 +1222,7 @@ try {
         generatedAt: new Date().toISOString(),
         scenarioLabel,
         reports: runtimeReports,
+        dockerDiagnosticsReports,
         dashboardReports,
         folderEditorReports
     };

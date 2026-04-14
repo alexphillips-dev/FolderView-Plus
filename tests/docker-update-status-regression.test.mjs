@@ -68,6 +68,7 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
+    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true;[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
     assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*appendDockerBulkUpdateTrace\('postUpdatePoll'/);
     assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)/);
     assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcile = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)[\s\S]*queueDockerPostUpdateRuntimeReconcilePoll\(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\);/);
@@ -76,6 +77,8 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const bindDockerUpdateActionClickCapture = \(\) => \{[\s\S]*document\.addEventListener\('click', handleDockerUpdateActionClickCapture, true\);/);
     assert.match(dockerJs, /queueDockerSupportBundlePageSnapshot\('render-complete', 260\);\s*queueDockerPostUpdateRuntimeReconcile\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*startDockerListViewModeObserver\(\);/);
+    assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
+    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {

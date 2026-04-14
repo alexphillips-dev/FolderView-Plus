@@ -116,6 +116,7 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
+    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
     assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
@@ -143,7 +144,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust\),/);
+    assert.match(dockerJs, /function buildDockerFolderReq\(options = \{\}\) \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true \|\| isDockerHostUpdateSyncSuspended\(\);/);
+    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust, \{\s*liveUpdateStatus\s*\}\),/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
     assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);

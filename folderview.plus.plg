@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.14.01">
-<!ENTITY md5 "d3155aeb2a6f2e0621558451241ebcb7">
+<!ENTITY version "2026.04.14.02">
+<!ENTITY md5 "2c15254327f26c6c83a78db8c418fc20">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.14.02
+- Fix: Docker `loadlist()` rebuilds now request live update status while the post-update reconcile window is active, so folder rows stop repainting stale `apply update` badges after `update all` finishes.
+- Fix: Docker live-refresh signature checks now follow the same live-status path during the reconcile window, keeping the full FolderView3-style redraw flow aligned with the cleared server state.
+
 
 ###2026.04.14.01
 - Fix: Docker runtime rows, folder state, and container interactions.

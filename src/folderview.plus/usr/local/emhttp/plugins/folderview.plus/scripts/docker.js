@@ -5199,7 +5199,9 @@ window.listview = () => {
 
     if (!loadedFolder) {
         if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-            folderReq = buildDockerFolderReq();
+            folderReq = buildDockerFolderReq({
+                liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+            });
         }
         dockerHostLoadOwnsLoadingUi = true;
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
@@ -5229,7 +5231,9 @@ window.loadlist = () => {
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
-    folderReq = buildDockerFolderReq();
+    folderReq = buildDockerFolderReq({
+        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+    });
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
 
     if (typeof window.loadlist_original === 'function') {
@@ -5652,8 +5656,11 @@ const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), option
     return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}${liveUpdateQuery}&nocache=1&_=${cacheBust || Date.now()}`;
 };
 
-const fetchDockerStateSignature = async () => {
-    const payload = await $.get(buildDockerRuntimeInfoUrl('state')).promise();
+const fetchDockerStateSignature = async (options = {}) => {
+    const liveUpdateStatus = options?.liveUpdateStatus === true;
+    const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
+        liveUpdateStatus
+    })).promise();
     const parsed = parseJsonPayloadSafe(payload);
     return buildDockerStateSignature(parsed, true);
 };
@@ -5753,7 +5760,9 @@ const runLiveRefreshTick = () => {
         .then(async () => {
             let nextSignature = '';
             try {
-                nextSignature = await fetchDockerStateSignature();
+                nextSignature = await fetchDockerStateSignature({
+                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+                });
             } catch (_error) {
                 nextSignature = '';
             }
@@ -5833,8 +5842,9 @@ window.toggleDockerFolderFocus = (id) => toggleDockerFolderFocus(id);
 window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);
 window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 
-function buildDockerFolderReq() {
+function buildDockerFolderReq(options = {}) {
     const cacheBust = Date.now();
+    const liveUpdateStatus = options?.liveUpdateStatus === true || isDockerHostUpdateSyncSuspended();
     const safePrefsReq = createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
         source: 'prefs',
         label: 'Docker preferences',
@@ -5853,7 +5863,9 @@ function buildDockerFolderReq() {
                 source: 'folder-order',
                 label: 'Docker folder order'
             }),
-            createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust), {
+            createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust, {
+                liveUpdateStatus
+            }), {
                 source: 'runtime-info-state',
                 label: 'Docker runtime state'
             }),

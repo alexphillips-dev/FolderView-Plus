@@ -4167,13 +4167,14 @@
         return $templates;
     }
 
-    function readInfoState(string $type): array {
+    function readInfoState(string $type, bool $preferLiveUpdateStatus = false): array {
         $type = ensureType($type);
         $info = [];
 
         if ($type === 'docker') {
             global $dockerManPaths;
             $dockerClient = new DockerClient();
+            $dockerUpdate = $preferLiveUpdateStatus ? new DockerUpdate() : null;
             $containers = $dockerClient->getDockerJSON("/containers/json?all=1");
             if (!is_array($containers)) {
                 return [];
@@ -4207,6 +4208,7 @@
                 $paused = ($stateRaw === 'paused') || (stripos($statusRaw, 'paused') !== false);
                 $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
                 $manager = getNormalizedDockerManagerFromLabels($labels);
+                $containerImage = DockerUtil::ensureImageTag(trim((string)($container['Image'] ?? '')));
 
                 $info[$name] = [
                     'name' => $name,
@@ -4220,7 +4222,11 @@
                     'paused' => $paused,
                     'status' => $statusRaw,
                     'autostart' => isset($autoStartSet[$name]),
-                    'Updated' => $manager === 'dockerman' ? resolveDockerCachedUpdatedStateValue($name, $dockerWebuiInfo) : null,
+                    'Updated' => $manager === 'dockerman'
+                        ? ($preferLiveUpdateStatus
+                            ? resolveDockerUpdatedStateValue($name, $containerImage, $dockerWebuiInfo, $dockerUpdate)
+                            : resolveDockerCachedUpdatedStateValue($name, $dockerWebuiInfo))
+                        : null,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
                     'folderLabel' => getFolderLabelValueFromLabels($labels)

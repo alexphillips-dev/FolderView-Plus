@@ -184,7 +184,8 @@
             }
             defer(() => {
                 Promise.resolve(refreshDockerRuntimeState({
-                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
+                    liveUpdateStatus: true
                 })).catch((error) => {
                     debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime state refresh failed.', error);
                     writeDockerBulkUpdateTrace('dialogCallbackRuntimeRefreshFailed', {
@@ -210,7 +211,8 @@
                     delayMs: DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS
                 });
                 Promise.resolve(refreshDockerRuntimeState({
-                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
+                    liveUpdateStatus: true
                 })).catch((error) => {
                     debugWarn('[FV3_DEBUG] Docker dialog refresh: post-render reconcile failed.', error);
                     writeDockerBulkUpdateTrace('postRenderReconcileFailed', {
@@ -233,7 +235,8 @@
                         delayMs
                     });
                     Promise.resolve(refreshDockerRuntimeState({
-                        followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS
+                        followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
+                        liveUpdateStatus: true
                     })).catch((error) => {
                         debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime-state backstop failed.', error);
                         writeDockerBulkUpdateTrace('backstopRefreshFailed', {

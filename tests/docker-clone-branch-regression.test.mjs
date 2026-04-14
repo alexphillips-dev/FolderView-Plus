@@ -189,23 +189,26 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
     assert.deepEqual(suspendCalls, [120000]);
     assert.deepEqual(queuedRefreshCalls, []);
-    assert.deepEqual(runtimeRefreshCalls, [{ followupDelayMs: 650 }, { followupDelayMs: 650 }]);
+    assert.deepEqual(runtimeRefreshCalls, [
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true }
+    ]);
 
     folderEvents.dispatchEvent(new Event('docker-post-folders-creation'));
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650 },
-        { followupDelayMs: 650 },
-        { followupDelayMs: 650 }
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true }
     ]);
 
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 
     assert.equal(loadlistCalls, 1);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650 },
-        { followupDelayMs: 650 },
-        { followupDelayMs: 650 },
-        { followupDelayMs: 650 }
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true },
+        { followupDelayMs: 650, liveUpdateStatus: true }
     ]);
 });
 

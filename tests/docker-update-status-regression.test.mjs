@@ -25,6 +25,10 @@ const dockerRuntimeHierarchyJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'),
     'utf8'
 );
+const dockerCss = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
+    'utf8'
+);
 
 test('docker runtime preserves hydrated update flags when normalizing partial runtime entries', () => {
     assert.match(dockerRuntimeInfoJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
@@ -62,8 +66,11 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const suspendDockerHostUpdateSync = \(durationMs = 0\) => \{/);
     assert.match(dockerJs, /const appendDockerBulkUpdateTrace = \(eventType,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
+    assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
+    assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*appendDockerBulkUpdateTrace\('postUpdatePoll'/);
-    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcile = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650\s*\}\)[\s\S]*queueDockerPostUpdateRuntimeReconcilePoll\(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\);/);
+    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)/);
+    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcile = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)[\s\S]*queueDockerPostUpdateRuntimeReconcilePoll\(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\);/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*appendDockerBulkUpdateTrace\('reconcileWindowArmed'/);
     assert.match(dockerJs, /const handleDockerUpdateActionClickCapture = \(event\) => \{[\s\S]*appendDockerBulkUpdateTrace\('updateActionClick'/);
     assert.match(dockerJs, /const bindDockerUpdateActionClickCapture = \(\) => \{[\s\S]*document\.addEventListener\('click', handleDockerUpdateActionClickCapture, true\);/);
@@ -189,6 +196,17 @@ test('docker runtime sync rewrites both hidden and expanded member rows', () => 
     assert.match(dockerPreviewActionsJs, /tr\.folder-id-\$\{folderId\} div\.folder-storage > tr, tr\.folder-\$\{folderId\}-element/);
     assert.match(dockerPreviewActionsJs, /return matchRows\(getDirectMemberRowsForFolder\(folderId\)\);/);
     assert.match(dockerJs, /getDirectMemberRowsForFolder: \(id\) => getDirectMemberRowsForFolder\(id\),/);
+});
+
+test('docker preview update highlight survives live runtime sync', () => {
+    assert.match(dockerJs, /const updateClass = settings\?\.preview_update && entry\?\.update === true \? ' orange-text fv-preview-update-ready' : '';/);
+    assert.match(dockerJs, /\$appNameSpan\.addClass\('orange-text fv-preview-update-ready'\);/);
+    assert.match(dockerJs, /\$appNameSpan\.children\('a\.exec'\)\.addClass\('orange-text fv-preview-update-ready'\);/);
+    assert.match(dockerPreviewActionsJs, /const syncDockerPreviewUpdateHighlight = \(\$target,\s*settings = \{\},\s*entry = \{\}\) => \{/);
+    assert.match(dockerPreviewActionsJs, /\$appName\.toggleClass\('orange-text fv-preview-update-ready', highlightUpdate\);/);
+    assert.match(dockerPreviewActionsJs, /\$appLink\.toggleClass\('orange-text fv-preview-update-ready', highlightUpdate\);/);
+    assert.match(dockerPreviewActionsJs, /syncDockerPreviewUpdateHighlight\(\$target,\s*settings,\s*entry\);/);
+    assert.match(dockerCss, /\.fv-preview-update-ready\s*\{/);
 });
 
 test('docker tooltip update action also respects the Docker advanced/basic cookie', () => {

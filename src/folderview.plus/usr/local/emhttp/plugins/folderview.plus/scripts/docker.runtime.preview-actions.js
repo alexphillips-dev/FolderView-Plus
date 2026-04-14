@@ -248,6 +248,25 @@
             }
         };
 
+        const syncDockerPreviewUpdateHighlight = ($target, settings = {}, entry = {}) => {
+            if (!$target || !$target.length) {
+                return;
+            }
+            const $outer = $target.hasClass('outer')
+                ? $target
+                : $target.closest('span.outer').first();
+            if (!$outer.length) {
+                return;
+            }
+            const $appName = $outer.children('span.inner').first().children('span.appname').first();
+            const $appLink = $appName.children('a.exec').first();
+            const highlightUpdate = settings?.preview_update === true && entry?.update === true;
+            $appName.toggleClass('orange-text fv-preview-update-ready', highlightUpdate);
+            if ($appLink.length) {
+                $appLink.toggleClass('orange-text fv-preview-update-ready', highlightUpdate);
+            }
+        };
+
         const findDockerFolderMemberRow = (id, containerName) => {
             const folderId = String(id || '').trim();
             const safeContainerName = String(containerName || '').trim();
@@ -399,6 +418,7 @@
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
                 syncDockerPreviewStatus($target, entry);
+                syncDockerPreviewUpdateHighlight($target, settings, entry);
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });

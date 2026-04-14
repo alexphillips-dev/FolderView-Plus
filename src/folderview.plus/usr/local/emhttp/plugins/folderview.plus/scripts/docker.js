@@ -818,7 +818,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const stateLabel = escapeHtml($.i18n(previewStateMeta.key));
     const previewStatusTitle = stateLabel;
     const imageStyle = settings?.preview_grayscale ? ' style="filter: grayscale(100%);"' : '';
-    const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text' : '';
+    const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text fv-preview-update-ready' : '';
     const textWidth = String(settings?.preview_text_width || '').trim();
     const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
     const autostartClass = autostart ? ' autostart' : '';
@@ -2947,7 +2947,8 @@ const queueDockerPostUpdateRuntimeReconcilePoll = (delayMs = DOCKER_POST_UPDATE_
             delayMs: safeDelayMs
         });
         Promise.resolve(refreshDockerRuntimeStateInPlace({
-            followupDelayMs: 650
+            followupDelayMs: 650,
+            liveUpdateStatus: true
         }))
             .catch(() => {})
             .finally(() => {
@@ -2968,7 +2969,8 @@ const queueDockerPostUpdateRuntimeReconcile = (delayMs = DOCKER_POST_UPDATE_RECO
             return;
         }
         Promise.resolve(refreshDockerRuntimeStateInPlace({
-            followupDelayMs: 650
+            followupDelayMs: 650,
+            liveUpdateStatus: true
         }))
             .catch(() => {})
             .finally(() => {
@@ -4113,8 +4115,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     $appNameSpan = $previewElementTarget.children('span.appname');
                 }
                 if ($appNameSpan.length) {
-                    $appNameSpan.addClass('orange-text');
-                    $appNameSpan.children('a.exec').addClass('orange-text');
+                    $appNameSpan.addClass('orange-text fv-preview-update-ready');
+                    $appNameSpan.children('a.exec').addClass('orange-text fv-preview-update-ready');
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Applied orange-text for update status to preview appname.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Update style: Could not find appname span in preview element.`);
@@ -5643,8 +5645,11 @@ const queueLoadlistRefresh = (options = {}) => {
     }, delayMs);
 };
 
-const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now()) => {
-    return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}&nocache=1&_=${cacheBust || Date.now()}`;
+const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), options = {}) => {
+    const liveUpdateQuery = mode === 'state' && options?.liveUpdateStatus === true
+        ? '&liveupdate=1'
+        : '';
+    return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}${liveUpdateQuery}&nocache=1&_=${cacheBust || Date.now()}`;
 };
 
 const fetchDockerStateSignature = async () => {
@@ -5655,11 +5660,14 @@ const fetchDockerStateSignature = async () => {
 
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
+    const liveUpdateStatus = options?.liveUpdateStatus === true;
     const fallbackToLoadlist = () => {
         queueLoadlistRefresh({ suppressLoadingUi: true });
     };
     const applyStatePayload = async () => {
-        const payload = await $.get(buildDockerRuntimeInfoUrl('state')).promise();
+        const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
+            liveUpdateStatus
+        })).promise();
         const parsed = parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
             throw new Error('Docker runtime state payload was empty.');

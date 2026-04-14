@@ -564,6 +564,15 @@ tr.folder.fv-parent-expanded div.folder-preview {
     word-break: break-all;
 }
 
+.folder-preview-wrapper .inner > span.appname.fv-preview-update-ready,
+.folder-preview-wrapper .inner > span.appname > a.exec.fv-preview-update-ready,
+.folder-preview.fv-preview-multirow .fv-docker-preview-card .appname.fv-preview-update-ready,
+.folder-preview.fv-preview-multirow .fv-docker-preview-card .appname > a.exec.fv-preview-update-ready,
+.folder-element .ct-name .inner > span.appname.fv-preview-update-ready,
+.folder-element .ct-name .inner > span.appname > a.exec.fv-preview-update-ready {
+    color: var(--orange, #f0a30a) !important;
+}
+
 .folder-preview-divider {
     float: none;
     display: block;

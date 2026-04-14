@@ -16,9 +16,14 @@ const libDiagnosticsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php'
 );
+const readInfoPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'
+);
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const diagnosticsEndpointPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/diagnostics.php'
@@ -136,7 +141,11 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /function readInfoState\(string \$type\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman' \? resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\) : null,/
+        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*?resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)[\s\S]*?: null,/
+    );
+    assert.match(
+        readInfoPhp,
+        /\$preferLiveUpdateStatus = \$mode === 'state'[\s\S]*?if \(\$preferLiveUpdateStatus\) \{[\s\S]*?readInfoState\(\$type,\s*true\)/
     );
 });
 

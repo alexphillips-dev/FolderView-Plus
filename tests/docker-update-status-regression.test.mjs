@@ -73,14 +73,14 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true;[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
-    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*appendDockerBulkUpdateTrace\('postUpdatePoll'/);
-    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcilePoll = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)/);
-    assert.match(dockerJs, /const queueDockerPostUpdateRuntimeReconcile = \(delayMs = DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)[\s\S]*queueDockerPostUpdateRuntimeReconcilePoll\(DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS\);/);
+    assert.match(dockerJs, /const queueDockerPostUpdateRenderReconcile = \(reason = 'docker-post-folders-creation'\) => \{[\s\S]*appendDockerBulkUpdateTrace\('postUpdateRenderReconcile'/);
+    assert.match(dockerJs, /const queueDockerPostUpdateRenderReconcile = \(reason = 'docker-post-folders-creation'\) => \{[\s\S]*refreshDockerRuntimeStateInPlace\(\{\s*followupDelayMs: 650,\s*liveUpdateStatus: true\s*\}\)/);
+    assert.match(dockerJs, /const bindDockerPostUpdateRenderReconcile = \(\) => \{[\s\S]*window\.folderEvents\.addEventListener\('docker-post-folders-creation', \(\) => \{[\s\S]*queueDockerPostUpdateRenderReconcile\('docker-post-folders-creation'\);[\s\S]*\}\);/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*appendDockerBulkUpdateTrace\('reconcileWindowArmed'/);
     assert.match(dockerJs, /const handleDockerUpdateActionClickCapture = \(event\) => \{[\s\S]*appendDockerBulkUpdateTrace\('updateActionClick'/);
     assert.match(dockerJs, /const bindDockerUpdateActionClickCapture = \(\) => \{[\s\S]*document\.addEventListener\('click', handleDockerUpdateActionClickCapture, true\);/);
-    assert.match(dockerJs, /queueDockerSupportBundlePageSnapshot\('render-complete', 260\);\s*queueDockerPostUpdateRuntimeReconcile\(\);/);
-    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*startDockerListViewModeObserver\(\);/);
+    assert.doesNotMatch(dockerJs, /queueDockerSupportBundlePageSnapshot\('render-complete', 260\);\s*queueDockerPostUpdateRuntimeReconcile\(\);/);
+    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
     assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
     assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
     assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*const mismatches = \{/);
@@ -240,7 +240,7 @@ test('docker runtime re-syncs folder rows when the Docker basic or advanced cook
     assert.match(dockerJs, /const readDockerListViewMode = \(\) => \(\$\.cookie\('docker_listview_mode'\) == 'advanced' \? 'advanced' : 'basic'\);/);
     assert.match(dockerJs, /const syncDockerListViewModeFromCookie = \(\) => \{[\s\S]*if \(nextMode === lastDockerListViewMode\) \{\s*return;\s*\}[\s\S]*if \(!loadedFolder \|\| !globalFolders \|\| Object\.keys\(globalFolders\)\.length <= 0\) \{\s*return;\s*\}[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*scheduleDockerRuntimeWidthReflow\('listview-mode-change', 12\);/);
     assert.match(dockerJs, /const startDockerListViewModeObserver = \(\) => \{[\s\S]*dockerListViewModeObserverTimer = window\.setInterval\(\(\) => \{[\s\S]*syncDockerListViewModeFromCookie\(\);[\s\S]*\}, 500\);[\s\S]*document\.addEventListener\('visibilitychange', syncDockerListViewModeFromCookie\);[\s\S]*window\.addEventListener\('focus', syncDockerListViewModeFromCookie\);/);
-    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*startDockerListViewModeObserver\(\);/);
+    assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
 });
 
 test('docker folder expand path re-syncs direct member rows from runtime state after moving them out of storage', () => {

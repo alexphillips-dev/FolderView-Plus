@@ -197,7 +197,6 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     folderEvents.dispatchEvent(new Event('docker-post-folders-creation'));
     assert.deepEqual(runtimeRefreshCalls, [
         { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true },
         { followupDelayMs: 650, liveUpdateStatus: true }
     ]);
 
@@ -205,7 +204,6 @@ test('docker folder update dialog callback preserves host loadlist and schedules
 
     assert.equal(loadlistCalls, 1);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
         { followupDelayMs: 650, liveUpdateStatus: true },
         { followupDelayMs: 650, liveUpdateStatus: true },
         { followupDelayMs: 650, liveUpdateStatus: true }

@@ -5547,6 +5547,74 @@ const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
 
 const normalizeDockerSupportBundleText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
+const isDockerSupportBundleNodeVisible = (node, boundary = null) => {
+    if (!node || node.nodeType !== 1) {
+        return true;
+    }
+    const boundaryElement = boundary && boundary.nodeType === 1 ? boundary : null;
+    let current = node;
+    while (current && current.nodeType === 1) {
+        if (current.hidden === true) {
+            return false;
+        }
+        const ariaHidden = String(current.getAttribute?.('aria-hidden') || '').trim().toLowerCase();
+        if (ariaHidden === 'true') {
+            return false;
+        }
+        const inlineStyle = String(current.getAttribute?.('style') || '').trim().toLowerCase();
+        if (/\bdisplay\s*:\s*none\b/.test(inlineStyle) || /\bvisibility\s*:\s*hidden\b/.test(inlineStyle)) {
+            return false;
+        }
+        if (typeof window?.getComputedStyle === 'function') {
+            const computedStyle = window.getComputedStyle(current);
+            if (computedStyle && (computedStyle.display === 'none' || computedStyle.visibility === 'hidden')) {
+                return false;
+            }
+        }
+        if (boundaryElement && current === boundaryElement) {
+            break;
+        }
+        current = current.parentElement;
+    }
+    return true;
+};
+
+const collectDockerSupportBundleVisibleText = (node, boundary, segments = []) => {
+    if (!node) {
+        return segments;
+    }
+    if (node.nodeType === 3) {
+        const text = normalizeDockerSupportBundleText(node.textContent || '');
+        if (text) {
+            segments.push(text);
+        }
+        return segments;
+    }
+    if (node.nodeType !== 1 || !isDockerSupportBundleNodeVisible(node, boundary)) {
+        return segments;
+    }
+    const tagName = String(node.tagName || '').toUpperCase();
+    if (tagName === 'SCRIPT' || tagName === 'STYLE') {
+        return segments;
+    }
+    Array.from(node.childNodes || []).forEach((childNode) => {
+        collectDockerSupportBundleVisibleText(childNode, boundary, segments);
+    });
+    return segments;
+};
+
+const readDockerSupportBundleVisibleUpdateCellText = ($updateCell) => {
+    const updateCell = $updateCell?.get ? $updateCell.get(0) : null;
+    if (!updateCell) {
+        return '';
+    }
+    const segments = [];
+    Array.from(updateCell.childNodes || []).forEach((childNode) => {
+        collectDockerSupportBundleVisibleText(childNode, updateCell, segments);
+    });
+    return normalizeDockerSupportBundleText(segments.join(' '));
+};
+
 const resolveDockerSupportBundleActionToken = (text) => {
     const normalized = normalizeDockerSupportBundleText(text).toLowerCase();
     if (!normalized) {
@@ -5651,7 +5719,7 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         }
         const folderId = parseDockerSupportBundleFolderId(row);
         if (folderId) {
-            const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
+            const updateCellText = readDockerSupportBundleVisibleUpdateCellText($row.find('td.updatecolumn').first());
             const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
             const expectedActionToken = resolveDockerSupportBundleExpectedFolderActionToken(folderId);
             const expanded = $(`.dropDown-${folderId}`).attr('active') === 'true';
@@ -5697,7 +5765,7 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
             return;
         }
         const containerName = normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()) || rawId.slice(3);
-        const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
+        const updateCellText = readDockerSupportBundleVisibleUpdateCellText($row.find('td.updatecolumn').first());
         const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
         const memberFolderId = parseDockerSupportBundleMemberFolderId(row);
         const runtimeEntry = dockerRuntimeInfoByName?.[containerName] || {};

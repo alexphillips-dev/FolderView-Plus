@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.14.03">
-<!ENTITY md5 "c93440bd2f37326a6e2c37cb99bb0d5b">
+<!ENTITY version "2026.04.14.04">
+<!ENTITY md5 "4d7c0935199edbe70cd26ad8d8151ce4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.14.04
+- Fix: Docker support-bundle page snapshots now read only the visible update-column text, so basic-mode exports stop treating hidden advanced-only `force update` actions as rendered mismatches.
+- Fix: Docker mismatch summaries now compare runtime expectations against the same visible action token the user actually sees on the page, which removes false-positive folder mismatches in basic view.
+- Quality: Added regression coverage for visible Docker update-cell parsing in the support-bundle snapshot collector.
+
 
 ###2026.04.14.03
 - Fix: Docker runtime rows, folder state, and container interactions.

@@ -88,6 +88,16 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /actionMismatch/);
 });
 
+test('docker support bundle snapshot reads only visible update-column text in basic view', () => {
+    assert.match(dockerJs, /const isDockerSupportBundleNodeVisible = \(node,\s*boundary = null\) => \{/);
+    assert.match(dockerJs, /const collectDockerSupportBundleVisibleText = \(node,\s*boundary,\s*segments = \[\]\) => \{/);
+    assert.match(dockerJs, /const readDockerSupportBundleVisibleUpdateCellText = \(\$updateCell\) => \{/);
+    assert.match(dockerJs, /window\.getComputedStyle\(current\)/);
+    const visibleUpdateCellReads = dockerJs.match(/readDockerSupportBundleVisibleUpdateCellText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\)/g) || [];
+    assert.equal(visibleUpdateCellReads.length, 2);
+    assert.doesNotMatch(dockerJs, /const updateCellText = normalizeDockerSupportBundleText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
+});
+
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);

@@ -88,13 +88,19 @@ test('lib.php supports guarded folder settings transfer for existing folders', (
 
 test('lib.php repairs custom icon directories and can clear missing custom icon references', () => {
     assert.match(libPhp, /function fvplusCustomIconDirPath\(\): string/);
+    assert.match(libPhp, /return "\$configDir\/images\/custom";/);
+    assert.match(libPhp, /function fvplusCustomIconRuntimeDirPath\(\): string/);
+    assert.match(libPhp, /return "\$sourceDir\/images\/custom";/);
+    assert.match(libPhp, /function fvplusEnsureCustomIconStorageReady\(bool \$requireWritable = false\): array/);
+    assert.match(libPhp, /function fvplusBootstrapCustomIconStorage\(\): void/);
+    assert.match(libPhp, /fvplusBootstrapCustomIconStorage\(\);/);
     assert.match(libPhp, /function fvplusRepairMissingCustomIconReferences\(\): array/);
     assert.match(libPhp, /diagnosticsCustomIconNameFromIconValue\(\(string\)\(\$folder\['icon'\] \?\? ''\)\)/);
     assert.match(libPhp, /\$folder\['icon'\] = '';/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons'\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_missing_custom_icons'/);
     assert.match(libPhp, /\$customIconDir = fvplusCustomIconDirPath\(\);/);
-    assert.match(libPhp, /if \(!is_dir\(\$customIconDir\)\) \{/);
+    assert.match(libPhp, /if \(is_dir\(\$customIconDir\)\) \{/);
     assert.match(libPhp, /'customIconDir'\s*=>\s*\$customIconDir/);
 });
 
@@ -199,6 +205,8 @@ test('lib.php diagnostics include custom icon storage and usage health', () => {
     assert.match(libDiagnosticsPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
+    assert.match(libDiagnosticsPhp, /fvplusCustomIconDirPath\(\)/);
+    assert.match(libDiagnosticsPhp, /'\/boot\/config\/plugins\/folderview\.plus\/images\/custom'/);
     assert.match(libDiagnosticsPhp, /\$customIcons\s*=\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\);/);
     assert.match(libDiagnosticsPhp, /'customIcons'\s*=>\s*\$customIcons/);
     assert.match(libDiagnosticsPhp, /'inUseIconCount'\s*=>/);

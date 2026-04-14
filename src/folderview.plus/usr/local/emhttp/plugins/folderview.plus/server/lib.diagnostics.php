@@ -824,9 +824,10 @@
     }
 
     function diagnosticsBuildCustomIconStorage(string $privacyMode): array {
-        global $sourceDir;
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $directory = "$sourceDir/images/custom";
+        $directory = function_exists('fvplusCustomIconDirPath')
+            ? fvplusCustomIconDirPath()
+            : '/boot/config/plugins/folderview.plus/images/custom';
         $descriptor = diagnosticsPathDescriptor($directory, $privacyMode);
         $extensions = diagnosticsCustomIconExtensions();
         $usageMap = diagnosticsBuildCustomIconUsageMap();

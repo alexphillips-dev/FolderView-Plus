@@ -78,61 +78,38 @@ register_shutdown_function(static function (): void {
 });
 
 function customIconDirPath(): string {
-    global $sourceDir;
-    return "$sourceDir/images/custom";
+    return fvplusCustomIconDirPath();
 }
 
 function customIconRepairHintCommand(): string {
-    $dir = customIconDirPath();
-    return "mkdir -p " . escapeshellarg($dir) . " && chmod -R 775 " . escapeshellarg($dir);
+    return fvplusCustomIconRepairHintCommand();
 }
 
 function ensureCustomIconDirExists(bool $requireWritable = true): string {
-    $path = customIconDirPath();
-    $repairAttempted = false;
-    if (!is_dir($path)) {
-        $repairAttempted = true;
-        @mkdir($path, 0770, true);
-    }
-    if (is_dir($path) && !is_writable($path)) {
-        $repairAttempted = true;
-        @chmod($path, 0770);
-    }
-    if (!is_dir($path)) {
-        throw new RuntimeException('Custom icon directory does not exist. Run: ' . customIconRepairHintCommand());
-    }
-    if ($requireWritable && !is_writable($path)) {
-        $message = 'Custom icon directory is not writable. Run: ' . customIconRepairHintCommand();
-        if ($repairAttempted) {
-            $message .= ' (automatic repair attempt failed)';
-        }
-        throw new RuntimeException($message);
-    }
-    return $path;
+    $health = fvplusEnsureCustomIconStorageReady($requireWritable);
+    return (string)($health['storageDir'] ?? customIconDirPath());
 }
 
 function customIconDirectoryHealth(): array {
-    $path = customIconDirPath();
-    $existsBefore = is_dir($path);
-    $writableBefore = $existsBefore && is_writable($path);
-    $repairAttempted = false;
-    if (!$existsBefore) {
-        $repairAttempted = true;
-        @mkdir($path, 0770, true);
-    }
-    if (is_dir($path) && !is_writable($path)) {
-        $repairAttempted = true;
-        @chmod($path, 0770);
-    }
+    $health = fvplusEnsureCustomIconStorageReady(false);
+    $path = (string)($health['storageDir'] ?? customIconDirPath());
+    $runtimePath = (string)($health['runtimeDir'] ?? fvplusCustomIconRuntimeDirPath());
     $existsAfter = is_dir($path);
     $writableAfter = $existsAfter && is_writable($path);
     return [
         'path' => $path,
         'exists' => $existsAfter,
         'writable' => $writableAfter,
-        'repairAttempted' => $repairAttempted,
-        'repairSucceeded' => $existsAfter && (!$repairAttempted || $writableAfter),
-        'repairHint' => customIconRepairHintCommand()
+        'repairAttempted' => ($health['repairAttempted'] ?? false) === true,
+        'repairSucceeded' => ($health['repairSucceeded'] ?? false) === true,
+        'repairHint' => (string)($health['repairHint'] ?? customIconRepairHintCommand()),
+        'runtimePath' => $runtimePath,
+        'publicMode' => (string)($health['publicMode'] ?? 'missing'),
+        'publicReady' => ($health['publicReady'] ?? false) === true,
+        'migratedFileCount' => max(0, (int)($health['migratedFileCount'] ?? 0)),
+        'migratedMetadata' => ($health['migratedMetadata'] ?? false) === true,
+        'mirrorCopiedCount' => max(0, (int)($health['mirrorCopiedCount'] ?? 0)),
+        'mirrorPrunedCount' => max(0, (int)($health['mirrorPrunedCount'] ?? 0))
     ];
 }
 
@@ -189,7 +166,15 @@ function customIconPublicUrl(string $fileName): string {
 }
 
 function customIconPublicPath(string $fileName): string {
-    return '/usr/local/emhttp/plugins/folderview.plus/images/custom/' . $fileName;
+    return customIconDirPath() . '/' . $fileName;
+}
+
+function syncCustomIconPublicRuntime(): array {
+    try {
+        return fvplusEnsureCustomIconStorageReady(false);
+    } catch (Throwable $_error) {
+        return [];
+    }
 }
 
 function normalizeCustomIconReferencePath(string $value): string {
@@ -1310,6 +1295,7 @@ function handleCustomIconUploadAction(): array {
                 'optimized' => ($optimization['optimized'] ?? false) === true
             ];
             writeCustomIconMetadataIndex($meta);
+            syncCustomIconPublicRuntime();
             $message = $replaced ? 'Existing icon replaced.' : 'Icon uploaded successfully.';
             $usageMap = customIconUsageMap();
             return buildCustomIconUploadResponse($targetName, $meta, false, $replaced, $message, $uploadMode, $usageMap);
@@ -1393,6 +1379,7 @@ function handleCustomIconDeleteAction(): array {
         $meta = readCustomIconMetadataIndex();
         unset($meta[$name]);
         writeCustomIconMetadataIndex($meta);
+        syncCustomIconPublicRuntime();
         appendCustomIconAuditEvent('icon_delete', 'ok', ['name' => $name]);
         return [
             'deleted' => $name,
@@ -1439,6 +1426,7 @@ function handleCustomIconRenameAction(): array {
         }
         $meta[$to] = $entry;
         writeCustomIconMetadataIndex($meta);
+        syncCustomIconPublicRuntime();
         appendCustomIconAuditEvent('icon_rename', 'ok', ['from' => $from, 'to' => $to]);
         $usageMap = customIconUsageMap();
         if (isset($usageMap[$from])) {

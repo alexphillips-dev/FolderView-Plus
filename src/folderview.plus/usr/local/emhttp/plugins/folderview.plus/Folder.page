@@ -697,7 +697,7 @@ try {
                     <br>
                     For 3rd-party icon folders, place files under <b>/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/&lt;folder-name&gt;/</b>.
                     <br>
-                    Uploaded custom icons are saved in <b>/usr/local/emhttp/plugins/folderview.plus/images/custom/</b>.
+                    Uploaded custom icons are saved in <b>/boot/config/plugins/folderview.plus/images/custom/</b> and are restored into the live plugin path automatically after reboot or upgrade.
                     <br>
                     You can click the icon of the Docker/VM to set the folder icon.
                 </p>

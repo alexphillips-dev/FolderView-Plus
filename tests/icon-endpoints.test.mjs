@@ -49,7 +49,10 @@ test('third-party endpoint exposes metadata-rich icon index for advanced picker 
 
 test('upload endpoint enforces request guard and uploads into images\\/custom', () => {
     assert.match(uploadPhp, /requireMutationRequestGuard\(\)/);
-    assert.match(uploadPhp, /return \"\$sourceDir\/images\/custom\"/);
+    assert.match(uploadPhp, /function customIconDirPath\(\): string/);
+    assert.match(uploadPhp, /return fvplusCustomIconDirPath\(\);/);
+    assert.match(uploadPhp, /fvplusEnsureCustomIconStorageReady\(\$requireWritable\)/);
+    assert.match(uploadPhp, /return \(string\)\(\$health\['storageDir'\] \?\? customIconDirPath\(\)\);/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_TOTAL_BYTES = 268435456;/);
@@ -131,7 +134,10 @@ test('upload endpoint stores metadata and supports dedupe or replace flows', () 
 test('upload endpoint includes self-heal directory checks and fix hints', () => {
     assert.match(uploadPhp, /function customIconDirectoryHealth\s*\(/);
     assert.match(uploadPhp, /function customIconRepairHintCommand\s*\(/);
-    assert.match(uploadPhp, /automatic repair attempt failed/);
+    assert.match(uploadPhp, /'runtimePath'\s*=>\s*\$runtimePath/);
+    assert.match(uploadPhp, /'publicMode'\s*=>\s*\(string\)\(\$health\['publicMode'\] \?\? 'missing'\)/);
+    assert.match(uploadPhp, /'migratedFileCount'\s*=>\s*max\(0,\s*\(int\)\(\$health\['migratedFileCount'\] \?\? 0\)\)/);
+    assert.match(uploadPhp, /fvplusEnsureCustomIconStorageReady\(false\)/);
     assert.match(uploadPhp, /repairHint/);
 });
 

@@ -9,15 +9,26 @@ const browserSmoke = fs.readFileSync(browserSmokePath, 'utf8');
 
 test('browser smoke includes Docker diagnostics and loadlist rebuild coverage', () => {
     assert.match(browserSmoke, /const dockerDiagnosticsReports = \[\];/);
+    assert.match(browserSmoke, /const dockerUpdateFlowReports = \[\];/);
     assert.match(browserSmoke, /const runDockerDiagnosticsSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
+    assert.match(browserSmoke, /const runDockerUpdateFlowSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
     assert.match(browserSmoke, /const pageKey = 'fv\.support\.bundle\.docker\.page\.v1';/);
     assert.match(browserSmoke, /const requestKey = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
+    assert.match(browserSmoke, /const bulkKey = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);
     assert.match(browserSmoke, /window\.loadlist\(\);/);
+    assert.match(browserSmoke, /window\.updateFolder\(folderId\);/);
     assert.match(browserSmoke, /eventType === 'loadlist'/);
     assert.match(browserSmoke, /eventType === 'buildDockerFolderReq'/);
     assert.match(browserSmoke, /eventType === 'listview'/);
+    assert.match(browserSmoke, /eventType === 'updateFolderDispatch'/);
+    assert.match(browserSmoke, /eventType === 'dialogOpened'/);
+    assert.match(browserSmoke, /eventType === 'reconcileWindowArmed'/);
+    assert.match(browserSmoke, /entry\?\.liveUpdateStatus === true/);
+    assert.match(browserSmoke, /entry\?\.hostSyncSuspended === true/);
     assert.match(browserSmoke, /window\.\$\.cookie\('docker_listview_mode', nextMode\);/);
     assert.match(browserSmoke, /window\.\$\.cookie\('docker_listview_mode', currentMode\);/);
     assert.match(browserSmoke, /dockerDiagnosticsReports\.push\(diagnosticsReport\);/);
+    assert.match(browserSmoke, /dockerUpdateFlowReports\.push\(updateFlowReport\);/);
     assert.match(browserSmoke, /dockerDiagnosticsReports,/);
+    assert.match(browserSmoke, /dockerUpdateFlowReports,/);
 });

@@ -12,6 +12,7 @@ const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
+const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -318,6 +319,16 @@ if (
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.diagnostics.js', 'ok', 'Docker diagnostics helpers ready');
 }
+if (
+    window.FolderViewPlusDockerRuntimeReconcileModuleLoaded !== true
+    || !dockerRuntimeReconcileModule
+    || typeof dockerRuntimeReconcileModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.reconcile.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.reconcile.js', 'missing', 'Docker reconcile helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.reconcile.js', 'ok', 'Docker reconcile helpers ready');
+}
 if (dockerBootstrapMissingModules.length > 0) {
     reportDockerBootstrapDependencyBanner(dockerBootstrapMissingModules);
     const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
@@ -338,6 +349,7 @@ const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze(
 markDockerFatalBannerStep('Docker runtime modules resolved');
 let dockerHostGuardsApi = null;
 let dockerRuntimeDiagnosticsApi = null;
+let dockerRuntimeReconcileApi = null;
 const getDockerHostGuardsApi = () => {
     if (!dockerHostGuardsApi && dockerHostGuardsModule && typeof dockerHostGuardsModule.createApi === 'function') {
         dockerHostGuardsApi = dockerHostGuardsModule.createApi({
@@ -678,6 +690,33 @@ const getDockerRuntimeDiagnosticsApi = () => {
     }
     return dockerRuntimeDiagnosticsApi;
 };
+const getDockerRuntimeReconcileApi = () => {
+    if (
+        !dockerRuntimeReconcileApi
+        && dockerRuntimeReconcileModule
+        && typeof dockerRuntimeReconcileModule.createApi === 'function'
+    ) {
+        dockerRuntimeReconcileApi = dockerRuntimeReconcileModule.createApi({
+            window,
+            document,
+            folderEvents,
+            readDockerListViewMode: () => readDockerListViewMode(),
+            isDockerHostUpdateCommand: (command) => isDockerHostUpdateCommand(command),
+            suspendDockerHostUpdateSync: (durationMs = 0) => suspendDockerHostUpdateSync(durationMs),
+            isDockerHostUpdateSyncSuspended: () => isDockerHostUpdateSyncSuspended(),
+            refreshDockerRuntimeStateInPlace: (options = {}) => refreshDockerRuntimeStateInPlace(options),
+            waitForDockerRenderFrame: () => waitForDockerRenderFrame(),
+            appendDockerBulkUpdateTrace: (eventType, details = {}) => appendDockerBulkUpdateTrace(eventType, details),
+            queueDockerSupportBundlePageSnapshot: (reason = 'runtime-sync', delayMs = 180) =>
+                queueDockerSupportBundlePageSnapshot(reason, delayMs),
+            markDockerFatalBannerStep: (step) => markDockerFatalBannerStep(step),
+            getDockerHostGuardsApi: () => getDockerHostGuardsApi(),
+            initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
+            pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+        });
+    }
+    return dockerRuntimeReconcileApi;
+};
 const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
     const runtimeInfoApi = getDockerRuntimeInfoApi();
     return runtimeInfoApi && typeof runtimeInfoApi.syncDockerHostRowUpdateStatesFromDom === 'function'
@@ -752,7 +791,6 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
 };
-let dockerHostOpenDockerPatchBound = false;
 const updateDockerTraceHealth = (traceName, success, details = {}) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
     return diagnosticsApi && typeof diagnosticsApi.updateTraceHealth === 'function'
@@ -3027,140 +3065,14 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
         })
         .catch(() => {});
 };
-let dockerPostUpdateRenderReconcilePending = false;
-let dockerPostUpdateRenderReconcileQueued = false;
-let dockerPostUpdateRenderReconcileBound = false;
-const queueDockerPostUpdateRenderReconcile = (reason = 'docker-post-folders-creation') => {
-    if (!isDockerHostUpdateSyncSuspended()) {
-        return;
-    }
-    const safeReason = String(reason || '').trim() || 'docker-post-folders-creation';
-    if (dockerPostUpdateRenderReconcilePending) {
-        dockerPostUpdateRenderReconcileQueued = true;
-        appendDockerBulkUpdateTrace('postUpdateRenderReconcileQueued', {
-            reason: safeReason
-        });
-        return;
-    }
-    dockerPostUpdateRenderReconcilePending = true;
-    Promise.resolve()
-        .then(() => waitForDockerRenderFrame())
-        .then(() => {
-            if (!isDockerHostUpdateSyncSuspended()) {
-                return false;
-            }
-            appendDockerBulkUpdateTrace('postUpdateRenderReconcile', {
-                reason: safeReason
-            });
-            return refreshDockerRuntimeStateInPlace({
-                followupDelayMs: 650,
-                liveUpdateStatus: true
-            });
-        })
-        .catch(() => {})
-        .finally(() => {
-            dockerPostUpdateRenderReconcilePending = false;
-            if (!dockerPostUpdateRenderReconcileQueued) {
-                return;
-            }
-            dockerPostUpdateRenderReconcileQueued = false;
-            if (isDockerHostUpdateSyncSuspended()) {
-                queueDockerPostUpdateRenderReconcile('post-render-requeue');
-            }
-        });
-};
 const bindDockerPostUpdateRenderReconcile = () => {
-    if (dockerPostUpdateRenderReconcileBound || typeof window?.folderEvents?.addEventListener !== 'function') {
-        return;
-    }
-    window.folderEvents.addEventListener('docker-post-folders-creation', () => {
-        queueDockerPostUpdateRenderReconcile('docker-post-folders-creation');
-    });
-    dockerPostUpdateRenderReconcileBound = true;
+    getDockerRuntimeReconcileApi()?.bindPostUpdateRenderReconcile?.();
 };
-function armDockerPostUpdateRuntimeReconcileForHostCommand(command, origin = 'host-openDocker') {
-    const rawCommand = String(command || '').trim();
-    if (!isDockerHostUpdateCommand(rawCommand)) {
-        return false;
-    }
-    const containerNames = rawCommand
-        .replace(DOCKER_HOST_UPDATE_COMMAND_REGEX, '')
-        .split('*')
-        .map((entry) => String(entry || '').trim())
-        .filter(Boolean);
-    appendDockerBulkUpdateTrace('hostUpdateCommand', {
-        origin: String(origin || '').trim() || 'host-openDocker',
-        currentPage: String(location?.pathname || ''),
-        listViewMode: readDockerListViewMode(),
-        containerCount: containerNames.length,
-        containerNames: containerNames.slice(0, 10)
-    });
-    armDockerPostUpdateRuntimeReconcileWindow(120000, {
-        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
-        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
-    });
-    queueDockerSupportBundlePageSnapshot('host-update-command', 80);
-    return true;
-}
 function bindDockerHostOpenDockerPatch() {
-    if (dockerHostOpenDockerPatchBound || !window || typeof window !== 'object') {
-        return;
-    }
-    if (typeof window.openDocker !== 'function') {
-        getDockerHostGuardsApi()?.reportMissingHook?.('window.openDocker', 'Docker host openDocker hook was unavailable during bootstrap.', {
-            phase: 'hook-install',
-            category: 'host-hook-missing',
-            detailLabel: 'Missing host hooks',
-            details: ['window.openDocker was not a function when FolderView Plus initialized.']
-        });
-        return;
-    }
-    const currentOpenDocker = window.openDocker;
-    getDockerHostGuardsApi()?.captureHostHook?.('window.openDocker', currentOpenDocker, {
-        step: 'Docker openDocker hook captured',
-        note: 'captured'
-    });
-    if (currentOpenDocker && currentOpenDocker.__fvplusDockerUpdatePatched === true) {
-        dockerHostOpenDockerPatchBound = true;
-        return;
-    }
-    const originalOpenDocker = currentOpenDocker;
-    const wrappedOpenDocker = function(...args) {
-        getDockerHostGuardsApi()?.noteHookInvocation?.('window.openDocker', {
-            note: String(args?.[0] || '').trim() || 'invoked'
-        });
-        armDockerPostUpdateRuntimeReconcileForHostCommand(args[0], 'host-openDocker');
-        return originalOpenDocker.apply(this, args);
-    };
-    try {
-        wrappedOpenDocker.__fvplusDockerUpdatePatched = true;
-        wrappedOpenDocker.__fvplusOriginal = originalOpenDocker;
-    } catch (_error) {}
-    window.openDocker = wrappedOpenDocker;
-    dockerHostOpenDockerPatchBound = true;
-    getDockerHostGuardsApi()?.noteHookWrapped?.('window.openDocker', {
-        step: 'Docker openDocker hook captured',
-        note: 'wrapped'
-    });
-    markDockerFatalBannerStep('Docker openDocker hook captured');
+    getDockerRuntimeReconcileApi()?.bindHostOpenDockerPatch?.();
 }
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
-    const resolvedUntil = suspendDockerHostUpdateSync(durationMs);
-    const initialDelayMs = Math.max(
-        0,
-        Number(options?.initialDelayMs ?? DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS) || 0
-    );
-    const pollDelayMs = Math.max(
-        0,
-        Number(options?.pollDelayMs ?? DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS) || 0
-    );
-    appendDockerBulkUpdateTrace('reconcileWindowArmed', {
-        durationMs: Math.max(0, Number(durationMs) || 0),
-        initialDelayMs,
-        pollDelayMs,
-        strategy: 'event-driven-post-render'
-    });
-    return resolvedUntil;
+    return getDockerRuntimeReconcileApi()?.armPostUpdateRuntimeReconcileWindow?.(durationMs, options) || 0;
 };
 
 let createFoldersInFlight = false;
@@ -5595,7 +5507,6 @@ let dockerListViewModeObserverBound = false;
 let dockerListViewModeCookieHookBound = false;
 const DOCKER_LIST_VIEW_MODE_CHANGE_EVENT = 'fvplus:docker-listview-mode-change';
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
-let dockerUpdateActionClickCaptureBound = false;
 let dockerRuntimeLastRenderGeneration = 0;
 const dockerDiagnosticsTraceSessionId = `fvplus-docker-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
@@ -5622,8 +5533,6 @@ const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
     }
     return writeOk;
 };
-
-const normalizeDockerSupportBundleText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.resolveDockerMemberUpdateState === 'function') {
@@ -5671,42 +5580,8 @@ const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs =
         writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
     }
 };
-const shouldArmDockerPostUpdateReconcileFromClick = (target) => {
-    const actionNode = target instanceof Element
-        ? target.closest('#docker_list td.updatecolumn a.exec, #docker_view td.updatecolumn a.exec')
-        : null;
-    if (!(actionNode instanceof HTMLAnchorElement)) {
-        return false;
-    }
-    const row = actionNode.closest('tr');
-    if (!(row instanceof HTMLTableRowElement)) {
-        return false;
-    }
-    const rawOnClick = String(actionNode.getAttribute('onclick') || '').trim();
-    const updateText = normalizeDockerSupportBundleText(actionNode.closest('td.updatecolumn')?.textContent || '');
-    return /(?:^|[^A-Za-z0-9_])(?:updateFolder|forceUpdateFolder)\(/.test(rawOnClick)
-        || /\b(?:apply update|force update)\b/i.test(updateText);
-};
-const handleDockerUpdateActionClickCapture = (event) => {
-    if (!shouldArmDockerPostUpdateReconcileFromClick(event?.target)) {
-        return;
-    }
-    appendDockerBulkUpdateTrace('updateActionClick', {
-        currentPage: String(location?.pathname || ''),
-        listViewMode: readDockerListViewMode()
-    });
-    armDockerPostUpdateRuntimeReconcileWindow(120000, {
-        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
-        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
-    });
-    queueDockerSupportBundlePageSnapshot('update-action-click', 80);
-};
 const bindDockerUpdateActionClickCapture = () => {
-    if (dockerUpdateActionClickCaptureBound || typeof document?.addEventListener !== 'function') {
-        return;
-    }
-    document.addEventListener('click', handleDockerUpdateActionClickCapture, true);
-    dockerUpdateActionClickCaptureBound = true;
+    getDockerRuntimeReconcileApi()?.bindUpdateActionClickCapture?.();
 };
 
 const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) => {

@@ -16,6 +16,7 @@ const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plug
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
@@ -32,6 +33,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const runtimeActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.actions.js');
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+    const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
@@ -46,6 +48,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeActionsIndex >= 0, 'docker actions script include is missing');
     assert.ok(hostGuardsIndex >= 0, 'docker host guards script include is missing');
     assert.ok(diagnosticsIndex >= 0, 'docker diagnostics script include is missing');
+    assert.ok(reconcileIndex >= 0, 'docker reconcile script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
@@ -64,7 +67,8 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeHierarchyIndex < runtimeActionsIndex, 'docker hierarchy helpers must load before docker.runtime.actions.js');
     assert.ok(runtimeActionsIndex < hostGuardsIndex, 'docker action helpers must load before docker.runtime.host-guards.js');
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
-    assert.ok(diagnosticsIndex < runtimeIndex, 'docker diagnostics helpers must load before docker.js');
+    assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
+    assert.ok(reconcileIndex < runtimeIndex, 'docker reconcile helpers must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(sharedCssIndex < dockerCssIndex, 'shared runtime stylesheet must load before docker.css');
@@ -101,6 +105,11 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnostics = factory\(fallbackWindow\);/);
     assert.match(dockerRuntimeDiagnosticsJs, /root\.FolderViewPlusDockerRuntimeDiagnosticsModuleLoaded = true;/);
     assert.match(dockerRuntimeDiagnosticsJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(dockerRuntimeReconcileJs, /^\/\/ @ts-check/m);
+    assert.match(dockerRuntimeReconcileJs, /const fallbackWindow = typeof globalThis !== 'undefined'/);
+    assert.match(dockerRuntimeReconcileJs, /root\.FolderViewPlusDockerRuntimeReconcile = factory\(fallbackWindow\);/);
+    assert.match(dockerRuntimeReconcileJs, /root\.FolderViewPlusDockerRuntimeReconcileModuleLoaded = true;/);
+    assert.match(dockerRuntimeReconcileJs, /const createApi = \(deps = \{\}\) =>/);
 });
 
 test('docker shared runtime module binds to the shared folder contract and exports runtime primitives', () => {
@@ -134,6 +143,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeActionsModule = window\.FolderViewPlusDockerRuntimeActions \|\| null;/);
     assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);
     assert.match(dockerJs, /const dockerRuntimeDiagnosticsModule = window\.FolderViewPlusDockerRuntimeDiagnostics \|\| null;/);
+    assert.match(dockerJs, /const dockerRuntimeReconcileModule = window\.FolderViewPlusDockerRuntimeReconcile \|\| null;/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
     assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host, \.canvas'\)/);
     assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
@@ -146,10 +156,13 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.actions\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.host-guards\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.diagnostics\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.reconcile\.js'\)/);
     assert.match(dockerJs, /const getDockerHostGuardsApi = \(\) => \{/);
     assert.match(dockerJs, /dockerHostGuardsModule\.createApi\(\{/);
     assert.match(dockerJs, /const getDockerRuntimeDiagnosticsApi = \(\) => \{/);
     assert.match(dockerJs, /dockerRuntimeDiagnosticsModule\.createApi\(\{/);
+    assert.match(dockerJs, /const getDockerRuntimeReconcileApi = \(\) => \{/);
+    assert.match(dockerJs, /dockerRuntimeReconcileModule\.createApi\(\{/);
     assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{/);
     assert.match(dockerJs, /const getDockerRuntimeInfoApi = \(\) => \{/);
     assert.match(dockerJs, /dockerRuntimeInfoModule\.createApi\(\{/);

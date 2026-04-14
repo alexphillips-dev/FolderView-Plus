@@ -16,6 +16,8 @@
     const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
     const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
     const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
+    const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
+    const DOCKER_BULK_UPDATE_TRACE_LIMIT = 30;
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -65,9 +67,16 @@
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
                 : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
+        const queueDockerListRefresh = typeof deps.queueLoadlistRefresh === 'function' ? deps.queueLoadlistRefresh : (() => {});
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;
+        const armDockerPostUpdateRuntimeReconcileWindow = typeof deps.armDockerPostUpdateRuntimeReconcileWindow === 'function'
+            ? deps.armDockerPostUpdateRuntimeReconcileWindow
+            : null;
+        const suspendDockerHostUpdateSync = typeof deps.suspendDockerHostUpdateSync === 'function'
+            ? deps.suspendDockerHostUpdateSync
+            : (() => 0);
         const eventUrl = String(deps.eventURL || win?.eventURL || '').trim();
         const debugEnabled = deps.debugEnabled === true;
         const consoleRef = deps.console || win?.console || null;
@@ -75,6 +84,36 @@
             ? win.setTimeout.bind(win)
             : ((handler, delay) => setTimeout(handler, delay));
         const promptFn = typeof win?.prompt === 'function' ? win.prompt.bind(win) : (() => '');
+        const writeDockerBulkUpdateTrace = (eventType, details = {}) => {
+            try {
+                if (typeof win?.localStorage === 'undefined') {
+                    return;
+                }
+                const existingRaw = String(win.localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
+                let existing = {};
+                if (existingRaw) {
+                    try {
+                        existing = JSON.parse(existingRaw);
+                    } catch (_parseError) {
+                        existing = {};
+                    }
+                }
+                const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_BULK_UPDATE_TRACE_LIMIT) : [];
+                entries.push({
+                    at: new Date().toISOString(),
+                    eventType: String(eventType || '').trim() || 'unknown',
+                    details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
+                });
+                while (entries.length > DOCKER_BULK_UPDATE_TRACE_LIMIT) {
+                    entries.shift();
+                }
+                win.localStorage.setItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, JSON.stringify({
+                    updatedAt: new Date().toISOString(),
+                    count: entries.length,
+                    entries
+                }));
+            } catch (_error) {}
+        };
 
         const debugLog = (...args) => {
             if (debugEnabled && consoleRef && typeof consoleRef.log === 'function') {
@@ -105,6 +144,11 @@
         };
 
         const getSpinner = () => (typeof jq === 'function' ? jq('div.spinner.fixed') : null);
+        const DOCKER_DIALOG_REFRESH_CALLBACK_NAME = '__fvplusDockerDialogRefresh';
+        const DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS = 180;
+        const DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS = 650;
+        const DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS = [3200, 9000];
+        const DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS = 120000;
 
         const i18nLabel = (key, fallback = '') => {
             const safeKey = String(key || '').trim();
@@ -118,6 +162,92 @@
             } catch (_error) {
                 return safeFallback;
             }
+        };
+
+        const runDockerDialogRefresh = () => {
+            writeDockerBulkUpdateTrace('dialogCallback', {
+                reconcileWindowMs: DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS
+            });
+            try {
+                refreshDockerList();
+            } catch (error) {
+                debugWarn('[FV3_DEBUG] Docker dialog refresh: host loadlist refresh failed.', error);
+                writeDockerBulkUpdateTrace('dialogCallbackLoadlistFailed', {
+                    message: String(error?.message || 'loadlist failed')
+                });
+            }
+            defer(() => {
+                Promise.resolve(refreshDockerRuntimeState({
+                    followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
+                    liveUpdateStatus: true
+                })).catch((error) => {
+                    debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime state refresh failed.', error);
+                    writeDockerBulkUpdateTrace('dialogCallbackRuntimeRefreshFailed', {
+                        message: String(error?.message || 'runtime refresh failed')
+                    });
+                });
+            }, DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS);
+        };
+
+        const scheduleDockerDialogRefreshBackstops = () => {
+            DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS.forEach((delayMs) => {
+                defer(() => {
+                    writeDockerBulkUpdateTrace('backstopRefresh', {
+                        delayMs
+                    });
+                    Promise.resolve(refreshDockerRuntimeState({
+                        followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
+                        liveUpdateStatus: true
+                    })).catch((error) => {
+                        debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime-state backstop failed.', error);
+                        writeDockerBulkUpdateTrace('backstopRefreshFailed', {
+                            delayMs,
+                            message: String(error?.message || 'runtime-state backstop failed')
+                        });
+                        try {
+                            queueDockerListRefresh({ suppressLoadingUi: true });
+                        } catch (_queueError) {
+                            try {
+                                refreshDockerList();
+                            } catch (_refreshError) {}
+                        }
+                    });
+                }, delayMs);
+            });
+        };
+
+        const getDockerDialogRefreshCallbackName = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return 'loadlist';
+            }
+            if (typeof win[DOCKER_DIALOG_REFRESH_CALLBACK_NAME] !== 'function') {
+                win[DOCKER_DIALOG_REFRESH_CALLBACK_NAME] = () => {
+                    runDockerDialogRefresh();
+                };
+            }
+            return DOCKER_DIALOG_REFRESH_CALLBACK_NAME;
+        };
+
+        const openDockerFolderUpdateDialog = (containersToUpdate, title) => {
+            if (armDockerPostUpdateRuntimeReconcileWindow) {
+                armDockerPostUpdateRuntimeReconcileWindow(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS, {
+                    initialDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_DELAY_MS,
+                    pollDelayMs: Math.max(...DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS)
+                });
+            } else {
+                suspendDockerHostUpdateSync(DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS);
+            }
+            const containerNames = String(containersToUpdate || '')
+                .split('*')
+                .map((entry) => String(entry || '').trim())
+                .filter(Boolean);
+            writeDockerBulkUpdateTrace('dialogOpened', {
+                title: String(title || '').trim(),
+                containerCount: containerNames.length,
+                containerNames: containerNames.slice(0, 10)
+            });
+            scheduleDockerDialogRefreshBackstops();
+            openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };
 
         const parseJsonPayloadSafe = (payload) => {
@@ -459,7 +589,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', 'loadlist');
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
         };
 
         const updateFolder = (id, { includeDescendants = true } = {}) => {
@@ -480,7 +610,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
-            openDockerDialog('update_container ' + containersToUpdate, i18nLabel('updating', folder.name), '', 'loadlist');
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
         };
 
         const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) =>

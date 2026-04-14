@@ -62,6 +62,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
     assert.match(supportBundleBrowserJs, /versionSource,/);
     assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
+    assert.match(supportBundleBrowserJs, /const collectDockerPageDiagnostics = \(uiRedactor\) => \{/);
+    assert.match(supportBundleBrowserJs, /const collectDockerBulkUpdateTrace = \(uiRedactor\) => \{/);
     assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
     assert.match(supportBundleTelemetryJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(supportBundleTelemetryJs, /const createUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
@@ -111,9 +113,18 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.requestErrors = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserConsoleErrors = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.dockerDiagnostics = \{/);
+    assert.match(supportBundleTelemetryJs, /pageSnapshot: collectDockerPageDiagnostics\(uiRedactor\),/);
+    assert.match(supportBundleTelemetryJs, /bulkUpdateTrace: collectDockerBulkUpdateTrace\(uiRedactor\),/);
+    assert.match(supportBundleTelemetryJs, /requestBundleTrace: collectDockerRequestBundleTrace\(uiRedactor\),/);
+    assert.match(supportBundleTelemetryJs, /traceHealth: collectDockerTraceHealth\(uiRedactor\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(supportBundleTelemetryJs, /payload\.uiTelemetry = existingUiTelemetry;/);
+    assert.match(diagnosticsJs, /dockerPage: 'fv\.support\.bundle\.docker\.page\.v1',/);
+    assert.match(diagnosticsJs, /dockerBulkUpdateTrace: 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1',/);
+    assert.match(diagnosticsJs, /dockerRequestBundleTrace: 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1',/);
+    assert.match(diagnosticsJs, /dockerTraceHealth: 'fv\.support\.bundle\.docker\.traceHealth\.v1'/);
     assert.match(diagnosticsJs, /previewApi \? previewApi\.getLastSupportBundlePreview\(\) : null/);
     assert.match(diagnosticsJs, /void refreshSupportBundlePreview\(\{ privacy: 'sanitized', quiet: true \}\);/);
     assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);

@@ -238,6 +238,10 @@
             count: 0,
             entries: []
         }));
+        const collectDockerPageDiagnostics = browserCollectors?.collectDockerPageDiagnostics || (() => ({ available: false }));
+        const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
+        const collectDockerRequestBundleTrace = browserCollectors?.collectDockerRequestBundleTrace || (() => ({ available: false }));
+        const collectDockerTraceHealth = browserCollectors?.collectDockerTraceHealth || (() => ({ available: false }));
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
@@ -267,6 +271,12 @@
                 'browserConsoleErrors',
                 collectBrowserConsoleErrors()
             );
+            existingUiTelemetry.dockerDiagnostics = {
+                pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
+                bulkUpdateTrace: collectDockerBulkUpdateTrace(uiRedactor),
+                requestBundleTrace: collectDockerRequestBundleTrace(uiRedactor),
+                traceHealth: collectDockerTraceHealth(uiRedactor)
+            };
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',

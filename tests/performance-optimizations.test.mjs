@@ -103,6 +103,8 @@ test('read_info supports cached full/state payload retrieval', () => {
     assert.match(libPhp, /function normalizeReadInfoMode\s*\(/);
     assert.match(libPhp, /function readInfoState\s*\(/);
     assert.match(libPhp, /function readInfoCached\s*\(/);
+    assert.match(readInfoPhp, /\$preferLiveUpdateStatus = \$mode === 'state'/);
+    assert.match(readInfoPhp, /if \(\$preferLiveUpdateStatus\) \{\s*echo json_encode\(readInfoState\(\$type,\s*true\)\);\s*return;\s*\}/);
     assert.match(readInfoPhp, /readInfoCached\(\$type,\s*\$mode,\s*\$ttl,\s*\$forceRefresh\)/);
     assert.match(readInfoPhp, /\$_GET\['mode'\]|\$_REQUEST\['mode'\]/);
 });
@@ -111,8 +113,10 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
-    assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\)\) =>/);
-    assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
+    assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
+    assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
+    assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
+    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
     assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
@@ -140,7 +144,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust\),/);
+    assert.match(dockerJs, /function buildDockerFolderReq\(options = \{\}\) \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true \|\| isDockerHostUpdateSyncSuspended\(\);/);
+    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust, \{\s*liveUpdateStatus\s*\}\),/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
     assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);
@@ -247,7 +252,8 @@ test('docker first paint keeps a lightweight loading shell and enriches state pa
     assert.match(dockerCss, /\.fvplus-docker-runtime-loading-overlay\s*\{/);
     assert.match(libPhp, /\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);/);
     assert.match(libPhp, /resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
-    assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman' \? resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\) : null,/);
+    assert.match(libPhp, /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false\): array/);
+    assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)/);
     assert.match(libPhp, /'Labels'\s*=>\s*\$labels/);
     assert.match(libPhp, /'Image'\s*=>\s*trim\(\(string\)\(\$container\['Image'\] \?\? ''\)\)/);
     assert.match(libPhp, /'shortImageId'\s*=>\s*substr\(str_replace\('sha256:', '', \(string\)\(\$container\['ImageID'\] \?\? ''\)\), 0, 12\)/);

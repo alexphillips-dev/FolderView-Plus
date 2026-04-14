@@ -127,3 +127,105 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
 
     assert.equal(payload.uiTelemetry.clientStorage.dockerListViewModeCookie, 'basic');
 });
+
+test('support bundle browser telemetry includes persisted docker page snapshot and bulk-update trace records', () => {
+    const root = {
+        document: {
+            cookie: 'docker_listview_mode=advanced',
+            querySelectorAll() {
+                return [];
+            }
+        },
+        navigator: {
+            cookieEnabled: true
+        },
+        location: {
+            origin: 'https://tower.local',
+            pathname: '/Settings/FolderViewPlus',
+            href: 'https://tower.local/Settings/FolderViewPlus'
+        }
+    };
+    const browserModule = loadBrowserModule(root);
+    const collectors = browserModule.createCollectors({
+        readClientDiagnosticsStorageRecord(storageKey) {
+            if (storageKey === 'docker-page-key') {
+                return {
+                    capturedAt: '2026-04-12T16:00:00+00:00',
+                    reason: 'runtime-sync',
+                    currentPage: '/Docker',
+                    listViewMode: 'basic',
+                    summary: {
+                        visibleFolderRows: 1,
+                        visibleMemberRows: 5,
+                        memberMissingFolderClassCount: 2
+                    }
+                };
+            }
+            if (storageKey === 'docker-trace-key') {
+                return {
+                    updatedAt: '2026-04-12T16:01:00+00:00',
+                    count: 2,
+                    entries: [
+                        {
+                            at: '2026-04-12T16:00:30+00:00',
+                            eventType: 'dialogOpened',
+                            details: { title: 'Updating Networking', containerCount: 1, containerNames: ['vaultwarden'] }
+                        }
+                    ]
+                };
+            }
+            if (storageKey === 'docker-request-key') {
+                return {
+                    updatedAt: '2026-04-12T16:01:10+00:00',
+                    count: 3,
+                    entries: [
+                        {
+                            at: '2026-04-12T16:00:31+00:00',
+                            eventType: 'buildDockerFolderReq',
+                            details: { generation: 9, liveUpdateStatus: true, hostSyncSuspended: true }
+                        }
+                    ]
+                };
+            }
+            if (storageKey === 'docker-trace-health-key') {
+                return {
+                    updatedAt: '2026-04-12T16:01:20+00:00',
+                    bulkUpdateTrace: {
+                        lastWriteAt: '2026-04-12T16:01:00+00:00',
+                        lastWriteSucceeded: true,
+                        failureCount: 0
+                    },
+                    requestBundleTrace: {
+                        lastWriteAt: '2026-04-12T16:01:10+00:00',
+                        lastWriteSucceeded: true,
+                        failureCount: 0
+                    }
+                };
+            }
+            return null;
+        },
+        storageKeys: {
+            dockerPage: 'docker-page-key',
+            dockerBulkUpdateTrace: 'docker-trace-key',
+            dockerRequestBundleTrace: 'docker-request-key',
+            dockerTraceHealth: 'docker-trace-health-key'
+        }
+    });
+
+    const pageSnapshot = collectors.collectDockerPageDiagnostics();
+    const bulkUpdateTrace = collectors.collectDockerBulkUpdateTrace();
+    const requestBundleTrace = collectors.collectDockerRequestBundleTrace();
+    const traceHealth = collectors.collectDockerTraceHealth();
+
+    assert.equal(pageSnapshot.available, true);
+    assert.equal(pageSnapshot.summary.memberMissingFolderClassCount, 2);
+    assert.equal(bulkUpdateTrace.available, true);
+    assert.equal(bulkUpdateTrace.count, 2);
+    assert.equal(bulkUpdateTrace.entries[0].eventType, 'dialogOpened');
+    assert.equal(requestBundleTrace.available, true);
+    assert.equal(requestBundleTrace.entries[0].eventType, 'buildDockerFolderReq');
+    assert.equal(requestBundleTrace.entries[0].details.liveUpdateStatus, true);
+    assert.equal(traceHealth.available, true);
+    assert.equal(traceHealth.bulkUpdateTrace.lastWriteSucceeded, true);
+    assert.equal(traceHealth.requestBundleTrace.lastWriteSucceeded, true);
+});

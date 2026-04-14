@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-04-08T16:41:16.793Z",
+  "generatedAt": "2026-04-14T12:52:46.465Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
@@ -28,16 +28,16 @@
       "gzipBytes": 2629
     },
     "scripts/folderviewplus.support-bundle-browser.js": {
-      "bytes": 8909,
-      "gzipBytes": 2214
+      "bytes": 11353,
+      "gzipBytes": 2474
     },
     "scripts/folderviewplus.support-bundle-telemetry.js": {
-      "bytes": 13554,
-      "gzipBytes": 2991
+      "bytes": 14427,
+      "gzipBytes": 3110
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
-      "bytes": 74378,
-      "gzipBytes": 15566
+      "bytes": 74698,
+      "gzipBytes": 15628
     },
     "scripts/folderviewplus.settings-tree.js": {
       "bytes": 29142,
@@ -84,16 +84,16 @@
       "gzipBytes": 25408
     },
     "scripts/docker.runtime.hierarchy.js": {
-      "bytes": 27052,
-      "gzipBytes": 5011
+      "bytes": 27575,
+      "gzipBytes": 5048
     },
     "scripts/docker.runtime.actions.js": {
-      "bytes": 52494,
-      "gzipBytes": 10000
+      "bytes": 61071,
+      "gzipBytes": 11351
     },
     "scripts/docker.js": {
-      "bytes": 276248,
-      "gzipBytes": 54410
+      "bytes": 308383,
+      "gzipBytes": 59583
     },
     "scripts/vm.js": {
       "bytes": 128036,
@@ -113,11 +113,11 @@
     }
   },
   "totals": {
-    "totalJs": 2576185,
-    "totalCss": 379472,
-    "totalJsGzip": 499471,
-    "totalCssGzip": 50751,
-    "settingsRuntimeJs": 1048828,
-    "settingsRuntimeJsGzip": 199203
+    "totalJs": 2622693,
+    "totalCss": 380023,
+    "totalJsGzip": 506657,
+    "totalCssGzip": 50811,
+    "settingsRuntimeJs": 1052465,
+    "settingsRuntimeJsGzip": 199644
   }
 }

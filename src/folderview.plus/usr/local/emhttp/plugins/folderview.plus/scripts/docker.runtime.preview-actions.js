@@ -25,6 +25,9 @@
         const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function' ? deps.getSafeWebuiUrl : ((value) => String(value || '').trim());
         const openWebuiInNewTab = typeof deps.openWebuiInNewTab === 'function' ? deps.openWebuiInNewTab : (() => {});
         const openTerminal = typeof deps.openTerminal === 'function' ? deps.openTerminal : (() => {});
+        const getDirectMemberRowsForFolder = typeof deps.getDirectMemberRowsForFolder === 'function'
+            ? deps.getDirectMemberRowsForFolder
+            : (() => jq());
         const shouldRenderPreviewWebuiPlaceholder = typeof deps.shouldRenderPreviewWebuiPlaceholder === 'function'
             ? deps.shouldRenderPreviewWebuiPlaceholder
             : (() => false);
@@ -151,19 +154,57 @@
             .replace(/\\/g, '\\\\')
             .replace(/'/g, "\\'");
 
-        const buildDockerMemberUpdateColumnHtml = (entry = {}) => {
-            const manager = String(entry?.manager || '').trim();
+        const resolveDockerMemberUpdateState = (entry = {}, options = {}) => {
+            const manager = String(entry?.manager || '').trim().toLowerCase();
+            const updateReady = entry?.update === true;
+            const advanced = options?.advanced === true
+                || (options?.advanced !== false && isDockerAdvancedModeEnabled());
+
             if (manager === 'composeman') {
-                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('compose', 'compose'))}</span>`;
+                return {
+                    manager,
+                    statusToken: 'compose',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false
+                };
             }
             if (manager && manager !== 'dockerman') {
+                return {
+                    manager,
+                    statusToken: 'thirdParty',
+                    actionToken: 'other',
+                    actionRequiresAdvancedView: false
+                };
+            }
+            if (updateReady) {
+                return {
+                    manager: manager || 'dockerman',
+                    statusToken: 'updateReady',
+                    actionToken: 'applyUpdate',
+                    actionRequiresAdvancedView: false
+                };
+            }
+            return {
+                manager: manager || 'dockerman',
+                statusToken: 'upToDate',
+                actionToken: advanced ? 'forceUpdate' : 'upToDate',
+                actionRequiresAdvancedView: true
+            };
+        };
+
+        const buildDockerMemberUpdateColumnHtml = (entry = {}, options = {}) => {
+            const state = resolveDockerMemberUpdateState(entry, options);
+            if (state.statusToken === 'compose') {
+                return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('compose', 'compose'))}</span>`;
+            }
+            if (state.statusToken === 'thirdParty') {
                 return `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${escapeHtml(i18nLabel('third-party', 'third-party'))}</span>`;
             }
             const safeContainerName = escapeInlineJsSingleQuotedValue(String(entry?.name || '').trim());
-            if (entry?.update === true) {
+            if (state.statusToken === 'updateReady') {
                 return `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${escapeHtml(i18nLabel('update-ready', 'update-ready'))}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('apply-update', 'apply-update'))}</span></a>`;
             }
-            const forceUpdateHtml = isDockerAdvancedModeEnabled()
+            const forceUpdateHtml = state.actionToken === 'forceUpdate'
                 ? `<br><a class="exec" onclick="hideAllTips(); updateContainer('${safeContainerName}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${escapeHtml(i18nLabel('force-update', 'force-update'))}</span></a>`
                 : '';
             return `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${escapeHtml(i18nLabel('up-to-date', 'up-to-date'))}</span>${forceUpdateHtml}`;
@@ -245,14 +286,32 @@
             }
         };
 
+        const syncDockerPreviewUpdateHighlight = ($target, settings = {}, entry = {}) => {
+            if (!$target || !$target.length) {
+                return;
+            }
+            const $outer = $target.hasClass('outer')
+                ? $target
+                : $target.closest('span.outer').first();
+            if (!$outer.length) {
+                return;
+            }
+            const $appName = $outer.children('span.inner').first().children('span.appname').first();
+            const $appLink = $appName.children('a.exec').first();
+            const highlightUpdate = settings?.preview_update === true && entry?.update === true;
+            $appName.toggleClass('orange-text fv-preview-update-ready', highlightUpdate);
+            if ($appLink.length) {
+                $appLink.toggleClass('orange-text fv-preview-update-ready', highlightUpdate);
+            }
+        };
+
         const findDockerFolderMemberRow = (id, containerName) => {
             const folderId = String(id || '').trim();
             const safeContainerName = String(containerName || '').trim();
             if (!folderId || !safeContainerName) {
                 return jq();
             }
-            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
-            return $rows.filter((_, row) => {
+            const matchRows = ($rows) => $rows.filter((_, row) => {
                 const rowId = String(row?.id || '').trim();
                 if (rowId === `ct-${safeContainerName}`) {
                     return true;
@@ -260,6 +319,12 @@
                 const $row = jq(row);
                 return String($row.find('td.ct-name .appname').first().text() || '').trim() === safeContainerName;
             }).first();
+            const $rows = jq(`tr.folder-id-${folderId} div.folder-storage > tr, tr.folder-${folderId}-element`);
+            const $matchedRow = matchRows($rows);
+            if ($matchedRow.length) {
+                return $matchedRow;
+            }
+            return matchRows(getDirectMemberRowsForFolder(folderId));
         };
 
         const syncDockerStorageRowStatus = ($row, entry = {}) => {
@@ -391,6 +456,7 @@
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
                 syncDockerPreviewStatus($target, entry);
+                syncDockerPreviewUpdateHighlight($target, settings, entry);
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });
@@ -404,6 +470,7 @@
 
         return Object.freeze({
             appendDockerPreviewActionButtons,
+            resolveDockerMemberUpdateState,
             buildDockerMemberUpdateColumnHtml,
             syncDockerFolderMemberRows,
             syncDockerLeafFolderPreviewActions

@@ -90,6 +90,93 @@ previous_changes_version() {
   ' "${PLG_FILE}"
 }
 
+version_greater_than() {
+  local left="${1:-}"
+  local right="${2:-}"
+  local max_ver=""
+  [[ -n "${left}" ]] || return 1
+  [[ -n "${right}" ]] || return 1
+  [[ "${left}" != "${right}" ]] || return 1
+  max_ver="$(printf '%s\n%s\n' "${left}" "${right}" | sort -V | tail -n 1)"
+  [[ "${max_ver}" == "${left}" ]]
+}
+
+head_manifest_version() {
+  local version_line=""
+  if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return
+  fi
+  version_line="$(
+    git -C "${ROOT_DIR}" show HEAD:folderview.plus.plg 2>/dev/null \
+      | sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' \
+      | head -n 1 \
+      || true
+  )"
+  printf '%s' "${version_line}"
+}
+
+list_changes_versions() {
+  awk '
+    /^###/ {
+      candidate = $0
+      sub(/^###/, "", candidate)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", candidate)
+      if (candidate != "") {
+        print candidate
+      }
+    }
+  ' "${PLG_FILE}"
+}
+
+remove_changes_block_for_version() {
+  local target_version="${1:-}"
+  local tmp_file=""
+  [[ -n "${target_version}" ]] || return
+  tmp_file="$(mktemp)"
+  awk -v version="${target_version}" '
+    BEGIN { skip = 0 }
+    /^###/ {
+      if ($0 ~ "^###" version "[[:space:]]*$") {
+        skip = 1
+        next
+      }
+      if (skip) {
+        skip = 0
+      }
+    }
+    {
+      if (!skip) {
+        print
+      }
+    }
+  ' "${PLG_FILE}" > "${tmp_file}"
+  mv "${tmp_file}" "${PLG_FILE}"
+}
+
+prune_unreleased_retry_blocks() {
+  local target_version="${1:-}"
+  local head_version=""
+  local stale_version=""
+  local removed=0
+  [[ -n "${target_version}" ]] || return
+  head_version="$(head_manifest_version)"
+  [[ -n "${head_version}" ]] || return
+  while IFS= read -r stale_version; do
+    [[ -n "${stale_version}" ]] || continue
+    if ! version_greater_than "${stale_version}" "${head_version}"; then
+      continue
+    fi
+    if [[ "${stale_version}" == "${target_version}" ]]; then
+      continue
+    fi
+    remove_changes_block_for_version "${stale_version}"
+    removed=$((removed + 1))
+  done < <(list_changes_versions)
+  if [[ "${removed}" -gt 0 ]]; then
+    echo "Pruned ${removed} unreleased local CHANGES block(s) newer than HEAD before inserting ${target_version}"
+  fi
+}
+
 is_metadata_only_changes_line() {
   local line="${1:-}"
   local lowered=""
@@ -115,6 +202,10 @@ block_is_metadata_only() {
   done <<< "${block}"
   [[ "${saw_content}" -eq 1 ]]
 }
+
+if [[ "${CHECK_ONLY}" != "1" ]]; then
+  prune_unreleased_retry_blocks "${VERSION}"
+fi
 
 current_block="$(changes_block_for_version "${VERSION}")"
 if [[ -n "${current_block}" ]]; then
@@ -287,8 +378,26 @@ classify_changed_path_subsystems() {
   esac
 
   case "${changed}" in
+    scripts/ensure_plg_changes_entry.sh|scripts/build_release_notes.sh|scripts/release_prepare.sh|scripts/release_guard.sh|scripts/dev_finalize.sh|tests/versioning-guard.test.mjs)
+      printf '%s\n' "release-notes-tooling"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
     .github/workflows/*|.github/actions/*|.githooks/*|pkg_build.sh|scripts/*)
       printf '%s\n' "release-tooling"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js|\
+    tests/browser-smoke-docker-diagnostics.test.mjs|tests/support-bundle-browser-telemetry.test.mjs|tests/docker-update-status-regression.test.mjs)
+      printf '%s\n' "docker-diagnostics"
       return
       ;;
   esac
@@ -450,6 +559,10 @@ format_subsystem_note_line() {
   local subject=""
 
   case "${subsystem}" in
+    docker-diagnostics)
+      category="Fix"
+      subject="Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics"
+      ;;
     docker-runtime)
       category="Fix"
       subject="Docker runtime rows, folder state, and container interactions"
@@ -473,6 +586,10 @@ format_subsystem_note_line() {
     settings-diagnostics)
       category="Fix"
       subject="Diagnostics surfaces, issue reports, and support bundle coverage"
+      ;;
+    release-notes-tooling)
+      category="Quality"
+      subject="Release-note generation, retry cleanup, and packaging guards"
       ;;
     automation-rules)
       category="Feature"
@@ -515,12 +632,14 @@ build_diff_based_notes() {
   local -a changed_files=()
   local -a notes=()
   local -a subsystem_order=(
+    docker-diagnostics
     docker-runtime
     vm-runtime
     dashboard
     folder-editor
     settings-workspace
     settings-diagnostics
+    release-notes-tooling
     automation-rules
     operations-recovery
     icon-workflows

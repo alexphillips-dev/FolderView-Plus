@@ -16,9 +16,14 @@ const libDiagnosticsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php'
 );
+const readInfoPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'
+);
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const diagnosticsEndpointPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/diagnostics.php'
@@ -83,13 +88,19 @@ test('lib.php supports guarded folder settings transfer for existing folders', (
 
 test('lib.php repairs custom icon directories and can clear missing custom icon references', () => {
     assert.match(libPhp, /function fvplusCustomIconDirPath\(\): string/);
+    assert.match(libPhp, /return "\$configDir\/images\/custom";/);
+    assert.match(libPhp, /function fvplusCustomIconRuntimeDirPath\(\): string/);
+    assert.match(libPhp, /return "\$sourceDir\/images\/custom";/);
+    assert.match(libPhp, /function fvplusEnsureCustomIconStorageReady\(bool \$requireWritable = false\): array/);
+    assert.match(libPhp, /function fvplusBootstrapCustomIconStorage\(\): void/);
+    assert.match(libPhp, /fvplusBootstrapCustomIconStorage\(\);/);
     assert.match(libPhp, /function fvplusRepairMissingCustomIconReferences\(\): array/);
     assert.match(libPhp, /diagnosticsCustomIconNameFromIconValue\(\(string\)\(\$folder\['icon'\] \?\? ''\)\)/);
     assert.match(libPhp, /\$folder\['icon'\] = '';/);
     assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-repair-missing-custom-icons'\)/);
     assert.match(libPhp, /appendDiagnosticsHistoryEvent\(\s*'repair_missing_custom_icons'/);
     assert.match(libPhp, /\$customIconDir = fvplusCustomIconDirPath\(\);/);
-    assert.match(libPhp, /if \(!is_dir\(\$customIconDir\)\) \{/);
+    assert.match(libPhp, /if \(is_dir\(\$customIconDir\)\) \{/);
     assert.match(libPhp, /'customIconDir'\s*=>\s*\$customIconDir/);
 });
 
@@ -136,7 +147,11 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /function readInfoState\(string \$type\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman' \? resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\) : null,/
+        /function readInfoState\(string \$type,\s*bool \$preferLiveUpdateStatus = false\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman'[\s\S]*?resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\)[\s\S]*?: null,/
+    );
+    assert.match(
+        readInfoPhp,
+        /\$preferLiveUpdateStatus = \$mode === 'state'[\s\S]*?if \(\$preferLiveUpdateStatus\) \{[\s\S]*?readInfoState\(\$type,\s*true\)/
     );
 });
 
@@ -190,6 +205,8 @@ test('lib.php diagnostics include custom icon storage and usage health', () => {
     assert.match(libDiagnosticsPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
+    assert.match(libDiagnosticsPhp, /fvplusCustomIconDirPath\(\)/);
+    assert.match(libDiagnosticsPhp, /'\/boot\/config\/plugins\/folderview\.plus\/images\/custom'/);
     assert.match(libDiagnosticsPhp, /\$customIcons\s*=\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\);/);
     assert.match(libDiagnosticsPhp, /'customIcons'\s*=>\s*\$customIcons/);
     assert.match(libDiagnosticsPhp, /'inUseIconCount'\s*=>/);

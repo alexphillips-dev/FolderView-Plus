@@ -599,7 +599,12 @@ const getDockerRuntimeActionsApi = () => {
             document,
             $,
             swal,
-            openDocker,
+            openDocker: (...args) => {
+                if (typeof window?.openDocker === 'function') {
+                    return window.openDocker(...args);
+                }
+                return typeof openDocker === 'function' ? openDocker(...args) : undefined;
+            },
             hideAllTips,
             getGlobalFolders: () => globalFolders,
             getFolderChildren: (id) => getFolderChildren(id),
@@ -673,6 +678,7 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
 const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
+const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
 const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
 const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.requestBundleTrace.v1';
@@ -690,6 +696,7 @@ const resolvePreferredWebuiValue = (...candidates) => {
     }
     return '';
 };
+const isDockerHostUpdateCommand = (command) => DOCKER_HOST_UPDATE_COMMAND_REGEX.test(String(command || '').trim());
 const readDockerHostUpdateSyncSuspendedUntil = () => {
     const rawValue = Number(window?.[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] || 0);
     return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : 0;
@@ -705,6 +712,7 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
 };
+let dockerHostOpenDockerPatchBound = false;
 const writeDockerDiagnosticsStorageRecord = (storageKey, value) => {
     try {
         if (typeof localStorage === 'undefined') {
@@ -3089,6 +3097,55 @@ const bindDockerPostUpdateRenderReconcile = () => {
     });
     dockerPostUpdateRenderReconcileBound = true;
 };
+function armDockerPostUpdateRuntimeReconcileForHostCommand(command, origin = 'host-openDocker') {
+    const rawCommand = String(command || '').trim();
+    if (!isDockerHostUpdateCommand(rawCommand)) {
+        return false;
+    }
+    const containerNames = rawCommand
+        .replace(DOCKER_HOST_UPDATE_COMMAND_REGEX, '')
+        .split('*')
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+    appendDockerBulkUpdateTrace('hostUpdateCommand', {
+        origin: String(origin || '').trim() || 'host-openDocker',
+        currentPage: String(location?.pathname || ''),
+        listViewMode: readDockerListViewMode(),
+        containerCount: containerNames.length,
+        containerNames: containerNames.slice(0, 10)
+    });
+    armDockerPostUpdateRuntimeReconcileWindow(120000, {
+        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
+        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+    });
+    queueDockerSupportBundlePageSnapshot('host-update-command', 80);
+    return true;
+}
+function bindDockerHostOpenDockerPatch() {
+    if (dockerHostOpenDockerPatchBound || !window || typeof window !== 'object') {
+        return;
+    }
+    if (typeof window.openDocker !== 'function') {
+        return;
+    }
+    const currentOpenDocker = window.openDocker;
+    if (currentOpenDocker && currentOpenDocker.__fvplusDockerUpdatePatched === true) {
+        dockerHostOpenDockerPatchBound = true;
+        return;
+    }
+    const originalOpenDocker = currentOpenDocker;
+    const wrappedOpenDocker = function(...args) {
+        armDockerPostUpdateRuntimeReconcileForHostCommand(args[0], 'host-openDocker');
+        return originalOpenDocker.apply(this, args);
+    };
+    try {
+        wrappedOpenDocker.__fvplusDockerUpdatePatched = true;
+        wrappedOpenDocker.__fvplusOriginal = originalOpenDocker;
+    } catch (_error) {}
+    window.openDocker = wrappedOpenDocker;
+    dockerHostOpenDockerPatchBound = true;
+    markDockerFatalBannerStep('Docker openDocker hook captured');
+}
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
     const resolvedUntil = suspendDockerHostUpdateSync(durationMs);
     const initialDelayMs = Math.max(
@@ -5341,6 +5398,7 @@ if (typeof window.loadlist_original !== 'function') {
 }
 window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
+    bindDockerHostOpenDockerPatch();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
@@ -6166,6 +6224,7 @@ function buildDockerFolderReq(options = {}) {
 // Prime requests for environments where loadlist isn't called first.
 folderReq = buildDockerFolderReq();
 markDockerFatalBannerStep('Docker request bundle primed');
+bindDockerHostOpenDockerPatch();
 bindDockerUpdateActionClickCapture();
 bindDockerPostUpdateRenderReconcile();
 startDockerListViewModeObserver();

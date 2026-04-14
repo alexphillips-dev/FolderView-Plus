@@ -402,7 +402,9 @@ const getSupportBundleTelemetryApi = () => {
                 bootstrap: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
                 surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY,
                 dockerPage: 'fv.support.bundle.docker.page.v1',
-                dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1'
+                dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
+                dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
+                dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1'
             }
         });
     }

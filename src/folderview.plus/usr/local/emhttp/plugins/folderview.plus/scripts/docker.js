@@ -675,7 +675,10 @@ const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
 const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
+const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.requestBundleTrace.v1';
+const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv.support.bundle.docker.traceHealth.v1';
 const DOCKER_BULK_UPDATE_TRACE_LIMIT = 30;
+const DOCKER_REQUEST_BUNDLE_TRACE_LIMIT = 40;
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -702,9 +705,59 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     window[DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY] = resolvedUntil;
     return resolvedUntil;
 };
+const writeDockerDiagnosticsStorageRecord = (storageKey, value) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return false;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(value));
+        return true;
+    } catch (_error) {
+        return false;
+    }
+};
+const updateDockerTraceHealth = (traceName, success, details = {}) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return false;
+        }
+        const existingRaw = String(localStorage.getItem(DOCKER_TRACE_HEALTH_STORAGE_KEY) || '').trim();
+        let existing = {};
+        if (existingRaw) {
+            try {
+                existing = JSON.parse(existingRaw);
+            } catch (_parseError) {
+                existing = {};
+            }
+        }
+        const safeTraceName = String(traceName || '').trim() || 'unknown';
+        const previous = existing?.[safeTraceName] && typeof existing[safeTraceName] === 'object' && !Array.isArray(existing[safeTraceName])
+            ? existing[safeTraceName]
+            : {};
+        const failureCount = Number.isFinite(Number(previous.failureCount)) ? Number(previous.failureCount) : 0;
+        const nextRecord = {
+            lastWriteAt: new Date().toISOString(),
+            lastWriteSucceeded: success === true,
+            failureCount: success === true ? failureCount : (failureCount + 1),
+            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
+        };
+        const nextPayload = {
+            updatedAt: new Date().toISOString(),
+            ...existing,
+            [safeTraceName]: nextRecord
+        };
+        return writeDockerDiagnosticsStorageRecord(DOCKER_TRACE_HEALTH_STORAGE_KEY, nextPayload);
+    } catch (_error) {
+        return false;
+    }
+};
 const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
     try {
         if (typeof localStorage === 'undefined') {
+            updateDockerTraceHealth('bulkUpdateTrace', false, {
+                reason: 'localStorageUnavailable',
+                eventType: String(eventType || '').trim() || 'unknown'
+            });
             return false;
         }
         const existingRaw = String(localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
@@ -725,13 +778,66 @@ const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
         while (entries.length > DOCKER_BULK_UPDATE_TRACE_LIMIT) {
             entries.shift();
         }
-        localStorage.setItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, JSON.stringify({
+        const writeOk = writeDockerDiagnosticsStorageRecord(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY, {
             updatedAt: new Date().toISOString(),
             count: entries.length,
             entries
-        }));
-        return true;
+        });
+        updateDockerTraceHealth('bulkUpdateTrace', writeOk, {
+            eventType: String(eventType || '').trim() || 'unknown',
+            count: entries.length
+        });
+        return writeOk;
     } catch (_error) {
+        updateDockerTraceHealth('bulkUpdateTrace', false, {
+            reason: 'exception',
+            eventType: String(eventType || '').trim() || 'unknown'
+        });
+        return false;
+    }
+};
+const appendDockerRequestBundleTrace = (eventType, details = {}) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            updateDockerTraceHealth('requestBundleTrace', false, {
+                reason: 'localStorageUnavailable',
+                eventType: String(eventType || '').trim() || 'unknown'
+            });
+            return false;
+        }
+        const existingRaw = String(localStorage.getItem(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY) || '').trim();
+        let existing = {};
+        if (existingRaw) {
+            try {
+                existing = JSON.parse(existingRaw);
+            } catch (_parseError) {
+                existing = {};
+            }
+        }
+        const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_REQUEST_BUNDLE_TRACE_LIMIT) : [];
+        entries.push({
+            at: new Date().toISOString(),
+            eventType: String(eventType || '').trim() || 'unknown',
+            details: details && typeof details === 'object' && !Array.isArray(details) ? details : {}
+        });
+        while (entries.length > DOCKER_REQUEST_BUNDLE_TRACE_LIMIT) {
+            entries.shift();
+        }
+        const writeOk = writeDockerDiagnosticsStorageRecord(DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY, {
+            updatedAt: new Date().toISOString(),
+            count: entries.length,
+            entries
+        });
+        updateDockerTraceHealth('requestBundleTrace', writeOk, {
+            eventType: String(eventType || '').trim() || 'unknown',
+            count: entries.length
+        });
+        return writeOk;
+    } catch (_error) {
+        updateDockerTraceHealth('requestBundleTrace', false, {
+            reason: 'exception',
+            eventType: String(eventType || '').trim() || 'unknown'
+        });
         return false;
     }
 };
@@ -5190,6 +5296,12 @@ if (typeof window.listview_original !== 'function') {
 }
 window.listview = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
+    appendDockerRequestBundleTrace('listview', {
+        currentPage: String(location?.pathname || ''),
+        loadedFolder: loadedFolder === true,
+        hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
+        hasPrimedRequestBundle: !!(folderReq && Array.isArray(folderReq.render) && folderReq.render.length > 0)
+    });
     if (typeof window.listview_original === 'function') {
         window.listview_original();
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Called original listview.');
@@ -5231,6 +5343,11 @@ window.loadlist = () => {
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
+    appendDockerRequestBundleTrace('loadlist', {
+        currentPage: String(location?.pathname || ''),
+        hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
+        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+    });
     folderReq = buildDockerFolderReq({
         liveUpdateStatus: isDockerHostUpdateSyncSuspended()
     });
@@ -5410,6 +5527,7 @@ const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
 const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
 const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
 const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
+const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;
 const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
 const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
@@ -5418,15 +5536,13 @@ let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(fol
 });
 
 const writeDockerSupportBundleStorageRecord = (storageKey, value) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            return false;
-        }
-        localStorage.setItem(storageKey, JSON.stringify(value));
-        return true;
-    } catch (_error) {
-        return false;
+    const writeOk = writeDockerDiagnosticsStorageRecord(storageKey, value);
+    if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
+        updateDockerTraceHealth('pageSnapshot', writeOk, {
+            reason: String(value?.reason || '').trim() || 'runtime-sync'
+        });
     }
+    return writeOk;
 };
 
 const normalizeDockerSupportBundleText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
@@ -5450,6 +5566,44 @@ const resolveDockerSupportBundleActionToken = (text) => {
     }
     return 'other';
 };
+const resolveDockerSupportBundleExpectedMemberActionToken = (entry = {}) => {
+    const manager = String(entry?.manager || '').trim().toLowerCase();
+    const updateReady = entry?.update === true;
+    const advanced = readDockerListViewMode() === 'advanced';
+    if (manager === 'dockerman') {
+        return updateReady ? 'applyUpdate' : (advanced ? 'forceUpdate' : 'upToDate');
+    }
+    if (manager === 'composeman') {
+        return 'other';
+    }
+    if (manager) {
+        return 'other';
+    }
+    return 'unknown';
+};
+const resolveDockerSupportBundleExpectedFolderActionToken = (folderId) => {
+    const folder = globalFolders?.[folderId];
+    const status = folder?.status && typeof folder.status === 'object' && !Array.isArray(folder.status)
+        ? folder.status
+        : null;
+    if (!status) {
+        return 'unknown';
+    }
+    const managerTypes = new Set(Array.isArray(status.managerTypes) ? status.managerTypes : []);
+    const hasDockerMan = managerTypes.has('dockerman');
+    const hasCompose = managerTypes.has('composeman');
+    const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
+    if (status.upToDate !== true) {
+        return 'applyUpdate';
+    }
+    if (hasDockerMan) {
+        return readDockerListViewMode() === 'advanced' ? 'forceUpdate' : 'upToDate';
+    }
+    if (hasCompose || has3rdParty) {
+        return 'other';
+    }
+    return 'unknown';
+};
 
 const parseDockerSupportBundleFolderId = (row) => {
     const className = String(row?.className || '').trim();
@@ -5468,8 +5622,15 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
     if (!$tableRows.length) {
         return null;
     }
+    const currentListViewMode = readDockerListViewMode();
     const folderEntries = [];
     const memberEntries = [];
+    const mismatches = {
+        folderActionCount: 0,
+        memberActionCount: 0,
+        folderEntries: [],
+        memberEntries: []
+    };
     const summary = {
         visibleFolderRows: 0,
         visibleMemberRows: 0,
@@ -5478,7 +5639,9 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         folderForceUpdateCount: 0,
         memberApplyUpdateCount: 0,
         memberForceUpdateCount: 0,
-        memberMissingFolderClassCount: 0
+        memberMissingFolderClassCount: 0,
+        folderActionMismatchCount: 0,
+        memberActionMismatchCount: 0
     };
 
     $tableRows.each((_, row) => {
@@ -5490,7 +5653,9 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         if (folderId) {
             const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
             const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
+            const expectedActionToken = resolveDockerSupportBundleExpectedFolderActionToken(folderId);
             const expanded = $(`.dropDown-${folderId}`).attr('active') === 'true';
+            const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
             summary.visibleFolderRows += 1;
             if (expanded) {
                 summary.expandedFolderRows += 1;
@@ -5500,6 +5665,19 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
             } else if (actionToken === 'forceUpdate') {
                 summary.folderForceUpdateCount += 1;
             }
+            if (mismatch) {
+                summary.folderActionMismatchCount += 1;
+                mismatches.folderActionCount += 1;
+                if (mismatches.folderEntries.length < DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT) {
+                    mismatches.folderEntries.push({
+                        folderId,
+                        folderName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()),
+                        expectedActionToken,
+                        renderedActionToken: actionToken,
+                        updateCellText
+                    });
+                }
+            }
             if (folderEntries.length < DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT) {
                 folderEntries.push({
                     folderId,
@@ -5507,6 +5685,8 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
                     expanded,
                     updateCellText,
                     actionToken,
+                    expectedActionToken,
+                    actionMismatch: mismatch,
                     statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
                 });
             }
@@ -5516,9 +5696,13 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         if (!rawId.startsWith('ct-')) {
             return;
         }
+        const containerName = normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()) || rawId.slice(3);
         const updateCellText = normalizeDockerSupportBundleText($row.find('td.updatecolumn').first().text());
         const actionToken = resolveDockerSupportBundleActionToken(updateCellText);
         const memberFolderId = parseDockerSupportBundleMemberFolderId(row);
+        const runtimeEntry = dockerRuntimeInfoByName?.[containerName] || {};
+        const expectedActionToken = resolveDockerSupportBundleExpectedMemberActionToken(runtimeEntry);
+        const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
         summary.visibleMemberRows += 1;
         if (!memberFolderId) {
             summary.memberMissingFolderClassCount += 1;
@@ -5528,13 +5712,28 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         } else if (actionToken === 'forceUpdate') {
             summary.memberForceUpdateCount += 1;
         }
+        if (mismatch) {
+            summary.memberActionMismatchCount += 1;
+            mismatches.memberActionCount += 1;
+            if (mismatches.memberEntries.length < DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT) {
+                mismatches.memberEntries.push({
+                    containerName,
+                    folderId: memberFolderId || '',
+                    expectedActionToken,
+                    renderedActionToken: actionToken,
+                    updateCellText
+                });
+            }
+        }
         if (memberEntries.length < DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT) {
             memberEntries.push({
-                containerName: normalizeDockerSupportBundleText($row.find('td.ct-name .appname').first().text()) || rawId.slice(3),
+                containerName,
                 folderId: memberFolderId || '',
                 classTagged: memberFolderId !== '',
                 updateCellText,
                 actionToken,
+                expectedActionToken,
+                actionMismatch: mismatch,
                 statusText: normalizeDockerSupportBundleText($row.find('td.ct-name .state').first().text())
             });
         }
@@ -5544,7 +5743,7 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         capturedAt: new Date().toISOString(),
         reason: String(reason || 'runtime-sync').trim() || 'runtime-sync',
         currentPage: String(location?.pathname || ''),
-        listViewMode: readDockerListViewMode(),
+        listViewMode: currentListViewMode,
         folderRows: {
             count: summary.visibleFolderRows,
             truncated: summary.visibleFolderRows > folderEntries.length,
@@ -5554,6 +5753,12 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
             count: summary.visibleMemberRows,
             truncated: summary.visibleMemberRows > memberEntries.length,
             entries: memberEntries
+        },
+        mismatches: {
+            folderActionCount: mismatches.folderActionCount,
+            memberActionCount: mismatches.memberActionCount,
+            folderEntries: mismatches.folderEntries,
+            memberEntries: mismatches.memberEntries
         },
         summary
     };
@@ -5852,6 +6057,13 @@ function buildDockerFolderReq(options = {}) {
         fallbackValue: JSON.stringify({ ok: false, prefs: {} })
     });
     const generation = ++dockerBootstrapGeneration;
+    appendDockerRequestBundleTrace('buildDockerFolderReq', {
+        currentPage: String(location?.pathname || ''),
+        generation,
+        cacheBust,
+        liveUpdateStatus,
+        hostSyncSuspended: isDockerHostUpdateSyncSuspended()
+    });
     return {
         generation,
         render: [

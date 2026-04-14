@@ -201,6 +201,26 @@
                 ...record
             });
         };
+        const collectDockerRequestBundleTrace = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerRequestBundleTrace || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.requestBundleTrace', 'requestBundleTrace', {
+                available: true,
+                ...record
+            });
+        };
+        const collectDockerTraceHealth = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.dockerTraceHealth || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.dockerDiagnostics.traceHealth', 'traceHealth', {
+                available: true,
+                ...record
+            });
+        };
 
         return Object.freeze({
             collectBrowserCapabilities,
@@ -209,7 +229,9 @@
             collectLoadedAssetTelemetry,
             collectBrowserConsoleErrors,
             collectDockerPageDiagnostics,
-            collectDockerBulkUpdateTrace
+            collectDockerBulkUpdateTrace,
+            collectDockerRequestBundleTrace,
+            collectDockerTraceHealth
         });
     };
 

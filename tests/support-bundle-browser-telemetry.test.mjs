@@ -174,20 +174,58 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     ]
                 };
             }
+            if (storageKey === 'docker-request-key') {
+                return {
+                    updatedAt: '2026-04-12T16:01:10+00:00',
+                    count: 3,
+                    entries: [
+                        {
+                            at: '2026-04-12T16:00:31+00:00',
+                            eventType: 'buildDockerFolderReq',
+                            details: { generation: 9, liveUpdateStatus: true, hostSyncSuspended: true }
+                        }
+                    ]
+                };
+            }
+            if (storageKey === 'docker-trace-health-key') {
+                return {
+                    updatedAt: '2026-04-12T16:01:20+00:00',
+                    bulkUpdateTrace: {
+                        lastWriteAt: '2026-04-12T16:01:00+00:00',
+                        lastWriteSucceeded: true,
+                        failureCount: 0
+                    },
+                    requestBundleTrace: {
+                        lastWriteAt: '2026-04-12T16:01:10+00:00',
+                        lastWriteSucceeded: true,
+                        failureCount: 0
+                    }
+                };
+            }
             return null;
         },
         storageKeys: {
             dockerPage: 'docker-page-key',
-            dockerBulkUpdateTrace: 'docker-trace-key'
+            dockerBulkUpdateTrace: 'docker-trace-key',
+            dockerRequestBundleTrace: 'docker-request-key',
+            dockerTraceHealth: 'docker-trace-health-key'
         }
     });
 
     const pageSnapshot = collectors.collectDockerPageDiagnostics();
     const bulkUpdateTrace = collectors.collectDockerBulkUpdateTrace();
+    const requestBundleTrace = collectors.collectDockerRequestBundleTrace();
+    const traceHealth = collectors.collectDockerTraceHealth();
 
     assert.equal(pageSnapshot.available, true);
     assert.equal(pageSnapshot.summary.memberMissingFolderClassCount, 2);
     assert.equal(bulkUpdateTrace.available, true);
     assert.equal(bulkUpdateTrace.count, 2);
     assert.equal(bulkUpdateTrace.entries[0].eventType, 'dialogOpened');
+    assert.equal(requestBundleTrace.available, true);
+    assert.equal(requestBundleTrace.entries[0].eventType, 'buildDockerFolderReq');
+    assert.equal(requestBundleTrace.entries[0].details.liveUpdateStatus, true);
+    assert.equal(traceHealth.available, true);
+    assert.equal(traceHealth.bulkUpdateTrace.lastWriteSucceeded, true);
+    assert.equal(traceHealth.requestBundleTrace.lastWriteSucceeded, true);
 });

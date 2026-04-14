@@ -62,9 +62,13 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerRuntimeInfoJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';/);
     assert.match(dockerJs, /const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);
+    assert.match(dockerJs, /const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
+    assert.match(dockerJs, /const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv\.support\.bundle\.docker\.traceHealth\.v1';/);
     assert.match(dockerJs, /const isDockerHostUpdateSyncSuspended = \(\) => readDockerHostUpdateSyncSuspendedUntil\(\) > Date\.now\(\);/);
     assert.match(dockerJs, /const suspendDockerHostUpdateSync = \(durationMs = 0\) => \{/);
+    assert.match(dockerJs, /const updateDockerTraceHealth = \(traceName,\s*success,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerBulkUpdateTrace = \(eventType,\s*details = \{\}\) => \{/);
+    assert.match(dockerJs, /const appendDockerRequestBundleTrace = \(eventType,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
@@ -79,6 +83,9 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerUpdateActionClickCapture\(\);\s*startDockerListViewModeObserver\(\);/);
     assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
     assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
+    assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*const mismatches = \{/);
+    assert.match(dockerJs, /expectedActionToken/);
+    assert.match(dockerJs, /actionMismatch/);
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {

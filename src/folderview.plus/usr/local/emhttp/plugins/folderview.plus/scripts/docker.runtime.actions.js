@@ -93,7 +93,14 @@
                     return;
                 }
                 const existingRaw = String(win.localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
-                const existing = existingRaw ? JSON.parse(existingRaw) : {};
+                let existing = {};
+                if (existingRaw) {
+                    try {
+                        existing = JSON.parse(existingRaw);
+                    } catch (_parseError) {
+                        existing = {};
+                    }
+                }
                 const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_BULK_UPDATE_TRACE_LIMIT) : [];
                 entries.push({
                     at: new Date().toISOString(),

@@ -708,7 +708,14 @@ const appendDockerBulkUpdateTrace = (eventType, details = {}) => {
             return false;
         }
         const existingRaw = String(localStorage.getItem(DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY) || '').trim();
-        const existing = existingRaw ? JSON.parse(existingRaw) : {};
+        let existing = {};
+        if (existingRaw) {
+            try {
+                existing = JSON.parse(existingRaw);
+            } catch (_parseError) {
+                existing = {};
+            }
+        }
         const entries = Array.isArray(existing?.entries) ? existing.entries.slice(-DOCKER_BULK_UPDATE_TRACE_LIMIT) : [];
         entries.push({
             at: new Date().toISOString(),
@@ -4236,7 +4243,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     if (!managerTypes.has('dockerman')) {
         $(`tr.folder-id-${id} td.folder-autostart`).empty();
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No dockerman containers — removed autostart toggle.`);
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No dockerman containers - removed autostart toggle.`);
     } else {
         const folderHasAutostart = autostart > 0;
         $(`#folder-${id}-auto`).switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on'), checked: folderHasAutostart });
@@ -4507,6 +4514,17 @@ const editFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const forceUpdateFolder = (id, { includeDescendants = true } = {}) => {
+    appendDockerBulkUpdateTrace('forceUpdateFolderDispatch', {
+        folderId: String(id || '').trim(),
+        includeDescendants: includeDescendants === true,
+        currentPage: String(location?.pathname || ''),
+        listViewMode: readDockerListViewMode()
+    });
+    armDockerPostUpdateRuntimeReconcileWindow(120000, {
+        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
+        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+    });
+    queueDockerSupportBundlePageSnapshot('force-update-dispatch', 80);
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.forceUpdateFolder === 'function') {
         actionsApi.forceUpdateFolder(id, { includeDescendants });
@@ -4518,6 +4536,17 @@ const forceUpdateFolder = (id, { includeDescendants = true } = {}) => {
  * @param {string} id the id of the folder
  */
 const updateFolder = (id, { includeDescendants = true } = {}) => {
+    appendDockerBulkUpdateTrace('updateFolderDispatch', {
+        folderId: String(id || '').trim(),
+        includeDescendants: includeDescendants === true,
+        currentPage: String(location?.pathname || ''),
+        listViewMode: readDockerListViewMode()
+    });
+    armDockerPostUpdateRuntimeReconcileWindow(120000, {
+        initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
+        pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
+    });
+    queueDockerSupportBundlePageSnapshot('update-dispatch', 80);
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.updateFolder === 'function') {
         actionsApi.updateFolder(id, { includeDescendants });

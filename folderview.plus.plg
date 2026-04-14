@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.12.06">
-<!ENTITY md5 "eb9d18369dafa95a014ee124913f3c7e">
+<!ENTITY version "2026.04.13.01">
+<!ENTITY md5 "bb8f5279adaa3520289af3011d23ff9a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.13.01
+- Fix: Docker folder ``update all`` and ``force update`` now arm the post-update reconcile window from the global UI dispatch path, so collapsed folder rows keep polling fresh runtime state even when the host dialog callback path is delayed or skipped.
+- Quality: Docker bulk-update trace writers now recover from invalid cached localStorage payloads instead of dropping new trace entries, so support bundles can capture the actual update dispatch path during troubleshooting.
+
 
 ###2026.04.12.06
 - Fix: Docker runtime rows, folder state, and container interactions.

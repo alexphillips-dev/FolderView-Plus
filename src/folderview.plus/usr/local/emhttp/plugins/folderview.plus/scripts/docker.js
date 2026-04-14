@@ -680,11 +680,15 @@ const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
 const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
+const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
 const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.bulkUpdateTrace.v1';
 const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv.support.bundle.docker.requestBundleTrace.v1';
 const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv.support.bundle.docker.traceHealth.v1';
 const DOCKER_BULK_UPDATE_TRACE_LIMIT = 30;
 const DOCKER_REQUEST_BUNDLE_TRACE_LIMIT = 40;
+const DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES = 98304;
+const DOCKER_TRACE_STORAGE_MAX_BYTES = 32768;
+const DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES = 12288;
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -713,12 +717,203 @@ const suspendDockerHostUpdateSync = (durationMs = 0) => {
     return resolvedUntil;
 };
 let dockerHostOpenDockerPatchBound = false;
+const measureDockerDiagnosticsStorageBytes = (value) => {
+    try {
+        const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+        if (typeof TextEncoder === 'function') {
+            return new TextEncoder().encode(serialized).length;
+        }
+        return serialized.length * 2;
+    } catch (_error) {
+        return Number.POSITIVE_INFINITY;
+    }
+};
+const cloneDockerDiagnosticsStorageValue = (value) => {
+    try {
+        return JSON.parse(JSON.stringify(value));
+    } catch (_error) {
+        return null;
+    }
+};
+const compactDockerTraceStoragePayload = (value, maxBytes) => {
+    const payload = cloneDockerDiagnosticsStorageValue(value);
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        return value;
+    }
+    const entries = Array.isArray(payload.entries) ? payload.entries.slice() : [];
+    let trimmed = false;
+    while (entries.length > 1) {
+        const candidate = {
+            ...payload,
+            count: entries.length,
+            entries
+        };
+        if (measureDockerDiagnosticsStorageBytes(candidate) <= maxBytes) {
+            return trimmed ? {
+                ...candidate,
+                storageTrimmed: true
+            } : candidate;
+        }
+        entries.shift();
+        trimmed = true;
+    }
+    const minimalPayload = {
+        ...payload,
+        count: entries.length,
+        entries,
+        storageTrimmed: trimmed
+    };
+    return measureDockerDiagnosticsStorageBytes(minimalPayload) <= maxBytes
+        ? minimalPayload
+        : {
+            updatedAt: payload.updatedAt || new Date().toISOString(),
+            count: 0,
+            entries: [],
+            storageTrimmed: true
+        };
+};
+const compactDockerTraceHealthStoragePayload = (value, maxBytes) => {
+    const payload = cloneDockerDiagnosticsStorageValue(value);
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        return value;
+    }
+    if (measureDockerDiagnosticsStorageBytes(payload) <= maxBytes) {
+        return payload;
+    }
+    const compacted = {
+        updatedAt: payload.updatedAt || new Date().toISOString()
+    };
+    Object.entries(payload || {}).forEach(([key, record]) => {
+        if (key === 'updatedAt') {
+            return;
+        }
+        if (!record || typeof record !== 'object' || Array.isArray(record)) {
+            return;
+        }
+        compacted[key] = {
+            lastWriteAt: record.lastWriteAt || null,
+            lastWriteSucceeded: record.lastWriteSucceeded === true,
+            failureCount: Number.isFinite(Number(record.failureCount)) ? Number(record.failureCount) : 0,
+            details: {}
+        };
+    });
+    return measureDockerDiagnosticsStorageBytes(compacted) <= maxBytes
+        ? compacted
+        : { updatedAt: compacted.updatedAt, storageTrimmed: true };
+};
+const compactDockerPageSnapshotStoragePayload = (value, maxBytes) => {
+    const payload = cloneDockerDiagnosticsStorageValue(value);
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        return value;
+    }
+    if (measureDockerDiagnosticsStorageBytes(payload) <= maxBytes) {
+        return payload;
+    }
+    const folderEntries = Array.isArray(payload?.folderRows?.entries) ? payload.folderRows.entries.slice() : [];
+    const memberEntries = Array.isArray(payload?.memberRows?.entries) ? payload.memberRows.entries.slice() : [];
+    const mismatchFolderEntries = Array.isArray(payload?.mismatches?.folderEntries) ? payload.mismatches.folderEntries.slice() : [];
+    const mismatchMemberEntries = Array.isArray(payload?.mismatches?.memberEntries) ? payload.mismatches.memberEntries.slice() : [];
+    const buildCandidate = () => ({
+        ...payload,
+        folderRows: {
+            ...(payload.folderRows && typeof payload.folderRows === 'object' && !Array.isArray(payload.folderRows) ? payload.folderRows : {}),
+            count: payload?.folderRows?.count ?? folderEntries.length,
+            truncated: (payload?.folderRows?.count ?? folderEntries.length) > folderEntries.length,
+            entries: folderEntries
+        },
+        memberRows: {
+            ...(payload.memberRows && typeof payload.memberRows === 'object' && !Array.isArray(payload.memberRows) ? payload.memberRows : {}),
+            count: payload?.memberRows?.count ?? memberEntries.length,
+            truncated: (payload?.memberRows?.count ?? memberEntries.length) > memberEntries.length,
+            entries: memberEntries
+        },
+        mismatches: {
+            ...(payload.mismatches && typeof payload.mismatches === 'object' && !Array.isArray(payload.mismatches) ? payload.mismatches : {}),
+            folderActionCount: payload?.mismatches?.folderActionCount ?? mismatchFolderEntries.length,
+            memberActionCount: payload?.mismatches?.memberActionCount ?? mismatchMemberEntries.length,
+            folderEntries: mismatchFolderEntries,
+            memberEntries: mismatchMemberEntries
+        },
+        storageTrimmed: true
+    });
+    let candidate = buildCandidate();
+    while (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes && memberEntries.length > 24) {
+        memberEntries.splice(24);
+        mismatchMemberEntries.splice(8);
+        candidate = buildCandidate();
+    }
+    while (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes && folderEntries.length > 12) {
+        folderEntries.splice(12);
+        mismatchFolderEntries.splice(8);
+        candidate = buildCandidate();
+    }
+    if (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes) {
+        folderEntries.forEach((entry) => {
+            delete entry.statusText;
+            delete entry.updateCellText;
+        });
+        memberEntries.forEach((entry) => {
+            delete entry.statusText;
+            delete entry.updateCellText;
+        });
+        mismatchFolderEntries.forEach((entry) => {
+            delete entry.updateCellText;
+        });
+        mismatchMemberEntries.forEach((entry) => {
+            delete entry.updateCellText;
+        });
+        candidate = buildCandidate();
+    }
+    if (measureDockerDiagnosticsStorageBytes(candidate) > maxBytes) {
+        candidate = {
+            capturedAt: payload.capturedAt || new Date().toISOString(),
+            reason: payload.reason || 'runtime-sync',
+            currentPage: payload.currentPage || '',
+            listViewMode: payload.listViewMode || 'basic',
+            folderRows: {
+                count: payload?.folderRows?.count ?? folderEntries.length,
+                truncated: true,
+                entries: folderEntries.slice(0, 8)
+            },
+            memberRows: {
+                count: payload?.memberRows?.count ?? memberEntries.length,
+                truncated: true,
+                entries: memberEntries.slice(0, 16)
+            },
+            mismatches: {
+                folderActionCount: payload?.mismatches?.folderActionCount ?? mismatchFolderEntries.length,
+                memberActionCount: payload?.mismatches?.memberActionCount ?? mismatchMemberEntries.length,
+                folderEntries: mismatchFolderEntries.slice(0, 4),
+                memberEntries: mismatchMemberEntries.slice(0, 4)
+            },
+            summary: payload.summary && typeof payload.summary === 'object' && !Array.isArray(payload.summary)
+                ? { ...payload.summary }
+                : {},
+            storageTrimmed: true
+        };
+    }
+    return candidate;
+};
+const compactDockerDiagnosticsStoragePayload = (storageKey, value) => {
+    if (storageKey === DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY || storageKey === DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY) {
+        return compactDockerTraceStoragePayload(value, DOCKER_TRACE_STORAGE_MAX_BYTES);
+    }
+    if (storageKey === DOCKER_TRACE_HEALTH_STORAGE_KEY) {
+        return compactDockerTraceHealthStoragePayload(value, DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES);
+    }
+    if (storageKey === DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY) {
+        return compactDockerPageSnapshotStoragePayload(value, DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES);
+    }
+    return value;
+};
 const writeDockerDiagnosticsStorageRecord = (storageKey, value) => {
     try {
         if (typeof localStorage === 'undefined') {
             return false;
         }
-        localStorage.setItem(storageKey, JSON.stringify(value));
+        const compactedValue = compactDockerDiagnosticsStoragePayload(storageKey, value);
+        const serialized = JSON.stringify(compactedValue);
+        localStorage.setItem(storageKey, serialized);
         return true;
     } catch (_error) {
         return false;
@@ -5644,7 +5839,6 @@ const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
 const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
-const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = 'fv.support.bundle.docker.page.v1';
 const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
 const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
 const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;

@@ -560,6 +560,12 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /block_is_metadata_only/);
     assert.match(ensureChanges, /duplicates the previous release notes block/);
     assert.match(ensureChanges, /Explicit release notes are required/);
+    assert.match(ensureChanges, /head_manifest_version/);
+    assert.match(ensureChanges, /prune_unreleased_retry_blocks/);
+    assert.match(ensureChanges, /Pruned .* unreleased local CHANGES block\(s\) newer than HEAD before inserting/);
+    assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" show HEAD:folderview\.plus\.plg/);
+    assert.match(ensureChanges, /version_greater_than/);
+    assert.match(ensureChanges, /remove_changes_block_for_version/);
     assert.match(ensureChanges, /resolve_changes_anchor_ref/);
     assert.match(ensureChanges, /collect_changed_files/);
     assert.match(ensureChanges, /classify_changed_path_subsystems/);

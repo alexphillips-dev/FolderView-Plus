@@ -64,6 +64,12 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);
     assert.match(dockerJs, /const DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
     assert.match(dockerJs, /const DOCKER_TRACE_HEALTH_STORAGE_KEY = 'fv\.support\.bundle\.docker\.traceHealth\.v1';/);
+    assert.match(dockerJs, /const DOCKER_PAGE_SNAPSHOT_STORAGE_MAX_BYTES = 98304;/);
+    assert.match(dockerJs, /const DOCKER_TRACE_STORAGE_MAX_BYTES = 32768;/);
+    assert.match(dockerJs, /const DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES = 12288;/);
+    assert.match(dockerJs, /const compactDockerTraceStoragePayload = \(value,\s*maxBytes\) => \{/);
+    assert.match(dockerJs, /const compactDockerPageSnapshotStoragePayload = \(value,\s*maxBytes\) => \{/);
+    assert.match(dockerJs, /const compactDockerDiagnosticsStoragePayload = \(storageKey,\s*value\) => \{/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_COMMAND_REGEX = \/\^\\s\*update_container\(\?:\\s\|\$\)\/i;/);
     assert.match(dockerJs, /const isDockerHostUpdateCommand = \(command\) => DOCKER_HOST_UPDATE_COMMAND_REGEX\.test\(String\(command \|\| ''\)\.trim\(\)\);/);
     assert.match(dockerJs, /const isDockerHostUpdateSyncSuspended = \(\) => readDockerHostUpdateSyncSuspendedUntil\(\) > Date\.now\(\);/);
@@ -71,6 +77,8 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const updateDockerTraceHealth = \(traceName,\s*success,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerBulkUpdateTrace = \(eventType,\s*details = \{\}\) => \{/);
     assert.match(dockerJs, /const appendDockerRequestBundleTrace = \(eventType,\s*details = \{\}\) => \{/);
+    assert.match(dockerJs, /const compactedValue = compactDockerDiagnosticsStoragePayload\(storageKey,\s*value\);/);
+    assert.match(dockerJs, /localStorage\.setItem\(storageKey,\s*serialized\);/);
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);

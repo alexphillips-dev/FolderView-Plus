@@ -231,7 +231,17 @@ test('docker runtime consumes shared state store and guarded async action wrappe
 test('docker command-view stylesheet only hides the host table when the isolated command module is mounted', () => {
     assert.match(dockerCommandViewCss, /body\[data-fvplus-docker-command-view-mounted="true"\] table#docker_containers/);
     assert.match(dockerCommandViewCss, /\.fv-docker-command-shell/);
+    assert.match(dockerCommandViewCss, /var\(--fvplus-settings-button-bg-top\)/);
+    assert.match(dockerCommandViewCss, /\.fv-docker-command-member-tile/);
     assert.doesNotMatch(dockerCommandViewCss, /body\[data-fvplus-docker-page-view="command"\] table#docker_containers/);
+});
+
+test('docker command-view renders visible member tiles instead of name-only chips', () => {
+    assert.match(dockerCommandViewJs, /const sanitizeImageSrc = typeof utils\.sanitizeImageSrc === 'function'/);
+    assert.match(dockerCommandViewJs, /class="fv-docker-command-member-tile/);
+    assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
+    assert.match(dockerCommandViewJs, /class="fv-docker-command-member-icon"/);
+    assert.doesNotMatch(dockerCommandViewJs, /class="fv-docker-command-member more"/);
 });
 
 test('docker CSS keeps docker-specific layout tokens while shared stylesheet owns shared dropdown geometry', () => {

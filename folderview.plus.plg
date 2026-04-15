@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.16">
-<!ENTITY md5 "e5ac4572a2ff30dfdca16df70243ab58">
+<!ENTITY version "2026.04.15.18">
+<!ENTITY md5 "1c868cfd5fef54417e7f30d8c4d39b45">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.18
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
 
 ###2026.04.15.16
 - Feature: Added an isolated Docker `Command view (experimental)` mode that loads from its own runtime module and stylesheet, reuses the existing folder/runtime data model, and keeps FolderView and host-list modes on separate paths.

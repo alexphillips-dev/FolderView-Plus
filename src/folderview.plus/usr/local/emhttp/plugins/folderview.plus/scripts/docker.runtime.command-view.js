@@ -12,6 +12,7 @@
         : (typeof window !== 'undefined' ? window : null);
     const ROOT_ID = 'fvplus-docker-command-view-root';
     const BODY_ATTR = 'data-fvplus-docker-command-view-mounted';
+    const DOCKER_ICON_FALLBACK = '/plugins/dynamix.docker.manager/images/question.png';
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -47,6 +48,15 @@
         const normalizePrefs = typeof utils.normalizePrefs === 'function'
             ? utils.normalizePrefs
             : ((prefs = {}) => (prefs && typeof prefs === 'object' ? prefs : {}));
+        const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
+            ? utils.sanitizeImageSrc
+            : ((value, fallback = DOCKER_ICON_FALLBACK) => {
+                const raw = String(value || '').trim();
+                if (!raw || /^javascript:/i.test(raw)) {
+                    return fallback;
+                }
+                return escapeHtml(raw);
+            });
         const normalizeRuntimeInfoMap = typeof deps.normalizeDockerRuntimeInfoMap === 'function'
             ? deps.normalizeDockerRuntimeInfoMap
             : ((value) => (value && typeof value === 'object' ? value : {}));
@@ -197,6 +207,17 @@
             || entry?.info?.State?.Updated === true
         );
 
+        const getContainerStateMeta = (entry = {}) => {
+            const state = resolveContainerState(entry);
+            if (state === 'paused') {
+                return { state, label: 'paused', icon: 'fa-pause' };
+            }
+            if (state === 'running') {
+                return { state, label: 'running', icon: 'fa-play' };
+            }
+            return { state, label: 'stopped', icon: 'fa-stop' };
+        };
+
         const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder) => {
             const folderMap = folders && typeof folders === 'object' ? folders : {};
             const baseOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folderMap, prefs);
@@ -240,8 +261,10 @@
             const branchContainers = getScopedRuntimeContainersForFolder(folderId, true) || {};
             const members = Object.entries(branchContainers).map(([name, entry]) => ({
                 name,
-                state: resolveContainerState(entry),
-                updateReady: containerHasUpdate(entry)
+                icon: sanitizeImageSrc(entry?.icon || DOCKER_ICON_FALLBACK, DOCKER_ICON_FALLBACK),
+                stateMeta: getContainerStateMeta(entry),
+                updateReady: containerHasUpdate(entry),
+                managed: entry?.managed === true || entry?.manager === 'dockerman'
             })).sort((left, right) => left.name.localeCompare(right.name));
             const actionCounts = summarizeFolderActionCounts(branchContainers);
             const directMatches = snapshot.matchCache[folderId] || {};
@@ -253,9 +276,9 @@
             let stopped = 0;
             let updates = 0;
             members.forEach((member) => {
-                if (member.state === 'running') {
+                if (member.stateMeta.state === 'running') {
                     running += 1;
-                } else if (member.state === 'paused') {
+                } else if (member.stateMeta.state === 'paused') {
                     paused += 1;
                 } else {
                     stopped += 1;
@@ -333,13 +356,23 @@
                                 `${card.branchMemberCount} in branch`,
                                 card.childCount > 0 ? `${card.childCount} child folders` : ''
                             ].filter(Boolean).join(' • ');
-                            const memberChips = card.members.slice(0, 6).map((member) => `
-                                <span class="fv-docker-command-member ${escapeHtml(member.state)}">
-                                    <span class="fv-docker-command-member-name">${escapeHtml(member.name)}</span>
-                                    ${member.updateReady ? '<span class="fv-docker-command-member-update">update</span>' : ''}
-                                </span>
+                            const memberTiles = card.members.map((member) => `
+                                <div class="fv-docker-command-member-tile ${escapeHtml(member.stateMeta.state)}${member.updateReady ? ' has-update' : ''}">
+                                    <span class="fv-docker-command-member-icon-wrap">
+                                        <img src="${member.icon}" class="fv-docker-command-member-icon" alt="" loading="lazy" onerror='this.src="${DOCKER_ICON_FALLBACK}"'>
+                                    </span>
+                                    <span class="fv-docker-command-member-content">
+                                        <span class="fv-docker-command-member-pill">${escapeHtml(member.name)}</span>
+                                        <span class="fv-docker-command-member-meta">
+                                            <span class="fv-docker-command-member-state ${escapeHtml(member.stateMeta.state)}">
+                                                <i class="fa ${escapeHtml(member.stateMeta.icon)}" aria-hidden="true"></i>
+                                                <span>${escapeHtml(member.stateMeta.label)}</span>
+                                            </span>
+                                            ${member.updateReady ? '<span class="fv-docker-command-member-update">update ready</span>' : ''}
+                                        </span>
+                                    </span>
+                                </div>
                             `).join('');
-                            const hiddenCount = Math.max(0, card.members.length - 6);
                             return `
                                 <article class="fv-docker-command-card" data-folder-id="${escapeHtml(card.folderId)}" style="--fv-docker-command-depth:${card.depth};">
                                     <div class="fv-docker-command-card-head">
@@ -360,7 +393,7 @@
                                         <span class="fv-docker-command-stat update"><i class="fa fa-cloud-download"></i> ${card.updates} updates</span>
                                     </div>
                                     <div class="fv-docker-command-members">
-                                        ${memberChips}${hiddenCount > 0 ? `<span class="fv-docker-command-member more">+${hiddenCount} more</span>` : ''}
+                                        ${memberTiles || '<span class="fv-docker-command-member-empty">No containers matched this folder yet.</span>'}
                                     </div>
                                     <div class="fv-docker-command-actions">
                                         <button type="button" class="fv-docker-command-button" data-fv-command-action="start-branch">Start branch</button>

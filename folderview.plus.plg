@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.01">
-<!ENTITY md5 "bb96c1879a1012eaa73bdbe9a2095d5c">
+<!ENTITY version "2026.04.15.02">
+<!ENTITY md5 "1ceddf3e9c607e9b80deefa768bafabb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.02
+- Fix: Fixed concurrent JSON writes during first-load settings normalization so VM and Docker prefs no longer race on the same temporary file.
+- Fix: Updated atomic JSON writes to use a unique temp file per request before rename, which prevents intermittent `Failed to replace JSON payload` errors during settings bootstrap and diagnostics reads.
+- Quality: Fixed dev release-note insertion so missing git metadata in Windows worktrees no longer aborts packaging under `set -e`.
+- Quality: Hardened shell release tooling to resolve `php.exe` and `node.exe` when bare `php` or `node` are not present in the bash environment.
+- Test: Verified the patched writer with a local concurrent-write repro: the old fixed-temp-path flow produced a rename failure, while the unique-temp-path flow completed successfully in both parallel processes.
+- Test: Added release-flow regression coverage for broken git probes and manifest-based dev branch resolution during dry-run packaging.
+
 
 ###2026.04.15.01
 - Feature: Added a managed Theme Workspace in Settings with GitHub theme import, activate/deactivate, delete, variable overrides, custom CSS, and update checks.

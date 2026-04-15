@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/lib.sh
+source "${ROOT_DIR}/scripts/lib.sh"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 PRIMARY_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
 CA_TEMPLATE_FILE="${PRIMARY_CA_TEMPLATE_FILE}"

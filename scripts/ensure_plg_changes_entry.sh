@@ -104,7 +104,7 @@ version_greater_than() {
 head_manifest_version() {
   local version_line=""
   if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    return
+    return 0
   fi
   version_line="$(
     git -C "${ROOT_DIR}" show HEAD:folderview.plus.plg 2>/dev/null \
@@ -131,7 +131,7 @@ list_changes_versions() {
 remove_changes_block_for_version() {
   local target_version="${1:-}"
   local tmp_file=""
-  [[ -n "${target_version}" ]] || return
+  [[ -n "${target_version}" ]] || return 0
   tmp_file="$(mktemp)"
   awk -v version="${target_version}" '
     BEGIN { skip = 0 }
@@ -158,9 +158,9 @@ prune_unreleased_retry_blocks() {
   local head_version=""
   local stale_version=""
   local removed=0
-  [[ -n "${target_version}" ]] || return
+  [[ -n "${target_version}" ]] || return 0
   head_version="$(head_manifest_version)"
-  [[ -n "${head_version}" ]] || return
+  [[ -n "${head_version}" ]] || return 0
   while IFS= read -r stale_version; do
     [[ -n "${stale_version}" ]] || continue
     if ! version_greater_than "${stale_version}" "${head_version}"; then
@@ -321,12 +321,12 @@ resolve_changes_anchor_ref() {
   local anchor_ref=""
 
   if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    return
+    return 0
   fi
 
   if [[ -n "${previous_version}" ]] && git -C "${ROOT_DIR}" rev-parse -q --verify "refs/tags/v${previous_version}^{tag}" >/dev/null 2>&1; then
     printf 'v%s\n' "${previous_version}"
-    return
+    return 0
   fi
 
   if [[ -n "${previous_version}" ]]; then
@@ -336,6 +336,7 @@ resolve_changes_anchor_ref() {
   if [[ -n "${anchor_ref}" ]]; then
     printf '%s\n' "${anchor_ref}"
   fi
+  return 0
 }
 
 collect_changed_files() {
@@ -344,7 +345,7 @@ collect_changed_files() {
   local range=""
 
   if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    return
+    return 0
   fi
 
   anchor_ref="$(resolve_changes_anchor_ref "${previous_version}")"
@@ -654,13 +655,13 @@ build_diff_based_notes() {
   declare -A seen_subsystems=()
 
   if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    return
+    return 0
   fi
 
   mapfile -t changed_files < <(collect_changed_files "${previous_version}" || true)
 
   if [[ ${#changed_files[@]} -eq 0 ]]; then
-    return
+    return 0
   fi
 
   for changed in "${changed_files[@]}"; do
@@ -681,7 +682,7 @@ build_diff_based_notes() {
   done
 
   if [[ ${#notes[@]} -eq 0 ]]; then
-    return
+    return 0
   fi
 
   printf '%s\n' "${notes[@]}" | head -n "${MAX_AUTO_LINES}"

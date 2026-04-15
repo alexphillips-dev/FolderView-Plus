@@ -36,6 +36,19 @@ detect_git_branch() {
     printf '%s' "$detected"
 }
 
+detect_manifest_branch() {
+    local plugin_url=""
+    if [ ! -f "$plgfile" ]; then
+        return 0
+    fi
+    plugin_url="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "$plgfile" | head -n 1 || true)"
+    if [[ "$plugin_url" =~ /([A-Za-z0-9._-]+)/folderview\.plus\.plg$ ]]; then
+        printf '%s' "${BASH_REMATCH[1]}"
+        return 0
+    fi
+    return 0
+}
+
 detect_git_commit_sha() {
     local detected=""
     if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -490,10 +503,15 @@ if [ -n "$branch_override" ]; then
     branch="$branch_override"
 else
     detected_branch="$(detect_git_branch)"
-    if [ "$detected_branch" = "dev" ]; then
-        branch="dev"
+    if [ "$detected_branch" = "dev" ] || [ "$detected_branch" = "main" ]; then
+        branch="$detected_branch"
     else
-        branch="main"
+        manifest_branch="$(detect_manifest_branch)"
+        if [ "$manifest_branch" = "dev" ]; then
+            branch="dev"
+        else
+            branch="main"
+        fi
     fi
 fi
 

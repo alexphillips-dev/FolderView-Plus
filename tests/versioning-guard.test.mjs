@@ -147,6 +147,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
     assert.match(pkgBuild, /rewrite_manifest_branch_metadata/);
     assert.match(pkgBuild, /validate_manifest_branch_matrix/);
+    assert.match(pkgBuild, /detect_manifest_branch/);
     assert.match(pkgBuild, /expected_entity_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/folderview\.plus\.plg"/);
     assert.match(pkgBuild, /expected_archive_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/archive\/&name;-&version;\.txz"/);
     assert.match(pkgBuild, /canonical entity form/);
@@ -263,6 +264,7 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /git ls-files --others --exclude-standard \|\| true/);
     assert.match(devFinalize, /Stage the intended source changes before running dev_finalize\.sh/);
     assert.match(devFinalize, /bash pkg_build\.sh/);
+    assert.match(devFinalize, /bash pkg_build\.sh --branch "\$\{CURRENT_BRANCH\}"/);
     assert.match(devFinalize, /git add folderview\.plus\.plg folderview\.plus\.xml archive\//);
     assert.match(devFinalize, /git commit -m "\$\{COMMIT_MESSAGE\}"/);
     assert.match(devFinalize, /git push -u origin dev/);

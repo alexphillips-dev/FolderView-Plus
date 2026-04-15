@@ -83,7 +83,8 @@ const utils = window.FolderViewPlusUtils || {
             layout: 'classic',
             expandToggle: true,
             greyscale: false,
-            folderLabel: true
+            folderLabel: true,
+            privacyMode: false
         },
         health: {
             cardsEnabled: true,
@@ -346,7 +347,8 @@ const normalizeDashboardPrefsForType = (type) => {
             : normalizeDashboardLayoutMode(dashboard.layout),
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
-        folderLabel: dashboard.folderLabel !== false
+        folderLabel: dashboard.folderLabel !== false,
+        privacyMode: dashboard.privacyMode === true
     };
 };
 const dashboardTypeMeta = (type) => {
@@ -2222,6 +2224,8 @@ const applyDashboardRuntimePrefs = () => {
     }
     const performanceMode = dockerPrefs.performanceMode === true || vmPrefs.performanceMode === true;
     $('body').toggleClass('fvplus-performance-mode', performanceMode);
+    $('body').toggleClass('fvplus-privacy-docker-dashboard', dockerPrefs?.dashboard?.privacyMode === true);
+    $('body').toggleClass('fvplus-privacy-vm-dashboard', vmPrefs?.dashboard?.privacyMode === true);
 
     if (!candidates.length) {
         clearLiveRefreshTimer();

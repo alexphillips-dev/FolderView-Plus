@@ -819,6 +819,36 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     opacity: 0.9;
 }
 
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker .name-cell-text,
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker .name-cell-breadcrumb,
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker .name-cell-members-meta,
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker .name-cell-nested-meta,
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker td.rules-cell,
+body.fvplus-privacy-docker-settings #docker-tree-path-hint,
+body.fvplus-privacy-docker-settings #docker-rule-test-output,
+body.fvplus-privacy-docker-settings #docker-conflict-output,
+body.fvplus-privacy-docker-settings #fv-settings-root [data-fv-bulk-type="docker"] .bulk-item-name,
+body.fvplus-privacy-docker-settings #docker-folder-defaults-summary,
+body.fvplus-privacy-docker-settings #docker-folder-defaults-source,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-text,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-breadcrumb,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-members-meta,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-nested-meta,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms td.rules-cell,
+body.fvplus-privacy-vm-settings #vm-tree-path-hint,
+body.fvplus-privacy-vm-settings #vm-rule-test-output,
+body.fvplus-privacy-vm-settings #vm-conflict-output,
+body.fvplus-privacy-vm-settings #fv-settings-root [data-fv-bulk-type="vm"] .bulk-item-name,
+body.fvplus-privacy-vm-settings #vm-folder-defaults-summary,
+body.fvplus-privacy-vm-settings #vm-folder-defaults-source {
+    filter: blur(0.28rem);
+}
+
+body.fvplus-privacy-docker-settings #fv-settings-root tbody#docker .name-cell-content > img,
+body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-content > img {
+    filter: blur(0.4rem);
+}
+
 .status-line {
     display: block;
     margin-top: 0.5rem;

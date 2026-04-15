@@ -163,6 +163,22 @@ td.vm-name.folder-name > .folder-name-sub > .folder-outer {
     display: none;
 }
 
+body.fvplus-privacy-vm-runtime #vm_content td.vm-name img.img,
+body.fvplus-privacy-vm-runtime #vm_view td.vm-name img.img,
+body.fvplus-privacy-vm-runtime #vm_content .folder-preview .folder-img,
+body.fvplus-privacy-vm-runtime #vm_view .folder-preview .folder-img {
+    filter: blur(0.4rem);
+}
+
+body.fvplus-privacy-vm-runtime #vm_content td.vm-name .folder-appname,
+body.fvplus-privacy-vm-runtime #vm_view td.vm-name .folder-appname,
+body.fvplus-privacy-vm-runtime #vm_content td.vm-name .folder-appname-id,
+body.fvplus-privacy-vm-runtime #vm_view td.vm-name .folder-appname-id,
+body.fvplus-privacy-vm-runtime #vm_content .folder-preview .inner > a,
+body.fvplus-privacy-vm-runtime #vm_view .folder-preview .inner > a {
+    filter: blur(0.28rem);
+}
+
 td.vm-name.folder-name {
     position: relative;
     overflow: hidden;

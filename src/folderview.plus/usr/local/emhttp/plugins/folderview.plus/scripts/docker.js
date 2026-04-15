@@ -142,6 +142,13 @@ const utils = window.FolderViewPlusUtils || {
         performanceMode: false,
         lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30,
+        dashboard: {
+            layout: 'classic',
+            expandToggle: true,
+            greyscale: false,
+            folderLabel: true,
+            privacyMode: false
+        },
         health: {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
@@ -5797,6 +5804,7 @@ const applyRuntimePrefs = (prefs) => {
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
+    $('body').toggleClass('fvplus-privacy-docker-runtime', normalized?.dashboard?.privacyMode === true);
     scheduleLiveRefresh(normalized);
 };
 

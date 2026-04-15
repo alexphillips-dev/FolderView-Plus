@@ -51,7 +51,8 @@
         layout: 'classic',
         expandToggle: true,
         greyscale: false,
-        folderLabel: true
+        folderLabel: true,
+        privacyMode: false
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
@@ -701,7 +702,8 @@
             greyscale: incomingDashboard.greyscale === true,
             folderLabel: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'folderLabel')
                 ? DEFAULT_DASHBOARD_PREFS.folderLabel
-                : incomingDashboard.folderLabel !== false
+                : incomingDashboard.folderLabel !== false,
+            privacyMode: incomingDashboard.privacyMode === true
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {

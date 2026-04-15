@@ -262,6 +262,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
+                    <label id="docker-dashboard-privacy-mode-row" class="setting-toggle"><input id="docker-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMode', this.checked)"> Privacy mode (blur names and icons)</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -513,6 +514,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
+                    <label id="vm-dashboard-privacy-mode-row" class="setting-toggle"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"> Privacy mode (blur names and icons)</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
                 </div>
                 <div class="settings-mini-card">

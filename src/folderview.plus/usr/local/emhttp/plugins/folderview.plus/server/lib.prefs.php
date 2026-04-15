@@ -33,7 +33,8 @@
                 'layout' => 'classic',
                 'expandToggle' => true,
                 'greyscale' => false,
-                'folderLabel' => true
+                'folderLabel' => true,
+                'privacyMode' => false
             ],
             'health' => [
                 'cardsEnabled' => true,
@@ -318,7 +319,8 @@
             'greyscale' => normalizeBool($dashboardIncoming['greyscale'] ?? false, false),
             'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
                 ? true
-                : normalizeBool($dashboardIncoming['folderLabel'], true)
+                : normalizeBool($dashboardIncoming['folderLabel'], true),
+            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false)
         ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));

@@ -248,6 +248,26 @@ td.ct-name.folder-name > .folder-name-sub > .folder-outer {
     vertical-align: top;
 }
 
+body.fvplus-privacy-docker-runtime #docker_list td.ct-name img.img,
+body.fvplus-privacy-docker-runtime #docker_view td.ct-name img.img,
+body.fvplus-privacy-docker-runtime #docker_list .folder-preview .folder-img,
+body.fvplus-privacy-docker-runtime #docker_view .folder-preview .folder-img,
+body.fvplus-privacy-docker-runtime .preview-img > .folder-img,
+body.fvplus-privacy-docker-runtime .fv-docker-member-menu-icon {
+    filter: blur(0.4rem);
+}
+
+body.fvplus-privacy-docker-runtime #docker_list td.ct-name .appname,
+body.fvplus-privacy-docker-runtime #docker_view td.ct-name .appname,
+body.fvplus-privacy-docker-runtime #docker_list td.ct-name .folder-appname,
+body.fvplus-privacy-docker-runtime #docker_view td.ct-name .folder-appname,
+body.fvplus-privacy-docker-runtime #docker_list .folder-preview .appname,
+body.fvplus-privacy-docker-runtime #docker_view .folder-preview .appname,
+body.fvplus-privacy-docker-runtime .preview-actual-name,
+body.fvplus-privacy-docker-runtime .fv-docker-member-menu-name {
+    filter: blur(0.28rem);
+}
+
 td.ct-name.folder-name {
     position: relative;
     overflow: hidden;

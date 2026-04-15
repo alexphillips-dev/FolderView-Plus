@@ -342,8 +342,7 @@ test('normalizePrefs provides dashboard defaults', () => {
         layout: 'classic',
         expandToggle: true,
         greyscale: false,
-        folderLabel: true,
-        privacyMode: false
+        folderLabel: true
     });
 });
 
@@ -360,8 +359,7 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         layout: 'accordion',
         expandToggle: false,
         greyscale: true,
-        folderLabel: false,
-        privacyMode: false
+        folderLabel: false
     });
     const matrix = utils.normalizePrefs({
         dashboard: {
@@ -612,13 +610,6 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         attentionAccent: true,
         warnStoppedPercent: 60
     });
-    assert.deepEqual(prefs.dashboard, {
-        layout: 'classic',
-        expandToggle: true,
-        greyscale: false,
-        folderLabel: true,
-        privacyMode: false
-    });
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
     assert.deepEqual(prefs.expandedFolderState, {});
@@ -630,6 +621,11 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
         pageViewMode: 'HOST'
     });
     assert.equal(hostListMode.pageViewMode, 'host');
+
+    const commandViewMode = utils.normalizePrefs({
+        pageViewMode: 'COMMAND'
+    });
+    assert.equal(commandViewMode.pageViewMode, 'command');
 
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'

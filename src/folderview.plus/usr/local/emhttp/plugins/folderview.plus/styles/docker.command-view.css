@@ -1,0 +1,279 @@
+body[data-fvplus-docker-command-view-mounted="true"] #fvplus-docker-command-view-root {
+    margin: 0 0 1rem;
+}
+
+body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
+    display: none !important;
+}
+
+.fv-docker-command-view {
+    color: var(--fvplus-theme-foreground, var(--text, currentColor));
+}
+
+.fv-docker-command-shell {
+    border: 1px solid rgba(255, 154, 60, 0.2);
+    border-radius: 16px;
+    padding: 1rem;
+    background:
+        radial-gradient(circle at top right, rgba(255, 154, 60, 0.12), transparent 26%),
+        linear-gradient(160deg, rgba(20, 21, 26, 0.9), rgba(15, 16, 20, 0.96));
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+}
+
+.fv-docker-command-shell.is-loading {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fv-docker-command-loading,
+.fv-docker-command-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    text-align: center;
+}
+
+.fv-docker-command-loading {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.fv-docker-command-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.fv-docker-command-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 154, 60, 0.36);
+    color: #ff9a3c;
+    background: rgba(255, 154, 60, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+}
+
+.fv-docker-command-header-copy h2,
+.fv-docker-command-empty h3 {
+    margin: 0.25rem 0 0;
+    color: #ff9a3c;
+}
+
+.fv-docker-command-header-copy p,
+.fv-docker-command-empty p {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.fv-docker-command-toolbar,
+.fv-docker-command-actions,
+.fv-docker-command-card-flags,
+.fv-docker-command-stats,
+.fv-docker-command-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fv-docker-command-toolbar {
+    justify-content: flex-end;
+}
+
+.fv-docker-command-button {
+    appearance: none;
+    border: 1px solid rgba(255, 154, 60, 0.56);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 154, 60, 0.18), rgba(255, 154, 60, 0.08));
+    color: #ffb56d;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.fv-docker-command-button:hover,
+.fv-docker-command-button:focus-visible {
+    transform: translateY(-1px);
+    border-color: rgba(255, 183, 120, 0.92);
+    background: linear-gradient(180deg, rgba(255, 154, 60, 0.28), rgba(255, 154, 60, 0.12));
+}
+
+.fv-docker-command-button.is-primary {
+    color: #17100a;
+    background: linear-gradient(180deg, rgba(255, 176, 96, 0.98), rgba(255, 149, 50, 0.92));
+}
+
+.fv-docker-command-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.fv-docker-command-overview-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fv-docker-command-overview-value {
+    display: block;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.fv-docker-command-overview-label {
+    display: block;
+    margin-top: 0.15rem;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-docker-command-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.fv-docker-command-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 3px solid rgba(255, 154, 60, 0.54);
+    border-radius: 14px;
+    padding: 0.9rem;
+    background: rgba(255, 255, 255, 0.02);
+    margin-left: calc(var(--fv-docker-command-depth, 0) * 18px);
+}
+
+.fv-docker-command-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: flex-start;
+}
+
+.fv-docker-command-card-title {
+    color: #f3f5f7;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.fv-docker-command-card-subtitle {
+    margin-top: 0.2rem;
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 0.85rem;
+}
+
+.fv-docker-command-flag,
+.fv-docker-command-stat,
+.fv-docker-command-member {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.28rem 0.58rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.8rem;
+}
+
+.fv-docker-command-flag.pinned,
+.fv-docker-command-stat.update,
+.fv-docker-command-member-update {
+    color: #ff9a3c;
+}
+
+.fv-docker-command-flag.locked {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.fv-docker-command-flag.branch {
+    color: #88c8ff;
+}
+
+.fv-docker-command-stat.running,
+.fv-docker-command-member.running {
+    color: #7ad05a;
+}
+
+.fv-docker-command-stat.paused,
+.fv-docker-command-member.paused {
+    color: #d7a418;
+}
+
+.fv-docker-command-stat.stopped,
+.fv-docker-command-member.stopped {
+    color: #ff6363;
+}
+
+.fv-docker-command-stats,
+.fv-docker-command-members,
+.fv-docker-command-actions {
+    margin-top: 0.75rem;
+}
+
+.fv-docker-command-member-name {
+    max-width: 18rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-docker-command-member-update {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.fv-docker-command-member.more {
+    color: rgba(255, 255, 255, 0.66);
+}
+
+.fv-docker-command-empty {
+    border: 1px dashed rgba(255, 154, 60, 0.3);
+    border-radius: 12px;
+    padding: 1.3rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 1100px) {
+    .fv-docker-command-overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .fv-docker-command-header {
+        flex-direction: column;
+    }
+
+    .fv-docker-command-toolbar {
+        justify-content: flex-start;
+    }
+
+    .fv-docker-command-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-docker-command-card {
+        margin-left: calc(var(--fv-docker-command-depth, 0) * 10px);
+    }
+
+    .fv-docker-command-card-head {
+        flex-direction: column;
+    }
+}

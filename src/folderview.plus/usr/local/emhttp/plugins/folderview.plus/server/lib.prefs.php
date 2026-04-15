@@ -34,8 +34,7 @@
                 'layout' => 'classic',
                 'expandToggle' => true,
                 'greyscale' => false,
-                'folderLabel' => true,
-                'privacyMode' => false
+                'folderLabel' => true
             ],
             'health' => [
                 'cardsEnabled' => true,
@@ -244,7 +243,7 @@
 
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['folderview', 'host'], true)) {
+        if (in_array($normalized, ['folderview', 'host', 'command'], true)) {
             return $normalized;
         }
         return 'folderview';
@@ -329,8 +328,7 @@
             'greyscale' => normalizeBool($dashboardIncoming['greyscale'] ?? false, false),
             'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
                 ? true
-                : normalizeBool($dashboardIncoming['folderLabel'], true),
-            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false)
+                : normalizeBool($dashboardIncoming['folderLabel'], true)
         ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));

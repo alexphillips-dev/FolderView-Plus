@@ -21,7 +21,7 @@
     const RUNTIME_PREFS_SCHEMA = 2;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
-    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host'];
+    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -52,8 +52,7 @@
         layout: 'classic',
         expandToggle: true,
         greyscale: false,
-        folderLabel: true,
-        privacyMode: false
+        folderLabel: true
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
@@ -709,8 +708,7 @@
             greyscale: incomingDashboard.greyscale === true,
             folderLabel: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'folderLabel')
                 ? DEFAULT_DASHBOARD_PREFS.folderLabel
-                : incomingDashboard.folderLabel !== false,
-            privacyMode: incomingDashboard.privacyMode === true
+                : incomingDashboard.folderLabel !== false
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {

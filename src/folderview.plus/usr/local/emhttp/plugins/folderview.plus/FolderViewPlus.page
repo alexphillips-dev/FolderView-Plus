@@ -215,6 +215,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <select id="docker-page-view-mode" onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
                             <option value="folderview">FolderView</option>
                             <option value="host">No FolderView (host list only)</option>
+                            <option value="command">Command view (experimental)</option>
                         </select>
                     </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
@@ -269,7 +270,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="docker-dashboard-privacy-mode-row" class="setting-toggle"><input id="docker-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMode', this.checked)"> Privacy mode (blur names and icons)</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -521,7 +521,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="vm-dashboard-privacy-mode-row" class="setting-toggle"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"> Privacy mode (blur names and icons)</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -1275,23 +1274,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-recovery-empty-state">
                         <strong>No backups loaded yet.</strong>
                         <span>Create a manual snapshot or run the scheduler once to start building recovery history.</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="fv-recovery-stage fv-recovery-environment-stage">
-                <div class="fv-recovery-stage-head">
-                    <strong>Environment export and import</strong>
-                    <span class="rules-help">Move the full plugin environment between installs in one JSON file. This includes Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
-                </div>
-                <div class="backup-actions fv-recovery-environment-actions">
-                    <button type="button" onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
-                    <button type="button" onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
-                </div>
-                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list">
-                    <div class="fv-recovery-empty-state">
-                        <strong>Portable environment snapshots are ready.</strong>
-                        <span>Export everything to one JSON file or import a snapshot from another FolderView Plus install.</span>
                     </div>
                 </div>
             </section>

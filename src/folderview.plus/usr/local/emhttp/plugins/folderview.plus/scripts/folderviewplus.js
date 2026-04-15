@@ -2312,7 +2312,6 @@ const refreshSettingsUx = () => {
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
     buildSettingsSections();
-    applySettingsPrivacyMode();
     normalizeExpandedAdvancedSections();
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
@@ -3187,7 +3186,6 @@ const getSettingsWorkspacesApi = (() => {
             $,
             utils,
             escapeHtml,
-            swal,
             getFolderMap: (type) => getFolderMap(type),
             getFolderNameForId: (type, id) => folderNameForId(type, id),
             getSortedBackupsForType: (type) => getSortedBackupsForType(type),
@@ -3227,22 +3225,9 @@ const getSettingsWorkspacesApi = (() => {
             },
             templatesByType,
             selectedOperationsTemplateIdByType,
-            apiGetJson,
-            apiPostJson,
-            selectJsonFile,
             downloadFile,
             toPrettyJson,
-            showError,
-            showToastMessage,
-            claimAdvancedOperationLock,
-            releaseAdvancedOperationLock,
-            refreshType,
-            refreshBackups,
-            refreshThemeWorkspace: () => getThemeWorkspaceApi().readWorkspace(),
-            openImportApplyProgressDialog,
-            updateImportApplyProgressDialog,
-            closeImportApplyProgressDialog,
-            ensureRuntimeConflictActionAllowed
+            showError
         });
         return cachedApi;
     };
@@ -4057,8 +4042,6 @@ const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi(
 const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
 const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
 const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
-const exportEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().exportEnvironmentSnapshot(...args);
-const importEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().importEnvironmentSnapshot(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
@@ -6442,17 +6425,8 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         layout: normalizeLayout(dashboard.layout),
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
-        folderLabel: dashboard.folderLabel !== false,
-        privacyMode: dashboard.privacyMode === true
+        folderLabel: dashboard.folderLabel !== false
     };
-};
-
-const applySettingsPrivacyMode = () => {
-    const $body = $('body');
-    ['docker', 'vm'].forEach((type) => {
-        const dashboard = normalizeDashboardPrefsForType(type);
-        $body.toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true);
-    });
 };
 
 const syncDashboardDependentFields = (type) => {
@@ -6476,9 +6450,7 @@ const renderDashboardControls = (type) => {
     $(`#${type}-dashboard-expand-toggle`).prop('checked', dashboard.expandToggle === true);
     $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
-    $(`#${type}-dashboard-privacy-mode`).prop('checked', dashboard.privacyMode === true);
     syncDashboardDependentFields(type);
-    applySettingsPrivacyMode();
 };
 
 const renderRuntimeControls = (type) => {
@@ -6491,7 +6463,7 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-page-view-mode`).val(
         typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(prefs.pageViewMode)
-            : (String(prefs.pageViewMode || '').trim().toLowerCase() === 'host' ? 'host' : 'folderview')
+            : (['host', 'command'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
     );
     $(`#${type}-theme-compat-mode`).val(resolveThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
@@ -8013,8 +7985,6 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.greyscale = value === true;
     } else if (key === 'folderLabel') {
         nextDashboard.folderLabel = value === true;
-    } else if (key === 'privacyMode') {
-        nextDashboard.privacyMode = value === true;
     } else {
         return;
     }
@@ -9089,8 +9059,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     refreshBackups,
     runScheduledBackupNow,
     runActiveRecoveryScheduler,
-    exportEnvironmentSnapshot,
-    importEnvironmentSnapshot,
     restoreLatestBackup,
     restoreLatestActiveRecoveryBackup,
     selectActiveRecoveryBackup,

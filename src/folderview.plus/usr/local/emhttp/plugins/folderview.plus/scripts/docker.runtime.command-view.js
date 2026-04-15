@@ -492,16 +492,22 @@
                 return false;
             }
             const cards = buildFolderCards(snapshot);
+            const runtimeEntries = Object.values(snapshot.runtimeInfoByName || {});
             const activeFolders = cards.filter((card) => card.running > 0).length;
             const cardsWithUpdates = cards.filter((card) => card.updates > 0).length;
             const pinnedFolders = cards.filter((card) => card.pinned).length;
+            const lockedFolders = cards.filter((card) => card.locked).length;
+            const containerCount = runtimeEntries.length;
+            const runningContainers = runtimeEntries.filter((entry) => resolveContainerState(entry) === 'running').length;
+            const pausedContainers = runtimeEntries.filter((entry) => resolveContainerState(entry) === 'paused').length;
+            const stoppedContainers = runtimeEntries.filter((entry) => resolveContainerState(entry) === 'stopped').length;
+            const updatedContainers = runtimeEntries.filter((entry) => containerHasUpdate(entry)).length;
             root.innerHTML = `
                 <div class="fv-docker-command-shell">
                     <div class="fv-docker-command-header">
                         <div class="fv-docker-command-header-copy">
-                            <div class="fv-docker-command-kicker">Experimental</div>
                             <h2>Docker Command View</h2>
-                            <p>Isolated test surface for folder actions. The existing FolderView and host-list modes stay untouched behind the page-view selector.</p>
+                            <p>Folder-first Docker controls with the standard host-list and classic FolderView modes still available from the page-view selector.</p>
                         </div>
                         <div class="fv-docker-command-toolbar">
                             <button type="button" class="fv-docker-command-button is-primary" data-fv-command-action="refresh">Refresh</button>
@@ -511,8 +517,14 @@
                     <div class="fv-docker-command-overview">
                         <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${cards.length}</span><span class="fv-docker-command-overview-label">folders</span></div>
                         <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${activeFolders}</span><span class="fv-docker-command-overview-label">active folders</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${containerCount}</span><span class="fv-docker-command-overview-label">containers</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${runningContainers}</span><span class="fv-docker-command-overview-label">running</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${pausedContainers}</span><span class="fv-docker-command-overview-label">paused</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${stoppedContainers}</span><span class="fv-docker-command-overview-label">stopped</span></div>
                         <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${cardsWithUpdates}</span><span class="fv-docker-command-overview-label">with updates</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${updatedContainers}</span><span class="fv-docker-command-overview-label">update ready</span></div>
                         <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${pinnedFolders}</span><span class="fv-docker-command-overview-label">pinned</span></div>
+                        <div class="fv-docker-command-overview-card"><span class="fv-docker-command-overview-value">${lockedFolders}</span><span class="fv-docker-command-overview-label">locked</span></div>
                     </div>
                     <div class="fv-docker-command-stack">
                         ${cards.length ? cards.map((card) => {

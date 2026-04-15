@@ -55,25 +55,12 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.fv-docker-command-kicker {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.18rem 0.5rem;
-    border-radius: 999px;
-    border: 1px solid var(--fv-docker-command-border);
-    color: var(--fv-docker-command-accent);
-    background: var(--fv-docker-command-accent-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.72rem;
+    margin-bottom: 0.85rem;
 }
 
 .fv-docker-command-header-copy h2,
 .fv-docker-command-empty h3 {
-    margin: 0.25rem 0 0;
+    margin: 0;
     color: var(--fv-docker-command-text-primary);
 }
 
@@ -132,9 +119,9 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 
 .fv-docker-command-overview {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
 }
 
 .fv-docker-command-overview-card {
@@ -264,7 +251,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     width: 220px;
     max-width: 220px;
     min-width: 220px;
-    min-height: 48px;
+    min-height: 44px;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--fv-docker-command-border-faint);
@@ -292,11 +279,11 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 
 .fv-docker-command-member-surface {
     width: 100%;
-    min-height: 48px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 0.58rem;
-    padding: 0.42rem 0.55rem;
+    padding: 0.4rem 0.55rem 0.28rem;
     background: transparent;
     color: inherit;
     text-align: left;
@@ -391,8 +378,9 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     align-items: center;
     gap: 5px;
     margin-left: auto;
-    padding: 0 0.55rem 0.45rem;
+    padding: 0 0.55rem 0.2rem;
     align-self: flex-end;
+    min-height: 16px;
 }
 
 .fv-docker-command-member-actions .folder-element-custom-btn {
@@ -425,7 +413,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 
 @media (max-width: 1100px) {
     .fv-docker-command-overview {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     }
 }
 

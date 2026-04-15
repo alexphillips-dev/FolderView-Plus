@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.28">
-<!ENTITY md5 "32bf0fefa61ea490f3967b2c5863df47">
+<!ENTITY version "2026.04.15.29">
+<!ENTITY md5 "b46911ca828b275dd9a6475cf2f3b70d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.29
+- UX: Removed the `experimental` label from the Docker command-view selector and the command-view header.
+- UX: Expanded the command-view overview row with more runtime summary cards, including container totals and state counts.
+- UX: Tightened member-tile bottom spacing so the quick-action strip sits closer to the content and the cards read more compactly.
+
 
 ###2026.04.15.28
 - Fix: Docker command-view now forwards the original pointer coordinates through the native Docker row trigger so the Unraid container menu opens at the click point instead of the screen corner.

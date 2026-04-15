@@ -186,7 +186,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     align-items: center;
     gap: 0.52rem;
     color: var(--fv-docker-command-text-primary);
-    font-size: 1.18rem;
+    font-size: 1.28rem;
     font-weight: 700;
     line-height: 1.2;
 }
@@ -201,7 +201,8 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 .fv-docker-command-card-subtitle {
     margin-top: 0.2rem;
     color: var(--fv-docker-command-text-dim);
-    font-size: 0.85rem;
+    font-size: 0.96rem;
+    line-height: 1.35;
 }
 
 .fv-docker-command-flag,
@@ -210,10 +211,11 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     align-items: center;
     gap: 0.35rem;
     border-radius: 999px;
-    padding: 0.28rem 0.58rem;
+    padding: 0.34rem 0.7rem;
     background: var(--fv-docker-command-surface-muted);
     border: 1px solid var(--fv-docker-command-border-faint);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    line-height: 1;
 }
 
 .fv-docker-command-flag.pinned,
@@ -273,7 +275,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 
 .fv-docker-command-member-tile.running {
     border-color: var(--fvplus-status-started, #7ad05a);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fvplus-status-started, #7ad05a) 55%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fvplus-status-started, #7ad05a) 78%, transparent);
 }
 
 .fv-docker-command-member-tile.paused {
@@ -305,6 +307,11 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 .fv-docker-command-member-surface:hover,
 .fv-docker-command-member-surface:focus-visible {
     outline: 0;
+    box-shadow: none;
+}
+
+.fv-docker-command-member-surface:hover .fv-docker-command-member-icon-wrap,
+.fv-docker-command-member-surface:focus-visible .fv-docker-command-member-icon-wrap {
     box-shadow: inset 0 0 0 1px var(--fv-docker-command-focus-ring);
 }
 
@@ -346,7 +353,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     background: var(--fv-docker-command-surface-strong);
     border: 1px solid var(--fv-docker-command-border-faint);
     color: var(--fv-docker-command-text-primary);
-    font-size: 0.82rem;
+    font-size: 0.86rem;
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -365,11 +372,12 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.14rem 0.44rem;
+    padding: 0.2rem 0.5rem;
     border-radius: 999px;
     background: var(--fv-docker-command-surface-muted);
     border: 1px solid var(--fv-docker-command-border-faint);
-    font-size: 0.73rem;
+    font-size: 0.8rem;
+    line-height: 1;
 }
 
 .fv-docker-command-member-update {

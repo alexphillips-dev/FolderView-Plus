@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.26">
-<!ENTITY md5 "2ea3cf4b9c1352a7c8717d6175569737">
+<!ENTITY version "2026.04.15.27">
+<!ENTITY md5 "e6f536fba149d9342c7fedb816090916">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.27
+- Fix: Docker command-view container tiles now proxy the native Docker row trigger the same way the regular FolderView preview does, instead of mixing inline-handler hydration with the tile surface.
+- UX: Command-view hover treatment now stays on the container icon instead of drawing a focus outline around the entire tile row.
+- UX: Command-view folder titles, subtitle metadata, and running/paused/stopped/update badges now render larger for readability.
+
 
 ###2026.04.15.26
 - UX: Docker command-view folder cards now use the saved folder icon in the title, scale it to the command surface, and raise the folder title size for clearer scanning.

@@ -335,38 +335,24 @@
             surface.setAttribute('role', 'button');
             surface.setAttribute('tabindex', '0');
             const title = trigger instanceof HTMLElement ? String(trigger.getAttribute('title') || '').trim() : '';
-            const inlineClick = trigger instanceof HTMLElement ? String(trigger.getAttribute('onclick') || '').trim() : '';
-            const inlineContextMenu = trigger instanceof HTMLElement ? String(trigger.getAttribute('oncontextmenu') || '').trim() : '';
             if (title) {
                 surface.setAttribute('title', title);
             }
-            if (inlineClick) {
-                surface.setAttribute('onclick', inlineClick);
-            } else {
-                surface.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'click');
-                });
-            }
-            if (inlineContextMenu) {
-                surface.setAttribute('oncontextmenu', inlineContextMenu);
-            } else {
-                surface.addEventListener('contextmenu', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'contextmenu');
-                });
-            }
+            surface.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                proxyNativeMemberTrigger(safeName, 'click');
+            });
+            surface.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                proxyNativeMemberTrigger(safeName, 'contextmenu');
+            });
             surface.addEventListener('keydown', (event) => {
                 if (event.key !== 'Enter' && event.key !== ' ') {
                     return;
                 }
                 event.preventDefault();
-                if (inlineClick) {
-                    surface.click();
-                    return;
-                }
                 event.stopPropagation();
                 proxyNativeMemberTrigger(safeName, 'click');
             });

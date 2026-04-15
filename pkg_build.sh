@@ -602,7 +602,9 @@ cat > "$build_metadata_path" <<EOF
 EOF
 
 # Set permissions for Unraid (only in temp dir, not the repo)
-chmod -R 0755 "$tmpdir"
+if ! chmod -R 0755 "$tmpdir"; then
+    echo "WARN: chmod -R 0755 failed for $tmpdir; continuing with existing filesystem permissions." >&2
+fi
 
 cd "$tmpdir"
 tar --sort=name \

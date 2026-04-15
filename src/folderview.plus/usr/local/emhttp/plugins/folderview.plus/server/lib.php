@@ -346,8 +346,13 @@
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
     const FVPLUS_RUNTIME_PREFS_SCHEMA = 2;
+    const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
+    const FVPLUS_THEME_WORKSPACE_MAX_THEMES = 24;
+    const FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME = 16;
+    const FVPLUS_THEME_WORKSPACE_MAX_FILE_BYTES = 262144;
+    const FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES = 65536;
     const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
     const FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES = 1048576;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
@@ -1726,6 +1731,659 @@
             // Keep recovery best-effort.
         }
         return $decoded;
+    }
+
+    function getThemeWorkspacePath(): string {
+        global $configDir;
+        return "$configDir/theme-workspace.json";
+    }
+
+    function fvplusThemeWorkspaceGeneratedCssPath(string $type): string {
+        global $configDir;
+        $safeType = trim((string)$type);
+        if (!in_array($safeType, ['docker', 'vm', 'dashboard'], true)) {
+            throw new RuntimeException('Unsupported theme workspace asset type.');
+        }
+        return "$configDir/styles/fvplus-managed.theme.$safeType.css";
+    }
+
+    function defaultThemeWorkspace(): array {
+        return [
+            'schemaVersion' => FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION,
+            'activeThemeId' => '',
+            'themes' => [],
+            'variables' => [],
+            'customCss' => '',
+            'lastCheckedAt' => ''
+        ];
+    }
+
+    function fvplusThemeWorkspaceNormalizeSource(array $source): array {
+        return [
+            'input' => truncateUtf8String(trim((string)($source['input'] ?? '')), 512),
+            'kind' => truncateUtf8String(trim((string)($source['kind'] ?? '')), 32),
+            'owner' => truncateUtf8String(trim((string)($source['owner'] ?? '')), 128),
+            'repo' => truncateUtf8String(trim((string)($source['repo'] ?? '')), 128),
+            'branch' => truncateUtf8String(trim((string)($source['branch'] ?? '')), 128),
+            'path' => truncateUtf8String(trim((string)($source['path'] ?? '')), 512),
+            'defaultBranch' => truncateUtf8String(trim((string)($source['defaultBranch'] ?? '')), 128),
+            'commitSha' => truncateUtf8String(trim((string)($source['commitSha'] ?? '')), 128),
+            'canCheckUpdates' => !empty($source['canCheckUpdates']),
+            'rawUrl' => truncateUtf8String(trim((string)($source['rawUrl'] ?? '')), 1024)
+        ];
+    }
+
+    function fvplusThemeWorkspaceNormalizeVariableMap($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $normalized = [];
+        foreach ($incoming as $key => $rawValue) {
+            $token = trim((string)$key);
+            if ($token === '' || !preg_match('/^--[A-Za-z0-9._-]+$/', $token)) {
+                continue;
+            }
+            $safeValue = truncateUtf8String(trim((string)$rawValue), 128);
+            if ($safeValue === '') {
+                continue;
+            }
+            $normalized[$token] = $safeValue;
+            if (count($normalized) >= 96) {
+                break;
+            }
+        }
+        ksort($normalized, SORT_STRING);
+        return $normalized;
+    }
+
+    function fvplusThemeWorkspaceDetectTabsFromPath(string $path, int $fallbackCssCount = 0): array {
+        $normalized = strtolower(trim($path));
+        if ($normalized === '') {
+            return [];
+        }
+        $tabs = [];
+        foreach (['docker', 'vm', 'dashboard'] as $tab) {
+            if (preg_match('/(^|[._\/-])' . preg_quote($tab, '/') . '([._\/-]|$)/', $normalized)) {
+                $tabs[] = $tab;
+            }
+        }
+        if (count($tabs) <= 0 && $fallbackCssCount === 1) {
+            return ['docker', 'vm', 'dashboard'];
+        }
+        return array_values(array_unique($tabs));
+    }
+
+    function fvplusThemeWorkspaceNormalizeThemeFiles($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $normalized = [];
+        foreach ($incoming as $file) {
+            if (!is_array($file)) {
+                continue;
+            }
+            $content = (string)($file['content'] ?? '');
+            if ($content === '' || strlen($content) > FVPLUS_THEME_WORKSPACE_MAX_FILE_BYTES) {
+                continue;
+            }
+            $path = truncateUtf8String(trim((string)($file['path'] ?? $file['name'] ?? '')), 512);
+            $tabsIncoming = is_array($file['tabs'] ?? null) ? $file['tabs'] : fvplusThemeWorkspaceDetectTabsFromPath($path, 1);
+            $tabs = [];
+            foreach ($tabsIncoming as $tab) {
+                $safeTab = trim((string)$tab);
+                if (in_array($safeTab, ['docker', 'vm', 'dashboard'], true) && !in_array($safeTab, $tabs, true)) {
+                    $tabs[] = $safeTab;
+                }
+            }
+            if (count($tabs) <= 0) {
+                continue;
+            }
+            $normalized[] = [
+                'name' => truncateUtf8String(trim((string)($file['name'] ?? basename($path))), 160),
+                'path' => $path,
+                'sourceUrl' => truncateUtf8String(trim((string)($file['sourceUrl'] ?? '')), 1024),
+                'tabs' => array_values($tabs),
+                'sha256' => hash('sha256', $content),
+                'content' => $content
+            ];
+            if (count($normalized) >= FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME) {
+                break;
+            }
+        }
+        return $normalized;
+    }
+
+    function fvplusThemeWorkspaceNormalizeThemeRecord($value): array {
+        $source = is_array($value) ? $value : [];
+        $files = fvplusThemeWorkspaceNormalizeThemeFiles($source['files'] ?? []);
+        $identity = trim((string)($source['id'] ?? ''));
+        if ($identity === '') {
+            $identity = substr(hash('sha256', json_encode([
+                'source' => fvplusThemeWorkspaceNormalizeSource(is_array($source['source'] ?? null) ? $source['source'] : []),
+                'name' => (string)($source['name'] ?? ''),
+                'files' => array_map(static function(array $file): string {
+                    return (string)($file['sha256'] ?? '');
+                }, $files)
+            ], JSON_UNESCAPED_SLASHES)), 0, 16);
+        }
+        $warnings = [];
+        foreach ((array)($source['warnings'] ?? []) as $warning) {
+            $safeWarning = truncateUtf8String(trim((string)$warning), 280);
+            if ($safeWarning !== '' && !in_array($safeWarning, $warnings, true)) {
+                $warnings[] = $safeWarning;
+            }
+        }
+        return [
+            'id' => truncateUtf8String($identity, 64),
+            'name' => truncateUtf8String(trim((string)($source['name'] ?? '')), 160),
+            'importedAt' => normalizeIsoTimestamp((string)($source['importedAt'] ?? '')) ?: gmdate('c'),
+            'lastCheckedAt' => normalizeIsoTimestamp((string)($source['lastCheckedAt'] ?? '')),
+            'updateAvailable' => !empty($source['updateAvailable']),
+            'warnings' => $warnings,
+            'source' => fvplusThemeWorkspaceNormalizeSource(is_array($source['source'] ?? null) ? $source['source'] : []),
+            'files' => $files
+        ];
+    }
+
+    function normalizeThemeWorkspacePayload($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $themesIncoming = is_array($incoming['themes'] ?? null) ? $incoming['themes'] : [];
+        $themes = [];
+        $seenIds = [];
+        foreach ($themesIncoming as $theme) {
+            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
+            $themeId = trim((string)($normalizedTheme['id'] ?? ''));
+            if ($themeId === '' || isset($seenIds[$themeId])) {
+                continue;
+            }
+            $seenIds[$themeId] = true;
+            $themes[] = $normalizedTheme;
+            if (count($themes) >= FVPLUS_THEME_WORKSPACE_MAX_THEMES) {
+                break;
+            }
+        }
+        $activeThemeId = truncateUtf8String(trim((string)($incoming['activeThemeId'] ?? '')), 64);
+        if ($activeThemeId !== '' && !isset($seenIds[$activeThemeId])) {
+            $activeThemeId = '';
+        }
+        return [
+            'schemaVersion' => FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION,
+            'activeThemeId' => $activeThemeId,
+            'themes' => $themes,
+            'variables' => fvplusThemeWorkspaceNormalizeVariableMap($incoming['variables'] ?? []),
+            'customCss' => truncateUtf8String((string)($incoming['customCss'] ?? ''), FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES),
+            'lastCheckedAt' => normalizeIsoTimestamp((string)($incoming['lastCheckedAt'] ?? ''))
+        ];
+    }
+
+    function fvplusThemeWorkspaceBuildVariablesCss(array $variables): string {
+        if (count($variables) <= 0) {
+            return '';
+        }
+        $lines = [':root {'];
+        foreach ($variables as $token => $value) {
+            $lines[] = "  $token: $value;";
+        }
+        $lines[] = '}';
+        return implode("\n", $lines);
+    }
+
+    function writeThemeWorkspaceManagedAssets(array $workspace): void {
+        $normalized = normalizeThemeWorkspacePayload($workspace);
+        $activeTheme = null;
+        foreach ((array)($normalized['themes'] ?? []) as $theme) {
+            if (trim((string)($theme['id'] ?? '')) === trim((string)($normalized['activeThemeId'] ?? ''))) {
+                $activeTheme = $theme;
+                break;
+            }
+        }
+        $variablesCss = fvplusThemeWorkspaceBuildVariablesCss((array)($normalized['variables'] ?? []));
+        $customCss = trim((string)($normalized['customCss'] ?? ''));
+        foreach (['docker', 'vm', 'dashboard'] as $type) {
+            $chunks = [
+                '/* FolderView Plus generated Theme Workspace asset. Do not edit manually. */'
+            ];
+            if ($variablesCss !== '') {
+                $chunks[] = $variablesCss;
+            }
+            if (is_array($activeTheme)) {
+                foreach ((array)($activeTheme['files'] ?? []) as $file) {
+                    $tabs = is_array($file['tabs'] ?? null) ? $file['tabs'] : [];
+                    if (!in_array($type, $tabs, true)) {
+                        continue;
+                    }
+                    $fileName = trim((string)($file['name'] ?? $file['path'] ?? 'theme.css'));
+                    $chunks[] = "/* Imported theme: $fileName */\n" . (string)($file['content'] ?? '');
+                }
+            }
+            if ($customCss !== '') {
+                $chunks[] = "/* Theme Workspace custom CSS */\n" . $customCss;
+            }
+            $output = trim(implode("\n\n", array_filter($chunks, static function($chunk): bool {
+                return trim((string)$chunk) !== '';
+            })));
+            $path = fvplusThemeWorkspaceGeneratedCssPath($type);
+            if ($output === '' || $output === '/* FolderView Plus generated Theme Workspace asset. Do not edit manually. */') {
+                if (file_exists($path)) {
+                    @unlink($path);
+                }
+                continue;
+            }
+            writeJsonObjectAtomic(dirname($path) . '/.theme-workspace.touch', ['updatedAt' => gmdate('c')]);
+            @unlink(dirname($path) . '/.theme-workspace.touch');
+            $parent = dirname($path);
+            if (!is_dir($parent)) {
+                @mkdir($parent, 0770, true);
+            }
+            @file_put_contents($path, $output . "\n", LOCK_EX);
+            @chmod($path, 0644);
+        }
+    }
+
+    function writeThemeWorkspace(array $workspace): array {
+        $normalized = normalizeThemeWorkspacePayload($workspace);
+        writeJsonObjectWithLastGood(getThemeWorkspacePath(), $normalized);
+        writeThemeWorkspaceManagedAssets($normalized);
+        return $normalized;
+    }
+
+    function ensureThemeWorkspaceManagedAssets(): array {
+        $workspace = normalizeThemeWorkspacePayload(readJsonObjectFile(getThemeWorkspacePath()) ?? defaultThemeWorkspace());
+        writeThemeWorkspaceManagedAssets($workspace);
+        return $workspace;
+    }
+
+    function readThemeWorkspace(): array {
+        $path = getThemeWorkspacePath();
+        if (!file_exists($path)) {
+            return writeThemeWorkspace(defaultThemeWorkspace());
+        }
+        $decoded = readJsonObjectFile($path);
+        $recoveredFromLastGood = false;
+        if (!is_array($decoded)) {
+            $decoded = recoverJsonObjectFromLastGood($path);
+            $recoveredFromLastGood = is_array($decoded);
+        }
+        if (!is_array($decoded)) {
+            $decoded = defaultThemeWorkspace();
+        }
+        $normalized = normalizeThemeWorkspacePayload($decoded);
+        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+            return writeThemeWorkspace($normalized);
+        }
+        writeThemeWorkspaceManagedAssets($normalized);
+        return $normalized;
+    }
+
+    function fvplusThemeWorkspaceScanCss(string $css): array {
+        $warnings = [];
+        $severe = [];
+        $rules = [
+            ['pattern' => '/expression\s*\(/i', 'message' => 'CSS contains expression().'],
+            ['pattern' => '/javascript\s*:/i', 'message' => 'CSS contains javascript: URLs.'],
+            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.']
+        ];
+        foreach ($rules as $rule) {
+            if (preg_match($rule['pattern'], $css)) {
+                $severe[] = $rule['message'];
+            }
+        }
+        if (preg_match('/@import\s+(url\()?["\']?(https?:)?\/\//i', $css)) {
+            $warnings[] = 'CSS contains remote @import rules.';
+        }
+        if (preg_match('/url\s*\(\s*["\']?data:text\/html/i', $css)) {
+            $warnings[] = 'CSS contains data:text/html URLs.';
+        }
+        return [
+            'warnings' => array_values(array_unique($warnings)),
+            'severe' => array_values(array_unique($severe))
+        ];
+    }
+
+    function fvplusThemeWorkspaceFetchText(string $url, int $timeoutSeconds = 10): array {
+        $requestUrl = trim($url);
+        if ($requestUrl === '') {
+            return ['ok' => false, 'error' => 'Empty URL.', 'content' => '', 'status' => ''];
+        }
+        $statusLine = '';
+        $responseHeaders = [];
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => max(2, min(20, $timeoutSeconds)),
+                'ignore_errors' => true,
+                'header' => "Cache-Control: no-cache\r\nPragma: no-cache\r\nUser-Agent: FolderViewPlus/1.0\r\nAccept: application/json, text/plain, */*\r\n"
+            ]
+        ]);
+        $content = @file_get_contents($requestUrl, false, $context);
+        if (isset($http_response_header) && is_array($http_response_header)) {
+            $responseHeaders = $http_response_header;
+            $statusLine = (string)($http_response_header[0] ?? '');
+        }
+        if ($content === false) {
+            return ['ok' => false, 'error' => 'Unable to fetch remote content.', 'content' => '', 'status' => $statusLine];
+        }
+        return [
+            'ok' => preg_match('/\s2\d\d\s/', $statusLine) === 1 || $statusLine === '',
+            'error' => '',
+            'content' => (string)$content,
+            'status' => $statusLine,
+            'headers' => $responseHeaders
+        ];
+    }
+
+    function fvplusThemeWorkspaceFetchJson(string $url, int $timeoutSeconds = 10): array {
+        $response = fvplusThemeWorkspaceFetchText($url, $timeoutSeconds);
+        if (!$response['ok']) {
+            return $response + ['json' => null];
+        }
+        $decoded = json_decode((string)($response['content'] ?? ''), true);
+        if (!is_array($decoded)) {
+            return ['ok' => false, 'error' => 'Remote response was not valid JSON.', 'content' => (string)($response['content'] ?? ''), 'status' => (string)($response['status'] ?? ''), 'json' => null];
+        }
+        $response['json'] = $decoded;
+        return $response;
+    }
+
+    function fvplusParseGithubThemeSourceInput(string $input): array {
+        $raw = trim($input);
+        if ($raw === '') {
+            throw new RuntimeException('Theme source is required.');
+        }
+        if (preg_match('#^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.+?\.css)$#i', $raw, $match)) {
+            return [
+                'kind' => 'github_file',
+                'owner' => $match[1],
+                'repo' => $match[2],
+                'branch' => $match[3],
+                'path' => $match[4],
+                'rawUrl' => $raw
+            ];
+        }
+        if (preg_match('#^https?://github\.com/([^/]+)/([^/]+)/(blob|raw)/([^/]+)/(.+?\.css)$#i', $raw, $match)) {
+            return [
+                'kind' => 'github_file',
+                'owner' => $match[1],
+                'repo' => $match[2],
+                'branch' => $match[4],
+                'path' => $match[5],
+                'rawUrl' => 'https://raw.githubusercontent.com/' . $match[1] . '/' . $match[2] . '/' . $match[4] . '/' . $match[5]
+            ];
+        }
+        if (preg_match('#^https?://github\.com/([^/]+)/([^/]+)(?:/tree/([^/]+)(?:/(.+))?)?$#i', $raw, $match)) {
+            return [
+                'kind' => 'github_repo',
+                'owner' => $match[1],
+                'repo' => $match[2],
+                'branch' => trim((string)($match[3] ?? '')),
+                'path' => trim((string)($match[4] ?? '')),
+                'rawUrl' => ''
+            ];
+        }
+        if (preg_match('#^([^/\s]+)/([^/\s]+)(?:/tree/([^/\s]+)(?:/(.+))?)?$#', $raw, $match)) {
+            return [
+                'kind' => 'github_repo',
+                'owner' => $match[1],
+                'repo' => $match[2],
+                'branch' => trim((string)($match[3] ?? '')),
+                'path' => trim((string)($match[4] ?? '')),
+                'rawUrl' => ''
+            ];
+        }
+        throw new RuntimeException('Unsupported GitHub theme source format.');
+    }
+
+    function fvplusResolveGithubThemeRepoMeta(string $owner, string $repo): array {
+        $apiUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo);
+        $response = fvplusThemeWorkspaceFetchJson($apiUrl, 10);
+        if (!$response['ok']) {
+            throw new RuntimeException('Failed to read GitHub repository metadata.');
+        }
+        $json = is_array($response['json'] ?? null) ? $response['json'] : [];
+        return [
+            'defaultBranch' => trim((string)($json['default_branch'] ?? 'main'))
+        ];
+    }
+
+    function fvplusResolveGithubBranchHeadSha(string $owner, string $repo, string $branch): string {
+        $apiUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/branches/' . rawurlencode($branch);
+        $response = fvplusThemeWorkspaceFetchJson($apiUrl, 10);
+        if (!$response['ok']) {
+            return '';
+        }
+        return trim((string)($response['json']['commit']['sha'] ?? ''));
+    }
+
+    function fvplusImportGithubThemeFiles(string $sourceInput): array {
+        $parsed = fvplusParseGithubThemeSourceInput($sourceInput);
+        $owner = trim((string)($parsed['owner'] ?? ''));
+        $repo = trim((string)($parsed['repo'] ?? ''));
+        $branch = trim((string)($parsed['branch'] ?? ''));
+        $pathPrefix = ltrim(trim((string)($parsed['path'] ?? '')), '/');
+        if ($owner === '' || $repo === '') {
+            throw new RuntimeException('Theme source is missing repository information.');
+        }
+        $repoMeta = fvplusResolveGithubThemeRepoMeta($owner, $repo);
+        if ($branch === '') {
+            $branch = trim((string)($repoMeta['defaultBranch'] ?? 'main')) ?: 'main';
+        }
+        $commitSha = fvplusResolveGithubBranchHeadSha($owner, $repo, $branch);
+        $warnings = [];
+        $files = [];
+        if (($parsed['kind'] ?? '') === 'github_file') {
+            $filePath = $pathPrefix;
+            $rawUrl = trim((string)($parsed['rawUrl'] ?? ''));
+            $fileResponse = fvplusThemeWorkspaceFetchText($rawUrl, 10);
+            if (!$fileResponse['ok']) {
+                throw new RuntimeException('Failed to fetch GitHub CSS file.');
+            }
+            $scan = fvplusThemeWorkspaceScanCss((string)$fileResponse['content']);
+            if (count($scan['severe']) > 0) {
+                throw new RuntimeException(implode(' ', $scan['severe']));
+            }
+            $warnings = array_values(array_unique(array_merge($warnings, (array)$scan['warnings'])));
+            $files[] = [
+                'name' => basename($filePath),
+                'path' => $filePath,
+                'sourceUrl' => $rawUrl,
+                'tabs' => fvplusThemeWorkspaceDetectTabsFromPath($filePath, 1),
+                'content' => (string)$fileResponse['content']
+            ];
+        } else {
+            $treeUrl = 'https://api.github.com/repos/' . rawurlencode($owner) . '/' . rawurlencode($repo) . '/git/trees/' . rawurlencode($branch) . '?recursive=1';
+            $treeResponse = fvplusThemeWorkspaceFetchJson($treeUrl, 12);
+            if (!$treeResponse['ok']) {
+                throw new RuntimeException('Failed to read GitHub repository tree.');
+            }
+            $tree = is_array($treeResponse['json']['tree'] ?? null) ? $treeResponse['json']['tree'] : [];
+            $cssCandidates = [];
+            foreach ($tree as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                if (trim((string)($entry['type'] ?? '')) !== 'blob') {
+                    continue;
+                }
+                $entryPath = ltrim(trim((string)($entry['path'] ?? '')), '/');
+                if ($entryPath === '' || !preg_match('/\.css$/i', $entryPath)) {
+                    continue;
+                }
+                if ($pathPrefix !== '' && strpos(strtolower($entryPath), strtolower($pathPrefix)) !== 0) {
+                    continue;
+                }
+                if (preg_match('#(^|/)(node_modules|vendor|dist|build|coverage|\.git)/#i', $entryPath)) {
+                    continue;
+                }
+                $cssCandidates[] = $entryPath;
+            }
+            if (count($cssCandidates) <= 0) {
+                throw new RuntimeException('No CSS theme files were found in the selected GitHub repository.');
+            }
+            $fallbackCssCount = count($cssCandidates);
+            foreach ($cssCandidates as $entryPath) {
+                $tabs = fvplusThemeWorkspaceDetectTabsFromPath($entryPath, $fallbackCssCount);
+                if (count($tabs) <= 0) {
+                    continue;
+                }
+                $rawUrl = 'https://raw.githubusercontent.com/' . $owner . '/' . $repo . '/' . $branch . '/' . $entryPath;
+                $fileResponse = fvplusThemeWorkspaceFetchText($rawUrl, 10);
+                if (!$fileResponse['ok']) {
+                    continue;
+                }
+                $scan = fvplusThemeWorkspaceScanCss((string)$fileResponse['content']);
+                if (count($scan['severe']) > 0) {
+                    throw new RuntimeException(implode(' ', $scan['severe']));
+                }
+                $warnings = array_values(array_unique(array_merge($warnings, (array)$scan['warnings'])));
+                $files[] = [
+                    'name' => basename($entryPath),
+                    'path' => $entryPath,
+                    'sourceUrl' => $rawUrl,
+                    'tabs' => $tabs,
+                    'content' => (string)$fileResponse['content']
+                ];
+                if (count($files) >= FVPLUS_THEME_WORKSPACE_MAX_FILES_PER_THEME) {
+                    break;
+                }
+            }
+            if (count($files) <= 0) {
+                throw new RuntimeException('No compatible Docker, VM, or Dashboard CSS files were found.');
+            }
+        }
+        return [
+            'name' => $owner . '/' . $repo,
+            'warnings' => $warnings,
+            'files' => $files,
+            'source' => [
+                'input' => $sourceInput,
+                'kind' => (string)($parsed['kind'] ?? 'github_repo'),
+                'owner' => $owner,
+                'repo' => $repo,
+                'branch' => $branch,
+                'path' => $pathPrefix,
+                'defaultBranch' => trim((string)($repoMeta['defaultBranch'] ?? 'main')),
+                'commitSha' => $commitSha,
+                'canCheckUpdates' => true,
+                'rawUrl' => trim((string)($parsed['rawUrl'] ?? ''))
+            ]
+        ];
+    }
+
+    function importThemeWorkspaceGithub(string $sourceInput): array {
+        $workspace = readThemeWorkspace();
+        $imported = fvplusImportGithubThemeFiles($sourceInput);
+        $source = is_array($imported['source'] ?? null) ? $imported['source'] : [];
+        $identity = strtolower(trim((string)($source['owner'] ?? ''))) . '|' . strtolower(trim((string)($source['repo'] ?? ''))) . '|' . trim((string)($source['branch'] ?? '')) . '|' . trim((string)($source['path'] ?? ''));
+        $themeId = substr(hash('sha256', $identity), 0, 16);
+        $themeRecord = fvplusThemeWorkspaceNormalizeThemeRecord([
+            'id' => $themeId,
+            'name' => (string)($imported['name'] ?? $themeId),
+            'importedAt' => gmdate('c'),
+            'lastCheckedAt' => '',
+            'updateAvailable' => false,
+            'warnings' => $imported['warnings'] ?? [],
+            'source' => $source,
+            'files' => $imported['files'] ?? []
+        ]);
+        $themes = [];
+        $replaced = false;
+        foreach ((array)($workspace['themes'] ?? []) as $existingTheme) {
+            $existingId = trim((string)($existingTheme['id'] ?? ''));
+            if ($existingId === $themeId) {
+                $themes[] = $themeRecord;
+                $replaced = true;
+                continue;
+            }
+            $themes[] = $existingTheme;
+        }
+        if (!$replaced) {
+            $themes[] = $themeRecord;
+        }
+        $workspace['themes'] = $themes;
+        if (trim((string)($workspace['activeThemeId'] ?? '')) === '') {
+            $workspace['activeThemeId'] = $themeId;
+        }
+        $saved = writeThemeWorkspace($workspace);
+        return [
+            'theme' => $themeRecord,
+            'workspace' => $saved
+        ];
+    }
+
+    function activateThemeWorkspaceTheme(string $themeId): array {
+        $workspace = readThemeWorkspace();
+        $safeThemeId = truncateUtf8String(trim($themeId), 64);
+        foreach ((array)($workspace['themes'] ?? []) as $theme) {
+            if (trim((string)($theme['id'] ?? '')) === $safeThemeId) {
+                $workspace['activeThemeId'] = $safeThemeId;
+                return writeThemeWorkspace($workspace);
+            }
+        }
+        throw new RuntimeException('Theme not found.');
+    }
+
+    function deactivateThemeWorkspaceTheme(): array {
+        $workspace = readThemeWorkspace();
+        $workspace['activeThemeId'] = '';
+        return writeThemeWorkspace($workspace);
+    }
+
+    function deleteThemeWorkspaceTheme(string $themeId): array {
+        $workspace = readThemeWorkspace();
+        $safeThemeId = truncateUtf8String(trim($themeId), 64);
+        $themes = [];
+        $deleted = false;
+        foreach ((array)($workspace['themes'] ?? []) as $theme) {
+            if (trim((string)($theme['id'] ?? '')) === $safeThemeId) {
+                $deleted = true;
+                continue;
+            }
+            $themes[] = $theme;
+        }
+        if (!$deleted) {
+            throw new RuntimeException('Theme not found.');
+        }
+        $workspace['themes'] = $themes;
+        if (trim((string)($workspace['activeThemeId'] ?? '')) === $safeThemeId) {
+            $workspace['activeThemeId'] = '';
+        }
+        return writeThemeWorkspace($workspace);
+    }
+
+    function saveThemeWorkspaceCustomize($variables, string $customCss): array {
+        $workspace = readThemeWorkspace();
+        $workspace['variables'] = fvplusThemeWorkspaceNormalizeVariableMap($variables);
+        $workspace['customCss'] = truncateUtf8String($customCss, FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES);
+        return writeThemeWorkspace($workspace);
+    }
+
+    function checkThemeWorkspaceUpdates(): array {
+        $workspace = readThemeWorkspace();
+        $themes = [];
+        $checkedAt = gmdate('c');
+        $updateCount = 0;
+        foreach ((array)($workspace['themes'] ?? []) as $theme) {
+            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
+            $source = is_array($normalizedTheme['source'] ?? null) ? $normalizedTheme['source'] : [];
+            $canCheck = !empty($source['canCheckUpdates']);
+            $latestSha = '';
+            if ($canCheck) {
+                $latestSha = fvplusResolveGithubBranchHeadSha(
+                    (string)($source['owner'] ?? ''),
+                    (string)($source['repo'] ?? ''),
+                    (string)($source['branch'] ?? ($source['defaultBranch'] ?? 'main'))
+                );
+            }
+            $normalizedTheme['lastCheckedAt'] = $checkedAt;
+            $normalizedTheme['updateAvailable'] = $latestSha !== '' && $latestSha !== trim((string)($source['commitSha'] ?? ''));
+            if ($normalizedTheme['updateAvailable']) {
+                $updateCount += 1;
+            }
+            $themes[] = $normalizedTheme;
+        }
+        $workspace['themes'] = $themes;
+        $workspace['lastCheckedAt'] = $checkedAt;
+        $saved = writeThemeWorkspace($workspace);
+        return [
+            'workspace' => $saved,
+            'updateCount' => $updateCount,
+            'checkedAt' => $checkedAt
+        ];
     }
 
     function normalizeFolderMapPayload($value): array {
@@ -4356,6 +5014,7 @@
             createFile($type);
             readTypePrefs($type); // Normalize and ensure defaults.
         }
+        ensureThemeWorkspaceManagedAssets();
         return [
             'createdPaths' => $created,
             'configDir' => $configDir,
@@ -4365,6 +5024,7 @@
     }
 
     fvplusBootstrapCustomIconStorage();
+    ensureThemeWorkspaceManagedAssets();
 
     function getDockerTemplateCachePath(): string {
         return fv3_cache_root() . '/docker-template-index/cache.json';

@@ -85,3 +85,13 @@ test('modern folder editor save path references every schema-backed field', () =
     const missingSavedFields = fieldsSavedDirectly.filter((fieldName) => !buildFolderPayloadBlock.includes(fieldName));
     assert.deepEqual(missingSavedFields, []);
 });
+
+test('modern folder editor create mode receives server prefs and can apply saved folder defaults', () => {
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorTypePrefs =/);
+    assert.match(folderPage, /\$folderEditorTypePrefs = readTypePrefs\(\$folderEditorPageType\);/);
+    assert.match(folderJs, /const folderEditorTypePrefs = window\.FolderViewPlusFolderEditorTypePrefs/);
+    assert.match(folderJs, /const getSavedFolderDefaultsProfile = \(\) => \{/);
+    assert.match(folderJs, /const applySavedFolderDefaultsToNewFolder = \(foldersMap = \{\}\) => \{/);
+    assert.match(folderJs, /hydrateCurrentEditFolder\(savedDefaults\.folder, '', foldersMap, \{ clearPrefill: false \}\);/);
+    assert.match(folderJs, /if \(!applySavedFolderDefaultsToNewFolder\(folders\)\) \{/);
+});

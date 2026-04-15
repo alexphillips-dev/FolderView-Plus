@@ -48,6 +48,8 @@ const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport |
 const rowDetailsModule = window.FolderViewPlusRowDetails || null;
 const settingsHealthModule = window.FolderViewPlusSettingsHealth || null;
 const settingsWorkspacesModule = window.FolderViewPlusSettingsWorkspaces || null;
+const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
+const themeWorkspaceModule = window.FolderViewPlusThemeWorkspace || null;
 const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
@@ -356,6 +358,18 @@ if (!settingsWorkspacesModule || window.FolderViewPlusSettingsWorkspacesModuleLo
     setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'missing', 'settings workspace api unavailable');
 } else {
     setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'ok', 'settings workspace api ready');
+}
+if (!folderSettingsTransferModule || window.FolderViewPlusFolderSettingsTransferModuleLoaded !== true || typeof folderSettingsTransferModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folder.settings-transfer.js');
+    setFatalBannerModuleStatus('folder.settings-transfer.js', 'missing', 'folder settings transfer api unavailable');
+} else {
+    setFatalBannerModuleStatus('folder.settings-transfer.js', 'ok', 'folder settings transfer api ready');
+}
+if (!themeWorkspaceModule || window.FolderViewPlusThemeWorkspaceModuleLoaded !== true || typeof themeWorkspaceModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.theme-workspace.js');
+    setFatalBannerModuleStatus('folderviewplus.theme-workspace.js', 'missing', 'theme workspace api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.theme-workspace.js', 'ok', 'theme workspace api ready');
 }
 if (!settingsTreeModule || window.FolderViewPlusSettingsTreeModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.settings-tree.js');
@@ -2529,6 +2543,236 @@ const folderNameForId = (type, id) => {
     return folders[id]?.name || id;
 };
 
+const createEmptyFolderDefaultsRecord = () => ({
+    sourceId: '',
+    sourceName: '',
+    profile: {
+        icon: '',
+        settings: {},
+        actions: []
+    }
+});
+
+const cloneFolderDefaultsRecord = (value) => {
+    const source = value && typeof value === 'object' ? value : createEmptyFolderDefaultsRecord();
+    const profile = source.profile && typeof source.profile === 'object' ? source.profile : {};
+    return {
+        sourceId: String(source.sourceId || '').trim(),
+        sourceName: String(source.sourceName || '').trim(),
+        profile: {
+            icon: String(profile.icon || '').trim(),
+            settings: profile.settings && typeof profile.settings === 'object'
+                ? JSON.parse(JSON.stringify(profile.settings))
+                : {},
+            actions: Array.isArray(profile.actions)
+                ? JSON.parse(JSON.stringify(profile.actions))
+                : []
+        }
+    };
+};
+
+const folderDefaultsProfileHasContent = (folderDefaults) => {
+    const profile = folderDefaults?.profile && typeof folderDefaults.profile === 'object' ? folderDefaults.profile : {};
+    const settings = profile.settings && typeof profile.settings === 'object' ? profile.settings : {};
+    const actions = Array.isArray(profile.actions) ? profile.actions : [];
+    return Boolean(String(profile.icon || '').trim())
+        || Object.keys(settings).length > 0
+        || actions.length > 0;
+};
+
+const getFolderDefaultsForType = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const prefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    return cloneFolderDefaultsRecord(prefs.folderDefaults || {});
+};
+
+const buildFolderDefaultsSummary = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const defaults = getFolderDefaultsForType(resolvedType);
+    if (!folderDefaultsProfileHasContent(defaults)) {
+        return `No ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder defaults saved yet.`;
+    }
+    const parts = [];
+    if (String(defaults.profile.icon || '').trim()) {
+        parts.push('icon');
+    }
+    if (Object.keys(defaults.profile.settings || {}).length > 0) {
+        parts.push('folder settings');
+    }
+    const actionCount = Array.isArray(defaults.profile.actions) ? defaults.profile.actions.length : 0;
+    if (actionCount > 0) {
+        parts.push(`${actionCount} script action${actionCount === 1 ? '' : 's'}`);
+    }
+    const sourceLabel = defaults.sourceName || defaults.sourceId || 'saved profile';
+    return `Saved from "${sourceLabel}". Applies ${parts.join(', ')}.`;
+};
+
+const renderFolderDefaultsPanel = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const select = $(`#${resolvedType}-folder-defaults-source`);
+    const summary = $(`#${resolvedType}-folder-defaults-summary`);
+    if (!select.length || !summary.length) {
+        return;
+    }
+
+    const folders = getFolderMap(resolvedType);
+    const entries = Object.entries(folders).sort((left, right) => (
+        String(left?.[1]?.name || left?.[0] || '').localeCompare(String(right?.[1]?.name || right?.[0] || ''))
+    ));
+    const defaults = getFolderDefaultsForType(resolvedType);
+    const previousValue = String(select.val() || '').trim();
+    const optionValues = new Set();
+    const options = ['<option value="">Select a source folder</option>'];
+
+    entries.forEach(([id, folder]) => {
+        const safeId = String(id || '').trim();
+        optionValues.add(safeId);
+        options.push(`<option value="${escapeHtml(safeId)}">${escapeHtml(folder?.name || safeId)}</option>`);
+    });
+
+    if (defaults.sourceId && !optionValues.has(defaults.sourceId) && folderDefaultsProfileHasContent(defaults)) {
+        optionValues.add(defaults.sourceId);
+        options.push(`<option value="${escapeHtml(defaults.sourceId)}">${escapeHtml(`${defaults.sourceName || defaults.sourceId} (saved profile)`)}</option>`);
+    }
+
+    select.html(options.join(''));
+    select.prop('disabled', entries.length <= 0);
+
+    const nextValue = previousValue && optionValues.has(previousValue)
+        ? previousValue
+        : (defaults.sourceId && optionValues.has(defaults.sourceId) ? defaults.sourceId : '');
+    select.val(nextValue);
+    summary.text(buildFolderDefaultsSummary(resolvedType));
+};
+
+const saveFolderDefaultsFromSelection = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const transferApi = getFolderSettingsTransferApi();
+    const sourceId = String($(`#${resolvedType}-folder-defaults-source`).val() || '').trim();
+    const folder = getFolderMap(resolvedType)[sourceId];
+    if (!folder || !sourceId) {
+        showToastMessage({
+            title: 'Select a source folder',
+            message: `Choose a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder first, then save its icon/settings profile as the default.`,
+            level: 'info'
+        });
+        return false;
+    }
+
+    try {
+        const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+        const normalizedPayload = transferApi.normalizeFolderSettingsPayload(folder);
+        const next = utils.normalizePrefs({
+            ...current,
+            folderDefaults: {
+                sourceId,
+                sourceName: String(folder?.name || sourceId).trim(),
+                profile: normalizedPayload.payload
+            }
+        });
+        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+        renderFolderDefaultsPanel(resolvedType);
+        refreshSectionHealthBadges();
+        showToastMessage({
+            title: 'Folder defaults saved',
+            message: `New ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders will inherit the saved profile.`,
+            level: 'success'
+        });
+        return true;
+    } catch (error) {
+        showError('Folder defaults save failed', error);
+        return false;
+    }
+};
+
+const clearFolderDefaults = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    try {
+        const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+        prefsByType[resolvedType] = await postPrefs(resolvedType, utils.normalizePrefs({
+            ...current,
+            folderDefaults: createEmptyFolderDefaultsRecord()
+        }));
+        renderFolderDefaultsPanel(resolvedType);
+        refreshSectionHealthBadges();
+        showToastMessage({
+            title: 'Folder defaults cleared',
+            message: `Saved ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder defaults were removed.`,
+            level: 'success'
+        });
+        return true;
+    } catch (error) {
+        showError('Folder defaults reset failed', error);
+        return false;
+    }
+};
+
+const applySavedFolderDefaultsToAll = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const defaults = getFolderDefaultsForType(resolvedType);
+    if (!folderDefaultsProfileHasContent(defaults)) {
+        showToastMessage({
+            title: 'No saved defaults',
+            message: `Save a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder profile first.`,
+            level: 'info'
+        });
+        return false;
+    }
+
+    const targetIds = Object.keys(getFolderMap(resolvedType));
+    if (targetIds.length <= 0) {
+        showToastMessage({
+            title: 'No folders available',
+            message: `Create at least one ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder first.`,
+            level: 'info'
+        });
+        return false;
+    }
+
+    try {
+        const response = await apiPostJson('/plugins/folderview.plus/server/apply_folder_settings.php', {
+            type: resolvedType,
+            targetIds: JSON.stringify(targetIds),
+            settings: JSON.stringify(defaults.profile)
+        });
+        const result = response?.result || {};
+        await Promise.allSettled([
+            refreshType(resolvedType),
+            refreshBackups(resolvedType, { quiet: true })
+        ]);
+        showToastMessage({
+            title: 'Defaults applied',
+            message: `Applied the saved profile to ${Number(result.updatedCount) || targetIds.length} folder${targetIds.length === 1 ? '' : 's'}.`,
+            level: 'success'
+        });
+        return true;
+    } catch (error) {
+        showError('Apply defaults to all failed', error);
+        return false;
+    }
+};
+
+const importThemeWorkspaceGithub = async () => {
+    const source = String($('#fv-theme-github-source').val() || '').trim();
+    if (!source) {
+        showToastMessage({
+            title: 'Enter a GitHub source',
+            message: 'Use owner/repo, owner/repo/tree/branch, or a direct GitHub CSS URL.',
+            level: 'info'
+        });
+        return false;
+    }
+    await getThemeWorkspaceApi().importGithub(source);
+    $('#fv-theme-github-source').val('');
+    return true;
+};
+
+const activateThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().activateTheme(themeId);
+const deactivateThemeWorkspaceTheme = async () => getThemeWorkspaceApi().deactivateTheme();
+const deleteThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().deleteTheme(themeId);
+const saveThemeWorkspaceCustomize = async () => getThemeWorkspaceApi().saveCustomize();
+const checkThemeWorkspaceUpdates = async () => getThemeWorkspaceApi().checkUpdates();
+
 const isFolderPinned = (type, folderId) => {
     const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
     return pinned.includes(String(folderId || ''));
@@ -2895,6 +3139,36 @@ const getSettingsHealthApi = (() => {
             getHealthMetrics: (type) => healthMetricsByType[type === 'vm' ? 'vm' : 'docker'] || null,
             getFolderMap: (type) => getFolderMap(type),
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders)
+        });
+        return cachedApi;
+    };
+})();
+
+const getFolderSettingsTransferApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = folderSettingsTransferModule.createApi({ window });
+        return cachedApi;
+    };
+})();
+
+const getThemeWorkspaceApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = themeWorkspaceModule.createApi({
+            window,
+            document,
+            $,
+            escapeHtml,
+            apiGetJson,
+            apiPostJson,
+            showError
         });
         return cachedApi;
     };
@@ -6666,6 +6940,7 @@ const renderTable = (type) => {
     syncSettingsTableStateFromPrefs(type);
 
     renderFolderSelectOptions(type);
+    renderFolderDefaultsPanel(type);
     renderBadgeToggles(type);
     renderRuntimeControls(type);
     renderDashboardControls(type);
@@ -6946,19 +7221,40 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 
 const refreshCoreData = async () => {
     const startedAt = perfNowMs();
-    const refreshResults = await Promise.all([refreshType('docker'), refreshType('vm')]);
+    const refreshResults = await Promise.allSettled([
+        refreshType('docker'),
+        refreshType('vm'),
+        getThemeWorkspaceApi().readWorkspace()
+    ]);
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
+    const degradedReasons = [];
+    const dockerResult = refreshResults[0];
+    const vmResult = refreshResults[1];
+    const themeResult = refreshResults[2];
+    if (dockerResult.status === 'fulfilled') {
+        degradedReasons.push(...(Array.isArray(dockerResult.value?.degradedReasons) ? dockerResult.value.degradedReasons : []));
+    } else {
+        degradedReasons.push(buildSettingsBootstrapDegradedReason('docker', 'settings data', dockerResult.reason));
+    }
+    if (vmResult.status === 'fulfilled') {
+        degradedReasons.push(...(Array.isArray(vmResult.value?.degradedReasons) ? vmResult.value.degradedReasons : []));
+    } else {
+        degradedReasons.push(buildSettingsBootstrapDegradedReason('vm', 'settings data', vmResult.reason));
+    }
+    if (themeResult.status !== 'fulfilled') {
+        degradedReasons.push(buildSettingsBootstrapDegradedReason('shared', 'theme workspace', themeResult.reason));
+    }
     recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
         dockerFolders: Object.keys(getFolderMap('docker')).length,
         vmFolders: Object.keys(getFolderMap('vm')).length
     });
     return {
-        degradedReasons: refreshResults.flatMap((entry) => Array.isArray(entry?.degradedReasons) ? entry.degradedReasons : [])
+        degradedReasons
     };
 };
 
@@ -8824,6 +9120,15 @@ settingsActionSupportModule.registerWindowActions(window, {
     applyRuleTestSample,
     clearActivityFeed,
     refreshPerformanceDiagnostics: renderPerformanceDiagnostics,
+    importThemeWorkspaceGithub,
+    activateThemeWorkspaceTheme,
+    deactivateThemeWorkspaceTheme,
+    deleteThemeWorkspaceTheme,
+    saveThemeWorkspaceCustomize,
+    checkThemeWorkspaceUpdates,
+    saveFolderDefaultsFromSelection,
+    applySavedFolderDefaultsToAll,
+    clearFolderDefaults,
     runQuickSetupWizard,
     setSettingsMode
 });
@@ -8883,6 +9188,9 @@ settingsActionSupportModule.registerWindowActions(window, {
             initOverflowGuard();
             initCompactMobileLayoutGuard();
             initThemeAwareSettingsReflow();
+            getThemeWorkspaceApi().bindEvents();
+            renderFolderDefaultsPanel('docker');
+            renderFolderDefaultsPanel('vm');
             renderPerformanceDiagnostics();
         });
         await fetchPluginVersion();

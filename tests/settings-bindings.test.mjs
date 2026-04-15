@@ -12,6 +12,8 @@ const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhtt
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
@@ -56,11 +58,16 @@ test('settings page onclick handlers are exported on window', () => {
 });
 
 test('settings page loads extracted settings metadata before the main runtime', () => {
+    assert.match(page, /folder\.settings-transfer\.js/);
+    assert.match(page, /folderviewplus\.theme-workspace\.js/);
     assert.match(page, /folderviewplus\.runtime-parity\.js/);
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
+    assert.match(page, /folder\.settings-transfer\.js[\s\S]*folderviewplus\.theme-workspace\.js[\s\S]*folderviewplus\.chrome\.js/);
     assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(script, /FolderViewPlusFolderSettingsTransferModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusThemeWorkspaceModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
@@ -68,6 +75,8 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
     assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsRuntimeActionsModuleLoaded = true/);
+    assert.match(script, /bootstrapMissingModules\.push\('folder\.settings-transfer\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.theme-workspace\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-health\.js'\)/);
@@ -76,12 +85,36 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.bulk-assignment\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.runtime-actions\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
+    assert.match(script, /const folderSettingsTransferModule = window\.FolderViewPlusFolderSettingsTransfer \|\| null;/);
+    assert.match(script, /const themeWorkspaceModule = window\.FolderViewPlusThemeWorkspace \|\| null;/);
     assert.match(script, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(script, /const settingsHealthModule = window\.FolderViewPlusSettingsHealth \|\| null;/);
     assert.match(script, /const settingsWorkspacesModule = window\.FolderViewPlusSettingsWorkspaces \|\| null;/);
     assert.match(script, /const settingsTreeModule = window\.FolderViewPlusSettingsTree \|\| null;/);
     assert.match(script, /const bulkAssignmentModule = window\.FolderViewPlusBulkAssignment \|\| null;/);
     assert.match(script, /const settingsRuntimeActionsModule = window\.FolderViewPlusSettingsRuntimeActions \|\| null;/);
+});
+
+test('settings page exposes theme workspace and saved folder defaults controls', () => {
+    assert.match(page, /id="fv-theme-workspace-panel"/);
+    assert.match(page, /id="fv-theme-github-source"/);
+    assert.match(page, /id="fv-theme-workspace-list"/);
+    assert.match(page, /id="fv-theme-variable-grid"/);
+    assert.match(page, /id="fv-theme-custom-css"/);
+    assert.match(page, /id="docker-folder-defaults-source"/);
+    assert.match(page, /id="vm-folder-defaults-source"/);
+    assert.match(page, /onclick="saveFolderDefaultsFromSelection\('docker'\)"/);
+    assert.match(page, /onclick="saveFolderDefaultsFromSelection\('vm'\)"/);
+    assert.match(page, /onclick="applySavedFolderDefaultsToAll\('docker'\)"/);
+    assert.match(page, /onclick="applySavedFolderDefaultsToAll\('vm'\)"/);
+    assert.match(page, /onclick="clearFolderDefaults\('docker'\)"/);
+    assert.match(page, /onclick="clearFolderDefaults\('vm'\)"/);
+    assert.match(script, /const getThemeWorkspaceApi = \(\(\) => \{/);
+    assert.match(script, /const renderFolderDefaultsPanel = \(type\) => \{/);
+    assert.match(script, /const saveFolderDefaultsFromSelection = async \(type\) => \{/);
+    assert.match(script, /const applySavedFolderDefaultsToAll = async \(type\) => \{/);
+    assert.match(script, /const importThemeWorkspaceGithub = async \(\) => \{/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*importThemeWorkspaceGithub[\s\S]*saveFolderDefaultsFromSelection[\s\S]*\}\);/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {

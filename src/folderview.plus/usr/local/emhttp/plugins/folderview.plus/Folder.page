@@ -21,6 +21,7 @@ $folderEditorPageModeSource = 'modern-only';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
 $folderEditorPageBuildVersion = readInstalledVersion();
+$folderEditorTypePrefs = [];
 $folderEditorCookieType = '';
 $folderEditorCookieId = '';
 $folderEditorBootstrapContext = [
@@ -44,6 +45,7 @@ try {
 }
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
+    $folderEditorTypePrefs = readTypePrefs($folderEditorPageType);
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
     $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
@@ -69,6 +71,7 @@ try {
     $folderEditorPageModeSource = 'modern-only';
     $folderEditorRequestedId = '';
     $folderEditorResolvedId = '';
+    $folderEditorTypePrefs = [];
     $folderEditorBootstrapContext = [
         'requestedId' => '',
         'resolvedId' => '',
@@ -85,6 +88,7 @@ try {
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorTypePrefs = <?php echo json_encode($folderEditorTypePrefs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageBuildVersion = <?php echo json_encode($folderEditorPageBuildVersion, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorRuntimeLoaded = false;
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';

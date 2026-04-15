@@ -156,11 +156,13 @@ for required_file in "${REQUIRED_FILES[@]}"; do
 done
 
 while IFS= read -r -d '' file; do
-  "${PHP_BIN}" -l "${file}" >/dev/null
+  php_target="$(fvplus::path_for_command "${PHP_BIN}" "${file}")"
+  "${PHP_BIN}" -l "${php_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/server" -type f -name "*.php" -print0)
 
 while IFS= read -r -d '' file; do
-  "${NODE_BIN}" --check "${file}" >/dev/null
+  node_target="$(fvplus::path_for_command "${NODE_BIN}" "${file}")"
+  "${NODE_BIN}" --check "${node_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/scripts" -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
 
 MUTATING_ENDPOINTS=(

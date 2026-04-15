@@ -152,6 +152,7 @@ if command -v xmllint >/dev/null 2>&1; then
   xmllint --noout "${PLG_FILE}"
 else
   PHP_BIN="$(resolve_php_bin)"
+  PLG_VALIDATE_PATH="$(fvplus::path_for_command "${PHP_BIN}" "${PLG_FILE}")"
   # shellcheck disable=SC2016
   "${PHP_BIN}" -r '
       libxml_use_internal_errors(true);
@@ -162,7 +163,7 @@ else
           fwrite(STDERR, "ERROR: Invalid PLG XML\n");
           exit(1);
       }
-  ' "${PLG_FILE}"
+  ' "${PLG_VALIDATE_PATH}"
 fi
 
 ARCHIVE_FILE="${ARCHIVE_DIR}/folderview.plus-${VERSION}.txz"

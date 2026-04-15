@@ -144,16 +144,20 @@ lint_shell_scripts() {
 lint_javascript_syntax() {
   mapfile -d '' files < <(find src -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
   local file=""
+  local target=""
   for file in "${files[@]}"; do
-    "${NODE_BIN}" --check "${file}"
+    target="$(fvplus::path_for_command "${NODE_BIN}" "${file}")"
+    "${NODE_BIN}" --check "${target}"
   done
 }
 
 lint_php_syntax() {
   mapfile -d '' files < <(find src -type f -name "*.php" -print0)
   local file=""
+  local target=""
   for file in "${files[@]}"; do
-    "${PHP_BIN}" -l "${file}"
+    target="$(fvplus::path_for_command "${PHP_BIN}" "${file}")"
+    "${PHP_BIN}" -l "${target}"
   done
 }
 
@@ -188,8 +192,8 @@ run_lane() {
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax
-      run_timed_step javascript-unused-symbols "${NODE_BIN}" scripts/js_unused_symbols_guard.mjs
-      run_timed_step php-static-analysis "${PHP_BIN}" scripts/php_unused_helpers_guard.php
+      run_timed_step javascript-unused-symbols "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/js_unused_symbols_guard.mjs")"
+      run_timed_step php-static-analysis "${PHP_BIN}" "$(fvplus::path_for_command "${PHP_BIN}" "scripts/php_unused_helpers_guard.php")"
       ;;
     tests)
       run_timed_step node-mobile-tests "${NODE_BIN}" --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs

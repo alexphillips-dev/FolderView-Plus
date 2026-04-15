@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.10">
-<!ENTITY md5 "7cb604ebba883c89e58430b61f88972a">
+<!ENTITY version "2026.04.15.11">
+<!ENTITY md5 "d01fe1451050c8cb7d527a719108af02">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.11
+- Perf: Debounce legacy folder-regex matching while typing and stop running the duplicate editor recalculation path on every regex keystroke.
+- Perf: Avoid the extra pre-worker member-table redraw so large regex edits render once per settled pattern instead of twice.
+
 
 ###2026.04.15.10
 - Fix: Settings privacy mode no longer blurs the Folder Defaults source picker or saved-default summary.

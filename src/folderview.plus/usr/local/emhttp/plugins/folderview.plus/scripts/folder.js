@@ -301,6 +301,7 @@ const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
 const THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS = 140;
 const EDITOR_INPUT_RECALC_DEBOUNCE_MS = 90;
 const NAME_REGEX_SYNC_DEBOUNCE_MS = 150;
+const REGEX_INPUT_SYNC_DEBOUNCE_MS = 120;
 const MEMBER_LIST_RENDER_CHUNK_SIZE = 140;
 const REGEX_WORKER_MIN_ITEMS = 180;
 const THIRD_PARTY_RECENT_LIMIT = 36;
@@ -382,6 +383,7 @@ let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let editorRecalcTimer = null;
 let nameRegexSyncTimer = null;
+let regexInputSyncTimer = null;
 let lastNameRegexSyncValue = '';
 let memberListRenderToken = 0;
 let regexWorker = null;
@@ -1508,7 +1510,7 @@ const runNameDrivenRegexSync = () => {
         return;
     }
     lastNameRegexSyncValue = nextName;
-    updateRegex(form.regex);
+    updateRegex(form.regex, { immediate: true });
 };
 
 const scheduleNameDrivenRegexSync = (mode = 'debounced') => {
@@ -2569,7 +2571,7 @@ const suggestDefaultsFromMembers = () => {
             }
         });
         updateIcon(form.icon);
-        updateRegex(form.regex);
+        updateRegex(form.regex, { immediate: true });
         updateForm();
         validateForm();
         updateLiveSummary();
@@ -3390,7 +3392,7 @@ const startFolderEditorRuntime = async () => {
 
         // make the ui respond to the previus changes
         updateForm();
-        updateRegex(getFormField(form, 'regex'));
+        updateRegex(getFormField(form, 'regex'), { immediate: true });
         updateIcon(getFormField(form, 'icon'));
         setParentDefaultsNote('');
     }
@@ -3466,6 +3468,14 @@ const startFolderEditorRuntime = async () => {
                 return;
             }
             scheduleNameDrivenRegexSync('immediate');
+        }
+        if (fieldName === 'regex') {
+            if (event.type === 'input') {
+                markUnsavedIndicatorDirty();
+                return;
+            }
+            updateRegex(form.regex, { immediate: true });
+            return;
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width'
@@ -3619,21 +3629,23 @@ const mergeMembersByName = (baseMembers, candidateMembers) => {
     return ordered;
 };
 
-/**
- * Update the regex selection when editing the respective field
- * @param {*} e the element
- */
-const updateRegex = (e) => {
+const evaluateRegexSelection = (e) => {
+    regexInputSyncTimer = null;
+    const regexField = e || getFormField(getForm(), 'regex');
+    if (!regexField) {
+        return false;
+    }
+    const requestId = ++latestRegexEvaluationRequestId;
     syncMemberArraysFromTable();
     choose = choose.concat(selectedRegex);
     const fldName = ($('[name="name"]')[0].value || '').trim();
     if (fldName) {
-        selectedRegex = choose.filter(el => el.Label === fldName);
-        choose = choose.filter(el => el.Label !== fldName);
+        selectedRegex = choose.filter((el) => el.Label === fldName);
+        choose = choose.filter((el) => el.Label !== fldName);
     } else {
         selectedRegex = [];
     }
-    const regexSource = String(e?.value || '').trim();
+    const regexSource = String(regexField.value || '').trim();
     if (!regexSource) {
         updateList();
         updateRegexSimulator();
@@ -3648,7 +3660,6 @@ const updateRegex = (e) => {
     }
 
     const baseChoose = choose.slice();
-    const requestId = ++latestRegexEvaluationRequestId;
     const applyMatchResult = (matchNames) => {
         if (requestId !== latestRegexEvaluationRequestId) {
             return;
@@ -3700,8 +3711,27 @@ const updateRegex = (e) => {
             applyMatchResult(matchedNames);
         });
 
-    updateList();
     updateRegexSimulator();
+    return true;
+};
+
+/**
+ * Update the regex selection when editing the respective field
+ * @param {*} e the element
+ */
+const updateRegex = (e, options = {}) => {
+    const immediate = options && typeof options === 'object' && options.immediate === true;
+    if (regexInputSyncTimer) {
+        clearTimeout(regexInputSyncTimer);
+        regexInputSyncTimer = null;
+    }
+    latestRegexEvaluationRequestId += 1;
+    if (immediate || !isFormInitialized) {
+        return evaluateRegexSelection(e);
+    }
+    regexInputSyncTimer = setTimeout(() => {
+        evaluateRegexSelection(e);
+    }, REGEX_INPUT_SYNC_DEBOUNCE_MS);
     return true;
 };
 

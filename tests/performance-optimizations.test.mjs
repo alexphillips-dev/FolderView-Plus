@@ -325,11 +325,17 @@ test('settings/runtime scripts use batched localStorage writes', () => {
 test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);
+    assert.match(folderEditorJs, /const REGEX_INPUT_SYNC_DEBOUNCE_MS = \d+;/);
     assert.match(folderEditorJs, /const getRegexWorker = \(\) =>/);
     assert.match(folderEditorJs, /const runRegexMatch = async \(pattern,\s*names\) =>/);
+    assert.match(folderEditorJs, /const evaluateRegexSelection = \(e\) =>/);
+    assert.match(folderEditorJs, /const updateRegex = \(e,\s*options = \{\}\) =>/);
     assert.match(folderEditorJs, /const mergeMembersByName = \(baseMembers,\s*candidateMembers\) =>/);
     assert.match(folderEditorJs, /if \(rows\.length <= MEMBER_LIST_RENDER_CHUNK_SIZE\) \{/);
     assert.match(folderEditorJs, /scheduleAnimationFrameTask\(appendChunk\)/);
+    assert.match(folderEditorJs, /if \(fieldName === 'regex'\) \{\s*if \(event\.type === 'input'\) \{\s*markUnsavedIndicatorDirty\(\);\s*return;\s*\}\s*updateRegex\(form\.regex,\s*\{\s*immediate:\s*true\s*\}\);\s*return;\s*\}/);
+    assert.match(folderEditorJs, /regexInputSyncTimer = setTimeout\(\(\) => \{\s*evaluateRegexSelection\(e\);\s*\}, REGEX_INPUT_SYNC_DEBOUNCE_MS\);/);
+    assert.doesNotMatch(folderEditorJs, /runRegexMatch\(regexSource,\s*baseChoose\.map\(\(member\) => member\.Name\)\)\s*[\s\S]*updateList\(\);\s*updateRegexSimulator\(\);\s*return true;/);
 });
 
 test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {

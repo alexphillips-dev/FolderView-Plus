@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.27">
-<!ENTITY md5 "e6f536fba149d9342c7fedb816090916">
+<!ENTITY version "2026.04.15.28">
+<!ENTITY md5 "32bf0fefa61ea490f3967b2c5863df47">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.28
+- Fix: Docker command-view now forwards the original pointer coordinates through the native Docker row trigger so the Unraid container menu opens at the click point instead of the screen corner.
+- UX: Running command-view member tiles now use a forced green border treatment instead of inheriting the light theme border color.
+- Quality: Expanded the command-view runtime regression test to cover the pointer-aware native-trigger proxy signature.
+
 
 ###2026.04.15.27
 - Fix: Docker command-view container tiles now proxy the native Docker row trigger the same way the regular FolderView preview does, instead of mixing inline-handler hydration with the tile surface.

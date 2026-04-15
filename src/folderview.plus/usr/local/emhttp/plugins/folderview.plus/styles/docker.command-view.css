@@ -274,8 +274,8 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
 }
 
 .fv-docker-command-member-tile.running {
-    border-color: var(--fvplus-status-started, #7ad05a);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fvplus-status-started, #7ad05a) 78%, transparent);
+    border-color: #7ad05a;
+    box-shadow: inset 0 0 0 1px rgba(122, 208, 90, 0.55);
 }
 
 .fv-docker-command-member-tile.paused {

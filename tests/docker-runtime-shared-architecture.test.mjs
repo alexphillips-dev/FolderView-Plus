@@ -248,7 +248,7 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /const getNativeMemberTrigger = \(containerName\) =>/);
     assert.match(dockerCommandViewJs, /const getNativeMemberRow = \(containerName\) =>/);
     assert.match(dockerCommandViewJs, /row\.querySelector\('td\.ct-name \.appname'\)\?\.textContent/);
-    assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click'\) =>/);
+    assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click',\s*sourceEvent = null\) =>/);
     assert.match(dockerCommandViewJs, /const hydrateNativeMemberSurface = \(surface,\s*containerName\) =>/);
     assert.match(dockerCommandViewJs, /const appendDockerPreviewActionButtons = typeof deps\.appendDockerPreviewActionButtons === 'function'/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-tile/);

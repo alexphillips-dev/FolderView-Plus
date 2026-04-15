@@ -286,15 +286,33 @@
                 || sourceRow.querySelector('td.ct-name > span.outer > span.inner > span.appname > a.exec');
         };
 
-        const proxyNativeMemberTrigger = (containerName, eventType = 'click') => {
+        const proxyNativeMemberTrigger = (containerName, eventType = 'click', sourceEvent = null) => {
             const trigger = getNativeMemberTrigger(containerName);
             if (!(trigger instanceof HTMLElement)) {
                 return false;
             }
             const safeType = eventType === 'contextmenu' ? 'contextmenu' : 'click';
+            const clientX = Number(sourceEvent?.clientX || 0);
+            const clientY = Number(sourceEvent?.clientY || 0);
+            const screenX = Number(sourceEvent?.screenX || clientX || 0);
+            const screenY = Number(sourceEvent?.screenY || clientY || 0);
+            const pageX = Number(sourceEvent?.pageX || clientX || 0);
+            const pageY = Number(sourceEvent?.pageY || clientY || 0);
             if (typeof jq === 'function') {
                 try {
-                    jq(trigger).trigger(safeType);
+                    const jqEvent = jq.Event(safeType, {
+                        bubbles: true,
+                        cancelable: true,
+                        clientX,
+                        clientY,
+                        screenX,
+                        screenY,
+                        pageX,
+                        pageY,
+                        button: safeType === 'contextmenu' ? 2 : 0,
+                        which: safeType === 'contextmenu' ? 3 : 1
+                    });
+                    jq(trigger).trigger(jqEvent);
                     return true;
                 } catch (_error) {
                     // Fall through to native DOM dispatch.
@@ -313,7 +331,11 @@
                 cancelable: true,
                 view: win || undefined,
                 button: safeType === 'contextmenu' ? 2 : 0,
-                buttons: safeType === 'contextmenu' ? 2 : 1
+                buttons: safeType === 'contextmenu' ? 2 : 1,
+                clientX,
+                clientY,
+                screenX,
+                screenY
             });
             try {
                 return trigger.dispatchEvent(event);
@@ -341,12 +363,12 @@
             surface.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                proxyNativeMemberTrigger(safeName, 'click');
+                proxyNativeMemberTrigger(safeName, 'click', event);
             });
             surface.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                proxyNativeMemberTrigger(safeName, 'contextmenu');
+                proxyNativeMemberTrigger(safeName, 'contextmenu', event);
             });
             surface.addEventListener('keydown', (event) => {
                 if (event.key !== 'Enter' && event.key !== ' ') {
@@ -354,7 +376,7 @@
                 }
                 event.preventDefault();
                 event.stopPropagation();
-                proxyNativeMemberTrigger(safeName, 'click');
+                proxyNativeMemberTrigger(safeName, 'click', event);
             });
         };
 

@@ -112,7 +112,7 @@ if [[ "${#UNTRACKED_FILES[@]}" -gt 0 ]]; then
     exit 1
 fi
 
-bash pkg_build.sh
+bash pkg_build.sh --branch "${CURRENT_BRANCH}"
 
 VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
 git add folderview.plus.plg folderview.plus.xml archive/

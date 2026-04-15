@@ -5,11 +5,26 @@ fvplus::fail() {
   exit 1
 }
 
+fvplus::resolve_platform_command() {
+  local requested="${1:-}"
+  local resolved=""
+  [[ -n "${requested}" ]] || return 1
+  if resolved="$(command -v "${requested}" 2>/dev/null)"; then
+    printf '%s\n' "${resolved}"
+    return 0
+  fi
+  if [[ "${requested}" != *.exe ]] && resolved="$(command -v "${requested}.exe" 2>/dev/null)"; then
+    printf '%s\n' "${resolved}"
+    return 0
+  fi
+  return 1
+}
+
 fvplus::require_commands() {
   local missing=()
   local cmd
   for cmd in "$@"; do
-    if ! command -v "$cmd" >/dev/null 2>&1; then
+    if ! fvplus::resolve_platform_command "$cmd" >/dev/null 2>&1; then
       missing+=("$cmd")
     fi
   done
@@ -46,4 +61,3 @@ fvplus::archive_file() {
   archive_dir="$(fvplus::archive_dir "${root_dir}")"
   echo "${archive_dir}/folderview.plus-${version}.txz"
 }
-

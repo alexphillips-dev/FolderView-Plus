@@ -19,6 +19,8 @@ if [[ ! -f "${ARCHIVE_FILE}" ]]; then
 fi
 
 fvplus::require_commands php node tar sed grep find
+PHP_BIN="$(fvplus::resolve_platform_command php)"
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
@@ -154,11 +156,11 @@ for required_file in "${REQUIRED_FILES[@]}"; do
 done
 
 while IFS= read -r -d '' file; do
-  php -l "${file}" >/dev/null
+  "${PHP_BIN}" -l "${file}" >/dev/null
 done < <(find "${PLUGIN_DIR}/server" -type f -name "*.php" -print0)
 
 while IFS= read -r -d '' file; do
-  node --check "${file}" >/dev/null
+  "${NODE_BIN}" --check "${file}" >/dev/null
 done < <(find "${PLUGIN_DIR}/scripts" -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
 
 MUTATING_ENDPOINTS=(

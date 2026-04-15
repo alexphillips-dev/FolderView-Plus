@@ -71,9 +71,10 @@ done
 cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node git
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ "${OPEN_FIXTURE}" == true ]]; then
-    node scripts/generate_runtime_fixture.mjs
+    "${NODE_BIN}" scripts/generate_runtime_fixture.mjs
 fi
 
 bash scripts/doctor.sh

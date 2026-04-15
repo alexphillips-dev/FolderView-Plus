@@ -237,6 +237,8 @@ test('docker command-view stylesheet only hides the host table when the isolated
     assert.match(dockerCommandViewCss, /\.fv-docker-command-member-tile/);
     assert.match(dockerCommandViewCss, /flex:\s*0 0 220px/);
     assert.match(dockerCommandViewCss, /background:\s*var\(--fv-docker-command-surface-panel\);/);
+    assert.match(dockerCommandViewCss, /\.fv-docker-command-card-title-icon/);
+    assert.match(dockerCommandViewCss, /\.fv-docker-command-member-tile\.running \{/);
     assert.doesNotMatch(dockerCommandViewCss, /body\[data-fvplus-docker-page-view="command"\] table#docker_containers/);
 });
 
@@ -244,12 +246,16 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /const sanitizeImageSrc = typeof utils\.sanitizeImageSrc === 'function'/);
     assert.match(dockerCommandViewJs, /const getSafeWebuiUrl = typeof deps\.getSafeWebuiUrl === 'function'/);
     assert.match(dockerCommandViewJs, /const getNativeMemberTrigger = \(containerName\) =>/);
+    assert.match(dockerCommandViewJs, /const getNativeMemberRow = \(containerName\) =>/);
+    assert.match(dockerCommandViewJs, /row\.querySelector\('td\.ct-name \.appname'\)\?\.textContent/);
     assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click'\) =>/);
     assert.match(dockerCommandViewJs, /const hydrateNativeMemberSurface = \(surface,\s*containerName\) =>/);
     assert.match(dockerCommandViewJs, /const appendDockerPreviewActionButtons = typeof deps\.appendDockerPreviewActionButtons === 'function'/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-tile/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-surface="true"/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-actions-host="true"/);
+    assert.match(dockerCommandViewJs, /const DEFAULT_FOLDER_ICON = '\/plugins\/folderview\.plus\/images\/folder-icon\.png';/);
+    assert.match(dockerCommandViewJs, /class="fv-docker-command-card-title"><img src="\$\{folderIcon\}" class="fv-docker-command-card-title-icon"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-icon"/);
     assert.match(dockerCommandViewJs, /appendDockerPreviewActionButtons\(/);

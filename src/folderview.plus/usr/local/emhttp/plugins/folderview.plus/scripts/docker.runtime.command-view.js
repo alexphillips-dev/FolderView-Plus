@@ -13,6 +13,7 @@
     const ROOT_ID = 'fvplus-docker-command-view-root';
     const BODY_ATTR = 'data-fvplus-docker-command-view-mounted';
     const DOCKER_ICON_FALLBACK = '/plugins/dynamix.docker.manager/images/question.png';
+    const DEFAULT_FOLDER_ICON = '/plugins/folderview.plus/images/folder-icon.png';
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -254,12 +255,30 @@
             return true;
         };
 
-        const getNativeMemberTrigger = (containerName) => {
+        const getNativeMemberRow = (containerName) => {
             const safeName = String(containerName || '').trim();
             if (!safeName || !doc) {
                 return null;
             }
             const sourceRow = doc.getElementById(`ct-${safeName}`);
+            if (sourceRow instanceof HTMLElement && sourceRow.classList.contains('sortable')) {
+                return sourceRow;
+            }
+            const rows = doc.querySelectorAll('#docker_list > tr.sortable');
+            for (const row of rows) {
+                if (!(row instanceof HTMLElement) || row.classList.contains('folder')) {
+                    continue;
+                }
+                const textName = String(row.querySelector('td.ct-name .appname')?.textContent || '').trim();
+                if (textName === safeName) {
+                    return row;
+                }
+            }
+            return null;
+        };
+
+        const getNativeMemberTrigger = (containerName) => {
+            const sourceRow = getNativeMemberRow(containerName);
             if (!(sourceRow instanceof HTMLElement)) {
                 return null;
             }
@@ -316,24 +335,38 @@
             surface.setAttribute('role', 'button');
             surface.setAttribute('tabindex', '0');
             const title = trigger instanceof HTMLElement ? String(trigger.getAttribute('title') || '').trim() : '';
+            const inlineClick = trigger instanceof HTMLElement ? String(trigger.getAttribute('onclick') || '').trim() : '';
+            const inlineContextMenu = trigger instanceof HTMLElement ? String(trigger.getAttribute('oncontextmenu') || '').trim() : '';
             if (title) {
                 surface.setAttribute('title', title);
             }
-            surface.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                proxyNativeMemberTrigger(safeName, 'click');
-            });
-            surface.addEventListener('contextmenu', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                proxyNativeMemberTrigger(safeName, 'contextmenu');
-            });
+            if (inlineClick) {
+                surface.setAttribute('onclick', inlineClick);
+            } else {
+                surface.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'click');
+                });
+            }
+            if (inlineContextMenu) {
+                surface.setAttribute('oncontextmenu', inlineContextMenu);
+            } else {
+                surface.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'contextmenu');
+                });
+            }
             surface.addEventListener('keydown', (event) => {
                 if (event.key !== 'Enter' && event.key !== ' ') {
                     return;
                 }
                 event.preventDefault();
+                if (inlineClick) {
+                    surface.click();
+                    return;
+                }
                 event.stopPropagation();
                 proxyNativeMemberTrigger(safeName, 'click');
             });
@@ -480,6 +513,7 @@
                                 `${card.branchMemberCount} in branch`,
                                 card.childCount > 0 ? `${card.childCount} child folders` : ''
                             ].filter(Boolean).join(' • ');
+                            const folderIcon = sanitizeImageSrc(card.folder?.icon, DEFAULT_FOLDER_ICON);
                             const memberTiles = card.members.map((member) => `
                                 <div class="fv-docker-command-member-tile ${escapeHtml(member.stateMeta.state)}${member.updateReady ? ' has-update' : ''}" data-member-name="${escapeHtml(member.name)}" data-member-id="${escapeHtml(member.id)}" data-member-webui-url="${escapeHtml(member.webuiUrl)}" data-member-shell="${escapeHtml(member.shell)}">
                                     <div class="fv-docker-command-member-surface hand" data-fv-command-member-surface="true" data-member-name="${escapeHtml(member.name)}">
@@ -504,7 +538,7 @@
                                 <article class="fv-docker-command-card" data-folder-id="${escapeHtml(card.folderId)}" style="--fv-docker-command-depth:${card.depth};">
                                     <div class="fv-docker-command-card-head">
                                         <div>
-                                            <div class="fv-docker-command-card-title"><i class="fa fa-folder-open" aria-hidden="true"></i> ${escapeHtml(card.folder?.name || `Folder ${card.folderId}`)}</div>
+                                            <div class="fv-docker-command-card-title"><img src="${folderIcon}" class="fv-docker-command-card-title-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'> ${escapeHtml(card.folder?.name || `Folder ${card.folderId}`)}</div>
                                             <div class="fv-docker-command-card-subtitle">${escapeHtml(subtitle)}</div>
                                         </div>
                                         <div class="fv-docker-command-card-flags">

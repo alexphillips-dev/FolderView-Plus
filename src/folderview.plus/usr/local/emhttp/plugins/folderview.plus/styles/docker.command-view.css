@@ -241,51 +241,24 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     width: 220px;
     max-width: 220px;
     min-width: 220px;
-    min-height: 60px;
+    min-height: 48px;
     display: flex;
-    flex-direction: column;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-    overflow: hidden;
-}
-
-.fv-docker-command-member-tile.running {
-    border-color: rgba(122, 208, 90, 0.26);
-}
-
-.fv-docker-command-member-tile.paused {
-    border-color: rgba(215, 164, 24, 0.24);
-}
-
-.fv-docker-command-member-tile.stopped {
-    border-color: rgba(255, 99, 99, 0.22);
-}
-
-.fv-docker-command-member-tile.has-update {
-    box-shadow: inset 0 0 0 1px rgba(255, 154, 60, 0.18);
+    border: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .fv-docker-command-member-surface {
-    appearance: none;
     width: 100%;
-    min-height: 58px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     gap: 0.58rem;
-    padding: 0.62rem 0.7rem;
-    border: 0;
+    padding: 0;
     background: transparent;
     color: inherit;
     text-align: left;
     cursor: pointer;
-}
-
-.fv-docker-command-member-surface:hover,
-.fv-docker-command-member-surface:focus-visible,
-.fv-docker-command-member-tile.is-expanded .fv-docker-command-member-surface {
-    background: rgba(255, 255, 255, 0.03);
 }
 
 .fv-docker-command-member-icon-wrap {
@@ -358,63 +331,24 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     color: #ff9a3c;
 }
 
-.fv-docker-command-member-quick-actions {
+.fv-docker-command-member-actions {
     display: inline-flex;
     align-items: center;
-    gap: 0.18rem;
+    gap: 5px;
     margin-left: auto;
 }
 
-.fv-docker-command-member-icon-button {
-    appearance: none;
-    width: 28px;
-    height: 28px;
+.fv-docker-command-member-actions .folder-element-custom-btn {
+    margin-left: 0;
+}
+
+.fv-docker-command-member-actions .folder-element-custom-btn > a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.78);
-    cursor: pointer;
-    transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
-}
-
-.fv-docker-command-member-icon-button:hover,
-.fv-docker-command-member-icon-button:focus-visible {
-    border-color: rgba(255, 154, 60, 0.42);
-    background: rgba(255, 154, 60, 0.12);
-    color: #ffb56d;
-}
-
-.fv-docker-command-member-menu {
-    display: none;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0 0.7rem 0.7rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.fv-docker-command-member-tile.is-expanded .fv-docker-command-member-menu {
-    display: flex;
-}
-
-.fv-docker-command-member-menu-button {
-    appearance: none;
-    border: 0;
-    border-radius: 999px;
-    padding: 0.22rem 0.58rem;
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.84);
-    font-size: 0.74rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.fv-docker-command-member-menu-button:hover,
-.fv-docker-command-member-menu-button:focus-visible {
-    background: rgba(255, 154, 60, 0.12);
-    color: #ffb56d;
+    width: 13px;
+    height: 13px;
+    font-size: 0.96em;
 }
 
 .fv-docker-command-member-empty {

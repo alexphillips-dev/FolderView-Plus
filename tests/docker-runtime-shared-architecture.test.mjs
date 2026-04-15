@@ -240,13 +240,20 @@ test('docker command-view stylesheet only hides the host table when the isolated
 test('docker command-view renders visible member tiles instead of name-only chips', () => {
     assert.match(dockerCommandViewJs, /const sanitizeImageSrc = typeof utils\.sanitizeImageSrc === 'function'/);
     assert.match(dockerCommandViewJs, /const getSafeWebuiUrl = typeof deps\.getSafeWebuiUrl === 'function'/);
+    assert.match(dockerCommandViewJs, /const getNativeMemberTrigger = \(containerName\) =>/);
+    assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click'\) =>/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-tile/);
+    assert.match(dockerCommandViewJs, /data-fv-command-member-surface="true"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-icon"/);
+    assert.match(dockerCommandViewJs, /folder-element-custom-btn folder-element-webui/);
+    assert.match(dockerCommandViewJs, /folder-element-custom-btn folder-element-console/);
+    assert.match(dockerCommandViewJs, /folder-element-custom-btn folder-element-logs/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-action="webui"/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-action="console"/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-action="logs"/);
     assert.match(dockerCommandViewJs, /const openFolderCardWebuis = \(folderCard\) =>/);
+    assert.doesNotMatch(dockerCommandViewJs, /fv-docker-command-member-menu/);
     assert.doesNotMatch(dockerCommandViewJs, /class="fv-docker-command-member more"/);
 });
 

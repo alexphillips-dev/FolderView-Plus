@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.19">
-<!ENTITY md5 "914c1a027767564a695bd0b5508376cd">
+<!ENTITY version "2026.04.15.20">
+<!ENTITY md5 "cb5c9cfdb68417db5a05e88ac358d01d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.20
+- UX: Docker command-view member tiles no longer render the boxed orange tile chrome; the member strip now stays visually closer to the normal FolderView preview surface.
+- UX: Command-view WebUI, console, and log actions now use the regular Docker preview action classes so their icons match the standard FolderView quick actions instead of a custom button style.
+- Fix: Clicking or right-clicking a command-view container now proxies Unraid's native Docker row trigger, so the tile opens the same native Unraid container menu path the regular FolderView preview uses instead of a custom command-view menu.
+
 
 ###2026.04.15.19
 - UX: Docker command-view member tiles now keep a consistent fixed width by default so folders do not stretch or compress container cards differently based on row count.

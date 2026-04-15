@@ -377,10 +377,10 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    margin-left: auto;
+    margin-left: 0;
     margin-top: -0.04rem;
-    padding: 0 0.55rem 0.08rem;
-    align-self: flex-end;
+    padding: 0 0 0.08rem 3.35rem;
+    align-self: flex-start;
     min-height: 13px;
 }
 

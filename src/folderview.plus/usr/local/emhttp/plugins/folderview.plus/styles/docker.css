@@ -163,6 +163,11 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     vertical-align: middle;
 }
 
+.fvplus-docker-runtime-toggle-shell.is-inline-cluster {
+    margin-left: 0;
+    margin-right: 0.85rem;
+}
+
 .fvplus-docker-runtime-toggle-shell.is-fallback {
     margin-left: 0;
 }

@@ -3004,8 +3004,10 @@ const findDockerRuntimeListViewToggleAnchor = () => {
         return null;
     }
     const scopes = [
+        table.previousElementSibling,
         table.parentElement,
         table.parentElement?.parentElement,
+        table.closest('.panel')?.querySelector(':scope > .panel-body'),
         document.body
     ].filter(Boolean);
     const switchSelector = 'input[type="checkbox"], .switch-button, .switch-button-background';
@@ -3016,11 +3018,21 @@ const findDockerRuntimeListViewToggleAnchor = () => {
             if (!text.includes('basic view')) {
                 continue;
             }
-            if (candidate.querySelector(switchSelector)) {
-                return candidate;
-            }
-            if (candidate.parentElement && candidate.parentElement.querySelector(switchSelector)) {
-                return candidate.parentElement;
+            const clusterCandidates = [
+                candidate,
+                candidate.closest('label'),
+                candidate.closest('div'),
+                candidate.parentElement,
+                candidate.parentElement?.closest('div')
+            ].filter(Boolean);
+            for (const cluster of clusterCandidates) {
+                const clusterText = String(cluster.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                if (!clusterText.includes('basic view')) {
+                    continue;
+                }
+                if (cluster.querySelector(switchSelector)) {
+                    return cluster;
+                }
             }
         }
     }
@@ -3049,10 +3061,10 @@ const ensureDockerRuntimePrivacyFallbackHost = () => {
 
 const resolveDockerRuntimePrivacyToggleMount = () => {
     const anchor = findDockerRuntimeListViewToggleAnchor();
-    if (anchor && anchor.parentElement) {
+    if (anchor) {
         return {
             anchor,
-            host: anchor.parentElement,
+            host: anchor,
             fallback: false
         };
     }
@@ -3081,10 +3093,10 @@ const renderDockerRuntimePrivacyToggle = () => {
         shell = document.createElement('div');
         shell.id = DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID;
     }
-    shell.className = `fvplus-docker-runtime-toggle-shell${mount.fallback ? ' is-fallback' : ''}`;
+    shell.className = `fvplus-docker-runtime-toggle-shell${mount.fallback ? ' is-fallback' : ' is-inline-cluster'}`;
     if (mount.anchor) {
-        if (mount.anchor.nextElementSibling !== shell) {
-            mount.anchor.insertAdjacentElement('afterend', shell);
+        if (mount.host.firstElementChild !== shell) {
+            mount.host.insertBefore(shell, mount.host.firstChild);
         }
     } else if (mount.host.firstElementChild !== shell) {
         mount.host.insertBefore(shell, mount.host.firstChild);

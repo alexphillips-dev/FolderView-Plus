@@ -55,6 +55,7 @@ test('privacy mode toggles runtime body classes and ships masking selectors acro
     assert.match(settingsCss, /\.bulk-item-name/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell\.is-inline-cluster/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toolbar-controls/);
     assert.match(dockerCss, /\.fv-docker-member-menu-name/);

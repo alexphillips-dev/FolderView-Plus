@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.06">
-<!ENTITY md5 "e132c9cd5f7364a247ccf100e3f79f5f">
+<!ENTITY version "2026.04.15.07">
+<!ENTITY md5 "9e0a0e51ea0e0c8ecbba8d5ef8471aef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.07
+- Feature: Add a Docker runtime privacy toggle beside the Basic view switch.
+- Privacy: Persist Docker blur mode directly from the Docker tab and keep the runtime toggle in sync after host re-renders.
+
 
 ###2026.04.15.06
 - Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.

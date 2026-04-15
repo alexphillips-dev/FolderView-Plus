@@ -40,6 +40,11 @@ test('settings page exposes docker and vm privacy mode dashboard toggles', () =>
 
 test('privacy mode toggles runtime body classes and ships masking selectors across settings runtime and dashboard surfaces', () => {
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime', normalized\?\.dashboard\?\.privacyMode === true\)/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_TOGGLE_ID = 'fvplus-docker-runtime-privacy-toggle';/);
+    assert.match(dockerJs, /const renderDockerRuntimePrivacyToggle = \(\) =>/);
+    assert.match(dockerJs, /const findDockerRuntimeListViewToggleAnchor = \(\) =>/);
+    assert.match(dockerJs, /const setDockerRuntimePrivacyMode = async \(enabled, options = \{\}\) =>/);
+    assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);
     assert.match(vmJs, /toggleClass\('fvplus-privacy-vm-runtime', normalized\?\.dashboard\?\.privacyMode === true\)/);
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-docker-dashboard', dockerPrefs\?\.dashboard\?\.privacyMode === true\)/);
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-vm-dashboard', vmPrefs\?\.dashboard\?\.privacyMode === true\)/);
@@ -49,6 +54,9 @@ test('privacy mode toggles runtime body classes and ships masking selectors acro
     assert.match(settingsCss, /#vm-tree-path-hint/);
     assert.match(settingsCss, /\.bulk-item-name/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toolbar-controls/);
     assert.match(dockerCss, /\.fv-docker-member-menu-name/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

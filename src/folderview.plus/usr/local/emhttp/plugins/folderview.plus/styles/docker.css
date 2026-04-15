@@ -146,6 +146,36 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     white-space: nowrap;
 }
 
+.fvplus-docker-runtime-toolbar-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0 0 0.45rem 0;
+}
+
+.fvplus-docker-runtime-toggle-shell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-left: 0.7rem;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.fvplus-docker-runtime-toggle-shell.is-fallback {
+    margin-left: 0;
+}
+
+.fvplus-docker-runtime-toggle-label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fvplus-theme-foreground);
+    opacity: 0.88;
+}
+
 /* --- General Folder Styles --- */
 .hover:hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {
     visibility: visible;

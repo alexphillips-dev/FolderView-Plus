@@ -284,6 +284,55 @@
             return trigger.dispatchEvent(event);
         };
 
+        const hydrateNativeMemberSurface = (surface, containerName) => {
+            if (!(surface instanceof HTMLElement)) {
+                return;
+            }
+            const safeName = String(containerName || '').trim();
+            if (!safeName) {
+                return;
+            }
+            const trigger = getNativeMemberTrigger(safeName);
+            if (!(trigger instanceof HTMLElement)) {
+                surface.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'click');
+                });
+                surface.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'contextmenu');
+                });
+                return;
+            }
+            const inlineClick = String(trigger.getAttribute('onclick') || '').trim();
+            const inlineContextMenu = String(trigger.getAttribute('oncontextmenu') || '').trim();
+            const title = String(trigger.getAttribute('title') || '').trim();
+            surface.classList.add('hand');
+            if (inlineClick) {
+                surface.setAttribute('onclick', inlineClick);
+            } else {
+                surface.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'click');
+                });
+            }
+            if (inlineContextMenu) {
+                surface.setAttribute('oncontextmenu', inlineContextMenu);
+            } else {
+                surface.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    proxyNativeMemberTrigger(safeName, 'contextmenu');
+                });
+            }
+            if (title) {
+                surface.setAttribute('title', title);
+            }
+        };
+
         const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder) => {
             const folderMap = folders && typeof folders === 'object' ? folders : {};
             const baseOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folderMap, prefs);
@@ -492,6 +541,12 @@
                     </div>
                 </div>
             `;
+            root.querySelectorAll('[data-fv-command-member-surface="true"]').forEach((surface) => {
+                if (!(surface instanceof HTMLElement)) {
+                    return;
+                }
+                hydrateNativeMemberSurface(surface, String(surface.getAttribute('data-member-name') || '').trim());
+            });
             return true;
         };
 
@@ -531,18 +586,6 @@
                         openTerminal('docker', memberName, '.log');
                         return;
                     }
-                }
-                const memberSurface = event.target instanceof Element
-                    ? event.target.closest('[data-fv-command-member-surface="true"]')
-                    : null;
-                if (memberSurface instanceof HTMLElement) {
-                    const memberName = String(memberSurface.getAttribute('data-member-name') || '').trim();
-                    if (memberName) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        proxyNativeMemberTrigger(memberName, 'click');
-                    }
-                    return;
                 }
                 const button = event.target instanceof Element
                     ? event.target.closest('[data-fv-command-action]')
@@ -608,25 +651,6 @@
                 }
             };
             rootNode.addEventListener('click', clickHandler);
-            if (contextMenuHandler) {
-                rootNode.removeEventListener('contextmenu', contextMenuHandler);
-            }
-            contextMenuHandler = (event) => {
-                const memberSurface = event.target instanceof Element
-                    ? event.target.closest('[data-fv-command-member-surface="true"]')
-                    : null;
-                if (!(memberSurface instanceof HTMLElement)) {
-                    return;
-                }
-                const memberName = String(memberSurface.getAttribute('data-member-name') || '').trim();
-                if (!memberName) {
-                    return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                proxyNativeMemberTrigger(memberName, 'contextmenu');
-            };
-            rootNode.addEventListener('contextmenu', contextMenuHandler);
         };
 
         const resolveSnapshot = async (options = {}) => {
@@ -638,7 +662,15 @@
             const folders = parseJsonPayloadSafe(foldersPayload);
             const unraidOrder = Object.values(parseJsonPayloadSafe(orderPayload));
             const runtimeState = parseJsonPayloadSafe(statePayload);
-            const runtimeInfoByName = normalizeRuntimeInfoMap(runtimeState);
+            let runtimeInfoByName = normalizeRuntimeInfoMap(runtimeState);
+            if (requestBundle.fullInfo) {
+                try {
+                    const runtimeFull = parseJsonPayloadSafe(await requestBundle.fullInfo);
+                    runtimeInfoByName = normalizeRuntimeInfoMap(runtimeFull, runtimeInfoByName);
+                } catch (_error) {
+                    // The staged full-info hydration is optional for the experimental surface.
+                }
+            }
             const prefsResponse = parseJsonPayloadSafe(prefsPayload);
             const prefs = normalizePrefs(prefsResponse?.prefs || {});
             const hierarchy = buildFolderHierarchy(folders);

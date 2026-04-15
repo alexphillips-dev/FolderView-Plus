@@ -232,6 +232,8 @@ test('docker command-view stylesheet only hides the host table when the isolated
     assert.match(dockerCommandViewCss, /body\[data-fvplus-docker-command-view-mounted="true"\] table#docker_containers/);
     assert.match(dockerCommandViewCss, /\.fv-docker-command-shell/);
     assert.match(dockerCommandViewCss, /var\(--fvplus-settings-button-bg-top\)/);
+    assert.match(dockerCommandViewCss, /var\(--fvplus-theme-surface-panel/);
+    assert.match(dockerCommandViewCss, /var\(--fvplus-theme-border-subtle/);
     assert.match(dockerCommandViewCss, /\.fv-docker-command-member-tile/);
     assert.match(dockerCommandViewCss, /flex:\s*0 0 220px/);
     assert.doesNotMatch(dockerCommandViewCss, /body\[data-fvplus-docker-page-view="command"\] table#docker_containers/);
@@ -242,6 +244,7 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /const getSafeWebuiUrl = typeof deps\.getSafeWebuiUrl === 'function'/);
     assert.match(dockerCommandViewJs, /const getNativeMemberTrigger = \(containerName\) =>/);
     assert.match(dockerCommandViewJs, /const proxyNativeMemberTrigger = \(containerName,\s*eventType = 'click'\) =>/);
+    assert.match(dockerCommandViewJs, /const hydrateNativeMemberSurface = \(surface,\s*containerName\) =>/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-tile/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-surface="true"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
@@ -253,6 +256,7 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /data-fv-command-member-action="console"/);
     assert.match(dockerCommandViewJs, /data-fv-command-member-action="logs"/);
     assert.match(dockerCommandViewJs, /const openFolderCardWebuis = \(folderCard\) =>/);
+    assert.match(dockerCommandViewJs, /if \(requestBundle\.fullInfo\)/);
     assert.doesNotMatch(dockerCommandViewJs, /fv-docker-command-member-menu/);
     assert.doesNotMatch(dockerCommandViewJs, /class="fv-docker-command-member more"/);
 });

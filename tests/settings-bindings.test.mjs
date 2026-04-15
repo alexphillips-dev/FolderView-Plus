@@ -126,6 +126,12 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /id="docker-page-view-mode"/);
     assert.doesNotMatch(page, /id="vm-page-view-mode"/);
     assert.match(page, /Docker page view/);
+    const dockerSortRowStart = page.indexOf('<div class="sort-row">');
+    const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
+    assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
+    const dockerSortRow = page.slice(dockerSortRowStart, dockerSortRowEnd);
+    assert.doesNotMatch(dockerSortRow, /id="docker-page-view-mode"/);
+    assert.match(page, /<div class="settings-mini-title">Runtime<\/div>[\s\S]*id="docker-page-view-mode"/);
     assert.match(page, /id="docker-theme-compat-mode"/);
     assert.match(page, /id="vm-theme-compat-mode"/);
     assert.match(page, /Theme fallback mode/);

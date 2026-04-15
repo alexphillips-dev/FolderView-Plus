@@ -224,6 +224,9 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
     assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
     assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
+    assert.match(settingsCss, /\.fv-theme-import-row > button,/);
+    assert.match(settingsCss, /\.fv-theme-customize-actions > button,/);
+    assert.match(settingsCss, /\.fv-theme-workspace-entry-actions > button,/);
 });
 
 test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {

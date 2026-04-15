@@ -625,12 +625,24 @@ if ! chmod -R 0755 "$tmpdir"; then
 fi
 
 cd "$tmpdir"
-tar --sort=name \
+tar_status=0
+if ! tar --sort=name \
     --mtime='UTC 1970-01-01' \
     --owner=0 \
     --group=0 \
     --numeric-owner \
-    -cJf "$filename" ./*
+    -cJf "$filename" ./*; then
+    tar_status=$?
+fi
+
+if [ "$tar_status" -ne 0 ]; then
+    if [ -f "$filename" ] && tar -tf "$filename" >/dev/null 2>&1; then
+        echo "WARN: tar exited with status $tar_status but produced a readable archive; continuing." >&2
+    else
+        echo "ERROR: tar failed to create a readable archive (status: $tar_status)." >&2
+        exit "$tar_status"
+    fi
+fi
 
 cd "$CWD"
 md5=$(md5sum "$filename" | awk '{print $1}')

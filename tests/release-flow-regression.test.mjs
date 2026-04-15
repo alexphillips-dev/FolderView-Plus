@@ -136,3 +136,12 @@ test('pkg_build dry-run falls back to manifest branch when git branch detection 
 
     assert.match(output, /Branch: dev/);
 });
+
+test('pkg_build tolerates non-zero tar exit when the archive remains readable', () => {
+    const pkgBuild = fs.readFileSync(path.join(repoRoot, 'pkg_build.sh'), 'utf8');
+    assert.match(pkgBuild, /tar_status=0/);
+    assert.match(pkgBuild, /if \[ "\$tar_status" -ne 0 \]; then/);
+    assert.match(pkgBuild, /if \[ -f "\$filename" \] && tar -tf "\$filename" >\/dev\/null 2>&1; then/);
+    assert.match(pkgBuild, /WARN: tar exited with status \$tar_status but produced a readable archive; continuing\./);
+    assert.match(pkgBuild, /ERROR: tar failed to create a readable archive \(status: \$tar_status\)\./);
+});

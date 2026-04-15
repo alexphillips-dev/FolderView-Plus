@@ -1689,6 +1689,21 @@
         return $path . '.lastgood';
     }
 
+    function createAtomicWriteTempPath(string $path): string {
+        $parent = dirname($path);
+        $prefix = basename($path) . '.tmp.';
+        $tempPath = @tempnam($parent, $prefix);
+        if (is_string($tempPath) && $tempPath !== '') {
+            return $tempPath;
+        }
+
+        try {
+            return $path . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(6));
+        } catch (Throwable $error) {
+            return $path . '.tmp.' . getmypid() . '.' . uniqid('', true);
+        }
+    }
+
     function writeJsonObjectAtomic(string $path, array $payload): void {
         $parent = dirname($path);
         if (!is_dir($parent)) {
@@ -1698,7 +1713,7 @@
         if (!is_string($encoded) || $encoded === '') {
             throw new RuntimeException("Failed to encode JSON payload for '$path'.");
         }
-        $tmpPath = $path . '.tmp';
+        $tmpPath = createAtomicWriteTempPath($path);
         if (@file_put_contents($tmpPath, $encoded, LOCK_EX) === false) {
             throw new RuntimeException("Failed to write temp JSON payload for '$path'.");
         }

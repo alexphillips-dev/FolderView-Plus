@@ -367,8 +367,8 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /NPX_BIN="\$\(fvplus::resolve_platform_command npx\)"/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --check/);
     assert.match(runCiSuite, /"\$\{PHP_BIN\}" -l/);
-    assert.match(runCiSuite, /"\$\{NODE_BIN\}" scripts\/js_unused_symbols_guard\.mjs/);
-    assert.match(runCiSuite, /"\$\{PHP_BIN\}" scripts\/php_unused_helpers_guard\.php/);
+    assert.match(runCiSuite, /"\$\{NODE_BIN\}" "\$\(fvplus::path_for_command "\$\{NODE_BIN\}" "scripts\/js_unused_symbols_guard\.mjs"\)"/);
+    assert.match(runCiSuite, /"\$\{PHP_BIN\}" "\$\(fvplus::path_for_command "\$\{PHP_BIN\}" "scripts\/php_unused_helpers_guard\.php"\)"/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/mobile-touch-support\.test\.mjs tests\/mobile-regression-guard\.test\.mjs/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/\*\.mjs/);
     assert.match(runCiSuite, /"\$\{NODE_BIN\}" --test tests\/versioning-guard\.test\.mjs tests\/support-policy-contract\.test\.mjs/);

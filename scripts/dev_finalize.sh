@@ -74,7 +74,7 @@ fvplus::require_commands bash node git
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ "${OPEN_FIXTURE}" == true ]]; then
-    "${NODE_BIN}" scripts/generate_runtime_fixture.mjs
+    "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_runtime_fixture.mjs")"
 fi
 
 bash scripts/doctor.sh

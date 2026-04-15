@@ -20,6 +20,22 @@ fvplus::resolve_platform_command() {
   return 1
 }
 
+fvplus::path_for_command() {
+  local command_path="${1:-}"
+  local target_path="${2:-}"
+  local normalized_path=""
+  [[ -n "${target_path}" ]] || return 1
+  if [[ "${command_path}" == *.exe ]] && command -v wslpath >/dev/null 2>&1; then
+    normalized_path="${target_path}"
+    if [[ "${normalized_path}" != /* && ! "${normalized_path}" =~ ^[A-Za-z]:[\\/].* ]]; then
+      normalized_path="$(realpath -m "${normalized_path}" 2>/dev/null || printf '%s/%s' "$(pwd)" "${normalized_path}")"
+    fi
+    wslpath -w "${normalized_path}"
+    return 0
+  fi
+  printf '%s\n' "${target_path}"
+}
+
 fvplus::require_commands() {
   local missing=()
   local cmd

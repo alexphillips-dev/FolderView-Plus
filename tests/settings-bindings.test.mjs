@@ -118,6 +118,8 @@ test('settings page exposes theme workspace and saved folder defaults controls',
     assert.match(script, /const applySavedFolderDefaultsToAll = async \(type\) => \{/);
     assert.match(script, /const importThemeWorkspaceGithub = async \(\) => \{/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*importThemeWorkspaceGithub[\s\S]*saveFolderDefaultsFromSelection[\s\S]*\}\);/);
+    assert.match(settingsCss, /\.fv-folder-defaults-actions > button/);
+    assert.match(settingsCss, /--fvplus-settings-button-bg-top/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {

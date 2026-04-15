@@ -828,8 +828,6 @@ body.fvplus-privacy-docker-settings #docker-tree-path-hint,
 body.fvplus-privacy-docker-settings #docker-rule-test-output,
 body.fvplus-privacy-docker-settings #docker-conflict-output,
 body.fvplus-privacy-docker-settings #fv-settings-root [data-fv-bulk-type="docker"] .bulk-item-name,
-body.fvplus-privacy-docker-settings #docker-folder-defaults-summary,
-body.fvplus-privacy-docker-settings #docker-folder-defaults-source,
 body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-text,
 body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-breadcrumb,
 body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms .name-cell-members-meta,
@@ -838,9 +836,7 @@ body.fvplus-privacy-vm-settings #fv-settings-root tbody#vms td.rules-cell,
 body.fvplus-privacy-vm-settings #vm-tree-path-hint,
 body.fvplus-privacy-vm-settings #vm-rule-test-output,
 body.fvplus-privacy-vm-settings #vm-conflict-output,
-body.fvplus-privacy-vm-settings #fv-settings-root [data-fv-bulk-type="vm"] .bulk-item-name,
-body.fvplus-privacy-vm-settings #vm-folder-defaults-summary,
-body.fvplus-privacy-vm-settings #vm-folder-defaults-source {
+body.fvplus-privacy-vm-settings #fv-settings-root [data-fv-bulk-type="vm"] .bulk-item-name {
     filter: blur(0.28rem);
 }
 
@@ -2086,6 +2082,34 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-theme-import-row button,
 .fv-theme-workspace-entry-actions button {
     white-space: nowrap;
+}
+
+#fv-settings-root .fv-folder-defaults-actions > button {
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
+    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+#fv-settings-root .fv-folder-defaults-actions > button:hover,
+#fv-settings-root .fv-folder-defaults-actions > button:focus-visible {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
+}
+
+#fv-settings-root .fv-folder-defaults-actions > button:active {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-active) !important;
+    transform: translateY(0);
+}
+
+#fv-settings-root .fv-folder-defaults-actions > button:disabled {
+    opacity: 0.56;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 .fv-theme-workspace-entry-actions {

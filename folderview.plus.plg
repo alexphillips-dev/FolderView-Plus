@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.09">
-<!ENTITY md5 "ec079b16ca9c9da35134a709d8923cba">
+<!ENTITY version "2026.04.15.10">
+<!ENTITY md5 "7cb604ebba883c89e58430b61f88972a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.10
+- Fix: Settings privacy mode no longer blurs the Folder Defaults source picker or saved-default summary.
+- UX: Folder Defaults action buttons now use the same FolderView Plus settings button styling as the rest of the plugin.
+
 
 ###2026.04.15.09
 - Fix: Mount the Docker runtime privacy toggle inside the Basic view control cluster so it stays right-aligned and vertically aligned with the host toggle.

@@ -11,6 +11,10 @@ ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
+resolve_php_bin() {
+  fvplus::resolve_platform_command php
+}
+
 packaging_sync_hint() {
   echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + folderview.plus.xml + archive/*.txz + archive/*.sha256)." >&2
 }
@@ -145,8 +149,9 @@ fi
 if command -v xmllint >/dev/null 2>&1; then
   xmllint --noout "${PLG_FILE}"
 else
+  PHP_BIN="$(resolve_php_bin)"
   # shellcheck disable=SC2016
-  php -r '
+  "${PHP_BIN}" -r '
       libxml_use_internal_errors(true);
       $xml = @file_get_contents($argv[1]);
       if ($xml === false) { fwrite(STDERR, "ERROR: Failed to read PLG file\n"); exit(1); }

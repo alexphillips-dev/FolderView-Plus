@@ -27,8 +27,9 @@ fvplus::require_commands "${REQUIRED_COMMANDS[@]}"
 
 echo "Tooling doctor passed."
 for cmd in "${REQUIRED_COMMANDS[@]}"; do
-  if "${cmd}" --version >/dev/null 2>&1; then
-    version_line="$("${cmd}" --version 2>/dev/null | head -n 1)"
+  resolved_cmd="$(fvplus::resolve_platform_command "${cmd}" || true)"
+  if [[ -n "${resolved_cmd}" ]] && "${resolved_cmd}" --version >/dev/null 2>&1; then
+    version_line="$("${resolved_cmd}" --version 2>/dev/null | head -n 1)"
     echo "  ${cmd}: ${version_line}"
   else
     echo "  ${cmd}: installed"

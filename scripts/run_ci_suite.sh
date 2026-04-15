@@ -58,6 +58,10 @@ done
 
 fvplus::require_commands bash node php git find shellcheck npm npx
 export FVPLUS_RELEASE_MODE="${RELEASE_MODE}"
+NODE_BIN="$(fvplus::resolve_platform_command node)"
+PHP_BIN="$(fvplus::resolve_platform_command php)"
+NPM_BIN="$(fvplus::resolve_platform_command npm)"
+NPX_BIN="$(fvplus::resolve_platform_command npx)"
 
 chmod +x \
   scripts/api_contract_guard.sh \
@@ -111,7 +115,7 @@ prepare_playwright() {
     return
   fi
   fvplus::require_commands npm npx
-  npm install --no-save playwright
+  "${NPM_BIN}" install --no-save playwright
 
   local browsers_dir="${PLAYWRIGHT_BROWSERS_PATH:-${HOME}/.cache/ms-playwright}"
   local browsers_cached=0
@@ -122,9 +126,9 @@ prepare_playwright() {
   if [[ "${browsers_cached}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
     printf '[ci-suite] Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
   elif parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
-    npx playwright install --with-deps chromium firefox webkit
+    "${NPX_BIN}" playwright install --with-deps chromium firefox webkit
   else
-    npx playwright install chromium firefox webkit
+    "${NPX_BIN}" playwright install chromium firefox webkit
   fi
   PLAYWRIGHT_READY=1
 }
@@ -141,7 +145,7 @@ lint_javascript_syntax() {
   mapfile -d '' files < <(find src -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
   local file=""
   for file in "${files[@]}"; do
-    node --check "${file}"
+    "${NODE_BIN}" --check "${file}"
   done
 }
 
@@ -149,7 +153,7 @@ lint_php_syntax() {
   mapfile -d '' files < <(find src -type f -name "*.php" -print0)
   local file=""
   for file in "${files[@]}"; do
-    php -l "${file}"
+    "${PHP_BIN}" -l "${file}"
   done
 }
 
@@ -184,15 +188,15 @@ run_lane() {
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax
-      run_timed_step javascript-unused-symbols node scripts/js_unused_symbols_guard.mjs
-      run_timed_step php-static-analysis php scripts/php_unused_helpers_guard.php
+      run_timed_step javascript-unused-symbols "${NODE_BIN}" scripts/js_unused_symbols_guard.mjs
+      run_timed_step php-static-analysis "${PHP_BIN}" scripts/php_unused_helpers_guard.php
       ;;
     tests)
-      run_timed_step node-mobile-tests node --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
-      run_timed_step node-test-suite node --test tests/*.mjs
+      run_timed_step node-mobile-tests "${NODE_BIN}" --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
+      run_timed_step node-test-suite "${NODE_BIN}" --test tests/*.mjs
       ;;
     workflow-tests)
-      run_timed_step versioning-guard-tests node --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
+      run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
       ;;
     workflow-guards)
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh

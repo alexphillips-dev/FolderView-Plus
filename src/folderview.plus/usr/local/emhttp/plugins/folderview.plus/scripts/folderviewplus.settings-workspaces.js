@@ -48,12 +48,319 @@
         const downloadFile = typeof deps.downloadFile === 'function' ? deps.downloadFile : (() => {});
         const toPrettyJson = typeof deps.toPrettyJson === 'function' ? deps.toPrettyJson : ((value) => JSON.stringify(value, null, 2));
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
+        const swal = typeof deps.swal === 'function' ? deps.swal : windowRef?.swal || null;
+        const apiGetJson = typeof deps.apiGetJson === 'function' ? deps.apiGetJson : (async () => ({}));
+        const apiPostJson = typeof deps.apiPostJson === 'function' ? deps.apiPostJson : (async () => ({}));
+        const selectJsonFile = typeof deps.selectJsonFile === 'function' ? deps.selectJsonFile : (async () => null);
+        const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
+        const claimAdvancedOperationLock = typeof deps.claimAdvancedOperationLock === 'function' ? deps.claimAdvancedOperationLock : (() => true);
+        const releaseAdvancedOperationLock = typeof deps.releaseAdvancedOperationLock === 'function' ? deps.releaseAdvancedOperationLock : (() => {});
+        const refreshType = typeof deps.refreshType === 'function' ? deps.refreshType : (async () => {});
+        const refreshBackups = typeof deps.refreshBackups === 'function' ? deps.refreshBackups : (async () => {});
+        const refreshThemeWorkspace = typeof deps.refreshThemeWorkspace === 'function' ? deps.refreshThemeWorkspace : (async () => {});
+        const openImportApplyProgressDialog = typeof deps.openImportApplyProgressDialog === 'function' ? deps.openImportApplyProgressDialog : (() => {});
+        const updateImportApplyProgressDialog = typeof deps.updateImportApplyProgressDialog === 'function' ? deps.updateImportApplyProgressDialog : (() => {});
+        const closeImportApplyProgressDialog = typeof deps.closeImportApplyProgressDialog === 'function' ? deps.closeImportApplyProgressDialog : (() => {});
+        const ensureRuntimeConflictActionAllowed = typeof deps.ensureRuntimeConflictActionAllowed === 'function' ? deps.ensureRuntimeConflictActionAllowed : (() => true);
+
+        let recoveryEnvironmentSummary = null;
+        let recoveryEnvironmentMode = 'idle';
 
         const normalizeRecoveryWorkspaceType = (value) => (
             String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
         );
 
         const getActiveRecoveryWorkspaceType = () => normalizeRecoveryWorkspaceType(getActiveRecoveryWorkspaceTypeValue());
+
+        const normalizeRecoveryEnvironmentSummary = (value) => {
+            const source = value && typeof value === 'object' ? value : {};
+            const docker = source.docker && typeof source.docker === 'object' ? source.docker : {};
+            const vm = source.vm && typeof source.vm === 'object' ? source.vm : {};
+            const themeWorkspace = source.themeWorkspace && typeof source.themeWorkspace === 'object' ? source.themeWorkspace : {};
+            return {
+                kind: String(source.kind || '').trim(),
+                schemaVersion: Number(source.schemaVersion || 1),
+                pluginVersion: String(source.pluginVersion || '').trim(),
+                currentPluginVersion: String(source.currentPluginVersion || '').trim(),
+                exportedAt: String(source.exportedAt || '').trim(),
+                sourceName: String(source.sourceName || '').trim(),
+                docker: {
+                    folderCount: Math.max(0, Number(docker.folderCount) || 0),
+                    sortMode: String(docker.sortMode || '').trim()
+                },
+                vm: {
+                    folderCount: Math.max(0, Number(vm.folderCount) || 0),
+                    sortMode: String(vm.sortMode || '').trim()
+                },
+                themeWorkspace: {
+                    managedThemeCount: Math.max(0, Number(themeWorkspace.managedThemeCount) || 0),
+                    activeThemeId: String(themeWorkspace.activeThemeId || '').trim(),
+                    activeThemeName: String(themeWorkspace.activeThemeName || '').trim(),
+                    customCssBytes: Math.max(0, Number(themeWorkspace.customCssBytes) || 0)
+                },
+                warnings: Array.isArray(source.warnings)
+                    ? source.warnings.map((entry) => String(entry || '').trim()).filter(Boolean)
+                    : []
+            };
+        };
+
+        const getRecoveryEnvironmentModeLabel = (mode) => {
+            if (mode === 'export') {
+                return 'Export ready';
+            }
+            if (mode === 'preview') {
+                return 'Preview ready';
+            }
+            if (mode === 'import') {
+                return 'Imported';
+            }
+            return 'Portable backup';
+        };
+
+        const buildRecoveryEnvironmentSummaryHtml = () => {
+            if (!recoveryEnvironmentSummary) {
+                return `
+                    <div class="fv-recovery-empty-state">
+                        <strong>Export a full-environment JSON or import one from another install.</strong>
+                        <span>Environment snapshots include Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
+                    </div>
+                `;
+            }
+
+            const summary = recoveryEnvironmentSummary;
+            const themeLabel = summary.themeWorkspace.activeThemeName || summary.themeWorkspace.activeThemeId || 'No active managed theme';
+            const exportedAt = summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown export time';
+            const warningHtml = summary.warnings.map((warning) => (
+                `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`
+            )).join('');
+
+            return `
+                <article class="fv-recovery-history-card fv-recovery-environment-card">
+                    <div class="fv-recovery-history-head">
+                        <div>
+                            <div class="fv-recovery-history-title">${escapeHtml(getRecoveryEnvironmentModeLabel(recoveryEnvironmentMode))}</div>
+                            <div class="fv-recovery-history-copy">${escapeHtml(summary.sourceName || 'FolderView Plus Environment snapshot')}</div>
+                        </div>
+                        <span class="fv-recovery-history-badge">${escapeHtml(summary.kind || 'environment')}</span>
+                    </div>
+                    <div class="fv-recovery-history-meta">
+                        <span>${escapeHtml(`Exported ${exportedAt}`)}</span>
+                        <span>${escapeHtml(`Snapshot plugin ${summary.pluginVersion || 'unknown'}`)}</span>
+                        <span>${escapeHtml(`Docker ${summary.docker.folderCount} folder${summary.docker.folderCount === 1 ? '' : 's'}`)}</span>
+                        <span>${escapeHtml(`VM ${summary.vm.folderCount} folder${summary.vm.folderCount === 1 ? '' : 's'}`)}</span>
+                        <span>${escapeHtml(`${summary.themeWorkspace.managedThemeCount} managed theme${summary.themeWorkspace.managedThemeCount === 1 ? '' : 's'}`)}</span>
+                    </div>
+                    <div class="fv-recovery-environment-meta">
+                        <span>${escapeHtml(`Docker sort: ${summary.docker.sortMode || 'created'}`)}</span>
+                        <span>${escapeHtml(`VM sort: ${summary.vm.sortMode || 'created'}`)}</span>
+                        <span>${escapeHtml(`Theme: ${themeLabel}`)}</span>
+                        <span>${escapeHtml(`Custom CSS ${summary.themeWorkspace.customCssBytes} bytes`)}</span>
+                    </div>
+                    ${warningHtml}
+                </article>
+            `;
+        };
+
+        const renderRecoveryEnvironmentSummary = () => {
+            const host = $('#fv-recovery-environment-summary');
+            if (!host.length) {
+                return;
+            }
+            host.html(buildRecoveryEnvironmentSummaryHtml());
+        };
+
+        const setRecoveryEnvironmentSummary = (summary, mode = 'idle') => {
+            recoveryEnvironmentSummary = normalizeRecoveryEnvironmentSummary(summary);
+            recoveryEnvironmentMode = String(mode || 'idle').trim().toLowerCase() || 'idle';
+            renderRecoveryEnvironmentSummary();
+            return recoveryEnvironmentSummary;
+        };
+
+        const buildEnvironmentSnapshotFileName = (summary) => {
+            const exportedAt = String(summary?.exportedAt || '').trim();
+            const stamp = exportedAt
+                ? exportedAt.replace(/[:]/g, '-').replace(/\.\d+Z?$/, 'Z').replace(/[^0-9A-Za-zTZ_-]+/g, '_')
+                : new Date().toISOString().replace(/[:]/g, '-').replace(/\.\d+Z$/, 'Z');
+            return `FolderView Plus Environment ${stamp}.json`;
+        };
+
+        const buildRecoveryEnvironmentConfirmHtml = (summary) => `
+            <div class="preview-meta-grid">
+                <div class="preview-meta-item"><span>Docker folders</span><strong>${escapeHtml(String(summary.docker.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>VM folders</span><strong>${escapeHtml(String(summary.vm.folderCount))}</strong></div>
+                <div class="preview-meta-item"><span>Managed themes</span><strong>${escapeHtml(String(summary.themeWorkspace.managedThemeCount))}</strong></div>
+                <div class="preview-meta-item"><span>Exported</span><strong>${escapeHtml(summary.exportedAt ? formatTimestamp(summary.exportedAt) : 'Unknown')}</strong></div>
+            </div>
+            <p class="rules-help">This replaces Docker folders, VM folders, preferences, folder defaults, and Theme Workspace on this install. A rollback checkpoint plus fresh Docker and VM safety backups are created first.</p>
+            ${summary.warnings.map((warning) => `<div class="fv-recovery-callout">${escapeHtml(warning)}</div>`).join('')}
+        `;
+
+        const withRecoveryEnvironmentImportLock = async (actionLabel, callback) => {
+            const acquired = [];
+            for (const type of ['docker', 'vm']) {
+                if (!claimAdvancedOperationLock(type, 'backups', actionLabel)) {
+                    acquired.reverse().forEach(([lockedType, scope]) => releaseAdvancedOperationLock(lockedType, scope));
+                    return null;
+                }
+                acquired.push([type, 'backups']);
+            }
+            try {
+                return await callback();
+            } finally {
+                acquired.reverse().forEach(([lockedType, scope]) => releaseAdvancedOperationLock(lockedType, scope));
+            }
+        };
+
+        const applyEnvironmentSnapshotSelection = async (selectedFile, previewSummary = null) => withRecoveryEnvironmentImportLock('Environment import', async () => {
+            const progressTotal = 7;
+            let progressOpen = false;
+            const setProgress = (completed, label) => {
+                updateImportApplyProgressDialog({
+                    completed: Math.max(0, Math.min(progressTotal, Number(completed) || 0)),
+                    total: progressTotal,
+                    label
+                });
+            };
+
+            try {
+                openImportApplyProgressDialog('docker', progressTotal);
+                progressOpen = true;
+                setProgress(0, 'Preparing environment import...');
+                const response = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
+                    action: 'apply',
+                    payload: String(selectedFile?.text || ''),
+                    fileName: String(selectedFile?.name || '')
+                });
+                const importResult = response.import || {};
+                const importedSummary = setRecoveryEnvironmentSummary(importResult.summary || previewSummary || {}, 'import');
+                setProgress(1, 'Environment snapshot applied.');
+
+                await refreshType('docker');
+                setProgress(2, 'Refreshed Docker folders and preferences.');
+
+                await refreshType('vm');
+                setProgress(3, 'Refreshed VM folders and preferences.');
+
+                await refreshBackups('docker', { quiet: true });
+                setProgress(4, 'Refreshed Docker safety backups.');
+
+                await refreshBackups('vm', { quiet: true });
+                setProgress(5, 'Refreshed VM safety backups.');
+
+                let themeRefreshMessage = 'Refreshed Theme Workspace.';
+                try {
+                    await refreshThemeWorkspace();
+                } catch (themeError) {
+                    themeRefreshMessage = 'Theme Workspace changed. Reload the Appearance tab if needed.';
+                }
+                setProgress(6, themeRefreshMessage);
+
+                setProgress(progressTotal, 'Environment import complete.');
+                await new Promise((resolve) => {
+                    const timer = windowRef?.setTimeout || setTimeout;
+                    timer(resolve, 180);
+                });
+                closeImportApplyProgressDialog();
+                progressOpen = false;
+
+                const rollbackName = String(importResult.rollback?.name || '').trim();
+                const title = 'Environment imported';
+                const text = rollbackName
+                    ? `Environment snapshot applied. Rollback checkpoint: ${rollbackName}.`
+                    : 'Environment snapshot applied.';
+                if (swal) {
+                    swal({ title, text, type: 'success' });
+                }
+                showToastMessage({
+                    title,
+                    message: rollbackName
+                        ? `Portable environment applied. Rollback checkpoint: ${rollbackName}.`
+                        : 'Portable environment applied.',
+                    level: 'success',
+                    durationMs: 4200
+                });
+                return importedSummary;
+            } catch (error) {
+                if (progressOpen) {
+                    closeImportApplyProgressDialog();
+                }
+                showError('Environment import failed', error);
+                throw error;
+            }
+        });
+
+        const exportEnvironmentSnapshot = async () => {
+            try {
+                const response = await apiGetJson('/plugins/folderview.plus/server/environment_snapshot.php', {
+                    data: { action: 'export' }
+                });
+                const summary = setRecoveryEnvironmentSummary(response.summary || {}, 'export');
+                downloadFile(buildEnvironmentSnapshotFileName(summary), toPrettyJson(response.snapshot || {}));
+                showToastMessage({
+                    title: 'Environment exported',
+                    message: 'Portable environment snapshot downloaded.',
+                    level: 'success',
+                    durationMs: 3600
+                });
+                return summary;
+            } catch (error) {
+                showError('Environment export failed', error);
+                throw error;
+            }
+        };
+
+        const importEnvironmentSnapshot = async () => {
+            if (!ensureRuntimeConflictActionAllowed('Import full FolderView Plus environment')) {
+                return;
+            }
+
+            let selected = null;
+            try {
+                selected = await selectJsonFile();
+            } catch (error) {
+                showError('Environment snapshot selection failed', error);
+                return;
+            }
+            if (!selected) {
+                return;
+            }
+
+            try {
+                const previewResponse = await apiPostJson('/plugins/folderview.plus/server/environment_snapshot.php', {
+                    action: 'preview',
+                    payload: String(selected.text || ''),
+                    fileName: String(selected.name || '')
+                });
+                const summary = setRecoveryEnvironmentSummary(previewResponse.summary || {}, 'preview');
+                const previewHtml = buildRecoveryEnvironmentConfirmHtml(summary);
+
+                if (!swal) {
+                    const confirmed = windowRef?.confirm('Import this environment snapshot?');
+                    if (confirmed) {
+                        await applyEnvironmentSnapshotSelection(selected, summary);
+                    }
+                    return;
+                }
+
+                swal({
+                    title: 'Import environment snapshot?',
+                    text: previewHtml,
+                    type: 'warning',
+                    html: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Import environment',
+                    cancelButtonText: 'Cancel',
+                    showLoaderOnConfirm: true
+                }, async (confirmed) => {
+                    if (!confirmed) {
+                        return;
+                    }
+                    await applyEnvironmentSnapshotSelection(selected, summary);
+                });
+            } catch (error) {
+                showError('Environment snapshot preview failed', error);
+            }
+        };
 
         const formatRecoveryReasonLabel = (value) => {
             const raw = String(value || '').trim();
@@ -247,6 +554,7 @@
 
             overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
             listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
+            renderRecoveryEnvironmentSummary();
             safetyNote.text(latest
                 ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
                 : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
@@ -668,6 +976,9 @@
             restoreSelectedActiveRecoveryBackup,
             downloadSelectedActiveRecoveryBackup,
             deleteSelectedActiveRecoveryBackup,
+            renderRecoveryEnvironmentSummary,
+            exportEnvironmentSnapshot,
+            importEnvironmentSnapshot,
             runActiveRecoveryScheduler,
             compareActiveRecoverySnapshots,
             changeActiveBackupSchedulePref,

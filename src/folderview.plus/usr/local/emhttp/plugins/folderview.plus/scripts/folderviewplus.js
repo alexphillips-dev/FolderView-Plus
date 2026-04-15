@@ -3186,6 +3186,7 @@ const getSettingsWorkspacesApi = (() => {
             $,
             utils,
             escapeHtml,
+            swal,
             getFolderMap: (type) => getFolderMap(type),
             getFolderNameForId: (type, id) => folderNameForId(type, id),
             getSortedBackupsForType: (type) => getSortedBackupsForType(type),
@@ -3225,9 +3226,22 @@ const getSettingsWorkspacesApi = (() => {
             },
             templatesByType,
             selectedOperationsTemplateIdByType,
+            apiGetJson,
+            apiPostJson,
+            selectJsonFile,
             downloadFile,
             toPrettyJson,
-            showError
+            showError,
+            showToastMessage,
+            claimAdvancedOperationLock,
+            releaseAdvancedOperationLock,
+            refreshType,
+            refreshBackups,
+            refreshThemeWorkspace: () => getThemeWorkspaceApi().readWorkspace(),
+            openImportApplyProgressDialog,
+            updateImportApplyProgressDialog,
+            closeImportApplyProgressDialog,
+            ensureRuntimeConflictActionAllowed
         });
         return cachedApi;
     };
@@ -4042,6 +4056,8 @@ const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi(
 const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
 const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
 const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
+const exportEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().exportEnvironmentSnapshot(...args);
+const importEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().importEnvironmentSnapshot(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
@@ -9050,6 +9066,8 @@ settingsActionSupportModule.registerWindowActions(window, {
     refreshBackups,
     runScheduledBackupNow,
     runActiveRecoveryScheduler,
+    exportEnvironmentSnapshot,
+    importEnvironmentSnapshot,
     restoreLatestBackup,
     restoreLatestActiveRecoveryBackup,
     selectActiveRecoveryBackup,

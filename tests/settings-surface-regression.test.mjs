@@ -252,6 +252,9 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
+    assert.match(settingsPage, /onclick="exportEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /onclick="importEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
     assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
@@ -263,6 +266,7 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsCss, /\.fv-recovery-source-switch/);
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
+    assert.match(settingsCss, /\.fv-recovery-environment-meta/);
     assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
     assert.match(settingsCss, /\.fv-recovery-history-list,\s*\.fv-recovery-change-history-list/);
     assert.match(settingsCss, /\.fv-recovery-timeline-card/);

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.04">
-<!ENTITY md5 "d26cbe9201671730aed58f25643fa9eb">
+<!ENTITY version "2026.04.15.05">
+<!ENTITY md5 "e0b2b75e3180de66729cc39269742db9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.05
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
 
 ###2026.04.15.04
 - Fix: Theme workspace action buttons in the Appearance tab now use the shared settings button system, so import, update, save, disable, and theme-entry actions match the rest of the plugin chrome.

@@ -338,6 +338,8 @@
     }
 
     const FVPLUS_EXPORT_SCHEMA_VERSION = 1;
+    const FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION = 1;
+    const FVPLUS_ENVIRONMENT_SNAPSHOT_KIND = 'environment_snapshot';
     const FVPLUS_REMOTE_MANIFEST_URL = "https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg";
     const FVPLUS_ALLOWED_TYPES = ['docker', 'vm'];
     const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 2;
@@ -2026,6 +2028,177 @@
         return $normalized;
     }
 
+    function normalizeEnvironmentSnapshotPayload($payload): array {
+        if (!is_array($payload)) {
+            throw new RuntimeException('Environment snapshot must be a JSON object.');
+        }
+
+        $typesIncoming = is_array($payload['types'] ?? null) ? $payload['types'] : null;
+        if (!is_array($typesIncoming)) {
+            throw new RuntimeException('Environment snapshot is missing required type data.');
+        }
+
+        $normalizedTypes = [];
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $entry = is_array($typesIncoming[$type] ?? null) ? $typesIncoming[$type] : [];
+            $folders = normalizeFolderMapPayload(is_array($entry['folders'] ?? null) ? $entry['folders'] : []);
+            $prefs = normalizeTypePrefs(is_array($entry['prefs'] ?? null) ? $entry['prefs'] : []);
+            $normalizedTypes[$type] = [
+                'folders' => $folders,
+                'prefs' => $prefs
+            ];
+        }
+
+        return [
+            'kind' => FVPLUS_ENVIRONMENT_SNAPSHOT_KIND,
+            'schemaVersion' => FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION,
+            'pluginVersion' => trim((string)($payload['pluginVersion'] ?? '')),
+            'exportedAt' => trim((string)($payload['exportedAt'] ?? '')),
+            'types' => $normalizedTypes,
+            'themeWorkspace' => normalizeThemeWorkspacePayload($payload['themeWorkspace'] ?? [])
+        ];
+    }
+
+    function buildEnvironmentSnapshotSummary(array $snapshot, string $sourceName = ''): array {
+        $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+        $dockerFolders = is_array($normalized['types']['docker']['folders'] ?? null) ? $normalized['types']['docker']['folders'] : [];
+        $vmFolders = is_array($normalized['types']['vm']['folders'] ?? null) ? $normalized['types']['vm']['folders'] : [];
+        $dockerPrefs = is_array($normalized['types']['docker']['prefs'] ?? null) ? $normalized['types']['docker']['prefs'] : [];
+        $vmPrefs = is_array($normalized['types']['vm']['prefs'] ?? null) ? $normalized['types']['vm']['prefs'] : [];
+        $themeWorkspace = is_array($normalized['themeWorkspace'] ?? null) ? $normalized['themeWorkspace'] : defaultThemeWorkspace();
+        $activeThemeId = trim((string)($themeWorkspace['activeThemeId'] ?? ''));
+        $activeThemeName = '';
+        foreach ((array)($themeWorkspace['themes'] ?? []) as $theme) {
+            if (trim((string)($theme['id'] ?? '')) === $activeThemeId) {
+                $activeThemeName = trim((string)($theme['name'] ?? $activeThemeId));
+                break;
+            }
+        }
+
+        $warnings = [];
+        $currentVersion = trim(readInstalledVersion());
+        $snapshotVersion = trim((string)($normalized['pluginVersion'] ?? ''));
+        if ($snapshotVersion !== '' && $currentVersion !== '' && $snapshotVersion !== $currentVersion) {
+            $warnings[] = "Snapshot was exported by FolderView Plus $snapshotVersion and will be applied to $currentVersion.";
+        }
+
+        return [
+            'kind' => FVPLUS_ENVIRONMENT_SNAPSHOT_KIND,
+            'schemaVersion' => FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION,
+            'pluginVersion' => $snapshotVersion,
+            'currentPluginVersion' => $currentVersion,
+            'exportedAt' => trim((string)($normalized['exportedAt'] ?? '')),
+            'sourceName' => trim($sourceName),
+            'docker' => [
+                'folderCount' => count($dockerFolders),
+                'sortMode' => trim((string)($dockerPrefs['sortMode'] ?? 'created'))
+            ],
+            'vm' => [
+                'folderCount' => count($vmFolders),
+                'sortMode' => trim((string)($vmPrefs['sortMode'] ?? 'created'))
+            ],
+            'themeWorkspace' => [
+                'managedThemeCount' => count((array)($themeWorkspace['themes'] ?? [])),
+                'activeThemeId' => $activeThemeId,
+                'activeThemeName' => $activeThemeName,
+                'customCssBytes' => strlen((string)($themeWorkspace['customCss'] ?? ''))
+            ],
+            'warnings' => array_values(array_unique(array_filter($warnings, static function($value): bool {
+                return trim((string)$value) !== '';
+            })))
+        ];
+    }
+
+    function exportEnvironmentSnapshotPayload(): array {
+        $snapshot = [
+            'kind' => FVPLUS_ENVIRONMENT_SNAPSHOT_KIND,
+            'schemaVersion' => FVPLUS_ENVIRONMENT_SNAPSHOT_SCHEMA_VERSION,
+            'pluginVersion' => readInstalledVersion(),
+            'exportedAt' => gmdate('c'),
+            'types' => [
+                'docker' => [
+                    'folders' => readRawFolderMap('docker'),
+                    'prefs' => readTypePrefs('docker')
+                ],
+                'vm' => [
+                    'folders' => readRawFolderMap('vm'),
+                    'prefs' => readTypePrefs('vm')
+                ]
+            ],
+            'themeWorkspace' => readThemeWorkspace()
+        ];
+        return normalizeEnvironmentSnapshotPayload($snapshot);
+    }
+
+    function decodeEnvironmentSnapshotPayloadString(string $rawPayload): array {
+        $trimmed = trim($rawPayload);
+        if ($trimmed === '') {
+            throw new RuntimeException('Environment snapshot payload is empty.');
+        }
+        $decoded = @json_decode($trimmed, true);
+        if (!is_array($decoded)) {
+            throw new RuntimeException('Environment snapshot is not valid JSON.');
+        }
+        return normalizeEnvironmentSnapshotPayload($decoded);
+    }
+
+    function previewEnvironmentSnapshotPayload(array $snapshot, string $sourceName = ''): array {
+        $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+        return [
+            'summary' => buildEnvironmentSnapshotSummary($normalized, $sourceName)
+        ];
+    }
+
+    function importEnvironmentSnapshotPayload(array $snapshot, string $sourceName = ''): array {
+        $normalized = normalizeEnvironmentSnapshotPayload($snapshot);
+        $rollback = createGlobalRollbackSnapshot('before-environment-import');
+        $typeResults = [];
+
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $typeResults[$type] = [
+                'backup' => createBackupSnapshot($type, 'before-environment-import')
+            ];
+        }
+
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $entry = is_array($normalized['types'][$type] ?? null) ? $normalized['types'][$type] : [];
+            $folders = is_array($entry['folders'] ?? null) ? $entry['folders'] : [];
+            $prefs = is_array($entry['prefs'] ?? null) ? $entry['prefs'] : defaultTypePrefs();
+            writeRawFolderMap($type, $folders);
+            writeTypePrefs($type, $prefs);
+            syncManualOrderWithFolders($type, $folders);
+            if ($type === 'docker') {
+                syncContainerOrder('docker');
+            }
+            $typeResults[$type]['folderCount'] = count($folders);
+        }
+
+        $workspace = writeThemeWorkspace($normalized['themeWorkspace'] ?? defaultThemeWorkspace());
+        $summary = buildEnvironmentSnapshotSummary($normalized, $sourceName);
+
+        try {
+            appendDiagnosticsHistoryEvent('environment_import', null, [
+                'sourceName' => trim($sourceName),
+                'dockerCount' => (int)($summary['docker']['folderCount'] ?? 0),
+                'vmCount' => (int)($summary['vm']['folderCount'] ?? 0),
+                'managedThemeCount' => (int)($summary['themeWorkspace']['managedThemeCount'] ?? 0),
+                'rollbackName' => (string)($rollback['name'] ?? '')
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep import non-fatal if diagnostics logging fails.
+        }
+
+        return [
+            'summary' => $summary,
+            'types' => $typeResults,
+            'rollback' => $rollback,
+            'themeWorkspace' => [
+                'managedThemeCount' => count((array)($workspace['themes'] ?? [])),
+                'activeThemeId' => trim((string)($workspace['activeThemeId'] ?? ''))
+            ]
+        ];
+    }
+
     function fvplusThemeWorkspaceScanCss(string $css): array {
         $warnings = [];
         $severe = [];
@@ -2976,7 +3149,8 @@
                     'folders' => readRawFolderMap('vm'),
                     'prefs' => readTypePrefs('vm')
                 ]
-            ]
+            ],
+            'themeWorkspace' => readThemeWorkspace()
         ];
         @file_put_contents("$rollbackDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
         $pruned = pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX);
@@ -2986,6 +3160,7 @@
                 'reason' => $reason,
                 'dockerCount' => count($payload['types']['docker']['folders']),
                 'vmCount' => count($payload['types']['vm']['folders']),
+                'managedThemeCount' => count((array)($payload['themeWorkspace']['themes'] ?? [])),
                 'prunedCount' => count($pruned)
             ], 'ok', 'server');
         } catch (Throwable $err) {
@@ -2998,6 +3173,7 @@
             'pluginVersion' => $payload['pluginVersion'],
             'dockerCount' => count($payload['types']['docker']['folders']),
             'vmCount' => count($payload['types']['vm']['folders']),
+            'managedThemeCount' => count((array)($payload['themeWorkspace']['themes'] ?? [])),
             'pruned' => $pruned
         ];
     }
@@ -3026,6 +3202,9 @@
                 syncContainerOrder('docker');
             }
             $counts[$type] = count($folders);
+        }
+        if (is_array($decoded['themeWorkspace'] ?? null)) {
+            writeThemeWorkspace($decoded['themeWorkspace']);
         }
 
         try {

@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
+const environmentSnapshotPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/environment_snapshot.php');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
@@ -36,6 +37,7 @@ const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPat
 const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
+const environmentSnapshotPhp = fs.readFileSync(environmentSnapshotPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
@@ -150,6 +152,15 @@ test('backup endpoint supports scheduler and rollback actions', () => {
     assert.match(backupPhp, /action\s*===\s*'rollback_restore_previous'/);
 });
 
+test('environment snapshot endpoint supports export, preview, and guarded apply actions', () => {
+    assert.match(environmentSnapshotPhp, /action\s*===\s*'export'/);
+    assert.match(environmentSnapshotPhp, /action\s*===\s*'preview'/);
+    assert.match(environmentSnapshotPhp, /action\s*===\s*'apply'/);
+    assert.match(environmentSnapshotPhp, /\$mutatingActions\s*=\s*\['apply'\]/);
+    assert.match(environmentSnapshotPhp, /decodeEnvironmentSnapshotPayloadString/);
+    assert.match(environmentSnapshotPhp, /importEnvironmentSnapshotPayload/);
+});
+
 test('import preview defaults to apply mode (dry run OFF)', () => {
     assert.match(runtimeScript, /\$\('#import-dry-run-only'\)\.prop\('checked', false\)/);
     assert.match(runtimeScript, /const isImportDryRunOnly = \(\) =>/);
@@ -222,6 +233,8 @@ test('recovery workspace remembers source and routes generic actions through the
     assert.match(script, /const getActiveRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.getActiveRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /writeSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /const createActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.createActiveRecoveryBackup\(\.\.\.args\);/);
+    assert.match(script, /const exportEnvironmentSnapshot = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.exportEnvironmentSnapshot\(\.\.\.args\);/);
+    assert.match(script, /const importEnvironmentSnapshot = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.importEnvironmentSnapshot\(\.\.\.args\);/);
     assert.match(script, /const restoreLatestActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.restoreLatestActiveRecoveryBackup\(\.\.\.args\);/);
     assert.match(script, /const selectActiveRecoveryBackup = \(name = ''\) => \{/);
     assert.match(script, /const restoreSelectedActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.restoreSelectedActiveRecoveryBackup\(\.\.\.args\);/);
@@ -230,6 +243,7 @@ test('recovery workspace remembers source and routes generic actions through the
     assert.match(script, /const runActiveRecoveryScheduler = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.runActiveRecoveryScheduler\(\.\.\.args\);/);
     assert.match(script, /const compareActiveRecoverySnapshots = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.compareActiveRecoverySnapshots\(\.\.\.args\);/);
     assert.match(script, /const undoActiveRecoveryChange = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.undoActiveRecoveryChange\(\.\.\.args\);/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*exportEnvironmentSnapshot[\s\S]*importEnvironmentSnapshot[\s\S]*\}\);/);
 });
 
 test('operations workspace remembers source and exposes the shared runtime-template actions', () => {

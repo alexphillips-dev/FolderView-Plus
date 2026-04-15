@@ -1270,6 +1270,23 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </section>
 
+            <section class="fv-recovery-stage fv-recovery-environment-stage">
+                <div class="fv-recovery-stage-head">
+                    <strong>Environment export and import</strong>
+                    <span class="rules-help">Move the full plugin environment between installs in one JSON file. This includes Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
+                </div>
+                <div class="backup-actions fv-recovery-environment-actions">
+                    <button type="button" onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
+                    <button type="button" onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
+                </div>
+                <div id="fv-recovery-environment-summary" class="fv-recovery-history-list">
+                    <div class="fv-recovery-empty-state">
+                        <strong>Portable environment snapshots are ready.</strong>
+                        <span>Export everything to one JSON file or import a snapshot from another FolderView Plus install.</span>
+                    </div>
+                </div>
+            </section>
+
             <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
                 <select id="docker-backup-compare-left"></select>
                 <select id="docker-backup-compare-right"></select>

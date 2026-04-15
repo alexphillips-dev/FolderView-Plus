@@ -3407,6 +3407,22 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin-top: 0.1rem;
 }
 
+.fv-recovery-environment-stage {
+    margin-top: 0.1rem;
+}
+
+.fv-recovery-environment-actions {
+    margin: 0;
+}
+
+.fv-recovery-environment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.8rem;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.95rem;
+}
+
 .fv-recovery-empty-state {
     display: grid;
     gap: 0.18rem;

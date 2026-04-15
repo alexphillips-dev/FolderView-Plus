@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.21">
-<!ENTITY md5 "c2077648bc18417418c9c310f5bc550b">
+<!ENTITY version "2026.04.15.22">
+<!ENTITY md5 "b1a1abe75b1562c1bc70afead901aa7b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.22
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+
 
 ###2026.04.15.21
 - UX: Docker command-view container cards now restore the outlined member-tile treatment, but the outline colors are theme-aware and use the plugin runtime status/border tokens instead of hardcoded orange chrome.

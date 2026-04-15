@@ -25,9 +25,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     border: 1px solid var(--fv-docker-command-border);
     border-radius: 16px;
     padding: 1rem;
-    background:
-        radial-gradient(circle at top right, var(--fv-docker-command-accent-soft), transparent 26%),
-        linear-gradient(160deg, var(--fv-docker-command-surface-panel), var(--fv-docker-command-surface-muted));
+    background: var(--fv-docker-command-surface-panel);
     box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
 }
 
@@ -255,6 +253,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     min-width: 220px;
     min-height: 48px;
     display: flex;
+    flex-direction: column;
     border: 1px solid var(--fv-docker-command-border-faint);
     border-radius: 12px;
     background: var(--fv-docker-command-surface-panel);
@@ -372,6 +371,8 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     align-items: center;
     gap: 5px;
     margin-left: auto;
+    padding: 0 0.55rem 0.45rem;
+    align-self: flex-end;
 }
 
 .fv-docker-command-member-actions .folder-element-custom-btn {

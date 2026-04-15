@@ -671,6 +671,7 @@ const getDockerCommandViewApi = () => {
         dockerCommandViewApi = dockerCommandViewModule.createApi({
             window,
             document,
+            $,
             utils,
             escapeHtml: (value) => escapeHtml(value),
             parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
@@ -727,6 +728,8 @@ const getDockerCommandViewApi = () => {
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),
             openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
             openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
+            appendDockerPreviewActionButtons: ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') =>
+                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
             toggleFolderPin: (folderId) => toggleDockerFolderPin(folderId),
             toggleFolderLock: (folderId) => toggleDockerFolderLock(folderId),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),

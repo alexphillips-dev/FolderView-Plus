@@ -17,6 +17,7 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win?.document || (typeof document !== 'undefined' ? document : null);
+        const jq = deps.$ || win?.jQuery || win?.$;
         const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
@@ -132,10 +133,12 @@
         const queueLoadlistRefresh = typeof deps.queueLoadlistRefresh === 'function'
             ? deps.queueLoadlistRefresh
             : (() => {});
+        const appendDockerPreviewActionButtons = typeof deps.appendDockerPreviewActionButtons === 'function'
+            ? deps.appendDockerPreviewActionButtons
+            : (() => {});
 
         let rootNode = null;
         let clickHandler = null;
-        let contextMenuHandler = null;
         let renderToken = 0;
 
         const getHostTable = () => doc?.querySelector('table#docker_containers') || null;
@@ -192,11 +195,7 @@
             if (clickHandler && rootNode) {
                 rootNode.removeEventListener('click', clickHandler);
             }
-            if (contextMenuHandler && rootNode) {
-                rootNode.removeEventListener('contextmenu', contextMenuHandler);
-            }
             clickHandler = null;
-            contextMenuHandler = null;
             if (rootNode && rootNode.parentNode) {
                 rootNode.parentNode.removeChild(rootNode);
             }
@@ -274,6 +273,22 @@
                 return false;
             }
             const safeType = eventType === 'contextmenu' ? 'contextmenu' : 'click';
+            if (typeof jq === 'function') {
+                try {
+                    jq(trigger).trigger(safeType);
+                    return true;
+                } catch (_error) {
+                    // Fall through to native DOM dispatch.
+                }
+            }
+            if (safeType === 'click' && typeof trigger.click === 'function') {
+                try {
+                    trigger.click();
+                    return true;
+                } catch (_error) {
+                    // Fall through to synthetic DOM dispatch.
+                }
+            }
             const event = new MouseEvent(safeType, {
                 bubbles: true,
                 cancelable: true,
@@ -281,7 +296,11 @@
                 button: safeType === 'contextmenu' ? 2 : 0,
                 buttons: safeType === 'contextmenu' ? 2 : 1
             });
-            return trigger.dispatchEvent(event);
+            try {
+                return trigger.dispatchEvent(event);
+            } catch (_error) {
+                return false;
+            }
         };
 
         const hydrateNativeMemberSurface = (surface, containerName) => {
@@ -293,44 +312,31 @@
                 return;
             }
             const trigger = getNativeMemberTrigger(safeName);
-            if (!(trigger instanceof HTMLElement)) {
-                surface.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'click');
-                });
-                surface.addEventListener('contextmenu', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'contextmenu');
-                });
-                return;
-            }
-            const inlineClick = String(trigger.getAttribute('onclick') || '').trim();
-            const inlineContextMenu = String(trigger.getAttribute('oncontextmenu') || '').trim();
-            const title = String(trigger.getAttribute('title') || '').trim();
             surface.classList.add('hand');
-            if (inlineClick) {
-                surface.setAttribute('onclick', inlineClick);
-            } else {
-                surface.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'click');
-                });
-            }
-            if (inlineContextMenu) {
-                surface.setAttribute('oncontextmenu', inlineContextMenu);
-            } else {
-                surface.addEventListener('contextmenu', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    proxyNativeMemberTrigger(safeName, 'contextmenu');
-                });
-            }
+            surface.setAttribute('role', 'button');
+            surface.setAttribute('tabindex', '0');
+            const title = trigger instanceof HTMLElement ? String(trigger.getAttribute('title') || '').trim() : '';
             if (title) {
                 surface.setAttribute('title', title);
             }
+            surface.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                proxyNativeMemberTrigger(safeName, 'click');
+            });
+            surface.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                proxyNativeMemberTrigger(safeName, 'contextmenu');
+            });
+            surface.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                proxyNativeMemberTrigger(safeName, 'click');
+            });
         };
 
         const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder) => {
@@ -490,12 +496,8 @@
                                                 ${member.updateReady ? '<span class="fv-docker-command-member-update">update ready</span>' : ''}
                                             </span>
                                         </span>
-                                        <span class="fv-docker-command-member-actions">
-                                            ${member.webuiUrl ? `<span class="folder-element-custom-btn folder-element-webui"><a href="${escapeHtml(member.webuiUrl)}" title="Open WebUI" aria-label="Open WebUI" data-fv-command-member-action="webui" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-globe" aria-hidden="true"></i></a></span>` : ''}
-                                            <span class="folder-element-custom-btn folder-element-console"><a href="#" title="Open console" aria-label="Open console" data-fv-command-member-action="console" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-terminal" aria-hidden="true"></i></a></span>
-                                            <span class="folder-element-custom-btn folder-element-logs"><a href="#" title="Open logs" aria-label="Open logs" data-fv-command-member-action="logs" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-bars" aria-hidden="true"></i></a></span>
-                                        </span>
                                     </div>
+                                    <span class="fv-docker-command-member-actions fv-preview-actions-compact" data-fv-command-member-actions-host="true" data-member-name="${escapeHtml(member.name)}" data-member-webui-url="${escapeHtml(member.webuiUrl)}" data-member-shell="${escapeHtml(member.shell)}"></span>
                                 </div>
                             `).join('');
                             return `
@@ -547,6 +549,30 @@
                 }
                 hydrateNativeMemberSurface(surface, String(surface.getAttribute('data-member-name') || '').trim());
             });
+            if (typeof jq === 'function') {
+                root.querySelectorAll('[data-fv-command-member-actions-host="true"]').forEach((host) => {
+                    if (!(host instanceof HTMLElement)) {
+                        return;
+                    }
+                    const memberName = String(host.getAttribute('data-member-name') || '').trim();
+                    const memberWebuiUrl = String(host.getAttribute('data-member-webui-url') || '').trim();
+                    const memberShell = String(host.getAttribute('data-member-shell') || '').trim() || '/bin/sh';
+                    if (!memberName) {
+                        return;
+                    }
+                    appendDockerPreviewActionButtons(
+                        jq(host),
+                        {
+                            preview_webui: Boolean(memberWebuiUrl),
+                            preview_console: true,
+                            preview_logs: true
+                        },
+                        memberName,
+                        memberShell,
+                        memberWebuiUrl
+                    );
+                });
+            }
             return true;
         };
 
@@ -558,35 +584,6 @@
                 rootNode.removeEventListener('click', clickHandler);
             }
             clickHandler = (event) => {
-                const memberButton = event.target instanceof Element
-                    ? event.target.closest('[data-fv-command-member-action]')
-                    : null;
-                if (memberButton instanceof HTMLElement) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const memberAction = String(memberButton.getAttribute('data-fv-command-member-action') || '').trim();
-                    const memberTile = memberButton.closest('.fv-docker-command-member-tile');
-                    const folderCard = memberButton.closest('[data-folder-id]');
-                    const folderId = folderCard instanceof HTMLElement ? String(folderCard.getAttribute('data-folder-id') || '').trim() : '';
-                    const memberName = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-name') || '').trim() : '';
-                    const memberWebuiUrl = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-webui-url') || '').trim() : '';
-                    const memberShell = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-shell') || '').trim() || '/bin/sh' : '/bin/sh';
-                    if (!folderId || !memberName) {
-                        return;
-                    }
-                    if (memberAction === 'webui') {
-                        openWebuiInNewTab(memberWebuiUrl);
-                        return;
-                    }
-                    if (memberAction === 'console') {
-                        openTerminal('docker', memberName, memberShell);
-                        return;
-                    }
-                    if (memberAction === 'logs') {
-                        openTerminal('docker', memberName, '.log');
-                        return;
-                    }
-                }
                 const button = event.target instanceof Element
                     ? event.target.closest('[data-fv-command-action]')
                     : null;

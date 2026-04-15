@@ -2932,6 +2932,97 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
     window.setTimeout(run, 0);
 };
 
+const normalizeDockerPageViewMode = (value) => (
+    typeof utils.normalizeRuntimePageViewMode === 'function'
+        ? utils.normalizeRuntimePageViewMode(value)
+        : (String(value || '').trim().toLowerCase() === 'host' ? 'host' : 'folderview')
+);
+
+const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPageViewMode(
+    utils.normalizePrefs(prefs || {}).pageViewMode
+);
+
+const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
+    const resolvedMode = normalizeDockerPageViewMode(mode);
+    const existing = document.getElementById('fvplus-docker-add-folder-btn');
+    if (resolvedMode === 'host') {
+        if (existing) {
+            existing.remove();
+        }
+        return;
+    }
+    if (existing) {
+        return;
+    }
+    const table = document.querySelector('table#docker_containers');
+    if (!table || typeof table.insertAdjacentHTML !== 'function') {
+        return;
+    }
+    table.insertAdjacentHTML(
+        'afterend',
+        '<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">'
+    );
+    if (typeof $('body').i18n === 'function') {
+        $('body').i18n();
+    }
+    if (typeof $('[type="button"]').i18n === 'function') {
+        $('[type="button"]').i18n();
+    }
+};
+
+const fetchDockerBootstrapPrefs = async () => {
+    const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
+    const parsed = parseJsonPayloadSafe(response);
+    const nextPrefs = utils.normalizePrefs(parsed?.prefs || {});
+    folderTypePrefs = nextPrefs;
+    applyRuntimePrefs(nextPrefs);
+    return nextPrefs;
+};
+
+const ensureDockerBootstrapPrefs = () => {
+    if (lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object' && Object.keys(lastAppliedRuntimePrefs).length > 0) {
+        return Promise.resolve(lastAppliedRuntimePrefs);
+    }
+    if (dockerBootstrapPrefsPromise) {
+        return dockerBootstrapPrefsPromise;
+    }
+    dockerBootstrapPrefsPromise = Promise.resolve()
+        .then(() => fetchDockerBootstrapPrefs())
+        .catch(() => utils.normalizePrefs(folderTypePrefs || {}))
+        .finally(() => {
+            dockerBootstrapPrefsPromise = null;
+        });
+    return dockerBootstrapPrefsPromise;
+};
+
+const queueDockerRuntimeRenderForPageViewMode = () => {
+    Promise.resolve()
+        .then(() => ensureDockerBootstrapPrefs())
+        .then((prefs) => {
+            if (resolveDockerPageViewMode(prefs) === 'host') {
+                markDockerFatalBannerStep('Docker host list mode active');
+                recordDockerFatalBannerAction('Docker host list mode active');
+                return;
+            }
+            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
+                folderReq = buildDockerFolderReq({
+                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+                });
+            }
+            dockerHostLoadOwnsLoadingUi = true;
+            queueCreateFoldersRender();
+        })
+        .catch(() => {
+            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
+                folderReq = buildDockerFolderReq({
+                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+                });
+            }
+            dockerHostLoadOwnsLoadingUi = true;
+            queueCreateFoldersRender();
+        });
+};
+
 const syncDockerVisibleFoldersFromRuntimeCache = () => {
     Object.entries(globalFolders || {}).forEach(([id, folder]) => {
         if (!folder || typeof folder !== 'object') {
@@ -5512,16 +5603,10 @@ window.listview = () => {
     }
 
     if (!loadedFolder) {
-        if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-            folderReq = buildDockerFolderReq({
-                liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-            });
-        }
-        dockerHostLoadOwnsLoadingUi = true;
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
-        queueCreateFoldersRender();
         loadedFolder = true;
-         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Set loadedFolder to true.');
+        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Resolving Docker page view render path.');
+        queueDockerRuntimeRenderForPageViewMode();
+        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Set loadedFolder to true.');
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is true. Skipped createFolders.');
     }
@@ -5724,6 +5809,7 @@ let folderTypePrefs = utils.normalizePrefs({});
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
+let dockerBootstrapPrefsPromise = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
@@ -6012,6 +6098,10 @@ const scheduleLiveRefresh = (prefs) => {
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
     lastAppliedRuntimePrefs = normalized;
+    if (document.body && typeof document.body.setAttribute === 'function') {
+        document.body.setAttribute('data-fvplus-docker-page-view', resolveDockerPageViewMode(normalized));
+    }
+    syncDockerAddFolderButtonVisibility(resolveDockerPageViewMode(normalized));
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(normalized.appColumnWidth)
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');

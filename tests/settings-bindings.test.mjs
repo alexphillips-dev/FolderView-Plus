@@ -123,13 +123,14 @@ test('settings page exposes theme workspace and saved folder defaults controls',
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
-    assert.doesNotMatch(page, /id="docker-view-mode"/);
-    assert.doesNotMatch(page, /id="vm-view-mode"/);
-    assert.doesNotMatch(page, /Runtime view/);
+    assert.match(page, /id="docker-page-view-mode"/);
+    assert.doesNotMatch(page, /id="vm-page-view-mode"/);
+    assert.match(page, /Docker page view/);
     assert.match(page, /id="docker-theme-compat-mode"/);
     assert.match(page, /id="vm-theme-compat-mode"/);
     assert.match(page, /Theme fallback mode/);
     assert.match(page, /folderviewplus\.theme-resolver\.js/);
+    assert.match(page, /changeRuntimePref\('docker', 'pageViewMode', this\.value\)/);
     assert.match(page, /changeRuntimePref\('docker', 'themeCompatibilityMode', this\.value\)/);
     assert.match(page, /changeRuntimePref\('vm', 'themeCompatibilityMode', this\.value\)/);
     assert.doesNotMatch(page, /onclick="runThemeSelfHeal\(\)"/);
@@ -139,7 +140,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
-    assert.doesNotMatch(script, /else if \(key === 'viewMode'\) \{/);
+    assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
 });

@@ -21,6 +21,7 @@
     const RUNTIME_PREFS_SCHEMA = 2;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
+    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -432,6 +433,11 @@
         return THEME_COMPATIBILITY_MODE_OPTIONS.includes(normalized) ? normalized : 'auto';
     };
 
+    const normalizeRuntimePageViewMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return RUNTIME_PAGE_VIEW_MODE_OPTIONS.includes(normalized) ? normalized : 'folderview';
+    };
+
     const normalizeFolderMembers = (value) => {
         if (Array.isArray(value)) {
             return Array.from(
@@ -692,6 +698,7 @@
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
+        const pageViewMode = normalizeRuntimePageViewMode(incoming.pageViewMode);
         const themeCompatibilityMode = normalizeThemeCompatibilityMode(incoming.themeCompatibilityMode);
         const incomingDashboard = isPlainObject(incoming.dashboard) ? incoming.dashboard : {};
         const dashboard = {
@@ -827,6 +834,7 @@
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
+            pageViewMode,
             themeCompatibilityMode,
             dashboard,
             health,
@@ -2129,6 +2137,7 @@
         normalizeFolderEditorMode,
         normalizeDashboardLayout,
         normalizeDashboardOverflowMode,
+        normalizeRuntimePageViewMode,
         normalizeThemeCompatibilityMode,
         normalizePrefs,
         orderFoldersByPrefs,

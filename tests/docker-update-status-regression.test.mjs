@@ -99,6 +99,16 @@ test('docker support bundle snapshot reads only visible update-column text in ba
     assert.doesNotMatch(dockerJs, /const updateCellText = normalizeDockerSupportBundleText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
 });
 
+test('docker runtime can stay in host-list mode without rendering FolderView rows', () => {
+    assert.match(dockerJs, /const normalizeDockerPageViewMode = \(value\) =>/);
+    assert.match(dockerJs, /const resolveDockerPageViewMode = \(prefs = folderTypePrefs\) =>/);
+    assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(\) => \{/);
+    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*resolveDockerPageViewMode\(prefs\) === 'host'[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
+    assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);
+    assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
+});
+
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);

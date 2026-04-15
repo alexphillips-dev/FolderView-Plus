@@ -144,6 +144,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="alpha">Name (A-Z)</option>
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
+                <label class="sort-label" for="docker-page-view-mode">Docker page view</label>
+                <select id="docker-page-view-mode" onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
+                    <option value="folderview">FolderView</option>
+                    <option value="host">No FolderView (host list only)</option>
+                </select>
                 <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>

@@ -66,9 +66,53 @@
                 'retention' => 25,
                 'lastRunAt' => ''
             ],
+            'folderDefaults' => [
+                'sourceId' => '',
+                'sourceName' => '',
+                'profile' => [
+                    'icon' => '',
+                    'settings' => [],
+                    'actions' => []
+                ]
+            ],
             'importPresets' => [
                 'defaultId' => 'builtin:merge',
                 'custom' => []
+            ]
+        ];
+    }
+
+    function normalizeTypeFolderDefaultsProfile($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $profileIncoming = is_array($incoming['profile'] ?? null) ? $incoming['profile'] : [];
+        $settingsIncoming = is_array($profileIncoming['settings'] ?? null) ? $profileIncoming['settings'] : [];
+        $actionsIncoming = is_array($profileIncoming['actions'] ?? null) ? $profileIncoming['actions'] : [];
+        $normalizedActions = [];
+
+        foreach ($actionsIncoming as $action) {
+            if (!is_array($action)) {
+                continue;
+            }
+            $actionType = (int)($action['type'] ?? 0);
+            if ($actionType !== 1) {
+                continue;
+            }
+            $normalizedAction = $action;
+            unset($normalizedAction['containers'], $normalizedAction['conatiners']);
+            $normalizedActions[] = normalizeFolderNestedValue($normalizedAction);
+        }
+
+        if (($settingsIncoming['override_default_actions'] ?? false) === true && count($normalizedActions) <= 0) {
+            $settingsIncoming['override_default_actions'] = false;
+        }
+
+        return [
+            'sourceId' => truncateUtf8String(trim((string)($incoming['sourceId'] ?? '')), 64),
+            'sourceName' => truncateUtf8String(trim((string)($incoming['sourceName'] ?? '')), 160),
+            'profile' => [
+                'icon' => truncateUtf8String(trim((string)($profileIncoming['icon'] ?? '')), 2048),
+                'settings' => normalizeFolderNestedValue($settingsIncoming),
+                'actions' => array_values($normalizedActions)
             ]
         ];
     }
@@ -355,6 +399,7 @@
             'retention' => normalizeIntInRange($scheduleIncoming['retention'] ?? 25, 1, 200, 25),
             'lastRunAt' => is_string($scheduleIncoming['lastRunAt'] ?? null) ? (string)$scheduleIncoming['lastRunAt'] : ''
         ];
+        $normalized['folderDefaults'] = normalizeTypeFolderDefaultsProfile($prefs['folderDefaults'] ?? []);
         $normalized['importPresets'] = normalizeTypeImportPresets($prefs['importPresets'] ?? []);
         return $normalized;
     }

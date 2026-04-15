@@ -217,6 +217,10 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     })
     : null;
 const utils = window.FolderViewPlusUtils || null;
+const folderEditorTypePrefs = window.FolderViewPlusFolderEditorTypePrefs
+    && typeof window.FolderViewPlusFolderEditorTypePrefs === 'object'
+    ? window.FolderViewPlusFolderEditorTypePrefs
+    : {};
 const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
 const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
@@ -3316,8 +3320,10 @@ const startFolderEditorRuntime = async () => {
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
-        refreshParentFolderChooser(folders, '', new Set());
-        setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+        if (!applySavedFolderDefaultsToNewFolder(folders)) {
+            refreshParentFolderChooser(folders, '', new Set());
+            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+        }
     }
     renderMemberBulkMoveTargets();
     updateMemberBulkMoveUi();
@@ -4037,6 +4043,55 @@ const suggestSiblingName = (...args) => getFolderHierarchyApi().suggestSiblingNa
 const setParentDefaultsNote = (...args) => getFolderHierarchyApi().setParentDefaultsNote(...args);
 const applySmartDefaultsFromParent = (...args) => getFolderHierarchyApi().applySmartDefaultsFromParent(...args);
 const markSmartDefaultFieldTouched = (...args) => getFolderHierarchyApi().markSmartDefaultFieldTouched(...args);
+const getSavedFolderDefaultsProfile = () => {
+    const normalizedPrefs = typeof utils?.normalizePrefs === 'function'
+        ? utils.normalizePrefs(folderEditorTypePrefs || {})
+        : (folderEditorTypePrefs && typeof folderEditorTypePrefs === 'object' ? folderEditorTypePrefs : {});
+    const folderDefaults = normalizedPrefs?.folderDefaults && typeof normalizedPrefs.folderDefaults === 'object'
+        ? normalizedPrefs.folderDefaults
+        : {};
+    const profile = folderDefaults.profile && typeof folderDefaults.profile === 'object'
+        ? folderDefaults.profile
+        : {};
+    const icon = String(profile.icon || '').trim();
+    const settings = profile.settings && typeof profile.settings === 'object'
+        ? JSON.parse(JSON.stringify(profile.settings))
+        : {};
+    const actions = Array.isArray(profile.actions)
+        ? JSON.parse(JSON.stringify(profile.actions))
+        : [];
+    if (!icon && Object.keys(settings).length <= 0 && actions.length <= 0) {
+        return null;
+    }
+    return {
+        sourceId: String(folderDefaults.sourceId || '').trim(),
+        sourceName: String(folderDefaults.sourceName || '').trim(),
+        folder: {
+            name: '',
+            parentId: '',
+            icon,
+            regex: '',
+            containers: [],
+            settings,
+            actions
+        }
+    };
+};
+const applySavedFolderDefaultsToNewFolder = (foldersMap = {}) => {
+    if (String(activeFolderEditorFolderId || folderId || '').trim()) {
+        return false;
+    }
+    const savedDefaults = getSavedFolderDefaultsProfile();
+    if (!savedDefaults) {
+        return false;
+    }
+    selected = [];
+    selectedRegex = [];
+    hydrateCurrentEditFolder(savedDefaults.folder, '', foldersMap, { clearPrefill: false });
+    const sourceLabel = savedDefaults.sourceName || savedDefaults.sourceId || 'saved profile';
+    setParentDefaultsNote(`Loaded saved defaults from "${sourceLabel}".`, 'info');
+    return true;
+};
 const getFolderEditorParentPickerApi = (() => {
     let cachedApi = null;
     return () => {

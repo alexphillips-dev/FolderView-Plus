@@ -861,6 +861,43 @@ test('normalizePrefs keeps expanded folder state as a boolean map', () => {
     });
 });
 
+test('normalizePrefs preserves folder defaults profiles and removes member-bound actions', () => {
+    const prefs = utils.normalizePrefs({
+        folderDefaults: {
+            sourceId: 'media',
+            sourceName: 'Media',
+            profile: {
+                icon: 'https://example.com/icon.png',
+                settings: {
+                    preview: 4,
+                    override_default_actions: true
+                },
+                actions: [
+                    {
+                        name: 'Script action',
+                        type: 1,
+                        command: 'echo ok'
+                    },
+                    {
+                        name: 'Member action',
+                        type: 0,
+                        containers: ['plex']
+                    }
+                ]
+            }
+        }
+    });
+
+    assert.equal(prefs.folderDefaults.sourceId, 'media');
+    assert.equal(prefs.folderDefaults.sourceName, 'Media');
+    assert.equal(prefs.folderDefaults.profile.icon, 'https://example.com/icon.png');
+    assert.equal(prefs.folderDefaults.profile.settings.preview, 4);
+    assert.equal(prefs.folderDefaults.profile.settings.override_default_actions, true);
+    assert.equal(prefs.folderDefaults.profile.actions.length, 1);
+    assert.equal(prefs.folderDefaults.profile.actions[0].name, 'Script action');
+    assert.equal(prefs.folderDefaults.profile.actions[0].type, 1);
+});
+
 test('orderFoldersByPrefs keeps pinned folders at top', () => {
     const folders = {
         one: { name: 'One' },

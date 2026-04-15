@@ -79,6 +79,43 @@ if (!empty($fvplusRuntimeConflicts)) {
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
+<div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
+    <div class="rules-panel fv-theme-workspace-shell">
+        <div class="rules-header">
+            <h3>Theme Workspace</h3>
+            <span class="rules-help">Import GitHub CSS themes, activate one managed theme at a time, and layer FolderView Plus token overrides and custom CSS on top.</span>
+        </div>
+        <div class="fv-theme-workspace-body">
+            <div class="fv-theme-import-row">
+                <input id="fv-theme-github-source" type="text" placeholder="owner/repo, owner/repo/tree/branch, or GitHub raw CSS URL">
+                <button type="button" onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
+                <button type="button" onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
+            </div>
+            <div id="fv-theme-workspace-status" class="fv-theme-workspace-status">Theme workspace idle.</div>
+            <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
+                <div class="fv-theme-empty-state">
+                    <strong>No managed themes imported yet.</strong>
+                    <span>Import a GitHub CSS theme and it will be written into the existing custom asset pipeline.</span>
+                </div>
+            </div>
+            <div class="fv-theme-customize-grid">
+                <div class="fv-theme-customize-card">
+                    <div class="settings-mini-title">Token overrides</div>
+                    <div id="fv-theme-variable-grid" class="fv-theme-variable-grid"></div>
+                </div>
+                <div class="fv-theme-customize-card">
+                    <div class="settings-mini-title">Custom CSS</div>
+                    <textarea id="fv-theme-custom-css" class="fv-theme-custom-css" spellcheck="false" placeholder="/* Appended after the active managed theme for Docker, VMs, and Dashboard. */"></textarea>
+                </div>
+            </div>
+            <div class="fv-theme-customize-actions">
+                <button type="button" onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
+                <button type="button" onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">
@@ -194,6 +231,20 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </select>
                     </label>
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
+                </div>
+                <div class="settings-mini-card fv-folder-defaults-card">
+                    <div class="settings-mini-title">Folder defaults</div>
+                    <label class="setting-select" for="docker-folder-defaults-source">
+                        <span>Source folder</span>
+                        <select id="docker-folder-defaults-source"></select>
+                    </label>
+                    <div id="docker-folder-defaults-summary" class="setting-help">No Docker folder defaults saved yet.</div>
+                    <div class="fv-folder-defaults-actions">
+                        <button type="button" onclick="saveFolderDefaultsFromSelection('docker')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" onclick="applySavedFolderDefaultsToAll('docker')"><i class="fa fa-repeat"></i> Apply to all</button>
+                        <button type="button" onclick="clearFolderDefaults('docker')"><i class="fa fa-eraser"></i> Clear</button>
+                    </div>
+                    <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Dashboard</div>
@@ -431,6 +482,20 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </select>
                     </label>
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
+                </div>
+                <div class="settings-mini-card fv-folder-defaults-card">
+                    <div class="settings-mini-title">Folder defaults</div>
+                    <label class="setting-select" for="vm-folder-defaults-source">
+                        <span>Source folder</span>
+                        <select id="vm-folder-defaults-source"></select>
+                    </label>
+                    <div id="vm-folder-defaults-summary" class="setting-help">No VM folder defaults saved yet.</div>
+                    <div class="fv-folder-defaults-actions">
+                        <button type="button" onclick="saveFolderDefaultsFromSelection('vm')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" onclick="applySavedFolderDefaultsToAll('vm')"><i class="fa fa-repeat"></i> Apply to all</button>
+                        <button type="button" onclick="clearFolderDefaults('vm')"><i class="fa fa-eraser"></i> Clear</button>
+                    </div>
+                    <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Dashboard</div>
@@ -1397,6 +1462,8 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>

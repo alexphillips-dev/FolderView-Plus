@@ -616,6 +616,38 @@
             retention: clampNumber(backupScheduleRaw.retention, 1, 200, defaultSchedule.retention),
             lastRunAt: typeof backupScheduleRaw.lastRunAt === 'string' ? backupScheduleRaw.lastRunAt : ''
         };
+        const folderDefaultsRaw = isPlainObject(incoming.folderDefaults) ? incoming.folderDefaults : {};
+        const folderDefaultsProfileRaw = isPlainObject(folderDefaultsRaw.profile) ? folderDefaultsRaw.profile : {};
+        const folderDefaultsSettings = isPlainObject(folderDefaultsProfileRaw.settings)
+            ? JSON.parse(JSON.stringify(folderDefaultsProfileRaw.settings))
+            : {};
+        const folderDefaultsActionsRaw = Array.isArray(folderDefaultsProfileRaw.actions) ? folderDefaultsProfileRaw.actions : [];
+        const folderDefaultsActions = [];
+        folderDefaultsActionsRaw.forEach((entry) => {
+            if (!isPlainObject(entry)) {
+                return;
+            }
+            const actionType = Number.parseInt(entry.type, 10);
+            if (actionType !== 1) {
+                return;
+            }
+            const cloned = JSON.parse(JSON.stringify(entry));
+            delete cloned.containers;
+            delete cloned.conatiners;
+            folderDefaultsActions.push(cloned);
+        });
+        if (folderDefaultsSettings.override_default_actions === true && folderDefaultsActions.length <= 0) {
+            folderDefaultsSettings.override_default_actions = false;
+        }
+        const folderDefaults = {
+            sourceId: typeof folderDefaultsRaw.sourceId === 'string' ? folderDefaultsRaw.sourceId.trim().slice(0, 64) : '',
+            sourceName: typeof folderDefaultsRaw.sourceName === 'string' ? folderDefaultsRaw.sourceName.trim().slice(0, 160) : '',
+            profile: {
+                icon: typeof folderDefaultsProfileRaw.icon === 'string' ? folderDefaultsProfileRaw.icon.trim().slice(0, 2048) : '',
+                settings: folderDefaultsSettings,
+                actions: folderDefaultsActions
+            }
+        };
         const importPresetsRaw = isPlainObject(incoming.importPresets) ? incoming.importPresets : {};
         const importPresetCustomRaw = Array.isArray(importPresetsRaw.custom) ? importPresetsRaw.custom : [];
         const importPresetCustom = [];
@@ -799,6 +831,7 @@
             status,
             settingsTable,
             backupSchedule,
+            folderDefaults,
             importPresets
         };
     };

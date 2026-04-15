@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.18">
-<!ENTITY md5 "1c868cfd5fef54417e7f30d8c4d39b45">
+<!ENTITY version "2026.04.15.19">
+<!ENTITY md5 "914c1a027767564a695bd0b5508376cd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.19
+- UX: Docker command-view member tiles now keep a consistent fixed width by default so folders do not stretch or compress container cards differently based on row count.
+- UX: Command-view container tiles now expose visible WebUI, console, and log quick-action icons, and clicking a tile opens a lightweight per-container action menu for start, stop, pause, resume, and restart.
+- Fix: The command-view folder-level `Open WebUIs` action now opens directly from the rendered member targets first, which avoids the broken no-op behavior seen in the experimental surface.
+
 
 ###2026.04.15.18
 - Fix: Docker runtime rows, folder state, and container interactions.

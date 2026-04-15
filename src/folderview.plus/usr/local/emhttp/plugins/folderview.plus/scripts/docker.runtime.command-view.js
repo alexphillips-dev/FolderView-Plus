@@ -60,6 +60,12 @@
         const normalizeRuntimeInfoMap = typeof deps.normalizeDockerRuntimeInfoMap === 'function'
             ? deps.normalizeDockerRuntimeInfoMap
             : ((value) => (value && typeof value === 'object' ? value : {}));
+        const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function'
+            ? deps.getSafeWebuiUrl
+            : ((value) => {
+                const raw = String(value || '').trim();
+                return raw && !/^javascript:/i.test(raw) ? raw : '';
+            });
         const getPrefsOrderedFolderMap = typeof deps.getPrefsOrderedFolderMap === 'function'
             ? deps.getPrefsOrderedFolderMap
             : ((folders, prefs) => (
@@ -118,6 +124,9 @@
         const openFolderWebuisFromMenu = typeof deps.openFolderWebuisFromMenu === 'function'
             ? deps.openFolderWebuisFromMenu
             : (() => {});
+        const openWebuiInNewTab = typeof deps.openWebuiInNewTab === 'function' ? deps.openWebuiInNewTab : (() => false);
+        const openWebuiPopupWindow = typeof deps.openWebuiPopupWindow === 'function' ? deps.openWebuiPopupWindow : (() => false);
+        const openTerminal = typeof deps.openTerminal === 'function' ? deps.openTerminal : (() => {});
         const toggleFolderPin = typeof deps.toggleFolderPin === 'function' ? deps.toggleFolderPin : (() => Promise.resolve());
         const toggleFolderLock = typeof deps.toggleFolderLock === 'function' ? deps.toggleFolderLock : (() => {});
         const queueLoadlistRefresh = typeof deps.queueLoadlistRefresh === 'function'
@@ -127,6 +136,7 @@
         let rootNode = null;
         let clickHandler = null;
         let renderToken = 0;
+        let expandedMemberKey = '';
 
         const getHostTable = () => doc?.querySelector('table#docker_containers') || null;
         const isFolderToken = (value) => String(value || '').trim().startsWith('folder-');
@@ -218,6 +228,62 @@
             return { state, label: 'stopped', icon: 'fa-stop' };
         };
 
+        const getMemberKey = (folderId, memberName) => `${String(folderId || '').trim()}::${String(memberName || '').trim()}`;
+
+        const dispatchContainerControl = (action, containerId) => {
+            const safeAction = String(action || '').trim();
+            const safeContainerId = String(containerId || '').trim();
+            if (!safeAction || !safeContainerId || typeof win?.eventControl !== 'function') {
+                return false;
+            }
+            win.eventControl({ action: safeAction, container: safeContainerId }, 'loadlist');
+            return true;
+        };
+
+        const openFolderCardWebuis = (folderCard) => {
+            if (!(folderCard instanceof HTMLElement)) {
+                return false;
+            }
+            const urls = Array.from(new Set(
+                Array.from(folderCard.querySelectorAll('[data-member-webui-url]'))
+                    .map((node) => getSafeWebuiUrl(node.getAttribute('data-member-webui-url') || ''))
+                    .filter(Boolean)
+            ));
+            if (!urls.length) {
+                return false;
+            }
+            const stamp = Date.now();
+            urls.forEach((url, index) => {
+                if (index === 0) {
+                    openWebuiInNewTab(url);
+                    return;
+                }
+                openWebuiPopupWindow(url, `fvw-${stamp}-${index}`);
+            });
+            return true;
+        };
+
+        const buildMemberMenuButtons = (member) => {
+            const actions = [];
+            if (member.stateMeta.state === 'stopped') {
+                actions.push({ action: 'start', label: 'Start' });
+            } else if (member.stateMeta.state === 'paused') {
+                actions.push({ action: 'resume', label: 'Resume' });
+                actions.push({ action: 'stop', label: 'Stop' });
+            } else {
+                actions.push({ action: 'stop', label: 'Stop' });
+                actions.push({ action: 'pause', label: 'Pause' });
+            }
+            if (member.id) {
+                actions.push({ action: 'restart', label: 'Restart' });
+            }
+            return actions.map((entry) => `
+                <button type="button" class="fv-docker-command-member-menu-button" data-fv-command-member-action="${escapeHtml(entry.action)}" data-member-name="${escapeHtml(member.name)}">
+                    ${escapeHtml(entry.label)}
+                </button>
+            `).join('');
+        };
+
         const computeOrderedFolderIds = (folders, prefs, hostOrder, unraidOrder) => {
             const folderMap = folders && typeof folders === 'object' ? folders : {};
             const baseOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folderMap, prefs);
@@ -261,7 +327,10 @@
             const branchContainers = getScopedRuntimeContainersForFolder(folderId, true) || {};
             const members = Object.entries(branchContainers).map(([name, entry]) => ({
                 name,
+                id: String(entry?.id || entry?.shortId || '').trim(),
                 icon: sanitizeImageSrc(entry?.icon || DOCKER_ICON_FALLBACK, DOCKER_ICON_FALLBACK),
+                webuiUrl: getSafeWebuiUrl(entry?.webui || entry?.info?.State?.WebUi || entry?.info?.State?.TSWebUi || ''),
+                shell: String(entry?.shell || entry?.info?.Shell || '/bin/sh').trim() || '/bin/sh',
                 stateMeta: getContainerStateMeta(entry),
                 updateReady: containerHasUpdate(entry),
                 managed: entry?.managed === true || entry?.manager === 'dockerman'
@@ -357,20 +426,30 @@
                                 card.childCount > 0 ? `${card.childCount} child folders` : ''
                             ].filter(Boolean).join(' • ');
                             const memberTiles = card.members.map((member) => `
-                                <div class="fv-docker-command-member-tile ${escapeHtml(member.stateMeta.state)}${member.updateReady ? ' has-update' : ''}">
-                                    <span class="fv-docker-command-member-icon-wrap">
-                                        <img src="${member.icon}" class="fv-docker-command-member-icon" alt="" loading="lazy" onerror='this.src="${DOCKER_ICON_FALLBACK}"'>
-                                    </span>
-                                    <span class="fv-docker-command-member-content">
-                                        <span class="fv-docker-command-member-pill">${escapeHtml(member.name)}</span>
-                                        <span class="fv-docker-command-member-meta">
-                                            <span class="fv-docker-command-member-state ${escapeHtml(member.stateMeta.state)}">
-                                                <i class="fa ${escapeHtml(member.stateMeta.icon)}" aria-hidden="true"></i>
-                                                <span>${escapeHtml(member.stateMeta.label)}</span>
-                                            </span>
-                                            ${member.updateReady ? '<span class="fv-docker-command-member-update">update ready</span>' : ''}
+                                <div class="fv-docker-command-member-tile ${escapeHtml(member.stateMeta.state)}${member.updateReady ? ' has-update' : ''}${expandedMemberKey === getMemberKey(card.folderId, member.name) ? ' is-expanded' : ''}" data-member-name="${escapeHtml(member.name)}" data-member-id="${escapeHtml(member.id)}" data-member-webui-url="${escapeHtml(member.webuiUrl)}" data-member-shell="${escapeHtml(member.shell)}">
+                                    <button type="button" class="fv-docker-command-member-surface" data-fv-command-member-action="toggle-menu" data-member-name="${escapeHtml(member.name)}">
+                                        <span class="fv-docker-command-member-icon-wrap">
+                                            <img src="${member.icon}" class="fv-docker-command-member-icon" alt="" loading="lazy" onerror='this.src="${DOCKER_ICON_FALLBACK}"'>
                                         </span>
-                                    </span>
+                                        <span class="fv-docker-command-member-content">
+                                            <span class="fv-docker-command-member-pill">${escapeHtml(member.name)}</span>
+                                            <span class="fv-docker-command-member-meta">
+                                                <span class="fv-docker-command-member-state ${escapeHtml(member.stateMeta.state)}">
+                                                    <i class="fa ${escapeHtml(member.stateMeta.icon)}" aria-hidden="true"></i>
+                                                    <span>${escapeHtml(member.stateMeta.label)}</span>
+                                                </span>
+                                                ${member.updateReady ? '<span class="fv-docker-command-member-update">update ready</span>' : ''}
+                                            </span>
+                                        </span>
+                                        <span class="fv-docker-command-member-quick-actions">
+                                            ${member.webuiUrl ? `<button type="button" class="fv-docker-command-member-icon-button" title="Open WebUI" aria-label="Open WebUI" data-fv-command-member-action="webui" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-globe" aria-hidden="true"></i></button>` : ''}
+                                            <button type="button" class="fv-docker-command-member-icon-button" title="Open console" aria-label="Open console" data-fv-command-member-action="console" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-terminal" aria-hidden="true"></i></button>
+                                            <button type="button" class="fv-docker-command-member-icon-button" title="Open logs" aria-label="Open logs" data-fv-command-member-action="logs" data-member-name="${escapeHtml(member.name)}"><i class="fa fa-bars" aria-hidden="true"></i></button>
+                                        </span>
+                                    </button>
+                                    <div class="fv-docker-command-member-menu">
+                                        ${buildMemberMenuButtons(member)}
+                                    </div>
                                 </div>
                             `).join('');
                             return `
@@ -427,6 +506,55 @@
                 rootNode.removeEventListener('click', clickHandler);
             }
             clickHandler = (event) => {
+                const memberButton = event.target instanceof Element
+                    ? event.target.closest('[data-fv-command-member-action]')
+                    : null;
+                if (memberButton instanceof HTMLElement) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const memberAction = String(memberButton.getAttribute('data-fv-command-member-action') || '').trim();
+                    const memberTile = memberButton.closest('.fv-docker-command-member-tile');
+                    const folderCard = memberButton.closest('[data-folder-id]');
+                    const folderId = folderCard instanceof HTMLElement ? String(folderCard.getAttribute('data-folder-id') || '').trim() : '';
+                    const memberName = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-name') || '').trim() : '';
+                    const memberId = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-id') || '').trim() : '';
+                    const memberWebuiUrl = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-webui-url') || '').trim() : '';
+                    const memberShell = memberTile instanceof HTMLElement ? String(memberTile.getAttribute('data-member-shell') || '').trim() || '/bin/sh' : '/bin/sh';
+                    if (!folderId || !memberName) {
+                        return;
+                    }
+                    const memberKey = getMemberKey(folderId, memberName);
+                    if (memberAction === 'toggle-menu') {
+                        expandedMemberKey = expandedMemberKey === memberKey ? '' : memberKey;
+                        rootNode.querySelectorAll('.fv-docker-command-member-tile.is-expanded').forEach((node) => {
+                            if (node !== memberTile) {
+                                node.classList.remove('is-expanded');
+                            }
+                        });
+                        if (memberTile instanceof HTMLElement) {
+                            memberTile.classList.toggle('is-expanded', expandedMemberKey === memberKey);
+                        }
+                        return;
+                    }
+                    if (memberAction === 'webui') {
+                        openWebuiInNewTab(memberWebuiUrl);
+                        return;
+                    }
+                    if (memberAction === 'console') {
+                        openTerminal('docker', memberName, memberShell);
+                        return;
+                    }
+                    if (memberAction === 'logs') {
+                        openTerminal('docker', memberName, '.log');
+                        return;
+                    }
+                    if (memberAction === 'start' || memberAction === 'stop' || memberAction === 'pause' || memberAction === 'resume' || memberAction === 'restart') {
+                        if (dispatchContainerControl(memberAction, memberId)) {
+                            queueLoadlistRefresh({ suppressLoadingUi: true });
+                        }
+                        return;
+                    }
+                }
                 const button = event.target instanceof Element
                     ? event.target.closest('[data-fv-command-action]')
                     : null;
@@ -466,7 +594,9 @@
                     return;
                 }
                 if (action === 'open-webui') {
-                    openFolderWebuisFromMenu(folderId, true, true);
+                    if (!openFolderCardWebuis(folderCard)) {
+                        openFolderWebuisFromMenu(folderId, true, true);
+                    }
                     return;
                 }
                 if (action === 'edit-folder') {

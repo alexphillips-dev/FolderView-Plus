@@ -721,8 +721,12 @@ const getDockerCommandViewApi = () => {
             actionFolder: (id, action, options = {}) => actionFolder(id, action, options),
             updateFolder: (id, options = {}) => updateFolder(id, options),
             forceUpdateFolder: (id, options = {}) => forceUpdateFolder(id, options),
+            getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false) =>
                 openFolderWebuisFromMenu(id, runningOnly, includeDescendants),
+            openWebuiInNewTab: (url) => openWebuiInNewTab(url),
+            openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
+            openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
             toggleFolderPin: (folderId) => toggleDockerFolderPin(folderId),
             toggleFolderLock: (folderId) => toggleDockerFolderLock(folderId),
             queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),

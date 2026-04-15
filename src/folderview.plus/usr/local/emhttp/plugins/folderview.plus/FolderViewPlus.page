@@ -79,10 +79,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
+<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace</h2>
 <div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
     <div class="rules-panel fv-theme-workspace-shell">
         <div class="rules-header">
-            <h3>Theme Workspace</h3>
             <span class="rules-help">Import GitHub CSS themes, activate one managed theme at a time, and layer FolderView Plus token overrides and custom CSS on top.</span>
         </div>
         <div class="fv-theme-workspace-body">

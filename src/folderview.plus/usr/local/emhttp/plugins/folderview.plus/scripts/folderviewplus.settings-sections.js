@@ -16,6 +16,7 @@ const LEGACY_ADVANCED_SECTION_KEYS = [
     'conflict-inspector'
 ];
 const ADVANCED_SECTION_KEYS = new Set([
+    'theme-workspace',
     'auto-assignment',
     'bulk-assignment',
     'runtime-actions',
@@ -25,18 +26,20 @@ const ADVANCED_SECTION_KEYS = new Set([
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'diagnostics'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'];
 const ADVANCED_GROUP_LABELS = {
     automation: 'Automation',
     rules: 'Rules',
     recovery: 'Recovery',
     operations: 'Operations',
+    appearance: 'Appearance',
     diagnostics: 'Diagnostics'
 };
 const SECTION_APPLY_BEHAVIOR = Object.freeze({
     customizations: 'instant',
     docker: 'instant',
     vms: 'instant',
+    'theme-workspace': 'instant',
     'auto-assignment': 'instant',
     'conflict-inspector': 'instant',
     'bulk-assignment': 'instant',
@@ -47,6 +50,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
+    'theme-workspace': 'appearance',
     'auto-assignment': 'rules',
     'bulk-assignment': 'automation',
     'conflict-inspector': 'rules',
@@ -69,6 +73,7 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     rules: Object.freeze([]),
     recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
+    appearance: Object.freeze([]),
     diagnostics: Object.freeze(['change_history'])
 });
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);

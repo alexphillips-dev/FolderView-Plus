@@ -206,7 +206,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'diagnostics'\];/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
@@ -217,6 +217,13 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
     assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
+});
+
+test('theme workspace lives in its own Appearance advanced tab', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+    assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
+    assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
+    assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
 });
 
 test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {

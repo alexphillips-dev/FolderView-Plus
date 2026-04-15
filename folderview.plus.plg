@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.02">
-<!ENTITY md5 "1ceddf3e9c607e9b80deefa768bafabb">
+<!ENTITY version "2026.04.15.03">
+<!ENTITY md5 "bc8b75aff9dcb40180ac80bc5eb10874">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.03
+- UX: Settings workspace layout, section flows, and table behavior.
+
 
 ###2026.04.15.02
 - Fix: Fixed concurrent JSON writes during first-load settings normalization so VM and Docker prefs no longer race on the same temporary file.

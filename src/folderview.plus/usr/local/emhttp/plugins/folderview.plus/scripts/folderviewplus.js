@@ -4044,6 +4044,7 @@ const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesA
 const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
+const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
 const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
 const syncRulesWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRulesWorkspaceUi(...args);
@@ -9314,7 +9315,6 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-
 
 
 

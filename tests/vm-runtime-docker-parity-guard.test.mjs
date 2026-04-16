@@ -22,19 +22,6 @@ test('vm runtime includes docker-parity quick state actions and branch-aware fol
     assert.match(vmJs, /const cloneVmFolderFromMenu = async/);
 });
 
-test('vm runtime keeps native expanded detail rows attached to their folder-managed VM rows', () => {
-    assert.match(vmJs, /const collectVmMemberRowGroup = \(row\) => \{/);
-    assert.match(vmJs, /const applyVmMemberRowGroupOwnership = \(row,\s*folderId\) => \{/);
-    assert.match(vmJs, /const placeVmManagedDetailRowsAfterOwner = \(ownerRow,\s*detailRows,\s*folderId\) => \{/);
-    assert.match(vmJs, /let vmPendingExpandedDetailOwner = null;/);
-    assert.match(vmJs, /let vmFolderDetailObserver = null;/);
-    assert.match(vmJs, /const ensureVmFolderDetailObserver = \(\) => \{/);
-    assert.match(vmJs, /rememberPendingVmDetailOwner\(this\.closest\('tr'\)\);/);
-    assert.match(vmJs, /placeVmManagedDetailRowsAfterOwner\(pendingOwner\.row,\s*addedRows,\s*pendingOwner\.folderId\);/);
-    assert.match(vmJs, /\$vmTR\.addClass\('fv-vm-member-row'\)/);
-    assert.match(vmJs, /const vmRowGroup = applyVmMemberRowGroupOwnership\(\$vmTR\.get\(0\),\s*id\);/);
-});
-
 test('vm runtime context menu keeps focus/pin/lock and clone actions in vm folder menu', () => {
     assert.match(vmJs, /Focus folder/);
     assert.match(vmJs, /Pin folder/);

@@ -3384,7 +3384,7 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const containersStateInfo = parseJsonPayloadSafe(prom[2]);
-    let containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo);
+    let containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo, dockerRuntimeInfoByName);
     dockerRuntimeInfoByName = (containersInfo && typeof containersInfo === 'object' && !Array.isArray(containersInfo))
         ? { ...containersInfo }
         : {};

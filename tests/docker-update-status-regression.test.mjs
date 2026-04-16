@@ -115,6 +115,13 @@ test('deferred docker runtime hydration refreshes visible folder state in place 
     assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const nextWebuiSignature/);
 });
 
+test('docker bootstrap render preserves prior runtime update flags when partial state payloads omit Updated', () => {
+    assert.match(
+        dockerJs,
+        /const containersStateInfo = parseJsonPayloadSafe\(prom\[2\]\);\s*let containersInfo = normalizeDockerRuntimeInfoMap\(containersStateInfo,\s*dockerRuntimeInfoByName\);/
+    );
+});
+
 test('folder update-column renderer is reused across initial and synced folder state', () => {
     assert.match(dockerJs, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) =>/);
     assert.match(dockerJs, /hierarchyApi\.renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);

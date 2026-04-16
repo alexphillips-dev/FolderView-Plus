@@ -48,6 +48,15 @@ const generatedSelectorPrefixes = [
   '.fv-mobile-tree-reorder-',
   '#fv-mobile-tree-reorder-'
 ];
+const generatedSelectorMatchers = [
+  {
+    selectors: ['.fvplus-privacy-docker-settings', '.fvplus-privacy-vm-settings'],
+    predicate: (source) => (
+      source.includes("toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true)")
+      || source.includes("toggleClass(`fvplus-privacy-${type}-settings`")
+    )
+  }
+];
 const registerSelector = (selector, relFile) => {
   if (!selector) return;
   if (!selector.startsWith('.fv') && !selector.startsWith('#fv')) {
@@ -73,6 +82,17 @@ for (const file of nonCssFiles) {
   for (const [selector, usage] of selectorUsage.entries()) {
     if (source.includes(selector.slice(1)) || source.includes(selector)) {
       usage.nonCssRefs.add(rel);
+    }
+  }
+  for (const matcher of generatedSelectorMatchers) {
+    if (!matcher.predicate(source)) {
+      continue;
+    }
+    for (const selector of matcher.selectors) {
+      const usage = selectorUsage.get(selector);
+      if (usage) {
+        usage.nonCssRefs.add(rel);
+      }
     }
   }
 }

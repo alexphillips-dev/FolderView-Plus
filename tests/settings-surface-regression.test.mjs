@@ -206,7 +206,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'diagnostics'\];/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
@@ -217,6 +217,16 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
     assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
+});
+
+test('theme workspace lives in its own Appearance advanced tab', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+    assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
+    assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
+    assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
+    assert.match(settingsCss, /\.fv-theme-import-row > button,/);
+    assert.match(settingsCss, /\.fv-theme-customize-actions > button,/);
+    assert.match(settingsCss, /\.fv-theme-workspace-entry-actions > button,/);
 });
 
 test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {
@@ -242,6 +252,9 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
+    assert.match(settingsPage, /onclick="exportEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /onclick="importEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
     assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
@@ -253,6 +266,7 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsCss, /\.fv-recovery-source-switch/);
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
+    assert.match(settingsCss, /\.fv-recovery-environment-meta/);
     assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
     assert.match(settingsCss, /\.fv-recovery-history-list,\s*\.fv-recovery-change-history-list/);
     assert.match(settingsCss, /\.fv-recovery-timeline-card/);

@@ -2041,6 +2041,7 @@
                 'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
                 'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
                 'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
+                'pageViewMode' => normalizeRuntimePageViewMode($prefs['pageViewMode'] ?? 'folderview'),
                 'themeCompatibilityMode' => normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto'),
                 'dashboard' => [
                     'layout' => normalizeDashboardLayout($prefs['dashboard']['layout'] ?? 'classic'),

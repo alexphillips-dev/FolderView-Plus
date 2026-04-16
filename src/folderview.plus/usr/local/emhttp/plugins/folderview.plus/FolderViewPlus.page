@@ -79,10 +79,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
+<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace</h2>
 <div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
     <div class="rules-panel fv-theme-workspace-shell">
         <div class="rules-header">
-            <h3>Theme Workspace</h3>
             <span class="rules-help">Import GitHub CSS themes, activate one managed theme at a time, and layer FolderView Plus token overrides and custom CSS on top.</span>
         </div>
         <div class="fv-theme-workspace-body">
@@ -210,6 +210,15 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Runtime</div>
+                    <label class="setting-select" for="docker-page-view-mode">
+                        <span>Docker page view</span>
+                        <select id="docker-page-view-mode" onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
+                            <option value="folderview">FolderView</option>
+                            <option value="host">No FolderView (host list only)</option>
+                            <option value="command">Command view</option>
+                            <option value="tree-explorer">Tree explorer</option>
+                        </select>
+                    </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
                     <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
                         <span>Interval (sec)</span>

@@ -37,7 +37,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script>
     $(document).ready(() => {
         folderi18n = () => {
-            $(`<input type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">`).insertAfter('table#docker_containers');
+            $(`<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">`).insertAfter('table#docker_containers');
             $('body').i18n();
             $('[type="button"]').i18n();
         }
@@ -67,8 +67,12 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.command-view.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js')?>"></script>
 <script defer src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.js')?>"></script>
 
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.command-view.css')?>">
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.tree-explorer.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.css')?>">
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php') ?>

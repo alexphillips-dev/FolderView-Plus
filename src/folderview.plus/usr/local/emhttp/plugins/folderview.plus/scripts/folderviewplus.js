@@ -6460,6 +6460,11 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
+    $(`#${type}-page-view-mode`).val(
+        typeof utils.normalizeRuntimePageViewMode === 'function'
+            ? utils.normalizeRuntimePageViewMode(prefs.pageViewMode)
+            : (['host', 'command', 'tree-explorer'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
+    );
     $(`#${type}-theme-compat-mode`).val(resolveThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
@@ -7932,6 +7937,10 @@ const changeRuntimePref = async (type, key, value) => {
     } else if (key === 'lazyPreviewThreshold') {
         const parsed = Number(value);
         next.lazyPreviewThreshold = Number.isFinite(parsed) ? Math.min(200, Math.max(10, Math.round(parsed))) : current.lazyPreviewThreshold;
+    } else if (key === 'pageViewMode') {
+        next.pageViewMode = typeof utils.normalizeRuntimePageViewMode === 'function'
+            ? utils.normalizeRuntimePageViewMode(value)
+            : (['host', 'command', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
     } else if (key === 'themeCompatibilityMode') {
         next.themeCompatibilityMode = resolveThemeCompatibilityMode(value);
     } else {

@@ -6,27 +6,197 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.16.02">
-<!ENTITY md5 "bb3f09b6a74417818ff303dad5b4e937">
+<!ENTITY version "2026.04.15.39">
+<!ENTITY md5 "a51bab5b4caf9fd975a19ec8283f5ff6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.04.16.02
-- Fix: VM runtime rows, folder state, and VM actions.
-- UX: Folder editor flows, previews, and bootstrap behavior.
+###2026.04.15.39
+- UX: Remove the Docker Service Map view and tighten Tree Explorer folder rows and child-folder cards.
+
+
+###2026.04.15.38
+- Fix: Preserve Docker update status across post-update runtime refreshes so folder rows clear after Update All.
+
+
+###2026.04.15.37
+- Fix: Docker runtime rows, folder state, and container interactions.
 - UX: Settings workspace layout, section flows, and table behavior.
-- Quality: Release-note generation, retry cleanup, and packaging guards.
+
+
+###2026.04.15.36
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.15.35
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
 - Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
 - Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
 
 
-###2026.04.14.17
-- Fix: Uploaded custom icons are now stored under `/boot/config/plugins/folderview.plus/images/custom`, so they persist across reboot, plugin reinstalls, and Unraid upgrades.
-- Fix: The plugin now restores the live `/plugins/folderview.plus/images/custom/` path automatically from persistent storage after boot or upgrade.
-- Fix: Custom icon manager requests now use a `/tmp` lock file plus shared locks for read actions, which fixes icon list and upload request failures on Unraid flash-backed storage.
+###2026.04.15.34
+- UX: Added a small left inset back to the Docker command-view WebUI, console, and logs icon row so the quick-action icons line up cleanly with the left edge of the container icon.
 
+
+###2026.04.15.33
+- UX: Removed the remaining left padding from the Docker command-view WebUI, console, and logs icon row so the quick actions sit directly under the member content with no extra gap.
+
+
+###2026.04.15.32
+- UX: Reduced the left padding on the Docker command-view WebUI, console, and logs icon row so the quick actions sit closer to the member name and status column.
+
+
+###2026.04.15.31
+- UX: Moved the Docker command-view WebUI, console, and logs icons to the left side under the member name and status, with matching left padding so the quick-action row lines up with the content column.
+
+
+###2026.04.15.30
+- UX: Tightened Docker command-view member tiles again so the bottom border sits closer to the member name, status, and quick-action strip instead of leaving extra dead space below the content.
+
+
+###2026.04.15.29
+- UX: Removed the `experimental` label from the Docker command-view selector and the command-view header.
+- UX: Expanded the command-view overview row with more runtime summary cards, including container totals and state counts.
+- UX: Tightened member-tile bottom spacing so the quick-action strip sits closer to the content and the cards read more compactly.
+
+
+###2026.04.15.28
+- Fix: Docker command-view now forwards the original pointer coordinates through the native Docker row trigger so the Unraid container menu opens at the click point instead of the screen corner.
+- UX: Running command-view member tiles now use a forced green border treatment instead of inheriting the light theme border color.
+- Quality: Expanded the command-view runtime regression test to cover the pointer-aware native-trigger proxy signature.
+
+
+###2026.04.15.27
+- Fix: Docker command-view container tiles now proxy the native Docker row trigger the same way the regular FolderView preview does, instead of mixing inline-handler hydration with the tile surface.
+- UX: Command-view hover treatment now stays on the container icon instead of drawing a focus outline around the entire tile row.
+- UX: Command-view folder titles, subtitle metadata, and running/paused/stopped/update badges now render larger for readability.
+
+
+###2026.04.15.26
+- UX: Docker command-view folder cards now use the saved folder icon in the title, scale it to the command surface, and raise the folder title size for clearer scanning.
+- UX: Running container tiles now use the runtime started-status green outline instead of the faint white border treatment.
+- Fix: Command-view container tiles now resolve host rows by real Docker row id or visible app name text, then hydrate the visible tile with the native Unraid inline click and context-menu handlers before falling back to proxied host-row events.
+
+
+###2026.04.15.22
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.04.15.21
+- UX: Docker command-view container cards now restore the outlined member-tile treatment, but the outline colors are theme-aware and use the plugin runtime status/border tokens instead of hardcoded orange chrome.
+- UX: Command-view quick actions now reuse the regular FolderView Docker preview action classes, and the branch action buttons gain a subtle theme-token outline so they sit closer to the rest of the plugin controls.
+- Fix: Command-view member surfaces now hydrate Unraid's native Docker trigger handlers onto the visible tile itself and hydrate from the staged full runtime payload for WebUI URLs, so clicking a container uses the native Unraid menu path and the WebUI quick action can render when available.
+
+
+###2026.04.15.20
+- UX: Docker command-view member tiles no longer render the boxed orange tile chrome; the member strip now stays visually closer to the normal FolderView preview surface.
+- UX: Command-view WebUI, console, and log actions now use the regular Docker preview action classes so their icons match the standard FolderView quick actions instead of a custom button style.
+- Fix: Clicking or right-clicking a command-view container now proxies Unraid's native Docker row trigger, so the tile opens the same native Unraid container menu path the regular FolderView preview uses instead of a custom command-view menu.
+
+
+###2026.04.15.19
+- UX: Docker command-view member tiles now keep a consistent fixed width by default so folders do not stretch or compress container cards differently based on row count.
+- UX: Command-view container tiles now expose visible WebUI, console, and log quick-action icons, and clicking a tile opens a lightweight per-container action menu for start, stop, pause, resume, and restart.
+- Fix: The command-view folder-level `Open WebUIs` action now opens directly from the rendered member targets first, which avoids the broken no-op behavior seen in the experimental surface.
+
+
+###2026.04.15.18
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.15.16
+- Feature: Added an isolated Docker `Command view (experimental)` mode that loads from its own runtime module and stylesheet, reuses the existing folder/runtime data model, and keeps FolderView and host-list modes on separate paths.
+- UX: Docker command view renders a dedicated folder command surface with branch status summaries, member chips, and quick actions for start, stop, update, WebUI, edit, pin, and lock.
+- Quality: The Docker page-view dispatcher now mounts or unmounts the isolated command module cleanly, and regression coverage pins the optional loader, persisted page-view value, and command-mode runtime branch.
+
+
+###2026.04.15.15
+- UX: Settings workspace layout, section flows, and table behavior.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.15.12
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.15.11
+- Perf: Debounce legacy folder-regex matching while typing and stop running the duplicate editor recalculation path on every regex keystroke.
+- Perf: Avoid the extra pre-worker member-table redraw so large regex edits render once per settled pattern instead of twice.
+
+
+###2026.04.15.10
+- Fix: Settings privacy mode no longer blurs the Folder Defaults source picker or saved-default summary.
+- UX: Folder Defaults action buttons now use the same FolderView Plus settings button styling as the rest of the plugin.
+
+
+###2026.04.15.09
+- Fix: Mount the Docker runtime privacy toggle inside the Basic view control cluster so it stays right-aligned and vertically aligned with the host toggle.
+- Privacy: Expand Docker runtime toggle anchor detection to reuse the host toolbar cluster before falling back to a standalone row.
+
+
+###2026.04.15.07
+- Feature: Add a Docker runtime privacy toggle beside the Basic view switch.
+- Privacy: Persist Docker blur mode directly from the Docker tab and keep the runtime toggle in sync after host re-renders.
+
+
+###2026.04.15.06
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+
+
+###2026.04.15.05
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.15.04
+- Fix: Theme workspace action buttons in the Appearance tab now use the shared settings button system, so import, update, save, disable, and theme-entry actions match the rest of the plugin chrome.
+- Quality: `pkg_build.sh` now tolerates GNU tar warning exits when the produced archive is still readable, which hardens Windows worktree packaging against false-negative tar failures.
+- Test: Added regression coverage for the theme workspace button selector wiring and the readable-archive tar fallback path.
+
+
+###2026.04.15.03
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.04.15.02
+- Fix: Fixed concurrent JSON writes during first-load settings normalization so VM and Docker prefs no longer race on the same temporary file.
+- Fix: Updated atomic JSON writes to use a unique temp file per request before rename, which prevents intermittent `Failed to replace JSON payload` errors during settings bootstrap and diagnostics reads.
+- Quality: Fixed dev release-note insertion so missing git metadata in Windows worktrees no longer aborts packaging under `set -e`.
+- Quality: Hardened shell release tooling to resolve `php.exe` and `node.exe` when bare `php` or `node` are not present in the bash environment.
+- Test: Verified the patched writer with a local concurrent-write repro: the old fixed-temp-path flow produced a rename failure, while the unique-temp-path flow completed successfully in both parallel processes.
+- Test: Added release-flow regression coverage for broken git probes and manifest-based dev branch resolution during dry-run packaging.
+
+
+###2026.04.15.01
+- Feature: Added a managed Theme Workspace in Settings with GitHub theme import, activate/deactivate, delete, variable overrides, custom CSS, and update checks.
+- Fix: Added a dedicated `theme_workspace.php` endpoint plus managed CSS generation so imported themes flow through the existing custom asset pipeline safely.
+- Security: Added GitHub CSS safety scanning and persisted managed-theme metadata and warnings for imported theme sources.
+- Feature: Added saved Docker and VM folder-default profiles so a source folder's icon, folder settings, and script actions can be reused.
+- Feature: Added `Apply to all` for saved defaults using the existing guarded folder-settings batch-apply path.
+- Fix: Added new-folder inheritance in the modern folder editor so create mode hydrates from the saved default profile before the user edits anything.
+- Quality: Added prefs/runtime contract coverage for saved folder defaults, theme workspace settings wiring, and editor create-mode inheritance.
+- Maintenance: Updated the settings include-order guard to allow the new Theme Workspace runtime module.
 
 ###2026.04.14.15
 - UX: Icon picker, bundled icon packs, and custom icon management.

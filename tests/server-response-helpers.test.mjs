@@ -38,6 +38,7 @@ const endpointsUsingHelpers = [
     'create.php',
     'delete.php',
     'diagnostics.php',
+    'environment_snapshot.php',
     'prefs.php',
     'reorder.php',
     'sync_order.php',

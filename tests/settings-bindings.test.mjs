@@ -8,6 +8,7 @@ const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugi
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPrefsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
 const page = fs.readFileSync(pagePath, 'utf8');
@@ -37,6 +38,7 @@ const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
@@ -96,6 +98,7 @@ test('settings page loads extracted settings metadata before the main runtime', 
 });
 
 test('settings page exposes theme workspace and saved folder defaults controls', () => {
+    assert.match(page, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
     assert.match(page, /id="fv-theme-workspace-panel"/);
     assert.match(page, /id="fv-theme-github-source"/);
     assert.match(page, /id="fv-theme-workspace-list"/);
@@ -118,13 +121,22 @@ test('settings page exposes theme workspace and saved folder defaults controls',
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
-    assert.doesNotMatch(page, /id="docker-view-mode"/);
-    assert.doesNotMatch(page, /id="vm-view-mode"/);
-    assert.doesNotMatch(page, /Runtime view/);
+    assert.match(page, /id="docker-page-view-mode"/);
+    assert.doesNotMatch(page, /id="vm-page-view-mode"/);
+    assert.match(page, /Docker page view/);
+    assert.match(page, /<option value="command">Command view<\/option>/);
+    assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
+    const dockerSortRowStart = page.indexOf('<div class="sort-row">');
+    const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
+    assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
+    const dockerSortRow = page.slice(dockerSortRowStart, dockerSortRowEnd);
+    assert.doesNotMatch(dockerSortRow, /id="docker-page-view-mode"/);
+    assert.match(page, /<div class="settings-mini-title">Runtime<\/div>[\s\S]*id="docker-page-view-mode"/);
     assert.match(page, /id="docker-theme-compat-mode"/);
     assert.match(page, /id="vm-theme-compat-mode"/);
     assert.match(page, /Theme fallback mode/);
     assert.match(page, /folderviewplus\.theme-resolver\.js/);
+    assert.match(page, /changeRuntimePref\('docker', 'pageViewMode', this\.value\)/);
     assert.match(page, /changeRuntimePref\('docker', 'themeCompatibilityMode', this\.value\)/);
     assert.match(page, /changeRuntimePref\('vm', 'themeCompatibilityMode', this\.value\)/);
     assert.doesNotMatch(page, /onclick="runThemeSelfHeal\(\)"/);
@@ -134,9 +146,10 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
-    assert.doesNotMatch(script, /else if \(key === 'viewMode'\) \{/);
+    assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
+    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer'\]/);
 });
 
 test('backup endpoint supports scheduler and rollback actions', () => {

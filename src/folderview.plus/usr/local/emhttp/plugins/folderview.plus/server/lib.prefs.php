@@ -28,6 +28,7 @@
             'performanceMode' => false,
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
+            'pageViewMode' => 'folderview',
             'themeCompatibilityMode' => 'auto',
             'dashboard' => [
                 'layout' => 'classic',
@@ -240,6 +241,14 @@
         return 'auto';
     }
 
+    function normalizeRuntimePageViewMode($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer'], true)) {
+            return $normalized;
+        }
+        return 'folderview';
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -308,6 +317,7 @@
             ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
+        $normalized['pageViewMode'] = normalizeRuntimePageViewMode($prefs['pageViewMode'] ?? 'folderview');
         $normalized['themeCompatibilityMode'] = normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto');
         $dashboardIncoming = is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [];
         $normalized['dashboard'] = [

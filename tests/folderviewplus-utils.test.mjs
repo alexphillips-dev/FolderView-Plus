@@ -581,6 +581,7 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.performanceMode, false);
     assert.equal(prefs.lazyPreviewEnabled, false);
     assert.equal(prefs.lazyPreviewThreshold, 30);
+    assert.equal(prefs.pageViewMode, 'folderview');
     assert.equal(prefs.themeCompatibilityMode, 'auto');
     assert.deepEqual(prefs.backupSchedule, {
         enabled: false,
@@ -616,6 +617,31 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
 });
 
 test('normalizePrefs supports theme compatibility mode and sanitizes invalid values', () => {
+    const hostListMode = utils.normalizePrefs({
+        pageViewMode: 'HOST'
+    });
+    assert.equal(hostListMode.pageViewMode, 'host');
+
+    const commandViewMode = utils.normalizePrefs({
+        pageViewMode: 'COMMAND'
+    });
+    assert.equal(commandViewMode.pageViewMode, 'command');
+
+    const treeExplorerMode = utils.normalizePrefs({
+        pageViewMode: 'TREE-EXPLORER'
+    });
+    assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
+
+    const folderViewMode = utils.normalizePrefs({
+        pageViewMode: 'folderview'
+    });
+    assert.equal(folderViewMode.pageViewMode, 'folderview');
+
+    const fallbackPageViewMode = utils.normalizePrefs({
+        pageViewMode: 'broken-mode'
+    });
+    assert.equal(fallbackPageViewMode.pageViewMode, 'folderview');
+
     const hostMode = utils.normalizePrefs({
         themeCompatibilityMode: 'host'
     });

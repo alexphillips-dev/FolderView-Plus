@@ -8,12 +8,13 @@ PAGE_FILE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ ! -f "${PAGE_FILE}" ]]; then
   fvplus::fail "Missing settings page file: ${PAGE_FILE}"
 fi
 
-node - "${PAGE_FILE}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PAGE_FILE}")" <<'NODE'
 const fs = require('fs');
 
 const pageFile = process.argv[2];

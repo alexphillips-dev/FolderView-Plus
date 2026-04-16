@@ -379,7 +379,7 @@ body[data-fvplus-docker-command-view-mounted="true"] table#docker_containers {
     gap: 5px;
     margin-left: 0;
     margin-top: -0.04rem;
-    padding: 0 0 0.08rem 2.5rem;
+    padding: 0 0 0.08rem 0;
     align-self: flex-start;
     min-height: 13px;
 }

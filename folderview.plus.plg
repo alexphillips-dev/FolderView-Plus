@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.32">
-<!ENTITY md5 "3ede702a1bc3b79be2bd66459f9d5f36">
+<!ENTITY version "2026.04.15.33">
+<!ENTITY md5 "3e8b49b3e04afc4c98c5f0db1b8d0088">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.33
+- UX: Removed the remaining left padding from the Docker command-view WebUI, console, and logs icon row so the quick actions sit directly under the member content with no extra gap.
+
 
 ###2026.04.15.32
 - UX: Reduced the left padding on the Docker command-view WebUI, console, and logs icon row so the quick actions sit closer to the member name and status column.

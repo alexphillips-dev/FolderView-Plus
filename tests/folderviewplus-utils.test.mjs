@@ -342,7 +342,8 @@ test('normalizePrefs provides dashboard defaults', () => {
         layout: 'classic',
         expandToggle: true,
         greyscale: false,
-        folderLabel: true
+        folderLabel: true,
+        privacyMode: false
     });
 });
 
@@ -352,14 +353,16 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
             layout: 'accordion',
             expandToggle: false,
             greyscale: true,
-            folderLabel: false
+        folderLabel: false,
+        privacyMode: false
         }
     });
     assert.deepEqual(prefs.dashboard, {
         layout: 'accordion',
         expandToggle: false,
         greyscale: true,
-        folderLabel: false
+        folderLabel: false,
+        privacyMode: false
     });
     const matrix = utils.normalizePrefs({
         dashboard: {
@@ -1032,3 +1035,4 @@ test('performance utility helpers are exported and writable in node runtime', as
     assert.equal(storage.get('beta'), '2');
     assert.equal(storage.has('alpha'), false);
 });
+

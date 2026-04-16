@@ -4,10 +4,65 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
-DEV_BRANCH="${FVPLUS_BACKMERGE_LOCAL_BRANCH:-dev}"
+read_host_env_var() {
+  local name="${1:-}"
+  local current=""
+  local win_value=""
+  if [[ -n "${name}" ]]; then
+    current="${!name:-}"
+    if [[ -n "${current}" ]]; then
+      printf '%s\n' "${current}"
+      return 0
+    fi
+  fi
+  if command -v cmd.exe >/dev/null 2>&1 && [[ -n "${name}" ]]; then
+    win_value="$(cmd.exe /c echo %"${name}"% 2>/dev/null | tr -d '\r' | tail -n 1)"
+    if [[ -n "${win_value}" && "${win_value}" != "%${name}%" ]]; then
+      printf '%s\n' "${win_value}"
+      return 0
+    fi
+  fi
+  printf '%s\n' ""
+}
+
+DEV_BRANCH="$(read_host_env_var FVPLUS_BACKMERGE_LOCAL_BRANCH)"
+DEV_BRANCH="${DEV_BRANCH:-dev}"
 MAIN_REF="origin/main"
 DEV_REF="origin/dev"
 
+normalize_local_remote_url() {
+  local url="${1:-}"
+  if [[ -z "${url}" ]]; then
+    printf '%s\n' ""
+    return 0
+  fi
+  if command -v wslpath >/dev/null 2>&1; then
+    if [[ "${url}" =~ ^file://([A-Za-z]:[\\/].*)$ ]]; then
+      printf 'file://%s\n' "$(wslpath -u "${BASH_REMATCH[1]}")"
+      return 0
+    fi
+    if [[ "${url}" =~ ^[A-Za-z]:[\\/].* ]]; then
+      wslpath -u "${url}"
+      return 0
+    fi
+  fi
+  printf '%s\n' "${url}"
+}
+
+ensure_origin_remote_usable() {
+  local remote_url=""
+  local normalized_url=""
+  remote_url="$(git remote get-url origin 2>/dev/null || true)"
+  if [[ -z "${remote_url}" ]]; then
+    return 0
+  fi
+  normalized_url="$(normalize_local_remote_url "${remote_url}")"
+  if [[ -n "${normalized_url}" && "${normalized_url}" != "${remote_url}" ]]; then
+    git remote set-url origin "${normalized_url}"
+  fi
+}
+
+ensure_origin_remote_usable
 git fetch origin main dev --tags
 
 release_only_path() {
@@ -73,10 +128,10 @@ changed_paths_since_ref() {
 }
 
 if git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
-  git checkout "${DEV_BRANCH}"
+  git checkout -f "${DEV_BRANCH}"
   git reset --hard "${DEV_REF}"
 else
-  git checkout -b "${DEV_BRANCH}" "${DEV_REF}"
+  git checkout -f -b "${DEV_BRANCH}" "${DEV_REF}"
 fi
 
 if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then
@@ -114,3 +169,5 @@ else
 fi
 
 echo "Back-merge branch updated with merge ancestry."
+
+

@@ -10,12 +10,13 @@ ALLOW_UNUSED_KEYS="${FVPLUS_I18N_ALLOW_UNUSED_KEYS:-}"
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ ! -f "${EN_FILE}" ]]; then
   fvplus::fail "Missing base locale file: ${EN_FILE}"
 fi
 
-node - "${PLUGIN_DIR}" "${EN_FILE}" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${EN_FILE}")" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 

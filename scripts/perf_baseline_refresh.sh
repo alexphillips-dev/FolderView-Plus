@@ -8,8 +8,9 @@ BASELINE_FILE="${FVPLUS_PERF_BASELINE_FILE:-${ROOT_DIR}/scripts/perf_baseline.js
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
-node - "${PLUGIN_DIR}" "${BASELINE_FILE}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${BASELINE_FILE}")" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');

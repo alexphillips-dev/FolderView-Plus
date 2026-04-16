@@ -7,12 +7,13 @@ source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
-node <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}")" <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = process.cwd();
+const root = process.argv[2];
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const fail = (message) => {
   console.error(`ERROR: ${message}`);

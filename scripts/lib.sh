@@ -24,8 +24,13 @@ fvplus::path_for_command() {
   local command_path="${1:-}"
   local target_path="${2:-}"
   local normalized_path=""
+  local translate_for_windows_runtime=1
   [[ -n "${target_path}" ]] || return 1
-  if [[ "${command_path}" == *.exe ]] && command -v wslpath >/dev/null 2>&1; then
+  translate_for_windows_runtime=0
+  if [[ "${command_path}" == *.exe ]] || [[ "${command_path}" == /mnt/c/* ]] || [[ "${command_path}" == *fvplus-bash-shims/* ]]; then
+    translate_for_windows_runtime=1
+  fi
+  if [[ "${translate_for_windows_runtime}" -eq 1 ]] && command -v wslpath >/dev/null 2>&1; then
     normalized_path="${target_path}"
     if [[ "${normalized_path}" != /* && ! "${normalized_path}" =~ ^[A-Za-z]:[\\/].* ]]; then
       normalized_path="$(realpath -m "${normalized_path}" 2>/dev/null || printf '%s/%s' "$(pwd)" "${normalized_path}")"

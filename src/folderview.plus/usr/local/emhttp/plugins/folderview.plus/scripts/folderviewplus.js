@@ -4047,7 +4047,8 @@ const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().c
 const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
 const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
 const syncRulesWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRulesWorkspaceUi(...args);
-const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
+const exportEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().exportEnvironmentSnapshot(...args);
+const importEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().importEnvironmentSnapshot(...args);
 
 const normalizeHealthSeverityFilterMode = (mode) => {
     const normalized = String(mode || '').trim().toLowerCase();
@@ -6425,7 +6426,8 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         layout: normalizeLayout(dashboard.layout),
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
-        folderLabel: dashboard.folderLabel !== false
+        folderLabel: dashboard.folderLabel !== false,
+        privacyMode: dashboard.privacyMode === true
     };
 };
 
@@ -6444,13 +6446,22 @@ const syncRuntimeDependentFields = (type) => {
     $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
 };
 
+const applySettingsPrivacyMode = () => {
+    ['docker', 'vm'].forEach((type) => {
+        const dashboard = normalizeDashboardPrefsForType(type);
+        $('body').toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true);
+    });
+};
+
 const renderDashboardControls = (type) => {
     const dashboard = normalizeDashboardPrefsForType(type);
     $(`#${type}-dashboard-layout`).val(dashboard.layout);
     $(`#${type}-dashboard-expand-toggle`).prop('checked', dashboard.expandToggle === true);
     $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
+    $(`#${type}-dashboard-privacy-mode`).prop('checked', dashboard.privacyMode === true);
     syncDashboardDependentFields(type);
+    applySettingsPrivacyMode();
 };
 
 const renderRuntimeControls = (type) => {
@@ -7985,6 +7996,8 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.greyscale = value === true;
     } else if (key === 'folderLabel') {
         nextDashboard.folderLabel = value === true;
+    } else if (key === 'privacyMode') {
+        nextDashboard.privacyMode = value === true;
     } else {
         return;
     }
@@ -9139,7 +9152,9 @@ settingsActionSupportModule.registerWindowActions(window, {
     applySavedFolderDefaultsToAll,
     clearFolderDefaults,
     runQuickSetupWizard,
-    setSettingsMode
+    setSettingsMode,
+    exportEnvironmentSnapshot,
+    importEnvironmentSnapshot,
 });
 
 (async () => {
@@ -9299,3 +9314,9 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
+
+
+
+
+
+

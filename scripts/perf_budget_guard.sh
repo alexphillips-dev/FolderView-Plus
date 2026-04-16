@@ -10,8 +10,9 @@ REQUIRE_BASELINE="${FVPLUS_REQUIRE_PERF_BASELINE:-0}"
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
-node - "${PLUGIN_DIR}" "${BASELINE_FILE}" "${MAX_GROWTH_PCT}" "${REQUIRE_BASELINE}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${BASELINE_FILE}")" "${MAX_GROWTH_PCT}" "${REQUIRE_BASELINE}" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');

@@ -22,6 +22,15 @@ fvplus::require_commands php node tar sed grep find
 PHP_BIN="$(fvplus::resolve_platform_command php)"
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 
+command_uses_windows_path_translation() {
+  local command_path="${1:-}"
+  [[ -n "${command_path}" ]] || return 1
+  [[ "${command_path}" == *.exe ]] && return 0
+  [[ "${command_path}" == /mnt/c/* ]] && return 0
+  [[ "${command_path}" == *fvplus-bash-shims/* ]] && return 0
+  return 1
+}
+
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
 if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
@@ -91,7 +100,7 @@ if [[ -n "${ICON_ARCHIVE_ENTRIES}" ]]; then
   fi
 fi
 
-TMP_DIR="$(mktemp -d)"
+TMP_DIR="$(mktemp -d "${ROOT_DIR}/.tmp-install-smoke.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 tar -xf "${ARCHIVE_FILE}" -C "${TMP_DIR}"
 PLUGIN_DIR="${TMP_DIR}/usr/local/emhttp/plugins/folderview.plus"
@@ -156,12 +165,20 @@ for required_file in "${REQUIRED_FILES[@]}"; do
 done
 
 while IFS= read -r -d '' file; do
-  php_target="$(fvplus::path_for_command "${PHP_BIN}" "${file}")"
+  if command -v wslpath >/dev/null 2>&1 && command_uses_windows_path_translation "${PHP_BIN}"; then
+    php_target="$(wslpath -w "${file}")"
+  else
+    php_target="${file}"
+  fi
   "${PHP_BIN}" -l "${php_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/server" -type f -name "*.php" -print0)
 
 while IFS= read -r -d '' file; do
-  node_target="$(fvplus::path_for_command "${NODE_BIN}" "${file}")"
+  if command -v wslpath >/dev/null 2>&1 && command_uses_windows_path_translation "${NODE_BIN}"; then
+    node_target="$(wslpath -w "${file}")"
+  else
+    node_target="${file}"
+  fi
   "${NODE_BIN}" --check "${node_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/scripts" -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
 

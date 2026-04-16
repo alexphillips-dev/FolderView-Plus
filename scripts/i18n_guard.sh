@@ -7,12 +7,13 @@ LANG_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.pl
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 if [[ ! -d "${LANG_DIR}" ]]; then
   fvplus::fail "Missing language directory: ${LANG_DIR}"
 fi
 
-node - "${LANG_DIR}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 

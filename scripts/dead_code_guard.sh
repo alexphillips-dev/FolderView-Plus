@@ -8,8 +8,9 @@ STRICT_MODE="${FVPLUS_DEAD_CODE_STRICT:-0}"
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
-node - "${PLUGIN_DIR}" "${STRICT_MODE}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "${STRICT_MODE}" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 

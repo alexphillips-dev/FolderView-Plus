@@ -7,6 +7,7 @@ source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node awk sed mktemp grep
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 env_truthy() {
   case "$(printf '%s' "${1:-0}" | tr '[:upper:]' '[:lower:]')" in
@@ -35,13 +36,13 @@ fi
 chmod +x scripts/build_release_notes.sh
 bash scripts/build_release_notes.sh --version "${VERSION}" --output "${OUTPUT_FILE}"
 
-node - "${VERSION}" "${OUTPUT_FILE}" <<'NODE'
+"${NODE_BIN}" - "${VERSION}" "$(fvplus::path_for_command "${NODE_BIN}" "${OUTPUT_FILE}")" "$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}")" <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
 
 const version = process.argv[2];
 const outputFile = process.argv[3];
-const root = process.cwd();
+const root = process.argv[4];
 const plg = fs.readFileSync(path.join(root, 'folderview.plus.plg'), 'utf8');
 const releaseOnMain = fs.readFileSync(path.join(root, '.github/workflows/release-on-main.yml'), 'utf8');
 const releaseMain = fs.readFileSync(path.join(root, '.github/workflows/release-main.yml'), 'utf8');

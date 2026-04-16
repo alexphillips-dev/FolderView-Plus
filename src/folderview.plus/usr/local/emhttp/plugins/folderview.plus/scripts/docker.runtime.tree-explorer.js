@@ -128,7 +128,6 @@
             : (() => {});
         const openWebuiInNewTab = typeof deps.openWebuiInNewTab === 'function' ? deps.openWebuiInNewTab : (() => false);
         const openWebuiPopupWindow = typeof deps.openWebuiPopupWindow === 'function' ? deps.openWebuiPopupWindow : (() => false);
-        const openTerminal = typeof deps.openTerminal === 'function' ? deps.openTerminal : (() => {});
         const toggleFolderPin = typeof deps.toggleFolderPin === 'function' ? deps.toggleFolderPin : (() => Promise.resolve());
         const toggleFolderLock = typeof deps.toggleFolderLock === 'function' ? deps.toggleFolderLock : (() => {});
         const queueLoadlistRefresh = typeof deps.queueLoadlistRefresh === 'function'
@@ -931,3 +930,4 @@
         createApi
     });
 }));
+

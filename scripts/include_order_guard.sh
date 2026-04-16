@@ -16,8 +16,33 @@ fi
 
 "${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PAGE_FILE}")" <<'NODE'
 const fs = require('fs');
+const path = require('path');
 
-const pageFile = process.argv[2];
+const normalizePageFile = (input) => {
+  const raw = String(input || '').trim();
+  if (!raw) {
+    return raw;
+  }
+  if (fs.existsSync(raw)) {
+    return raw;
+  }
+  const malformedWindowsMntMatch = raw.match(/^[A-Za-z]:\\mnt\\([A-Za-z])\\(.+)$/);
+  if (malformedWindowsMntMatch) {
+    const candidate = `${malformedWindowsMntMatch[1].toUpperCase()}:\\${malformedWindowsMntMatch[2]}`;
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  if (/^\/mnt\/[A-Za-z]\//.test(raw)) {
+    const candidate = raw.replace(/^\/mnt\/([A-Za-z])\//, (_, drive) => `${drive.toUpperCase()}:\\`).replace(/\//g, '\\');
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return path.resolve(raw);
+};
+
+const pageFile = normalizePageFile(process.argv[2]);
 const source = fs.readFileSync(pageFile, 'utf8');
 const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((match) => match[0]);
 

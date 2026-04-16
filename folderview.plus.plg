@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.01">
-<!ENTITY md5 "1e7739394835769b5f090c684d139c8a">
+<!ENTITY version "2026.04.16.02">
+<!ENTITY md5 "bb3f09b6a74417818ff303dad5b4e937">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.16.02
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release-note generation, retry cleanup, and packaging guards.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
 
 ###2026.04.14.17
 - Fix: Uploaded custom icons are now stored under `/boot/config/plugins/folderview.plus/images/custom`, so they persist across reboot, plugin reinstalls, and Unraid upgrades.

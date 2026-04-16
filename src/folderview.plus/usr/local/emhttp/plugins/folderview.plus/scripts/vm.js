@@ -685,6 +685,56 @@ const readFolderOwnerFromRow = (row) => {
     }
     return '';
 };
+const isVmFolderMemberPrimaryRow = (row) => !!(row && row.nodeType === 1 && row.matches('tr.fv-vm-member-row'));
+const isVmFolderBoundaryRow = (row) => !!(row && row.nodeType === 1 && (row.matches('tr.folder') || isVmFolderMemberPrimaryRow(row)));
+const collectVmMemberRowGroup = (row) => {
+    if (!isVmFolderMemberPrimaryRow(row)) {
+        return [];
+    }
+    const group = [row];
+    let cursor = row.nextElementSibling;
+    while (cursor && !isVmFolderBoundaryRow(cursor)) {
+        group.push(cursor);
+        cursor = cursor.nextElementSibling;
+    }
+    return group;
+};
+const applyVmMemberRowGroupOwnership = (row, folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !isVmFolderMemberPrimaryRow(row)) {
+        return [];
+    }
+    const ownerClass = `folder-${id}-element`;
+    const group = collectVmMemberRowGroup(row);
+    group.forEach((entry, index) => {
+        if (!entry || entry.nodeType !== 1) {
+            return;
+        }
+        entry.classList.add(ownerClass);
+        if (index > 0) {
+            entry.classList.add('fv-vm-member-detail-row');
+        }
+    });
+    return group;
+};
+const placeVmManagedDetailRowsAfterOwner = (ownerRow, detailRows, folderId) => {
+    if (!isVmFolderMemberPrimaryRow(ownerRow)) {
+        return;
+    }
+    const id = String(folderId || readFolderOwnerFromRow(ownerRow) || '').trim();
+    if (!id) {
+        return;
+    }
+    let insertAfter = collectVmMemberRowGroup(ownerRow).slice(-1)[0] || ownerRow;
+    for (const detailRow of detailRows) {
+        if (!detailRow || detailRow.nodeType !== 1 || isVmFolderBoundaryRow(detailRow)) {
+            continue;
+        }
+        detailRow.classList.add(`folder-${id}-element`, 'fv-vm-member-detail-row');
+        $(insertAfter).after(detailRow);
+        insertAfter = detailRow;
+    }
+};
 const getFocusedFolderVisibleSet = (folderId) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
@@ -1101,6 +1151,73 @@ const hideVmRuntimeLoadingRow = () => {
     $('tbody#kvm_list tr.fv-runtime-loading-row').remove();
 };
 
+const rememberPendingVmDetailOwner = (row) => {
+    if (!isVmFolderMemberPrimaryRow(row)) {
+        vmPendingExpandedDetailOwner = null;
+        return;
+    }
+    vmPendingExpandedDetailOwner = {
+        row,
+        folderId: readFolderOwnerFromRow(row),
+        expiresAt: Date.now() + 1500
+    };
+};
+
+const readPendingVmDetailOwner = () => {
+    if (!vmPendingExpandedDetailOwner) {
+        return null;
+    }
+    if (vmPendingExpandedDetailOwner.expiresAt < Date.now()) {
+        vmPendingExpandedDetailOwner = null;
+        return null;
+    }
+    const row = vmPendingExpandedDetailOwner.row;
+    if (!isVmFolderMemberPrimaryRow(row) || !document.body.contains(row)) {
+        vmPendingExpandedDetailOwner = null;
+        return null;
+    }
+    return vmPendingExpandedDetailOwner;
+};
+
+const ensureVmFolderDetailObserver = () => {
+    if (vmFolderDetailObserver || typeof MutationObserver !== 'function') {
+        return;
+    }
+    const tbody = document.querySelector('tbody#kvm_list');
+    if (!tbody) {
+        return;
+    }
+    $(tbody)
+        .off('click.fvVmMemberDetailOwner')
+        .on('click.fvVmMemberDetailOwner', 'tr.fv-vm-member-row td.vm-name, tr.fv-vm-member-row td.vm-name a, tr.fv-vm-member-row td.vm-name button, tr.fv-vm-member-row td.vm-name span', function() {
+            rememberPendingVmDetailOwner(this.closest('tr'));
+        });
+    vmFolderDetailObserver = new MutationObserver((mutations) => {
+        const pendingOwner = readPendingVmDetailOwner();
+        if (!pendingOwner || !pendingOwner.folderId) {
+            return;
+        }
+        const addedRows = [];
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes || []) {
+                if (!node || node.nodeType !== 1 || node.tagName !== 'TR') {
+                    continue;
+                }
+                if (isVmFolderBoundaryRow(node) || readFolderOwnerFromRow(node)) {
+                    continue;
+                }
+                addedRows.push(node);
+            }
+        }
+        if (!addedRows.length) {
+            return;
+        }
+        placeVmManagedDetailRowsAfterOwner(pendingOwner.row, addedRows, pendingOwner.folderId);
+        vmPendingExpandedDetailOwner = null;
+    });
+    vmFolderDetailObserver.observe(tbody, { childList: true });
+};
+
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
 
@@ -1112,6 +1229,7 @@ const createFolders = async () => {
     showVmRuntimeLoadingRow();
     setVmFatalBannerPhase('bootstrap-data');
     try {
+    ensureVmFolderDetailObserver();
     ensureVmExpandedStateLifecycleHooks();
     markVmFatalBannerStep('VM runtime lifecycle hooks ready');
     persistVmExpandedStateFromDom();
@@ -1557,7 +1675,9 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             let $vmTR = $('#kvm_list > tr.sortable').filter(function() {
                 return $(this).find('td.vm-name span.outer span.inner a').first().text().trim() === container;
             }).first();
-            $(`tr.folder-id-${id} div.folder-storage`).append($vmTR.addClass(`folder-${id}-element`).addClass(`folder-element`).removeClass('sortable'));
+            $vmTR.addClass('fv-vm-member-row').addClass(`folder-${id}-element`).addClass('folder-element').removeClass('sortable');
+            const vmRowGroup = applyVmMemberRowGroupOwnership($vmTR.get(0), id);
+            $(`tr.folder-id-${id} div.folder-storage`).append(vmRowGroup.length ? $(vmRowGroup) : $vmTR);
 
             if(folderDebugMode) {
                 vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
@@ -2689,6 +2809,8 @@ let folderDebugMode  = false;
 let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
+let vmPendingExpandedDetailOwner = null;
+let vmFolderDetailObserver = null;
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;

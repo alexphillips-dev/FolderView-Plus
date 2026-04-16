@@ -157,9 +157,13 @@ body[data-fvplus-docker-tree-explorer-mounted="true"] table#docker_containers {
 
 .fv-docker-tree-explorer-node-toggle,
 .fv-docker-tree-explorer-node-label {
-    border: 1px solid transparent;
-    background: transparent;
-    color: inherit;
+    appearance: none;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: inherit !important;
+    outline: none;
 }
 
 .fv-docker-tree-explorer-node-toggle {
@@ -175,13 +179,15 @@ body[data-fvplus-docker-tree-explorer-mounted="true"] table#docker_containers {
     text-align: left;
     padding: 0.58rem 0.72rem;
     border-radius: 14px;
+    border-color: var(--fv-tree-border-faint) !important;
+    background: rgba(255, 255, 255, 0.015) !important;
     color: var(--fv-tree-text-primary);
 }
 
 .fv-docker-tree-explorer-node-label:hover,
 .fv-docker-tree-explorer-node-label.is-selected {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--fv-tree-border);
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--fv-tree-border) !important;
 }
 
 .fv-docker-tree-explorer-node-label.is-selected {
@@ -290,24 +296,66 @@ body[data-fvplus-docker-tree-explorer-mounted="true"] table#docker_containers {
 }
 
 .fv-docker-tree-explorer-child-card {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    text-align: left;
     min-width: 180px;
     flex: 1 1 180px;
-    border: 1px solid var(--fv-tree-border-faint);
+    border: 1px solid var(--fv-tree-border-faint) !important;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.03) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
     padding: 0.8rem;
+    color: var(--fv-tree-text-primary) !important;
+    overflow: hidden;
 }
 
-.fv-docker-tree-explorer-child-card h4 {
-    margin: 0;
+.fv-docker-tree-explorer-child-card:hover,
+.fv-docker-tree-explorer-child-card:focus-visible {
+    border-color: var(--fv-tree-border) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.fv-docker-tree-explorer-child-icon {
+    width: 24px;
+    height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    object-fit: contain;
+    flex: 0 0 24px;
+}
+
+.fv-docker-tree-explorer-child-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+    min-width: 0;
+}
+
+.fv-docker-tree-explorer-child-name {
     color: var(--fv-tree-text-primary);
-    font-size: 0.96rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.fv-docker-tree-explorer-child-card p {
-    margin: 0.3rem 0 0;
+.fv-docker-tree-explorer-child-sub,
+.fv-docker-tree-explorer-detail-subtitle,
+.fv-docker-tree-explorer-sidebar-title,
+.fv-docker-tree-explorer-section-title {
     color: var(--fv-tree-text-dim);
     font-size: 0.8rem;
+}
+
+.fv-docker-tree-explorer-detail-subtitle {
+    margin-top: 0.22rem;
 }
 
 .fv-docker-tree-explorer-child-grid {

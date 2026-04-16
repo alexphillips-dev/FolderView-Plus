@@ -14,7 +14,6 @@ const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const dockerCommandViewModule = window.FolderViewPlusDockerCommandView || null;
-const dockerServiceMapModule = window.FolderViewPlusDockerServiceMap || null;
 const dockerTreeExplorerModule = window.FolderViewPlusDockerTreeExplorer || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
@@ -503,7 +502,6 @@ let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
 let dockerRuntimeActionsApi = null;
 let dockerCommandViewApi = null;
-let dockerServiceMapApi = null;
 let dockerTreeExplorerApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -742,17 +740,6 @@ const getDockerCommandViewApi = () => {
         dockerCommandViewApi = dockerCommandViewModule.createApi(buildDockerIsolatedViewDeps());
     }
     return dockerCommandViewApi;
-};
-const getDockerServiceMapApi = () => {
-    if (
-        !dockerServiceMapApi
-        && dockerServiceMapModule
-        && window.FolderViewPlusDockerServiceMapModuleLoaded === true
-        && typeof dockerServiceMapModule.createApi === 'function'
-    ) {
-        dockerServiceMapApi = dockerServiceMapModule.createApi(buildDockerIsolatedViewDeps());
-    }
-    return dockerServiceMapApi;
 };
 const getDockerTreeExplorerApi = () => {
     if (
@@ -3034,7 +3021,7 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
 const normalizeDockerPageViewMode = (value) => (
     typeof utils.normalizeRuntimePageViewMode === 'function'
         ? utils.normalizeRuntimePageViewMode(value)
-        : (['host', 'command', 'service-map', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
+        : (['host', 'command', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
 );
 
 const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPageViewMode(
@@ -3101,13 +3088,6 @@ const unmountDockerCommandView = () => {
     }
 };
 
-const unmountDockerServiceMap = () => {
-    const serviceMapApi = getDockerServiceMapApi();
-    if (serviceMapApi && typeof serviceMapApi.unmount === 'function') {
-        serviceMapApi.unmount();
-    }
-};
-
 const unmountDockerTreeExplorer = () => {
     const treeExplorerApi = getDockerTreeExplorerApi();
     if (treeExplorerApi && typeof treeExplorerApi.unmount === 'function') {
@@ -3118,9 +3098,6 @@ const unmountDockerTreeExplorer = () => {
 const unmountDockerIsolatedViews = (exceptMode = '') => {
     if (exceptMode !== 'command') {
         unmountDockerCommandView();
-    }
-    if (exceptMode !== 'service-map') {
-        unmountDockerServiceMap();
     }
     if (exceptMode !== 'tree-explorer') {
         unmountDockerTreeExplorer();
@@ -3150,20 +3127,6 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 }
                 markDockerFatalBannerStep('Docker command view unavailable, falling back to host list');
                 recordDockerFatalBannerAction('Docker command view unavailable');
-                return;
-            }
-            if (mode === 'service-map') {
-                unmountDockerIsolatedViews('service-map');
-                markDockerFatalBannerStep('Docker service map active');
-                recordDockerFatalBannerAction('Docker service map active');
-                const serviceMapApi = getDockerServiceMapApi();
-                if (serviceMapApi && typeof serviceMapApi.mount === 'function') {
-                    return serviceMapApi.mount({
-                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
-                    });
-                }
-                markDockerFatalBannerStep('Docker service map unavailable, falling back to host list');
-                recordDockerFatalBannerAction('Docker service map unavailable');
                 return;
             }
             if (mode === 'tree-explorer') {

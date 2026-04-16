@@ -243,7 +243,7 @@
 
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['folderview', 'host', 'command', 'service-map', 'tree-explorer'], true)) {
+        if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer'], true)) {
             return $normalized;
         }
         return 'folderview';

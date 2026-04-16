@@ -216,7 +216,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="folderview">FolderView</option>
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
-                            <option value="service-map">Service map</option>
                             <option value="tree-explorer">Tree explorer</option>
                         </select>
                     </label>

@@ -674,7 +674,7 @@
                                                 <button type="button" class="fv-docker-tree-explorer-child-card" data-fv-tree-select="${escapeHtml(childCard.folderId)}">
                                                     <img src="${childIcon}" class="fv-docker-tree-explorer-child-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'>
                                                     <span class="fv-docker-tree-explorer-child-copy">
-                                                        <span>${escapeHtml(childCard.folder?.name || `Folder ${childCard.folderId}`)}</span>
+                                                        <span class="fv-docker-tree-explorer-child-name">${escapeHtml(childCard.folder?.name || `Folder ${childCard.folderId}`)}</span>
                                                         <span class="fv-docker-tree-explorer-child-sub">${escapeHtml(`${childCard.branchMemberCount} containers • ${childCard.childCount} child folders`)}</span>
                                                     </span>
                                                 </button>

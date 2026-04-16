@@ -498,7 +498,7 @@
             if (!(root instanceof HTMLElement)) {
                 return;
             }
-            root.innerHTML = `<div class="fv-docker-service-map-shell"><div class="fv-docker-service-map-empty"><h3>Command view failed to load</h3><p>${escapeHtml(message || 'Unknown error.')}</p><button type="button" class="fv-docker-service-map-button is-primary" data-fv-service-action="refresh">Retry</button></div></div>`;
+            root.innerHTML = `<div class="fv-docker-service-map-shell"><div class="fv-docker-service-map-empty"><h3>Service map failed to load</h3><p>${escapeHtml(message || 'Unknown error.')}</p><button type="button" class="fv-docker-service-map-button is-primary" data-fv-service-action="refresh">Retry</button></div></div>`;
         };
 
         const renderSnapshot = (snapshot) => {

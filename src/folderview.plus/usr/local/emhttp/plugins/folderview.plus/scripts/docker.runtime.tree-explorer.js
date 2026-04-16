@@ -486,7 +486,7 @@
             if (!(root instanceof HTMLElement)) {
                 return;
             }
-            root.innerHTML = `<div class="fv-docker-tree-explorer-shell"><div class="fv-docker-tree-explorer-empty"><h3>Command view failed to load</h3><p>${escapeHtml(message || 'Unknown error.')}</p><button type="button" class="fv-docker-tree-explorer-button is-primary" data-fv-tree-action="refresh">Retry</button></div></div>`;
+            root.innerHTML = `<div class="fv-docker-tree-explorer-shell"><div class="fv-docker-tree-explorer-empty"><h3>Tree explorer failed to load</h3><p>${escapeHtml(message || 'Unknown error.')}</p><button type="button" class="fv-docker-tree-explorer-button is-primary" data-fv-tree-action="refresh">Retry</button></div></div>`;
         };
 
         const renderSnapshot = (snapshot) => {

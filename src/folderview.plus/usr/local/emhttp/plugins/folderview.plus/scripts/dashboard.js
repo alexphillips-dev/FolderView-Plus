@@ -220,6 +220,7 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const WEBUI_OPEN_REL = 'noopener';
 const getSafeWebUiUrl = (value) => {
     const raw = String(value || '').trim();
@@ -1465,7 +1466,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     }
 
     // the HTML template for the folder
-    const safeFolderIcon = sanitizeImageSrc(folder.icon);
+    const safeFolderIcon = sanitizeImageSrc(folder.icon, DEFAULT_FOLDER_ICON_PATH);
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
     const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
@@ -1766,7 +1767,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {

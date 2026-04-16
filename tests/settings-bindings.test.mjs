@@ -8,6 +8,7 @@ const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugi
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPrefsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
 const page = fs.readFileSync(pagePath, 'utf8');
@@ -37,6 +38,7 @@ const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
@@ -148,6 +150,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
+    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'service-map', 'tree-explorer'\]/);
 });
 
 test('backup endpoint supports scheduler and rollback actions', () => {

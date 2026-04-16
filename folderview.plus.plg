@@ -5,13 +5,19 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.16.03">
-<!ENTITY md5 "04930b9b7e5ebee2bf3c4f6057009781">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.04.16.04">
+<!ENTITY md5 "e6105821583b8b9a3c273e0bd0854d95">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.16.04
+- Maintenance: Revert VM detail-row regrouping and restore rules workspace binding.
+- Maintenance: Refresh performance baseline for released runtime assets.
+- Fix: Fix dead-code guard for release tree explorer cleanup.
+
 
 ###2026.04.16.03
 - Fix: VM runtime rows, folder state, and VM actions.
@@ -5447,7 +5453,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

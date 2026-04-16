@@ -14,6 +14,8 @@ const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const dockerCommandViewModule = window.FolderViewPlusDockerCommandView || null;
+const dockerServiceMapModule = window.FolderViewPlusDockerServiceMap || null;
+const dockerTreeExplorerModule = window.FolderViewPlusDockerTreeExplorer || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -501,6 +503,8 @@ let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
 let dockerRuntimeActionsApi = null;
 let dockerCommandViewApi = null;
+let dockerServiceMapApi = null;
+let dockerTreeExplorerApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -661,6 +665,73 @@ const getDockerRuntimeActionsApi = () => {
     }
     return dockerRuntimeActionsApi;
 };
+const buildDockerIsolatedViewDeps = () => ({
+    window,
+    document,
+    $,
+    utils,
+    escapeHtml: (value) => escapeHtml(value),
+    parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
+    normalizeDockerRuntimeInfoMap: (source, previousMap = null) => normalizeDockerRuntimeInfoMap(source, previousMap),
+    getPrefsOrderedFolderMap: (folders, prefs) => getPrefsOrderedFolderMap(folders, prefs),
+    reorderFolderSlotsInBaseOrder: (baseOrder, folders, prefs) => reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs),
+    buildFolderDepthById: (folders) => buildFolderDepthById(folders),
+    buildFolderHierarchy: (folders) => buildFolderHierarchy(folders),
+    buildFolderMatchCache: (orderSnapshot, containersInfo, folders, prefs) =>
+        buildDockerFolderMatchCache(orderSnapshot, containersInfo, folders, prefs),
+    readDockerHostOrderFromDom: () => readDockerHostOrderFromDom(),
+    resolveRequestBundle: (options = {}) => {
+        if (options?.forceRefresh !== true && folderReq && Array.isArray(folderReq.render) && folderReq.render.length > 0) {
+            return folderReq;
+        }
+        folderReq = buildDockerFolderReq({
+            liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+        });
+        return folderReq;
+    },
+    setRuntimeState: (snapshot = {}) => {
+        const folders = snapshot?.folders && typeof snapshot.folders === 'object' ? snapshot.folders : {};
+        globalFolders = folders;
+        dockerFolderHierarchy = snapshot?.hierarchy && typeof snapshot.hierarchy === 'object'
+            ? snapshot.hierarchy
+            : buildFolderHierarchy(folders);
+        dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
+            ? snapshot.runtimeInfoByName
+            : {};
+        folderTypePrefs = utils.normalizePrefs(snapshot?.prefs || {});
+        lastAppliedRuntimePrefs = folderTypePrefs;
+        dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
+        lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
+        resolveDockerStrictPerformanceProfile(folderTypePrefs, globalFolders, dockerRuntimeInfoByName);
+        dockerRuntimeStateStore.set({
+            pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
+        });
+        applyRuntimePrefs(folderTypePrefs);
+    },
+    getScopedRuntimeContainersForFolder: (folderId, includeDescendants = true) =>
+        getScopedRuntimeContainersForFolder(folderId, includeDescendants),
+    summarizeFolderActionCounts: (containersMap) => summarizeFolderActionCounts(containersMap),
+    buildStateSignature: (source, fromStateMode = false) => buildDockerStateSignature(source, fromStateMode),
+    readPinnedFolderIds: (prefs = {}) => Array.isArray(prefs?.pinnedFolderIds) ? prefs.pinnedFolderIds : [],
+    isFolderLocked: (folderId) => isDockerFolderLocked(folderId),
+    createFolderBtn: () => createFolderBtn(),
+    editFolder: (id) => editFolder(id),
+    actionFolder: (id, action, options = {}) => actionFolder(id, action, options),
+    updateFolder: (id, options = {}) => updateFolder(id, options),
+    forceUpdateFolder: (id, options = {}) => forceUpdateFolder(id, options),
+    getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
+    openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false) =>
+        openFolderWebuisFromMenu(id, runningOnly, includeDescendants),
+    openWebuiInNewTab: (url) => openWebuiInNewTab(url),
+    openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
+    openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
+    appendDockerPreviewActionButtons: ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') =>
+        appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
+    toggleFolderPin: (folderId) => toggleDockerFolderPin(folderId),
+    toggleFolderLock: (folderId) => toggleDockerFolderLock(folderId),
+    queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
+    debugEnabled: FOLDER_VIEW_DEBUG_MODE
+});
 const getDockerCommandViewApi = () => {
     if (
         !dockerCommandViewApi
@@ -668,75 +739,31 @@ const getDockerCommandViewApi = () => {
         && window.FolderViewPlusDockerCommandViewModuleLoaded === true
         && typeof dockerCommandViewModule.createApi === 'function'
     ) {
-        dockerCommandViewApi = dockerCommandViewModule.createApi({
-            window,
-            document,
-            $,
-            utils,
-            escapeHtml: (value) => escapeHtml(value),
-            parseJsonPayloadSafe: (payload) => parseJsonPayloadSafe(payload),
-            normalizeDockerRuntimeInfoMap: (source, previousMap = null) => normalizeDockerRuntimeInfoMap(source, previousMap),
-            getPrefsOrderedFolderMap: (folders, prefs) => getPrefsOrderedFolderMap(folders, prefs),
-            reorderFolderSlotsInBaseOrder: (baseOrder, folders, prefs) => reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs),
-            buildFolderDepthById: (folders) => buildFolderDepthById(folders),
-            buildFolderHierarchy: (folders) => buildFolderHierarchy(folders),
-            buildFolderMatchCache: (orderSnapshot, containersInfo, folders, prefs) =>
-                buildDockerFolderMatchCache(orderSnapshot, containersInfo, folders, prefs),
-            readDockerHostOrderFromDom: () => readDockerHostOrderFromDom(),
-            resolveRequestBundle: (options = {}) => {
-                if (options?.forceRefresh !== true && folderReq && Array.isArray(folderReq.render) && folderReq.render.length > 0) {
-                    return folderReq;
-                }
-                folderReq = buildDockerFolderReq({
-                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-                });
-                return folderReq;
-            },
-            setRuntimeState: (snapshot = {}) => {
-                const folders = snapshot?.folders && typeof snapshot.folders === 'object' ? snapshot.folders : {};
-                globalFolders = folders;
-                dockerFolderHierarchy = snapshot?.hierarchy && typeof snapshot.hierarchy === 'object'
-                    ? snapshot.hierarchy
-                    : buildFolderHierarchy(folders);
-                dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
-                    ? snapshot.runtimeInfoByName
-                    : {};
-                folderTypePrefs = utils.normalizePrefs(snapshot?.prefs || {});
-                lastAppliedRuntimePrefs = folderTypePrefs;
-                dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
-                lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
-                resolveDockerStrictPerformanceProfile(folderTypePrefs, globalFolders, dockerRuntimeInfoByName);
-                dockerRuntimeStateStore.set({
-                    pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
-                });
-                applyRuntimePrefs(folderTypePrefs);
-            },
-            getScopedRuntimeContainersForFolder: (folderId, includeDescendants = true) =>
-                getScopedRuntimeContainersForFolder(folderId, includeDescendants),
-            summarizeFolderActionCounts: (containersMap) => summarizeFolderActionCounts(containersMap),
-            buildStateSignature: (source, fromStateMode = false) => buildDockerStateSignature(source, fromStateMode),
-            readPinnedFolderIds: (prefs = {}) => Array.isArray(prefs?.pinnedFolderIds) ? prefs.pinnedFolderIds : [],
-            isFolderLocked: (folderId) => isDockerFolderLocked(folderId),
-            createFolderBtn: () => createFolderBtn(),
-            editFolder: (id) => editFolder(id),
-            actionFolder: (id, action, options = {}) => actionFolder(id, action, options),
-            updateFolder: (id, options = {}) => updateFolder(id, options),
-            forceUpdateFolder: (id, options = {}) => forceUpdateFolder(id, options),
-            getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
-            openFolderWebuisFromMenu: (id, runningOnly = true, includeDescendants = false) =>
-                openFolderWebuisFromMenu(id, runningOnly, includeDescendants),
-            openWebuiInNewTab: (url) => openWebuiInNewTab(url),
-            openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
-            openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
-            appendDockerPreviewActionButtons: ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') =>
-                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
-            toggleFolderPin: (folderId) => toggleDockerFolderPin(folderId),
-            toggleFolderLock: (folderId) => toggleDockerFolderLock(folderId),
-            queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
-            debugEnabled: FOLDER_VIEW_DEBUG_MODE
-        });
+        dockerCommandViewApi = dockerCommandViewModule.createApi(buildDockerIsolatedViewDeps());
     }
     return dockerCommandViewApi;
+};
+const getDockerServiceMapApi = () => {
+    if (
+        !dockerServiceMapApi
+        && dockerServiceMapModule
+        && window.FolderViewPlusDockerServiceMapModuleLoaded === true
+        && typeof dockerServiceMapModule.createApi === 'function'
+    ) {
+        dockerServiceMapApi = dockerServiceMapModule.createApi(buildDockerIsolatedViewDeps());
+    }
+    return dockerServiceMapApi;
+};
+const getDockerTreeExplorerApi = () => {
+    if (
+        !dockerTreeExplorerApi
+        && dockerTreeExplorerModule
+        && window.FolderViewPlusDockerTreeExplorerModuleLoaded === true
+        && typeof dockerTreeExplorerModule.createApi === 'function'
+    ) {
+        dockerTreeExplorerApi = dockerTreeExplorerModule.createApi(buildDockerIsolatedViewDeps());
+    }
+    return dockerTreeExplorerApi;
 };
 const buildDockerDiagnosticsCorrelationContext = () => ({
     currentPage: String(location?.pathname || ''),
@@ -3007,7 +3034,7 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
 const normalizeDockerPageViewMode = (value) => (
     typeof utils.normalizeRuntimePageViewMode === 'function'
         ? utils.normalizeRuntimePageViewMode(value)
-        : (['host', 'command'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
+        : (['host', 'command', 'service-map', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
 );
 
 const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPageViewMode(
@@ -3074,20 +3101,45 @@ const unmountDockerCommandView = () => {
     }
 };
 
+const unmountDockerServiceMap = () => {
+    const serviceMapApi = getDockerServiceMapApi();
+    if (serviceMapApi && typeof serviceMapApi.unmount === 'function') {
+        serviceMapApi.unmount();
+    }
+};
+
+const unmountDockerTreeExplorer = () => {
+    const treeExplorerApi = getDockerTreeExplorerApi();
+    if (treeExplorerApi && typeof treeExplorerApi.unmount === 'function') {
+        treeExplorerApi.unmount();
+    }
+};
+
+const unmountDockerIsolatedViews = (exceptMode = '') => {
+    if (exceptMode !== 'command') {
+        unmountDockerCommandView();
+    }
+    if (exceptMode !== 'service-map') {
+        unmountDockerServiceMap();
+    }
+    if (exceptMode !== 'tree-explorer') {
+        unmountDockerTreeExplorer();
+    }
+};
+
 const queueDockerRuntimeRenderForPageViewMode = () => {
     Promise.resolve()
         .then(() => ensureDockerBootstrapPrefs())
         .then((prefs) => {
             const mode = resolveDockerPageViewMode(prefs);
-            if (mode !== 'command') {
-                unmountDockerCommandView();
-            }
             if (mode === 'host') {
+                unmountDockerIsolatedViews();
                 markDockerFatalBannerStep('Docker host list mode active');
                 recordDockerFatalBannerAction('Docker host list mode active');
                 return;
             }
             if (mode === 'command') {
+                unmountDockerIsolatedViews('command');
                 markDockerFatalBannerStep('Docker command view active');
                 recordDockerFatalBannerAction('Docker command view active');
                 const commandViewApi = getDockerCommandViewApi();
@@ -3100,6 +3152,35 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 recordDockerFatalBannerAction('Docker command view unavailable');
                 return;
             }
+            if (mode === 'service-map') {
+                unmountDockerIsolatedViews('service-map');
+                markDockerFatalBannerStep('Docker service map active');
+                recordDockerFatalBannerAction('Docker service map active');
+                const serviceMapApi = getDockerServiceMapApi();
+                if (serviceMapApi && typeof serviceMapApi.mount === 'function') {
+                    return serviceMapApi.mount({
+                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
+                    });
+                }
+                markDockerFatalBannerStep('Docker service map unavailable, falling back to host list');
+                recordDockerFatalBannerAction('Docker service map unavailable');
+                return;
+            }
+            if (mode === 'tree-explorer') {
+                unmountDockerIsolatedViews('tree-explorer');
+                markDockerFatalBannerStep('Docker tree explorer active');
+                recordDockerFatalBannerAction('Docker tree explorer active');
+                const treeExplorerApi = getDockerTreeExplorerApi();
+                if (treeExplorerApi && typeof treeExplorerApi.mount === 'function') {
+                    return treeExplorerApi.mount({
+                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
+                    });
+                }
+                markDockerFatalBannerStep('Docker tree explorer unavailable, falling back to host list');
+                recordDockerFatalBannerAction('Docker tree explorer unavailable');
+                return;
+            }
+            unmountDockerIsolatedViews();
             if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
                 folderReq = buildDockerFolderReq({
                     liveUpdateStatus: isDockerHostUpdateSyncSuspended()
@@ -3109,6 +3190,7 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
             queueCreateFoldersRender();
         })
         .catch(() => {
+            unmountDockerIsolatedViews();
             if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
                 folderReq = buildDockerFolderReq({
                     liveUpdateStatus: isDockerHostUpdateSyncSuspended()

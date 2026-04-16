@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.15.34">
-<!ENTITY md5 "a5e4ff309fcb0ef53adf3f58a610297b">
+<!ENTITY version "2026.04.15.35">
+<!ENTITY md5 "d220178d24c1a9917db8d95743be7b84">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.15.35
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
 
 ###2026.04.15.34
 - UX: Added a small left inset back to the Docker command-view WebUI, console, and logs icon row so the quick-action icons line up cleanly with the left edge of the container icon.

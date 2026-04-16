@@ -627,6 +627,16 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
     });
     assert.equal(commandViewMode.pageViewMode, 'command');
 
+    const serviceMapMode = utils.normalizePrefs({
+        pageViewMode: 'SERVICE-MAP'
+    });
+    assert.equal(serviceMapMode.pageViewMode, 'service-map');
+
+    const treeExplorerMode = utils.normalizePrefs({
+        pageViewMode: 'TREE-EXPLORER'
+    });
+    assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
+
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'
     });

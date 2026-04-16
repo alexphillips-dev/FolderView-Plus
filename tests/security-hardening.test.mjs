@@ -150,9 +150,13 @@ test('runtime pages halt safely when conflicting folder view plugins are detecte
 test('folder display scripts sanitize folder icon and name in HTML templates', () => {
     for (const source of [dockerJs, vmJs, dashboardJs]) {
         assert.match(source, /const sanitizeImageSrc\s*=/);
-        assert.match(source, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon\)/);
         assert.match(source, /const safeFolderName = escapeHtml\(folder\.name\)/);
     }
+    assert.match(dockerJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon\)/);
+    assert.match(vmJs, /const DEFAULT_FOLDER_ICON_PATH = '\/plugins\/folderview\.plus\/images\/folder-icon\.png';/);
+    assert.match(vmJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon, DEFAULT_FOLDER_ICON_PATH\)/);
+    assert.match(dashboardJs, /const DEFAULT_FOLDER_ICON_PATH = '\/plugins\/folderview\.plus\/images\/folder-icon\.png';/);
+    assert.match(dashboardJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon, DEFAULT_FOLDER_ICON_PATH\)/);
 });
 
 test('folder editor escapes custom action labels when rendering HTML', () => {

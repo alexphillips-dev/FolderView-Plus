@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.16.06">
-<!ENTITY md5 "85351d0a42fd4c3c889a245077704a9b">
+<!ENTITY version "2026.04.16.07">
+<!ENTITY md5 "e72c825a64d544dacf3b1a13054881a7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.16.07
+- Refactor: Moved Docker-only folder editor row registration into the Docker type module so VM no longer inherits Docker field grouping from the shared editor chrome.
+- Refactor: Moved Docker preview signal assembly and runtime member normalization into type modules, keeping the shared editor preview/runtime type-agnostic.
+- Fix: VM editor now hides Docker-only constrained fields through the VM type module instead of shared-runtime Docker checks.
+
 
 ###2026.04.16.06
 - UX: Folder editor flows, previews, and bootstrap behavior.

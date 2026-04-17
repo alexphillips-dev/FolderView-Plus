@@ -359,7 +359,8 @@ test('folder editor save queues docker order sync off the submit critical path i
     assert.match(folderEditorTypeDockerJs, /const shouldSyncAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /const flushPostSaveSync = async \(options = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /queueBackgroundMutationPost\(SYNC_ORDER_PATH,\s*\{\s*type:\s*syncType\s*\}\)/);
-    assert.match(folderEditorTypeVmJs, /const createApi = \(\) => Object\.freeze\(\{/);
+    assert.match(folderEditorTypeVmJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorTypeVmJs, /applyPreviewConstraints:/);
     const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
     assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| folderId \|\| ''\)\.trim\(\);/);
     assert.match(modernSubmitBlock, /await flushPostSaveTypeSync\(\{[\s\S]*force:\s*saveAsCopy \|\| !currentFolderId,[\s\S]*previousFolder[\s\S]*\}\);/);

@@ -45,9 +45,9 @@
         const normalizeParentFolderId = typeof deps.normalizeParentFolderId === 'function'
             ? deps.normalizeParentFolderId
             : ((value) => String(value || '').trim());
-        const isDockerUpdateAvailableInEditor = typeof deps.isDockerUpdateAvailableInEditor === 'function'
-            ? deps.isDockerUpdateAvailableInEditor
-            : (() => false);
+        const getPreviewSignals = typeof deps.getPreviewSignals === 'function'
+            ? deps.getPreviewSignals
+            : (() => null);
 
         const renderLivePreviewCanvas = () => {
             if (!$ || !shouldRender()) {
@@ -196,19 +196,12 @@
 
             const dockerSignalsShell = $('#fvDockerSignalsShell');
             const dockerSignals = $('#fvDockerSignals');
-            if (deps.type === 'docker' && dockerSignals.length) {
-                const composeProjects = Array.from(new Set(
-                    selectedMembers
-                        .map((member) => String(member?.ComposeProject || '').trim())
-                        .filter((value) => value !== '')
-                ));
-                const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
-                const composeSummary = composeProjects.length === 0
-                    ? 'Compose: none detected'
-                    : (composeProjects.length === 1 ? `Compose: ${composeProjects[0]}` : `Compose: ${composeProjects.length} projects`);
-                const updateSummary = `Updates: ${updateCount}/${selectedMembers.length || 0}`;
-                $('#fvDockerComposeSummary').text(composeSummary);
-                $('#fvDockerUpdateSummary').text(updateSummary);
+            const previewSignals = getPreviewSignals({ form, memberNames, selectedMembers });
+            if (dockerSignals.length && previewSignals && Array.isArray(previewSignals.items) && previewSignals.items.length) {
+                dockerSignalsShell.find('.fv-live-chip-panel-head').text(String(previewSignals.title || 'Signals'));
+                dockerSignals.html(previewSignals.items.map((label) => (
+                    `<span class="fv-docker-signal-chip">${escapeHtml(label)}</span>`
+                )).join(''));
                 if (dockerSignalsShell.length) {
                     dockerSignalsShell.show();
                 } else {

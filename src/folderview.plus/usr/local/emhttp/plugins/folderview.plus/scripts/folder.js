@@ -1433,7 +1433,10 @@ const getFolderEditorPreviewRuntimeApi = () => {
         getDropdownStyleTokens,
         buildSampleMemberState,
         normalizeParentFolderId,
-        isDockerUpdateAvailableInEditor,
+        getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
+        applyTypePreviewConstraints: ({ $, form } = {}) => {
+            getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
+        },
         escapeHtml,
         updateMemberStats: () => updateMemberStats(),
         updateInheritedFieldIndicators: () => updateInheritedFieldIndicators(),
@@ -1859,7 +1862,10 @@ const getFolderEditorTypeApi = () => {
         normalizeFolderRecordForEditor,
         queueBackgroundMutationPost,
         securePost,
-        syncType: type
+        syncType: type,
+        getFolderLabelValue,
+        getComposeProjectFromLabels,
+        isDockerUpdateAvailableInEditor
     });
     if (!folderEditorTypeApi || typeof folderEditorTypeApi !== 'object') {
         folderEditorTypeApi = createNoopFolderEditorTypeApi();
@@ -2696,19 +2702,14 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="preview"])', 'preview');
     markSection('div.basic:has([name="preview_hover"])', 'preview');
-    markSection('div.basic:has([name="preview_update"])', 'preview');
     markSection('div.basic:has([name="preview_text_width"])', 'preview');
     markSection('div.basic:has([name="preview_rows"])', 'preview');
     markSection('div.basic:has([name="preview_grayscale"])', 'preview');
-    markSection('div.basic:has([name="preview_webui"])', 'preview');
     markSection('div.basic:has([name="preview_logs"])', 'preview');
-    markSection('div.basic:has([name="preview_console"])', 'preview');
     markSection('div.basic:has([name="preview_vertical_bars"])', 'preview');
     markSection('ul[constraint*="bars-color"]', 'preview');
     markSection('div.basic:has([name="preview_border"])', 'preview');
     markSection('ul[constraint*="border-color"]', 'preview');
-    markSection('div.basic:has([name="context"])', 'preview');
-    markSection('ul[constraint*="context-2"]', 'preview');
 
     markSection('div.basic:has([name="dropdown_style"])', 'chevron');
     markSection('div.basic:has([name="dropdown_color"])', 'chevron');
@@ -2717,11 +2718,6 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="folder_accent_color"])', 'status');
     markSection('div.fv-accent-inline-controls[constraint*="accent-color"]', 'status');
     markSection('div.basic:has([name="status_color_started"])', 'status');
-    markSection('div.basic:has([name="health_warn_stopped_percent"])', 'status');
-    markSection('div.basic:has([name="health_critical_stopped_percent"])', 'status');
-    markSection('div.basic:has([name="health_profile"])', 'status');
-    markSection('div.basic:has([name="health_updates_mode"])', 'status');
-    markSection('div.basic:has([name="health_all_stopped_mode"])', 'status');
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'status');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
@@ -2729,7 +2725,6 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="regex"])', 'rules');
 
-    markSection('div.basic:has([name="update_column"])', 'advanced');
     markSection('div.basic:has([name="override_default_actions"])', 'advanced');
     markSection('div.basic:has([name="default_action"])', 'advanced');
     markSection('div.basic:has([name="expand_tab"])', 'advanced');
@@ -2738,14 +2733,8 @@ const applySectionTags = () => {
 
     markAdvanced('ul[constraint*="folder-webui"]');
     markAdvanced('div.basic:has([name="preview_hover"])');
-    markAdvanced('div.basic:has([name="health_warn_stopped_percent"])');
-    markAdvanced('div.basic:has([name="health_critical_stopped_percent"])');
-    markAdvanced('div.basic:has([name="health_profile"])');
-    markAdvanced('div.basic:has([name="health_updates_mode"])');
-    markAdvanced('div.basic:has([name="health_all_stopped_mode"])');
     markAdvanced('div.basic:has([name="status_warn_stopped_percent"])');
     markAdvanced('div.basic:has([name="regex"])');
-    markAdvanced('div.basic:has([name="update_column"])');
     markAdvanced('div.basic:has([name="override_default_actions"])');
     markAdvanced('div.basic:has([name="default_action"])');
     markAdvanced('div.basic:has([name="expand_tab"])');
@@ -2753,6 +2742,7 @@ const applySectionTags = () => {
     markAdvanced('div.basic:has([name="dashboard_overflow"])');
     markAdvanced('div.basic.custom-action-wrapper-parent');
     markAdvanced('div.basic:has(a.custom-action)');
+    getFolderEditorTypeApi()?.applySectionTags?.({ markSection, markAdvanced });
 };
 
 const pruneEmptyEditorContainers = () => {
@@ -3229,10 +3219,6 @@ const startFolderEditorRuntime = async () => {
         hydrateCurrentEditFolder(bootstrapFolderRecord, bootstrapFolderId, {}, { clearPrefill: false });
     }
     const cacheBust = Date.now();
-    // if editing a vm hide docker related settings
-    if (type !== 'docker') {
-        $('[constraint*="docker"]').hide();
-    }
     // get folders
     const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
@@ -3369,33 +3355,12 @@ const startFolderEditorRuntime = async () => {
     renderMemberBulkMoveTargets();
     updateMemberBulkMoveUi();
 
-    // get the list of element docker/vm
-    let typeFilter;
-    if (type === 'docker') {
-        typeFilter = (e) => {
-            const labels = e?.info?.Config?.Labels || {};
-            const state = e?.info?.State || e?.State || {};
-            return {
-                'Name': e.info.Name,
-                'Icon': labels['net.unraid.docker.icon'],
-                'Label': getFolderLabelValue(labels),
-                'ComposeProject': getComposeProjectFromLabels(labels),
-                'State': state,
-                'RawState': state,
-                'UpdateAvailable': state?.manager === 'dockerman' && state?.Updated === false
-            }
-        };
-    } else if (type === 'vm') {
-        typeFilter = (e) => {
-            return {
-                'Name': e.name,
-                'Icon': e.icon,
-                'Label': undefined
-            }
-        };
-    }
-
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
+    const typeMemberMapper = typeof getFolderEditorTypeApi()?.mapRuntimeMember === 'function'
+        ? getFolderEditorTypeApi().mapRuntimeMember
+        : ((entry) => entry);
+    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise()))
+        .map((entry) => typeMemberMapper(entry))
+        .filter((entry) => entry && String(entry.Name || '').trim() !== '');
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';
     setBootstrapDiagnostics({
         mode: 'post-read-info',

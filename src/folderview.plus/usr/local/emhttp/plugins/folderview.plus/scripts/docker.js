@@ -15,6 +15,7 @@ const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnos
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const dockerCommandViewModule = window.FolderViewPlusDockerCommandView || null;
 const dockerTreeExplorerModule = window.FolderViewPlusDockerTreeExplorer || null;
+const dockerOrbitViewModule = window.FolderViewPlusDockerOrbitView || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -756,7 +757,19 @@ const getDockerTreeExplorerApi = () => {
         dockerTreeExplorerApi = dockerTreeExplorerModule.createApi(buildDockerIsolatedViewDeps());
     }
     return dockerTreeExplorerApi;
-};const buildDockerDiagnosticsCorrelationContext = () => ({
+};
+const getDockerOrbitViewApi = () => {
+    if (
+        !dockerOrbitViewApi
+        && dockerOrbitViewModule
+        && window.FolderViewPlusDockerOrbitViewModuleLoaded === true
+        && typeof dockerOrbitViewModule.createApi === 'function'
+    ) {
+        dockerOrbitViewApi = dockerOrbitViewModule.createApi(buildDockerIsolatedViewDeps());
+    }
+    return dockerOrbitViewApi;
+};
+const buildDockerDiagnosticsCorrelationContext = () => ({
     currentPage: String(location?.pathname || ''),
     listViewMode: readDockerListViewMode(),
     renderGeneration: dockerRuntimeLastRenderGeneration,
@@ -3025,7 +3038,7 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
 const normalizeDockerPageViewMode = (value) => (
     typeof utils.normalizeRuntimePageViewMode === 'function'
         ? utils.normalizeRuntimePageViewMode(value)
-        : (['host', 'command', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
+        : (['host', 'command', 'tree-explorer', 'orbit'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
 );
 
 const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPageViewMode(
@@ -3099,12 +3112,22 @@ const unmountDockerTreeExplorer = () => {
     }
 };
 
+const unmountDockerOrbitView = () => {
+    const orbitViewApi = getDockerOrbitViewApi();
+    if (orbitViewApi && typeof orbitViewApi.unmount === 'function') {
+        orbitViewApi.unmount();
+    }
+};
+
 const unmountDockerIsolatedViews = (exceptMode = '') => {
     if (exceptMode !== 'command') {
         unmountDockerCommandView();
     }
     if (exceptMode !== 'tree-explorer') {
         unmountDockerTreeExplorer();
+    }
+    if (exceptMode !== 'orbit') {
+        unmountDockerOrbitView();
     }
 };
 
@@ -3143,6 +3166,19 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 markDockerFatalBannerStep('Docker tree explorer unavailable, falling back to host list');
                 recordDockerFatalBannerAction('Docker tree explorer unavailable');
                 return;
+            } else if (mode === 'orbit') {
+                unmountDockerIsolatedViews('orbit');
+                markDockerFatalBannerStep('Docker orbit view active');
+                recordDockerFatalBannerAction('Docker orbit view active');
+                const orbitViewApi = getDockerOrbitViewApi();
+                if (orbitViewApi && typeof orbitViewApi.mount === 'function') {
+                    return orbitViewApi.mount({
+                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
+                    });
+                }
+                markDockerFatalBannerStep('Docker orbit view unavailable, falling back to host list');
+                recordDockerFatalBannerAction('Docker orbit view unavailable');
+                return;
             }
             unmountDockerIsolatedViews();
             if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
@@ -3168,11 +3204,13 @@ window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlu
     buildDockerIsolatedViewDeps,
     getDockerCommandViewApi,
     getDockerTreeExplorerApi,
+    getDockerOrbitViewApi,
     fetchDockerBootstrapPrefs,
     ensureDockerBootstrapPrefs,
     unmountDockerIsolatedViews,
     queueDockerRuntimeRenderForPageViewMode
-});const syncDockerVisibleFoldersFromRuntimeCache = () => {
+});
+const syncDockerVisibleFoldersFromRuntimeCache = () => {
     Object.entries(globalFolders || {}).forEach(([id, folder]) => {
         if (!folder || typeof folder !== 'object') {
             return;
@@ -5978,6 +6016,7 @@ let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let dockerCommandViewApi = null;
 let dockerTreeExplorerApi = null;
+let dockerOrbitViewApi = null;
 let dockerBootstrapPrefsPromise = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
@@ -6430,5 +6469,4 @@ addEventListener("keydown", (e) => {
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);
-
 

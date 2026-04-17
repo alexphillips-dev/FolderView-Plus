@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.04">
-<!ENTITY md5 "d65daa489f9be7b880db9414ceb52a9c">
+<!ENTITY version "2026.04.17.05">
+<!ENTITY md5 "e386a9b65c23d7270be1efc998727a66">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.05
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.17.05
+- Feature: Added Docker Orbit view as a new isolated page-view mode with a centered folder hub, orbiting direct members, child-folder navigation, and an inspector panel for practical actions.
+- UX: Orbit view is wired as its own removable runtime module and stylesheet, with settings/runtime normalization and privacy masking support aligned to the other isolated Docker views.
 
 ###2026.04.17.04
 - Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.

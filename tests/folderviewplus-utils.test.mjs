@@ -635,6 +635,11 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
     });
     assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
 
+    const orbitMode = utils.normalizePrefs({
+        pageViewMode: 'ORBIT'
+    });
+    assert.equal(orbitMode.pageViewMode, 'orbit');
+
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'
     });
@@ -1035,4 +1040,3 @@ test('performance utility helpers are exported and writable in node runtime', as
     assert.equal(storage.get('beta'), '2');
     assert.equal(storage.has('alpha'), false);
 });
-

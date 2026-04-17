@@ -19,9 +19,11 @@ const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/pl
 const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
 const dockerTreeExplorerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js');
+const dockerOrbitViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCommandViewCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.command-view.css');
 const dockerTreeExplorerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.tree-explorer.css');
+const dockerOrbitViewCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.orbit-view.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
@@ -40,10 +42,12 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
     const treeExplorerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js');
+    const orbitViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const commandViewCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.command-view.css');
     const treeExplorerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.tree-explorer.css');
+    const orbitViewCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.orbit-view.css');
     const dockerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
     assert.ok(fatalBannerIndex >= 0, 'docker page should load the shared fatal banner runtime');
     assert.ok(contractIndex >= 0, 'shared folder contract include is missing');
@@ -59,10 +63,12 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(reconcileIndex >= 0, 'docker reconcile script include is missing');
     assert.ok(commandViewIndex >= 0, 'docker command-view script include is missing');
     assert.ok(treeExplorerIndex >= 0, 'docker tree-explorer script include is missing');
+    assert.ok(orbitViewIndex >= 0, 'docker orbit-view script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(commandViewCssIndex >= 0, 'docker command-view stylesheet include is missing');
     assert.ok(treeExplorerCssIndex >= 0, 'docker tree-explorer stylesheet include is missing');
+    assert.ok(orbitViewCssIndex >= 0, 'docker orbit-view stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
     assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/docker.member-menu.js'), false, 'docker member menu script include should be removed');
     assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
@@ -82,12 +88,14 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
     assert.ok(commandViewIndex < treeExplorerIndex, 'docker command-view helpers must load before docker.runtime.tree-explorer.js');
-    assert.ok(treeExplorerIndex < runtimeIndex, 'docker tree-explorer helpers must load before docker.js');
+    assert.ok(treeExplorerIndex < orbitViewIndex, 'docker tree-explorer helpers must load before docker.runtime.orbit-view.js');
+    assert.ok(orbitViewIndex < runtimeIndex, 'docker orbit-view helpers must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(sharedCssIndex < commandViewCssIndex, 'shared runtime stylesheet must load before docker.command-view.css');
     assert.ok(commandViewCssIndex < treeExplorerCssIndex, 'docker command-view stylesheet must load before docker.tree-explorer.css');
-    assert.ok(treeExplorerCssIndex < dockerCssIndex, 'docker tree-explorer stylesheet must load before docker.css');
+    assert.ok(treeExplorerCssIndex < orbitViewCssIndex, 'docker tree-explorer stylesheet must load before docker.orbit-view.css');
+    assert.ok(orbitViewCssIndex < dockerCssIndex, 'docker orbit-view stylesheet must load before docker.css');
 });
 
 test('docker extracted helper modules export createApi entry points with safe global fallbacks', () => {
@@ -134,6 +142,10 @@ test('docker extracted helper modules export createApi entry points with safe gl
     assert.match(dockerTreeExplorerJs, /root\.FolderViewPlusDockerTreeExplorer = factory\(\);/);
     assert.match(dockerTreeExplorerJs, /root\.FolderViewPlusDockerTreeExplorerModuleLoaded = true;/);
     assert.match(dockerTreeExplorerJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(dockerOrbitViewJs, /^\/\/ @ts-check/m);
+    assert.match(dockerOrbitViewJs, /root\.FolderViewPlusDockerOrbitView = factory\(\);/);
+    assert.match(dockerOrbitViewJs, /root\.FolderViewPlusDockerOrbitViewModuleLoaded = true;/);
+    assert.match(dockerOrbitViewJs, /const createApi = \(deps = \{\}\) =>/);
 });
 
 test('docker shared runtime module binds to the shared folder contract and exports runtime primitives', () => {
@@ -170,6 +182,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeReconcileModule = window\.FolderViewPlusDockerRuntimeReconcile \|\| null;/);
     assert.match(dockerJs, /const dockerCommandViewModule = window\.FolderViewPlusDockerCommandView \|\| null;/);
     assert.match(dockerJs, /const dockerTreeExplorerModule = window\.FolderViewPlusDockerTreeExplorer \|\| null;/);
+    assert.match(dockerJs, /const dockerOrbitViewModule = window\.FolderViewPlusDockerOrbitView \|\| null;/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
     assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host, \.canvas'\)/);
     assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
@@ -203,6 +216,8 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerCommandViewModule\.createApi\(buildDockerIsolatedViewDeps\(\)\)/);
     assert.match(dockerJs, /const getDockerTreeExplorerApi = \(\) => \{/);
     assert.match(dockerJs, /dockerTreeExplorerModule\.createApi\(buildDockerIsolatedViewDeps\(\)\)/);
+    assert.match(dockerJs, /const getDockerOrbitViewApi = \(\) => \{/);
+    assert.match(dockerJs, /dockerOrbitViewModule\.createApi\(buildDockerIsolatedViewDeps\(\)\)/);
     assert.match(dockerJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{[\s\S]*runtimeInfoApi\.syncDockerHostRowUpdateStatesFromDom\(names\)/);
     assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*runtimeInfoApi\.ensureDockerHostRowUpdateObserver\(\)/);
     assert.match(dockerJs, /const normalizeDockerRuntimeInfoMap = \(source,\s*previousMap = null\) => \{[\s\S]*runtimeInfoApi\.normalizeDockerRuntimeInfoMap\(source,\s*previousMap\)/);
@@ -256,6 +271,17 @@ test('docker command-view stylesheet only hides the host table when the isolated
     assert.match(dockerCommandViewCss, /\.fv-docker-command-card-title-icon/);
     assert.match(dockerCommandViewCss, /\.fv-docker-command-member-tile\.running \{/);
     assert.doesNotMatch(dockerCommandViewCss, /body\[data-fvplus-docker-page-view="command"\] table#docker_containers/);
+});
+
+test('docker orbit-view stylesheet only hides the host table when the isolated orbit module is mounted', () => {
+    assert.match(dockerOrbitViewCss, /body\[data-fvplus-docker-orbit-view-mounted="true"\] table#docker_containers/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-shell/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-stage/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-hub/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-node/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-member-icon/);
+    assert.match(dockerOrbitViewCss, /\.fv-docker-orbit-folder-icon/);
+    assert.doesNotMatch(dockerOrbitViewCss, /body\[data-fvplus-docker-page-view="orbit"\] table#docker_containers/);
 });
 
 test('docker command-view renders visible member tiles instead of name-only chips', () => {

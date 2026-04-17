@@ -126,6 +126,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /Docker page view/);
     assert.match(page, /<option value="command">Command view<\/option>/);
     assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
+    assert.match(page, /<option value="orbit">Orbit view<\/option>/);
     const dockerSortRowStart = page.indexOf('<div class="sort-row">');
     const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
@@ -155,7 +156,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
     assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
-    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer'\]/);
+    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer', 'orbit'\]/);
 });
 
 test('settings runtime honors explicit launch overrides for advanced rules workspace deep links', () => {

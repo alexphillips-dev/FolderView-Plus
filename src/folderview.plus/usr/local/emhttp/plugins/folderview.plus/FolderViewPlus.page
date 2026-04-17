@@ -217,6 +217,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
                             <option value="tree-explorer">Tree explorer</option>
+                            <option value="orbit">Orbit view</option>
                         </select>
                     </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
@@ -1519,6 +1520,5 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>
-
 
 

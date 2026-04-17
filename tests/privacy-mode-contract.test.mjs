@@ -73,6 +73,10 @@ test('privacy mode toggles runtime body classes and ships masking selectors acro
     assert.match(dockerCss, /\.fv-docker-tree-explorer-node-icon/);
     assert.match(dockerCss, /\.fv-docker-tree-explorer-detail-title/);
     assert.match(dockerCss, /\.fv-docker-tree-explorer-member-pill/);
+    assert.match(dockerCss, /\.fv-docker-orbit-folder-icon/);
+    assert.match(dockerCss, /\.fv-docker-orbit-member-icon/);
+    assert.match(dockerCss, /\.fv-docker-orbit-folder-title/);
+    assert.match(dockerCss, /\.fv-docker-orbit-member-name/);
     assert.match(dockerCss, /\.fv-docker-member-menu-name/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

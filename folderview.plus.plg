@@ -5,13 +5,26 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.03">
-<!ENTITY md5 "64ebf4e8677193a1f32176c4b860b78d">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.04.17.04">
+<!ENTITY md5 "94d7657e44de721e3bab931f98809cfd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.04
+- Fix: Hardened the Docker runtime privacy toggle so rapid repeated clicks now coalesce to the latest intended state instead of throwing a false save failure and reverting the UI.
+- UX: Moved the Docker runtime privacy toggle back into the native Basic View control cluster and kept its placement consistent across FolderView, host-only, Command view, and Tree Explorer surfaces.
+- Fix: Extended Docker runtime privacy masking to isolated Command view and Tree Explorer names and icons so those views honor the same privacy toggle as the host list.
+- Fix: Added stale-response protection to Docker runtime settings saves so fast page-view changes in Settings keep the last selected view instead of letting older requests overwrite newer intent.
+- Refactor: Split the shared folder editor into a type-aware architecture with dedicated Docker and VM type modules while keeping one editor shell, reducing Docker-only logic inside the shared runtime without forking the page.
+- UX: Moved Docker-only folder editor rows, preview signals, runtime member enrichment, rules configuration, and smart-default suggestions into the Docker type layer so Docker keeps its richer editor workflow while VM stays scoped to VM-safe controls.
+- UX: Tightened the VM folder editor path by moving Docker-only field visibility into the VM type layer instead of relying on broad shared-runtime Docker checks.
+- Fix: The folder editor Rules tab now deep-links into Settings > Advanced > Rules > Auto-assignment and honors explicit Docker or VM rules workspace launch overrides instead of restoring the last basic settings tab.
+- Fix: VM runtime folders now keep native VM detail rows attached to the VM you actually clicked, including already-expanded detail blocks during folder renders and later host-inserted detail rows after native toggle actions.
+- Quality: Cleaned up the Docker privacy persistence path so the shipped runtime passes the unused-symbol guard and the full release CI suite on the final stable build.
+
 
 ###2026.04.17.03
 - Fix: VM detail rows now stay attached to the VM you clicked inside folders instead of appearing under the previously expanded VM.
@@ -5481,7 +5494,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

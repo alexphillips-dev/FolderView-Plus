@@ -475,6 +475,7 @@
             const baseCapacity = Math.max(4, Number(options.baseCapacity || 6));
             const capacityStep = Math.max(0, Number(options.capacityStep || 2));
             const angleOffset = Number(options.angleOffset || -90);
+            const nodeDiameter = Math.max(80, Number(options.nodeDiameter || 120));
             const nodes = [];
             const rings = [];
             let index = 0;
@@ -500,7 +501,8 @@
             return {
                 nodes,
                 rings,
-                lastRadius: rings.length ? rings[rings.length - 1].radius : Math.max(0, startRadius - ringStep)
+                lastRadius: rings.length ? rings[rings.length - 1].radius : Math.max(0, startRadius - ringStep),
+                nodeDiameter
             };
         };
 
@@ -518,41 +520,6 @@
                 return;
             }
             root.innerHTML = `<div class="fv-docker-orbit-shell"><div class="fv-docker-orbit-empty"><h3>Orbit view failed to load</h3><p>${escapeHtml(message || 'Unknown error.')}</p><button type="button" class="fv-docker-orbit-button is-primary" data-fv-orbit-action="refresh">Retry</button></div></div>`;
-        };
-
-        const renderNavigatorTree = (snapshot, folderModels) => {
-            const rootIds = snapshot.orderedFolderIds.filter((folderId) => !snapshot.hierarchy.parentById?.[folderId]);
-            const renderNode = (folderId) => {
-                const model = folderModels[folderId];
-                if (!model) {
-                    return '';
-                }
-                const selected = folderId === selectedFolderId;
-                const children = Array.isArray(snapshot.hierarchy.childrenById?.[folderId])
-                    ? snapshot.hierarchy.childrenById[folderId].filter((childId) => Object.prototype.hasOwnProperty.call(folderModels, childId))
-                    : [];
-                return `
-                    <li class="fv-docker-orbit-nav-item">
-                        <button
-                            type="button"
-                            class="fv-docker-orbit-nav-button${selected ? ' is-selected' : ''}"
-                            data-fv-orbit-action="select-folder"
-                            data-folder-id="${escapeHtml(folderId)}"
-                            style="--fv-docker-orbit-depth:${Number(model.depth || 0)};"
-                        >
-                            <img src="${model.icon}" class="fv-docker-orbit-nav-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'>
-                            <span class="fv-docker-orbit-nav-copy">
-                                <span class="fv-docker-orbit-nav-name">${escapeHtml(model.name)}</span>
-                                <span class="fv-docker-orbit-nav-meta">${model.branchMemberCount} in branch${model.updates > 0 ? ` • ${model.updates} updates` : ''}</span>
-                            </span>
-                        </button>
-                        ${children.length ? `<ul class="fv-docker-orbit-nav-branch">${children.map(renderNode).join('')}</ul>` : ''}
-                    </li>
-                `;
-            };
-            return rootIds.length
-                ? `<ul class="fv-docker-orbit-nav-tree">${rootIds.map(renderNode).join('')}</ul>`
-                : '<div class="fv-docker-orbit-nav-empty">No folders yet.</div>';
         };
 
         const renderSnapshot = (snapshot) => {
@@ -594,30 +561,52 @@
             }
             const selectedMember = selectedMembers.find((member) => member.name === selectedMemberName) || null;
             const breadcrumbs = buildBreadcrumbs(selectedFolderId, snapshot, folderModels);
+            const relatedFolderIds = (() => {
+                if (selectedFolder.childIds.length) {
+                    return selectedFolder.childIds.slice();
+                }
+                if (selectedFolder.parentId) {
+                    return (snapshot.hierarchy.childrenById?.[selectedFolder.parentId] || [])
+                        .filter((folderId) => folderId !== selectedFolderId && Object.prototype.hasOwnProperty.call(folderModels, folderId));
+                }
+                return orderedIds
+                    .filter((folderId) => folderId !== selectedFolderId && !folderModels[folderId]?.parentId);
+            })();
+            const relatedFolders = relatedFolderIds
+                .map((folderId) => folderModels[folderId])
+                .filter(Boolean)
+                .map((model) => ({
+                    folderId: model.folderId,
+                    name: model.name,
+                    icon: model.icon,
+                    count: model.branchMemberCount,
+                    running: model.running,
+                    updates: model.updates
+                }));
             const memberOrbit = layoutOrbitNodes(selectedFolder.directMembers, {
-                startRadius: 190,
-                ringStep: 88,
-                baseCapacity: 6,
-                capacityStep: 2
-            });
-            const childOrbit = layoutOrbitNodes(selectedFolder.childFolders, {
-                startRadius: Math.max(memberOrbit.lastRadius + 124, 320),
-                ringStep: 102,
+                startRadius: 256,
+                ringStep: 132,
                 baseCapacity: 8,
                 capacityStep: 2
             });
-            const stageRadius = Math.max(220, memberOrbit.lastRadius, childOrbit.lastRadius);
-            const stageSize = Math.max(760, (stageRadius + 180) * 2);
-            const ringMarkup = [...memberOrbit.rings, ...childOrbit.rings]
+            const relatedFolderOrbit = layoutOrbitNodes(relatedFolders, {
+                startRadius: Math.max(memberOrbit.lastRadius + 176, 420),
+                ringStep: 148,
+                baseCapacity: 10,
+                capacityStep: 2
+            });
+            const stageRadius = Math.max(
+                260,
+                memberOrbit.lastRadius + (memberOrbit.nodeDiameter / 2),
+                relatedFolderOrbit.lastRadius + (relatedFolderOrbit.nodeDiameter / 2)
+            );
+            const stageSize = Math.max(920, (stageRadius * 2) + 260);
+            const ringMarkup = [...memberOrbit.rings, ...relatedFolderOrbit.rings]
                 .map((ring) => ring.radius)
                 .filter((radius, index, values) => values.indexOf(radius) === index)
                 .sort((left, right) => left - right)
                 .map((radius) => `<div class="fv-docker-orbit-ring" style="width:${radius * 2}px;height:${radius * 2}px;"></div>`)
                 .join('');
-            const runtimeEntries = Object.values(snapshot.runtimeInfoByName || {});
-            const cardsWithUpdates = orderedIds.filter((folderId) => folderModels[folderId]?.updates > 0).length;
-            const runningContainers = runtimeEntries.filter((entry) => resolveContainerState(entry) === 'running').length;
-            const updateReadyContainers = runtimeEntries.filter((entry) => containerHasUpdate(entry)).length;
             const inspectorBody = selectedMember ? `
                 <div class="fv-docker-orbit-inspector-card is-member ${escapeHtml(selectedMember.stateMeta.state)}">
                     <div class="fv-docker-orbit-inspector-head">
@@ -653,25 +642,14 @@
                     <div class="fv-docker-orbit-header">
                         <div class="fv-docker-orbit-header-copy">
                             <h2>Docker Orbit View</h2>
-                            <p>Centered folder control with orbiting containers and child folders for faster branch navigation.</p>
+                            <p>Centered folder control with orbiting containers and related folders for faster branch navigation.</p>
                         </div>
                         <div class="fv-docker-orbit-toolbar">
                             <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="refresh">Refresh</button>
-                            <button type="button" class="fv-docker-orbit-button is-primary" data-fv-orbit-action="create-folder">Add Folder</button>
+                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="create-folder">Add Folder</button>
                         </div>
                     </div>
-                    <div class="fv-docker-orbit-overview">
-                        <div class="fv-docker-orbit-overview-card"><span class="fv-docker-orbit-overview-value">${orderedIds.length}</span><span class="fv-docker-orbit-overview-label">folders</span></div>
-                        <div class="fv-docker-orbit-overview-card"><span class="fv-docker-orbit-overview-value">${runtimeEntries.length}</span><span class="fv-docker-orbit-overview-label">containers</span></div>
-                        <div class="fv-docker-orbit-overview-card"><span class="fv-docker-orbit-overview-value">${runningContainers}</span><span class="fv-docker-orbit-overview-label">running</span></div>
-                        <div class="fv-docker-orbit-overview-card"><span class="fv-docker-orbit-overview-value">${cardsWithUpdates}</span><span class="fv-docker-orbit-overview-label">folders with updates</span></div>
-                        <div class="fv-docker-orbit-overview-card"><span class="fv-docker-orbit-overview-value">${updateReadyContainers}</span><span class="fv-docker-orbit-overview-label">update ready</span></div>
-                    </div>
                     <div class="fv-docker-orbit-layout">
-                        <aside class="fv-docker-orbit-nav">
-                            <div class="fv-docker-orbit-panel-title">Folders</div>
-                            ${renderNavigatorTree(snapshot, folderModels)}
-                        </aside>
                         <section class="fv-docker-orbit-main">
                             <div class="fv-docker-orbit-breadcrumbs">
                                 ${breadcrumbs.map((crumb, index) => `
@@ -727,7 +705,7 @@
                                             ${member.updateReady ? '<span class="fv-docker-orbit-node-update">update</span>' : ''}
                                         </button>
                                     `).join('')}
-                                    ${childOrbit.nodes.map((child) => `
+                                    ${relatedFolderOrbit.nodes.map((child) => `
                                         <button
                                             type="button"
                                             class="fv-docker-orbit-node is-folder"

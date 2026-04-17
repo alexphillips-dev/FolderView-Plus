@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.05">
-<!ENTITY md5 "e386a9b65c23d7270be1efc998727a66">
+<!ENTITY version "2026.04.17.07">
+<!ENTITY md5 "fe2b921cf12506977195f20b1a18d485">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.07
+- UX: Simplified Docker Orbit view by removing the top stats strip and left-side folder rail, leaving a cleaner centered stage plus inspector layout.
+- UX: Orbit member tiles now share the same surface treatment as the center folder and sit on a cleaner circular orbit with improved spacing and less aggressive highlight styling.
+
 
 ###2026.04.17.05
 - Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.

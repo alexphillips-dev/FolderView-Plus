@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.07">
-<!ENTITY md5 "fe2b921cf12506977195f20b1a18d485">
+<!ENTITY version "2026.04.17.08">
+<!ENTITY md5 "ad804a5937e45e4ccc79c12bad00fa61">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.08
+- UX: Docker Orbit view no longer auto-selects a folder into the center; it now starts with a neutral center prompt until you choose a folder orbit.
+- UX: Orbit inspector summary stays compact at the top instead of stretching down the full column, and Orbit surfaces now use a unified neutral visual treatment without the orange outline-heavy styling.
 
 ###2026.04.17.07
 - UX: Simplified Docker Orbit view by removing the top stats strip and left-side folder rail, leaving a cleaner centered stage plus inspector layout.

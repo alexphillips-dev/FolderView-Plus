@@ -551,17 +551,18 @@
                 `;
                 return true;
             }
-            if (!folderModels[selectedFolderId]) {
-                selectedFolderId = orderedIds[0];
-            }
-            const selectedFolder = folderModels[selectedFolderId];
+            const hasSelectedFolder = Boolean(selectedFolderId && folderModels[selectedFolderId]);
+            const selectedFolder = hasSelectedFolder ? folderModels[selectedFolderId] : null;
             const selectedMembers = Array.isArray(selectedFolder?.directMembers) ? selectedFolder.directMembers : [];
             if (!selectedMembers.some((member) => member.name === selectedMemberName)) {
                 selectedMemberName = '';
             }
             const selectedMember = selectedMembers.find((member) => member.name === selectedMemberName) || null;
-            const breadcrumbs = buildBreadcrumbs(selectedFolderId, snapshot, folderModels);
+            const breadcrumbs = hasSelectedFolder ? buildBreadcrumbs(selectedFolderId, snapshot, folderModels) : [];
             const relatedFolderIds = (() => {
+                if (!selectedFolder) {
+                    return orderedIds.filter((folderId) => !folderModels[folderId]?.parentId);
+                }
                 if (selectedFolder.childIds.length) {
                     return selectedFolder.childIds.slice();
                 }
@@ -583,7 +584,7 @@
                     running: model.running,
                     updates: model.updates
                 }));
-            const memberOrbit = layoutOrbitNodes(selectedFolder.directMembers, {
+            const memberOrbit = layoutOrbitNodes(selectedFolder?.directMembers || [], {
                 startRadius: 256,
                 ringStep: 132,
                 baseCapacity: 8,
@@ -625,16 +626,21 @@
                         <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="clear-member-selection">Back to folder summary</button>
                     </div>
                 </div>
-            ` : `
+            ` : hasSelectedFolder ? `
                 <div class="fv-docker-orbit-inspector-card">
                     <div class="fv-docker-orbit-inspector-title">Folder summary</div>
                     <div class="fv-docker-orbit-inspector-list">
-                        <div><span>Direct members</span><strong>${selectedFolder.directMemberCount}</strong></div>
-                        <div><span>Branch members</span><strong>${selectedFolder.branchMemberCount}</strong></div>
-                        <div><span>Child folders</span><strong>${selectedFolder.childIds.length}</strong></div>
-                        <div><span>Updates</span><strong>${selectedFolder.updates}</strong></div>
+                        <div><span>Direct members</span><strong>${selectedFolder?.directMemberCount || 0}</strong></div>
+                        <div><span>Branch members</span><strong>${selectedFolder?.branchMemberCount || 0}</strong></div>
+                        <div><span>Child folders</span><strong>${selectedFolder?.childIds.length || 0}</strong></div>
+                        <div><span>Updates</span><strong>${selectedFolder?.updates || 0}</strong></div>
                     </div>
                     <p class="fv-docker-orbit-inspector-note">Click a container orbit to inspect it, or select a child folder orbit to move deeper into the branch.</p>
+                </div>
+            ` : `
+                <div class="fv-docker-orbit-inspector-card">
+                    <div class="fv-docker-orbit-inspector-title">Folder summary</div>
+                    <p class="fv-docker-orbit-inspector-note">Select a folder orbit to focus it here. Containers will appear only after a folder is selected.</p>
                 </div>
             `;
             root.innerHTML = `
@@ -651,40 +657,42 @@
                     </div>
                     <div class="fv-docker-orbit-layout">
                         <section class="fv-docker-orbit-main">
-                            <div class="fv-docker-orbit-breadcrumbs">
+                            ${breadcrumbs.length ? `<div class="fv-docker-orbit-breadcrumbs">
                                 ${breadcrumbs.map((crumb, index) => `
                                     <button type="button" class="fv-docker-orbit-crumb${crumb.folderId === selectedFolderId ? ' is-current' : ''}" data-fv-orbit-action="select-folder" data-folder-id="${escapeHtml(crumb.folderId)}">${escapeHtml(crumb.name)}</button>
                                     ${index < breadcrumbs.length - 1 ? '<span class="fv-docker-orbit-crumb-sep">/</span>' : ''}
                                 `).join('')}
-                            </div>
+                            </div>` : ''}
                             <div class="fv-docker-orbit-stage-wrap">
                                 <div class="fv-docker-orbit-stage" style="--fv-docker-orbit-stage-size:${stageSize}px;">
                                     <div class="fv-docker-orbit-rings">${ringMarkup}</div>
-                                    <article class="fv-docker-orbit-hub" data-folder-id="${escapeHtml(selectedFolderId)}">
+                                    <article class="fv-docker-orbit-hub${hasSelectedFolder ? '' : ' is-placeholder'}" ${hasSelectedFolder ? `data-folder-id="${escapeHtml(selectedFolderId)}"` : ''}>
                                         <div class="fv-docker-orbit-hub-head">
-                                            <img src="${selectedFolder.icon}" class="fv-docker-orbit-folder-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'>
+                                            <img src="${hasSelectedFolder ? selectedFolder.icon : DEFAULT_FOLDER_ICON}" class="fv-docker-orbit-folder-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'>
                                             <div>
-                                                <div class="fv-docker-orbit-folder-title">${escapeHtml(selectedFolder.name)}</div>
-                                                <div class="fv-docker-orbit-folder-meta">${selectedFolder.directMemberCount} direct • ${selectedFolder.branchMemberCount} in branch • ${selectedFolder.childIds.length} child folders</div>
+                                                <div class="fv-docker-orbit-folder-title">${escapeHtml(hasSelectedFolder ? selectedFolder.name : 'Select a folder')}</div>
+                                                <div class="fv-docker-orbit-folder-meta">${escapeHtml(hasSelectedFolder ? `${selectedFolder.directMemberCount} direct • ${selectedFolder.branchMemberCount} in branch • ${selectedFolder.childIds.length} child folders` : 'Choose a folder from orbit to focus it in the center.')}</div>
                                             </div>
                                         </div>
-                                        <div class="fv-docker-orbit-hub-stats">
-                                            <span class="fv-docker-orbit-pill running"><i class="fa fa-play"></i> ${selectedFolder.running}</span>
-                                            <span class="fv-docker-orbit-pill paused"><i class="fa fa-pause"></i> ${selectedFolder.paused}</span>
-                                            <span class="fv-docker-orbit-pill stopped"><i class="fa fa-stop"></i> ${selectedFolder.stopped}</span>
-                                            <span class="fv-docker-orbit-pill update"><i class="fa fa-cloud-download"></i> ${selectedFolder.updates}</span>
-                                            ${selectedFolder.pinned ? '<span class="fv-docker-orbit-pill pin"><i class="fa fa-star"></i> pinned</span>' : ''}
-                                            ${selectedFolder.locked ? '<span class="fv-docker-orbit-pill lock"><i class="fa fa-lock"></i> locked</span>' : ''}
-                                        </div>
-                                        <div class="fv-docker-orbit-hub-actions">
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="start-branch" data-folder-id="${escapeHtml(selectedFolderId)}">Start branch</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="stop-branch" data-folder-id="${escapeHtml(selectedFolderId)}">Stop branch</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="${selectedFolder.actionCounts.updateReady > 0 ? 'update-branch' : 'force-update-branch'}" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.actionCounts.updateReady > 0 ? 'Update branch' : 'Force update'}</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="open-webui" data-folder-id="${escapeHtml(selectedFolderId)}">Open WebUIs</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="edit-folder" data-folder-id="${escapeHtml(selectedFolderId)}">Edit</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="toggle-pin" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.pinned ? 'Unpin' : 'Pin'}</button>
-                                            <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="toggle-lock" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.locked ? 'Unlock' : 'Lock'}</button>
-                                        </div>
+                                        ${hasSelectedFolder ? `
+                                            <div class="fv-docker-orbit-hub-stats">
+                                                <span class="fv-docker-orbit-pill running"><i class="fa fa-play"></i> ${selectedFolder.running}</span>
+                                                <span class="fv-docker-orbit-pill paused"><i class="fa fa-pause"></i> ${selectedFolder.paused}</span>
+                                                <span class="fv-docker-orbit-pill stopped"><i class="fa fa-stop"></i> ${selectedFolder.stopped}</span>
+                                                <span class="fv-docker-orbit-pill update"><i class="fa fa-cloud-download"></i> ${selectedFolder.updates}</span>
+                                                ${selectedFolder.pinned ? '<span class="fv-docker-orbit-pill pin"><i class="fa fa-star"></i> pinned</span>' : ''}
+                                                ${selectedFolder.locked ? '<span class="fv-docker-orbit-pill lock"><i class="fa fa-lock"></i> locked</span>' : ''}
+                                            </div>
+                                            <div class="fv-docker-orbit-hub-actions">
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="start-branch" data-folder-id="${escapeHtml(selectedFolderId)}">Start branch</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="stop-branch" data-folder-id="${escapeHtml(selectedFolderId)}">Stop branch</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="${selectedFolder.actionCounts.updateReady > 0 ? 'update-branch' : 'force-update-branch'}" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.actionCounts.updateReady > 0 ? 'Update branch' : 'Force update'}</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="open-webui" data-folder-id="${escapeHtml(selectedFolderId)}">Open WebUIs</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="edit-folder" data-folder-id="${escapeHtml(selectedFolderId)}">Edit</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="toggle-pin" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.pinned ? 'Unpin' : 'Pin'}</button>
+                                                <button type="button" class="fv-docker-orbit-button" data-fv-orbit-action="toggle-lock" data-folder-id="${escapeHtml(selectedFolderId)}">${selectedFolder.locked ? 'Unlock' : 'Lock'}</button>
+                                            </div>
+                                        ` : ''}
                                     </article>
                                     ${memberOrbit.nodes.map((member) => `
                                         <button

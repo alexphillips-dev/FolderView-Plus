@@ -59,6 +59,10 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
     align-items: flex-start;
 }
 
+.fv-docker-orbit-layout {
+    align-items: flex-start;
+}
+
 .fv-docker-orbit-header h2,
 .fv-docker-orbit-empty h3 {
     margin: 0;
@@ -83,17 +87,19 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
 .fv-docker-orbit-node,
 .fv-docker-orbit-crumb {
     appearance: none;
-    border: 1px solid var(--fv-docker-orbit-border);
+    border: 1px solid rgba(112, 126, 152, 0.46) !important;
     color: inherit;
     cursor: pointer;
     font: inherit;
     transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    box-shadow: none !important;
+    outline: none;
 }
 
 .fv-docker-orbit-button {
     border-radius: 999px;
     padding: 9px 15px;
-    background: rgba(25, 34, 49, 0.92);
+    background: rgba(25, 34, 49, 0.92) !important;
 }
 
 .fv-docker-orbit-button:hover,
@@ -103,7 +109,7 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
 .fv-docker-orbit-crumb:hover,
 .fv-docker-orbit-crumb:focus-visible {
     transform: translateY(-1px);
-    border-color: var(--fv-docker-orbit-border-strong);
+    border-color: rgba(144, 160, 190, 0.58) !important;
     box-shadow: 0 0 0 1px rgba(119, 216, 255, 0.1), 0 10px 24px rgba(0, 0, 0, 0.24);
 }
 
@@ -145,7 +151,7 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
 }
 
 .fv-docker-orbit-crumb.is-current {
-    background: rgba(33, 45, 66, 0.98);
+    background: rgba(33, 45, 66, 0.98) !important;
 }
 
 .fv-docker-orbit-crumb-sep {
@@ -202,8 +208,8 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
 .fv-docker-orbit-node {
     border-radius: 22px;
     background:
-        linear-gradient(180deg, rgba(27, 37, 55, 0.98), rgba(16, 23, 35, 0.98));
-    border: 1px solid var(--fv-docker-orbit-border);
+        linear-gradient(180deg, rgba(27, 37, 55, 0.98), rgba(16, 23, 35, 0.98)) !important;
+    border: 1px solid rgba(112, 126, 152, 0.42) !important;
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
 }
 
@@ -215,6 +221,12 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
     gap: 14px;
     padding: 20px;
     z-index: 3;
+}
+
+.fv-docker-orbit-hub.is-placeholder {
+    width: 240px;
+    min-height: 180px;
+    justify-content: center;
 }
 
 .fv-docker-orbit-hub-head {
@@ -271,21 +283,21 @@ body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
 
 .fv-docker-orbit-node.is-member.running,
 .fv-docker-orbit-inspector-card.is-member.running {
-    border-color: rgba(54, 208, 122, 0.32);
+    border-color: rgba(112, 126, 152, 0.42) !important;
 }
 
 .fv-docker-orbit-node.is-member.paused,
 .fv-docker-orbit-inspector-card.is-member.paused {
-    border-color: rgba(234, 176, 55, 0.32);
+    border-color: rgba(112, 126, 152, 0.42) !important;
 }
 
 .fv-docker-orbit-node.is-member.stopped,
 .fv-docker-orbit-inspector-card.is-member.stopped {
-    border-color: rgba(228, 96, 96, 0.32);
+    border-color: rgba(112, 126, 152, 0.42) !important;
 }
 
 .fv-docker-orbit-node.is-selected {
-    border-color: var(--fv-docker-orbit-border-strong);
+    border-color: rgba(150, 170, 206, 0.64) !important;
     box-shadow: 0 0 0 1px rgba(119, 216, 255, 0.12), 0 14px 32px rgba(0, 0, 0, 0.28);
 }
 

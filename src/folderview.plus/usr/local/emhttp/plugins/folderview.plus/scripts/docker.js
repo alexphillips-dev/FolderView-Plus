@@ -3402,7 +3402,6 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
 const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
     const previousPrefs = getDockerRuntimePersistedPrefs();
-    const previousEnabled = previousPrefs.dashboard?.privacyMode === true;
     if (readDockerRuntimePrivacyMode() === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
         queueDockerRuntimePrivacyToggleMount();
         return;
@@ -6431,6 +6430,5 @@ addEventListener("keydown", (e) => {
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);
-
 
 

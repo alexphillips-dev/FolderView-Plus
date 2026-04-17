@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.03">
-<!ENTITY md5 "64ebf4e8677193a1f32176c4b860b78d">
+<!ENTITY version "2026.04.17.04">
+<!ENTITY md5 "d65daa489f9be7b880db9414ceb52a9c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.04
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+
 
 ###2026.04.17.03
 - Fix: VM detail rows now stay attached to the VM you clicked inside folders instead of appearing under the previously expanded VM.

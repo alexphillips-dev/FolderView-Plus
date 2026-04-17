@@ -60,6 +60,9 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /const vmSafeUiActionRunner = createVmSafeUiActionRunner\(\);/);
     assert.match(vmJs, /const vmExpandedStateController = runtimeStateObserverModule/);
     assert.match(vmJs, /const vmRuntimeThemeReflowController = runtimeStateObserverModule/);
+    assert.match(vmJs, /const applyVmZebra = \(\) => \{/);
+    assert.match(vmJs, /const scheduleVmZebraRefresh = \(delayMs = 32\) => \{/);
+    assert.match(vmJs, /const adoptVmNativeDetailRows = \(rows = \[\]\) => \{/);
     assert.match(vmJs, /const runVmGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.doesNotMatch(vmJs, /createVmRuntimeCommandCenterController/);
     assert.doesNotMatch(vmJs, /syncVmCommandCenterView/);

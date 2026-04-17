@@ -227,6 +227,8 @@ const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || 
 const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
 const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
 const folderEditorIconsModule = window.FolderViewPlusFolderEditorIcons || null;
+const folderEditorTypeDockerModule = window.FolderViewPlusFolderEditorTypeDocker || null;
+const folderEditorTypeVmModule = window.FolderViewPlusFolderEditorTypeVm || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -351,6 +353,12 @@ if (!bulkAssignmentSharedModule || typeof bulkAssignmentSharedModule.createApi !
 if (!folderEditorIconsModule || typeof folderEditorIconsModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.icons.js');
 }
+if (!folderEditorTypeDockerModule || typeof folderEditorTypeDockerModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.type-docker.js');
+}
+if (!folderEditorTypeVmModule || typeof folderEditorTypeVmModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.type-vm.js');
+}
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
@@ -377,6 +385,7 @@ let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
 let folderEditorIconsApi = null;
+let folderEditorTypeApi = null;
 let folderBulkAssignmentSharedApi = null;
 let initialSnapshot = '';
 let isFormInitialized = false;
@@ -1026,7 +1035,8 @@ const getFolderEditorRulesApi = () => {
         escapeHtml,
         extractAjaxErrorMessage,
         shouldRender: () => modernFolderEditorEnabled,
-        getActiveFolderId: () => activeFolderEditorFolderId
+        getActiveFolderId: () => activeFolderEditorFolderId,
+        ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null
     });
     return folderEditorRulesApi;
 };
@@ -1143,20 +1153,6 @@ const queueBackgroundMutationPost = (url, data = {}) => {
     } catch (_error) {
         return false;
     }
-};
-
-const flushPostSaveDockerSync = async (options = {}) => {
-    if (type !== 'docker') {
-        return;
-    }
-    if (!shouldSyncDockerOrderAfterSave(options.folder, options)) {
-        return;
-    }
-    const scheduled = queueBackgroundMutationPost('/plugins/folderview.plus/server/sync_order.php', { type });
-    if (scheduled) {
-        return;
-    }
-    await securePost('/plugins/folderview.plus/server/sync_order.php', { type });
 };
 
 const getIconInput = () => $(getForm()?.icon);
@@ -1438,7 +1434,10 @@ const getFolderEditorPreviewRuntimeApi = () => {
         getDropdownStyleTokens,
         buildSampleMemberState,
         normalizeParentFolderId,
-        isDockerUpdateAvailableInEditor,
+        getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
+        applyTypePreviewConstraints: ({ $, form } = {}) => {
+            getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
+        },
         escapeHtml,
         updateMemberStats: () => updateMemberStats(),
         updateInheritedFieldIndicators: () => updateInheritedFieldIndicators(),
@@ -1834,6 +1833,55 @@ const normalizeFolderRecordForEditor = (folder) => {
         chevronStyle: normalized.settings.dropdown_style
     };
     return normalized;
+};
+
+const createNoopFolderEditorTypeApi = () => Object.freeze({
+    shouldSyncAfterSave: () => false,
+    flushPostSaveSync: async () => {},
+    getRulesConfig: () => null,
+    buildSmartDefaultSuggestions: () => []
+});
+
+const resolveFolderEditorTypeModule = () => {
+    if (type === 'docker') {
+        return folderEditorTypeDockerModule;
+    }
+    if (type === 'vm') {
+        return folderEditorTypeVmModule;
+    }
+    return null;
+};
+
+const getFolderEditorTypeApi = () => {
+    if (folderEditorTypeApi) {
+        return folderEditorTypeApi;
+    }
+    const typeModule = resolveFolderEditorTypeModule();
+    if (!typeModule || typeof typeModule.createApi !== 'function') {
+        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+        return folderEditorTypeApi;
+    }
+    folderEditorTypeApi = typeModule.createApi({
+        normalizeFolderRecordForEditor,
+        queueBackgroundMutationPost,
+        securePost,
+        syncType: type,
+        getFolderLabelValue,
+        getComposeProjectFromLabels,
+        isDockerUpdateAvailableInEditor
+    });
+    if (!folderEditorTypeApi || typeof folderEditorTypeApi !== 'object') {
+        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+    }
+    return folderEditorTypeApi;
+};
+
+const flushPostSaveTypeSync = async (options = {}) => {
+    const typeApi = getFolderEditorTypeApi();
+    if (!typeApi || typeof typeApi.flushPostSaveSync !== 'function') {
+        return;
+    }
+    await typeApi.flushPostSaveSync(options);
 };
 
 const validateHealthWarnThreshold = () => {
@@ -2521,27 +2569,14 @@ const suggestDefaultsFromMembers = () => {
         });
     }
 
-    if (type === 'docker') {
-        const composeProjects = Array.from(new Set(
-            selectedMembers
-                .map((member) => String(member?.ComposeProject || '').trim())
-                .filter((value) => value !== '')
-        ));
-        if (composeProjects.length === 1) {
-            suggestions.push({
-                key: 'compose',
-                label: 'Compose project',
-                value: composeProjects[0],
-                apply: () => { /* display-only advisory */ }
-            });
-        }
-        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
-        suggestions.push({
-            key: 'updates',
-            label: 'Update-aware preview',
-            value: `${updateCount}/${selectedMembers.length} with updates`,
-            apply: () => { form.preview_update.checked = updateCount > 0; }
-        });
+    const typeSuggestions = getFolderEditorTypeApi()?.buildSmartDefaultSuggestions?.({
+        selectedMembers,
+        memberNames,
+        form,
+        buildRegexSuggestionFromNames
+    });
+    if (Array.isArray(typeSuggestions) && typeSuggestions.length) {
+        suggestions.push(...typeSuggestions.filter((entry) => entry && typeof entry === 'object'));
     }
 
     if (!suggestions.length) {
@@ -2657,19 +2692,14 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="preview"])', 'preview');
     markSection('div.basic:has([name="preview_hover"])', 'preview');
-    markSection('div.basic:has([name="preview_update"])', 'preview');
     markSection('div.basic:has([name="preview_text_width"])', 'preview');
     markSection('div.basic:has([name="preview_rows"])', 'preview');
     markSection('div.basic:has([name="preview_grayscale"])', 'preview');
-    markSection('div.basic:has([name="preview_webui"])', 'preview');
     markSection('div.basic:has([name="preview_logs"])', 'preview');
-    markSection('div.basic:has([name="preview_console"])', 'preview');
     markSection('div.basic:has([name="preview_vertical_bars"])', 'preview');
     markSection('ul[constraint*="bars-color"]', 'preview');
     markSection('div.basic:has([name="preview_border"])', 'preview');
     markSection('ul[constraint*="border-color"]', 'preview');
-    markSection('div.basic:has([name="context"])', 'preview');
-    markSection('ul[constraint*="context-2"]', 'preview');
 
     markSection('div.basic:has([name="dropdown_style"])', 'chevron');
     markSection('div.basic:has([name="dropdown_color"])', 'chevron');
@@ -2678,11 +2708,6 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="folder_accent_color"])', 'status');
     markSection('div.fv-accent-inline-controls[constraint*="accent-color"]', 'status');
     markSection('div.basic:has([name="status_color_started"])', 'status');
-    markSection('div.basic:has([name="health_warn_stopped_percent"])', 'status');
-    markSection('div.basic:has([name="health_critical_stopped_percent"])', 'status');
-    markSection('div.basic:has([name="health_profile"])', 'status');
-    markSection('div.basic:has([name="health_updates_mode"])', 'status');
-    markSection('div.basic:has([name="health_all_stopped_mode"])', 'status');
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'status');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
@@ -2690,7 +2715,6 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="regex"])', 'rules');
 
-    markSection('div.basic:has([name="update_column"])', 'advanced');
     markSection('div.basic:has([name="override_default_actions"])', 'advanced');
     markSection('div.basic:has([name="default_action"])', 'advanced');
     markSection('div.basic:has([name="expand_tab"])', 'advanced');
@@ -2699,14 +2723,8 @@ const applySectionTags = () => {
 
     markAdvanced('ul[constraint*="folder-webui"]');
     markAdvanced('div.basic:has([name="preview_hover"])');
-    markAdvanced('div.basic:has([name="health_warn_stopped_percent"])');
-    markAdvanced('div.basic:has([name="health_critical_stopped_percent"])');
-    markAdvanced('div.basic:has([name="health_profile"])');
-    markAdvanced('div.basic:has([name="health_updates_mode"])');
-    markAdvanced('div.basic:has([name="health_all_stopped_mode"])');
     markAdvanced('div.basic:has([name="status_warn_stopped_percent"])');
     markAdvanced('div.basic:has([name="regex"])');
-    markAdvanced('div.basic:has([name="update_column"])');
     markAdvanced('div.basic:has([name="override_default_actions"])');
     markAdvanced('div.basic:has([name="default_action"])');
     markAdvanced('div.basic:has([name="expand_tab"])');
@@ -2714,6 +2732,7 @@ const applySectionTags = () => {
     markAdvanced('div.basic:has([name="dashboard_overflow"])');
     markAdvanced('div.basic.custom-action-wrapper-parent');
     markAdvanced('div.basic:has(a.custom-action)');
+    getFolderEditorTypeApi()?.applySectionTags?.({ markSection, markAdvanced });
 };
 
 const pruneEmptyEditorContainers = () => {
@@ -3190,10 +3209,6 @@ const startFolderEditorRuntime = async () => {
         hydrateCurrentEditFolder(bootstrapFolderRecord, bootstrapFolderId, {}, { clearPrefill: false });
     }
     const cacheBust = Date.now();
-    // if editing a vm hide docker related settings
-    if (type !== 'docker') {
-        $('[constraint*="docker"]').hide();
-    }
     // get folders
     const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
@@ -3330,33 +3345,12 @@ const startFolderEditorRuntime = async () => {
     renderMemberBulkMoveTargets();
     updateMemberBulkMoveUi();
 
-    // get the list of element docker/vm
-    let typeFilter;
-    if (type === 'docker') {
-        typeFilter = (e) => {
-            const labels = e?.info?.Config?.Labels || {};
-            const state = e?.info?.State || e?.State || {};
-            return {
-                'Name': e.info.Name,
-                'Icon': labels['net.unraid.docker.icon'],
-                'Label': getFolderLabelValue(labels),
-                'ComposeProject': getComposeProjectFromLabels(labels),
-                'State': state,
-                'RawState': state,
-                'UpdateAvailable': state?.manager === 'dockerman' && state?.Updated === false
-            }
-        };
-    } else if (type === 'vm') {
-        typeFilter = (e) => {
-            return {
-                'Name': e.name,
-                'Icon': e.icon,
-                'Label': undefined
-            }
-        };
-    }
-
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
+    const typeMemberMapper = typeof getFolderEditorTypeApi()?.mapRuntimeMember === 'function'
+        ? getFolderEditorTypeApi().mapRuntimeMember
+        : ((entry) => entry);
+    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise()))
+        .map((entry) => typeMemberMapper(entry))
+        .filter((entry) => entry && String(entry.Name || '').trim() !== '');
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';
     setBootstrapDiagnostics({
         mode: 'post-read-info',
@@ -4342,44 +4336,6 @@ const buildFolderPayloadFromForm = (e) => {
     };
 };
 
-const buildDockerSyncComparableFolder = (folderRecord) => {
-    const normalized = normalizeFolderRecordForEditor(folderRecord || {});
-    const containers = Array.from(new Set(
-        (Array.isArray(normalized.containers) ? normalized.containers : [])
-            .map((entry) => String(entry || '').trim())
-            .filter(Boolean)
-    )).sort();
-    return {
-        name: String(normalized.name || '').trim(),
-        regex: String(normalized.regex || ''),
-        containers
-    };
-};
-
-const shouldSyncDockerOrderAfterSave = (nextFolder, options = {}) => {
-    if (type !== 'docker') {
-        return false;
-    }
-    if (options.force === true) {
-        return true;
-    }
-    const currentFolderId = String(options.folderId || activeFolderEditorFolderId || folderId || '').trim();
-    if (!currentFolderId) {
-        return true;
-    }
-    const previousFolderRecord = options.previousFolder && typeof options.previousFolder === 'object'
-        ? options.previousFolder
-        : allFoldersById[currentFolderId];
-    if (!previousFolderRecord || typeof previousFolderRecord !== 'object') {
-        return true;
-    }
-    const previousComparable = buildDockerSyncComparableFolder(previousFolderRecord);
-    const nextComparable = buildDockerSyncComparableFolder(nextFolder || {});
-    return previousComparable.name !== nextComparable.name
-        || previousComparable.regex !== nextComparable.regex
-        || JSON.stringify(previousComparable.containers) !== JSON.stringify(nextComparable.containers);
-};
-
 const buildFolderSettingsSummaryHtml = (entry) => {
     const transferApi = getFolderSettingsTransferApi();
     const summary = transferApi?.summarizeClipboardEntry(entry) || {
@@ -4925,7 +4881,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             });
         }
 
-        await flushPostSaveDockerSync({
+        await flushPostSaveTypeSync({
             force: saveAsCopy || !currentFolderId,
             folder,
             folderId: currentFolderId,

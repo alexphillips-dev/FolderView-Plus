@@ -54,9 +54,12 @@
         const normalizeParentFolderId = typeof deps.normalizeParentFolderId === 'function'
             ? deps.normalizeParentFolderId
             : ((value) => String(value || '').trim());
-        const isDockerUpdateAvailableInEditor = typeof deps.isDockerUpdateAvailableInEditor === 'function'
-            ? deps.isDockerUpdateAvailableInEditor
-            : (() => false);
+        const getPreviewSignals = typeof deps.getPreviewSignals === 'function'
+            ? deps.getPreviewSignals
+            : (() => null);
+        const applyTypePreviewConstraints = typeof deps.applyTypePreviewConstraints === 'function'
+            ? deps.applyTypePreviewConstraints
+            : (() => {});
         const isFolderAccentEnabled = typeof deps.isFolderAccentEnabled === 'function'
             ? deps.isFolderAccentEnabled
             : ((settings) => settings?.folder_accent_enabled === true);
@@ -98,7 +101,7 @@
                 getDropdownStyleTokens,
                 buildSampleMemberState,
                 normalizeParentFolderId,
-                isDockerUpdateAvailableInEditor,
+                getPreviewSignals,
                 escapeHtml,
                 updateMemberStats,
                 onAfterSummaryUpdate: () => {
@@ -186,9 +189,7 @@
             if (form.folder_webui?.checked === true) {
                 $('[constraint*="folder-webui"]').show();
             }
-            if (type !== 'docker') {
-                $('[constraint*="docker"]').hide();
-            }
+            applyTypePreviewConstraints({ $, form });
 
             $('div.canvas > form.folder-editor-form')
                 .toggleClass('fv-preview-disabled', String(form.preview?.value) === '0')

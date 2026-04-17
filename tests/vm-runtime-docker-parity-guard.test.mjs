@@ -30,6 +30,16 @@ test('vm runtime context menu keeps focus/pin/lock and clone actions in vm folde
     assert.match(vmJs, /Branch actions/);
 });
 
+test('vm runtime adopts native detail rows for folder members and later host detail inserts', () => {
+    assert.match(vmJs, /const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr\[id\^="name-"\]:not\(\[child-id\]\)';/);
+    assert.match(vmJs, /const collectExistingVmDetailRowsForVmRow = \(vmRow\) => \{/);
+    assert.match(vmJs, /const ensureVmNativeDetailRowObserver = \(\) => \{[\s\S]*vmNativeDetailRowObserver = new MutationObserver/);
+    assert.match(vmJs, /const ensureVmNativeDetailInteractionHooks = \(\) => \{/);
+    assert.match(vmJs, /const placeVmNativeDetailRowForOwner = \(detailRow,\s*vmRow\) => \{/);
+    assert.match(vmJs, /adoptVmNativeDetailRows\(Array\.from\(document\.querySelectorAll\(`tbody#kvm_list > \$\{VM_NATIVE_DETAIL_ROW_SELECTOR\}`\)\)\);/);
+    assert.match(vmJs, /const detailRows = collectExistingVmDetailRowsForVmRow\(vmRowNode\);/);
+});
+
 test('vm css includes parity selectors for quick action row and folder quick state styles', () => {
     assert.match(vmCss, /tr\.fv-folder-focused td\.vm-name\.folder-name/);
     assert.match(vmCss, /tr\.fv-folder-pinned td\.vm-name\.folder-name/);

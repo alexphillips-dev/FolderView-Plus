@@ -146,10 +146,27 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
+    assert.match(script, /const runtimePrefsSaveStateByType = \{/);
+    assert.match(script, /const getRuntimePrefsSaveState = \(type\) => \{/);
+    assert.match(script, /const requestRevision = runtimeSaveState\.revision \+ 1;/);
+    assert.match(script, /if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}/);
+    assert.match(script, /runtimeSaveState\.lastCommittedPrefs = utils\.normalizePrefs\(savedPrefs\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
-    assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
+    assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
+    assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
     assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer'\]/);
+});
+
+test('settings runtime honors explicit launch overrides for advanced rules workspace deep links', () => {
+    assert.match(script, /const readSettingsLaunchOverrides = \(\) => \{/);
+    assert.match(script, /const params = new URLSearchParams\(window\.location\.search \|\| ''\);/);
+    assert.match(script, /const settingsLaunchOverrides = readSettingsLaunchOverrides\(\);/);
+    assert.match(script, /const applySettingsLaunchOverrides = \(\{ persist = false \} = \{\}\) => \{/);
+    assert.match(script, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(settingsLaunchOverrides\.rulesType\);/);
+    assert.match(script, /applySettingsLaunchOverrides\(\{ persist: false \}\);/);
+    assert.match(script, /if \(!hasLocalModePreference && serverMode && !settingsLaunchOverrides\?\.mode\) \{/);
+    assert.match(script, /window\.requestAnimationFrame\(\(\) => \{\s*scrollToSectionKey\(settingsLaunchOverrides\.sectionKey\);\s*\}\);/);
 });
 
 test('backup endpoint supports scheduler and rollback actions', () => {
@@ -438,7 +455,7 @@ test('settings mode switches persist the user basic or advanced view choice', ()
     assert.match(script, /if \(persistServer === true && previousMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
     assert.match(script, /const storedMode = String\(localStorage\.getItem\(UI_MODE_STORAGE_KEY\) \|\| ''\)\.trim\(\);/);
     assert.match(script, /const hasLocalModePreference = storedMode === 'advanced' \|\| storedMode === 'basic';/);
-    assert.match(script, /if \(!hasLocalModePreference && serverMode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
+    assert.match(script, /if \(!hasLocalModePreference && serverMode && !settingsLaunchOverrides\?\.mode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
     assert.match(script, /if \(hasLocalModePreference && serverMode && serverMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
     assert.match(script, /setSettingsMode\(mode, \{ persistServer: true \}\);/);
     assert.match(script, /setSettingsMode\('basic', \{ persistServer: true \}\);/);

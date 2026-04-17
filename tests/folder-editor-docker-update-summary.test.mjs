@@ -8,6 +8,10 @@ const folderJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'),
     'utf8'
 );
+const folderTypeDockerJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'),
+    'utf8'
+);
 const settingsJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js'),
     'utf8'
@@ -20,6 +24,10 @@ test('modern folder editor update summary accepts normalized update flags from m
     assert.match(folderJs, /const isDockerUpdateAvailableInEditor = \(member\) => \{/);
     assert.match(folderJs, /if \(source\.UpdateAvailable === true \|\| source\.update === true\) \{\s*return true;\s*\}/);
     assert.match(folderJs, /const state = source\?\.State \|\| source\?\.RawState \|\| source\?\.info\?\.State \|\| \{\};/);
+    assert.match(folderTypeDockerJs, /const getPreviewSignals = \(\{ selectedMembers = \[\] \} = \{\}\) =>/);
+    assert.match(folderTypeDockerJs, /const updateCount = members\.filter\(\(member\) => isDockerUpdateAvailableInEditor\(member\)\)\.length;/);
+    assert.match(folderTypeDockerJs, /const buildSmartDefaultSuggestions = \(\{ selectedMembers = \[\],\s*form \} = \{\}\) =>/);
+    assert.match(folderJs, /const typeSuggestions = getFolderEditorTypeApi\(\)\?\.buildSmartDefaultSuggestions\?\.\(\{/);
 });
 
 test('shared docker update helper accepts normalized update flags outside the Docker page runtime', () => {

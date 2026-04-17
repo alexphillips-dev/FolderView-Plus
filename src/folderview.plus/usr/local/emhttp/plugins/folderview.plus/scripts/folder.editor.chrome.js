@@ -22,6 +22,7 @@
         ? sharedSectionMeta
         : FALLBACK_SECTION_META;
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
+    const pageType = String(root.FolderViewPlusFolderEditorPageType || '').trim().toLowerCase();
     const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
     const pageReportFolderEditorBootstrap = typeof root.FolderViewPlusReportFolderEditorBootstrap === 'function'
@@ -30,6 +31,46 @@
     let currentMode = BASIC_MODE;
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
+    let folderEditorTypeApi = null;
+
+    const resolveFolderEditorTypeModule = () => {
+        if (pageType === 'docker') {
+            return root.FolderViewPlusFolderEditorTypeDocker || null;
+        }
+        if (pageType === 'vm') {
+            return root.FolderViewPlusFolderEditorTypeVm || null;
+        }
+        return null;
+    };
+
+    const getFolderEditorTypeApi = () => {
+        if (folderEditorTypeApi) {
+            return folderEditorTypeApi;
+        }
+        const typeModule = resolveFolderEditorTypeModule();
+        if (!typeModule || typeof typeModule.createApi !== 'function') {
+            return null;
+        }
+        try {
+            folderEditorTypeApi = typeModule.createApi({});
+        } catch (_error) {
+            folderEditorTypeApi = null;
+        }
+        return folderEditorTypeApi;
+    };
+
+    const mergeSectionRows = (baseRows, extraRows) => {
+        const merged = { ...baseRows };
+        const source = extraRows && typeof extraRows === 'object' ? extraRows : {};
+        Object.entries(source).forEach(([sectionKey, rows]) => {
+            const nextRows = Array.isArray(rows) ? rows.filter(Boolean) : [];
+            if (!nextRows.length) {
+                return;
+            }
+            merged[sectionKey] = [...(merged[sectionKey] || []), ...nextRows];
+        });
+        return merged;
+    };
 
     const setBootstrapSurfaceState = ({
         summary = '',
@@ -413,7 +454,8 @@
         });
     };
 
-    const collectSectionRows = (form) => ({
+    const collectSectionRows = (form) => {
+        const baseRows = {
         general: [
             findBasicByFieldName(form, 'name'),
             findBasicByFieldName(form, 'parent_folder_id'),
@@ -427,21 +469,14 @@
         preview: [
             findBasicByFieldName(form, 'preview'),
             findBasicByFieldName(form, 'preview_hover'),
-            findBasicByFieldName(form, 'preview_update'),
             findBasicByFieldName(form, 'preview_text_width'),
             findBasicByFieldName(form, 'preview_rows'),
             findBasicByFieldName(form, 'preview_grayscale'),
-            findBasicByFieldName(form, 'preview_webui'),
             findBasicByFieldName(form, 'preview_logs'),
-            findBasicByFieldName(form, 'preview_console'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
             findBasicByFieldName(form, 'preview_vertical_bars_color'),
             findBasicByFieldName(form, 'preview_border'),
-            findBasicByFieldName(form, 'preview_border_color'),
-            findBasicByFieldName(form, 'context'),
-            findBasicByFieldName(form, 'context_trigger'),
-            findBasicByFieldName(form, 'context_graph'),
-            findBasicByFieldName(form, 'context_graph_time')
+            findBasicByFieldName(form, 'preview_border_color')
         ],
         chevron: [
             findBasicByFieldName(form, 'dropdown_style'),
@@ -451,11 +486,6 @@
             findBasicByFieldName(form, 'folder_accent_enabled'),
             findBasicByFieldName(form, 'folder_accent_color'),
             findBasicByFieldName(form, 'status_color_started'),
-            findBasicByFieldName(form, 'health_warn_stopped_percent'),
-            findBasicByFieldName(form, 'health_critical_stopped_percent'),
-            findBasicByFieldName(form, 'health_profile'),
-            findBasicByFieldName(form, 'health_updates_mode'),
-            findBasicByFieldName(form, 'health_all_stopped_mode'),
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
         rules: [
@@ -465,14 +495,18 @@
             form.querySelector('.basic.custom-action-wrapper-parent')
         ],
         advanced: [
-            findBasicByFieldName(form, 'update_column'),
             findBasicByFieldName(form, 'override_default_actions'),
             findBasicByFieldName(form, 'default_action'),
             findBasicByFieldName(form, 'expand_tab'),
             findBasicByFieldName(form, 'expand_dashboard'),
             findBasicByFieldName(form, 'dashboard_overflow')
         ]
-    });
+        };
+        return mergeSectionRows(
+            baseRows,
+            getFolderEditorTypeApi()?.collectSectionRows?.({ form, findBasicByFieldName }) || null
+        );
+    };
 
     const syncActionLaunchPlacement = (form) => {
         const actionsRow = form.querySelector('.basic.custom-action-wrapper-parent');

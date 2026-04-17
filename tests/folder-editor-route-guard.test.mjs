@@ -55,7 +55,7 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /\$folderEditorPageMode = 'modern';/);
     assert.match(folderPage, /\$folderEditorPageModeSource = 'modern-only';/);
     assert.match(folderPage, /const runtimeMode = 'modern';/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.parent-picker\.js[\s\S]*folder\.editor\.rules\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.parent-picker\.js[\s\S]*folder\.editor\.rules\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /win\.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics\(\)/);
     assert.match(folderPage, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);

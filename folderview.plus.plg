@@ -5,18 +5,46 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.16.04">
-<!ENTITY md5 "e6105821583b8b9a3c273e0bd0854d95">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.04.17.03">
+<!ENTITY md5 "64ebf4e8677193a1f32176c4b860b78d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.04.17.03
+- Fix: VM detail rows now stay attached to the VM you clicked inside folders instead of appearing under the previously expanded VM.
+- Fix: Existing expanded VM detail rows move with their VM during folder renders, and later host-inserted detail rows are adopted back under the correct VM owner.
+
+
+###2026.04.17.02
+- Fix: Folder editor Rules tab now opens Settings directly into Advanced > Rules > Auto-assignment instead of restoring the last basic tab.
+- UX: Settings bootstrap now honors explicit launch overrides for advanced tab, target section, and Docker or VM rules workspace source.
+
+
+###2026.04.17.01
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
+
+###2026.04.16.07
+- Refactor: Moved Docker-only folder editor row registration into the Docker type module so VM no longer inherits Docker field grouping from the shared editor chrome.
+- Refactor: Moved Docker preview signal assembly and runtime member normalization into type modules, keeping the shared editor preview/runtime type-agnostic.
+- Fix: VM editor now hides Docker-only constrained fields through the VM type module instead of shared-runtime Docker checks.
+
+
+###2026.04.16.06
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
 ###2026.04.16.04
-- Maintenance: Revert VM detail-row regrouping and restore rules workspace binding.
-- Maintenance: Refresh performance baseline for released runtime assets.
-- Fix: Fix dead-code guard for release tree explorer cleanup.
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
 
 
 ###2026.04.16.03
@@ -5453,7 +5481,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -288,7 +288,13 @@ body.fvplus-privacy-docker-runtime #docker_view td.ct-name img.img,
 body.fvplus-privacy-docker-runtime #docker_list .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime #docker_view .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime .preview-img > .folder-img,
-body.fvplus-privacy-docker-runtime .fv-docker-member-menu-icon {
+body.fvplus-privacy-docker-runtime .fv-docker-member-menu-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-command-card-title-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-command-member-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-node-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-card-title-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-child-icon,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-member-icon {
     filter: blur(0.4rem);
 }
 
@@ -299,7 +305,13 @@ body.fvplus-privacy-docker-runtime #docker_view td.ct-name .folder-appname,
 body.fvplus-privacy-docker-runtime #docker_list .folder-preview .appname,
 body.fvplus-privacy-docker-runtime #docker_view .folder-preview .appname,
 body.fvplus-privacy-docker-runtime .preview-actual-name,
-body.fvplus-privacy-docker-runtime .fv-docker-member-menu-name {
+body.fvplus-privacy-docker-runtime .fv-docker-member-menu-name,
+body.fvplus-privacy-docker-runtime .fv-docker-command-card-title,
+body.fvplus-privacy-docker-runtime .fv-docker-command-member-pill,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-node-copy,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-detail-title,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-child-copy,
+body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-member-pill {
     filter: blur(0.28rem);
 }
 

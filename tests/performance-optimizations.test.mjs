@@ -64,6 +64,14 @@ const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderEditorTypeDockerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'
+);
+const folderEditorTypeVmJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-vm.js'
+);
 const settingsImportJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
@@ -92,6 +100,8 @@ const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
+const folderEditorTypeDockerJs = fs.readFileSync(folderEditorTypeDockerJsPath, 'utf8');
+const folderEditorTypeVmJs = fs.readFileSync(folderEditorTypeVmJsPath, 'utf8');
 const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
@@ -342,12 +352,17 @@ test('folder editor save queues docker order sync off the submit critical path i
     assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
     assert.match(folderEditorJs, /navigator\.sendBeacon/);
     assert.match(folderEditorJs, /keepalive:\s*true/);
-    assert.match(folderEditorJs, /const shouldSyncDockerOrderAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
-    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(options = \{\}\) =>/);
-    assert.match(folderEditorJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
-    assert.match(folderEditorJs, /if \(!shouldSyncDockerOrderAfterSave\(options\.folder,\s*options\)\) \{\s*return;\s*\}/);
+    assert.match(folderEditorJs, /const resolveFolderEditorTypeModule = \(\) =>/);
+    assert.match(folderEditorJs, /const getFolderEditorTypeApi = \(\) =>/);
+    assert.match(folderEditorJs, /const flushPostSaveTypeSync = async \(options = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const buildComparableFolder = \(folderRecord\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const shouldSyncAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const flushPostSaveSync = async \(options = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /queueBackgroundMutationPost\(SYNC_ORDER_PATH,\s*\{\s*type:\s*syncType\s*\}\)/);
+    assert.match(folderEditorTypeVmJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorTypeVmJs, /applyPreviewConstraints:/);
     const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
     assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| folderId \|\| ''\)\.trim\(\);/);
-    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\{[\s\S]*force:\s*saveAsCopy \|\| !currentFolderId,[\s\S]*previousFolder[\s\S]*\}\);/);
+    assert.match(modernSubmitBlock, /await flushPostSaveTypeSync\(\{[\s\S]*force:\s*saveAsCopy \|\| !currentFolderId,[\s\S]*previousFolder[\s\S]*\}\);/);
     assert.doesNotMatch(modernSubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
 });

@@ -109,6 +109,14 @@ const folderPreviewRuntimeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js'),
     'utf8'
 );
+const folderTypeDockerJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'),
+    'utf8'
+);
+const folderTypeVmJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-vm.js'),
+    'utf8'
+);
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8');
 const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
@@ -217,7 +225,7 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderPage, /icon-picker\.runtime\.js/);
     assert.match(folderPage, /runtime-script-still-pending/);
     assert.match(folderPage, /const runtimeMode = 'modern';/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
     assert.match(folderPage, /boot=\$\{encodeURIComponent\(bootNonce\)\}/);
     assert.match(folderJs, /\(function fvplusFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
@@ -466,9 +474,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'folder_webui_url'\)/);
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'preview_vertical_bars_color'\)/);
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'preview_border_color'\)/);
-    assert.match(folderChromeJs, /findBasicByFieldName\(form, 'context_trigger'\)/);
-    assert.match(folderChromeJs, /findBasicByFieldName\(form, 'context_graph'\)/);
-    assert.match(folderChromeJs, /findBasicByFieldName\(form, 'context_graph_time'\)/);
+    assert.match(folderChromeJs, /const getFolderEditorTypeApi = \(\) =>/);
+    assert.match(folderChromeJs, /const mergeSectionRows = \(baseRows,\s*extraRows\) =>/);
     assert.match(folderChromeJs, /const syncActionLaunchPlacement = \(form\) =>/);
     assert.doesNotMatch(folderChromeJs, /fvLiveSurfaceLabel/);
     assert.doesNotMatch(folderChromeJs, /data-surface="dashboard"/);
@@ -481,9 +488,15 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
     assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
     assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
+    assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_trigger'\)/);
+    assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph'\)/);
+    assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_graph_time'\)/);
     assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
     assert.match(folderPreviewRuntimeJs, /context_graph-\$\{form\.context_graph\?\.value\}/);
     assert.match(folderPreviewRuntimeJs, /form\.preview_border\?\.checked === true\) \{/);
+    assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints = typeof deps\.applyTypePreviewConstraints === 'function'/);
+    assert.match(folderPreviewRuntimeJs, /applyTypePreviewConstraints\(\{ \$,\s*form \}\);/);
+    assert.match(folderTypeVmJs, /activeJq\('\[constraint\*="docker"\]'\)\.hide\(\);/);
     assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
     assert.doesNotMatch(folderPage, /Site for testing your regex/);
     assert.doesNotMatch(folderCss, /\.canvas form\.folder-editor-form \.fv-section-shell > \.fv-section-shell-body > \.basic:not\(.order-section\),/);
@@ -575,17 +588,18 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderJs, /const getFolderEditorRulesApi = \(\) =>/);
     assert.match(folderJs, /folderEditorRulesModule\?\.createApi/);
     assert.match(folderJs, /refreshFolderAutoRulesPanel = \(options = \{\}\) =>/);
-    assert.match(folderRulesJs, /const ruleRegexKinds = type === 'docker'/);
+    assert.match(folderRulesJs, /const rawRulesConfig = deps\.ruleConfig && typeof deps\.ruleConfig === 'object' \? deps\.ruleConfig : defaultRulesConfig;/);
+    assert.match(folderJs, /ruleConfig: getFolderEditorTypeApi\(\)\?\.getRulesConfig\?\.\(\) \|\| null/);
     assert.match(folderRulesJs, /panel\.id = 'fvFolderAutoRulesPanel';/);
     assert.match(folderRulesJs, /panel\.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';/);
     assert.match(folderRulesJs, /Save this folder first to create advanced rules\./);
     assert.match(folderRulesJs, /Open full Rules workspace/);
+    assert.match(folderRulesJs, /const fullRulesWorkspaceHref = `\/Settings\/FolderViewPlus\?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=\$\{encodeURIComponent\(type\)\}`;/);
     assert.match(folderRulesJs, /Create regex-based plugin rules directly from the folder editor without leaving this page\./);
     assert.match(folderRulesJs, /<dt>Advanced auto-rules:<\/dt>/);
     assert.match(folderRulesJs, /<blockquote class="inline_help">/);
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
-    assert.match(folderRulesJs, /href="\/Settings\/FolderViewPlus"/);
     assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.rules\.js'/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel > dl > dd/);

@@ -68,6 +68,7 @@ build_once() {
     TZ=UTC \
     LC_ALL=C \
     LANG=C \
+    FVPLUS_PKG_BUILD_DISABLE_FLOCK=1 \
     FVPLUS_VERSION_OVERRIDE="${VERSION_OVERRIDE}" \
     bash "${PKG_BUILD_SCRIPT}" --output-dir "${output_dir}" --no-validate
   )

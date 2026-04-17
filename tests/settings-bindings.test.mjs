@@ -146,8 +146,14 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
+    assert.match(script, /const runtimePrefsSaveStateByType = \{/);
+    assert.match(script, /const getRuntimePrefsSaveState = \(type\) => \{/);
+    assert.match(script, /const requestRevision = runtimeSaveState\.revision \+ 1;/);
+    assert.match(script, /if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}/);
+    assert.match(script, /runtimeSaveState\.lastCommittedPrefs = utils\.normalizePrefs\(savedPrefs\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
-    assert.match(script, /catch \(error\) \{\s*renderVisibilityControls\(type\);[\s\S]*showError\('Visibility preference save failed', error\);/);
+    assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
+    assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
     assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer'\]/);
 });

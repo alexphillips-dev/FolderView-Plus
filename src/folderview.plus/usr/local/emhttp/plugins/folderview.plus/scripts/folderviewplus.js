@@ -442,6 +442,16 @@ let prefsByType = {
     docker: utils.normalizePrefs({}),
     vm: utils.normalizePrefs({})
 };
+const runtimePrefsSaveStateByType = {
+    docker: {
+        revision: 0,
+        lastCommittedPrefs: utils.normalizePrefs({})
+    },
+    vm: {
+        revision: 0,
+        lastCommittedPrefs: utils.normalizePrefs({})
+    }
+};
 let infoByType = {
     docker: {},
     vm: {}
@@ -7932,8 +7942,23 @@ const toggleFolderPin = async (type, folderId) => {
     }
 };
 
+const getRuntimePrefsSaveState = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (!runtimePrefsSaveStateByType[resolvedType] || typeof runtimePrefsSaveStateByType[resolvedType] !== 'object') {
+        runtimePrefsSaveStateByType[resolvedType] = {
+            revision: 0,
+            lastCommittedPrefs: utils.normalizePrefs(prefsByType[resolvedType] || {})
+        };
+    }
+    if (!runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs) {
+        runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    }
+    return runtimePrefsSaveStateByType[resolvedType];
+};
+
 const changeRuntimePref = async (type, key, value) => {
     const current = utils.normalizePrefs(prefsByType[type]);
+    const runtimeSaveState = getRuntimePrefsSaveState(type);
     const next = {
         ...current
     };
@@ -7962,15 +7987,28 @@ const changeRuntimePref = async (type, key, value) => {
     if (key === 'liveRefreshEnabled' || key === 'lazyPreviewEnabled') {
         syncRuntimeDependentFields(type);
     }
+    prefsByType[type] = utils.normalizePrefs(next);
+    renderRuntimeControls(type);
+    const requestRevision = runtimeSaveState.revision + 1;
+    runtimeSaveState.revision = requestRevision;
 
     try {
-        prefsByType[type] = await postPrefs(type, next);
+        const savedPrefs = await postPrefs(type, next);
+        runtimeSaveState.lastCommittedPrefs = utils.normalizePrefs(savedPrefs);
+        if (requestRevision !== runtimeSaveState.revision) {
+            return;
+        }
+        prefsByType[type] = runtimeSaveState.lastCommittedPrefs;
         renderRuntimeControls(type);
         if (key === 'themeCompatibilityMode') {
             applySettingsResolvedThemeTokens(`pref-${type}`);
             queueSettingsThemeAwareReflow(`theme-compat-${type}`);
         }
     } catch (error) {
+        if (requestRevision !== runtimeSaveState.revision) {
+            return;
+        }
+        prefsByType[type] = utils.normalizePrefs(runtimeSaveState.lastCommittedPrefs || current);
         renderRuntimeControls(type);
         showError('Runtime preference save failed', error);
     }
@@ -9315,8 +9353,6 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-
-
 
 
 

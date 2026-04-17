@@ -43,6 +43,11 @@ test('privacy mode toggles runtime body classes and ships masking selectors acro
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_TOGGLE_ID = 'fvplus-docker-runtime-privacy-toggle';/);
     assert.match(dockerJs, /const renderDockerRuntimePrivacyToggle = \(\) =>/);
     assert.match(dockerJs, /const findDockerRuntimeListViewToggleAnchor = \(\) =>/);
+    assert.match(dockerJs, /let dockerRuntimePrivacyPersistPromise = null;/);
+    assert.match(dockerJs, /let dockerRuntimePrivacyPendingEnabled = null;/);
+    assert.match(dockerJs, /const flushDockerRuntimePrivacyModePersistence = async \(\) =>/);
+    assert.match(dockerJs, /shell\.className = `fvplus-docker-runtime-toggle-shell\$\{mount\.anchor \? ' is-inline-cluster' : ''\}\$\{mount\.fallback \? ' is-fallback' : ''\}`;/);
+    assert.match(dockerJs, /if \(readDockerRuntimePrivacyMode\(\) === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise\) \{/);
     assert.match(dockerJs, /const setDockerRuntimePrivacyMode = async \(enabled, options = \{\}\) =>/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);
     assert.match(vmJs, /toggleClass\('fvplus-privacy-vm-runtime', normalized\?\.dashboard\?\.privacyMode === true\)/);
@@ -62,6 +67,12 @@ test('privacy mode toggles runtime body classes and ships masking selectors acro
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell\.is-inline-cluster/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toolbar-controls/);
+    assert.match(dockerCss, /\.fv-docker-command-card-title-icon/);
+    assert.match(dockerCss, /\.fv-docker-command-member-icon/);
+    assert.match(dockerCss, /\.fv-docker-command-member-pill/);
+    assert.match(dockerCss, /\.fv-docker-tree-explorer-node-icon/);
+    assert.match(dockerCss, /\.fv-docker-tree-explorer-detail-title/);
+    assert.match(dockerCss, /\.fv-docker-tree-explorer-member-pill/);
     assert.match(dockerCss, /\.fv-docker-member-menu-name/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

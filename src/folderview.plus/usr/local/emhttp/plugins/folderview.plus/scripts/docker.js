@@ -3201,6 +3201,9 @@ const DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID = 'fvplus-docker-runtime-privacy-sh
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_FALLBACK_HOST_ID = 'fvplus-docker-runtime-toolbar-controls';
 const DOCKER_LEGACY_HOST_BOOTSTRAP_RENDER_COMPAT = false;
 let dockerRuntimePrivacyToggleMountQueued = false;
+let dockerRuntimePrivacyPersistPromise = null;
+let dockerRuntimePrivacyPendingEnabled = null;
+let dockerRuntimePrivacyPersistedPrefs = null;
 
 const readDockerRuntimePrivacyMode = () => utils.normalizePrefs(folderTypePrefs || {}).dashboard?.privacyMode === true;
 
@@ -3249,17 +3252,21 @@ const findDockerRuntimeListViewToggleAnchor = () => {
     ].filter(Boolean);
     const switchSelector = 'input[type="checkbox"], .switch-button, .switch-button-background';
     for (const scope of scopes) {
-        const candidates = Array.from(scope.querySelectorAll('label, div, span, td, th'));
-        for (const candidate of candidates) {
-            const text = String(candidate.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-            if (!text.includes('basic view')) {
-                continue;
-            }
-            if (candidate.querySelector(switchSelector)) {
+        const switches = Array.from(scope.querySelectorAll(switchSelector));
+        for (const toggleNode of switches) {
+            const candidates = [
+                toggleNode.closest('label'),
+                toggleNode.closest('span'),
+                toggleNode.closest('div'),
+                toggleNode.parentElement,
+                toggleNode.parentElement?.parentElement
+            ].filter(Boolean);
+            for (const candidate of candidates) {
+                const text = String(candidate.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                if (!text.includes('basic view')) {
+                    continue;
+                }
                 return candidate;
-            }
-            if (candidate.parentElement && candidate.parentElement.querySelector(switchSelector)) {
-                return candidate.parentElement;
             }
         }
     }
@@ -3320,7 +3327,7 @@ const renderDockerRuntimePrivacyToggle = () => {
         shell = document.createElement('div');
         shell.id = DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID;
     }
-    shell.className = `fvplus-docker-runtime-toggle-shell${mount.fallback ? ' is-fallback' : ''}`;
+    shell.className = `fvplus-docker-runtime-toggle-shell${mount.anchor ? ' is-inline-cluster' : ''}${mount.fallback ? ' is-fallback' : ''}`;
     if (mount.anchor) {
         if (mount.anchor.nextElementSibling !== shell) {
             mount.anchor.insertAdjacentElement('afterend', shell);
@@ -3329,9 +3336,10 @@ const renderDockerRuntimePrivacyToggle = () => {
         mount.host.insertBefore(shell, mount.host.firstChild);
     }
     const enabled = readDockerRuntimePrivacyMode();
+    const savePending = dockerRuntimePrivacyPersistPromise !== null;
     shell.innerHTML = `
         <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
-        <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''}>
+        <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
     `;
     const $input = $(`#${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}`);
     if (!$input.length) {
@@ -3366,36 +3374,57 @@ const queueDockerRuntimePrivacyToggleMount = () => {
     setTimeout(flush, 0);
 };
 
+const getDockerRuntimePersistedPrefs = () => utils.normalizePrefs(dockerRuntimePrivacyPersistedPrefs || folderTypePrefs || {});
+
+const flushDockerRuntimePrivacyModePersistence = async () => {
+    if (dockerRuntimePrivacyPersistPromise) {
+        return dockerRuntimePrivacyPersistPromise;
+    }
+    dockerRuntimePrivacyPersistPromise = (async () => {
+        try {
+            while (dockerRuntimePrivacyPendingEnabled !== null) {
+                const targetEnabled = dockerRuntimePrivacyPendingEnabled === true;
+                dockerRuntimePrivacyPendingEnabled = null;
+                const response = await persistDockerRuntimePrivacyMode(targetEnabled);
+                folderTypePrefs = utils.normalizePrefs(response?.prefs || buildDockerRuntimePrivacyPrefsPayload(targetEnabled));
+                dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+                applyRuntimePrefs(folderTypePrefs);
+                queueDockerRuntimePrivacyToggleMount();
+            }
+        } finally {
+            dockerRuntimePrivacyPersistPromise = null;
+            queueDockerRuntimePrivacyToggleMount();
+        }
+    })();
+    return dockerRuntimePrivacyPersistPromise;
+};
+
 const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
-    const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+    const previousPrefs = getDockerRuntimePersistedPrefs();
     const previousEnabled = previousPrefs.dashboard?.privacyMode === true;
-    if (previousEnabled === nextEnabled) {
+    if (readDockerRuntimePrivacyMode() === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
         queueDockerRuntimePrivacyToggleMount();
         return;
     }
+    dockerRuntimePrivacyPendingEnabled = nextEnabled;
     folderTypePrefs = buildDockerRuntimePrivacyPrefsPayload(nextEnabled);
     applyRuntimePrefs(folderTypePrefs);
     queueDockerRuntimePrivacyToggleMount();
     if (options.persist === false) {
         return;
     }
-    const result = await dockerSafeUiActionRunner.run('docker-runtime-privacy-toggle', async () => {
-        const response = await persistDockerRuntimePrivacyMode(nextEnabled);
-        folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
-        applyRuntimePrefs(folderTypePrefs);
-        queueDockerRuntimePrivacyToggleMount();
-        return response;
-    }, {
-        userVisible: false
-    });
-    if (!result.ok) {
+    try {
+        await flushDockerRuntimePrivacyModePersistence();
+    } catch (error) {
+        dockerRuntimePrivacyPendingEnabled = null;
         folderTypePrefs = previousPrefs;
+        dockerRuntimePrivacyPersistedPrefs = previousPrefs;
         applyRuntimePrefs(folderTypePrefs);
         queueDockerRuntimePrivacyToggleMount();
         swal({
             title: 'Privacy toggle save failed',
-            text: `${escapeHtml(String(result.error?.message || 'FolderView Plus could not save the Docker privacy toggle.'))}<br>Reverted to the previous state.`,
+            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not save the Docker privacy toggle.'))}<br>Reverted to the previous state.`,
             type: 'error',
             html: true,
             confirmButtonText: 'OK'
@@ -6239,6 +6268,9 @@ const scheduleLiveRefresh = (prefs) => {
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
     lastAppliedRuntimePrefs = normalized;
+    if (!dockerRuntimePrivacyPersistPromise && dockerRuntimePrivacyPendingEnabled === null) {
+        dockerRuntimePrivacyPersistedPrefs = normalized;
+    }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-page-view', resolveDockerPageViewMode(normalized));
     }
@@ -6399,7 +6431,6 @@ addEventListener("keydown", (e) => {
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);
-
 
 
 

@@ -588,7 +588,8 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderJs, /const getFolderEditorRulesApi = \(\) =>/);
     assert.match(folderJs, /folderEditorRulesModule\?\.createApi/);
     assert.match(folderJs, /refreshFolderAutoRulesPanel = \(options = \{\}\) =>/);
-    assert.match(folderRulesJs, /const ruleRegexKinds = type === 'docker'/);
+    assert.match(folderRulesJs, /const rawRulesConfig = deps\.ruleConfig && typeof deps\.ruleConfig === 'object' \? deps\.ruleConfig : defaultRulesConfig;/);
+    assert.match(folderJs, /ruleConfig: getFolderEditorTypeApi\(\)\?\.getRulesConfig\?\.\(\) \|\| null/);
     assert.match(folderRulesJs, /panel\.id = 'fvFolderAutoRulesPanel';/);
     assert.match(folderRulesJs, /panel\.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';/);
     assert.match(folderRulesJs, /Save this folder first to create advanced rules\./);

@@ -270,7 +270,7 @@ sync_ca_template_metadata() {
 
 acquire_build_lock() {
     mkdir -p "$(dirname "$lockfile")"
-    if command -v flock >/dev/null 2>&1; then
+    if command -v flock >/dev/null 2>&1 && [ "${FVPLUS_PKG_BUILD_DISABLE_FLOCK:-0}" != "1" ]; then
         exec 9>"$lockfile"
         if ! flock -n 9; then
             echo "ERROR: Another pkg_build.sh instance is already running (lock: $lockfile)." >&2

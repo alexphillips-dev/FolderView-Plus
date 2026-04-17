@@ -11,6 +11,12 @@
 
     const createApi = (deps = {}) => {
         const jq = deps.$ || (typeof globalThis !== 'undefined' ? globalThis.jQuery || globalThis.$ : null);
+        const VM_RULES_CONFIG = Object.freeze({
+            regexKinds: Object.freeze(['name_regex']),
+            subjectLabel: 'VM',
+            nameRegexExample: '^Windows-',
+            patternPlaceholders: Object.freeze({})
+        });
 
         const mapRuntimeMember = (entry = {}) => {
             const memberName = String(entry?.name || entry?.Name || '').trim();
@@ -24,6 +30,8 @@
             };
         };
 
+        const getRulesConfig = () => VM_RULES_CONFIG;
+
         return Object.freeze({
             shouldSyncAfterSave: () => false,
             flushPostSaveSync: async () => {},
@@ -31,6 +39,8 @@
             collectSectionRows: () => EMPTY_SECTION_ROWS,
             applySectionTags: () => {},
             getPreviewSignals: () => null,
+            getRulesConfig,
+            buildSmartDefaultSuggestions: () => [],
             applyPreviewConstraints: ({ $, form } = {}) => {
                 const activeJq = $ || jq;
                 if (!activeJq || !form) {

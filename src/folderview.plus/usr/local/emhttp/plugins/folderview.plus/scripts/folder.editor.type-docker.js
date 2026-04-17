@@ -30,6 +30,15 @@
         const isDockerUpdateAvailableInEditor = typeof deps.isDockerUpdateAvailableInEditor === 'function'
             ? deps.isDockerUpdateAvailableInEditor
             : ((member) => member?.UpdateAvailable === true || member?.update === true);
+        const DOCKER_RULES_CONFIG = Object.freeze({
+            regexKinds: Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']),
+            subjectLabel: 'container',
+            nameRegexExample: '^media-',
+            patternPlaceholders: Object.freeze({
+                image_regex: 'Regex pattern (example: linuxserver/)',
+                compose_project_regex: 'Regex pattern (example: ^media$)'
+            })
+        });
 
         const buildComparableFolder = (folderRecord) => {
             const normalized = normalizeFolderRecordForEditor(folderRecord || {});
@@ -169,6 +178,38 @@
             };
         };
 
+        const getRulesConfig = () => DOCKER_RULES_CONFIG;
+
+        const buildSmartDefaultSuggestions = ({ selectedMembers = [], form } = {}) => {
+            const members = Array.isArray(selectedMembers) ? selectedMembers : [];
+            const suggestions = [];
+            const composeProjects = Array.from(new Set(
+                members
+                    .map((member) => String(member?.ComposeProject || '').trim())
+                    .filter((value) => value !== '')
+            ));
+            if (composeProjects.length === 1) {
+                suggestions.push({
+                    key: 'compose',
+                    label: 'Compose project',
+                    value: composeProjects[0],
+                    apply: () => {}
+                });
+            }
+            const updateCount = members.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
+            suggestions.push({
+                key: 'updates',
+                label: 'Update-aware preview',
+                value: `${updateCount}/${members.length} with updates`,
+                apply: () => {
+                    if (form?.preview_update) {
+                        form.preview_update.checked = updateCount > 0;
+                    }
+                }
+            });
+            return suggestions;
+        };
+
         const applyPreviewConstraints = () => {};
 
         return Object.freeze({
@@ -179,6 +220,8 @@
             collectSectionRows,
             applySectionTags,
             getPreviewSignals,
+            getRulesConfig,
+            buildSmartDefaultSuggestions,
             applyPreviewConstraints
         });
     };

@@ -26,6 +26,8 @@ test('modern folder editor update summary accepts normalized update flags from m
     assert.match(folderJs, /const state = source\?\.State \|\| source\?\.RawState \|\| source\?\.info\?\.State \|\| \{\};/);
     assert.match(folderTypeDockerJs, /const getPreviewSignals = \(\{ selectedMembers = \[\] \} = \{\}\) =>/);
     assert.match(folderTypeDockerJs, /const updateCount = members\.filter\(\(member\) => isDockerUpdateAvailableInEditor\(member\)\)\.length;/);
+    assert.match(folderTypeDockerJs, /const buildSmartDefaultSuggestions = \(\{ selectedMembers = \[\],\s*form \} = \{\}\) =>/);
+    assert.match(folderJs, /const typeSuggestions = getFolderEditorTypeApi\(\)\?\.buildSmartDefaultSuggestions\?\.\(\{/);
 });
 
 test('shared docker update helper accepts normalized update flags outside the Docker page runtime', () => {

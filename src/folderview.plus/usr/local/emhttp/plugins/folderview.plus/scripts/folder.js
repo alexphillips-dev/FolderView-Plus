@@ -1035,7 +1035,8 @@ const getFolderEditorRulesApi = () => {
         escapeHtml,
         extractAjaxErrorMessage,
         shouldRender: () => modernFolderEditorEnabled,
-        getActiveFolderId: () => activeFolderEditorFolderId
+        getActiveFolderId: () => activeFolderEditorFolderId,
+        ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null
     });
     return folderEditorRulesApi;
 };
@@ -1836,7 +1837,9 @@ const normalizeFolderRecordForEditor = (folder) => {
 
 const createNoopFolderEditorTypeApi = () => Object.freeze({
     shouldSyncAfterSave: () => false,
-    flushPostSaveSync: async () => {}
+    flushPostSaveSync: async () => {},
+    getRulesConfig: () => null,
+    buildSmartDefaultSuggestions: () => []
 });
 
 const resolveFolderEditorTypeModule = () => {
@@ -2566,27 +2569,14 @@ const suggestDefaultsFromMembers = () => {
         });
     }
 
-    if (type === 'docker') {
-        const composeProjects = Array.from(new Set(
-            selectedMembers
-                .map((member) => String(member?.ComposeProject || '').trim())
-                .filter((value) => value !== '')
-        ));
-        if (composeProjects.length === 1) {
-            suggestions.push({
-                key: 'compose',
-                label: 'Compose project',
-                value: composeProjects[0],
-                apply: () => { /* display-only advisory */ }
-            });
-        }
-        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
-        suggestions.push({
-            key: 'updates',
-            label: 'Update-aware preview',
-            value: `${updateCount}/${selectedMembers.length} with updates`,
-            apply: () => { form.preview_update.checked = updateCount > 0; }
-        });
+    const typeSuggestions = getFolderEditorTypeApi()?.buildSmartDefaultSuggestions?.({
+        selectedMembers,
+        memberNames,
+        form,
+        buildRegexSuggestionFromNames
+    });
+    if (Array.isArray(typeSuggestions) && typeSuggestions.length) {
+        suggestions.push(...typeSuggestions.filter((entry) => entry && typeof entry === 'object'));
     }
 
     if (!suggestions.length) {

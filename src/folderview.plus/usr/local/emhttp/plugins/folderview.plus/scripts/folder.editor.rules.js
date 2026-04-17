@@ -31,9 +31,37 @@
                 ? utils.normalizePrefs(prefs)
                 : (prefs && typeof prefs === 'object' ? prefs : {})
         );
-        const ruleRegexKinds = type === 'docker'
-            ? Object.freeze(['name_regex', 'image_regex', 'compose_project_regex'])
-            : Object.freeze(['name_regex']);
+        const defaultRulesConfig = type === 'docker'
+            ? Object.freeze({
+                regexKinds: Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']),
+                subjectLabel: 'container',
+                nameRegexExample: '^media-',
+                patternPlaceholders: Object.freeze({
+                    image_regex: 'Regex pattern (example: linuxserver/)',
+                    compose_project_regex: 'Regex pattern (example: ^media$)'
+                })
+            })
+            : Object.freeze({
+                regexKinds: Object.freeze(['name_regex']),
+                subjectLabel: 'VM',
+                nameRegexExample: '^Windows-',
+                patternPlaceholders: Object.freeze({})
+            });
+        const rawRulesConfig = deps.ruleConfig && typeof deps.ruleConfig === 'object' ? deps.ruleConfig : defaultRulesConfig;
+        const ruleRegexKindsSource = Array.isArray(rawRulesConfig.regexKinds) && rawRulesConfig.regexKinds.length > 0
+            ? rawRulesConfig.regexKinds
+            : defaultRulesConfig.regexKinds;
+        const normalizedRuleRegexKinds = ruleRegexKindsSource
+            .map((kind) => String(kind || '').trim().toLowerCase())
+            .filter((kind) => Object.prototype.hasOwnProperty.call(RULE_KIND_LABELS, kind));
+        const ruleRegexKinds = Object.freeze(normalizedRuleRegexKinds.length > 0
+            ? normalizedRuleRegexKinds
+            : defaultRulesConfig.regexKinds);
+        const ruleSubjectLabel = String(rawRulesConfig.subjectLabel || defaultRulesConfig.subjectLabel || 'item').trim() || 'item';
+        const nameRegexExample = String(rawRulesConfig.nameRegexExample || defaultRulesConfig.nameRegexExample || '^item-').trim() || '^item-';
+        const rulePatternPlaceholders = rawRulesConfig.patternPlaceholders && typeof rawRulesConfig.patternPlaceholders === 'object'
+            ? rawRulesConfig.patternPlaceholders
+            : defaultRulesConfig.patternPlaceholders;
 
         let folderEditorPrefs = normalizePrefs({});
         let folderEditorPrefsLoaded = false;
@@ -68,13 +96,11 @@
 
         const getFolderEditorRulePatternPlaceholder = (kind) => {
             const normalized = normalizeFolderEditorRuleKind(kind);
-            if (normalized === 'image_regex') {
-                return 'Regex pattern (example: linuxserver/)';
+            const configuredPlaceholder = String(rulePatternPlaceholders?.[normalized] || '').trim();
+            if (configuredPlaceholder) {
+                return configuredPlaceholder;
             }
-            if (normalized === 'compose_project_regex') {
-                return 'Regex pattern (example: ^media$)';
-            }
-            return `Regex pattern (example: ${type === 'docker' ? '^media-' : '^Windows-'})`;
+            return `Regex pattern (example: ${nameRegexExample})`;
         };
 
         const buildFolderEditorRuleDescription = (rule) => {
@@ -98,7 +124,7 @@
             if (kind === 'label_starts_with') {
                 return `${effect} when label ${labelKey || '(missing key)'} starts with "${labelValue || ''}".`;
             }
-            return `${effect} when the ${type === 'docker' ? 'container' : 'VM'} name matches "${pattern || '(missing regex)'}".`;
+            return `${effect} when the ${ruleSubjectLabel} name matches "${pattern || '(missing regex)'}".`;
         };
 
         const getFolderEditorRuleIssues = (rule) => {

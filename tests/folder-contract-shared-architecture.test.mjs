@@ -105,11 +105,14 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderEditorTypeDockerJs, /const collectSectionRows = \(\{ form,\s*findBasicByFieldName \} = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /const applySectionTags = \(\{ markSection,\s*markAdvanced \} = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /const getPreviewSignals = \(\{ selectedMembers = \[\] \} = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const getRulesConfig = \(\) => DOCKER_RULES_CONFIG;/);
+    assert.match(folderEditorTypeDockerJs, /const buildSmartDefaultSuggestions = \(\{ selectedMembers = \[\],\s*form \} = \{\}\) =>/);
     assert.match(folderEditorTypeDockerJs, /root\.FolderViewPlusFolderEditorTypeDockerModuleLoaded = true/);
     assert.match(folderEditorTypeVmJs, /^\/\/ @ts-check/m);
     assert.match(folderEditorTypeVmJs, /root\.FolderViewPlusFolderEditorTypeVm = factory\(\);/);
     assert.match(folderEditorTypeVmJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorTypeVmJs, /const mapRuntimeMember = \(entry = \{\}\) =>/);
+    assert.match(folderEditorTypeVmJs, /const getRulesConfig = \(\) => VM_RULES_CONFIG;/);
     assert.match(folderEditorTypeVmJs, /applyPreviewConstraints:/);
     assert.match(folderEditorTypeVmJs, /root\.FolderViewPlusFolderEditorTypeVmModuleLoaded = true/);
     assert.match(folderSettingsTransferJs, /^\/\/ @ts-check/m);

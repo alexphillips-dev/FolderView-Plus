@@ -227,6 +227,8 @@ const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || 
 const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
 const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
 const folderEditorIconsModule = window.FolderViewPlusFolderEditorIcons || null;
+const folderEditorTypeDockerModule = window.FolderViewPlusFolderEditorTypeDocker || null;
+const folderEditorTypeVmModule = window.FolderViewPlusFolderEditorTypeVm || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -351,6 +353,12 @@ if (!bulkAssignmentSharedModule || typeof bulkAssignmentSharedModule.createApi !
 if (!folderEditorIconsModule || typeof folderEditorIconsModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.icons.js');
 }
+if (!folderEditorTypeDockerModule || typeof folderEditorTypeDockerModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.type-docker.js');
+}
+if (!folderEditorTypeVmModule || typeof folderEditorTypeVmModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.type-vm.js');
+}
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
@@ -377,6 +385,7 @@ let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
 let folderEditorIconsApi = null;
+let folderEditorTypeApi = null;
 let folderBulkAssignmentSharedApi = null;
 let initialSnapshot = '';
 let isFormInitialized = false;
@@ -1145,20 +1154,6 @@ const queueBackgroundMutationPost = (url, data = {}) => {
     }
 };
 
-const flushPostSaveDockerSync = async (options = {}) => {
-    if (type !== 'docker') {
-        return;
-    }
-    if (!shouldSyncDockerOrderAfterSave(options.folder, options)) {
-        return;
-    }
-    const scheduled = queueBackgroundMutationPost('/plugins/folderview.plus/server/sync_order.php', { type });
-    if (scheduled) {
-        return;
-    }
-    await securePost('/plugins/folderview.plus/server/sync_order.php', { type });
-};
-
 const getIconInput = () => $(getForm()?.icon);
 
 const getCurrentIconValue = () => String(getIconInput().val() || '').trim();
@@ -1834,6 +1829,50 @@ const normalizeFolderRecordForEditor = (folder) => {
         chevronStyle: normalized.settings.dropdown_style
     };
     return normalized;
+};
+
+const createNoopFolderEditorTypeApi = () => Object.freeze({
+    shouldSyncAfterSave: () => false,
+    flushPostSaveSync: async () => {}
+});
+
+const resolveFolderEditorTypeModule = () => {
+    if (type === 'docker') {
+        return folderEditorTypeDockerModule;
+    }
+    if (type === 'vm') {
+        return folderEditorTypeVmModule;
+    }
+    return null;
+};
+
+const getFolderEditorTypeApi = () => {
+    if (folderEditorTypeApi) {
+        return folderEditorTypeApi;
+    }
+    const typeModule = resolveFolderEditorTypeModule();
+    if (!typeModule || typeof typeModule.createApi !== 'function') {
+        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+        return folderEditorTypeApi;
+    }
+    folderEditorTypeApi = typeModule.createApi({
+        normalizeFolderRecordForEditor,
+        queueBackgroundMutationPost,
+        securePost,
+        syncType: type
+    });
+    if (!folderEditorTypeApi || typeof folderEditorTypeApi !== 'object') {
+        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+    }
+    return folderEditorTypeApi;
+};
+
+const flushPostSaveTypeSync = async (options = {}) => {
+    const typeApi = getFolderEditorTypeApi();
+    if (!typeApi || typeof typeApi.flushPostSaveSync !== 'function') {
+        return;
+    }
+    await typeApi.flushPostSaveSync(options);
 };
 
 const validateHealthWarnThreshold = () => {
@@ -4342,44 +4381,6 @@ const buildFolderPayloadFromForm = (e) => {
     };
 };
 
-const buildDockerSyncComparableFolder = (folderRecord) => {
-    const normalized = normalizeFolderRecordForEditor(folderRecord || {});
-    const containers = Array.from(new Set(
-        (Array.isArray(normalized.containers) ? normalized.containers : [])
-            .map((entry) => String(entry || '').trim())
-            .filter(Boolean)
-    )).sort();
-    return {
-        name: String(normalized.name || '').trim(),
-        regex: String(normalized.regex || ''),
-        containers
-    };
-};
-
-const shouldSyncDockerOrderAfterSave = (nextFolder, options = {}) => {
-    if (type !== 'docker') {
-        return false;
-    }
-    if (options.force === true) {
-        return true;
-    }
-    const currentFolderId = String(options.folderId || activeFolderEditorFolderId || folderId || '').trim();
-    if (!currentFolderId) {
-        return true;
-    }
-    const previousFolderRecord = options.previousFolder && typeof options.previousFolder === 'object'
-        ? options.previousFolder
-        : allFoldersById[currentFolderId];
-    if (!previousFolderRecord || typeof previousFolderRecord !== 'object') {
-        return true;
-    }
-    const previousComparable = buildDockerSyncComparableFolder(previousFolderRecord);
-    const nextComparable = buildDockerSyncComparableFolder(nextFolder || {});
-    return previousComparable.name !== nextComparable.name
-        || previousComparable.regex !== nextComparable.regex
-        || JSON.stringify(previousComparable.containers) !== JSON.stringify(nextComparable.containers);
-};
-
 const buildFolderSettingsSummaryHtml = (entry) => {
     const transferApi = getFolderSettingsTransferApi();
     const summary = transferApi?.summarizeClipboardEntry(entry) || {
@@ -4925,7 +4926,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             });
         }
 
-        await flushPostSaveDockerSync({
+        await flushPostSaveTypeSync({
             force: saveAsCopy || !currentFolderId,
             folder,
             folderId: currentFolderId,

@@ -14,6 +14,8 @@ const folderEditorPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
+const folderEditorTypeDockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js');
+const folderEditorTypeVmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-vm.js');
 const folderSettingsTransferJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
 const bulkAssignmentSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
@@ -94,6 +96,16 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderEditorIconsJs, /const bindIconPickerEvents = async \(\) =>/);
     assert.match(folderEditorIconsJs, /const renderBuiltInIconPicker = \(\) =>/);
     assert.match(folderEditorIconsJs, /root\.FolderViewPlusFolderEditorIconsModuleLoaded = true/);
+    assert.match(folderEditorTypeDockerJs, /^\/\/ @ts-check/m);
+    assert.match(folderEditorTypeDockerJs, /root\.FolderViewPlusFolderEditorTypeDocker = factory\(\);/);
+    assert.match(folderEditorTypeDockerJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const shouldSyncAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /const flushPostSaveSync = async \(options = \{\}\) =>/);
+    assert.match(folderEditorTypeDockerJs, /root\.FolderViewPlusFolderEditorTypeDockerModuleLoaded = true/);
+    assert.match(folderEditorTypeVmJs, /^\/\/ @ts-check/m);
+    assert.match(folderEditorTypeVmJs, /root\.FolderViewPlusFolderEditorTypeVm = factory\(\);/);
+    assert.match(folderEditorTypeVmJs, /const createApi = \(\) => Object\.freeze\(\{/);
+    assert.match(folderEditorTypeVmJs, /root\.FolderViewPlusFolderEditorTypeVmModuleLoaded = true/);
     assert.match(folderSettingsTransferJs, /^\/\/ @ts-check/m);
     assert.match(folderSettingsTransferJs, /root\.FolderViewPlusFolderSettingsTransfer = factory\(\);/);
     assert.match(folderSettingsTransferJs, /const createApi = \(deps = \{\}\) =>/);
@@ -136,6 +148,8 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderStateIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.state.js');
     const folderMembersIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.members.js');
     const folderIconsIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.icons.js');
+    const folderTypeDockerIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.type-docker.js');
+    const folderTypeVmIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.type-vm.js');
     const folderModernIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
     const folderBootLoaderIndex = folderPage.indexOf('const scriptQueue = [');
@@ -184,6 +198,8 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderStateIndex >= 0, 'folder editor page missing state module include');
     assert.ok(folderMembersIndex >= 0, 'folder editor page missing members module include');
     assert.ok(folderIconsIndex >= 0, 'folder editor page missing icons module include');
+    assert.ok(folderTypeDockerIndex >= 0, 'folder editor page missing docker type module include');
+    assert.ok(folderTypeVmIndex >= 0, 'folder editor page missing VM type module include');
     assert.ok(folderModernIndex >= 0, 'folder editor page missing modern runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
     assert.ok(folderThemeResolverIndex < folderSharedEditorIndex, 'theme resolver must load before folder.editor.shared.js');
@@ -197,7 +213,9 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderBulkAssignmentSharedIndex < folderStateIndex, 'folderviewplus.bulk-assignment.shared.js must load before folder.editor.state.js');
     assert.ok(folderStateIndex < folderMembersIndex, 'state module must load before folder.editor.members.js');
     assert.ok(folderMembersIndex < folderIconsIndex, 'members module must load before folder.editor.icons.js');
-    assert.ok(folderIconsIndex < folderModernIndex, 'icons module must load before folder.js');
+    assert.ok(folderIconsIndex < folderTypeDockerIndex, 'icons module must load before folder.editor.type-docker.js');
+    assert.ok(folderTypeDockerIndex < folderTypeVmIndex, 'docker type module must load before folder.editor.type-vm.js');
+    assert.ok(folderTypeVmIndex < folderModernIndex, 'VM type module must load before folder.js');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/icon-picker.runtime.js'"), 'folder editor page missing boot-loaded icon picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'"), 'folder editor page missing boot-loaded hierarchy runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'"), 'folder editor page missing boot-loaded parent picker runtime');
@@ -207,6 +225,8 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.state.js'"), 'folder editor page missing boot-loaded state runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.members.js'"), 'folder editor page missing boot-loaded members runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.icons.js'"), 'folder editor page missing boot-loaded icons runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.type-docker.js'"), 'folder editor page missing boot-loaded docker type runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.type-vm.js'"), 'folder editor page missing boot-loaded VM type runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.js'"), 'folder editor page missing boot-loaded modern runtime');
     assert.ok(!folderPage.includes("'/plugins/folderview.plus/scripts/folder.legacy.js'"), 'folder editor page should not boot-load the retired legacy runtime');
 });

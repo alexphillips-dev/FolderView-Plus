@@ -217,7 +217,7 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderPage, /icon-picker\.runtime\.js/);
     assert.match(folderPage, /runtime-script-still-pending/);
     assert.match(folderPage, /const runtimeMode = 'modern';/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
     assert.match(folderPage, /boot=\$\{encodeURIComponent\(bootNonce\)\}/);
     assert.match(folderJs, /\(function fvplusFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderJs, /modernFolderEditorEnabled/);

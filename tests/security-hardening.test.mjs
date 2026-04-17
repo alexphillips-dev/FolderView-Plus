@@ -127,9 +127,11 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.match(folderPage, /folder\.editor\.type-docker\.js/);
+    assert.match(folderPage, /folder\.editor\.type-vm\.js/);
     assert.match(folderPage, /folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
-    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.editor\.type-docker\.js[\s\S]*folder\.editor\.type-vm\.js[\s\S]*folder\.js/);
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);

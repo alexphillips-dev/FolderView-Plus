@@ -1150,6 +1150,33 @@ const normalizeAdvancedGroup = (value) => (
         : 'operations'
 );
 
+const readSettingsLaunchOverrides = () => {
+    if (typeof URLSearchParams === 'undefined' || !window?.location) {
+        return null;
+    }
+    const params = new URLSearchParams(window.location.search || '');
+    const modeRaw = String(params.get('fvMode') || '').trim().toLowerCase();
+    const advancedTabRaw = String(params.get('fvAdvancedTab') || '').trim().toLowerCase();
+    const sectionKey = String(params.get('fvSection') || '').trim().toLowerCase();
+    const rulesTypeRaw = String(params.get('fvRulesType') || '').trim().toLowerCase();
+    const overrides = {};
+    if (modeRaw === 'advanced' || modeRaw === 'basic') {
+        overrides.mode = modeRaw;
+    }
+    if (ADVANCED_GROUPS.includes(advancedTabRaw)) {
+        overrides.advancedTab = advancedTabRaw;
+    }
+    if (sectionKey) {
+        overrides.sectionKey = sectionKey;
+    }
+    if (rulesTypeRaw === 'docker' || rulesTypeRaw === 'vm') {
+        overrides.rulesType = rulesTypeRaw;
+    }
+    return Object.keys(overrides).length > 0 ? overrides : null;
+};
+
+const settingsLaunchOverrides = readSettingsLaunchOverrides();
+
 const normalizeAdvancedSearchMap = (value) => {
     const source = value && typeof value === 'object' ? value : {};
     const next = {};
@@ -1333,6 +1360,28 @@ const setAdvancedTab = (tab, persist = true) => {
     if (settingsUiState.mode === 'advanced') {
         void ensureAdvancedDataLoaded();
     }
+};
+
+const applySettingsLaunchOverrides = ({ persist = false } = {}) => {
+    if (!settingsLaunchOverrides) {
+        return false;
+    }
+    if (settingsLaunchOverrides.mode === 'advanced' || settingsLaunchOverrides.mode === 'basic') {
+        settingsUiState.mode = settingsLaunchOverrides.mode;
+    }
+    if (settingsLaunchOverrides.advancedTab) {
+        setAdvancedTab(settingsLaunchOverrides.advancedTab, persist);
+    }
+    if (settingsLaunchOverrides.sectionKey) {
+        settingsUiState.activeSectionKey = settingsLaunchOverrides.sectionKey;
+    }
+    if (settingsLaunchOverrides.rulesType) {
+        activeRulesWorkspaceType = normalizeRulesWorkspaceType(settingsLaunchOverrides.rulesType);
+        if (persist) {
+            writeSettingsStorage(RULES_WORKSPACE_STORAGE_KEY, activeRulesWorkspaceType, { delayMs: 60, idle: true });
+        }
+    }
+    return true;
 };
 
 const captureSettingsBaseline = () => {
@@ -9240,6 +9289,7 @@ settingsActionSupportModule.registerWindowActions(window, {
                 settingsUiState.knownAdvancedSections = new Set();
             }
             restoreTableUiState();
+            applySettingsLaunchOverrides({ persist: false });
         });
         await withFatalBannerPhase({
             phase: 'bootstrap-ui',
@@ -9298,13 +9348,18 @@ settingsActionSupportModule.registerWindowActions(window, {
             const storedMode = String(localStorage.getItem(UI_MODE_STORAGE_KEY) || '').trim();
             const hasLocalModePreference = storedMode === 'advanced' || storedMode === 'basic';
             const serverMode = getServerSettingsMode();
-            if (!hasLocalModePreference && serverMode) {
+            if (!hasLocalModePreference && serverMode && !settingsLaunchOverrides?.mode) {
                 settingsUiState.mode = serverMode;
             }
             refreshSettingsUx();
             captureSettingsBaseline();
             if (settingsUiState.mode) {
                 setSettingsMode(settingsUiState.mode);
+            }
+            if (settingsLaunchOverrides?.sectionKey) {
+                window.requestAnimationFrame(() => {
+                    scrollToSectionKey(settingsLaunchOverrides.sectionKey);
+                });
             }
             if (hasLocalModePreference && serverMode && serverMode !== settingsUiState.mode) {
                 void persistSetupPrefsToServer({ mode: settingsUiState.mode });
@@ -9353,6 +9408,5 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-
 
 

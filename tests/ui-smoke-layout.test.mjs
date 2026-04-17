@@ -594,12 +594,12 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderRulesJs, /panel\.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';/);
     assert.match(folderRulesJs, /Save this folder first to create advanced rules\./);
     assert.match(folderRulesJs, /Open full Rules workspace/);
+    assert.match(folderRulesJs, /const fullRulesWorkspaceHref = `\/Settings\/FolderViewPlus\?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=\$\{encodeURIComponent\(type\)\}`;/);
     assert.match(folderRulesJs, /Create regex-based plugin rules directly from the folder editor without leaving this page\./);
     assert.match(folderRulesJs, /<dt>Advanced auto-rules:<\/dt>/);
     assert.match(folderRulesJs, /<blockquote class="inline_help">/);
     assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
     assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
-    assert.match(folderRulesJs, /href="\/Settings\/FolderViewPlus"/);
     assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.rules\.js'/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel > dl > dd/);

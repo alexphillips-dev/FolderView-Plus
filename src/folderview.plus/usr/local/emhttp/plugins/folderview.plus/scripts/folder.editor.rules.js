@@ -62,6 +62,7 @@
         const rulePatternPlaceholders = rawRulesConfig.patternPlaceholders && typeof rawRulesConfig.patternPlaceholders === 'object'
             ? rawRulesConfig.patternPlaceholders
             : defaultRulesConfig.patternPlaceholders;
+        const fullRulesWorkspaceHref = `/Settings/FolderViewPlus?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=${encodeURIComponent(type)}`;
 
         let folderEditorPrefs = normalizePrefs({});
         let folderEditorPrefsLoaded = false;
@@ -347,7 +348,7 @@
                                 <strong>Rules targeting this folder</strong>
                                 <span>Create regex-based plugin rules directly from the folder editor without leaving this page.</span>
                             </div>
-                            <a class="fv-folder-auto-rules-link" href="/Settings/FolderViewPlus">Open full Rules workspace</a>
+                            <a class="fv-folder-auto-rules-link" href="${escapeHtml(fullRulesWorkspaceHref)}">Open full Rules workspace</a>
                         </div>
                         ${buildFolderAutoRulesPanelStatusHtml()}
                         ${bodyHtml}

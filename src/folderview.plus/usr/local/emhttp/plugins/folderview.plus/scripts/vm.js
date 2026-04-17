@@ -1109,6 +1109,274 @@ const hideVmRuntimeLoadingRow = () => {
     $('tbody#kvm_list tr.fv-runtime-loading-row').remove();
 };
 
+const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr[id^="name-"]:not([child-id])';
+const VM_NATIVE_TOGGLE_SELECTOR = 'a[onclick*="toggle_id("]';
+const VM_NATIVE_DETAIL_REQUEST_WINDOW_MS = 1600;
+let vmNativeDetailRowObserver = null;
+let vmNativeDetailRowObserverHost = null;
+let vmNativeToggleClickHost = null;
+let vmNativeDetailAdoptionSuspendDepth = 0;
+let vmZebraRefreshTimer = null;
+let vmLastNativeDetailRequest = {
+    detailId: '',
+    row: null,
+    requestedAt: 0
+};
+
+const applyVmZebra = () => {
+    let visibleIndex = 0;
+    $('#kvm_table tbody tr').each(function applyVmZebraRow() {
+        const $row = $(this);
+        if (!$row.is(':visible')) {
+            return;
+        }
+        if ($row.hasClass('fv-runtime-loading-row')) {
+            this.style.backgroundColor = '';
+            return;
+        }
+        this.style.backgroundColor = (visibleIndex % 2 === 1)
+            ? 'var(--fvplus-vm-row-alt-bg, var(--dynamix-tablesorter-tbody-row-alt-bg-color, transparent))'
+            : 'var(--fvplus-vm-row-bg, transparent)';
+        visibleIndex += 1;
+    });
+};
+
+const scheduleVmZebraRefresh = (delayMs = 32) => {
+    if (vmZebraRefreshTimer !== null) {
+        window.clearTimeout(vmZebraRefreshTimer);
+    }
+    vmZebraRefreshTimer = window.setTimeout(() => {
+        vmZebraRefreshTimer = null;
+        applyVmZebra();
+    }, Math.max(0, Number(delayMs) || 0));
+};
+
+const isVmNativeDetailRow = (row) => (
+    row instanceof HTMLTableRowElement
+    && String(row.id || '').startsWith('name-')
+    && !row.hasAttribute('child-id')
+);
+
+const getVmNativeDetailRowId = (row) => (
+    isVmNativeDetailRow(row)
+        ? String(row.id || '').trim()
+        : ''
+);
+
+const extractVmNativeToggleDetailId = (value) => {
+    const match = String(value || '').match(/toggle_id\((['"])(name-[^'")]+)\1\)/);
+    return match ? String(match[2] || '').trim() : '';
+};
+
+const clearVmFolderElementOwnership = (row) => {
+    if (!(row instanceof Element)) {
+        return;
+    }
+    Array.from(row.classList)
+        .filter((token) => /^folder-.+-element$/.test(token))
+        .forEach((token) => row.classList.remove(token));
+    row.classList.remove('folder-element');
+};
+
+const applyVmFolderElementOwnership = (row, folderId) => {
+    if (!(row instanceof Element)) {
+        return;
+    }
+    clearVmFolderElementOwnership(row);
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId) {
+        return;
+    }
+    row.classList.add(`folder-${safeFolderId}-element`, 'folder-element');
+};
+
+const findVmFolderOwnerIdForRow = (row) => {
+    if (!(row instanceof Element)) {
+        return '';
+    }
+    const token = Array.from(row.classList).find((value) => /^folder-.+-element$/.test(value));
+    if (!token) {
+        return '';
+    }
+    const match = token.match(/^folder-(.+)-element$/);
+    return match ? String(match[1] || '').trim() : '';
+};
+
+const isVmFolderExpanded = (folderId) => (
+    $(`.dropDown-${String(folderId || '').trim()}`).attr('active') === 'true'
+);
+
+const findVmNativeToggleAnchorForDetailId = (detailId) => {
+    const targetDetailId = String(detailId || '').trim();
+    if (!targetDetailId) {
+        return null;
+    }
+    const anchors = Array.from(document.querySelectorAll(VM_NATIVE_TOGGLE_SELECTOR));
+    return anchors.find((anchor) => extractVmNativeToggleDetailId(anchor.getAttribute('onclick')) === targetDetailId) || null;
+};
+
+const findVmRuntimeRowForDetailId = (detailId) => {
+    const targetDetailId = String(detailId || '').trim();
+    if (!targetDetailId) {
+        return null;
+    }
+    const directAnchor = findVmNativeToggleAnchorForDetailId(targetDetailId);
+    const directRow = directAnchor instanceof Element ? directAnchor.closest('tr') : null;
+    if (directRow instanceof HTMLTableRowElement) {
+        return directRow;
+    }
+    const requestedAt = Number(vmLastNativeDetailRequest.requestedAt || 0);
+    const requestedRecently = requestedAt > 0 && (Date.now() - requestedAt) <= VM_NATIVE_DETAIL_REQUEST_WINDOW_MS;
+    if (
+        requestedRecently
+        && vmLastNativeDetailRequest.detailId === targetDetailId
+        && vmLastNativeDetailRequest.row instanceof HTMLTableRowElement
+        && vmLastNativeDetailRequest.row.isConnected
+    ) {
+        return vmLastNativeDetailRequest.row;
+    }
+    return null;
+};
+
+const collectExistingVmDetailRowsForVmRow = (vmRow) => {
+    if (!(vmRow instanceof HTMLTableRowElement)) {
+        return [];
+    }
+    const detailId = extractVmNativeToggleDetailId(vmRow.querySelector(VM_NATIVE_TOGGLE_SELECTOR)?.getAttribute('onclick'));
+    if (!detailId) {
+        return [];
+    }
+    const detailRows = [];
+    let sibling = vmRow.nextElementSibling;
+    while (sibling instanceof HTMLTableRowElement && isVmNativeDetailRow(sibling)) {
+        const siblingDetailId = getVmNativeDetailRowId(sibling);
+        if (siblingDetailId !== detailId) {
+            break;
+        }
+        detailRows.push(sibling);
+        sibling = sibling.nextElementSibling;
+    }
+    return detailRows;
+};
+
+const withVmNativeDetailAdoptionSuspended = (callback) => {
+    vmNativeDetailAdoptionSuspendDepth += 1;
+    try {
+        return callback();
+    } finally {
+        vmNativeDetailAdoptionSuspendDepth = Math.max(0, vmNativeDetailAdoptionSuspendDepth - 1);
+    }
+};
+
+const placeVmNativeDetailRowForOwner = (detailRow, vmRow) => {
+    if (!isVmNativeDetailRow(detailRow) || !(vmRow instanceof HTMLTableRowElement)) {
+        return false;
+    }
+    const folderId = findVmFolderOwnerIdForRow(vmRow);
+    return withVmNativeDetailAdoptionSuspended(() => {
+        if (folderId) {
+            applyVmFolderElementOwnership(detailRow, folderId);
+            detailRow.dataset.fvplusVmDetailAdopted = '1';
+            if (isVmFolderExpanded(folderId)) {
+                vmRow.after(detailRow);
+            } else {
+                const storage = document.querySelector(`tr.folder-id-${folderId} .folder-storage`);
+                if (storage instanceof Element) {
+                    storage.appendChild(detailRow);
+                } else {
+                    vmRow.after(detailRow);
+                }
+            }
+            return true;
+        }
+        clearVmFolderElementOwnership(detailRow);
+        detailRow.dataset.fvplusVmDetailAdopted = '1';
+        vmRow.after(detailRow);
+        return true;
+    });
+};
+
+const adoptVmNativeDetailRows = (rows = []) => {
+    let adoptedCount = 0;
+    rows.forEach((row) => {
+        if (!isVmNativeDetailRow(row)) {
+            return;
+        }
+        const detailId = getVmNativeDetailRowId(row);
+        const vmRow = findVmRuntimeRowForDetailId(detailId);
+        if (!(vmRow instanceof HTMLTableRowElement)) {
+            return;
+        }
+        if (placeVmNativeDetailRowForOwner(row, vmRow)) {
+            adoptedCount += 1;
+        }
+    });
+    if (adoptedCount > 0) {
+        scheduleVmZebraRefresh();
+    }
+};
+
+const ensureVmNativeDetailRowObserver = () => {
+    const tbody = document.querySelector('tbody#kvm_list');
+    if (!(tbody instanceof HTMLTableSectionElement)) {
+        return;
+    }
+    if (vmNativeDetailRowObserver && vmNativeDetailRowObserverHost === tbody) {
+        return;
+    }
+    if (vmNativeDetailRowObserver) {
+        vmNativeDetailRowObserver.disconnect();
+        vmNativeDetailRowObserver = null;
+        vmNativeDetailRowObserverHost = null;
+    }
+    vmNativeDetailRowObserverHost = tbody;
+    vmNativeDetailRowObserver = new MutationObserver((mutations) => {
+        if (vmNativeDetailAdoptionSuspendDepth > 0) {
+            return;
+        }
+        const detailRows = [];
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (isVmNativeDetailRow(node)) {
+                    detailRows.push(node);
+                }
+            });
+        });
+        if (detailRows.length > 0) {
+            adoptVmNativeDetailRows(detailRows);
+        }
+    });
+    vmNativeDetailRowObserver.observe(tbody, { childList: true });
+};
+
+const ensureVmNativeDetailInteractionHooks = () => {
+    const table = document.getElementById('kvm_table');
+    if (!(table instanceof HTMLTableElement) || vmNativeToggleClickHost === table) {
+        return;
+    }
+    if (vmNativeToggleClickHost instanceof HTMLTableElement) {
+        vmNativeToggleClickHost.removeEventListener('click', handleVmNativeToggleClick, true);
+    }
+    vmNativeToggleClickHost = table;
+    table.addEventListener('click', handleVmNativeToggleClick, true);
+};
+
+function handleVmNativeToggleClick(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    const anchor = target ? target.closest(VM_NATIVE_TOGGLE_SELECTOR) : null;
+    if (!(anchor instanceof Element)) {
+        return;
+    }
+    const detailId = extractVmNativeToggleDetailId(anchor.getAttribute('onclick'));
+    const vmRow = anchor.closest('tr');
+    vmLastNativeDetailRequest = {
+        detailId,
+        row: vmRow instanceof HTMLTableRowElement ? vmRow : null,
+        requestedAt: Date.now()
+    };
+    scheduleVmZebraRefresh(420);
+}
+
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
 
@@ -1283,12 +1551,16 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    ensureVmNativeDetailInteractionHooks();
+    ensureVmNativeDetailRowObserver();
+    adoptVmNativeDetailRows(Array.from(document.querySelectorAll(`tbody#kvm_list > ${VM_NATIVE_DETAIL_ROW_SELECTOR}`)));
     refreshVmFolderQuickActionStates();
     applyVmFocusedFolderState();
     syncVmRuntimeExpandedStore();
     persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     scheduleVmRuntimeWidthReflow('create-folders', 0);
+    applyVmZebra();
 
     folderDebugMode  = false;
     markVmFatalBannerStep('VM folders rendered');
@@ -1565,7 +1837,19 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             let $vmTR = $('#kvm_list > tr.sortable').filter(function() {
                 return $(this).find('td.vm-name span.outer span.inner a').first().text().trim() === container;
             }).first();
-            $(`tr.folder-id-${id} div.folder-storage`).append($vmTR.addClass(`folder-${id}-element`).addClass(`folder-element`).removeClass('sortable'));
+            const vmRowNode = $vmTR.get(0);
+            const detailRows = collectExistingVmDetailRowsForVmRow(vmRowNode);
+            const storage = $(`tr.folder-id-${id} div.folder-storage`).get(0);
+            if (vmRowNode && storage instanceof Element) {
+                applyVmFolderElementOwnership(vmRowNode, id);
+                vmRowNode.classList.remove('sortable');
+                storage.appendChild(vmRowNode);
+                detailRows.forEach((detailRow) => {
+                    applyVmFolderElementOwnership(detailRow, id);
+                    detailRow.dataset.fvplusVmDetailAdopted = '1';
+                    storage.appendChild(detailRow);
+                });
+            }
 
             if(folderDebugMode) {
                 vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
@@ -1770,6 +2054,7 @@ const dropDownButton = (id, persistState = true) => {
         persistVmExpandedStateFromGlobal();
     }
     scheduleVmRuntimeWidthReflow('folder-expand-toggle', 32);
+    scheduleVmZebraRefresh();
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
 

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.17.02">
-<!ENTITY md5 "77edaa4af1469bc0165406b021449844">
+<!ENTITY version "2026.04.17.03">
+<!ENTITY md5 "64ebf4e8677193a1f32176c4b860b78d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.17.03
+- Fix: VM detail rows now stay attached to the VM you clicked inside folders instead of appearing under the previously expanded VM.
+- Fix: Existing expanded VM detail rows move with their VM during folder renders, and later host-inserted detail rows are adopted back under the correct VM owner.
+
 
 ###2026.04.17.02
 - Fix: Folder editor Rules tab now opens Settings directly into Advanced > Rules > Auto-assignment instead of restoring the last basic tab.

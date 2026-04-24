@@ -343,7 +343,11 @@ test('normalizePrefs provides dashboard defaults', () => {
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: false
+        privacyMode: false,
+        privacyMaskNames: true,
+        privacyMaskContainerIps: true,
+        privacyMaskLocalIps: true,
+        privacyMaskPorts: false
     });
 });
 
@@ -362,7 +366,11 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         expandToggle: false,
         greyscale: true,
         folderLabel: false,
-        privacyMode: false
+        privacyMode: false,
+        privacyMaskNames: true,
+        privacyMaskContainerIps: true,
+        privacyMaskLocalIps: true,
+        privacyMaskPorts: false
     });
     const matrix = utils.normalizePrefs({
         dashboard: {

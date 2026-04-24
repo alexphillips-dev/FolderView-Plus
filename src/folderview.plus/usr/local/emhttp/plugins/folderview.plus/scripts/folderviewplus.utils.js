@@ -53,7 +53,11 @@
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: false
+        privacyMode: false,
+        privacyMaskNames: true,
+        privacyMaskContainerIps: true,
+        privacyMaskLocalIps: true,
+        privacyMaskPorts: false
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
@@ -710,7 +714,17 @@
             folderLabel: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'folderLabel')
                 ? DEFAULT_DASHBOARD_PREFS.folderLabel
                 : incomingDashboard.folderLabel !== false,
-            privacyMode: incomingDashboard.privacyMode === true
+            privacyMode: incomingDashboard.privacyMode === true,
+            privacyMaskNames: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskNames')
+                ? DEFAULT_DASHBOARD_PREFS.privacyMaskNames
+                : incomingDashboard.privacyMaskNames !== false,
+            privacyMaskContainerIps: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskContainerIps')
+                ? DEFAULT_DASHBOARD_PREFS.privacyMaskContainerIps
+                : incomingDashboard.privacyMaskContainerIps !== false,
+            privacyMaskLocalIps: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskLocalIps')
+                ? DEFAULT_DASHBOARD_PREFS.privacyMaskLocalIps
+                : incomingDashboard.privacyMaskLocalIps !== false,
+            privacyMaskPorts: incomingDashboard.privacyMaskPorts === true
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {
@@ -2161,5 +2175,4 @@
         getConflictReport
     };
 }));
-
 

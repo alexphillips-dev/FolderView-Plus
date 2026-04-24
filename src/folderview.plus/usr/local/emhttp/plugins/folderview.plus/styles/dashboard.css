@@ -97,21 +97,21 @@ body[data-fv-theme-class="light"] {
     position: relative;
 }
 
-body.fvplus-privacy-docker-dashboard tbody#docker_view .folder-img-docker,
-body.fvplus-privacy-docker-dashboard tbody#docker_view > tr.updated > td > span.outer:not(.folder-docker) img.img,
-body.fvplus-privacy-docker-dashboard tbody#docker_view .folder-showcase > span.outer:not(.folder-docker) img.img,
-body.fvplus-privacy-vm-dashboard tbody#vm_view .folder-img-vm,
-body.fvplus-privacy-vm-dashboard tbody#vm_view > tr.updated > td > span.outer:not(.folder-vm) img.img,
-body.fvplus-privacy-vm-dashboard tbody#vm_view .folder-showcase > span.outer:not(.folder-vm) img.img {
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-img-docker,
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view > tr.updated > td > span.outer:not(.folder-docker) img.img,
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-showcase > span.outer:not(.folder-docker) img.img,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-img-vm,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view > tr.updated > td > span.outer:not(.folder-vm) img.img,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > span.outer:not(.folder-vm) img.img {
     filter: blur(0.4rem);
 }
 
-body.fvplus-privacy-docker-dashboard tbody#docker_view .folder-appname-docker,
-body.fvplus-privacy-docker-dashboard tbody#docker_view > tr.updated > td > span.outer:not(.folder-docker) .appname,
-body.fvplus-privacy-docker-dashboard tbody#docker_view .folder-showcase > span.outer:not(.folder-docker) .appname,
-body.fvplus-privacy-vm-dashboard tbody#vm_view .folder-appname-vm,
-body.fvplus-privacy-vm-dashboard tbody#vm_view > tr.updated > td > span.outer:not(.folder-vm) .appname,
-body.fvplus-privacy-vm-dashboard tbody#vm_view .folder-showcase > span.outer:not(.folder-vm) .appname {
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-appname-docker,
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view > tr.updated > td > span.outer:not(.folder-docker) .appname,
+body.fvplus-privacy-docker-dashboard-mask-names tbody#docker_view .folder-showcase > span.outer:not(.folder-docker) .appname,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-appname-vm,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view > tr.updated > td > span.outer:not(.folder-vm) .appname,
+body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > span.outer:not(.folder-vm) .appname {
     filter: blur(0.28rem);
 }
 

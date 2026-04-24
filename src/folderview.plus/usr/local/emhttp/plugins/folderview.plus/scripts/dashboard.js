@@ -84,7 +84,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: false
+            privacyMode: false,
+            privacyMaskNames: true,
+            privacyMaskContainerIps: true,
+            privacyMaskLocalIps: true,
+            privacyMaskPorts: false
         },
         health: {
             cardsEnabled: true,
@@ -349,7 +353,11 @@ const normalizeDashboardPrefsForType = (type) => {
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
         folderLabel: dashboard.folderLabel !== false,
-        privacyMode: dashboard.privacyMode === true
+        privacyMode: dashboard.privacyMode === true,
+        privacyMaskNames: dashboard.privacyMaskNames !== false,
+        privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
+        privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
+        privacyMaskPorts: dashboard.privacyMaskPorts === true
     };
 };
 const dashboardTypeMeta = (type) => {
@@ -2225,8 +2233,12 @@ const applyDashboardRuntimePrefs = () => {
     }
     const performanceMode = dockerPrefs.performanceMode === true || vmPrefs.performanceMode === true;
     $('body').toggleClass('fvplus-performance-mode', performanceMode);
-    $('body').toggleClass('fvplus-privacy-docker-dashboard', dockerPrefs?.dashboard?.privacyMode === true);
-    $('body').toggleClass('fvplus-privacy-vm-dashboard', vmPrefs?.dashboard?.privacyMode === true);
+    const dockerPrivacyMode = dockerPrefs?.dashboard?.privacyMode === true;
+    const vmPrivacyMode = vmPrefs?.dashboard?.privacyMode === true;
+    $('body').toggleClass('fvplus-privacy-docker-dashboard', dockerPrivacyMode);
+    $('body').toggleClass('fvplus-privacy-docker-dashboard-mask-names', dockerPrivacyMode && dockerPrefs?.dashboard?.privacyMaskNames !== false);
+    $('body').toggleClass('fvplus-privacy-vm-dashboard', vmPrivacyMode);
+    $('body').toggleClass('fvplus-privacy-vm-dashboard-mask-names', vmPrivacyMode && vmPrefs?.dashboard?.privacyMaskNames !== false);
 
     if (!candidates.length) {
         clearLiveRefreshTimer();

@@ -6487,7 +6487,11 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
         folderLabel: dashboard.folderLabel !== false,
-        privacyMode: dashboard.privacyMode === true
+        privacyMode: dashboard.privacyMode === true,
+        privacyMaskNames: dashboard.privacyMaskNames !== false,
+        privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
+        privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
+        privacyMaskPorts: dashboard.privacyMaskPorts === true
     };
 };
 
@@ -6497,6 +6501,7 @@ const syncDashboardDependentFields = (type) => {
     $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
+    $(`#${type}-dashboard-privacy-options`).toggleClass('is-hidden', prefs.privacyMode !== true);
 };
 
 const syncRuntimeDependentFields = (type) => {
@@ -6510,6 +6515,7 @@ const applySettingsPrivacyMode = () => {
     ['docker', 'vm'].forEach((type) => {
         const dashboard = normalizeDashboardPrefsForType(type);
         $('body').toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true);
+        $('body').toggleClass(`fvplus-privacy-${type}-settings-mask-names`, dashboard.privacyMode === true && dashboard.privacyMaskNames !== false);
     });
 };
 
@@ -6520,6 +6526,12 @@ const renderDashboardControls = (type) => {
     $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
     $(`#${type}-dashboard-privacy-mode`).prop('checked', dashboard.privacyMode === true);
+    $(`#${type}-dashboard-privacy-mask-names`).prop('checked', dashboard.privacyMaskNames !== false);
+    if (type === 'docker') {
+        $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
+        $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
+        $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts === true);
+    }
     syncDashboardDependentFields(type);
     applySettingsPrivacyMode();
 };
@@ -8086,6 +8098,14 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.folderLabel = value === true;
     } else if (key === 'privacyMode') {
         nextDashboard.privacyMode = value === true;
+    } else if (key === 'privacyMaskNames') {
+        nextDashboard.privacyMaskNames = value === true;
+    } else if (key === 'privacyMaskContainerIps' && type === 'docker') {
+        nextDashboard.privacyMaskContainerIps = value === true;
+    } else if (key === 'privacyMaskLocalIps' && type === 'docker') {
+        nextDashboard.privacyMaskLocalIps = value === true;
+    } else if (key === 'privacyMaskPorts' && type === 'docker') {
+        nextDashboard.privacyMaskPorts = value === true;
     } else {
         return;
     }
@@ -9408,5 +9428,4 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-
 

@@ -150,7 +150,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: false
+            privacyMode: false,
+            privacyMaskNames: true,
+            privacyMaskContainerIps: true,
+            privacyMaskLocalIps: true,
+            privacyMaskPorts: false
         },
         health: {
             cardsEnabled: true,
@@ -874,6 +878,61 @@ const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERV
 const DOCKER_HOST_UPDATE_COMMAND_REGEX = /^\s*update_container(?:\s|$)/i;
 const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';
 const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY || 'fv.support.bundle.docker.page.v1';
+const getDockerRuntimePrivacyOptions = (prefs = null) => {
+    const normalized = utils.normalizePrefs(prefs || folderTypePrefs || {});
+    const dashboard = normalized?.dashboard && typeof normalized.dashboard === 'object' ? normalized.dashboard : {};
+    const enabled = dashboard.privacyMode === true;
+    return {
+        enabled,
+        maskNames: enabled && dashboard.privacyMaskNames !== false,
+        maskContainerIps: enabled && dashboard.privacyMaskContainerIps !== false,
+        maskLocalIps: enabled && dashboard.privacyMaskLocalIps !== false,
+        maskPorts: enabled && dashboard.privacyMaskPorts === true
+    };
+};
+const buildDockerPortEndpoint = (ip, port, protocol = '', { maskIp = false, maskPort = false } = {}) => {
+    const rawIp = String(ip ?? '').trim();
+    const rawPort = String(port ?? '').trim();
+    const safeIp = rawIp && !maskIp ? escapeHtml(rawIp) : '';
+    const safePort = rawPort ? (maskPort ? 'port' : escapeHtml(rawPort)) : '';
+    let endpoint = '';
+    if (safeIp && safePort) {
+        endpoint = `${safeIp}:${safePort}`;
+    } else if (safePort) {
+        endpoint = safePort;
+    } else if (safeIp) {
+        endpoint = safeIp;
+    } else if ((rawIp && maskIp) || (rawPort && maskPort)) {
+        endpoint = 'hidden';
+    }
+    const safeProtocol = String(protocol || '').trim().toUpperCase();
+    return endpoint && safeProtocol ? `${endpoint}/${escapeHtml(safeProtocol)}` : endpoint;
+};
+const buildDockerPortMappingLine = (entry = {}, privacyOptions = getDockerRuntimePrivacyOptions()) => {
+    const protocol = String(entry?.Type || '').trim().toUpperCase();
+    const privateEndpoint = buildDockerPortEndpoint(entry?.PrivateIP, entry?.PrivatePort, protocol, {
+        maskIp: privacyOptions.maskContainerIps === true,
+        maskPort: privacyOptions.maskPorts === true
+    });
+    const publicEndpoint = buildDockerPortEndpoint(entry?.PublicIP, entry?.PublicPort, '', {
+        maskIp: privacyOptions.maskLocalIps === true,
+        maskPort: privacyOptions.maskPorts === true
+    });
+    const left = privateEndpoint || 'hidden';
+    const right = publicEndpoint || 'unmapped';
+    return `${left} <i class="fa fa-arrows-h"></i> ${right}`;
+};
+const buildDockerPortMappingsHtml = (ports = []) => {
+    const entries = Array.isArray(ports) ? ports : [];
+    const privacyOptions = getDockerRuntimePrivacyOptions();
+    const lines = entries.map((entry) => buildDockerPortMappingLine(entry, privacyOptions));
+    if (entries.length > 10) {
+        const allLines = lines.join('<br>');
+        const previewLines = lines.slice(0, 10).join('<br>');
+        return `<span class="info-ports-more" style="display: none;">${allLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`;
+    }
+    return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
+};
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
     for (const candidate of candidates) {
@@ -2053,7 +2112,7 @@ const buildDockerTooltipContent = (ct) => {
                 <div class="comb-grapth-${ct.shortId} comb-stat-grapth" id="comb-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
                 <div class="cpu-grapth-${ct.shortId} cpu-stat-grapth" id="cpu-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
                 <div class="mem-grapth-${ct.shortId} mem-stat-grapth" id="mem-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
-                <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${runtimeEntry.info.Ports?.length > 10 ? (`<span class="info-ports-more" style="display: none;">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${runtimeEntry.info.Ports?.slice(0,10).map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-ports-mono">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}</span>`)}</div>
+                <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${buildDockerPortMappingsHtml(runtimeEntry.info.Ports)}</div>
                 <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
             </div>
             </div>
@@ -6327,7 +6386,12 @@ const applyRuntimePrefs = (prefs) => {
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
-    $('body').toggleClass('fvplus-privacy-docker-runtime', normalized?.dashboard?.privacyMode === true);
+    const dockerPrivacyMode = normalized?.dashboard?.privacyMode === true;
+    $('body').toggleClass('fvplus-privacy-docker-runtime', dockerPrivacyMode);
+    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
+    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
+    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskLocalIps !== false);
+    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts === true);
     queueDockerRuntimePrivacyToggleMount();
     scheduleLiveRefresh(normalized);
 };
@@ -6469,4 +6533,3 @@ addEventListener("keydown", (e) => {
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);
-

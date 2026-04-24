@@ -35,7 +35,11 @@
                 'expandToggle' => true,
                 'greyscale' => false,
                 'folderLabel' => true,
-                'privacyMode' => false
+                'privacyMode' => false,
+                'privacyMaskNames' => true,
+                'privacyMaskContainerIps' => true,
+                'privacyMaskLocalIps' => true,
+                'privacyMaskPorts' => false
             ],
             'health' => [
                 'cardsEnabled' => true,
@@ -330,7 +334,17 @@
             'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['folderLabel'], true),
-            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false)
+            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false),
+            'privacyMaskNames' => !array_key_exists('privacyMaskNames', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskNames'], true),
+            'privacyMaskContainerIps' => !array_key_exists('privacyMaskContainerIps', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskContainerIps'], true),
+            'privacyMaskLocalIps' => !array_key_exists('privacyMaskLocalIps', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskLocalIps'], true),
+            'privacyMaskPorts' => normalizeBool($dashboardIncoming['privacyMaskPorts'] ?? false, false)
         ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));
@@ -450,4 +464,3 @@
         writeJsonObjectWithLastGood($path, $normalized);
         return $normalized;
     }
-

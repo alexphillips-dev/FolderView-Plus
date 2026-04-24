@@ -283,40 +283,40 @@ td.ct-name.folder-name > .folder-name-sub > .folder-outer {
     vertical-align: top;
 }
 
-body.fvplus-privacy-docker-runtime #docker_list td.ct-name img.img,
-body.fvplus-privacy-docker-runtime #docker_view td.ct-name img.img,
-body.fvplus-privacy-docker-runtime #docker_list .folder-preview .folder-img,
-body.fvplus-privacy-docker-runtime #docker_view .folder-preview .folder-img,
-body.fvplus-privacy-docker-runtime .preview-img > .folder-img,
-body.fvplus-privacy-docker-runtime .fv-docker-member-menu-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-command-card-title-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-command-member-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-node-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-card-title-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-child-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-member-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-orbit-folder-icon,
-body.fvplus-privacy-docker-runtime .fv-docker-orbit-member-icon {
+body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view td.ct-name img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview .folder-img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview .folder-img,
+body.fvplus-privacy-docker-runtime-mask-names .preview-img > .folder-img,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-member-menu-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-card-title-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-node-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-card-title-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-child-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-member-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-folder-icon,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-member-icon {
     filter: blur(0.4rem);
 }
 
-body.fvplus-privacy-docker-runtime #docker_list td.ct-name .appname,
-body.fvplus-privacy-docker-runtime #docker_view td.ct-name .appname,
-body.fvplus-privacy-docker-runtime #docker_list td.ct-name .folder-appname,
-body.fvplus-privacy-docker-runtime #docker_view td.ct-name .folder-appname,
-body.fvplus-privacy-docker-runtime #docker_list .folder-preview .appname,
-body.fvplus-privacy-docker-runtime #docker_view .folder-preview .appname,
-body.fvplus-privacy-docker-runtime .preview-actual-name,
-body.fvplus-privacy-docker-runtime .fv-docker-member-menu-name,
-body.fvplus-privacy-docker-runtime .fv-docker-command-card-title,
-body.fvplus-privacy-docker-runtime .fv-docker-command-member-pill,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-node-copy,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-detail-title,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-child-copy,
-body.fvplus-privacy-docker-runtime .fv-docker-tree-explorer-member-pill,
-body.fvplus-privacy-docker-runtime .fv-docker-orbit-folder-title,
-body.fvplus-privacy-docker-runtime .fv-docker-orbit-member-name,
-body.fvplus-privacy-docker-runtime .fv-docker-orbit-inspector-title {
+body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name .appname,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view td.ct-name .appname,
+body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name .folder-appname,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view td.ct-name .folder-appname,
+body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview .appname,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview .appname,
+body.fvplus-privacy-docker-runtime-mask-names .preview-actual-name,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-member-menu-name,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-card-title,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-pill,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-node-copy,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-detail-title,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-child-copy,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-member-pill,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-folder-title,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-member-name,
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-inspector-title {
     filter: blur(0.28rem);
 }
 

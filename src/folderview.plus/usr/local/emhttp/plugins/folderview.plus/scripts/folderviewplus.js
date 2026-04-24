@@ -6511,14 +6511,6 @@ const syncRuntimeDependentFields = (type) => {
     $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
 };
 
-const applySettingsPrivacyMode = () => {
-    ['docker', 'vm'].forEach((type) => {
-        const dashboard = normalizeDashboardPrefsForType(type);
-        $('body').toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true);
-        $('body').toggleClass(`fvplus-privacy-${type}-settings-mask-names`, dashboard.privacyMode === true && dashboard.privacyMaskNames !== false);
-    });
-};
-
 const renderDashboardControls = (type) => {
     const dashboard = normalizeDashboardPrefsForType(type);
     $(`#${type}-dashboard-layout`).val(dashboard.layout);
@@ -6533,7 +6525,6 @@ const renderDashboardControls = (type) => {
         $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts === true);
     }
     syncDashboardDependentFields(type);
-    applySettingsPrivacyMode();
 };
 
 const renderRuntimeControls = (type) => {
@@ -9428,4 +9419,3 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-

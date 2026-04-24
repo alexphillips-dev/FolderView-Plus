@@ -67,9 +67,9 @@ test('settings page exposes granular privacy controls under the dashboard privac
 });
 
 test('privacy mask settings toggle runtime body classes and existing mask selectors', () => {
-    assert.match(settingsJs, /const applySettingsPrivacyMode = \(\) =>/);
-    assert.match(settingsJs, /toggleClass\(`fvplus-privacy-\$\{type\}-settings`, dashboard\.privacyMode === true\)/);
-    assert.match(settingsJs, /toggleClass\(`fvplus-privacy-\$\{type\}-settings-mask-names`, dashboard\.privacyMode === true && dashboard\.privacyMaskNames !== false\)/);
+    assert.doesNotMatch(settingsJs, /const applySettingsPrivacyMode = \(\) =>/);
+    assert.doesNotMatch(settingsJs, /fvplus-privacy-\$\{type\}-settings/);
+    assert.doesNotMatch(settingsJs, /settings-mask-names/);
     assert.match(settingsJs, /privacyMaskNames:\s*dashboard\.privacyMaskNames !== false/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskNames'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskContainerIps' && type === 'docker'\) \{/);
@@ -86,10 +86,10 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-docker-dashboard-mask-names', dockerPrivacyMode && dockerPrefs\?\.dashboard\?\.privacyMaskNames !== false\)/);
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-vm-dashboard', vmPrivacyMode\)/);
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-vm-dashboard-mask-names', vmPrivacyMode && vmPrefs\?\.dashboard\?\.privacyMaskNames !== false\)/);
-    assert.match(settingsCss, /body\.fvplus-privacy-docker-settings/);
-    assert.match(settingsCss, /body\.fvplus-privacy-docker-settings-mask-names/);
-    assert.match(settingsCss, /body\.fvplus-privacy-vm-settings/);
-    assert.match(settingsCss, /body\.fvplus-privacy-vm-settings-mask-names/);
+    assert.doesNotMatch(settingsCss, /body\.fvplus-privacy-docker-settings/);
+    assert.doesNotMatch(settingsCss, /body\.fvplus-privacy-docker-settings-mask-names/);
+    assert.doesNotMatch(settingsCss, /body\.fvplus-privacy-vm-settings/);
+    assert.doesNotMatch(settingsCss, /body\.fvplus-privacy-vm-settings-mask-names/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime-mask-names/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
@@ -109,4 +109,13 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
     assert.match(dockerJs, /buildDockerPortMappingsHtml\(runtimeEntry\.info\.Ports\)/);
     assert.doesNotMatch(dockerJs, /e\.PrivateIP \? e\.PrivateIP \+ ':' : ''/);
     assert.doesNotMatch(dockerJs, /e\.PublicIP \? e\.PublicIP \+ ':' : ''/);
+});
+
+test('docker runtime privacy toggle stays in sync with saved dashboard privacy prefs', () => {
+    assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\)\.dashboard\?\.privacyMode === true;/);
+    assert.match(dockerJs, /const enabled = readDockerRuntimePrivacyMode\(\);/);
+    assert.match(dockerJs, /checked: enabled/);
+    assert.match(dockerJs, /folderTypePrefs = utils\.normalizePrefs\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
+    assert.match(dockerJs, /folderTypePrefs = nextPrefs;[\s\S]*applyRuntimePrefs\(nextPrefs\);/);
+    assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);
 });

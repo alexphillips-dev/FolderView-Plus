@@ -19,22 +19,22 @@ const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 
 test('privacy mode persists in prefs normalization on server and client', () => {
-    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*false/);
+    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskNames'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskContainerIps'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskLocalIps'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*false/);
-    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*normalizeBool\(\$dashboardIncoming\['privacyMode'\] \?\? false,\s*false\)/);
+    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*normalizeBool\(\$dashboardIncoming\['privacyMode'\] \?\? true,\s*true\)/);
     assert.match(libPrefsPhp, /'privacyMaskNames'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskNames', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskNames'\], true\)/);
     assert.match(libPrefsPhp, /'privacyMaskContainerIps'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskContainerIps', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskContainerIps'\], true\)/);
     assert.match(libPrefsPhp, /'privacyMaskLocalIps'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskLocalIps', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskLocalIps'\], true\)/);
     assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*normalizeBool\(\$dashboardIncoming\['privacyMaskPorts'\] \?\? false,\s*false\)/);
-    assert.match(utilsJs, /privacyMode:\s*false/);
+    assert.match(utilsJs, /privacyMode:\s*true/);
     assert.match(utilsJs, /privacyMaskNames:\s*true/);
     assert.match(utilsJs, /privacyMaskContainerIps:\s*true/);
     assert.match(utilsJs, /privacyMaskLocalIps:\s*true/);
     assert.match(utilsJs, /privacyMaskPorts:\s*false/);
-    assert.match(utilsJs, /privacyMode:\s*incomingDashboard\.privacyMode === true/);
+    assert.match(utilsJs, /privacyMode:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMode'\)[\s\S]*incomingDashboard\.privacyMode === true/);
     assert.match(utilsJs, /privacyMaskNames:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskNames'\)[\s\S]*incomingDashboard\.privacyMaskNames !== false/);
     assert.match(utilsJs, /privacyMaskContainerIps:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskContainerIps'\)[\s\S]*incomingDashboard\.privacyMaskContainerIps !== false/);
     assert.match(utilsJs, /privacyMaskLocalIps:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskLocalIps'\)[\s\S]*incomingDashboard\.privacyMaskLocalIps !== false/);
@@ -106,6 +106,10 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
     assert.match(dockerJs, /maskLocalIps: enabled && dashboard\.privacyMaskLocalIps !== false/);
     assert.match(dockerJs, /maskPorts: enabled && dashboard\.privacyMaskPorts === true/);
     assert.match(dockerJs, /const buildDockerPortMappingsHtml = \(ports = \[\]\) =>/);
+    assert.match(dockerJs, /const refreshDockerRuntimePrivacyPortMappings = \(\) =>/);
+    assert.match(dockerJs, /findDockerRuntimeInfoByShortId\(shortId\)/);
+    assert.match(dockerJs, /node\.innerHTML = buildDockerPortMappingsHtml\(ports\);/);
+    assert.match(dockerJs, /refreshDockerRuntimePrivacyPortMappings\(\);/);
     assert.match(dockerJs, /buildDockerPortMappingsHtml\(runtimeEntry\.info\.Ports\)/);
     assert.doesNotMatch(dockerJs, /e\.PrivateIP \? e\.PrivateIP \+ ':' : ''/);
     assert.doesNotMatch(dockerJs, /e\.PublicIP \? e\.PublicIP \+ ':' : ''/);
@@ -115,6 +119,9 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\)\.dashboard\?\.privacyMode === true;/);
     assert.match(dockerJs, /const enabled = readDockerRuntimePrivacyMode\(\);/);
     assert.match(dockerJs, /checked: enabled/);
+    assert.match(dockerJs, /basePrefs = await fetchDockerBootstrapPrefs\(\);/);
+    assert.match(dockerJs, /buildDockerRuntimePrivacyPrefsPayload\(nextEnabled, basePrefs\)/);
+    assert.match(dockerJs, /persistDockerRuntimePrivacyMode\(targetEnabled, folderTypePrefs\)/);
     assert.match(dockerJs, /folderTypePrefs = utils\.normalizePrefs\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
     assert.match(dockerJs, /folderTypePrefs = nextPrefs;[\s\S]*applyRuntimePrefs\(nextPrefs\);/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);

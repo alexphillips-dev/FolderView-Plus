@@ -150,7 +150,7 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: false,
+            privacyMode: true,
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
@@ -932,6 +932,28 @@ const buildDockerPortMappingsHtml = (ports = []) => {
         return `<span class="info-ports-more" style="display: none;">${allLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`;
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
+};
+const findDockerRuntimeInfoByShortId = (shortId) => {
+    const target = String(shortId || '').trim();
+    if (!target) {
+        return null;
+    }
+    return Object.values(dockerRuntimeInfoByName || {}).find((entry) => {
+        const entryShortId = String(entry?.shortId || '').trim();
+        const entryId = String(entry?.info?.Id || entry?.id || '').trim();
+        return entryShortId === target || (entryId && entryId.startsWith(target));
+    }) || null;
+};
+const refreshDockerRuntimePrivacyPortMappings = () => {
+    document.querySelectorAll('.info-ports[id^="info-ports-"]').forEach((node) => {
+        const shortId = String(node.id || '').replace(/^info-ports-/, '').trim();
+        const runtimeEntry = findDockerRuntimeInfoByShortId(shortId);
+        const ports = runtimeEntry?.info?.Ports;
+        if (!Array.isArray(ports)) {
+            return;
+        }
+        node.innerHTML = buildDockerPortMappingsHtml(ports);
+    });
 };
 const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
 const resolvePreferredWebuiValue = (...candidates) => {
@@ -3304,8 +3326,8 @@ let dockerRuntimePrivacyPersistedPrefs = null;
 
 const readDockerRuntimePrivacyMode = () => utils.normalizePrefs(folderTypePrefs || {}).dashboard?.privacyMode === true;
 
-const buildDockerRuntimePrivacyPrefsPayload = (enabled) => {
-    const current = utils.normalizePrefs(folderTypePrefs || {});
+const buildDockerRuntimePrivacyPrefsPayload = (enabled, prefsOverride = null) => {
+    const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
     return utils.normalizePrefs({
         ...current,
         dashboard: {
@@ -3315,8 +3337,8 @@ const buildDockerRuntimePrivacyPrefsPayload = (enabled) => {
     });
 };
 
-const persistDockerRuntimePrivacyMode = async (enabled) => {
-    const nextPrefs = buildDockerRuntimePrivacyPrefsPayload(enabled);
+const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) => {
+    const nextPrefs = buildDockerRuntimePrivacyPrefsPayload(enabled, prefsOverride);
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
@@ -3482,7 +3504,7 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
             while (dockerRuntimePrivacyPendingEnabled !== null) {
                 const targetEnabled = dockerRuntimePrivacyPendingEnabled === true;
                 dockerRuntimePrivacyPendingEnabled = null;
-                const response = await persistDockerRuntimePrivacyMode(targetEnabled);
+                const response = await persistDockerRuntimePrivacyMode(targetEnabled, folderTypePrefs);
                 folderTypePrefs = utils.normalizePrefs(response?.prefs || buildDockerRuntimePrivacyPrefsPayload(targetEnabled));
                 dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
                 applyRuntimePrefs(folderTypePrefs);
@@ -3499,12 +3521,23 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
 const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
     const previousPrefs = getDockerRuntimePersistedPrefs();
-    if (readDockerRuntimePrivacyMode() === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
+    let basePrefs = previousPrefs;
+    if (options.persist !== false) {
+        try {
+            basePrefs = await fetchDockerBootstrapPrefs();
+        } catch (_error) {
+            basePrefs = previousPrefs;
+        }
+    }
+    const basePrivacyMode = utils.normalizePrefs(basePrefs || {}).dashboard?.privacyMode === true;
+    if (basePrivacyMode === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
+        folderTypePrefs = basePrefs;
+        applyRuntimePrefs(folderTypePrefs);
         queueDockerRuntimePrivacyToggleMount();
         return;
     }
     dockerRuntimePrivacyPendingEnabled = nextEnabled;
-    folderTypePrefs = buildDockerRuntimePrivacyPrefsPayload(nextEnabled);
+    folderTypePrefs = buildDockerRuntimePrivacyPrefsPayload(nextEnabled, basePrefs);
     applyRuntimePrefs(folderTypePrefs);
     queueDockerRuntimePrivacyToggleMount();
     if (options.persist === false) {
@@ -6392,6 +6425,7 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskLocalIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts === true);
+    refreshDockerRuntimePrivacyPortMappings();
     queueDockerRuntimePrivacyToggleMount();
     scheduleLiveRefresh(normalized);
 };

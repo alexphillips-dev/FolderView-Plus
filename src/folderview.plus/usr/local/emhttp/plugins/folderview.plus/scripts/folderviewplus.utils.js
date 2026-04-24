@@ -53,7 +53,7 @@
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: false,
+        privacyMode: true,
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
@@ -714,7 +714,9 @@
             folderLabel: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'folderLabel')
                 ? DEFAULT_DASHBOARD_PREFS.folderLabel
                 : incomingDashboard.folderLabel !== false,
-            privacyMode: incomingDashboard.privacyMode === true,
+            privacyMode: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMode')
+                ? DEFAULT_DASHBOARD_PREFS.privacyMode
+                : incomingDashboard.privacyMode === true,
             privacyMaskNames: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskNames')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskNames
                 : incomingDashboard.privacyMaskNames !== false,
@@ -2175,4 +2177,3 @@
         getConflictReport
     };
 }));
-

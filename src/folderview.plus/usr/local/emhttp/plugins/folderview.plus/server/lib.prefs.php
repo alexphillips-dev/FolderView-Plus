@@ -35,7 +35,7 @@
                 'expandToggle' => true,
                 'greyscale' => false,
                 'folderLabel' => true,
-                'privacyMode' => false,
+                'privacyMode' => true,
                 'privacyMaskNames' => true,
                 'privacyMaskContainerIps' => true,
                 'privacyMaskLocalIps' => true,
@@ -334,7 +334,7 @@
             'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['folderLabel'], true),
-            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false),
+            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? true, true),
             'privacyMaskNames' => !array_key_exists('privacyMaskNames', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['privacyMaskNames'], true),

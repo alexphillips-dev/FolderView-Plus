@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.24.05">
-<!ENTITY md5 "e0002078ff08297ca47fe3561b91f4a8">
+<!ENTITY version "2026.04.26.01">
+<!ENTITY md5 "eeb68cbd964792e0dac25c08a50354ed">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.26.01
+- Fix: Privacy mode defaults off again while the Docker and VM mask options stay enabled by default for the runtime toggle.
+- UX: Move Dashboard privacy mask settings below the layout description and render Privacy mode as a section header.
+- Quality: Add regression coverage for privacy mask defaults, legacy privacy-mode migration, and settings mask layout wiring.
+
 
 ###2026.04.24.05
 - Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.

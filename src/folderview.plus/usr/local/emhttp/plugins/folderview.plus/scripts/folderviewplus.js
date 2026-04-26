@@ -6491,7 +6491,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         privacyMaskNames: dashboard.privacyMaskNames !== false,
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
-        privacyMaskPorts: dashboard.privacyMaskPorts === true
+        privacyMaskPorts: dashboard.privacyMaskPorts !== false
     };
 };
 
@@ -6501,7 +6501,6 @@ const syncDashboardDependentFields = (type) => {
     $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
-    $(`#${type}-dashboard-privacy-options`).toggleClass('is-hidden', prefs.privacyMode !== true);
 };
 
 const syncRuntimeDependentFields = (type) => {
@@ -6517,12 +6516,11 @@ const renderDashboardControls = (type) => {
     $(`#${type}-dashboard-expand-toggle`).prop('checked', dashboard.expandToggle === true);
     $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
-    $(`#${type}-dashboard-privacy-mode`).prop('checked', dashboard.privacyMode === true);
     $(`#${type}-dashboard-privacy-mask-names`).prop('checked', dashboard.privacyMaskNames !== false);
     if (type === 'docker') {
         $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
         $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
-        $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts === true);
+        $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
     }
     syncDashboardDependentFields(type);
 };

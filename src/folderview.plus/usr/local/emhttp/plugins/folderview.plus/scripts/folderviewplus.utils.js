@@ -18,7 +18,9 @@
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
-    const RUNTIME_PREFS_SCHEMA = 2;
+    const RUNTIME_PREFS_SCHEMA = 3;
+    const RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
+    const PRIVACY_MODE_PREFS_SCHEMA = 3;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
     const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command', 'tree-explorer', 'orbit'];
@@ -53,11 +55,11 @@
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: true,
+        privacyMode: false,
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: false
+        privacyMaskPorts: true
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
@@ -696,7 +698,8 @@
             custom: importPresetCustom
         };
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
-        const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_PREFS_SCHEMA;
+        const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_TOGGLE_PREFS_SCHEMA;
+        const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA;
         const liveRefreshEnabled = runtimePrefsReady ? incoming.liveRefreshEnabled === true : false;
         const liveRefreshSeconds = clampNumber(incoming.liveRefreshSeconds, 10, 300, 20);
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
@@ -716,7 +719,7 @@
                 : incomingDashboard.folderLabel !== false,
             privacyMode: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMode')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMode
-                : incomingDashboard.privacyMode === true,
+                : privacyModePrefsReady && incomingDashboard.privacyMode === true,
             privacyMaskNames: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskNames')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskNames
                 : incomingDashboard.privacyMaskNames !== false,
@@ -726,7 +729,9 @@
             privacyMaskLocalIps: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskLocalIps')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskLocalIps
                 : incomingDashboard.privacyMaskLocalIps !== false,
-            privacyMaskPorts: incomingDashboard.privacyMaskPorts === true
+            privacyMaskPorts: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskPorts')
+                ? DEFAULT_DASHBOARD_PREFS.privacyMaskPorts
+                : incomingDashboard.privacyMaskPorts !== false
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {

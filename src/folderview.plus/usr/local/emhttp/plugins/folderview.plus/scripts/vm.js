@@ -139,7 +139,7 @@ const utils = window.FolderViewPlusUtils || {
         appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        runtimePrefsSchema: 2,
+        runtimePrefsSchema: 3,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
@@ -150,11 +150,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: true,
+            privacyMode: false,
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: false
+            privacyMaskPorts: true
         },
         health: {
             cardsEnabled: true,

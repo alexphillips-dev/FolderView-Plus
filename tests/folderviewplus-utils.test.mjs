@@ -343,11 +343,11 @@ test('normalizePrefs provides dashboard defaults', () => {
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: true,
+        privacyMode: false,
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: false
+        privacyMaskPorts: true
     });
 });
 
@@ -370,7 +370,7 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: false
+        privacyMaskPorts: true
     });
     const matrix = utils.normalizePrefs({
         dashboard: {
@@ -586,7 +586,7 @@ test('getAutoRuleDecision supports exclude precedence and advanced docker kinds'
 
 test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {
     const prefs = utils.normalizePrefs({});
-    assert.equal(prefs.runtimePrefsSchema, 2);
+    assert.equal(prefs.runtimePrefsSchema, 3);
     assert.equal(prefs.liveRefreshEnabled, false);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
@@ -704,7 +704,7 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
         lazyPreviewEnabled: true,
         lazyPreviewThreshold: 77
     });
-    assert.equal(legacy.runtimePrefsSchema, 2);
+    assert.equal(legacy.runtimePrefsSchema, 3);
     assert.equal(legacy.liveRefreshEnabled, false);
     assert.equal(legacy.performanceMode, false);
     assert.equal(legacy.lazyPreviewEnabled, false);
@@ -722,6 +722,22 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
     assert.equal(upgraded.liveRefreshEnabled, true);
     assert.equal(upgraded.performanceMode, true);
     assert.equal(upgraded.lazyPreviewEnabled, true);
+
+    const legacyPrivacy = utils.normalizePrefs({
+        runtimePrefsSchema: 2,
+        dashboard: {
+            privacyMode: true
+        }
+    });
+    assert.equal(legacyPrivacy.dashboard.privacyMode, false);
+
+    const upgradedPrivacy = utils.normalizePrefs({
+        runtimePrefsSchema: 3,
+        dashboard: {
+            privacyMode: true
+        }
+    });
+    assert.equal(upgradedPrivacy.dashboard.privacyMode, true);
 
     const onboarding = utils.normalizePrefs({
         setupWizardCompleted: true,

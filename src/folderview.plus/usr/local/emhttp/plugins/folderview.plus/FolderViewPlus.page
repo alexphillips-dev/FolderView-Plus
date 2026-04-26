@@ -272,14 +272,16 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="docker-dashboard-privacy-mode-row" class="setting-toggle"><input id="docker-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMode', this.checked)"> Privacy mode</label>
-                    <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
-                        <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                        <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-container-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskContainerIps', this.checked)"> Mask container IPs</label>
-                        <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-local-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask local IPs</label>
-                        <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
-                    </div>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
+                    <div class="settings-privacy-section">
+                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-container-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskContainerIps', this.checked)"> Mask container IPs</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-local-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask local IPs</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -530,11 +532,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="vm-dashboard-privacy-mode-row" class="setting-toggle"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"> Privacy mode</label>
-                    <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
-                        <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                    </div>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
+                    <div class="settings-privacy-section">
+                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -1529,4 +1533,3 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>
-

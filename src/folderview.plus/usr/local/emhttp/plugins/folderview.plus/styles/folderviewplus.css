@@ -579,10 +579,20 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     display: none !important;
 }
 
+.settings-privacy-section {
+    display: grid;
+    gap: 0.2rem;
+    font-size: 1.03rem;
+}
+
+.settings-privacy-title {
+    opacity: 0.9;
+}
+
 .settings-privacy-options {
     display: grid;
     gap: 0.28rem;
-    margin: 0.05rem 0 0.1rem 0.9rem;
+    margin: 0.05rem 0 0.1rem 0;
     padding-left: 0.6rem;
     border-left: 1px solid var(--fvplus-settings-border-faint);
 }

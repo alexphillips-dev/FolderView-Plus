@@ -17,48 +17,55 @@ const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
+const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 test('privacy mode persists in prefs normalization on server and client', () => {
-    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*true/);
+    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*false/);
     assert.match(libPrefsPhp, /'privacyMaskNames'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskContainerIps'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskLocalIps'\s*=>\s*true/);
-    assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*false/);
-    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*normalizeBool\(\$dashboardIncoming\['privacyMode'\] \?\? true,\s*true\)/);
+    assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*true/);
     assert.match(libPrefsPhp, /'privacyMaskNames'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskNames', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskNames'\], true\)/);
     assert.match(libPrefsPhp, /'privacyMaskContainerIps'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskContainerIps', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskContainerIps'\], true\)/);
     assert.match(libPrefsPhp, /'privacyMaskLocalIps'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskLocalIps', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskLocalIps'\], true\)/);
-    assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*normalizeBool\(\$dashboardIncoming\['privacyMaskPorts'\] \?\? false,\s*false\)/);
-    assert.match(utilsJs, /privacyMode:\s*true/);
+    assert.match(libPrefsPhp, /'privacyMaskPorts'\s*=>\s*![\s\S]*array_key_exists\('privacyMaskPorts', \$dashboardIncoming\)[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMaskPorts'\], true\)/);
+    assert.match(utilsJs, /privacyMode:\s*false/);
     assert.match(utilsJs, /privacyMaskNames:\s*true/);
     assert.match(utilsJs, /privacyMaskContainerIps:\s*true/);
     assert.match(utilsJs, /privacyMaskLocalIps:\s*true/);
-    assert.match(utilsJs, /privacyMaskPorts:\s*false/);
-    assert.match(utilsJs, /privacyMode:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMode'\)[\s\S]*incomingDashboard\.privacyMode === true/);
+    assert.match(utilsJs, /privacyMaskPorts:\s*true/);
+    assert.match(utilsJs, /const PRIVACY_MODE_PREFS_SCHEMA = 3/);
+    assert.match(utilsJs, /const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA/);
+    assert.match(utilsJs, /privacyMode:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMode'\)[\s\S]*privacyModePrefsReady && incomingDashboard\.privacyMode === true/);
+    assert.match(libPhp, /const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3/);
+    assert.match(libPrefsPhp, /\$privacyModePrefsReady = \$runtimePrefsSchema >= FVPLUS_PRIVACY_MODE_PREFS_SCHEMA/);
+    assert.match(libPrefsPhp, /'privacyMode'\s*=>\s*\$privacyModePrefsReady[\s\S]*normalizeBool\(\$dashboardIncoming\['privacyMode'\] \?\? false,\s*false\)[\s\S]*:\s*false/);
     assert.match(utilsJs, /privacyMaskNames:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskNames'\)[\s\S]*incomingDashboard\.privacyMaskNames !== false/);
     assert.match(utilsJs, /privacyMaskContainerIps:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskContainerIps'\)[\s\S]*incomingDashboard\.privacyMaskContainerIps !== false/);
     assert.match(utilsJs, /privacyMaskLocalIps:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskLocalIps'\)[\s\S]*incomingDashboard\.privacyMaskLocalIps !== false/);
-    assert.match(utilsJs, /privacyMaskPorts:\s*incomingDashboard\.privacyMaskPorts === true/);
+    assert.match(utilsJs, /privacyMaskPorts:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskPorts'\)[\s\S]*incomingDashboard\.privacyMaskPorts !== false/);
 });
 
-test('settings page exposes granular privacy controls under the dashboard privacy toggle', () => {
-    assert.match(settingsPage, /id="docker-dashboard-privacy-mode"/);
+test('settings page exposes granular privacy mask controls under a privacy mode section', () => {
+    assert.doesNotMatch(settingsPage, /id="docker-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-names"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-container-ips"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-local-ips"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-ports"/);
-    assert.match(settingsPage, /id="vm-dashboard-privacy-mode"/);
+    assert.doesNotMatch(settingsPage, /id="vm-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-mask-names"/);
-    assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMode', this\.checked\)/);
+    assert.match(settingsPage, /<div class="setting-help">Non-classic layouts can show[\s\S]*<div class="settings-privacy-title">Privacy mode<\/div>/);
+    assert.doesNotMatch(settingsPage, /changeDashboardPref\('docker', 'privacyMode', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskNames', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskContainerIps', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskLocalIps', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskPorts', this\.checked\)/);
-    assert.match(settingsPage, /changeDashboardPref\('vm', 'privacyMode', this\.checked\)/);
+    assert.doesNotMatch(settingsPage, /changeDashboardPref\('vm', 'privacyMode', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('vm', 'privacyMaskNames', this\.checked\)/);
-    assert.match(settingsJs, /#\$\{type\}-dashboard-privacy-options/);
+    assert.doesNotMatch(settingsJs, /#\$\{type\}-dashboard-privacy-options`\)\.toggleClass\('is-hidden', prefs\.privacyMode !== true\)/);
+    assert.doesNotMatch(settingsJs, /#\$\{type\}-dashboard-privacy-mode/);
     assert.match(settingsJs, /#\$\{type\}-dashboard-privacy-mask-names/);
     assert.match(settingsJs, /#docker-dashboard-privacy-mask-container-ips/);
     assert.match(settingsJs, /#docker-dashboard-privacy-mask-local-ips/);
@@ -79,7 +86,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskNames !== false\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskContainerIps !== false\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskLocalIps !== false\)/);
-    assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskPorts === true\)/);
+    assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskPorts !== false\)/);
     assert.match(vmJs, /toggleClass\('fvplus-privacy-vm-runtime', vmPrivacyMode\)/);
     assert.match(vmJs, /toggleClass\('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized\?\.dashboard\?\.privacyMaskNames !== false\)/);
     assert.match(dashboardJs, /toggleClass\('fvplus-privacy-docker-dashboard', dockerPrivacyMode\)/);
@@ -104,7 +111,7 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
     assert.match(dockerJs, /const getDockerRuntimePrivacyOptions = \(prefs = null\) =>/);
     assert.match(dockerJs, /maskContainerIps: enabled && dashboard\.privacyMaskContainerIps !== false/);
     assert.match(dockerJs, /maskLocalIps: enabled && dashboard\.privacyMaskLocalIps !== false/);
-    assert.match(dockerJs, /maskPorts: enabled && dashboard\.privacyMaskPorts === true/);
+    assert.match(dockerJs, /maskPorts: enabled && dashboard\.privacyMaskPorts !== false/);
     assert.match(dockerJs, /const buildDockerPortMappingsHtml = \(ports = \[\]\) =>/);
     assert.match(dockerJs, /const refreshDockerRuntimePrivacyPortMappings = \(\) =>/);
     assert.match(dockerJs, /findDockerRuntimeInfoByShortId\(shortId\)/);

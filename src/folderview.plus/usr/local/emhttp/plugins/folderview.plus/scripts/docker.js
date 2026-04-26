@@ -139,7 +139,7 @@ const utils = window.FolderViewPlusUtils || {
         appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        runtimePrefsSchema: 2,
+        runtimePrefsSchema: 3,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
@@ -150,11 +150,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: true,
+            privacyMode: false,
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: false
+            privacyMaskPorts: true
         },
         health: {
             cardsEnabled: true,
@@ -887,7 +887,7 @@ const getDockerRuntimePrivacyOptions = (prefs = null) => {
         maskNames: enabled && dashboard.privacyMaskNames !== false,
         maskContainerIps: enabled && dashboard.privacyMaskContainerIps !== false,
         maskLocalIps: enabled && dashboard.privacyMaskLocalIps !== false,
-        maskPorts: enabled && dashboard.privacyMaskPorts === true
+        maskPorts: enabled && dashboard.privacyMaskPorts !== false
     };
 };
 const buildDockerPortEndpoint = (ip, port, protocol = '', { maskIp = false, maskPort = false } = {}) => {
@@ -6424,7 +6424,7 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskLocalIps !== false);
-    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts === true);
+    $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts !== false);
     refreshDockerRuntimePrivacyPortMappings();
     queueDockerRuntimePrivacyToggleMount();
     scheduleLiveRefresh(normalized);

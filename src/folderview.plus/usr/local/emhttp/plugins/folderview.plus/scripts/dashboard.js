@@ -73,7 +73,7 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        runtimePrefsSchema: 2,
+        runtimePrefsSchema: 3,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
@@ -84,11 +84,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: true,
+            privacyMode: false,
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: false
+            privacyMaskPorts: true
         },
         health: {
             cardsEnabled: true,
@@ -357,7 +357,7 @@ const normalizeDashboardPrefsForType = (type) => {
         privacyMaskNames: dashboard.privacyMaskNames !== false,
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
-        privacyMaskPorts: dashboard.privacyMaskPorts === true
+        privacyMaskPorts: dashboard.privacyMaskPorts !== false
     };
 };
 const dashboardTypeMeta = (type) => {

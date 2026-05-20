@@ -226,9 +226,16 @@ test('dashboard folder cards are click-to-expand for docker and vm widgets', () 
 });
 
 test('dashboard expanded docker members include guarded quick actions', () => {
-    assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct\) =>/);
+    assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct,\s*settings = \{\}\) =>/);
+    assert.match(dashboardJs, /const allowWebUiAction = actionPrefs\.preview_webui === true;/);
+    assert.match(dashboardJs, /const allowConsoleAction = actionPrefs\.preview_console === true;/);
+    assert.match(dashboardJs, /const allowLogsAction = actionPrefs\.preview_logs === true;/);
     assert.match(dashboardJs, /fv-dashboard-member-actions/);
     assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(dashboardJs, /if \(allowWebUiAction && webUiUrl\) \{/);
+    assert.match(dashboardJs, /if \(allowConsoleAction\) \{/);
+    assert.match(dashboardJs, /if \(allowLogsAction\) \{/);
     assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, containerShell\)/);
     assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, '\.log'\)/);
+    assert.match(dashboardJs, /appendDashboardDockerMemberQuickActions\(\$containerEl,\s*ct,\s*folder\.settings \|\| \{\}\);/);
 });

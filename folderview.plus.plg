@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.20.01">
-<!ENTITY md5 "e0f74d39c1c2523bf2971fdc232104e8">
+<!ENTITY version "2026.05.20.03">
+<!ENTITY md5 "456193eff190f0576a1963fb65aeb37b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.20.03
+- Fix: Honor per-folder Dashboard WebUI, Console, and Logs action toggles for Docker members.
+- Fix: Keep Dashboard folder and member names inside their allocated card width while reserving space for the quick settings rail.
+- Fix: Restore compact-matrix folder icons and fall back to the FolderView default icon when a Dashboard folder icon is missing.
+
 
 ###2026.05.20.01
 - UX: Folder editor flows, previews, and bootstrap behavior.

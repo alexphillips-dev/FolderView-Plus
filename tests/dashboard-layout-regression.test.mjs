@@ -222,6 +222,7 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-quick-rail/);
     assert.match(dashboardQuickRailScript, /\$host\.parent\(\)\.is\(\$container\)/);
     assert.match(dashboardQuickRailScript, /\$container\.prepend\(\$host\)/);
+    assert.match(dashboardQuickRailScript, /fv-dashboard-has-visible-quick-rail/);
     assert.match(dashboardQuickRailScript, /bindDashboardQuickActionSyncHandlers/);
 });
 
@@ -276,6 +277,8 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
+    assert.match(dashboardCss, /--fvplus-dashboard-quick-rail-gutter:\s*38px/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-inline-container\.fv-dashboard-has-visible-quick-rail\s*\{[\s\S]*padding-right:\s*var\(--fvplus-dashboard-quick-rail-gutter\)/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-clamped/);
@@ -305,6 +308,11 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
+    assert.doesNotMatch(dashboardCss, /\.folder-hand-docker[\s\S]{0,160}display:\s*none !important/);
+    assert.doesNotMatch(dashboardCss, /\.folder-hand-vm[\s\S]{0,160}display:\s*none !important/);
+    assert.match(dashboardCss, /\.folder-showcase > span\.outer:not\(\.folder-docker\):not\(\.folder-vm\)\s*\{[\s\S]*overflow:\s*hidden/);
+    assert.match(dashboardCss, /\.folder-showcase \.fv-dashboard-member-actions\s*\{[\s\S]*display:\s*flex/);
+    assert.match(dashboardCss, /\.folder-showcase \.fv-dashboard-member-actions\s*\{[\s\S]*margin:\s*3px 0 0/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="scroll"/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="expand_row"/);
 });

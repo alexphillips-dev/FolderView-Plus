@@ -245,10 +245,14 @@ const openWebUiInNewTab = (url) => {
     anchor.remove();
     return true;
 };
-const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
+const appendDashboardDockerMemberQuickActions = ($containerEl, ct, settings = {}) => {
     if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
         return;
     }
+    const actionPrefs = settings && typeof settings === 'object' ? settings : {};
+    const allowWebUiAction = actionPrefs.preview_webui === true;
+    const allowConsoleAction = actionPrefs.preview_console === true;
+    const allowLogsAction = actionPrefs.preview_logs === true;
     let $targetForAppend = $containerEl.children('span.inner').last();
     if (!$targetForAppend.length) {
         $targetForAppend = $containerEl;
@@ -266,7 +270,7 @@ const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
     }
 
     const webUiUrl = getSafeWebUiUrl(ct?.info?.State?.WebUi);
-    if (webUiUrl) {
+    if (allowWebUiAction && webUiUrl) {
         const $web = $(
             '<a class="fv-dashboard-member-action fv-dashboard-member-webui" target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI">' +
                 '<i class="fa fa-globe" aria-hidden="true"></i>' +
@@ -283,27 +287,31 @@ const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
     const containerName = String(ct?.info?.Name || '').trim();
     const containerShell = String(ct?.info?.Shell || 'sh').trim() || 'sh';
     if (containerName && typeof window.openTerminal === 'function') {
-        const $console = $(
-            '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-console" title="Console" aria-label="Console">' +
-                '<i class="fa fa-terminal" aria-hidden="true"></i>' +
-            '</a>'
-        );
-        $console.on('click', (event) => {
-            event.preventDefault();
-            window.openTerminal('docker', containerName, containerShell);
-        });
-        $actionBar.append($console);
+        if (allowConsoleAction) {
+            const $console = $(
+                '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-console" title="Console" aria-label="Console">' +
+                    '<i class="fa fa-terminal" aria-hidden="true"></i>' +
+                '</a>'
+            );
+            $console.on('click', (event) => {
+                event.preventDefault();
+                window.openTerminal('docker', containerName, containerShell);
+            });
+            $actionBar.append($console);
+        }
 
-        const $logs = $(
-            '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-logs" title="Logs" aria-label="Logs">' +
-                '<i class="fa fa-bars" aria-hidden="true"></i>' +
-            '</a>'
-        );
-        $logs.on('click', (event) => {
-            event.preventDefault();
-            window.openTerminal('docker', containerName, '.log');
-        });
-        $actionBar.append($logs);
+        if (allowLogsAction) {
+            const $logs = $(
+                '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-logs" title="Logs" aria-label="Logs">' +
+                    '<i class="fa fa-bars" aria-hidden="true"></i>' +
+                '</a>'
+            );
+            $logs.on('click', (event) => {
+                event.preventDefault();
+                window.openTerminal('docker', containerName, '.log');
+            });
+            $actionBar.append($logs);
+        }
     }
 
     if (!$actionBar.children().length) {
@@ -1477,7 +1485,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     const safeFolderIcon = sanitizeImageSrc(folder.icon, DEFAULT_FOLDER_ICON_PATH);
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -1546,7 +1554,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
                 return innerText === container;
             }).first();
             element.append($containerEl.addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
-            appendDashboardDockerMemberQuickActions($containerEl, ct);
+            appendDashboardDockerMemberQuickActions($containerEl, ct, folder.settings || {});
             
 
             newFolder[container] = {};

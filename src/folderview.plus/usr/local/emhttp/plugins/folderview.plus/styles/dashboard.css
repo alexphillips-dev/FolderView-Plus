@@ -29,6 +29,7 @@
     --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
     --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
     --fvplus-dashboard-quick-rail-top: 0px;
+    --fvplus-dashboard-quick-rail-gutter: 38px;
     --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));
     --fvplus-status-paused: var(--fvplus-runtime-status-paused, #b8860b);
     --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
@@ -76,6 +77,33 @@ body[data-fv-theme-class="light"] {
     margin: 0 !important;
     min-width: 0;
     max-width: 100%;
+}
+
+.folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) {
+    display: flex !important;
+    align-items: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner > .appname,
+.folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner > a:first-child {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
 }
 
 .folder-showcase-outer[expanded="true"] .folder-showcase > .folder-showcase-outer {
@@ -129,6 +157,10 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 
 .fv-dashboard-layout-inline-container {
     position: relative;
+}
+
+.fv-dashboard-layout-inline-container.fv-dashboard-has-visible-quick-rail {
+    padding-right: var(--fvplus-dashboard-quick-rail-gutter);
 }
 
 .fv-dashboard-layout-inline-host {
@@ -406,11 +438,6 @@ tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > .folder-showcase-out
     gap: 6px 8px;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-hand-docker,
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-hand-vm {
-    display: none !important;
-}
-
 tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-docker,
 tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-vm {
     font-size: 0.93em;
@@ -488,11 +515,12 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
 }
 
 .folder-showcase .fv-dashboard-member-actions {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    margin-left: 8px;
-    vertical-align: middle;
+    gap: 7px;
+    margin: 3px 0 0;
+    max-width: 100%;
+    white-space: nowrap;
 }
 
 .folder-showcase .fv-dashboard-member-action {
@@ -524,6 +552,7 @@ body.fvplus-performance-mode .tooltipster-content {
 @media (max-width: 820px) {
     :root {
         --fvplus-dashboard-quick-rail-top: 0px;
+        --fvplus-dashboard-quick-rail-gutter: 32px;
     }
 
     .fv-dashboard-layout-inline-host {

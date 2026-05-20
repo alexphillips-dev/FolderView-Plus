@@ -20,6 +20,7 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -168,8 +169,16 @@ test('folder editor escapes custom action labels when rendering HTML', () => {
 
 test('folder editor supports unicode names and secure guarded create/update posts', () => {
     assert.doesNotMatch(folderPage, /<input[^>]*name="name"[^>]*pattern=/);
+    assert.match(folderEditorSchemaJs, /const INVALID_FOLDER_NAME_CHAR_REGEX = \/\[\\u0000-\\u001f\\u007f\]\//);
     assert.match(folderJs, /const INVALID_FOLDER_NAME_CHAR_REGEX =/);
-    assert.match(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
+    assert.match(folderJs, /Folder name cannot contain control characters\./);
+    assert.doesNotMatch(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
+    assert.doesNotMatch(folderEditorSchemaJs, /<>:"\/\\\\\|\?\*/);
+    const folderNameControlCharRegex = /[\u0000-\u001f\u007f]/;
+    for (const name of ['Starr*Apps', 'Arr=Apps', 'Media+Tools', 'Label/Derived?Name']) {
+        assert.equal(folderNameControlCharRegex.test(name), false, `${name} should be allowed`);
+    }
+    assert.equal(folderNameControlCharRegex.test("Bad\u0000Name"), true);
     assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
     assert.match(folderIconApiJs, /payload\._fv_request = '1';/);
     assert.match(folderIconApiJs, /'X-FV-Request': '1'/);

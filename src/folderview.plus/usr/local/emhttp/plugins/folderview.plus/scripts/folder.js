@@ -267,7 +267,7 @@ const CONTEXT_MODE_LABELS = folderEditorSchema?.CONTEXT_MODE_LABELS || Object.fr
 const FOLDER_HEALTH_PROFILE_VALUES = folderEditorSchema?.FOLDER_HEALTH_PROFILE_VALUES || Object.freeze(['strict', 'balanced', 'lenient']);
 const FOLDER_HEALTH_UPDATES_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_UPDATES_MODE_VALUES || Object.freeze(['maintenance', 'warn', 'ignore']);
 const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES || Object.freeze(['critical', 'warn']);
-const INVALID_FOLDER_NAME_CHAR_REGEX = folderEditorSchema?.INVALID_FOLDER_NAME_CHAR_REGEX || /[\u0000-\u001f\u007f<>:"/\\|?*]/;
+const INVALID_FOLDER_NAME_CHAR_REGEX = folderEditorSchema?.INVALID_FOLDER_NAME_CHAR_REGEX || /[\u0000-\u001f\u007f]/;
 const modernEditorSchema = typeof folderEditorSchema?.createModernSchema === 'function'
     ? folderEditorSchema.createModernSchema({
         defaultBorderColor: DEFAULT_BORDER_COLOR,
@@ -1647,7 +1647,7 @@ const validateNameField = () => {
     }
 
     if (INVALID_FOLDER_NAME_CHAR_REGEX.test(value)) {
-        setFieldError('name', 'Name cannot contain control characters or <>:"/\\|?*.');
+        setFieldError('name', 'Folder name cannot contain control characters.');
         return false;
     }
 

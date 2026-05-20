@@ -19,7 +19,7 @@
     const FOLDER_HEALTH_PROFILE_VALUES = Object.freeze(['strict', 'balanced', 'lenient']);
     const FOLDER_HEALTH_UPDATES_MODE_VALUES = Object.freeze(['maintenance', 'warn', 'ignore']);
     const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = Object.freeze(['critical', 'warn']);
-    const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
+    const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f]/;
 
     const createModernSchema = (deps = {}) => {
         const sectionMeta = Object.freeze({

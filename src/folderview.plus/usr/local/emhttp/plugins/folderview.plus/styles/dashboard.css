@@ -541,6 +541,126 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
     opacity: 1;
 }
 
+.fv-dashboard-advanced-preview {
+    min-width: 330px;
+    max-width: min(620px, calc(100vw - 32px));
+    color: var(--text, #f2f2f2);
+}
+
+.fv-dashboard-advanced-preview .preview-outbox {
+    display: grid;
+    gap: 10px;
+}
+
+.fv-dashboard-advanced-preview-header {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.fv-dashboard-advanced-preview-header img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.fv-dashboard-advanced-preview-title {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.fv-dashboard-advanced-preview-subtitle,
+.fv-dashboard-advanced-preview-muted {
+    color: var(--gray-text, #b8b8b8);
+    font-size: 12px;
+}
+
+.fv-dashboard-advanced-preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.fv-dashboard-advanced-preview-actions button,
+.fv-dashboard-advanced-preview-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 26px;
+    padding: 0 8px;
+    border: 0 !important;
+    border-radius: 5px;
+    background: var(--table-row-bg-hover, rgba(255, 255, 255, 0.08)) !important;
+    color: inherit;
+    text-decoration: none;
+}
+
+.fv-dashboard-advanced-preview-actions button:hover,
+.fv-dashboard-advanced-preview-actions a:hover {
+    color: var(--orange, #f0a30a);
+}
+
+.fv-dashboard-advanced-preview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 12px;
+    font-size: 12px;
+}
+
+.fv-dashboard-advanced-preview-field {
+    min-width: 0;
+}
+
+.fv-dashboard-advanced-preview-label {
+    color: var(--gray-text, #b8b8b8);
+    display: block;
+}
+
+.fv-dashboard-advanced-preview-value {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-dashboard-advanced-preview-mono {
+    font-family: Consolas, Monaco, monospace;
+}
+
+.fv-dashboard-advanced-preview-graphs {
+    display: grid;
+    gap: 8px;
+}
+
+.fv-dashboard-advanced-preview-graphs canvas {
+    width: 100% !important;
+    height: 90px !important;
+}
+
+.fv-dashboard-advanced-preview-list {
+    display: grid;
+    gap: 4px;
+    max-height: 130px;
+    overflow: auto;
+    font-size: 12px;
+}
+
+.fv-dashboard-advanced-preview-list div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-dashboard-advanced-preview .is-hidden {
+    display: none !important;
+}
+
 body.fvplus-performance-mode .folder-showcase,
 body.fvplus-performance-mode .folder-showcase *,
 body.fvplus-performance-mode .tooltipster-base,

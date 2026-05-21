@@ -21,7 +21,7 @@ test('docker legacy CSS selector contract remains stable for folder rows', () =>
 });
 
 test('docker legacy CSS selector contract remains stable for tooltip content', () => {
-    assert.match(dockerJs, /class="preview-outbox preview-outbox-\$\{ct\.shortId\}"/);
+    assert.match(dockerJs, /class="preview-outbox preview-outbox-\$\{safeShortId\}"/);
     assert.match(dockerJs, /class="action-info"/);
     assert.match(dockerJs, /class="info-ct"/);
     assert.match(dockerJs, /theme: \['tooltipster-docker-folder'\]/);

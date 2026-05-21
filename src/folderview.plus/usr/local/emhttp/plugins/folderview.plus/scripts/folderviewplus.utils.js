@@ -59,7 +59,11 @@
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: true
+        privacyMaskPorts: true,
+        previewContext: 'native',
+        previewTrigger: 'click',
+        previewGraph: 1,
+        previewGraphTime: 60
     };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
@@ -429,6 +433,19 @@
             : DEFAULT_DASHBOARD_PREFS.layout;
     };
 
+    const normalizeDashboardPreviewContext = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (['advanced', '2'].includes(normalized)) {
+            return 'advanced';
+        }
+        return DEFAULT_DASHBOARD_PREFS.previewContext;
+    };
+
+    const normalizeDashboardPreviewTrigger = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['hover', '1'].includes(normalized) ? 'hover' : DEFAULT_DASHBOARD_PREFS.previewTrigger;
+    };
+
     const normalizeDashboardOverflowMode = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return DASHBOARD_OVERFLOW_OPTIONS.includes(normalized) ? normalized : 'default';
@@ -731,7 +748,11 @@
                 : incomingDashboard.privacyMaskLocalIps !== false,
             privacyMaskPorts: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskPorts')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskPorts
-                : incomingDashboard.privacyMaskPorts !== false
+                : incomingDashboard.privacyMaskPorts !== false,
+            previewContext: normalizeDashboardPreviewContext(incomingDashboard.previewContext),
+            previewTrigger: normalizeDashboardPreviewTrigger(incomingDashboard.previewTrigger),
+            previewGraph: clampNumber(incomingDashboard.previewGraph, 0, 4, DEFAULT_DASHBOARD_PREFS.previewGraph),
+            previewGraphTime: clampNumber(incomingDashboard.previewGraphTime, 5, 600, DEFAULT_DASHBOARD_PREFS.previewGraphTime)
         };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {

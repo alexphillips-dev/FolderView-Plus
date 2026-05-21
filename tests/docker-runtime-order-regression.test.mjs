@@ -148,3 +148,13 @@ test('docker order sync uses prefs-ordered folders when explicit sort or pinning
     assert.match(libPhp, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
     assert.match(libPhp, /foreach \(\$orderedFolders as \$folderId => \$folder\) \{/);
 });
+
+test('docker order sync reads but does not write Docker userprefs', () => {
+    const syncMatch = libPhp.match(/function syncContainerOrderUnlocked\(\): void \{([\s\S]*?)\n    \}\n\n    function syncContainerOrder/);
+    assert.ok(syncMatch, 'syncContainerOrderUnlocked body should be present');
+    const body = syncMatch[1];
+    assert.match(body, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
+    assert.match(body, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);
+    assert.doesNotMatch(body, /file_put_contents\(\$prefsFile/);
+    assert.doesNotMatch(body, /wrote userprefs\.cfg/);
+});

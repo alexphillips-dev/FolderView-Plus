@@ -20,6 +20,7 @@ const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plug
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
 const dockerTreeExplorerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js');
 const dockerOrbitViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js');
+const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCommandViewCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.command-view.css');
 const dockerTreeExplorerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.tree-explorer.css');
@@ -43,6 +44,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
     const treeExplorerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js');
     const orbitViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js');
+    const nativeOrganizerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const commandViewCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.command-view.css');
@@ -64,6 +66,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(commandViewIndex >= 0, 'docker command-view script include is missing');
     assert.ok(treeExplorerIndex >= 0, 'docker tree-explorer script include is missing');
     assert.ok(orbitViewIndex >= 0, 'docker orbit-view script include is missing');
+    assert.ok(nativeOrganizerIndex >= 0, 'native organizer script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(commandViewCssIndex >= 0, 'docker command-view stylesheet include is missing');
@@ -89,13 +92,25 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
     assert.ok(commandViewIndex < treeExplorerIndex, 'docker command-view helpers must load before docker.runtime.tree-explorer.js');
     assert.ok(treeExplorerIndex < orbitViewIndex, 'docker tree-explorer helpers must load before docker.runtime.orbit-view.js');
-    assert.ok(orbitViewIndex < runtimeIndex, 'docker orbit-view helpers must load before docker.js');
+    assert.ok(orbitViewIndex < nativeOrganizerIndex, 'docker orbit-view helpers must load before native organizer helper');
+    assert.ok(nativeOrganizerIndex < runtimeIndex, 'native organizer helper must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(sharedCssIndex < commandViewCssIndex, 'shared runtime stylesheet must load before docker.command-view.css');
     assert.ok(commandViewCssIndex < treeExplorerCssIndex, 'docker command-view stylesheet must load before docker.tree-explorer.css');
     assert.ok(treeExplorerCssIndex < orbitViewCssIndex, 'docker tree-explorer stylesheet must load before docker.orbit-view.css');
     assert.ok(orbitViewCssIndex < dockerCssIndex, 'docker orbit-view stylesheet must load before docker.css');
+});
+
+test('native organizer helper exposes best-effort GraphQL sync contract', () => {
+    assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizer = factory\(root\);/);
+    assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizerModuleLoaded = true;/);
+    assert.match(nativeOrganizerJs, /const graphQL = async \(query, variables = null\) =>/);
+    assert.match(nativeOrganizerJs, /fetch\('\/graphql'/);
+    assert.match(nativeOrganizerJs, /const syncDockerOrganizer = async \(folders = \{\}, options = \{\}\) =>/);
+    assert.match(nativeOrganizerJs, /setDockerFolderChildren/);
+    assert.match(nativeOrganizerJs, /createDockerFolderWithItems/);
+    assert.match(dockerJs, /FolderViewPlusNativeOrganizer\.syncDockerOrganizer\(globalFolders, \{ source: 'docker-page' \}\)/);
 });
 
 test('docker extracted helper modules export createApi entry points with safe global fallbacks', () => {

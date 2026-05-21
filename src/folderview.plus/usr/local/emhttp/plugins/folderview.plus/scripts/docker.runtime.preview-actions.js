@@ -239,6 +239,10 @@
                 legacyToneClass: 'red-text'
             };
         };
+        const normalizePreviewStatusMode = (value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+        };
 
         const clearDockerRuntimeStateClasses = ($elements) => {
             if (!$elements || !$elements.length) {
@@ -283,6 +287,18 @@
                 $inlineStatus.find('i.fa').first()
                     .removeClass('fa-play fa-pause fa-square')
                     .addClass(`fa ${statusMeta.icon}`);
+            }
+            const $iconStatus = $outer.find('.fv-preview-icon-status').first();
+            if ($iconStatus.length) {
+                clearDockerRuntimeStateClasses($iconStatus);
+                $iconStatus
+                    .addClass(statusMeta.compactClassName)
+                    .attr('title', localizedLabel)
+                    .attr('data-fv-runtime-state', statusMeta.key);
+                $iconStatus.find('i.fa').first()
+                    .removeClass('fa-play fa-pause fa-square')
+                    .addClass(`fa ${statusMeta.icon}`);
+                $iconStatus.find('span.state').first().text(` ${localizedLabel}`);
             }
         };
 
@@ -457,6 +473,17 @@
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
                 syncDockerPreviewStatus($target, entry);
                 syncDockerPreviewUpdateHighlight($target, settings, entry);
+                if (Number(settings?.preview || 0) === 2) {
+                    const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
+                    const $outer = $target.hasClass('outer') ? $target : $target.closest('span.outer').first();
+                    const $img = $outer.find('img.img').first();
+                    $outer.find('.fv-preview-icon-status').toggleClass('fv-preview-status-hidden', previewStatusMode !== 'symbol');
+                    if (previewStatusMode === 'grayscale' && entry?.state !== true) {
+                        $img.css('filter', 'grayscale(100%)');
+                    } else if (settings?.preview_grayscale !== true) {
+                        $img.css('filter', '');
+                    }
+                }
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });

@@ -102,6 +102,9 @@
                     preview_update: settings.preview_update === true,
                     preview_text_width: String(settings.preview_text_width || ''),
                     preview_grayscale: settings.preview_grayscale === true,
+                    preview_status: ['none', 'symbol', 'grayscale'].includes(String(settings.preview_status || '').trim().toLowerCase())
+                        ? String(settings.preview_status || '').trim().toLowerCase()
+                        : 'symbol',
                     preview_webui: settings.preview_webui === true,
                     preview_logs: settings.preview_logs === true,
                     preview_console: settings.preview_console === true,

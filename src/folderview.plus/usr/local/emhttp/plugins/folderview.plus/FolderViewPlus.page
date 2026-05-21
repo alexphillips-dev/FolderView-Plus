@@ -272,6 +272,34 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
+                    <label class="setting-select" for="docker-dashboard-preview-context">
+                        <span>Container preview</span>
+                        <select id="docker-dashboard-preview-context" onchange="changeDashboardPref('docker', 'previewContext', this.value)">
+                            <option value="native">Native menu</option>
+                            <option value="advanced">Advanced popup</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-trigger-row" class="setting-select" for="docker-dashboard-preview-trigger">
+                        <span>Preview activation</span>
+                        <select id="docker-dashboard-preview-trigger" onchange="changeDashboardPref('docker', 'previewTrigger', this.value)">
+                            <option value="click">Click</option>
+                            <option value="hover">Hover</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-graph-row" class="setting-select" for="docker-dashboard-preview-graph">
+                        <span>Preview graph</span>
+                        <select id="docker-dashboard-preview-graph" onchange="changeDashboardPref('docker', 'previewGraph', this.value)">
+                            <option value="0">None</option>
+                            <option value="1">Combined</option>
+                            <option value="2">Split</option>
+                            <option value="3">CPU only</option>
+                            <option value="4">MEM only</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-graph-time-row" class="setting-inline-number" for="docker-dashboard-preview-graph-time">
+                        <span>Graph time (sec)</span>
+                        <input id="docker-dashboard-preview-graph-time" type="number" min="5" max="600" step="5" onchange="changeDashboardPref('docker', 'previewGraphTime', this.value)">
+                    </label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                     <div class="settings-privacy-section">
                         <div class="settings-privacy-title">Privacy mode</div>

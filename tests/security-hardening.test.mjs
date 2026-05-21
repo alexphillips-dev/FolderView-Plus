@@ -15,10 +15,12 @@ const pluginPageSources = pluginPageFiles.map((entry) => ({
 }));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libDiagnosticsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
@@ -52,6 +54,24 @@ test('backup endpoint supports guarded POST download and legacy fallback', () =>
     assert.match(backupPhp, /if \(\$action === 'download'\)/);
     assert.match(backupPhp, /X-FV-Download-Mode: legacy-get/);
     assert.match(backupPhp, /X-Content-Type-Options: nosniff/);
+});
+
+test('docker preview graph listeners and dashboard cpu fallback are guarded', () => {
+    assert.match(dockerJs, /let CPU = \[\]; let MEM = \[\]; let charts = \[\]; let tootltipObserver; let attachedTooltipStatsListener = null;/);
+    assert.match(dockerJs, /!chart \|\| !chart\.canvas \|\| !document\.body\.contains\(chart\.canvas\)/);
+    assert.match(dockerJs, /window\.dockerload && typeof window\.dockerload\.addEventListener === 'function'/);
+    assert.match(dockerJs, /attachedTooltipStatsListener === 'sse' && window\.dockerload && typeof window\.dockerload\.removeEventListener === 'function'/);
+    assert.match(dashboardJs, /refreshDashboardDockerCpuCores\(\);/);
+    assert.match(dashboardJs, /window\.fvplusCpuCores = dashboardDockerCpuCores;/);
+});
+
+test('native organizer sync is best-effort and represented in diagnostics', () => {
+    assert.match(nativeOrganizerJs, /organizerSyncDone = true;/);
+    assert.match(nativeOrganizerJs, /catch \(error\) \{[\s\S]*reason: String\(error\?\.message \|\| error \|\| 'organizer_sync_failed'\)/);
+    assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
+    assert.match(libDiagnosticsPhp, /'clientModule'\s*=>\s*'folderviewplus\.native-organizer\.js'/);
+    assert.match(libDiagnosticsPhp, /'nativeOrganizer'\s*=>\s*diagnosticsBuildNativeOrganizerStatus\(\)/);
 });
 
 test('plugin pages emit request token meta tag', () => {
@@ -206,6 +226,21 @@ test('external links and popup actions enforce noopener protections', () => {
     assert.match(dashboardJs, /openWebUiInNewTab\(webUiUrl\)/);
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
+});
+
+test('docker advanced popup sanitizes runtime metadata before rendering', () => {
+    assert.match(dockerJs, /const getSafeExternalUrl = \(value\) => \{/);
+    assert.match(dockerJs, /const safeIcon = sanitizeImageSrc\(labels\['net\.unraid\.docker\.icon'\] \|\| ''\);/);
+    assert.match(dockerJs, /const safeContainerName = escapeHtml\(containerName\);/);
+    assert.match(dockerJs, /const containerNameArg = escapeHtml\(JSON\.stringify\(containerName\)\);/);
+    assert.match(dockerJs, /const buildDockerBindMountMappingsHtml = \(mounts = \[\]\) => \{/);
+    assert.match(dockerJs, /const destination = escapeHtml\(String\(entry\?\.Destination \|\| ''\)\.trim\(\) \|\| 'unknown'\);/);
+    assert.match(dockerJs, /href="\$\{safeReadMeUrl\}"/);
+    assert.match(dockerJs, /title="\$\{safeImage\}"/);
+    assert.doesNotMatch(dockerJs, /src="\$\{labels\['net\.unraid\.docker\.icon'\] \|\| ''\}"/);
+    assert.doesNotMatch(dockerJs, /\$\{runtimeEntry\.info\.Name\}<\/span>/);
+    assert.doesNotMatch(dockerJs, /runtimeEntry\.Mounts\?\.filter\(e => e\.Type==='bind'\)\.map\(e=>`\$\{e\.Destination\}/);
+    assert.doesNotMatch(dockerJs, /href="\$\{runtimeEntry\.info\.(?:ReadMe|Project|Support|registry|DonateLink)\}"/);
 });
 
 test('dashboard script is wrapped in a private scope to avoid global symbol collisions', () => {

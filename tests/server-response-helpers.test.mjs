@@ -168,8 +168,9 @@ test('lib.php coalesces docker order sync and uses lightweight state snapshots',
     assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return;/);
     assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
     assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
-    assert.match(libPhp, /\$currentPrefsRaw = @file_get_contents\(\$prefsFile\);/);
-    assert.match(libPhp, /if \(\(string\)\$currentPrefsRaw !== \$ini\) \{/);
+    assert.match(libPhp, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);
+    assert.match(libPhp, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
+    assert.doesNotMatch(libPhp, /file_put_contents\(\$prefsFile/);
     assert.match(libPhp, /if \(\(string\)\$currentAutoStartContent !== \$nextAutoStartContent\) \{/);
 });
 

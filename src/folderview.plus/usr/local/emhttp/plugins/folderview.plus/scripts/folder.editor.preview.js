@@ -63,6 +63,9 @@
             const memberMap = getMemberMapByName();
             const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
             const previewMode = Number(form.preview?.value || 0);
+            const previewStatusMode = ['none', 'symbol', 'grayscale'].includes(String(form.preview_status?.value || '').trim().toLowerCase())
+                ? String(form.preview_status?.value || '').trim().toLowerCase()
+                : 'symbol';
             const rowsLimit = normalizePreviewRowLimit(form.preview_rows?.value);
             const renderLimit = rowsLimit === 0 ? 10 : Math.max(4, Math.min(10, rowsLimit * 4));
             const sampleMembers = selectedMembers.slice(0, renderLimit);
@@ -89,12 +92,14 @@
                         const state = buildSampleMemberState(member, index);
                         const stateLabel = escapeHtml(state.label);
                         const stateColor = escapeHtml(state.color);
-                        const imageStyle = form.preview_grayscale?.checked === true ? ' style="filter: grayscale(100%);"' : '';
+                        const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' style="filter: grayscale(100%);"' : '';
                         return `
                             <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
                                 <img src="${memberIcon}" alt="" onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
                                 ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
-                                ${previewMode === 2 ? '' : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
+                                ${previewMode === 2
+                                    ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" style="color:${stateColor};" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
+                                    : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
                             </span>
                         `;
                     }).join('')

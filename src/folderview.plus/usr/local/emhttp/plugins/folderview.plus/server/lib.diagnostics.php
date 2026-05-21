@@ -2005,6 +2005,22 @@
         ];
     }
 
+    function diagnosticsBuildNativeOrganizerStatus(): array {
+        return [
+            'name' => 'Unraid Docker Organizer',
+            'graphqlEndpoint' => '/graphql',
+            'clientModule' => 'folderviewplus.native-organizer.js',
+            'mode' => 'best_effort_client_sync',
+            'nonFatal' => true,
+            'detectQuery' => '{ info { os { release } cpu { cores } } }',
+            'organizerQuery' => '{ docker { organizer { views { id flatEntries { id type name childrenIds } } } } }',
+            'mutations' => [
+                'setDockerFolderChildren',
+                'createDockerFolderWithItems'
+            ]
+        ];
+    }
+
     function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
@@ -2098,6 +2114,7 @@
             'checkedAt' => gmdate('c'),
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
+            'nativeOrganizer' => diagnosticsBuildNativeOrganizerStatus(),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
             'customIcons' => $customIcons,
             'importExportHistory' => [
@@ -2554,6 +2571,7 @@
                 ),
                 'customIcons' => $customIcons
             ],
+            'nativeOrganizer' => is_array($diagnostics['nativeOrganizer'] ?? null) ? $diagnostics['nativeOrganizer'] : diagnosticsBuildNativeOrganizerStatus(),
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
     }

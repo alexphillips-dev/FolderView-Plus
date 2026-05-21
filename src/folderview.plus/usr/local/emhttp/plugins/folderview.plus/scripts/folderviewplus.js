@@ -6491,7 +6491,11 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         privacyMaskNames: dashboard.privacyMaskNames !== false,
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
-        privacyMaskPorts: dashboard.privacyMaskPorts !== false
+        privacyMaskPorts: dashboard.privacyMaskPorts !== false,
+        previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
+        previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
+        previewGraph: Math.max(0, Math.min(4, Number(dashboard.previewGraph) || 1)),
+        previewGraphTime: Math.max(5, Math.min(600, Number(dashboard.previewGraphTime) || 60))
     };
 };
 
@@ -6501,6 +6505,12 @@ const syncDashboardDependentFields = (type) => {
     $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
+    if (type === 'docker') {
+        const dashboardPreviewAdvanced = $(`#${type}-dashboard-preview-context`).val() === 'advanced';
+        $(`#${type}-dashboard-preview-trigger-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+        $(`#${type}-dashboard-preview-graph-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+        $(`#${type}-dashboard-preview-graph-time-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+    }
 };
 
 const syncRuntimeDependentFields = (type) => {
@@ -6521,6 +6531,10 @@ const renderDashboardControls = (type) => {
         $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
         $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
         $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
+        $('#docker-dashboard-preview-context').val(dashboard.previewContext);
+        $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);
+        $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
+        $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
     }
     syncDashboardDependentFields(type);
 };

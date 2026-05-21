@@ -39,7 +39,11 @@
                 'privacyMaskNames' => true,
                 'privacyMaskContainerIps' => true,
                 'privacyMaskLocalIps' => true,
-                'privacyMaskPorts' => true
+                'privacyMaskPorts' => true,
+                'previewContext' => 'native',
+                'previewTrigger' => 'click',
+                'previewGraph' => 1,
+                'previewGraphTime' => 60
             ],
             'health' => [
                 'cardsEnabled' => true,
@@ -238,6 +242,22 @@
         return 'classic';
     }
 
+    function normalizeDashboardPreviewContext($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['advanced', '2'], true)) {
+            return 'advanced';
+        }
+        return 'native';
+    }
+
+    function normalizeDashboardPreviewTrigger($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['hover', '1'], true)) {
+            return 'hover';
+        }
+        return 'click';
+    }
+
     function normalizeThemeCompatibilityMode($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['auto', 'host', 'safe', 'highcontrast'], true)) {
@@ -349,7 +369,11 @@
                 : normalizeBool($dashboardIncoming['privacyMaskLocalIps'], true),
             'privacyMaskPorts' => !array_key_exists('privacyMaskPorts', $dashboardIncoming)
                 ? true
-                : normalizeBool($dashboardIncoming['privacyMaskPorts'], true)
+                : normalizeBool($dashboardIncoming['privacyMaskPorts'], true),
+            'previewContext' => normalizeDashboardPreviewContext($dashboardIncoming['previewContext'] ?? 'native'),
+            'previewTrigger' => normalizeDashboardPreviewTrigger($dashboardIncoming['previewTrigger'] ?? 'click'),
+            'previewGraph' => normalizeIntInRange($dashboardIncoming['previewGraph'] ?? 1, 0, 4, 1),
+            'previewGraphTime' => normalizeIntInRange($dashboardIncoming['previewGraphTime'] ?? 60, 5, 600, 60)
         ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));

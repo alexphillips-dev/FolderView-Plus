@@ -88,7 +88,11 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: true
+            privacyMaskPorts: true,
+            previewContext: 'native',
+            previewTrigger: 'click',
+            previewGraph: 1,
+            previewGraphTime: 60
         },
         health: {
             cardsEnabled: true,
@@ -244,6 +248,60 @@ const openWebUiInNewTab = (url) => {
     anchor.click();
     anchor.remove();
     return true;
+};
+const dashboardAdvancedPreviewModule = window.FolderViewPlusDashboardAdvancedPreview || null;
+const dashboardAdvancedPreviewApi = dashboardAdvancedPreviewModule && typeof dashboardAdvancedPreviewModule.createApi === 'function'
+    ? dashboardAdvancedPreviewModule.createApi({
+        window,
+        document,
+        $,
+        escapeHtml,
+        sanitizeImageSrc,
+        getSafeWebUiUrl,
+        openWebUiInNewTab
+    })
+    : null;
+const getDashboardAdvancedPreviewSettings = () => {
+    const dashboard = utils.normalizePrefs(folderTypePrefs?.docker || {}).dashboard || {};
+    const graph = Number(dashboard.previewGraph);
+    const graphTime = Number(dashboard.previewGraphTime);
+    return {
+        previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
+        previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
+        previewGraph: Number.isFinite(graph) ? Math.max(0, Math.min(4, Math.round(graph))) : 1,
+        previewGraphTime: Number.isFinite(graphTime) ? Math.max(5, Math.min(600, Math.round(graphTime))) : 60
+    };
+};
+const attachDashboardAdvancedPreviewIfEnabled = ($containerEl, ct, folder, id) => {
+    if (!dashboardAdvancedPreviewApi || typeof dashboardAdvancedPreviewApi.attachAdvancedPreview !== 'function') {
+        return false;
+    }
+    const settings = getDashboardAdvancedPreviewSettings();
+    if (settings.previewContext !== 'advanced') {
+        return false;
+    }
+    if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
+        return false;
+    }
+    const $target = $containerEl.children('span.hand').first().length
+        ? $containerEl.children('span.hand').first()
+        : $containerEl;
+    const folderSettings = folder && typeof folder === 'object' ? (folder.settings || {}) : {};
+    return dashboardAdvancedPreviewApi.attachAdvancedPreview({
+        triggerEl: $target,
+        ct,
+        folder,
+        id,
+        cpus: dashboardDockerCpuCores || window.fvplusCpuCores || window.fv3CpuCores || 1,
+        settings: {
+            previewTrigger: settings.previewTrigger,
+            previewGraph: settings.previewGraph,
+            previewGraphTime: settings.previewGraphTime,
+            preview_webui: folderSettings.preview_webui === true,
+            preview_console: folderSettings.preview_console === true,
+            preview_logs: folderSettings.preview_logs === true
+        }
+    });
 };
 const appendDashboardDockerMemberQuickActions = ($containerEl, ct, settings = {}) => {
     if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
@@ -1145,6 +1203,9 @@ const createFolders = async (types = ['docker', 'vm']) => {
     
         // Assing the folder done to the global object
         globalFolders.docker = foldersDone;
+        if (window.FolderViewPlusNativeOrganizer && typeof window.FolderViewPlusNativeOrganizer.syncDockerOrganizer === 'function') {
+            window.FolderViewPlusNativeOrganizer.syncDockerOrganizer(globalFolders.docker, { source: 'dashboard-page' }).catch(() => {});
+        }
         scheduleDashboardLayoutApplyForType('docker');
         }
         } finally {
@@ -1555,6 +1616,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             }).first();
             element.append($containerEl.addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
             appendDashboardDockerMemberQuickActions($containerEl, ct, folder.settings || {});
+            attachDashboardAdvancedPreviewIfEnabled($containerEl, ct, folder, id);
             
 
             newFolder[container] = {};
@@ -2060,6 +2122,7 @@ let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
+let dashboardDockerCpuCores = 1;
 let lastDashboardStateSignatures = {
     docker: '',
     vm: ''
@@ -2260,6 +2323,18 @@ const applyDashboardRuntimePrefs = () => {
     liveRefreshMs = intervalMs;
     liveRefreshTimer = setInterval(runLiveRefreshTick, intervalMs);
 };
+
+const refreshDashboardDockerCpuCores = () => $.get('/plugins/folderview.plus/server/cpu.php')
+    .then((value) => {
+        const numeric = Number.parseInt(String(value || '').trim(), 10);
+        dashboardDockerCpuCores = Number.isFinite(numeric) && numeric > 0 ? numeric : 1;
+        window.fvplusCpuCores = dashboardDockerCpuCores;
+    }, () => {
+        dashboardDockerCpuCores = Number.parseInt(String(window.fvplusCpuCores || window.fv3CpuCores || 1), 10) || 1;
+        window.fvplusCpuCores = dashboardDockerCpuCores;
+    });
+
+refreshDashboardDockerCpuCores();
 
 const queueCreateFoldersRender = () => {
     if (createFoldersInFlight) {

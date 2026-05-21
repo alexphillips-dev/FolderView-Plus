@@ -607,6 +607,11 @@ const normalizePositiveInt = typeof folderContract?.normalizePositiveInt === 'fu
         return Math.max(min, Math.min(max, Math.round(parsed)));
     });
 
+const normalizePreviewStatusMode = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+};
+
 const extractDropdownStyleValue = typeof folderContract?.extractDropdownStyleValue === 'function'
     ? folderContract.extractDropdownStyleValue
     : ((value, fallbackSource = null) => {
@@ -931,6 +936,7 @@ const buildParentSmartDefaults = (parentFolder) => {
     return {
         icon: String(source?.icon || '').trim(),
         preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
+        preview_status: normalizePreviewStatusMode(settings.preview_status),
         preview_hover: settings.preview_hover === true,
         preview_border: isLegacyPreviewBorderEnabled(settings),
         preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
@@ -3095,6 +3101,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('folder_webui_url', normalizedFolder.settings.folder_webui_url || '');
     setFieldValue('preview', String(normalizedFolder.settings.preview));
     setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
+    setFieldValue('preview_status', normalizePreviewStatusMode(normalizedFolder.settings.preview_status));
     setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
@@ -4288,6 +4295,7 @@ const buildFolderPayloadFromForm = (e) => {
             folder_webui_url: e.folder_webui_url.value.toString(),
             preview: parseInt(e.preview.value.toString()),
             preview_rows: normalizedPreviewRows,
+            preview_status: normalizePreviewStatusMode(e.preview_status?.value),
             previewRows: normalizedPreviewRows,
             preview_hover: e.preview_hover.checked,
             preview_update: e.preview_update.checked,

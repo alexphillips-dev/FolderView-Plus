@@ -347,7 +347,11 @@ test('normalizePrefs provides dashboard defaults', () => {
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: true
+        privacyMaskPorts: true,
+        previewContext: 'native',
+        previewTrigger: 'click',
+        previewGraph: 1,
+        previewGraphTime: 60
     });
 });
 
@@ -370,7 +374,11 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         privacyMaskNames: true,
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
-        privacyMaskPorts: true
+        privacyMaskPorts: true,
+        previewContext: 'native',
+        previewTrigger: 'click',
+        previewGraph: 1,
+        previewGraphTime: 60
     });
     const matrix = utils.normalizePrefs({
         dashboard: {

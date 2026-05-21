@@ -933,6 +933,21 @@ const buildDockerPortMappingsHtml = (ports = []) => {
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
 };
+const buildDockerBindMountMappingLine = (entry = {}) => {
+    const destination = escapeHtml(String(entry?.Destination || '').trim() || 'unknown');
+    const source = escapeHtml(String(entry?.Source || '').trim() || 'unknown');
+    return `${destination} <i class="fa fa-arrows-h"></i> ${source}`;
+};
+const buildDockerBindMountMappingsHtml = (mounts = []) => {
+    const entries = Array.isArray(mounts) ? mounts.filter((entry) => entry?.Type === 'bind') : [];
+    const lines = entries.map((entry) => buildDockerBindMountMappingLine(entry));
+    if (entries.length > 10) {
+        const allLines = lines.join('<br>');
+        const previewLines = lines.slice(0, 10).join('<br>');
+        return `<span class="info-volumes-more" style="display: none;">${allLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${previewLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`;
+    }
+    return `<span class="info-volumes-mono">${lines.join('<br>')}</span>`;
+};
 const findDockerRuntimeInfoByShortId = (shortId) => {
     const target = String(shortId || '').trim();
     if (!target) {
@@ -1004,6 +1019,13 @@ const getSafeWebuiUrl = (value) => {
     const raw = String(value || '').trim();
     return raw && !/^javascript:/i.test(raw) && !hasUnresolvedWebuiTemplateTokens(raw) ? raw : '';
 };
+const getSafeExternalUrl = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw || /^javascript:/i.test(raw) || /^data:/i.test(raw) || /^vbscript:/i.test(raw)) {
+        return '';
+    }
+    return /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '';
+};
 const openWebuiInNewTab = (url) => {
     const safeUrl = getSafeWebuiUrl(url);
     if (!safeUrl) {
@@ -1046,6 +1068,10 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
+const normalizePreviewStatusMode = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+};
 const getFolderPreviewItemsPerRow = (settings = {}) => {
     const compactMultiRow = isCompactMultiRowPreview(settings);
     switch (Number(settings?.preview || 0)) {
@@ -1082,7 +1108,13 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const previewStateMeta = getPreviewContainerStatusMeta(entry);
     const stateLabel = escapeHtml($.i18n(previewStateMeta.key));
     const previewStatusTitle = stateLabel;
-    const imageStyle = settings?.preview_grayscale ? ' style="filter: grayscale(100%);"' : '';
+    const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
+    const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';
+    const shouldGrayscaleByStatus = previewMode === 2 && previewStatusMode === 'grayscale' && entry?.state !== true;
+    const imageStyle = settings?.preview_grayscale || shouldGrayscaleByStatus ? ' style="filter: grayscale(100%);"' : '';
+    const onlyIconStatusMarkup = shouldShowOnlyIconStatus
+        ? `<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${stateLabel}</span></span>`
+        : '';
     const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text fv-preview-update-ready' : '';
     const textWidth = String(settings?.preview_text_width || '').trim();
     const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
@@ -1096,6 +1128,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                        ${onlyIconStatusMarkup}
                     </span>
                 `;
                 triggerSelector = '.fv-docker-preview-card';
@@ -1150,6 +1183,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-2${autostartClass}">
                     <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                    ${onlyIconStatusMarkup}
                 </span>
             `;
             triggerSelector = '.hand';
@@ -2059,9 +2093,34 @@ const buildDockerTooltipContent = (ct) => {
     const tooltipWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.WebUi);
     const tooltipTsWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.TSWebUi);
     const tooltipShowAdvanced = $.cookie('docker_listview_mode') == 'advanced';
+    const safeShortId = escapeHtml(ct?.shortId || runtimeEntry?.shortId || '');
+    const safeImageShortId = escapeHtml(runtimeEntry?.shortImageId || '');
+    const safeIcon = sanitizeImageSrc(labels['net.unraid.docker.icon'] || '');
+    const containerName = String(runtimeEntry?.info?.Name || '').trim();
+    const safeContainerName = escapeHtml(containerName);
+    const shellValue = String(runtimeEntry?.info?.Shell || '/bin/sh').trim() || '/bin/sh';
+    const templatePath = String(runtimeEntry?.info?.template?.path || '').trim();
+    const containerNameArg = escapeHtml(JSON.stringify(containerName));
+    const shellValueArg = escapeHtml(JSON.stringify(shellValue));
+    const templatePathArg = escapeHtml(JSON.stringify(templatePath));
+    const safeImage = escapeHtml(runtimeEntry?.info?.Config?.Image || '');
+    const safeImageVersion = escapeHtml(String(runtimeEntry?.info?.Config?.Image || '').split(':').pop() || '');
+    const safeRepositoryName = escapeHtml(String(runtimeEntry?.info?.Config?.Image || '').split(':').shift() || '');
+    const registryUrl = getSafeExternalUrl(runtimeEntry?.info?.registry);
+    const readMeUrl = getSafeExternalUrl(runtimeEntry?.info?.ReadMe);
+    const projectUrl = getSafeExternalUrl(runtimeEntry?.info?.Project);
+    const supportUrl = getSafeExternalUrl(runtimeEntry?.info?.Support);
+    const donateUrl = getSafeExternalUrl(runtimeEntry?.info?.DonateLink);
+    const safeRegistryUrl = registryUrl ? escapeHtml(registryUrl) : '';
+    const safeReadMeUrl = readMeUrl ? escapeHtml(readMeUrl) : '';
+    const safeProjectUrl = projectUrl ? escapeHtml(projectUrl) : '';
+    const safeSupportUrl = supportUrl ? escapeHtml(supportUrl) : '';
+    const safeDonateUrl = donateUrl ? escapeHtml(donateUrl) : '';
+    const safeTooltipWebUiUrl = tooltipWebUiUrl ? escapeHtml(tooltipWebUiUrl) : '';
+    const safeTooltipTsWebUiUrl = tooltipTsWebUiUrl ? escapeHtml(tooltipTsWebUiUrl) : '';
     const tooltipUpdateHtml = previewActionsApi && typeof previewActionsApi.buildDockerMemberUpdateColumnHtml === 'function'
         ? previewActionsApi.buildDockerMemberUpdateColumnHtml({
-            name: runtimeEntry?.info?.Name,
+            name: containerName,
             manager: runtimeEntry?.info?.State?.manager,
             update: runtimeEntry?.info?.State?.Updated === false
         }, {
@@ -2069,12 +2128,12 @@ const buildDockerTooltipContent = (ct) => {
         })
         : '';
     const $content = $(`
-    <div class="preview-outbox preview-outbox-${ct.shortId}">
+    <div class="preview-outbox preview-outbox-${safeShortId}">
         <div class="first-row">
             <div class="preview-name">
-                <div class="preview-img"><img src="${labels['net.unraid.docker.icon'] || ''}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></div>
+                <div class="preview-img"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></div>
                 <div class="preview-actual-name">
-                    <span class="blue-text appname">${runtimeEntry.info.Name}</span><br>
+                    <span class="blue-text appname">${safeContainerName}</span><br>
                     <i class="fa fa-${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'pause' : 'play') : 'square'} ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'paused' : 'started') : 'stopped'} ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'orange-text' : 'green-text') : 'red-text'}"></i>
                     <span class="state"> ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped')}</span>
                 </div>
@@ -2082,8 +2141,8 @@ const buildDockerTooltipContent = (ct) => {
             <table class="preview-status">
                 <thead class="status-header"><tr><th class="status-header-version">${$.i18n('version')}</th><th class="status-header-stats">CPU/MEM</th><th class="status-header-autostart">${$.i18n('autostart')}</th></tr></thead>
                 <tbody><tr>
-                    <td><div class="status-version">${tooltipUpdateHtml}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
-                    <td><div class="status-stats"><span class="cpu-${ct.shortId}">0%</span><div class="usage-disk mm"><span id="cpu-${ct.shortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${ct.shortId}">0 / 0</span></div></td>
+                    <td><div class="status-version">${tooltipUpdateHtml}<br><i class="fa fa-info-circle fa-fw"></i> ${safeImageVersion}</div></td>
+                    <td><div class="status-stats"><span class="cpu-${safeShortId}">0%</span><div class="usage-disk mm"><span id="cpu-${safeShortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${safeShortId}">0 / 0</span></div></td>
                     <td><div class="status-autostart"><input type="checkbox" style="display:none" class="staus-autostart-checkbox"></div></td>
                 </tr></tbody>
             </table>
@@ -2094,48 +2153,48 @@ const buildDockerTooltipContent = (ct) => {
                     <div class="action-left">
                         <ul class="fa-ul">
                             ${(runtimeEntry.info.State.Running && !runtimeEntry.info.State.Paused) ? 
-                                `${tooltipWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
-                                 ${tooltipTsWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipTsWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
-                                 <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '${runtimeEntry.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
+                                `${safeTooltipWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${safeTooltipWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
+                                 ${safeTooltipTsWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${safeTooltipTsWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
+                                 <li><a onclick="event.preventDefault(); openTerminal('docker', ${containerNameArg}, ${shellValueArg});"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
-                            ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
-                                `${runtimeEntry.info.State.Paused ? `<li><a onclick="event.preventDefault(); eventControl({action:'resume', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
-                                    `<li><a onclick="event.preventDefault(); eventControl({action:'stop', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-stop" aria-hidden="true"></i> ${$.i18n('stop')}</a></li>
-                                     <li><a onclick="event.preventDefault(); eventControl({action:'pause', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-pause" aria-hidden="true"></i> ${$.i18n('pause')}</a></li>`}
-                            <li><a onclick="event.preventDefault(); eventControl({action:'restart', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-refresh" aria-hidden="true"></i> ${$.i18n('restart')}</a></li>`}
-                            <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '.log');"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
-                            ${runtimeEntry.info.template ? `<li><a onclick="event.preventDefault(); editContainer('${runtimeEntry.info.Name}', '${runtimeEntry.info.template.path}');"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
-                            <li><a onclick="event.preventDefault(); rmContainer('${runtimeEntry.info.Name}', '${runtimeEntry.shortImageId}', '${runtimeEntry.shortId}');"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
+                            ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
+                                `${runtimeEntry.info.State.Paused ? `<li><a onclick="event.preventDefault(); eventControl({action:'resume', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
+                                    `<li><a onclick="event.preventDefault(); eventControl({action:'stop', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-stop" aria-hidden="true"></i> ${$.i18n('stop')}</a></li>
+                                     <li><a onclick="event.preventDefault(); eventControl({action:'pause', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-pause" aria-hidden="true"></i> ${$.i18n('pause')}</a></li>`}
+                            <li><a onclick="event.preventDefault(); eventControl({action:'restart', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-refresh" aria-hidden="true"></i> ${$.i18n('restart')}</a></li>`}
+                            <li><a onclick="event.preventDefault(); openTerminal('docker', ${containerNameArg}, '.log');"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
+                            ${runtimeEntry.info.template ? `<li><a onclick="event.preventDefault(); editContainer(${containerNameArg}, ${templatePathArg});"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
+                            <li><a onclick="event.preventDefault(); rmContainer(${containerNameArg}, '${safeImageShortId}', '${safeShortId}');"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
                         </ul>
                     </div>
                     <div class="action-right">
                         <ul class="fa-ul">
-                            ${runtimeEntry.info.ReadMe ? `<li><a href="${runtimeEntry.info.ReadMe}" target="_blank" rel="noopener noreferrer"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
-                            ${runtimeEntry.info.Project ? `<li><a href="${runtimeEntry.info.Project}" target="_blank" rel="noopener noreferrer"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
-                            ${runtimeEntry.info.Support ? `<li><a href="${runtimeEntry.info.Support}" target="_blank" rel="noopener noreferrer"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
-                            ${runtimeEntry.info.registry ? `<li><a href="${runtimeEntry.info.registry}" target="_blank" rel="noopener noreferrer"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
-                            ${runtimeEntry.info.DonateLink ? `<li><a href="${runtimeEntry.info.DonateLink}" target="_blank" rel="noopener noreferrer"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
+                            ${safeReadMeUrl ? `<li><a href="${safeReadMeUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
+                            ${safeProjectUrl ? `<li><a href="${safeProjectUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
+                            ${safeSupportUrl ? `<li><a href="${safeSupportUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
+                            ${safeRegistryUrl ? `<li><a href="${safeRegistryUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
+                            ${safeDonateUrl ? `<li><a href="${safeDonateUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
                         </ul>
                     </div>
                 </div>
                 <div class="info-ct">
-                    <span class="container-id">${$.i18n('container-id')}: ${runtimeEntry.shortId}</span><br>
-                    <span class="repo">${$.i18n('by')}: <a target="_blank" rel="noopener noreferrer" ${runtimeEntry.info.registry ? `href="${runtimeEntry.info.registry}"` : ''} >${runtimeEntry.info.Config.Image.split(':').shift()}</a></span>
+                    <span class="container-id">${$.i18n('container-id')}: ${safeShortId}</span><br>
+                    <span class="repo">${$.i18n('by')}: <a target="_blank" rel="noopener noreferrer" ${safeRegistryUrl ? `href="${safeRegistryUrl}"` : ''} title="${safeImage}">${safeRepositoryName}</a></span>
                 </div>
             </div>
             <div class="info-section">
                 <ul class="info-tabs">
-                    <li><a class="tabs-graph localURL" href="#comb-grapth-${ct.shortId}">${$.i18n('graph')}</a></li>
-                    <li><a class="tabs-cpu-graph localURL" href="#cpu-grapth-${ct.shortId}">${$.i18n('cpu-graph')}</a></li>
-                    <li><a class="tabs-mem-graph localURL" href="#mem-grapth-${ct.shortId}">${$.i18n('mem-graph')}</a></li>
-                    <li><a class="tabs-ports localURL" href="#info-ports-${ct.shortId}">${$.i18n('port-mappings')}</a></li>
-                    <li><a class="tabs-volumes localURL" href="#info-volumes-${ct.shortId}">${$.i18n('volume-mappings')}</a></li>
+                    <li><a class="tabs-graph localURL" href="#comb-grapth-${safeShortId}">${$.i18n('graph')}</a></li>
+                    <li><a class="tabs-cpu-graph localURL" href="#cpu-grapth-${safeShortId}">${$.i18n('cpu-graph')}</a></li>
+                    <li><a class="tabs-mem-graph localURL" href="#mem-grapth-${safeShortId}">${$.i18n('mem-graph')}</a></li>
+                    <li><a class="tabs-ports localURL" href="#info-ports-${safeShortId}">${$.i18n('port-mappings')}</a></li>
+                    <li><a class="tabs-volumes localURL" href="#info-volumes-${safeShortId}">${$.i18n('volume-mappings')}</a></li>
                 </ul>
-                <div class="comb-grapth-${ct.shortId} comb-stat-grapth" id="comb-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
-                <div class="cpu-grapth-${ct.shortId} cpu-stat-grapth" id="cpu-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
-                <div class="mem-grapth-${ct.shortId} mem-stat-grapth" id="mem-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
-                <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${buildDockerPortMappingsHtml(runtimeEntry.info.Ports)}</div>
-                <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
+                <div class="comb-grapth-${safeShortId} comb-stat-grapth" id="comb-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
+                <div class="cpu-grapth-${safeShortId} cpu-stat-grapth" id="cpu-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
+                <div class="mem-grapth-${safeShortId} mem-stat-grapth" id="mem-grapth-${safeShortId}" style="display: none;"><canvas></canvas></div>
+                <div class="info-ports" id="info-ports-${safeShortId}" style="display: none;">${buildDockerPortMappingsHtml(runtimeEntry.info.Ports)}</div>
+                <div class="info-volumes" id="info-volumes-${safeShortId}" style="display: none;">${buildDockerBindMountMappingsHtml(runtimeEntry.Mounts)}</div>
             </div>
             </div>
         </div>
@@ -3918,6 +3977,13 @@ const createFolders = async () => {
     // Assign the folder done to the global object
     globalFolders = foldersDone;
     dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
+    if (window.FolderViewPlusNativeOrganizer && typeof window.FolderViewPlusNativeOrganizer.syncDockerOrganizer === 'function') {
+        window.FolderViewPlusNativeOrganizer.syncDockerOrganizer(globalFolders, { source: 'docker-page' }).then((result) => {
+            if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Native organizer sync result:', result);
+        }).catch((error) => {
+            if (FOLDER_VIEW_DEBUG_MODE) console.warn('[FV3_DEBUG] Native organizer sync failed:', error);
+        });
+    }
     applyNestedFolderHierarchy();
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
@@ -4430,7 +4496,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Container info (ct):`, JSON.parse(JSON.stringify(ct)));
 
 
-            let CPU = []; let MEM = []; let charts = []; let tootltipObserver;
+            let CPU = []; let MEM = []; let charts = []; let tootltipObserver; let attachedTooltipStatsListener = null;
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Initialized CPU, MEM, charts, tootltipObserver for tooltip.`);
             const graphListener = (e) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Received message:`, e.data ? e.data : e); // SSE e.data
@@ -4472,7 +4538,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 }
 
                 for (const chart of charts) {
-                    chart.update('quiet');
+                    if (!chart || !chart.canvas || !document.body.contains(chart.canvas)) {
+                        continue;
+                    }
+                    try {
+                        chart.update('quiet');
+                    } catch (error) {
+                        if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Chart update skipped.`, error);
+                    }
                 }
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
@@ -4706,8 +4779,11 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                              if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Autostart switch placeholder not found as expected in tooltip.`);
                         }
 
-                        dockerload.addEventListener('message', graphListener);
-                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Added graphListener to dockerload SSE.`);
+                        if (!attachedTooltipStatsListener && window.dockerload && typeof window.dockerload.addEventListener === 'function') {
+                            window.dockerload.addEventListener('message', graphListener);
+                            attachedTooltipStatsListener = 'sse';
+                            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Added graphListener to dockerload SSE.`);
+                        }
 
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Dispatching docker-tooltip-ready-end event.`);
                         folderEvents.dispatchEvent(new CustomEvent('docker-tooltip-ready-end', {detail: {
@@ -4740,10 +4816,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                                 MEM
                             }
                         }}));
-                        dockerload.removeEventListener('message', graphListener);
-                        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Removed graphListener from dockerload SSE.`);
+                        if (attachedTooltipStatsListener === 'sse' && window.dockerload && typeof window.dockerload.removeEventListener === 'function') {
+                            window.dockerload.removeEventListener('message', graphListener);
+                            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Removed graphListener from dockerload SSE.`);
+                        }
+                        attachedTooltipStatsListener = null;
                         for (const chart of charts) {
-                            chart.destroy();
+                            try {
+                                chart.destroy();
+                            } catch (error) {
+                                if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Chart destroy skipped.`, error);
+                            }
                         }
                         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] Tooltipster (ct: ${ct.shortId}): Destroyed ${charts.length} charts.`);
                         charts = []; 
@@ -4779,6 +4862,20 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         $previewAppName.prepend(
                             $(`<span class="fv-preview-status-inline ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i></span>`)
                         );
+                    }
+                }
+            }
+            if (!compactMultiRowPreview && previewMode === 2 && $previewElementTarget.length) {
+                const previewStatusMode = normalizePreviewStatusMode(folder.settings.preview_status);
+                if (previewStatusMode === 'symbol' && !$previewElementTarget.children('.fv-preview-icon-status').length) {
+                    $previewElementTarget.append(
+                        $(`<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${previewStatusTitle}</span></span>`)
+                    );
+                }
+                if (previewStatusMode === 'grayscale' && newFolder[container_name_in_folder].state !== true) {
+                    const $img = $previewElementTarget.children('img.img').first();
+                    if ($img.length) {
+                        $img.css('filter', 'grayscale(100%)');
                     }
                 }
             }

@@ -4867,10 +4867,13 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             }
             if (!compactMultiRowPreview && previewMode === 2 && $previewElementTarget.length) {
                 const previewStatusMode = normalizePreviewStatusMode(folder.settings.preview_status);
+                const $existingIconStatus = $previewElementTarget.children('.fv-preview-icon-status');
                 if (previewStatusMode === 'symbol' && !$previewElementTarget.children('.fv-preview-icon-status').length) {
                     $previewElementTarget.append(
                         $(`<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${previewStatusTitle}</span></span>`)
                     );
+                } else if (previewStatusMode !== 'symbol' && $existingIconStatus.length) {
+                    $existingIconStatus.remove();
                 }
                 if (previewStatusMode === 'grayscale' && newFolder[container_name_in_folder].state !== true) {
                     const $img = $previewElementTarget.children('img.img').first();

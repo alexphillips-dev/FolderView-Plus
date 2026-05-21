@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.21.02">
-<!ENTITY md5 "0d041be8084eb05e827a4d35e8db8294">
+<!ENTITY version "2026.05.21.03">
+<!ENTITY md5 "b9e6f251c233a5f66115bb6221f31359">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.21.03
+- Fix: Make Docker only-icon preview `Hide status` actively remove existing status badges during live refreshes.
+- Regression guard: Cover the hidden-status refresh path so saved folders do not keep stale status symbols.
+
 
 ###2026.05.21.02
 - Feature: Add opt-in advanced Dashboard member previews with WebUI, console, logs, update, ports, volumes, and CPU/MEM graph details.

@@ -477,7 +477,11 @@
                     const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
                     const $outer = $target.hasClass('outer') ? $target : $target.closest('span.outer').first();
                     const $img = $outer.find('img.img').first();
-                    $outer.find('.fv-preview-icon-status').toggleClass('fv-preview-status-hidden', previewStatusMode !== 'symbol');
+                    if (previewStatusMode === 'symbol') {
+                        $outer.find('.fv-preview-icon-status').removeClass('fv-preview-status-hidden');
+                    } else {
+                        $outer.find('.fv-preview-icon-status').remove();
+                    }
                     if (previewStatusMode === 'grayscale' && entry?.state !== true) {
                         $img.css('filter', 'grayscale(100%)');
                     } else if (settings?.preview_grayscale !== true) {

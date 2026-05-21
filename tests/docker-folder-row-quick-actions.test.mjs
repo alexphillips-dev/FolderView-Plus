@@ -59,7 +59,7 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
     assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
     assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
-    assert.match(dockerPreviewActionsScript, /\$outer\.find\('\.fv-preview-icon-status'\)\.toggleClass\('fv-preview-status-hidden', previewStatusMode !== 'symbol'\);/);
+    assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'symbol'\) \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.removeClass\('fv-preview-status-hidden'\);[\s\S]*\} else \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.remove\(\);/);
     assert.match(dockerPreviewActionsScript, /const resolveDockerMemberUpdateState = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowUpdateColumn = \(\$row,\s*entry = \{\}\) =>/);
@@ -74,6 +74,8 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(dockerScript, /const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';/);
     assert.match(dockerScript, /fv-preview-icon-status/);
+    assert.match(dockerScript, /const \$existingIconStatus = \$previewElementTarget\.children\('\.fv-preview-icon-status'\);/);
+    assert.match(dockerScript, /previewStatusMode !== 'symbol' && \$existingIconStatus\.length/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-icon-status\s*\{/);
     assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);

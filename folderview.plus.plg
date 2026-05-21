@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.20.03">
-<!ENTITY md5 "456193eff190f0576a1963fb65aeb37b">
+<!ENTITY version "2026.05.20.04">
+<!ENTITY md5 "e451d68642f253a95c2c346b6aadf1d1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.20.04
+- Fix: Format localized Docker folder update dialog titles so folder names replace `$1` instead of showing the raw placeholder.
+- Quality: Add regression coverage for folder batch update dialog title formatting.
+
 
 ###2026.05.20.03
 - Fix: Honor per-folder Dashboard WebUI, Console, and Logs action toggles for Docker members.

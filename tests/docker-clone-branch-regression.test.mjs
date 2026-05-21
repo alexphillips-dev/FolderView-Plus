@@ -217,6 +217,37 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     ]);
 });
 
+test('docker folder update dialog formats i18n placeholder titles before opening update dialog', () => {
+    const openDockerCalls = [];
+    const actionsApi = createActionsApi({
+        $: {
+            i18n: (key) => {
+                if (key === 'updating') {
+                    return 'Updating $1 folder containers';
+                }
+                return key;
+            },
+            post: () => ({
+                promise: async () => ({})
+            })
+        },
+        openDocker: (...args) => {
+            openDockerCalls.push(args);
+        },
+        getGlobalFolders: () => ({
+            media: { name: 'Media' }
+        }),
+        getScopedRuntimeContainersForFolder: () => ({
+            sonarr: { managed: true, update: true }
+        })
+    });
+
+    actionsApi.updateFolder('media');
+
+    assert.equal(openDockerCalls.length, 1);
+    assert.equal(openDockerCalls[0][1], 'Updating Media folder containers');
+});
+
 test('docker branch clone order keeps parent folders ahead of nested descendants', () => {
     const folders = {
         root: { name: 'Root' },

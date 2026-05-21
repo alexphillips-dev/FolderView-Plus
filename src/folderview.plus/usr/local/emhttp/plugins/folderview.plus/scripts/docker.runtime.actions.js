@@ -167,7 +167,7 @@
                 }
                 const localized = String(jq.i18n(safeKey, ...params) || '').trim();
                 return localized && localized !== safeKey
-                    ? localized
+                    ? formatI18nFallback(localized, params)
                     : formatI18nFallback(safeFallback, params);
             } catch (_error) {
                 return formatI18nFallback(safeFallback, params);

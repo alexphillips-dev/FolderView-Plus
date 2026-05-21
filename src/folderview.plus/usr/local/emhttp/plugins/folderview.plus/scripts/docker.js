@@ -929,7 +929,7 @@ const buildDockerPortMappingsHtml = (ports = []) => {
     if (entries.length > 10) {
         const allLines = lines.join('<br>');
         const previewLines = lines.slice(0, 10).join('<br>');
-        return `<span class="info-ports-more" style="display: none;">${allLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`;
+        return `<span class="info-ports-more" style="display: none;">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-less">${$.i18n('compress')}</a></span><span class="info-ports-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-ports-more">${$.i18n('expand')}</a></span>`;
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
 };
@@ -944,7 +944,7 @@ const buildDockerBindMountMappingsHtml = (mounts = []) => {
     if (entries.length > 10) {
         const allLines = lines.join('<br>');
         const previewLines = lines.slice(0, 10).join('<br>');
-        return `<span class="info-volumes-more" style="display: none;">${allLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${previewLines}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`;
+        return `<span class="info-volumes-more" style="display: none;">${allLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-less">${$.i18n('compress')}</a></span><span class="info-volumes-less">${previewLines}<br><a href="#" class="fv-runtime-toggle-info-list" data-show=".info-volumes-more">${$.i18n('expand')}</a></span>`;
     }
     return `<span class="info-volumes-mono">${lines.join('<br>')}</span>`;
 };
@@ -2100,9 +2100,6 @@ const buildDockerTooltipContent = (ct) => {
     const safeContainerName = escapeHtml(containerName);
     const shellValue = String(runtimeEntry?.info?.Shell || '/bin/sh').trim() || '/bin/sh';
     const templatePath = String(runtimeEntry?.info?.template?.path || '').trim();
-    const containerNameArg = escapeHtml(JSON.stringify(containerName));
-    const shellValueArg = escapeHtml(JSON.stringify(shellValue));
-    const templatePathArg = escapeHtml(JSON.stringify(templatePath));
     const safeImage = escapeHtml(runtimeEntry?.info?.Config?.Image || '');
     const safeImageVersion = escapeHtml(String(runtimeEntry?.info?.Config?.Image || '').split(':').pop() || '');
     const safeRepositoryName = escapeHtml(String(runtimeEntry?.info?.Config?.Image || '').split(':').shift() || '');
@@ -2155,16 +2152,16 @@ const buildDockerTooltipContent = (ct) => {
                             ${(runtimeEntry.info.State.Running && !runtimeEntry.info.State.Paused) ? 
                                 `${safeTooltipWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${safeTooltipWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
                                  ${safeTooltipTsWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${safeTooltipTsWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
-                                 <li><a onclick="event.preventDefault(); openTerminal('docker', ${containerNameArg}, ${shellValueArg});"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
+                                 <li><a href="#" class="fv-runtime-action" data-action="console" data-container-name="${safeContainerName}" data-shell-value="${escapeHtml(shellValue)}"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
-                            ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
-                                `${runtimeEntry.info.State.Paused ? `<li><a onclick="event.preventDefault(); eventControl({action:'resume', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
-                                    `<li><a onclick="event.preventDefault(); eventControl({action:'stop', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-stop" aria-hidden="true"></i> ${$.i18n('stop')}</a></li>
-                                     <li><a onclick="event.preventDefault(); eventControl({action:'pause', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-pause" aria-hidden="true"></i> ${$.i18n('pause')}</a></li>`}
-                            <li><a onclick="event.preventDefault(); eventControl({action:'restart', container:'${safeShortId}'}, 'loadlist');"><i class="fa fa-refresh" aria-hidden="true"></i> ${$.i18n('restart')}</a></li>`}
-                            <li><a onclick="event.preventDefault(); openTerminal('docker', ${containerNameArg}, '.log');"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
-                            ${runtimeEntry.info.template ? `<li><a onclick="event.preventDefault(); editContainer(${containerNameArg}, ${templatePathArg});"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
-                            <li><a onclick="event.preventDefault(); rmContainer(${containerNameArg}, '${safeImageShortId}', '${safeShortId}');"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
+                            ${!runtimeEntry.info.State.Running ? `<li><a href="#" class="fv-runtime-action" data-action="start" data-container-id="${safeShortId}"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
+                                `${runtimeEntry.info.State.Paused ? `<li><a href="#" class="fv-runtime-action" data-action="resume" data-container-id="${safeShortId}"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
+                                    `<li><a href="#" class="fv-runtime-action" data-action="stop" data-container-id="${safeShortId}"><i class="fa fa-stop" aria-hidden="true"></i> ${$.i18n('stop')}</a></li>
+                                     <li><a href="#" class="fv-runtime-action" data-action="pause" data-container-id="${safeShortId}"><i class="fa fa-pause" aria-hidden="true"></i> ${$.i18n('pause')}</a></li>`}
+                            <li><a href="#" class="fv-runtime-action" data-action="restart" data-container-id="${safeShortId}"><i class="fa fa-refresh" aria-hidden="true"></i> ${$.i18n('restart')}</a></li>`}
+                            <li><a href="#" class="fv-runtime-action" data-action="logs" data-container-name="${safeContainerName}"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
+                            ${runtimeEntry.info.template ? `<li><a href="#" class="fv-runtime-action" data-action="edit" data-container-name="${safeContainerName}" data-template-path="${escapeHtml(templatePath)}"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
+                            <li><a href="#" class="fv-runtime-action" data-action="remove" data-container-name="${safeContainerName}" data-image-id="${safeImageShortId}" data-container-id="${safeShortId}"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
                         </ul>
                     </div>
                     <div class="action-right">
@@ -2202,6 +2199,39 @@ const buildDockerTooltipContent = (ct) => {
     $content.find('a.fv-runtime-webui-link').on('click', (event) => {
         event.preventDefault();
         openWebuiInNewTab(event.currentTarget?.href || '');
+    });
+    $content.on('click', '.fv-runtime-toggle-info-list', function(event) {
+        event.preventDefault();
+        const $link = $(event.currentTarget);
+        const showSelector = String($link.attr('data-show') || '').trim();
+        if (!showSelector) {
+            return;
+        }
+        $link.parent().css('display', 'none').siblings(showSelector).css('display', 'inline');
+    });
+    $content.on('click', '.fv-runtime-action', function(event) {
+        event.preventDefault();
+        const $link = $(event.currentTarget);
+        const action = String($link.attr('data-action') || '').trim();
+        const containerId = String($link.attr('data-container-id') || '').trim();
+        const actionMap = new Set(['start', 'resume', 'stop', 'pause', 'restart']);
+        if (actionMap.has(action) && containerId) {
+            eventControl({ action, container: containerId }, 'loadlist');
+            return;
+        }
+        const actionContainerName = String($link.attr('data-container-name') || '').trim();
+        if (!actionContainerName) {
+            return;
+        }
+        if (action === 'console') {
+            openTerminal('docker', actionContainerName, String($link.attr('data-shell-value') || '').trim() || '/bin/sh');
+        } else if (action === 'logs') {
+            openTerminal('docker', actionContainerName, '.log');
+        } else if (action === 'edit') {
+            editContainer(actionContainerName, String($link.attr('data-template-path') || '').trim());
+        } else if (action === 'remove') {
+            rmContainer(actionContainerName, String($link.attr('data-image-id') || '').trim(), containerId);
+        }
     });
     return $content;
 };

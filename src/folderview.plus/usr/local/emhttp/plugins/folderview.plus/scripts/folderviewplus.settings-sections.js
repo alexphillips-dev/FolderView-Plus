@@ -77,6 +77,66 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     diagnostics: Object.freeze(['change_history'])
 });
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
+const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
+    docker: Object.freeze([
+        'docker dashboard preview',
+        'advanced popup',
+        'webui console logs',
+        'hide status',
+        'preview status',
+        'only icon status',
+        'folder field size',
+        'name overflow',
+        'dashboard overlap',
+        'folder defaults',
+        'lazy preview'
+    ]),
+    vms: Object.freeze([
+        'vm dashboard preview',
+        'hide status',
+        'preview status',
+        'only icon status',
+        'folder field size',
+        'name overflow',
+        'folder defaults',
+        'lazy preview'
+    ]),
+    'bulk-assignment': Object.freeze([
+        'batch update',
+        'apply update',
+        'bulk update containers',
+        'updating folder containers',
+        'preview changes'
+    ]),
+    'runtime-actions': Object.freeze([
+        'native organizer',
+        'docker organizer',
+        'sync dashboard folders',
+        'runtime actions',
+        'bulk start stop restart pause resume'
+    ]),
+    diagnostics: Object.freeze([
+        'native organizer',
+        'docker organizer',
+        'support bundle',
+        'issue report',
+        'health check',
+        'copy diagnostics'
+    ]),
+    'folder-health': Object.freeze([
+        'health cards',
+        'stopped folders',
+        'empty folders',
+        'updates status',
+        'conflict status'
+    ]),
+    'theme-workspace': Object.freeze([
+        'theme fallback',
+        'custom css',
+        'high contrast',
+        'safe palette'
+    ])
+});
 
 Object.assign(window, {
     ADVANCED_TAB_STORAGE_KEY,
@@ -93,7 +153,8 @@ Object.assign(window, {
     ADVANCED_MODULE_STALE_MS,
     ADVANCED_MODULE_KEYS,
     ADVANCED_MODULE_KEYS_BY_TAB,
-    BASIC_WORKSPACE_SECTION_KEYS
+    BASIC_WORKSPACE_SECTION_KEYS,
+    SETTINGS_SEARCH_ALIASES_BY_SECTION
 });
 
 window.FolderViewPlusSettingsSections = Object.freeze({
@@ -111,6 +172,7 @@ window.FolderViewPlusSettingsSections = Object.freeze({
     ADVANCED_MODULE_STALE_MS,
     ADVANCED_MODULE_KEYS,
     ADVANCED_MODULE_KEYS_BY_TAB,
-    BASIC_WORKSPACE_SECTION_KEYS
+    BASIC_WORKSPACE_SECTION_KEYS,
+    SETTINGS_SEARCH_ALIASES_BY_SECTION
 });
 window.FolderViewPlusSettingsSectionsModuleLoaded = true;

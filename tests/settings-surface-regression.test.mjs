@@ -85,8 +85,19 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const renderFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_BUDGET_MS = Object\.freeze\(\{/);
+    assert.match(diagnosticsJs, /const resolvePerformanceDiagnosticsBudgetMs = \(bucket, type = 'global'\) =>/);
+    assert.match(diagnosticsJs, /overBudget:\s*hasBudget \? maxMs > resolvedBudgetMs : false/);
+    assert.match(diagnosticsJs, /const buildPerformanceBudgetDiagnosticsSummaryCard = \(\) => \{/);
+    assert.match(diagnosticsJs, /label:\s*'Performance Budgets'/);
+    assert.match(diagnosticsJs, /cards\.push\(performanceBudgetCard\);/);
+    assert.match(diagnosticsJs, /<th>Budget<\/th>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsActionCards = \(actions\) =>/);
+    assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
+    assert.match(diagnosticsJs, /const buildNativeOrganizerDiagnosticsSummaryCard = \(diagnostics\) =>/);
+    assert.match(diagnosticsJs, /Native organizer sync status is waiting for the Docker page/);
+    assert.match(diagnosticsJs, /nativeOrganizerCard/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const collectThemeTelemetrySnapshot = \(\) =>/);
@@ -280,7 +291,7 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
     assert.match(settingsJs, /const buildOperationsOverviewHtml = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.buildOperationsOverviewHtml\(\.\.\.args\);/);
-    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
+    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => \{\s*const result = getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);[\s\S]*renderNativeDockerOrganizerStatus\(\);/);
     assert.match(settingsJs, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);
@@ -289,6 +300,8 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.match(settingsCss, /\.fv-operations-stage-grid/);
     assert.match(settingsCss, /\.fv-operations-runtime-output/);
     assert.match(settingsCss, /\.fv-operations-template-library/);
+    assert.match(settingsCss, /\.fv-recovery-empty-state\.is-ok/);
+    assert.match(settingsCss, /\.fv-recovery-empty-state\.is-warning/);
     assert.doesNotMatch(settingsSectionsJs, /'folder-templates':\s*'operations'/);
 });
 

@@ -272,6 +272,15 @@ const getDashboardAdvancedPreviewSettings = () => {
         previewGraphTime: Number.isFinite(graphTime) ? Math.max(5, Math.min(600, Math.round(graphTime))) : 60
     };
 };
+const resolveDashboardPreviewActionPrefs = (settings = {}) => (
+    typeof utils.resolvePreviewActionPrefs === 'function'
+        ? utils.resolvePreviewActionPrefs(settings)
+        : {
+            preview_webui: settings?.preview_webui === true,
+            preview_console: settings?.preview_console === true,
+            preview_logs: settings?.preview_logs === true
+        }
+);
 const attachDashboardAdvancedPreviewIfEnabled = ($containerEl, ct, folder, id) => {
     if (!dashboardAdvancedPreviewApi || typeof dashboardAdvancedPreviewApi.attachAdvancedPreview !== 'function') {
         return false;
@@ -287,6 +296,7 @@ const attachDashboardAdvancedPreviewIfEnabled = ($containerEl, ct, folder, id) =
         ? $containerEl.children('span.hand').first()
         : $containerEl;
     const folderSettings = folder && typeof folder === 'object' ? (folder.settings || {}) : {};
+    const actionPrefs = resolveDashboardPreviewActionPrefs(folderSettings);
     return dashboardAdvancedPreviewApi.attachAdvancedPreview({
         triggerEl: $target,
         ct,
@@ -297,9 +307,7 @@ const attachDashboardAdvancedPreviewIfEnabled = ($containerEl, ct, folder, id) =
             previewTrigger: settings.previewTrigger,
             previewGraph: settings.previewGraph,
             previewGraphTime: settings.previewGraphTime,
-            preview_webui: folderSettings.preview_webui === true,
-            preview_console: folderSettings.preview_console === true,
-            preview_logs: folderSettings.preview_logs === true
+            ...actionPrefs
         }
     });
 };
@@ -307,7 +315,7 @@ const appendDashboardDockerMemberQuickActions = ($containerEl, ct, settings = {}
     if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
         return;
     }
-    const actionPrefs = settings && typeof settings === 'object' ? settings : {};
+    const actionPrefs = resolveDashboardPreviewActionPrefs(settings);
     const allowWebUiAction = actionPrefs.preview_webui === true;
     const allowConsoleAction = actionPrefs.preview_console === true;
     const allowLogsAction = actionPrefs.preview_logs === true;

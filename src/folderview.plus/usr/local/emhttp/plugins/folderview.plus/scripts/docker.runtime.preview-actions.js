@@ -116,15 +116,22 @@
             if (!$target || !$target.length) {
                 return;
             }
-            if (settings.preview_webui && webuiUrl) {
+            const actionPrefs = typeof utils.resolvePreviewActionPrefs === 'function'
+                ? utils.resolvePreviewActionPrefs(settings)
+                : {
+                    preview_webui: settings?.preview_webui === true,
+                    preview_console: settings?.preview_console === true,
+                    preview_logs: settings?.preview_logs === true
+                };
+            if (actionPrefs.preview_webui && webuiUrl) {
                 $target.append(buildDockerPreviewWebuiButton(webuiUrl));
-            } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
+            } else if (shouldRenderPreviewWebuiPlaceholder(settings, actionPrefs.preview_webui === true)) {
                 appendPreviewWebuiPlaceholder($target);
             }
-            if (settings.preview_console && containerName) {
+            if (actionPrefs.preview_console && containerName) {
                 $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
             }
-            if (settings.preview_logs && containerName) {
+            if (actionPrefs.preview_logs && containerName) {
                 $target.append(buildDockerPreviewLogsButton(containerName));
             }
         };

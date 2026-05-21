@@ -49,6 +49,15 @@ test('advanced search and bulk filter state are persisted as part of table ui st
     assert.match(script, /const filterBulkItems = \(type, value = ''\) => \{[\s\S]*filtersByType\[resolvedType\]\.bulk = normalized;/);
 });
 
+test('settings search includes user-facing aliases for recent support terms', () => {
+    assert.match(script, /const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object\.freeze\(\{/);
+    assert.match(script, /docker:\s*Object\.freeze\(\[[\s\S]*'webui console logs'[\s\S]*'hide status'[\s\S]*'dashboard overlap'/);
+    assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
+    assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'native organizer'[\s\S]*'support bundle'/);
+    assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
+    assert.match(script, /getSectionSearchAliases\(section\),[\s\S]*section\.nodes\.map\(\(node\) => node\.textContent \|\| ''\)/);
+});
+
 test('advanced backup and template mutations are lock-guarded', () => {
     assert.match(script, /const withAdvancedOperationLock = async \(type, scope, actionLabel, callback\) =>/);
     assert.match(script, /const createManualBackup = async \(type\) => \{[\s\S]*withAdvancedOperationLock\(resolvedType, 'backups'/);

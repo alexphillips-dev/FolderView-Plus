@@ -67,6 +67,9 @@ test('docker preview graph listeners and dashboard cpu fallback are guarded', ()
 
 test('native organizer sync is best-effort and represented in diagnostics', () => {
     assert.match(nativeOrganizerJs, /organizerSyncDone = true;/);
+    assert.match(nativeOrganizerJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
+    assert.match(nativeOrganizerJs, /const writeStatus = \(status = \{\}\) => \{/);
+    assert.match(nativeOrganizerJs, /root\.localStorage\?\.setItem\?\.\(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON\.stringify\(lastStatus\)\)/);
     assert.match(nativeOrganizerJs, /catch \(error\) \{[\s\S]*reason: String\(error\?\.message \|\| error \|\| 'organizer_sync_failed'\)/);
     assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
@@ -143,7 +146,7 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
     assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
-    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
@@ -232,7 +235,7 @@ test('docker advanced popup sanitizes runtime metadata before rendering', () => 
     assert.match(dockerJs, /const getSafeExternalUrl = \(value\) => \{/);
     assert.match(dockerJs, /const safeIcon = sanitizeImageSrc\(labels\['net\.unraid\.docker\.icon'\] \|\| ''\);/);
     assert.match(dockerJs, /const safeContainerName = escapeHtml\(containerName\);/);
-    assert.match(dockerJs, /const containerNameArg = escapeHtml\(JSON\.stringify\(containerName\)\);/);
+    assert.match(dockerJs, /data-container-name="\$\{safeContainerName\}"/);
     assert.match(dockerJs, /const buildDockerBindMountMappingsHtml = \(mounts = \[\]\) => \{/);
     assert.match(dockerJs, /const destination = escapeHtml\(String\(entry\?\.Destination \|\| ''\)\.trim\(\) \|\| 'unknown'\);/);
     assert.match(dockerJs, /href="\$\{safeReadMeUrl\}"/);
@@ -241,6 +244,20 @@ test('docker advanced popup sanitizes runtime metadata before rendering', () => 
     assert.doesNotMatch(dockerJs, /\$\{runtimeEntry\.info\.Name\}<\/span>/);
     assert.doesNotMatch(dockerJs, /runtimeEntry\.Mounts\?\.filter\(e => e\.Type==='bind'\)\.map\(e=>`\$\{e\.Destination\}/);
     assert.doesNotMatch(dockerJs, /href="\$\{runtimeEntry\.info\.(?:ReadMe|Project|Support|registry|DonateLink)\}"/);
+});
+
+test('docker advanced popup uses delegated actions instead of inline handlers', () => {
+    assert.match(dockerJs, /class="fv-runtime-action" data-action="console"/);
+    assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-action'/);
+    assert.match(dockerJs, /const actionMap = new Set\(\['start', 'resume', 'stop', 'pause', 'restart'\]\);/);
+    assert.match(dockerJs, /eventControl\(\{ action, container: containerId \}, 'loadlist'\);/);
+    assert.match(dockerJs, /openTerminal\('docker', actionContainerName, String\(\$link\.attr\('data-shell-value'\)/);
+    assert.match(dockerJs, /class="fv-runtime-toggle-info-list" data-show="\.info-ports-more"/);
+    assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-toggle-info-list'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); openTerminal\('docker'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); eventControl\(\{action:'(?:start|resume|stop|pause|restart)'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); editContainer\(/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); rmContainer\(/);
 });
 
 test('dashboard script is wrapped in a private scope to avoid global symbol collisions', () => {
@@ -262,6 +279,8 @@ test('dashboard folder cards are click-to-expand for docker and vm widgets', () 
 
 test('dashboard expanded docker members include guarded quick actions', () => {
     assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct,\s*settings = \{\}\) =>/);
+    assert.match(dashboardJs, /const resolveDashboardPreviewActionPrefs = \(settings = \{\}\) =>/);
+    assert.match(dashboardJs, /utils\.resolvePreviewActionPrefs\(settings\)/);
     assert.match(dashboardJs, /const allowWebUiAction = actionPrefs\.preview_webui === true;/);
     assert.match(dashboardJs, /const allowConsoleAction = actionPrefs\.preview_console === true;/);
     assert.match(dashboardJs, /const allowLogsAction = actionPrefs\.preview_logs === true;/);

@@ -409,6 +409,16 @@ test('utils exports shared dashboard metadata and runtime-safe escaping helpers'
     assert.equal(utils.escapeHtml(`a<"b"&'c'`), 'a&lt;&quot;b&quot;&amp;&#39;c&#39;');
     assert.equal(utils.sanitizeImageSrc('javascript:alert(1)'), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageSrc('/plugins/folderview.plus/images/folder-icon.png'), '/plugins/folderview.plus/images/folder-icon.png');
+    assert.deepEqual(utils.resolvePreviewActionPrefs({ preview_webui: true, preview_console: false, preview_logs: true }), {
+        preview_webui: true,
+        preview_console: false,
+        preview_logs: true
+    });
+    assert.deepEqual(utils.resolvePreviewActionPrefs(null), {
+        preview_webui: false,
+        preview_console: false,
+        preview_logs: false
+    });
 });
 
 test('orderFoldersByPrefs keeps child folders nested after parent in sorted output', () => {

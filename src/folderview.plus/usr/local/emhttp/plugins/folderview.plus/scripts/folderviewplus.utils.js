@@ -461,6 +461,15 @@
         return RUNTIME_PAGE_VIEW_MODE_OPTIONS.includes(normalized) ? normalized : 'folderview';
     };
 
+    const resolvePreviewActionPrefs = (settings = {}) => {
+        const source = isPlainObject(settings) ? settings : {};
+        return {
+            preview_webui: source.preview_webui === true,
+            preview_console: source.preview_console === true,
+            preview_logs: source.preview_logs === true
+        };
+    };
+
     const normalizeFolderMembers = (value) => {
         if (Array.isArray(value)) {
             return Array.from(
@@ -2180,6 +2189,7 @@
         normalizeDashboardLayout,
         normalizeDashboardOverflowMode,
         normalizeRuntimePageViewMode,
+        resolvePreviewActionPrefs,
         normalizeThemeCompatibilityMode,
         normalizePrefs,
         orderFoldersByPrefs,

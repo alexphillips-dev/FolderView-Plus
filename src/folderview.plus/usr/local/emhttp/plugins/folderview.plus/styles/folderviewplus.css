@@ -3493,6 +3493,24 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     line-height: 1.45;
 }
 
+.fv-recovery-empty-state.is-ok {
+    border-left: 3px solid var(--fvplus-settings-chip-success-border);
+    padding-left: 0.7rem;
+}
+
+.fv-recovery-empty-state.is-ok > strong {
+    color: var(--fvplus-settings-chip-success);
+}
+
+.fv-recovery-empty-state.is-warning {
+    border-left: 3px solid var(--fvplus-settings-chip-warning-border);
+    padding-left: 0.7rem;
+}
+
+.fv-recovery-empty-state.is-warning > strong {
+    color: var(--fvplus-settings-chip-warning);
+}
+
 .fv-recovery-hidden-helpers {
     display: none !important;
 }
@@ -4798,6 +4816,18 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #backup-compare-dialog .import-count-chip.is-dryrun {
     border-color: var(--fvplus-settings-chip-empty-border);
     color: var(--fvplus-settings-chip-empty);
+}
+
+#import-preview-dialog .import-count-chip.is-risk-normal {
+    border-color: var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
+}
+
+#import-preview-dialog .import-count-chip.is-risk-untrusted,
+#import-preview-dialog .import-count-chip.is-risk-destructive {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
 }
 
 #import-preview-dialog #import-preview-diff {

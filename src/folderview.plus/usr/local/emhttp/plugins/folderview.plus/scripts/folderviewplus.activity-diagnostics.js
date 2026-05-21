@@ -65,6 +65,12 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
+const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
+    refresh: Object.freeze({ docker: 1500, vm: 1500 }),
+    import: Object.freeze({ docker: 5000, vm: 5000 }),
+    wizard: Object.freeze({ apply: 8000 }),
+    settings: Object.freeze({ bootstrap: 2500, diagnostics: 3000 })
+});
 const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
 const performanceDiagnosticsState = {
     refresh: { docker: [], vm: [] },
@@ -77,6 +83,7 @@ const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
+const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv.native.organizer.status.v1';
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
         if (typeof localStorage === 'undefined') {
@@ -238,7 +245,15 @@ const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = 
     renderPerformanceDiagnostics();
 };
 
-const summarizePerformanceDiagnosticsSamples = (samples) => {
+const resolvePerformanceDiagnosticsBudgetMs = (bucket, type = 'global') => {
+    const bucketKey = String(bucket || '').trim().toLowerCase();
+    const typeKey = String(type || 'global').trim().toLowerCase() || 'global';
+    const budget = PERF_DIAGNOSTICS_BUDGET_MS[bucketKey]?.[typeKey];
+    const numericBudget = Number(budget);
+    return Number.isFinite(numericBudget) && numericBudget > 0 ? numericBudget : null;
+};
+
+const summarizePerformanceDiagnosticsSamples = (samples, budgetMs = null) => {
     const list = Array.isArray(samples) ? samples : [];
     if (!list.length) {
         return null;
@@ -250,11 +265,16 @@ const summarizePerformanceDiagnosticsSamples = (samples) => {
         return null;
     }
     const total = durations.reduce((sum, value) => sum + value, 0);
+    const resolvedBudgetMs = Number(budgetMs);
+    const hasBudget = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0;
+    const maxMs = Number(Math.max(...durations).toFixed(2));
     return {
         count: durations.length,
         lastMs: Number(durations[durations.length - 1].toFixed(2)),
         avgMs: Number((total / durations.length).toFixed(2)),
-        maxMs: Number(Math.max(...durations).toFixed(2))
+        maxMs,
+        budgetMs: hasBudget ? Number(resolvedBudgetMs.toFixed(2)) : null,
+        overBudget: hasBudget ? maxMs > resolvedBudgetMs : false
     };
 };
 
@@ -273,16 +293,16 @@ const collectClientPerformanceTelemetry = () => ({
         : '',
     settings: {
         refresh: {
-            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker),
-            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)
+            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker')),
+            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))
         },
         import: {
-            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker),
-            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm)
+            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker')),
+            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))
         },
-        wizardApply: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply),
-        settingsBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap),
-        diagnosticsRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics)
+        wizardApply: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply')),
+        settingsBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap')),
+        diagnosticsRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics'))
     },
     runtime: getRuntimePerfTelemetrySnapshot(),
     requestErrors: getRequestErrorDiagnosticsSnapshot()
@@ -293,20 +313,23 @@ const renderPerformanceDiagnostics = () => {
     if (!host.length) {
         return;
     }
-    const renderRow = (label, summary) => {
+    const renderRow = (label, summary, budgetMs = null) => {
         if (!summary) {
-            return `<tr><th>${escapeHtml(label)}</th><td colspan="4">No samples yet</td></tr>`;
+            return `<tr><th>${escapeHtml(label)}</th><td colspan="5">No samples yet</td></tr>`;
         }
-        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td></tr>`;
+        const resolvedBudgetMs = Number(summary.budgetMs || budgetMs);
+        const budgetLabel = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0 ? `${resolvedBudgetMs}ms` : '-';
+        const statusLabel = summary.overBudget ? 'Over budget' : 'OK';
+        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${escapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
     };
     const rows = [
-        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker)),
-        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)),
-        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker)),
-        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm)),
-        renderRow('Wizard apply', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply)),
-        renderRow('Settings bootstrap', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap)),
-        renderRow('Diagnostics refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics))
+        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker'))),
+        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))),
+        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker'))),
+        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))),
+        renderRow('Wizard apply', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply'))),
+        renderRow('Settings bootstrap', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap'))),
+        renderRow('Diagnostics refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics')))
     ].join('');
     const runtimeSnapshot = getRuntimePerfTelemetrySnapshot();
     const updatedAt = performanceDiagnosticsState.updatedAt > 0
@@ -316,7 +339,7 @@ const renderPerformanceDiagnostics = () => {
         <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
         <table class="fv-perf-table">
             <thead>
-                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th></tr>
+                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th><th>Budget</th></tr>
             </thead>
             <tbody>${rows}</tbody>
         </table>
@@ -987,6 +1010,118 @@ const buildThemeDiagnosticsSummaryCard = () => {
     };
 };
 
+const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
+    const nativeConfig = diagnostics?.nativeOrganizer && typeof diagnostics.nativeOrganizer === 'object'
+        ? diagnostics.nativeOrganizer
+        : null;
+    if (!nativeConfig) {
+        return null;
+    }
+    const browserStatus = readClientDiagnosticsStorageRecord(NATIVE_ORGANIZER_STATUS_STORAGE_KEY);
+    const checkedAt = browserStatus?.checkedAt ? formatCheckedAtLabel(browserStatus.checkedAt) : '';
+    const reason = String(browserStatus?.reason || '').trim();
+    const source = String(browserStatus?.source || '').trim();
+    const created = Number(browserStatus?.created);
+    const updated = Number(browserStatus?.updated);
+    const syncedCount = (Number.isFinite(created) ? created : 0) + (Number.isFinite(updated) ? updated : 0);
+
+    if (!browserStatus) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'warning',
+            headline: 'Native organizer sync status is waiting for the Docker page.',
+            detail: 'Open the Docker page once after updating to capture whether Unraid GraphQL organizer sync is available or skipped.',
+            count: 1
+        };
+    }
+    if (browserStatus.ok === true && browserStatus.skipped !== true) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'healthy',
+            headline: syncedCount > 0
+                ? `Native organizer synced ${syncedCount} folder change${syncedCount === 1 ? '' : 's'}.`
+                : 'Native organizer API detected; no folder changes were needed.',
+            detail: `Last sync ${checkedAt}${source ? ` from ${source}` : ''}.`,
+            count: 0
+        };
+    }
+    if (reason === 'graphql_unavailable' || reason === 'fetch_unavailable') {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'warning',
+            headline: 'Native organizer API was unavailable, so sync was skipped.',
+            detail: `FolderView Plus continued normally. Last checked ${checkedAt || 'recently'}.`,
+            count: 1
+        };
+    }
+    if (browserStatus.ok === true && browserStatus.skipped === true) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'healthy',
+            headline: reason === 'already_synced'
+                ? 'Native organizer sync already ran for this browser session.'
+                : 'Native organizer sync was safely skipped.',
+            detail: `${reason || 'No sync needed'}${checkedAt ? `, checked ${checkedAt}` : ''}.`,
+            count: 0
+        };
+    }
+    return {
+        key: 'nativeOrganizer',
+        label: 'Native Docker Organizer',
+        status: 'error',
+        headline: 'Native organizer sync failed.',
+        detail: reason || 'The client GraphQL sync returned an unexpected failure.',
+        count: 1
+    };
+};
+
+const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
+    const telemetry = collectClientPerformanceTelemetry();
+    const settingsTelemetry = telemetry?.settings && typeof telemetry.settings === 'object'
+        ? telemetry.settings
+        : {};
+    const entries = [
+        { label: 'Docker refresh', summary: settingsTelemetry.refresh?.docker },
+        { label: 'VM refresh', summary: settingsTelemetry.refresh?.vm },
+        { label: 'Docker import', summary: settingsTelemetry.import?.docker },
+        { label: 'VM import', summary: settingsTelemetry.import?.vm },
+        { label: 'Wizard apply', summary: settingsTelemetry.wizardApply },
+        { label: 'Settings bootstrap', summary: settingsTelemetry.settingsBootstrap },
+        { label: 'Diagnostics refresh', summary: settingsTelemetry.diagnosticsRefresh }
+    ].filter((entry) => entry.summary && typeof entry.summary === 'object');
+    if (!entries.length) {
+        return null;
+    }
+    const overBudget = entries.filter((entry) => entry.summary.overBudget === true);
+    const slowest = entries.reduce((current, entry) => {
+        const maxMs = Number(entry.summary.maxMs);
+        const currentMaxMs = Number(current?.summary?.maxMs);
+        if (!Number.isFinite(maxMs)) {
+            return current;
+        }
+        if (!current || !Number.isFinite(currentMaxMs) || maxMs > currentMaxMs) {
+            return entry;
+        }
+        return current;
+    }, null);
+    return {
+        key: 'performanceBudget',
+        label: 'Performance Budgets',
+        status: overBudget.length > 0 ? 'warning' : 'healthy',
+        headline: overBudget.length > 0
+            ? `${overBudget.length} UI operation${overBudget.length === 1 ? '' : 's'} exceeded the local budget.`
+            : 'Recent UI timings are within budget.',
+        detail: slowest
+            ? `Slowest sample: ${slowest.label} ${Number(slowest.summary.maxMs).toFixed(0)}ms.`
+            : 'No slow operation samples were recorded.',
+        count: overBudget.length
+    };
+};
+
 const resolveDiagnosticsRecommendedActions = (diagnostics) => {
     const summary = diagnostics?.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
     const actions = Array.isArray(summary.recommendedActions) ? [...summary.recommendedActions] : [];
@@ -1123,14 +1258,26 @@ const renderDiagnosticsSummary = (diagnostics) => {
 
     const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
     const cards = Array.isArray(summary.cards) ? [...summary.cards] : [];
+    const nativeOrganizerCard = buildNativeOrganizerDiagnosticsSummaryCard(diagnostics);
+    const performanceBudgetCard = buildPerformanceBudgetDiagnosticsSummaryCard();
+    if (nativeOrganizerCard) {
+        cards.push(nativeOrganizerCard);
+    }
+    if (performanceBudgetCard) {
+        cards.push(performanceBudgetCard);
+    }
     if (themeCard) {
         cards.push(themeCard);
     }
 
+    const nativeOrganizerWarningCount = nativeOrganizerCard?.status === 'warning' ? 1 : 0;
+    const nativeOrganizerErrorCount = nativeOrganizerCard?.status === 'error' ? 1 : 0;
+    const performanceBudgetWarningCount = performanceBudgetCard?.status === 'warning' ? 1 : 0;
+    const performanceBudgetErrorCount = performanceBudgetCard?.status === 'error' ? 1 : 0;
     const themeWarningCount = themeCard?.status === 'warning' ? 1 : 0;
     const themeErrorCount = themeCard?.status === 'error' ? 1 : 0;
-    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount;
-    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount;
+    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount + nativeOrganizerErrorCount + performanceBudgetErrorCount;
+    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount + nativeOrganizerWarningCount + performanceBudgetWarningCount;
     const overallStatus = normalizeDiagnosticsStatus(
         errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : summary.status)
     );

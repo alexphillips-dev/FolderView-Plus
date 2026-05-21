@@ -417,9 +417,10 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerRuntimeHierarchyJs, /appendDockerPreviewActionButtons\(\$actionsTarget,\s*\{[\s\S]*preview_webui:\s*allowWebuiQuickAction,[\s\S]*preview_console:\s*allowConsoleQuickAction,[\s\S]*preview_logs:\s*allowLogsQuickAction[\s\S]*\},\s*containerName,\s*shellValue,\s*webuiUrl\);/);
     assert.match(dockerJs, /const previewWebuiUrl = getSafeWebuiUrl\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\);/);
     assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$targetForAppend,\s*folder\.settings,\s*ct\.info\.Name,\s*ct\.info\.Shell,\s*previewWebuiUrl\);/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_webui && webuiUrl\)/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_console && containerName\)/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_logs && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /utils\.resolvePreviewActionPrefs\(settings\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_webui && webuiUrl\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_console && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_logs && containerName\)/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 

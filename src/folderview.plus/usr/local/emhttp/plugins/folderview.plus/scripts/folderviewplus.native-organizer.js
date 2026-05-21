@@ -7,8 +7,26 @@
     root.FolderViewPlusNativeOrganizer = factory(root);
     root.FolderViewPlusNativeOrganizerModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root = {}) {
+    const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv.native.organizer.status.v1';
     let apiAvailable = null;
     let organizerSyncDone = false;
+    let lastStatus = null;
+
+    const writeStatus = (status = {}) => {
+        lastStatus = {
+            checkedAt: new Date().toISOString(),
+            apiAvailable,
+            organizerSyncDone,
+            hasFetch: typeof root.fetch === 'function',
+            ...status
+        };
+        try {
+            root.localStorage?.setItem?.(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON.stringify(lastStatus));
+        } catch (_error) {
+            // Status persistence is diagnostic-only; sync behavior must not depend on localStorage.
+        }
+        return lastStatus;
+    };
 
     const getCsrfToken = () => {
         const metaToken = root.document?.querySelector?.('meta[name="csrf-token"], meta[name="fv-request-token"]');
@@ -42,6 +60,7 @@
         }
         if (typeof root.fetch !== 'function') {
             apiAvailable = false;
+            writeStatus({ ok: false, skipped: true, reason: 'fetch_unavailable', source: 'detect' });
             return apiAvailable;
         }
         try {
@@ -51,8 +70,10 @@
             if (apiAvailable && Number.isFinite(cores) && cores > 0) {
                 root.fvplusCpuCores = cores;
             }
+            writeStatus({ ok: apiAvailable, skipped: !apiAvailable, reason: apiAvailable ? '' : 'graphql_unavailable', source: 'detect' });
         } catch (_error) {
             apiAvailable = false;
+            writeStatus({ ok: false, skipped: true, reason: 'graphql_unavailable', source: 'detect' });
         }
         return apiAvailable;
     };
@@ -66,19 +87,25 @@
 
     const syncDockerOrganizer = async (folders = {}, options = {}) => {
         if (organizerSyncDone && options.force !== true) {
-            return { ok: true, skipped: true, reason: 'already_synced', created: 0, updated: 0 };
+            const result = { ok: true, skipped: true, reason: 'already_synced', created: 0, updated: 0, source: String(options.source || '') };
+            writeStatus(result);
+            return result;
         }
         organizerSyncDone = true;
         const available = await detectApi();
         if (!available) {
-            return { ok: false, skipped: true, reason: 'graphql_unavailable', created: 0, updated: 0 };
+            const result = { ok: false, skipped: true, reason: 'graphql_unavailable', created: 0, updated: 0, source: String(options.source || '') };
+            writeStatus(result);
+            return result;
         }
 
         try {
             const data = await graphQL('{ docker { organizer { views { id flatEntries { id type name childrenIds } } } } }');
             const views = Array.isArray(data?.docker?.organizer?.views) ? data.docker.organizer.views : [];
             if (views.length <= 0) {
-                return { ok: true, skipped: true, reason: 'no_organizer_views', created: 0, updated: 0 };
+                const result = { ok: true, skipped: true, reason: 'no_organizer_views', created: 0, updated: 0, source: String(options.source || '') };
+                writeStatus(result);
+                return result;
             }
 
             const entries = Array.isArray(views[0]?.flatEntries) ? views[0].flatEntries : [];
@@ -130,15 +157,20 @@
                 }
             }
 
-            return { ok: true, skipped: false, reason: '', created, updated, source: String(options.source || '') };
+            const result = { ok: true, skipped: false, reason: '', created, updated, source: String(options.source || '') };
+            writeStatus(result);
+            return result;
         } catch (error) {
-            return {
+            const result = {
                 ok: false,
                 skipped: true,
                 reason: String(error?.message || error || 'organizer_sync_failed'),
                 created: 0,
-                updated: 0
+                updated: 0,
+                source: String(options.source || '')
             };
+            writeStatus(result);
+            return result;
         }
     };
 
@@ -149,10 +181,12 @@
     const getStatus = () => ({
         apiAvailable,
         organizerSyncDone,
-        hasFetch: typeof root.fetch === 'function'
+        hasFetch: typeof root.fetch === 'function',
+        last: lastStatus
     });
 
     return {
+        NATIVE_ORGANIZER_STATUS_STORAGE_KEY,
         detectApi,
         graphQL,
         syncDockerOrganizer,

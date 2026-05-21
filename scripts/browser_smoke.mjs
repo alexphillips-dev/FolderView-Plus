@@ -61,6 +61,9 @@ const dashboardReports = [];
 const folderEditorReports = [];
 const dockerDiagnosticsReports = [];
 const dockerUpdateFlowReports = [];
+const dockerPreviewStatusReports = [];
+const dashboardAdvancedPreviewReports = [];
+const nativeOrganizerDiagnosticsReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -855,6 +858,94 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
     };
 };
 
+const runDashboardAdvancedPreviewSmoke = async (page, { browserName, url }) => {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await page.waitForTimeout(1200);
+    const report = await page.evaluate(() => {
+        const moduleReady = window.FolderViewPlusDashboardAdvancedPreviewModuleLoaded === true
+            && window.FolderViewPlusDashboardAdvancedPreview
+            && typeof window.FolderViewPlusDashboardAdvancedPreview.attachAdvancedPreview === 'function';
+        const dockerMembers = Array.from(document.querySelectorAll('tbody#docker_view [id^="dashboard-docker-"], tbody#docker_view .folder-showcase-outer-docker .outer'));
+        const advancedPreviewNodes = Array.from(document.querySelectorAll('.fv-dashboard-advanced-preview'));
+        return {
+            moduleReady,
+            dockerMemberCount: dockerMembers.length,
+            advancedPreviewNodeCount: advancedPreviewNodes.length,
+            skipped: dockerMembers.length <= 0
+        };
+    });
+    if (report.moduleReady !== true) {
+        throw new Error(`Dashboard advanced preview module is not available for ${browserName}.`);
+    }
+    if (report.skipped === true) {
+        console.warn(`Dashboard advanced preview smoke skipped for ${browserName}: no Docker dashboard members detected.`);
+    } else {
+        console.log(`Dashboard advanced preview smoke passed: ${browserName} ${JSON.stringify(report)}`);
+    }
+    return {
+        browserName,
+        url,
+        pass: report.moduleReady === true,
+        ...report
+    };
+};
+
+const runDockerPreviewStatusSmoke = async (page, { browserName, url }) => {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await page.waitForTimeout(900);
+    const report = await page.evaluate(() => {
+        const previewCards = Array.from(document.querySelectorAll('.fv-docker-preview-mode-2'));
+        const iconStatusNodes = Array.from(document.querySelectorAll('.fv-docker-preview-mode-2 .fv-preview-icon-status'));
+        const hiddenStatusNodes = iconStatusNodes.filter((node) => {
+            const style = window.getComputedStyle(node);
+            return style.display === 'none' || node.classList.contains('fv-preview-status-hidden');
+        });
+        return {
+            onlyIconPreviewCount: previewCards.length,
+            iconStatusCount: iconStatusNodes.length,
+            hiddenStatusCount: hiddenStatusNodes.length,
+            statusCleanupHookPresent: typeof window.FolderViewPlusDockerPreviewActions?.createApi === 'function'
+        };
+    });
+    if (report.statusCleanupHookPresent !== true) {
+        throw new Error(`Docker preview action cleanup hook is unavailable for ${browserName}.`);
+    }
+    console.log(`Docker preview status smoke passed: ${browserName} ${JSON.stringify(report)}`);
+    return {
+        browserName,
+        url,
+        pass: true,
+        ...report
+    };
+};
+
+const runNativeOrganizerDiagnosticsSmoke = async (page, { browserName, settingsUrl }) => {
+    await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await waitForSettingsShell(page);
+    const report = await page.evaluate(async () => {
+        if (typeof window.runDiagnostics === 'function') {
+            await window.runDiagnostics();
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const summaryText = String(document.querySelector('#fv-diagnostics-summary')?.textContent || '');
+        return {
+            cardPresent: /Native Docker Organizer/i.test(summaryText),
+            waitingStatePresent: /waiting for the Docker page/i.test(summaryText),
+            summaryTextLength: summaryText.length
+        };
+    });
+    if (report.cardPresent !== true) {
+        throw new Error(`Native organizer diagnostics card was not rendered for ${browserName}.`);
+    }
+    console.log(`Native organizer diagnostics smoke passed: ${browserName} ${JSON.stringify(report)}`);
+    return {
+        browserName,
+        url: settingsUrl,
+        pass: true,
+        ...report
+    };
+};
+
 const waitForSettingsShell = async (page) => {
     await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
     await page.locator('#fv-settings-search').waitFor({ state: 'visible', timeout: timeoutMs });
@@ -1344,6 +1435,13 @@ const runBrowserSmoke = async (browserName, browserType) => {
             if (updateFlowReport) {
                 dockerUpdateFlowReports.push(updateFlowReport);
             }
+            const previewStatusReport = await runDockerPreviewStatusSmoke(page, {
+                browserName,
+                url: dockerRuntimeTarget.url
+            });
+            if (previewStatusReport) {
+                dockerPreviewStatusReports.push(previewStatusReport);
+            }
         }
 
         if (dashboardUrl) {
@@ -1354,6 +1452,21 @@ const runBrowserSmoke = async (browserName, browserType) => {
             if (dashboardReport) {
                 dashboardReports.push(dashboardReport);
             }
+            const advancedPreviewReport = await runDashboardAdvancedPreviewSmoke(page, {
+                browserName,
+                url: dashboardUrl
+            });
+            if (advancedPreviewReport) {
+                dashboardAdvancedPreviewReports.push(advancedPreviewReport);
+            }
+        }
+
+        const nativeOrganizerReport = await runNativeOrganizerDiagnosticsSmoke(page, {
+            browserName,
+            settingsUrl: targetUrl
+        });
+        if (nativeOrganizerReport) {
+            nativeOrganizerDiagnosticsReports.push(nativeOrganizerReport);
         }
 
         for (const type of ['docker', 'vm']) {
@@ -1396,7 +1509,10 @@ try {
         reports: runtimeReports,
         dockerDiagnosticsReports,
         dockerUpdateFlowReports,
+        dockerPreviewStatusReports,
         dashboardReports,
+        dashboardAdvancedPreviewReports,
+        nativeOrganizerDiagnosticsReports,
         folderEditorReports
     };
     const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');

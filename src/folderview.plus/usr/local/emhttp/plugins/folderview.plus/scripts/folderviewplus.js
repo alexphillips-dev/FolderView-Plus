@@ -54,6 +54,7 @@ const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
 const settingsRuntimeActionsModule = window.FolderViewPlusSettingsRuntimeActions || null;
+const nativeOrganizerModule = window.FolderViewPlusNativeOrganizer || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const markFatalBannerStep = (step) => {
     if (fatalBanner && typeof fatalBanner.markStep === 'function') {
@@ -707,6 +708,9 @@ const settingsUiState = {
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
+const SETTINGS_SEARCH_ALIASES_BY_SECTION = window.FolderViewPlusSettingsSections?.SETTINGS_SEARCH_ALIASES_BY_SECTION
+    || window.SETTINGS_SEARCH_ALIASES_BY_SECTION
+    || {};
 const createAdvancedModuleLoadEntry = () => ({
     loaded: false,
     pending: null,
@@ -1584,8 +1588,18 @@ const refreshSectionApplyModeBadges = () => {
     }
 };
 
-const getSectionSearchHaystack = (section) => section.nodes
-    .map((node) => node.textContent || '')
+const getSectionSearchAliases = (section) => {
+    const key = String(section?.key || '').trim();
+    const aliases = SETTINGS_SEARCH_ALIASES_BY_SECTION[key];
+    return Array.isArray(aliases) ? aliases.join(' ') : '';
+};
+
+const getSectionSearchHaystack = (section) => [
+    section?.key || '',
+    section?.title || '',
+    getSectionSearchAliases(section),
+    ...(Array.isArray(section?.nodes) ? section.nodes.map((node) => node.textContent || '') : [])
+]
     .join(' ')
     .toLowerCase();
 
@@ -6994,11 +7008,123 @@ const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buil
 const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
 const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
 const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
-const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+const renderOperationsWorkspace = (...args) => {
+    const result = getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+    renderNativeDockerOrganizerStatus();
+    return result;
+};
 const setOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().setOperationsWorkspaceType(...args);
 const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectOperationsTemplate(...args);
 const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
 const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
+
+const readNativeDockerOrganizerStoredStatus = () => {
+    const storageKey = nativeOrganizerModule?.NATIVE_ORGANIZER_STATUS_STORAGE_KEY || 'fv.native.organizer.status.v1';
+    try {
+        const raw = String(localStorage.getItem(storageKey) || '').trim();
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_error) {
+        return null;
+    }
+};
+
+const buildNativeDockerOrganizerStatusHtml = (status = null) => {
+    if (!nativeOrganizerModule || typeof nativeOrganizerModule.syncDockerOrganizer !== 'function') {
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>Native organizer helper is not loaded.</strong>
+                <span>The Docker and Dashboard pages still work without native organizer sync.</span>
+            </div>
+        `;
+    }
+    const source = status && typeof status === 'object' ? status : readNativeDockerOrganizerStoredStatus();
+    if (!source) {
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>Native organizer status has not been captured yet.</strong>
+                <span>Run Sync now to check whether Unraid's GraphQL organizer API is available.</span>
+            </div>
+        `;
+    }
+    const checkedAt = source.checkedAt ? formatTimestamp(source.checkedAt) : 'recently';
+    const created = Math.max(0, Number(source.created) || 0);
+    const updated = Math.max(0, Number(source.updated) || 0);
+    const synced = created + updated;
+    const reason = String(source.reason || '').trim();
+    const headline = source.ok === true
+        ? (source.skipped === true
+            ? 'Native organizer sync was skipped safely.'
+            : `Native organizer synced ${synced} folder change${synced === 1 ? '' : 's'}.`)
+        : 'Native organizer sync is unavailable right now.';
+    const detail = source.ok === true
+        ? `${synced} changed, checked ${checkedAt}${reason ? ` (${reason})` : ''}.`
+        : `${reason || 'GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
+    return `
+        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : 'is-warning'}">
+            <strong>${escapeHtml(headline)}</strong>
+            <span>${escapeHtml(detail)}</span>
+        </div>
+    `;
+};
+
+const renderNativeDockerOrganizerStatus = (status = null) => {
+    const host = $('#docker-native-organizer-status');
+    if (!host.length) {
+        return null;
+    }
+    host.html(buildNativeDockerOrganizerStatusHtml(status));
+    return status;
+};
+
+const refreshNativeDockerOrganizerStatus = () => {
+    const moduleStatus = nativeOrganizerModule && typeof nativeOrganizerModule.getStatus === 'function'
+        ? nativeOrganizerModule.getStatus()
+        : null;
+    renderNativeDockerOrganizerStatus(moduleStatus?.last || readNativeDockerOrganizerStoredStatus());
+};
+
+const syncNativeDockerOrganizerFromSettings = async () => {
+    if (!ensureRuntimeConflictActionAllowed('Sync native Docker organizer')) {
+        return false;
+    }
+    if (!nativeOrganizerModule || typeof nativeOrganizerModule.syncDockerOrganizer !== 'function') {
+        renderNativeDockerOrganizerStatus(null);
+        showToastMessage({
+            title: 'Native organizer unavailable',
+            message: 'The native organizer helper did not load in Settings.',
+            level: 'warning'
+        });
+        return false;
+    }
+    try {
+        const result = await nativeOrganizerModule.syncDockerOrganizer(dockers, {
+            force: true,
+            source: 'settings'
+        });
+        renderNativeDockerOrganizerStatus(result);
+        showToastMessage({
+            title: result.ok ? 'Native organizer checked' : 'Native organizer skipped',
+            message: result.ok
+                ? `Created ${Number(result.created) || 0}, updated ${Number(result.updated) || 0}.`
+                : String(result.reason || 'GraphQL organizer API unavailable.'),
+            level: result.ok ? 'success' : 'warning'
+        });
+        return result.ok === true;
+    } catch (error) {
+        renderNativeDockerOrganizerStatus({
+            ok: false,
+            skipped: true,
+            reason: String(error?.message || error || 'native organizer sync failed'),
+            checkedAt: new Date().toISOString()
+        });
+        showError('Native organizer sync failed', error);
+        return false;
+    }
+};
 
 const renderTable = (type) => {
     const folders = getFolderMap(type);
@@ -9262,6 +9388,8 @@ settingsActionSupportModule.registerWindowActions(window, {
     saveFolderDefaultsFromSelection,
     applySavedFolderDefaultsToAll,
     clearFolderDefaults,
+    refreshNativeDockerOrganizerStatus,
+    syncNativeDockerOrganizerFromSettings,
     runQuickSetupWizard,
     setSettingsMode,
     exportEnvironmentSnapshot,

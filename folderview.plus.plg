@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.21.05">
-<!ENTITY md5 "2d0c55ab4814a0888b451bb5e6d7aad8">
+<!ENTITY version "2026.05.21.06">
+<!ENTITY md5 "894c11ebde3fe108f4b4968452e09046">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.21.06
+- Fix: Prevent Settings bootstrap failure when diagnostics loads before the main Settings runtime defines `showError`.
+- Regression guard: Ensure the diagnostics module uses local safe error fallbacks during early bootstrap.
+
 
 ###2026.05.21.05
 - UX: Add Settings search aliases for recent support terms like hide status, WebUI/console/logs, native organizer, dashboard overlap, and bulk apply update.

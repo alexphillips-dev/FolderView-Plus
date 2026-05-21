@@ -2,6 +2,36 @@ const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
 const diagnosticsUtils = window.FolderViewPlusUtils || null;
 const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
 const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
+const diagnosticsSwal = typeof window.swal === 'function'
+    ? window.swal.bind(window)
+    : ((options) => {
+        const title = String(options?.title || 'FolderView Plus').trim();
+        const text = String(options?.text || '').trim();
+        if (typeof window.alert === 'function') {
+            window.alert(text ? `${title}\n\n${text}` : title);
+        }
+    });
+const diagnosticsShowToastMessage = (options = {}) => {
+    if (typeof window.showToastMessage === 'function') {
+        window.showToastMessage(options);
+        return;
+    }
+    const title = String(options?.title || '').trim();
+    const message = String(options?.message || '').trim();
+    if (message && window.console && typeof window.console.info === 'function') {
+        window.console.info(`[FolderView Plus] ${title ? `${title}: ` : ''}${message}`);
+    }
+};
+const diagnosticsShowError = (title, error) => {
+    if (typeof window.showError === 'function') {
+        window.showError(title, error);
+        return;
+    }
+    const message = String(error?.message || error || 'Unknown error');
+    if (window.console && typeof window.console.error === 'function') {
+        window.console.error(`[FolderView Plus] ${title}: ${message}`, error);
+    }
+};
 const normalizeDiagnosticsThemeMode = (value) => {
     if (diagnosticsThemeResolver && typeof diagnosticsThemeResolver.normalizeThemeCompatibilityMode === 'function') {
         return diagnosticsThemeResolver.normalizeThemeCompatibilityMode(value);
@@ -170,13 +200,13 @@ const copyFolderEditorDebugDiagnostics = async () => {
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-        swal({
+        diagnosticsSwal({
             title: 'Copied',
             text: 'Folder editor diagnostics copied to clipboard.',
             type: 'success'
         });
     } catch (error) {
-        showError('Copy folder editor diagnostics failed', error);
+        diagnosticsShowError('Copy folder editor diagnostics failed', error);
     }
 };
 
@@ -470,7 +500,7 @@ const getSupportBundlePreviewApi = () => {
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
             getSupportBundle,
-            showError
+            showError: diagnosticsShowError
         });
     }
     return supportBundlePreviewApi;
@@ -513,7 +543,7 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
     if (activityMessage) {
         addActivityEntry(activityMessage, statusValue === 'ok' ? 'info' : 'error');
         if (statusValue === 'ok' && ['import', 'clear_folders', 'delete_folder', 'runtime_bulk_action', 'bulk_assign'].includes(String(eventType))) {
-            showToastMessage({
+            diagnosticsShowToastMessage({
                 title: 'Action completed',
                 message: activityMessage,
                 level: 'success',
@@ -811,7 +841,7 @@ const claimAdvancedOperationLock = (type, scope, actionLabel = 'Operation') => {
         return true;
     }
     if (map[scope] === true) {
-        swal({
+        diagnosticsSwal({
             title: 'Please wait',
             text: `${actionLabel} is already running for ${resolvedType.toUpperCase()}.`,
             type: 'info'
@@ -963,7 +993,7 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     } catch (error) {
         markAdvancedModuleLoadError('change_history', error);
         if (!quiet) {
-            showError('Change history refresh failed', error);
+            diagnosticsShowError('Change history refresh failed', error);
         }
         return false;
     }
@@ -1348,7 +1378,7 @@ const runDiagnostics = async () => {
             source: 'health-check'
         });
     } catch (error) {
-        showError('Diagnostics failed', error);
+        diagnosticsShowError('Diagnostics failed', error);
     }
 };
 
@@ -1357,14 +1387,14 @@ const repairDiagnostics = async (action, type = '') => {
         const response = await runDiagnosticAction(action, type);
         const diagnostics = response?.diagnostics || {};
         renderDiagnostics(diagnostics);
-        swal({
+        diagnosticsSwal({
             title: 'Repair complete',
             text: String(response?.message || 'Repair action finished successfully.'),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
     } catch (error) {
-        showError('Repair failed', error);
+        diagnosticsShowError('Repair failed', error);
     }
 };
 
@@ -1383,7 +1413,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
             }
         });
     } catch (error) {
-        showError('Diagnostics export failed', error);
+        diagnosticsShowError('Diagnostics export failed', error);
     }
 };
 
@@ -1419,7 +1449,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
             renderSupportBundlePreview(bundle);
         }
     } catch (error) {
-        showError('Support bundle export failed', error);
+        diagnosticsShowError('Support bundle export failed', error);
     }
 };
 
@@ -1548,13 +1578,13 @@ const copyIssueReport = async () => {
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-        swal({
+        diagnosticsSwal({
             title: 'Copied',
             text: 'Issue report copied to clipboard.',
             type: 'success'
         });
     } catch (error) {
-        showError('Copy issue report failed', error);
+        diagnosticsShowError('Copy issue report failed', error);
     }
 };
 
@@ -1716,7 +1746,7 @@ const runThemeDiagnostics = () => {
         }
         return diagnostics;
     } catch (error) {
-        showError('Theme diagnostics failed', error);
+        diagnosticsShowError('Theme diagnostics failed', error);
         return null;
     }
 };
@@ -1744,7 +1774,7 @@ const runThemeSelfHeal = async () => {
         const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
         if (!needsHeal) {
             applyDiagnosticsThemeTokens('self-heal-noop');
-            swal({
+            diagnosticsSwal({
                 title: 'Theme looks healthy',
                 text: 'No fallback changes were needed.',
                 type: 'success',
@@ -1772,13 +1802,13 @@ const runThemeSelfHeal = async () => {
         applyDiagnosticsThemeTokens('self-heal-apply');
         queueSettingsThemeAwareReflow('theme-self-heal');
         runThemeDiagnostics();
-        swal({
+        diagnosticsSwal({
             title: 'Theme self-heal applied',
             text: `Fallback mode switched to ${targetMode}.`,
             type: 'success'
         });
     } catch (error) {
-        showError('Theme self-heal failed', error);
+        diagnosticsShowError('Theme self-heal failed', error);
     }
 };
 

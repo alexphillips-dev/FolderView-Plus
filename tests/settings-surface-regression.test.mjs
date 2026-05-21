@@ -78,6 +78,9 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
+    assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
+    assert.match(diagnosticsJs, /showError:\s*diagnosticsShowError/);
+    assert.doesNotMatch(diagnosticsJs, /(?<!window\.)\bshowError\(/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);

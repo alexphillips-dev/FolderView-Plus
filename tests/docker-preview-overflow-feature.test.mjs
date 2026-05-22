@@ -140,7 +140,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
 test('docker styles support multi-row previews without the removed member action sheet styling', () => {
     assert.match(dockerCss, /\.hover:hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(dockerCss, /\.hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
-    assert.match(dockerCss, /td\.folder-preview-cell > \.folder-preview:not\(\.fv-preview-multirow\) \{[\s\S]*width:\s*fit-content;[\s\S]*max-width:\s*100%;/);
+    assert.doesNotMatch(dockerCss, /td\.folder-preview-cell > \.folder-preview:not\(\.fv-preview-multirow\) \{/);
     assert.match(runtimeSharedCss, /\.folder-preview \{/);
     assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*align-items:\s*center/);
     assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*flex-wrap:\s*wrap/);

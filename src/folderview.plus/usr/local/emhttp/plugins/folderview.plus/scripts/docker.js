@@ -565,6 +565,7 @@ const getDockerPreviewActionsApi = () => {
         dockerPreviewActionsApi = dockerPreviewActionsModule.createApi({
             window,
             $,
+            utils,
             escapeHtml: (value) => escapeHtml(value),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),

@@ -44,6 +44,8 @@ test('docker pin quick action updates visible folder order immediately', () => {
 });
 
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
+    assert.match(dockerPreviewActionsScript, /const utils = deps\.utils && typeof deps\.utils === 'object' \? deps\.utils : \{\};/);
+    assert.match(dockerScript, /dockerPreviewActionsModule\.createApi\(\{[\s\S]*utils,[\s\S]*escapeHtml:/);
     assert.match(dockerPreviewActionsScript, /const getDockerPreviewStatusMeta = \(entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const clearDockerRuntimeStateClasses = \(\$elements\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStateSurface = \(\$target,\s*statusMeta,\s*localizedLabel\) =>/);

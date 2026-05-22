@@ -14,6 +14,7 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const jq = deps.$ || win?.jQuery || win?.$;
+        const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : ((value) => String(value ?? '')

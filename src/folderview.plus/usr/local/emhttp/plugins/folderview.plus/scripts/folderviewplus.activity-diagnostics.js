@@ -32,6 +32,44 @@ const diagnosticsShowError = (title, error) => {
         window.console.error(`[FolderView Plus] ${title}: ${message}`, error);
     }
 };
+const diagnosticsEscapeHtml = (value) => {
+    if (diagnosticsUtils && typeof diagnosticsUtils.escapeHtml === 'function') {
+        return diagnosticsUtils.escapeHtml(value);
+    }
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+const diagnosticsToPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
+const diagnosticsFormatTimestamp = (isoString) => {
+    if (diagnosticsUtils && typeof diagnosticsUtils.formatTimestamp === 'function') {
+        return diagnosticsUtils.formatTimestamp(isoString);
+    }
+    if (!isoString) {
+        return 'Unknown';
+    }
+    const date = new Date(isoString);
+    return Number.isNaN(date.getTime()) ? String(isoString) : date.toLocaleString();
+};
+const diagnosticsDownloadFile = (name, content) => {
+    if (typeof window.downloadFile === 'function') {
+        window.downloadFile(name, content);
+        return;
+    }
+    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
 const normalizeDiagnosticsThemeMode = (value) => {
     if (diagnosticsThemeResolver && typeof diagnosticsThemeResolver.normalizeThemeCompatibilityMode === 'function') {
         return diagnosticsThemeResolver.normalizeThemeCompatibilityMode(value);
@@ -180,14 +218,14 @@ const renderFolderEditorDebugDiagnostics = () => {
     if (!host.length) {
         return snapshot;
     }
-    host.text(toPrettyJson(snapshot));
+    host.text(diagnosticsToPrettyJson(snapshot));
     return snapshot;
 };
 
 const copyFolderEditorDebugDiagnostics = async () => {
     try {
         const snapshot = renderFolderEditorDebugDiagnostics();
-        const text = toPrettyJson(snapshot);
+        const text = diagnosticsToPrettyJson(snapshot);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(text);
         } else {
@@ -345,12 +383,12 @@ const renderPerformanceDiagnostics = () => {
     }
     const renderRow = (label, summary, budgetMs = null) => {
         if (!summary) {
-            return `<tr><th>${escapeHtml(label)}</th><td colspan="5">No samples yet</td></tr>`;
+            return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td colspan="5">No samples yet</td></tr>`;
         }
         const resolvedBudgetMs = Number(summary.budgetMs || budgetMs);
         const budgetLabel = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0 ? `${resolvedBudgetMs}ms` : '-';
         const statusLabel = summary.overBudget ? 'Over budget' : 'OK';
-        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${escapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
+        return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${diagnosticsEscapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
     };
     const rows = [
         renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker'))),
@@ -373,8 +411,8 @@ const renderPerformanceDiagnostics = () => {
             </thead>
             <tbody>${rows}</tbody>
         </table>
-        <div class="fv-perf-summary-note">Runtime telemetry: Docker actions ${escapeHtml(String(Object.keys(runtimeSnapshot.docker || {}).length))}, VM actions ${escapeHtml(String(Object.keys(runtimeSnapshot.vm || {}).length))}</div>
-        <div class="fv-perf-summary-note">Updated: ${escapeHtml(updatedAt)}</div>
+        <div class="fv-perf-summary-note">Runtime telemetry: Docker actions ${diagnosticsEscapeHtml(String(Object.keys(runtimeSnapshot.docker || {}).length))}, VM actions ${diagnosticsEscapeHtml(String(Object.keys(runtimeSnapshot.vm || {}).length))}</div>
+        <div class="fv-perf-summary-note">Updated: ${diagnosticsEscapeHtml(updatedAt)}</div>
     `);
 };
 
@@ -496,7 +534,7 @@ const getSupportBundlePreviewApi = () => {
     if (!supportBundlePreviewApi && supportBundlePreviewModule && typeof supportBundlePreviewModule.createApi === 'function') {
         supportBundlePreviewApi = supportBundlePreviewModule.createApi({
             $,
-            escapeHtml,
+            escapeHtml: diagnosticsEscapeHtml,
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
             getSupportBundle,
@@ -718,7 +756,7 @@ const renderActivityFeed = () => {
     }
     const rows = activityFeedEntries.map((entry) => {
         const level = String(entry?.level || 'info');
-        return `<li class="fv-activity-item is-${escapeHtml(level)}"><span class="fv-activity-time">${escapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${escapeHtml(String(entry.message || ''))}</span></li>`;
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
     }).join('');
     list.html(rows);
     panel.show();
@@ -806,7 +844,7 @@ const renderAdvancedModuleStatus = (moduleKey) => {
     if (status.state === 'loading') {
         host.classList.remove('is-error');
         host.classList.add('is-info');
-        host.innerHTML = `<i class="fa fa-refresh fa-spin"></i> Refreshing ${escapeHtml(config.label)}...`;
+        host.innerHTML = `<i class="fa fa-refresh fa-spin"></i> Refreshing ${diagnosticsEscapeHtml(config.label)}...`;
         host.style.display = '';
         return;
     }
@@ -814,7 +852,7 @@ const renderAdvancedModuleStatus = (moduleKey) => {
         const message = String(status.message || 'Refresh failed.');
         host.classList.remove('is-info');
         host.classList.add('is-error');
-        host.innerHTML = `${escapeHtml(config.label)} failed: ${escapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${escapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
+        host.innerHTML = `${diagnosticsEscapeHtml(config.label)} failed: ${diagnosticsEscapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${diagnosticsEscapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
         host.style.display = '';
         return;
     }
@@ -907,7 +945,7 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
     if (!filteredTimeline.length) {
         summaryHost.html(`
             <div class="fv-recovery-empty-state">
-                <strong>No recent ${escapeHtml(typeLabel)} changes found.</strong>
+                <strong>No recent ${diagnosticsEscapeHtml(typeLabel)} changes found.</strong>
                 <span>Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.</span>
             </div>
         `);
@@ -927,14 +965,14 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
     summaryHost.html(`
         <div class="fv-recovery-undo-head">
             <div>
-                <div class="fv-recovery-undo-title">Latest ${escapeHtml(typeLabel)} change</div>
-                <div class="fv-recovery-undo-copy">${escapeHtml(latestAction)}${latestSummary ? ` - ${escapeHtml(latestSummary)}` : ''}</div>
+                <div class="fv-recovery-undo-title">Latest ${diagnosticsEscapeHtml(typeLabel)} change</div>
+                <div class="fv-recovery-undo-copy">${diagnosticsEscapeHtml(latestAction)}${latestSummary ? ` - ${diagnosticsEscapeHtml(latestSummary)}` : ''}</div>
             </div>
-            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${escapeHtml(latestStatus)}</span>
+            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${diagnosticsEscapeHtml(latestStatus)}</span>
         </div>
         <div class="fv-recovery-undo-meta">
-            <span>${escapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
-            <span>Undo latest change restores the newest undo-safe backup for ${escapeHtml(typeLabel)}.</span>
+            <span>${diagnosticsEscapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
+            <span>Undo latest change restores the newest undo-safe backup for ${diagnosticsEscapeHtml(typeLabel)}.</span>
         </div>
     `);
 
@@ -946,11 +984,11 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
         return `
             <article class="fv-recovery-timeline-card">
                 <div class="fv-recovery-timeline-head">
-                    <div class="fv-recovery-timeline-title">${escapeHtml(action)}</div>
-                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${escapeHtml(status)}</span>
+                    <div class="fv-recovery-timeline-title">${diagnosticsEscapeHtml(action)}</div>
+                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(status)}</span>
                 </div>
-                <div class="fv-recovery-timeline-meta">${escapeHtml(timestamp)}</div>
-                <div class="fv-recovery-timeline-copy">${escapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
+                <div class="fv-recovery-timeline-meta">${diagnosticsEscapeHtml(timestamp)}</div>
+                <div class="fv-recovery-timeline-copy">${diagnosticsEscapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
             </article>
         `;
     }).join(''));
@@ -1227,11 +1265,11 @@ const renderDiagnosticsActionCards = (actions) => {
             }));
         return `
             <div class="fv-diagnostics-action-card">
-                <div class="fv-diagnostics-action-title">${escapeHtml(action.label)}</div>
-                <div class="fv-diagnostics-action-copy">${escapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
+                <div class="fv-diagnostics-action-title">${diagnosticsEscapeHtml(action.label)}</div>
+                <div class="fv-diagnostics-action-copy">${diagnosticsEscapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
                 <div class="backup-actions">
                     ${buttonConfigs.map(({ config }) => `
-                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${escapeHtml(config.label)}</button>
+                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${diagnosticsEscapeHtml(config.label)}</button>
                     `).join('')}
                 </div>
             </div>
@@ -1263,21 +1301,21 @@ const renderDiagnosticsSummary = (diagnostics) => {
         const themeCheckedAt = formatCheckedAtLabel(lastThemeDiagnostics?.generatedAt);
         summaryHost.html(`
             <div class="fv-diagnostics-overview is-${status}">
-                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</div>
+                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</div>
                 <div class="fv-diagnostics-overview-headline">Theme diagnostics are live before a full health check.</div>
                 <div class="fv-diagnostics-overview-detail">Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.</div>
                 <div class="fv-diagnostics-overview-meta">
-                    <span class="fv-diagnostics-pill">Theme checked ${escapeHtml(themeCheckedAt)}</span>
+                    <span class="fv-diagnostics-pill">Theme checked ${diagnosticsEscapeHtml(themeCheckedAt)}</span>
                 </div>
             </div>
             <div class="fv-diagnostics-card-grid">
                 <div class="fv-diagnostics-card is-${status}">
                     <div class="fv-diagnostics-card-top">
-                        <span class="fv-diagnostics-card-label">${escapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
-                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                        <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
+                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
                     </div>
-                    <div class="fv-diagnostics-card-headline">${escapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
-                    <div class="fv-diagnostics-card-detail">${escapeHtml(String(themeCard.detail || ''))}</div>
+                    <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
+                    <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(themeCard.detail || ''))}</div>
                     <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
                 </div>
             </div>
@@ -1333,11 +1371,11 @@ const renderDiagnosticsSummary = (diagnostics) => {
         return `
             <div class="fv-diagnostics-card is-${status}">
                 <div class="fv-diagnostics-card-top">
-                    <span class="fv-diagnostics-card-label">${escapeHtml(String(card?.label || card?.key || 'Status'))}</span>
-                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                    <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(card?.label || card?.key || 'Status'))}</span>
+                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
                 </div>
-                <div class="fv-diagnostics-card-headline">${escapeHtml(String(card?.headline || 'No summary available.'))}</div>
-                <div class="fv-diagnostics-card-detail">${escapeHtml(String(card?.detail || ''))}</div>
+                <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
+                <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
                 <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
             </div>
         `;
@@ -1345,10 +1383,10 @@ const renderDiagnosticsSummary = (diagnostics) => {
 
     summaryHost.html(`
         <div class="fv-diagnostics-overview is-${overallStatus}">
-            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${escapeHtml(overallConfig.label)}</div>
-            <div class="fv-diagnostics-overview-headline">${escapeHtml(overallHeadline)}</div>
-            <div class="fv-diagnostics-overview-detail">${escapeHtml(overallDetail)}</div>
-            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${escapeHtml(pill)}</span>`).join('')}</div>
+            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(overallConfig.label)}</div>
+            <div class="fv-diagnostics-overview-headline">${diagnosticsEscapeHtml(overallHeadline)}</div>
+            <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(overallDetail)}</div>
+            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${diagnosticsEscapeHtml(pill)}</span>`).join('')}</div>
         </div>
         <div class="fv-diagnostics-card-grid">${cardsHtml}</div>
     `);
@@ -1402,7 +1440,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     const mode = privacy === 'full' ? 'full' : 'sanitized';
     try {
         const payload = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
-        downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
+        diagnosticsDownloadFile('FolderView Plus Diagnostics.json', diagnosticsToPrettyJson(payload));
         await trackDiagnosticsEvent({
             eventType: 'diagnostics_export',
             details: {
@@ -1431,7 +1469,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
         const bundle = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
         const generatedAt = String(bundle?.bundleMeta?.generatedAt || '').replace(/[:]/g, '-');
         const suffix = generatedAt ? `-${generatedAt}` : '';
-        downloadFile(`FolderView Plus Support Bundle${suffix}.json`, toPrettyJson(bundle));
+        diagnosticsDownloadFile(`FolderView Plus Support Bundle${suffix}.json`, diagnosticsToPrettyJson(bundle));
         await trackDiagnosticsEvent({
             eventType: 'support_bundle_export',
             details: {

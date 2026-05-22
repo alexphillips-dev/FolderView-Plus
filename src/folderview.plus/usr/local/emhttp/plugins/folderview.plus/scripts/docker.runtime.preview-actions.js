@@ -456,6 +456,28 @@
             }
         };
 
+        const hideDockerPreviewStatus = ($target) => {
+            if (!$target || !$target.length) {
+                return;
+            }
+            const $outer = $target.hasClass('outer')
+                ? $target
+                : $target.closest('span.outer').first();
+            if (!$outer.length) {
+                return;
+            }
+            clearDockerRuntimeStateClasses($outer.add($outer.find('span.hand, span.inner, span.appname, span.appname > a.exec')));
+            $outer.find('.fv-preview-status-compact, .fv-preview-status-inline').remove();
+            $outer.find('span.state').each((_, node) => {
+                const $state = jq(node);
+                const $icon = $state.prevAll('i.fa').first();
+                $state.remove();
+                if ($icon.length) {
+                    $icon.remove();
+                }
+            });
+        };
+
         const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
@@ -478,10 +500,14 @@
                 const containerName = String(entry?.name || '').trim();
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
-                syncDockerPreviewStatus($target, entry);
+                const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
+                if (previewStatusMode === 'none') {
+                    hideDockerPreviewStatus($target);
+                } else {
+                    syncDockerPreviewStatus($target, entry);
+                }
                 syncDockerPreviewUpdateHighlight($target, settings, entry);
                 if (Number(settings?.preview || 0) === 2) {
-                    const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
                     const $outer = $target.hasClass('outer') ? $target : $target.closest('span.outer').first();
                     const $img = $outer.find('img.img').first();
                     if (previewStatusMode === 'symbol') {

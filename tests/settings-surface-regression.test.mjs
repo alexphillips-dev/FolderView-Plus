@@ -79,7 +79,16 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
     assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
+    assert.match(diagnosticsJs, /const diagnosticsEscapeHtml = \(value\) => \{/);
+    assert.match(diagnosticsJs, /const diagnosticsToPrettyJson = \(value\) =>/);
+    assert.match(diagnosticsJs, /const diagnosticsFormatTimestamp = \(isoString\) => \{/);
+    assert.match(diagnosticsJs, /const diagnosticsDownloadFile = \(name, content\) => \{/);
+    assert.match(diagnosticsJs, /escapeHtml:\s*diagnosticsEscapeHtml/);
     assert.match(diagnosticsJs, /showError:\s*diagnosticsShowError/);
+    assert.doesNotMatch(diagnosticsJs, /(?<!\.)\bescapeHtml\(/);
+    assert.doesNotMatch(diagnosticsJs, /(?<!\.)\btoPrettyJson\(/);
+    assert.doesNotMatch(diagnosticsJs, /(?<!\.)\bformatTimestamp\(/);
+    assert.doesNotMatch(diagnosticsJs, /(?<!\.)\bdownloadFile\(/);
     assert.doesNotMatch(diagnosticsJs, /(?<!window\.)\bshowError\(/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);

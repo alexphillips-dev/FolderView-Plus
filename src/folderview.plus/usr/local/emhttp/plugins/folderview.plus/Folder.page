@@ -839,10 +839,10 @@ try {
                     </blockquote>
                 </div>
             </li>
-            <li constraint="preview-2 docker">
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
-                        <dt>Only-icon status:</dt>
+                        <dt>Preview status:</dt>
                         <dd>
                             <select name="preview_status">
                                 <option value="symbol" selected>Show status symbol</option>
@@ -853,7 +853,7 @@ try {
                     </dl>
                     <blockquote class="inline_help">
                         <p>
-                            Controls how Docker state is shown when the preview is set to Only icon.
+                            Controls how Docker state is shown in folder previews.
                         </p>
                     </blockquote>
                 </div>

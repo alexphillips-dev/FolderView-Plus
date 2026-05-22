@@ -419,6 +419,11 @@ i.folder-load-status.stopped {
     display: none;
 }
 
+td.folder-preview-cell > .folder-preview:not(.fv-preview-multirow) {
+    width: fit-content;
+    max-width: 100%;
+}
+
 .fv-nested-hidden {
     display: none !important;
 }

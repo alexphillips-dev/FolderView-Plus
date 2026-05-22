@@ -1109,12 +1109,22 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const stateLabel = escapeHtml($.i18n(previewStateMeta.key));
     const previewStatusTitle = stateLabel;
     const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
+    const shouldHidePreviewStatus = previewStatusMode === 'none';
     const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';
     const shouldGrayscaleByStatus = previewMode === 2 && previewStatusMode === 'grayscale' && entry?.state !== true;
     const imageStyle = settings?.preview_grayscale || shouldGrayscaleByStatus ? ' style="filter: grayscale(100%);"' : '';
     const onlyIconStatusMarkup = shouldShowOnlyIconStatus
         ? `<span class="fv-preview-status-compact fv-preview-icon-status ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i><span class="state"> ${stateLabel}</span></span>`
         : '';
+    const compactStatusMarkup = shouldHidePreviewStatus
+        ? ''
+        : `<span class="fv-preview-status-compact" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
+                            </span>`;
+    const inlineStatusMarkup = shouldHidePreviewStatus
+        ? ''
+        : `<br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>`;
     const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text fv-preview-update-ready' : '';
     const textWidth = String(settings?.preview_text_width || '').trim();
     const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
@@ -1140,9 +1150,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
-                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
-                            </span>
+                            ${compactStatusMarkup}
                             <span class="fv-preview-actions-compact"></span>
                             </span>
                         </span>
@@ -1158,9 +1166,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
-                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
-                            </span>
+                            ${compactStatusMarkup}
                             <span class="fv-preview-actions-compact"></span>
                             </span>
                         </span>
@@ -1192,8 +1198,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -1203,8 +1208,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -1216,8 +1220,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-1${autostartClass}">
                     <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     <span class="inner fv-preview-trigger">
-                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>${inlineStatusMarkup}
                     </span>
                 </span>
             `;
@@ -1378,6 +1381,7 @@ const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autost
     }
     const $item = $sourceOuter.clone();
     const compactMode = previewMode >= 1 && previewMode <= 4 ? previewMode : 1;
+    const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
     $item.addClass(`fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${compactMode}${autostartClass}`);
     $item.removeAttr('id');
     $item.find('br').remove();
@@ -1400,6 +1404,9 @@ const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autost
     $trailingNodes.each((_, node) => {
         const $node = $(node);
         if ($node.is('.folder-element-custom-btn, .fv-preview-webui-placeholder')) {
+            return;
+        }
+        if (previewStatusMode === 'none' && ($node.is('i.fa, span.state') || $node.find('span.state').length)) {
             return;
         }
         $status.append($node);
@@ -4883,8 +4890,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewMode = Number(folder?.settings?.preview || 0);
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
             const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
+            const previewStatusMode = normalizePreviewStatusMode(folder.settings.preview_status);
 
-            if (!compactMultiRowPreview && (previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
+            if (!compactMultiRowPreview && previewStatusMode !== 'none' && (previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
                 const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();
                 if ($previewAppName.length) {
                     $previewAppName.addClass('fv-preview-status-name').addClass(previewStateMeta.className);
@@ -4896,7 +4904,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 }
             }
             if (!compactMultiRowPreview && previewMode === 2 && $previewElementTarget.length) {
-                const previewStatusMode = normalizePreviewStatusMode(folder.settings.preview_status);
                 const $existingIconStatus = $previewElementTarget.children('.fv-preview-icon-status');
                 if (previewStatusMode === 'symbol' && !$previewElementTarget.children('.fv-preview-icon-status').length) {
                     $previewElementTarget.append(

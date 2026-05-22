@@ -1,4 +1,5 @@
 /* Advanced settings section registry extracted from folderviewplus.js. */
+(() => {
 const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
 const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
@@ -176,3 +177,4 @@ window.FolderViewPlusSettingsSections = Object.freeze({
     SETTINGS_SEARCH_ALIASES_BY_SECTION
 });
 window.FolderViewPlusSettingsSectionsModuleLoaded = true;
+})();

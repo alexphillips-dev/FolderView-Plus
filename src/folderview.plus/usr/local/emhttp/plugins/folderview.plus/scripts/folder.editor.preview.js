@@ -63,9 +63,10 @@
             const memberMap = getMemberMapByName();
             const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
             const previewMode = Number(form.preview?.value || 0);
-            const previewStatusMode = ['none', 'symbol', 'grayscale'].includes(String(form.preview_status?.value || '').trim().toLowerCase())
-                ? String(form.preview_status?.value || '').trim().toLowerCase()
-                : 'symbol';
+            const rawPreviewStatusMode = String(form.preview_status?.value || '').trim().toLowerCase();
+            const previewStatusMode = ['none', 'hide', 'hidden', 'off', 'false', '0', 'no'].includes(rawPreviewStatusMode)
+                ? 'none'
+                : (['symbol', 'grayscale'].includes(rawPreviewStatusMode) ? rawPreviewStatusMode : 'symbol');
             const rowsLimit = normalizePreviewRowLimit(form.preview_rows?.value);
             const renderLimit = rowsLimit === 0 ? 10 : Math.max(4, Math.min(10, rowsLimit * 4));
             const sampleMembers = selectedMembers.slice(0, renderLimit);

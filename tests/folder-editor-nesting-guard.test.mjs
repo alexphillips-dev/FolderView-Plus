@@ -103,11 +103,13 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /if \(modernFieldRow\) \{[\s\S]*setImportant\(dd, 'padding-top', '0\.08em'\);/);
     assert.match(folderEditorScript, /const modernToggleRow = Boolean\(modernFieldRow && modernFieldRow\.classList\.contains\('is-toggle-row'\)\);/);
     assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
-    assert.match(folderEditorSharedScript, /preview_status:\s*\['none', 'symbol', 'grayscale'\]\.includes/);
+    assert.match(folderEditorSharedScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorSchemaScript, /'preview_status'/);
     assert.match(folderEditorScript, /const normalizePreviewStatusMode = \(value\) =>/);
+    assert.match(folderEditorScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorScript, /setFieldValue\('preview_status', normalizePreviewStatusMode\(normalizedFolder\.settings\.preview_status\)\);/);
+    assert.match(folderEditorPreviewScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(rawPreviewStatusMode\)/);
     assert.match(folderEditorPreviewScript, /previewStatusMode === 'symbol'/);
     assert.match(folderEditorStyles, /\.fv-live-member-status\.is-symbol/);
     assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);

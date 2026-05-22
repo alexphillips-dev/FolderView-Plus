@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.22.01">
-<!ENTITY md5 "6de5631aaadd48ce3a725657d8bc7c17">
+<!ENTITY version "2026.05.22.02">
+<!ENTITY md5 "6892ab805acd38dc195704ab1154aa8b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.22.02
+- Fix: Scope the extracted Settings section registry so it cannot collide with `folderviewplus.js` top-level identifiers during browser bootstrap.
+- Fix: Normalize legacy Docker preview status values like `hide`, `off`, `false`, and `0` to the same hidden state as `Hide status`.
+- Regression guard: Add coverage for the scoped Settings registry and Docker preview status alias handling.
+
 
 ###2026.05.22.01
 - Fix: Prevent Settings bootstrap failure when diagnostics loads before the main Settings runtime defines HTML, timestamp, JSON, or download helpers.

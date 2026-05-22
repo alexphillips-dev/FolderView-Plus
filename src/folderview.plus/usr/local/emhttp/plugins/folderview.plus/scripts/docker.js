@@ -1070,6 +1070,9 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
 };
 const normalizePreviewStatusMode = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
+    if (['none', 'hide', 'hidden', 'off', 'false', '0', 'no'].includes(normalized)) {
+        return 'none';
+    }
     return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
 };
 const getFolderPreviewItemsPerRow = (settings = {}) => {

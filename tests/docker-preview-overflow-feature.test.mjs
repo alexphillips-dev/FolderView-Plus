@@ -52,6 +52,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
     assert.match(dockerJs, /const shouldHidePreviewStatus = previewStatusMode === 'none';/);
+    assert.match(dockerJs, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(dockerJs, /const compactStatusMarkup = shouldHidePreviewStatus[\s\S]*\? ''[\s\S]*: `<span class="fv-preview-status-compact"/);
     assert.match(dockerJs, /const inlineStatusMarkup = shouldHidePreviewStatus[\s\S]*\? ''[\s\S]*: `<br>/);
     assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
@@ -123,6 +124,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'webui'\)/);
     assert.match(dockerPreviewActionsScript, /const hideDockerPreviewStatus = \(\$target\) => \{/);
+    assert.match(dockerPreviewActionsScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'none'\) \{[\s\S]*hideDockerPreviewStatus\(\$target\);[\s\S]*\} else \{[\s\S]*syncDockerPreviewStatus\(\$target, entry\);/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-webui-url', webuiUrl\)/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'console'\)/);

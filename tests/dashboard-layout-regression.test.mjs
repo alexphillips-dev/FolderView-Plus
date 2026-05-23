@@ -126,7 +126,8 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /phase: error\?\.fvplusPhase \|\| 'bootstrap'/);
     assert.match(settingsScript, /category: 'degraded-mode'/);
     assert.match(settingsScript, /buildSettingsBootstrapDegradedReason\(type, 'runtime info', infoResult\.reason\)/);
-    assert.match(settingsScript, /if \(bootstrapDegradedReasons\.length <= 0\) \{\s*clearFatalBannerResolvedState\(\);/);
+    assert.match(settingsScript, /const currentBootstrapState = window\.FolderViewPlusSettingsBootstrapState \|\| \{\};/);
+    assert.match(settingsScript, /if \(bootstrapDegradedReasons\.length <= 0 && currentBootstrapState\.degraded !== true\) \{\s*clearFatalBannerResolvedState\(\);/);
     assert.match(settingsScript, /legacy/);
     assert.match(settingsScript, /compactmatrix/);
     assert.match(settingsScript, /previewContext: dashboard\.previewContext === 'advanced' \? 'advanced' : 'native'/);

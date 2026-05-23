@@ -337,6 +337,36 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
     assert.match(script, /showError\('Initial data load failed', error\);/);
 });
 
+test('settings blank watchdog reports silent startup failures with diagnostics', () => {
+    assert.match(page, /FolderViewPlusSettingsBlankWatchdogInstalled/);
+    assert.match(page, /FolderViewPlusSettingsBootstrapState/);
+    assert.match(page, /FolderViewPlusMarkSettingsBootstrapState/);
+    assert.match(page, /FVPLUS-SET-BLANK-001/);
+    assert.match(page, /Settings page rendered no visible FolderView Plus content before bootstrap completed\./);
+    assert.match(page, /visibleSections=/);
+    assert.match(page, /hiddenSections=/);
+    assert.match(page, /wizardOverlayVisible=/);
+    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-early'\), 3500\);/);
+    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-late'\), 8500\);/);
+    assert.match(script, /const markSettingsBootstrapState = \(patch = \{\}\) => \{/);
+    assert.match(script, /FolderViewPlusMarkSettingsBootstrapState\(cleanPatch\)/);
+    assert.match(script, /runtimeLoaded:\s*true/);
+    assert.match(script, /ready:\s*true/);
+    assert.match(script, /lastPhase:\s*'ready'/);
+    assert.match(script, /currentBootstrapState\.degraded !== true/);
+});
+
+test('setup assistant launch failures degrade instead of blanking settings', () => {
+    assert.match(script, /const runQuickSetupWizard = \(force = false, options = \{\}\) => \{/);
+    assert.match(script, /openSetupAssistant\(force === true\);/);
+    assert.match(script, /category:\s*'setup-assistant-failed'/);
+    assert.match(script, /code:\s*'FVPLUS-SET-WIZARD-001'/);
+    assert.match(script, /Settings page visible, but the setup assistant failed to render\./);
+    assert.match(script, /if \(source !== 'auto-first-run'\) \{/);
+    assert.match(script, /showError\('Setup assistant failed', error\);/);
+    assert.match(script, /runQuickSetupWizard\(false, \{ source: 'auto-first-run' \}\);/);
+});
+
 test('fresh install fallback sanitizes error-shaped API payloads and shows empty-state guidance', () => {
     assert.match(script, /const sanitizeTypeMapResponse = \(response\) =>/);
     assert.match(script, /if \(response\.ok === false && typeof response\.error === 'string'\) \{/);

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.22.04">
-<!ENTITY md5 "a159d8ac420670ec5b98ef2f041200b7">
+<!ENTITY version "2026.05.22.05">
+<!ENTITY md5 "94e12d5a64f82ee35d39455d49333f2a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.22.05
+- Fix: Add a Settings blank-page watchdog that reports `FVPLUS-SET-BLANK-001` with visible-section, root, topbar, and setup-assistant diagnostics instead of leaving a silent blank page.
+- Fix: Keep Settings visible when the first-run setup assistant fails to render, reporting `FVPLUS-SET-WIZARD-001` as a degraded state so users can still access configuration.
+- Regression guard: Cover Settings blank-watchdog state tracking and setup-assistant degraded fallback behavior.
+
 
 ###2026.05.22.04
 - Fix: Restore full-width Docker folder preview borders so bordered preview rows extend across the folder field as before.

@@ -101,6 +101,25 @@ const clearFatalBannerResolvedState = () => {
         fatalBanner.clearResolvedIssue();
     }
 };
+const markSettingsBootstrapState = (patch = {}) => {
+    const cleanPatch = {};
+    if (patch && typeof patch === 'object') {
+        for (const [key, value] of Object.entries(patch)) {
+            if (value !== undefined) {
+                cleanPatch[key] = value;
+            }
+        }
+    }
+    if (typeof window.FolderViewPlusMarkSettingsBootstrapState === 'function') {
+        window.FolderViewPlusMarkSettingsBootstrapState(cleanPatch);
+    } else {
+        window.FolderViewPlusSettingsBootstrapState = {
+            ...(window.FolderViewPlusSettingsBootstrapState || {}),
+            ...cleanPatch,
+            lastUpdatedAt: new Date().toISOString()
+        };
+    }
+};
 const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
 const extractFatalBannerTraceId = (error) => {
     const direct = trimFatalBannerDiagnosticString(error?.traceId);
@@ -190,6 +209,11 @@ const withFatalBannerPhase = async ({
     if (action) {
         recordFatalBannerAction(action);
     }
+    markSettingsBootstrapState({
+        lastPhase: phase || undefined,
+        lastStep: step || undefined,
+        lastAction: action || undefined
+    });
     try {
         return await callback();
     } catch (error) {
@@ -204,6 +228,14 @@ setFatalBannerEnvironment({
 setFatalBannerPhase('module-load');
 recordFatalBannerAction('Load Settings runtime');
 markFatalBannerStep('Loaded settings runtime');
+markSettingsBootstrapState({
+    runtimeLoaded: true,
+    ready: false,
+    failed: false,
+    lastPhase: 'module-load',
+    lastAction: 'Load Settings runtime',
+    lastStep: 'Loaded settings runtime'
+});
 const settingsStorageWriter = utils && typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 80,
@@ -2155,8 +2187,53 @@ const updateRuleLiveMatch = (type) => {
     }
 };
 
-const runQuickSetupWizard = (force = false) => {
-    openSetupAssistant(force === true);
+const runQuickSetupWizard = (force = false, options = {}) => {
+    const source = String(options?.source || (force === true ? 'manual' : 'auto')).trim() || 'auto';
+    try {
+        markSettingsBootstrapState({
+            lastPhase: 'setup-assistant',
+            lastAction: source === 'auto-first-run' ? 'Open first-run setup assistant' : 'Open setup assistant',
+            lastStep: 'Starting setup assistant'
+        });
+        openSetupAssistant(force === true);
+        markSettingsBootstrapState({
+            lastPhase: 'setup-assistant',
+            lastAction: source === 'auto-first-run' ? 'Opened first-run setup assistant' : 'Opened setup assistant',
+            lastStep: 'Setup assistant opened'
+        });
+        return true;
+    } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'setup-assistant',
+            category: 'setup-assistant-failed',
+            action: source === 'auto-first-run' ? 'Open first-run setup assistant' : 'Open setup assistant'
+        });
+        markSettingsBootstrapState({
+            degraded: true,
+            lastPhase: 'setup-assistant',
+            lastAction: 'Setup assistant failed to open',
+            lastStep: 'Settings stayed visible after setup assistant failure'
+        });
+        try {
+            refreshSettingsUx();
+        } catch (_ignored) {
+            // Best effort only; keep reporting the setup assistant failure.
+        }
+        reportFatalBannerDegradedState(error, {
+            context: 'Settings',
+            hostSelector: '#fv-settings-root',
+            title: 'Setup assistant could not open',
+            message: 'FolderView Plus kept the Settings page visible, but the setup assistant failed to render.',
+            code: 'FVPLUS-SET-WIZARD-001',
+            phase: 'setup-assistant',
+            category: 'setup-assistant-failed',
+            detailLabel: 'Setup assistant error'
+        });
+        if (source !== 'auto-first-run') {
+            showError('Setup assistant failed', error);
+        }
+        return false;
+    }
 };
 
 const initSettingsControls = () => {
@@ -9474,6 +9551,12 @@ settingsActionSupportModule.registerWindowActions(window, {
                 bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
             }
             if (bootstrapDegradedReasons.length > 0) {
+                markSettingsBootstrapState({
+                    degraded: true,
+                    lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                    lastAction: 'Settings bootstrap loaded with degraded data',
+                    lastStep: 'Settings bootstrap degraded'
+                });
                 reportFatalBannerDegradedState(new Error('Some Settings data could not be loaded during bootstrap.'), {
                     context: 'Settings',
                     hostSelector: '#fv-settings-root',
@@ -9489,6 +9572,12 @@ settingsActionSupportModule.registerWindowActions(window, {
         } catch (error) {
             // Keep initial settings sections visible on first-load API hiccups.
             refreshSettingsUx();
+            markSettingsBootstrapState({
+                degraded: true,
+                lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                lastAction: 'Initial Settings data load failed',
+                lastStep: 'Settings page kept visible after data load failure'
+            });
             showError('Initial data load failed', error);
         }
         await withFatalBannerPhase({
@@ -9526,25 +9615,39 @@ settingsActionSupportModule.registerWindowActions(window, {
             }
             const shouldRunWizard = !isWizardCompletedServerSide() && !isSetupAssistantCompletedLocal();
             if (shouldRunWizard) {
-                runQuickSetupWizard(false);
+                runQuickSetupWizard(false, { source: 'auto-first-run' });
             } else {
                 await maybeShowUpdateNotesPanel();
             }
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
-        if (bootstrapDegradedReasons.length <= 0) {
+        const currentBootstrapState = window.FolderViewPlusSettingsBootstrapState || {};
+        if (bootstrapDegradedReasons.length <= 0 && currentBootstrapState.degraded !== true) {
             clearFatalBannerResolvedState();
         }
         setFatalBannerPhase('ready');
         recordFatalBannerAction('Settings bootstrap completed');
         markFatalBannerStep('Settings bootstrap completed');
+        markSettingsBootstrapState({
+            ready: true,
+            failed: false,
+            lastPhase: 'ready',
+            lastAction: 'Settings bootstrap completed',
+            lastStep: 'Settings bootstrap completed'
+        });
     } catch (error) {
         try {
             refreshSettingsUx();
         } catch (_ignored) {
             // Best effort only; do not shadow the original initialization error.
         }
+        markSettingsBootstrapState({
+            failed: true,
+            lastPhase: error?.fvplusPhase || 'bootstrap',
+            lastAction: error?.fvplusAction || 'Settings bootstrap failed',
+            lastStep: 'Settings bootstrap failed'
+        });
         if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
             fatalBanner.reportFatalError(error, {
                 context: 'Settings',

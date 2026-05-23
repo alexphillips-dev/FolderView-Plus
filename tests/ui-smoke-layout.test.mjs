@@ -769,7 +769,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
     assert.match(settingsJs, /const syncRuntimeConflictResolutionBanner = \(\) =>/);
     assert.match(settingsJs, /Conflict removed\. FolderView Plus is active again\./);
-    assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
+    assert.match(settingsJs, /runQuickSetupWizard = \(force = false, options = \{\}\) => \{/);
     assert.match(settingsRuntime, /openSetupAssistant\(force === true\);/);
     assert.match(settingsRuntime, /const bindSetupAssistantEvents = \(\) =>/);
     assert.match(settingsRuntime, /markSetupAssistantCompletedLocal\(\);/);
@@ -788,6 +788,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /data-fv-setup-quick-preset=/);
     assert.match(settingsRuntime, /Dry run only \(preview changes, do not modify folders or settings\)/);
     assert.match(settingsJs, /const shouldRunWizard = !isWizardCompletedServerSide\(\) && !isSetupAssistantCompletedLocal\(\);/);
+    assert.match(settingsJs, /runQuickSetupWizard\(false, \{ source: 'auto-first-run' \}\);/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
     assert.match(settingsJs, /const topbarHtml = settingsChrome && typeof settingsChrome\.getTopbarHtml === 'function'/);
     assert.match(settingsJs, /const enforceNoHorizontalOverflow = \(\) =>/);

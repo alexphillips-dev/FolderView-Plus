@@ -57,6 +57,68 @@
         let dockerPostUpdateRenderReconcileBound = false;
         let dockerHostOpenDockerPatchBound = false;
         let dockerUpdateActionClickCaptureBound = false;
+        let dockerPostUpdateRuntimePollTimer = null;
+        let dockerPostUpdateRuntimePollPending = false;
+        let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
+
+        const clearPostUpdateRuntimePoll = () => {
+            if (dockerPostUpdateRuntimePollTimer) {
+                const cancel = typeof win?.clearTimeout === 'function'
+                    ? win.clearTimeout.bind(win)
+                    : clearTimeout;
+                cancel(dockerPostUpdateRuntimePollTimer);
+                dockerPostUpdateRuntimePollTimer = null;
+            }
+        };
+
+        const schedulePostUpdateRuntimePoll = (reason = 'post-update-runtime-poll', delayMs = pollDelayMsDefault) => {
+            if (!isDockerHostUpdateSyncSuspended()) {
+                clearPostUpdateRuntimePoll();
+                return;
+            }
+            if (dockerPostUpdateRuntimePollTimer || dockerPostUpdateRuntimePollPending) {
+                return;
+            }
+            const safeReason = String(reason || '').trim() || 'post-update-runtime-poll';
+            const safeDelayMs = Math.max(0, Number(delayMs) || 0);
+            const schedule = typeof win?.setTimeout === 'function'
+                ? win.setTimeout.bind(win)
+                : setTimeout;
+            dockerPostUpdateRuntimePollTimer = schedule(() => {
+                dockerPostUpdateRuntimePollTimer = null;
+                if (!isDockerHostUpdateSyncSuspended()) {
+                    return;
+                }
+                dockerPostUpdateRuntimePollPending = true;
+                appendDockerBulkUpdateTrace('postUpdateRuntimePoll', {
+                    reason: safeReason,
+                    pollDelayMs: dockerPostUpdateRuntimePollIntervalMs
+                });
+                Promise.resolve(refreshDockerRuntimeStateInPlace({
+                    liveUpdateStatus: true
+                }))
+                    .then((success) => {
+                        appendDockerBulkUpdateTrace('postUpdateRuntimePollResult', {
+                            reason: safeReason,
+                            success: success === true
+                        });
+                    })
+                    .catch(() => {
+                        appendDockerBulkUpdateTrace('postUpdateRuntimePollResult', {
+                            reason: safeReason,
+                            success: false
+                        });
+                    })
+                    .finally(() => {
+                        dockerPostUpdateRuntimePollPending = false;
+                        if (isDockerHostUpdateSyncSuspended()) {
+                            schedulePostUpdateRuntimePoll('post-update-runtime-poll', dockerPostUpdateRuntimePollIntervalMs);
+                        } else {
+                            queueDockerSupportBundlePageSnapshot('post-update-runtime-poll-complete', 80);
+                        }
+                    });
+            }, safeDelayMs);
+        };
 
         const queuePostUpdateRenderReconcile = (reason = 'docker-post-folders-creation') => {
             if (!isDockerHostUpdateSyncSuspended()) {
@@ -122,8 +184,10 @@
                 durationMs: Math.max(0, Number(durationMs) || 0),
                 initialDelayMs,
                 pollDelayMs,
-                strategy: 'event-driven-post-render'
+                strategy: 'event-driven-post-render-and-poll'
             });
+            dockerPostUpdateRuntimePollIntervalMs = pollDelayMs;
+            schedulePostUpdateRuntimePoll('reconcile-window-armed', initialDelayMs);
             return resolvedUntil;
         };
 

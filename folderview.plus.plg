@@ -5,13 +5,32 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.26.01">
-<!ENTITY md5 "3be7f3d04f57b7b6717061f4bcfca2c9">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.05.27.01">
+<!ENTITY md5 "6c619056756930e52df49c2f5b2c9ead">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.05.27.01
+- Feature: Add the isolated Docker Orbit view with centered folder navigation, refined layout behavior, and dedicated Orbit runtime styling.
+- Feature: Add advanced Dashboard member previews for Docker folders, including WebUI, console, logs, update state, ports, volumes, and CPU/MEM graph details.
+- Feature: Add granular privacy masking controls and keep the Docker/VM privacy toolbar state synchronized with the saved mask settings.
+- Compatibility: Add best-effort sync support for Unraid's native Docker Organizer, including manual sync controls and diagnostics reporting.
+- UX: Allow special characters in folder names by removing the overly strict folder-name validation that blocked valid user naming patterns.
+- UX: Add Settings search aliases and Operations workspace entries for recent support topics including hide status, dashboard preview icons, native organizer sync, diagnostics, and bulk apply update.
+- Fix: Correct Docker folder batch-update dialog titles so localized `$1` placeholders are replaced with the target folder/container count.
+- Fix: Clear stale Docker folder update indicators after bulk updates and keep polling live Docker update state until Unraid reports the final up-to-date result.
+- Fix: Make Docker preview `Hide status` remove stale status badges across compact cards, live refreshes, and legacy status aliases like `hide`, `off`, `false`, and `0`.
+- Fix: Restore full-width Docker folder preview borders after the preview-layout adjustments.
+- Fix: Harden Docker preview action rendering by passing shared utility helpers into the preview-actions runtime before folder previews render.
+- Fix: Improve Dashboard quick actions, card layout, runtime hardening, and preview graph cleanup so Dashboard folder cards stay aligned and responsive.
+- Fix: Prevent Settings blank-page and bootstrap failures by adding early diagnostics fallbacks, scoped settings registries, a blank-page watchdog, and degraded setup-assistant recovery.
+- Fix: Keep Settings visible when first-run setup assistant rendering fails and surface actionable diagnostics instead of a blank Settings page.
+- Quality: Add browser smoke coverage, Docker update-state regression tests, Settings startup guards, privacy contract tests, native organizer diagnostics coverage, and dev finalize workflow checks.
+- Quality: Add a fast dev push workflow and expand release/build validation so dev packages and stable releases catch manifest, note, archive, and runtime regressions earlier.
+
 
 ###2026.05.26.01
 - Fix: Clear stale Docker folder update indicators after bulk updates by ignoring saved folder update metadata when live dockerman runtime state is unknown during post-update reconciliation.
@@ -5623,7 +5642,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

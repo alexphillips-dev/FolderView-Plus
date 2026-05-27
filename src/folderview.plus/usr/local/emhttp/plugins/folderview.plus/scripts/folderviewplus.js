@@ -54,6 +54,7 @@ const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
 const settingsRuntimeActionsModule = window.FolderViewPlusSettingsRuntimeActions || null;
+const nativeOrganizerModule = window.FolderViewPlusNativeOrganizer || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const markFatalBannerStep = (step) => {
     if (fatalBanner && typeof fatalBanner.markStep === 'function') {
@@ -98,6 +99,25 @@ const reportFatalBannerDegradedState = (error, options = {}) => {
 const clearFatalBannerResolvedState = () => {
     if (fatalBanner && typeof fatalBanner.clearResolvedIssue === 'function') {
         fatalBanner.clearResolvedIssue();
+    }
+};
+const markSettingsBootstrapState = (patch = {}) => {
+    const cleanPatch = {};
+    if (patch && typeof patch === 'object') {
+        for (const [key, value] of Object.entries(patch)) {
+            if (value !== undefined) {
+                cleanPatch[key] = value;
+            }
+        }
+    }
+    if (typeof window.FolderViewPlusMarkSettingsBootstrapState === 'function') {
+        window.FolderViewPlusMarkSettingsBootstrapState(cleanPatch);
+    } else {
+        window.FolderViewPlusSettingsBootstrapState = {
+            ...(window.FolderViewPlusSettingsBootstrapState || {}),
+            ...cleanPatch,
+            lastUpdatedAt: new Date().toISOString()
+        };
     }
 };
 const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
@@ -189,6 +209,11 @@ const withFatalBannerPhase = async ({
     if (action) {
         recordFatalBannerAction(action);
     }
+    markSettingsBootstrapState({
+        lastPhase: phase || undefined,
+        lastStep: step || undefined,
+        lastAction: action || undefined
+    });
     try {
         return await callback();
     } catch (error) {
@@ -203,6 +228,14 @@ setFatalBannerEnvironment({
 setFatalBannerPhase('module-load');
 recordFatalBannerAction('Load Settings runtime');
 markFatalBannerStep('Loaded settings runtime');
+markSettingsBootstrapState({
+    runtimeLoaded: true,
+    ready: false,
+    failed: false,
+    lastPhase: 'module-load',
+    lastAction: 'Load Settings runtime',
+    lastStep: 'Loaded settings runtime'
+});
 const settingsStorageWriter = utils && typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 80,
@@ -707,6 +740,9 @@ const settingsUiState = {
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
+const SETTINGS_SEARCH_ALIASES_BY_SECTION = window.FolderViewPlusSettingsSections?.SETTINGS_SEARCH_ALIASES_BY_SECTION
+    || window.SETTINGS_SEARCH_ALIASES_BY_SECTION
+    || {};
 const createAdvancedModuleLoadEntry = () => ({
     loaded: false,
     pending: null,
@@ -1584,8 +1620,18 @@ const refreshSectionApplyModeBadges = () => {
     }
 };
 
-const getSectionSearchHaystack = (section) => section.nodes
-    .map((node) => node.textContent || '')
+const getSectionSearchAliases = (section) => {
+    const key = String(section?.key || '').trim();
+    const aliases = SETTINGS_SEARCH_ALIASES_BY_SECTION[key];
+    return Array.isArray(aliases) ? aliases.join(' ') : '';
+};
+
+const getSectionSearchHaystack = (section) => [
+    section?.key || '',
+    section?.title || '',
+    getSectionSearchAliases(section),
+    ...(Array.isArray(section?.nodes) ? section.nodes.map((node) => node.textContent || '') : [])
+]
     .join(' ')
     .toLowerCase();
 
@@ -2141,8 +2187,53 @@ const updateRuleLiveMatch = (type) => {
     }
 };
 
-const runQuickSetupWizard = (force = false) => {
-    openSetupAssistant(force === true);
+const runQuickSetupWizard = (force = false, options = {}) => {
+    const source = String(options?.source || (force === true ? 'manual' : 'auto')).trim() || 'auto';
+    try {
+        markSettingsBootstrapState({
+            lastPhase: 'setup-assistant',
+            lastAction: source === 'auto-first-run' ? 'Open first-run setup assistant' : 'Open setup assistant',
+            lastStep: 'Starting setup assistant'
+        });
+        openSetupAssistant(force === true);
+        markSettingsBootstrapState({
+            lastPhase: 'setup-assistant',
+            lastAction: source === 'auto-first-run' ? 'Opened first-run setup assistant' : 'Opened setup assistant',
+            lastStep: 'Setup assistant opened'
+        });
+        return true;
+    } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'setup-assistant',
+            category: 'setup-assistant-failed',
+            action: source === 'auto-first-run' ? 'Open first-run setup assistant' : 'Open setup assistant'
+        });
+        markSettingsBootstrapState({
+            degraded: true,
+            lastPhase: 'setup-assistant',
+            lastAction: 'Setup assistant failed to open',
+            lastStep: 'Settings stayed visible after setup assistant failure'
+        });
+        try {
+            refreshSettingsUx();
+        } catch (_ignored) {
+            // Best effort only; keep reporting the setup assistant failure.
+        }
+        reportFatalBannerDegradedState(error, {
+            context: 'Settings',
+            hostSelector: '#fv-settings-root',
+            title: 'Setup assistant could not open',
+            message: 'FolderView Plus kept the Settings page visible, but the setup assistant failed to render.',
+            code: 'FVPLUS-SET-WIZARD-001',
+            phase: 'setup-assistant',
+            category: 'setup-assistant-failed',
+            detailLabel: 'Setup assistant error'
+        });
+        if (source !== 'auto-first-run') {
+            showError('Setup assistant failed', error);
+        }
+        return false;
+    }
 };
 
 const initSettingsControls = () => {
@@ -6487,7 +6578,15 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         expandToggle: dashboard.expandToggle !== false,
         greyscale: dashboard.greyscale === true,
         folderLabel: dashboard.folderLabel !== false,
-        privacyMode: dashboard.privacyMode === true
+        privacyMode: dashboard.privacyMode === true,
+        privacyMaskNames: dashboard.privacyMaskNames !== false,
+        privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
+        privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
+        privacyMaskPorts: dashboard.privacyMaskPorts !== false,
+        previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
+        previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
+        previewGraph: Math.max(0, Math.min(4, Number(dashboard.previewGraph) || 1)),
+        previewGraphTime: Math.max(5, Math.min(600, Number(dashboard.previewGraphTime) || 60))
     };
 };
 
@@ -6497,6 +6596,12 @@ const syncDashboardDependentFields = (type) => {
     $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
+    if (type === 'docker') {
+        const dashboardPreviewAdvanced = $(`#${type}-dashboard-preview-context`).val() === 'advanced';
+        $(`#${type}-dashboard-preview-trigger-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+        $(`#${type}-dashboard-preview-graph-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+        $(`#${type}-dashboard-preview-graph-time-row`).toggleClass('is-hidden', !dashboardPreviewAdvanced);
+    }
 };
 
 const syncRuntimeDependentFields = (type) => {
@@ -6506,22 +6611,23 @@ const syncRuntimeDependentFields = (type) => {
     $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
 };
 
-const applySettingsPrivacyMode = () => {
-    ['docker', 'vm'].forEach((type) => {
-        const dashboard = normalizeDashboardPrefsForType(type);
-        $('body').toggleClass(`fvplus-privacy-${type}-settings`, dashboard.privacyMode === true);
-    });
-};
-
 const renderDashboardControls = (type) => {
     const dashboard = normalizeDashboardPrefsForType(type);
     $(`#${type}-dashboard-layout`).val(dashboard.layout);
     $(`#${type}-dashboard-expand-toggle`).prop('checked', dashboard.expandToggle === true);
     $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
-    $(`#${type}-dashboard-privacy-mode`).prop('checked', dashboard.privacyMode === true);
+    $(`#${type}-dashboard-privacy-mask-names`).prop('checked', dashboard.privacyMaskNames !== false);
+    if (type === 'docker') {
+        $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
+        $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
+        $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
+        $('#docker-dashboard-preview-context').val(dashboard.previewContext);
+        $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);
+        $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
+        $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
+    }
     syncDashboardDependentFields(type);
-    applySettingsPrivacyMode();
 };
 
 const renderRuntimeControls = (type) => {
@@ -6979,11 +7085,123 @@ const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buil
 const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
 const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
 const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
-const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+const renderOperationsWorkspace = (...args) => {
+    const result = getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+    renderNativeDockerOrganizerStatus();
+    return result;
+};
 const setOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().setOperationsWorkspaceType(...args);
 const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectOperationsTemplate(...args);
 const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
 const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
+
+const readNativeDockerOrganizerStoredStatus = () => {
+    const storageKey = nativeOrganizerModule?.NATIVE_ORGANIZER_STATUS_STORAGE_KEY || 'fv.native.organizer.status.v1';
+    try {
+        const raw = String(localStorage.getItem(storageKey) || '').trim();
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_error) {
+        return null;
+    }
+};
+
+const buildNativeDockerOrganizerStatusHtml = (status = null) => {
+    if (!nativeOrganizerModule || typeof nativeOrganizerModule.syncDockerOrganizer !== 'function') {
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>Native organizer helper is not loaded.</strong>
+                <span>The Docker and Dashboard pages still work without native organizer sync.</span>
+            </div>
+        `;
+    }
+    const source = status && typeof status === 'object' ? status : readNativeDockerOrganizerStoredStatus();
+    if (!source) {
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>Native organizer status has not been captured yet.</strong>
+                <span>Run Sync now to check whether Unraid's GraphQL organizer API is available.</span>
+            </div>
+        `;
+    }
+    const checkedAt = source.checkedAt ? formatTimestamp(source.checkedAt) : 'recently';
+    const created = Math.max(0, Number(source.created) || 0);
+    const updated = Math.max(0, Number(source.updated) || 0);
+    const synced = created + updated;
+    const reason = String(source.reason || '').trim();
+    const headline = source.ok === true
+        ? (source.skipped === true
+            ? 'Native organizer sync was skipped safely.'
+            : `Native organizer synced ${synced} folder change${synced === 1 ? '' : 's'}.`)
+        : 'Native organizer sync is unavailable right now.';
+    const detail = source.ok === true
+        ? `${synced} changed, checked ${checkedAt}${reason ? ` (${reason})` : ''}.`
+        : `${reason || 'GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
+    return `
+        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : 'is-warning'}">
+            <strong>${escapeHtml(headline)}</strong>
+            <span>${escapeHtml(detail)}</span>
+        </div>
+    `;
+};
+
+const renderNativeDockerOrganizerStatus = (status = null) => {
+    const host = $('#docker-native-organizer-status');
+    if (!host.length) {
+        return null;
+    }
+    host.html(buildNativeDockerOrganizerStatusHtml(status));
+    return status;
+};
+
+const refreshNativeDockerOrganizerStatus = () => {
+    const moduleStatus = nativeOrganizerModule && typeof nativeOrganizerModule.getStatus === 'function'
+        ? nativeOrganizerModule.getStatus()
+        : null;
+    renderNativeDockerOrganizerStatus(moduleStatus?.last || readNativeDockerOrganizerStoredStatus());
+};
+
+const syncNativeDockerOrganizerFromSettings = async () => {
+    if (!ensureRuntimeConflictActionAllowed('Sync native Docker organizer')) {
+        return false;
+    }
+    if (!nativeOrganizerModule || typeof nativeOrganizerModule.syncDockerOrganizer !== 'function') {
+        renderNativeDockerOrganizerStatus(null);
+        showToastMessage({
+            title: 'Native organizer unavailable',
+            message: 'The native organizer helper did not load in Settings.',
+            level: 'warning'
+        });
+        return false;
+    }
+    try {
+        const result = await nativeOrganizerModule.syncDockerOrganizer(dockers, {
+            force: true,
+            source: 'settings'
+        });
+        renderNativeDockerOrganizerStatus(result);
+        showToastMessage({
+            title: result.ok ? 'Native organizer checked' : 'Native organizer skipped',
+            message: result.ok
+                ? `Created ${Number(result.created) || 0}, updated ${Number(result.updated) || 0}.`
+                : String(result.reason || 'GraphQL organizer API unavailable.'),
+            level: result.ok ? 'success' : 'warning'
+        });
+        return result.ok === true;
+    } catch (error) {
+        renderNativeDockerOrganizerStatus({
+            ok: false,
+            skipped: true,
+            reason: String(error?.message || error || 'native organizer sync failed'),
+            checkedAt: new Date().toISOString()
+        });
+        showError('Native organizer sync failed', error);
+        return false;
+    }
+};
 
 const renderTable = (type) => {
     const folders = getFolderMap(type);
@@ -8086,6 +8304,14 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.folderLabel = value === true;
     } else if (key === 'privacyMode') {
         nextDashboard.privacyMode = value === true;
+    } else if (key === 'privacyMaskNames') {
+        nextDashboard.privacyMaskNames = value === true;
+    } else if (key === 'privacyMaskContainerIps' && type === 'docker') {
+        nextDashboard.privacyMaskContainerIps = value === true;
+    } else if (key === 'privacyMaskLocalIps' && type === 'docker') {
+        nextDashboard.privacyMaskLocalIps = value === true;
+    } else if (key === 'privacyMaskPorts' && type === 'docker') {
+        nextDashboard.privacyMaskPorts = value === true;
     } else {
         return;
     }
@@ -9239,6 +9465,8 @@ settingsActionSupportModule.registerWindowActions(window, {
     saveFolderDefaultsFromSelection,
     applySavedFolderDefaultsToAll,
     clearFolderDefaults,
+    refreshNativeDockerOrganizerStatus,
+    syncNativeDockerOrganizerFromSettings,
     runQuickSetupWizard,
     setSettingsMode,
     exportEnvironmentSnapshot,
@@ -9323,6 +9551,12 @@ settingsActionSupportModule.registerWindowActions(window, {
                 bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
             }
             if (bootstrapDegradedReasons.length > 0) {
+                markSettingsBootstrapState({
+                    degraded: true,
+                    lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                    lastAction: 'Settings bootstrap loaded with degraded data',
+                    lastStep: 'Settings bootstrap degraded'
+                });
                 reportFatalBannerDegradedState(new Error('Some Settings data could not be loaded during bootstrap.'), {
                     context: 'Settings',
                     hostSelector: '#fv-settings-root',
@@ -9338,6 +9572,12 @@ settingsActionSupportModule.registerWindowActions(window, {
         } catch (error) {
             // Keep initial settings sections visible on first-load API hiccups.
             refreshSettingsUx();
+            markSettingsBootstrapState({
+                degraded: true,
+                lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                lastAction: 'Initial Settings data load failed',
+                lastStep: 'Settings page kept visible after data load failure'
+            });
             showError('Initial data load failed', error);
         }
         await withFatalBannerPhase({
@@ -9375,25 +9615,39 @@ settingsActionSupportModule.registerWindowActions(window, {
             }
             const shouldRunWizard = !isWizardCompletedServerSide() && !isSetupAssistantCompletedLocal();
             if (shouldRunWizard) {
-                runQuickSetupWizard(false);
+                runQuickSetupWizard(false, { source: 'auto-first-run' });
             } else {
                 await maybeShowUpdateNotesPanel();
             }
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
-        if (bootstrapDegradedReasons.length <= 0) {
+        const currentBootstrapState = window.FolderViewPlusSettingsBootstrapState || {};
+        if (bootstrapDegradedReasons.length <= 0 && currentBootstrapState.degraded !== true) {
             clearFatalBannerResolvedState();
         }
         setFatalBannerPhase('ready');
         recordFatalBannerAction('Settings bootstrap completed');
         markFatalBannerStep('Settings bootstrap completed');
+        markSettingsBootstrapState({
+            ready: true,
+            failed: false,
+            lastPhase: 'ready',
+            lastAction: 'Settings bootstrap completed',
+            lastStep: 'Settings bootstrap completed'
+        });
     } catch (error) {
         try {
             refreshSettingsUx();
         } catch (_ignored) {
             // Best effort only; do not shadow the original initialization error.
         }
+        markSettingsBootstrapState({
+            failed: true,
+            lastPhase: error?.fvplusPhase || 'bootstrap',
+            lastAction: error?.fvplusAction || 'Settings bootstrap failed',
+            lastStep: 'Settings bootstrap failed'
+        });
         if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
             fatalBanner.reportFatalError(error, {
                 context: 'Settings',
@@ -9408,5 +9662,3 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
-
-

@@ -35,7 +35,15 @@
                 'expandToggle' => true,
                 'greyscale' => false,
                 'folderLabel' => true,
-                'privacyMode' => false
+                'privacyMode' => false,
+                'privacyMaskNames' => true,
+                'privacyMaskContainerIps' => true,
+                'privacyMaskLocalIps' => true,
+                'privacyMaskPorts' => true,
+                'previewContext' => 'native',
+                'previewTrigger' => 'click',
+                'previewGraph' => 1,
+                'previewGraphTime' => 60
             ],
             'health' => [
                 'cardsEnabled' => true,
@@ -234,6 +242,22 @@
         return 'classic';
     }
 
+    function normalizeDashboardPreviewContext($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['advanced', '2'], true)) {
+            return 'advanced';
+        }
+        return 'native';
+    }
+
+    function normalizeDashboardPreviewTrigger($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['hover', '1'], true)) {
+            return 'hover';
+        }
+        return 'click';
+    }
+
     function normalizeThemeCompatibilityMode($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['auto', 'host', 'safe', 'highcontrast'], true)) {
@@ -244,7 +268,7 @@
 
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer'], true)) {
+        if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer', 'orbit'], true)) {
             return $normalized;
         }
         return 'folderview';
@@ -305,7 +329,8 @@
         $normalized['autoRules'] = $normalizedRules;
         $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
         $runtimePrefsSchema = normalizeIntInRange($prefs['runtimePrefsSchema'] ?? 0, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, 0);
-        $runtimePrefsReady = $runtimePrefsSchema >= FVPLUS_RUNTIME_PREFS_SCHEMA;
+        $runtimePrefsReady = $runtimePrefsSchema >= FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA;
+        $privacyModePrefsReady = $runtimePrefsSchema >= FVPLUS_PRIVACY_MODE_PREFS_SCHEMA;
         $normalized['runtimePrefsSchema'] = FVPLUS_RUNTIME_PREFS_SCHEMA;
         $normalized['liveRefreshEnabled'] = $runtimePrefsReady
             ? normalizeBool($prefs['liveRefreshEnabled'] ?? false, false)
@@ -330,7 +355,25 @@
             'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['folderLabel'], true),
-            'privacyMode' => normalizeBool($dashboardIncoming['privacyMode'] ?? false, false)
+            'privacyMode' => $privacyModePrefsReady
+                ? normalizeBool($dashboardIncoming['privacyMode'] ?? false, false)
+                : false,
+            'privacyMaskNames' => !array_key_exists('privacyMaskNames', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskNames'], true),
+            'privacyMaskContainerIps' => !array_key_exists('privacyMaskContainerIps', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskContainerIps'], true),
+            'privacyMaskLocalIps' => !array_key_exists('privacyMaskLocalIps', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskLocalIps'], true),
+            'privacyMaskPorts' => !array_key_exists('privacyMaskPorts', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['privacyMaskPorts'], true),
+            'previewContext' => normalizeDashboardPreviewContext($dashboardIncoming['previewContext'] ?? 'native'),
+            'previewTrigger' => normalizeDashboardPreviewTrigger($dashboardIncoming['previewTrigger'] ?? 'click'),
+            'previewGraph' => normalizeIntInRange($dashboardIncoming['previewGraph'] ?? 1, 0, 4, 1),
+            'previewGraphTime' => normalizeIntInRange($dashboardIncoming['previewGraphTime'] ?? 60, 5, 600, 60)
         ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));
@@ -450,5 +493,3 @@
         writeJsonObjectWithLastGood($path, $normalized);
         return $normalized;
     }
-
-

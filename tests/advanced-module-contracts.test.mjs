@@ -26,6 +26,10 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
+const settingsSectionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js'),
+    'utf8'
+);
 const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 
 test('advanced module loader uses per-module stale state with scoped tab targeting', () => {
@@ -47,6 +51,16 @@ test('advanced search and bulk filter state are persisted as part of table ui st
     assert.match(script, /writeActiveAdvancedSearchQuery\(settingsUiState\.query\);/);
     assert.match(script, /const setAdvancedTab = \(tab, persist = true\) => \{\s*settingsUiState\.advancedTab = normalizeAdvancedGroup\(tab\);[\s\S]*const nextQuery = readActiveAdvancedSearchQuery\(\);/);
     assert.match(script, /const filterBulkItems = \(type, value = ''\) => \{[\s\S]*filtersByType\[resolvedType\]\.bulk = normalized;/);
+});
+
+test('settings search includes user-facing aliases for recent support terms', () => {
+    assert.match(settingsSectionsScript, /^\s*\/\* Advanced settings section registry extracted from folderviewplus\.js\. \*\/\s*\(\(\) => \{/);
+    assert.match(script, /const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object\.freeze\(\{/);
+    assert.match(script, /docker:\s*Object\.freeze\(\[[\s\S]*'webui console logs'[\s\S]*'hide status'[\s\S]*'dashboard overlap'/);
+    assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
+    assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'native organizer'[\s\S]*'support bundle'/);
+    assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
+    assert.match(script, /getSectionSearchAliases\(section\),[\s\S]*section\.nodes\.map\(\(node\) => node\.textContent \|\| ''\)/);
 });
 
 test('advanced backup and template mutations are lock-guarded', () => {

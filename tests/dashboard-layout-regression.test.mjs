@@ -34,6 +34,10 @@ const dashboardQuickRailScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.layout-quickrail.js'
 );
+const dashboardAdvancedPreviewScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.advanced-preview.js'
+);
 const dashboardCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css'
@@ -71,6 +75,7 @@ const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
 const dashboardQuickRailScript = fs.readFileSync(dashboardQuickRailScriptPath, 'utf8');
+const dashboardAdvancedPreviewScript = fs.readFileSync(dashboardAdvancedPreviewScriptPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dashboardPage = fs.readFileSync(dashboardPagePath, 'utf8');
 const dockerPage = fs.readFileSync(dockerPagePath, 'utf8');
@@ -89,6 +94,10 @@ test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /id="docker-dashboard-expand-toggle"/);
     assert.match(settingsPage, /id="docker-dashboard-greyscale"/);
     assert.match(settingsPage, /id="docker-dashboard-folder-label"/);
+    assert.match(settingsPage, /id="docker-dashboard-preview-context"/);
+    assert.match(settingsPage, /id="docker-dashboard-preview-trigger"/);
+    assert.match(settingsPage, /id="docker-dashboard-preview-graph"/);
+    assert.match(settingsPage, /id="docker-dashboard-preview-graph-time"/);
     assert.match(settingsPage, /id="vm-dashboard-layout"/);
     assert.match(settingsPage, /id="vm-dashboard-expand-toggle"/);
     assert.match(settingsPage, /id="vm-dashboard-greyscale"/);
@@ -117,9 +126,12 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /phase: error\?\.fvplusPhase \|\| 'bootstrap'/);
     assert.match(settingsScript, /category: 'degraded-mode'/);
     assert.match(settingsScript, /buildSettingsBootstrapDegradedReason\(type, 'runtime info', infoResult\.reason\)/);
-    assert.match(settingsScript, /if \(bootstrapDegradedReasons\.length <= 0\) \{\s*clearFatalBannerResolvedState\(\);/);
+    assert.match(settingsScript, /const currentBootstrapState = window\.FolderViewPlusSettingsBootstrapState \|\| \{\};/);
+    assert.match(settingsScript, /if \(bootstrapDegradedReasons\.length <= 0 && currentBootstrapState\.degraded !== true\) \{\s*clearFatalBannerResolvedState\(\);/);
     assert.match(settingsScript, /legacy/);
     assert.match(settingsScript, /compactmatrix/);
+    assert.match(settingsScript, /previewContext: dashboard\.previewContext === 'advanced' \? 'advanced' : 'native'/);
+    assert.match(settingsScript, /previewTrigger: dashboard\.previewTrigger === 'hover' \? 'hover' : 'click'/);
     assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
     assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
     assert.match(settingsScript, /const dashboard = normalizeDashboardPrefsForType\(type, current\);/);
@@ -136,6 +148,8 @@ test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
     assert.doesNotMatch(libPrefsPhp, /function normalizeViewMode\(\$value\): string/);
     assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
+    assert.match(libPrefsPhp, /function normalizeDashboardPreviewContext\(\$value\): string/);
+    assert.match(libPrefsPhp, /function normalizeDashboardPreviewTrigger\(\$value\): string/);
     assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
     assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
@@ -151,6 +165,10 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
+    assert.match(dashboardScript, /const dashboardAdvancedPreviewModule = window\.FolderViewPlusDashboardAdvancedPreview \|\| null;/);
+    assert.match(dashboardScript, /const attachDashboardAdvancedPreviewIfEnabled = \(\$containerEl, ct, folder, id\) =>/);
+    assert.match(dashboardScript, /let dashboardDockerCpuCores = 1;/);
+    assert.match(dashboardScript, /const refreshDashboardDockerCpuCores = \(\) => \$\.get\('\/plugins\/folderview\.plus\/server\/cpu\.php'\)/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
     assert.match(dashboardScript, /buildFolderChildrenIndex,/);
     assert.match(dashboardScript, /const getDashboardQuickRailController = \(\) =>/);
@@ -192,6 +210,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('vm'\)\) \{/);
     assert.match(dashboardScript, /if \(layout === 'accordion'\) \{/);
     assert.match(dashboardScript, /data-fv-dashboard-overflow="\$\{overflowMode\}"/);
+    assert.match(dashboardScript, /attachDashboardAdvancedPreviewIfEnabled\(\$containerEl, ct, folder, id\);/);
     assert.match(dashboardScript, /class="fv-dashboard-expand-toggle-btn"/);
     assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('docker'\)/);
     assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('vm'\)/);
@@ -222,7 +241,18 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-quick-rail/);
     assert.match(dashboardQuickRailScript, /\$host\.parent\(\)\.is\(\$container\)/);
     assert.match(dashboardQuickRailScript, /\$container\.prepend\(\$host\)/);
+    assert.match(dashboardQuickRailScript, /fv-dashboard-has-visible-quick-rail/);
     assert.match(dashboardQuickRailScript, /bindDashboardQuickActionSyncHandlers/);
+});
+
+test('dashboard advanced preview module is loaded before dashboard runtime and exposes attach api', () => {
+    assert.match(dashboardPage, /chart\.min\.js[\s\S]*chartjs-plugin-streaming\.min\.js[\s\S]*dashboard\.advanced-preview\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*dashboard\.js/);
+    assert.match(dashboardAdvancedPreviewScript, /root\.FolderViewPlusDashboardAdvancedPreview = factory\(\)/);
+    assert.match(dashboardAdvancedPreviewScript, /const attachAdvancedPreview = \(\{ triggerEl, ct, folder = \{\}, id = '', settings = \{\}, cpus = 1 \} = \{\}\) =>/);
+    assert.match(dashboardAdvancedPreviewScript, /const parseStatsMessage = \(event, ct, cpus = 1\) =>/);
+    assert.match(dashboardAdvancedPreviewScript, /attachedListener/);
+    assert.match(dashboardAdvancedPreviewScript, /chart\.canvas/);
+    assert.match(dashboardScript, /FolderViewPlusNativeOrganizer\.syncDockerOrganizer\(globalFolders\.docker, \{ source: 'dashboard-page' \}\)/);
 });
 
 test('shared fatal banner runtime is exposed on settings and runtime pages and exposes fatal reporting helpers', () => {
@@ -276,6 +306,8 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
+    assert.match(dashboardCss, /--fvplus-dashboard-quick-rail-gutter:\s*38px/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-inline-container\.fv-dashboard-has-visible-quick-rail\s*\{[\s\S]*padding-right:\s*var\(--fvplus-dashboard-quick-rail-gutter\)/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-clamped/);
@@ -305,12 +337,22 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
+    assert.doesNotMatch(dashboardCss, /\.folder-hand-docker[\s\S]{0,160}display:\s*none !important/);
+    assert.doesNotMatch(dashboardCss, /\.folder-hand-vm[\s\S]{0,160}display:\s*none !important/);
+    assert.match(dashboardCss, /\.folder-showcase > span\.outer:not\(\.folder-docker\):not\(\.folder-vm\)\s*\{[\s\S]*overflow:\s*hidden/);
+    assert.match(dashboardCss, /\.folder-showcase \.fv-dashboard-member-actions\s*\{[\s\S]*display:\s*flex/);
+    assert.match(dashboardCss, /\.folder-showcase \.fv-dashboard-member-actions\s*\{[\s\S]*margin:\s*3px 0 0/);
+    assert.match(dashboardCss, /\.fv-dashboard-advanced-preview\s*\{/);
+    assert.match(dashboardCss, /\.fv-dashboard-advanced-preview-actions/);
+    assert.match(dashboardCss, /\.fv-dashboard-advanced-preview-graphs canvas/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="scroll"/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="expand_row"/);
 });
 
 test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderPage, /name="dashboard_overflow"/);
+    assert.match(folderPage, /name="preview_status"/);
+    assert.match(folderPage, /<option value="symbol" selected>Show status symbol<\/option>/);
     assert.match(folderPage, /<option value="default">Default<\/option>/);
     assert.match(folderPage, /<option value="expand_row">Expand row<\/option>/);
     assert.match(folderPage, /<option value="scroll">Scrollable panel<\/option>/);

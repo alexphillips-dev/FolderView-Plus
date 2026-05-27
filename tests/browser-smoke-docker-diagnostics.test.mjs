@@ -10,8 +10,14 @@ const browserSmoke = fs.readFileSync(browserSmokePath, 'utf8');
 test('browser smoke includes Docker diagnostics and loadlist rebuild coverage', () => {
     assert.match(browserSmoke, /const dockerDiagnosticsReports = \[\];/);
     assert.match(browserSmoke, /const dockerUpdateFlowReports = \[\];/);
+    assert.match(browserSmoke, /const dockerPreviewStatusReports = \[\];/);
+    assert.match(browserSmoke, /const dashboardAdvancedPreviewReports = \[\];/);
+    assert.match(browserSmoke, /const nativeOrganizerDiagnosticsReports = \[\];/);
     assert.match(browserSmoke, /const runDockerDiagnosticsSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
     assert.match(browserSmoke, /const runDockerUpdateFlowSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
+    assert.match(browserSmoke, /const runDockerPreviewStatusSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
+    assert.match(browserSmoke, /const runDashboardAdvancedPreviewSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
+    assert.match(browserSmoke, /const runNativeOrganizerDiagnosticsSmoke = async \(page,\s*\{\s*browserName,\s*settingsUrl\s*\}\) => \{/);
     assert.match(browserSmoke, /const pageKey = 'fv\.support\.bundle\.docker\.page\.v1';/);
     assert.match(browserSmoke, /const requestKey = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
     assert.match(browserSmoke, /const bulkKey = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);
@@ -29,6 +35,12 @@ test('browser smoke includes Docker diagnostics and loadlist rebuild coverage', 
     assert.match(browserSmoke, /window\.\$\.cookie\('docker_listview_mode', currentMode\);/);
     assert.match(browserSmoke, /dockerDiagnosticsReports\.push\(diagnosticsReport\);/);
     assert.match(browserSmoke, /dockerUpdateFlowReports\.push\(updateFlowReport\);/);
+    assert.match(browserSmoke, /dockerPreviewStatusReports\.push\(previewStatusReport\);/);
+    assert.match(browserSmoke, /dashboardAdvancedPreviewReports\.push\(advancedPreviewReport\);/);
+    assert.match(browserSmoke, /nativeOrganizerDiagnosticsReports\.push\(nativeOrganizerReport\);/);
     assert.match(browserSmoke, /dockerDiagnosticsReports,/);
     assert.match(browserSmoke, /dockerUpdateFlowReports,/);
+    assert.match(browserSmoke, /dockerPreviewStatusReports,/);
+    assert.match(browserSmoke, /dashboardAdvancedPreviewReports,/);
+    assert.match(browserSmoke, /nativeOrganizerDiagnosticsReports,/);
 });

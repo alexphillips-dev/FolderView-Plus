@@ -44,9 +44,12 @@ test('docker pin quick action updates visible folder order immediately', () => {
 });
 
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
+    assert.match(dockerPreviewActionsScript, /const utils = deps\.utils && typeof deps\.utils === 'object' \? deps\.utils : \{\};/);
+    assert.match(dockerScript, /dockerPreviewActionsModule\.createApi\(\{[\s\S]*utils,[\s\S]*escapeHtml:/);
     assert.match(dockerPreviewActionsScript, /const getDockerPreviewStatusMeta = \(entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const clearDockerRuntimeStateClasses = \(\$elements\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStateSurface = \(\$target,\s*statusMeta,\s*localizedLabel\) =>/);
+    assert.match(dockerPreviewActionsScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(dockerPreviewActionsScript, /\$outer\.attr\('data-fv-runtime-state', statusMeta\.key\);/);
     assert.match(dockerPreviewActionsScript, /\$appLink\.hasClass\('fv-preview-status-name'\)/);
     assert.match(dockerPreviewActionsScript, /const findDockerFolderMemberRow = \(id,\s*containerName\) =>/);
@@ -58,6 +61,7 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
     assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
     assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
+    assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'symbol'\) \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.removeClass\('fv-preview-status-hidden'\);[\s\S]*\} else \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.remove\(\);/);
     assert.match(dockerPreviewActionsScript, /const resolveDockerMemberUpdateState = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowUpdateColumn = \(\$row,\s*entry = \{\}\) =>/);
@@ -69,6 +73,12 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
     assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/s);
     assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/);
+    assert.match(dockerScript, /const normalizePreviewStatusMode = \(value\) =>/);
+    assert.match(dockerScript, /const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';/);
+    assert.match(dockerScript, /fv-preview-icon-status/);
+    assert.match(dockerScript, /const \$existingIconStatus = \$previewElementTarget\.children\('\.fv-preview-icon-status'\);/);
+    assert.match(dockerScript, /previewStatusMode !== 'symbol' && \$existingIconStatus\.length/);
+    assert.match(dockerCss, /\.folder-preview \.fv-preview-icon-status\s*\{/);
     assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
 });

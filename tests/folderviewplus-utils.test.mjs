@@ -343,7 +343,15 @@ test('normalizePrefs provides dashboard defaults', () => {
         expandToggle: true,
         greyscale: false,
         folderLabel: true,
-        privacyMode: false
+        privacyMode: false,
+        privacyMaskNames: true,
+        privacyMaskContainerIps: true,
+        privacyMaskLocalIps: true,
+        privacyMaskPorts: true,
+        previewContext: 'native',
+        previewTrigger: 'click',
+        previewGraph: 1,
+        previewGraphTime: 60
     });
 });
 
@@ -362,7 +370,15 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         expandToggle: false,
         greyscale: true,
         folderLabel: false,
-        privacyMode: false
+        privacyMode: false,
+        privacyMaskNames: true,
+        privacyMaskContainerIps: true,
+        privacyMaskLocalIps: true,
+        privacyMaskPorts: true,
+        previewContext: 'native',
+        previewTrigger: 'click',
+        previewGraph: 1,
+        previewGraphTime: 60
     });
     const matrix = utils.normalizePrefs({
         dashboard: {
@@ -393,6 +409,16 @@ test('utils exports shared dashboard metadata and runtime-safe escaping helpers'
     assert.equal(utils.escapeHtml(`a<"b"&'c'`), 'a&lt;&quot;b&quot;&amp;&#39;c&#39;');
     assert.equal(utils.sanitizeImageSrc('javascript:alert(1)'), '/plugins/dynamix.docker.manager/images/question.png');
     assert.equal(utils.sanitizeImageSrc('/plugins/folderview.plus/images/folder-icon.png'), '/plugins/folderview.plus/images/folder-icon.png');
+    assert.deepEqual(utils.resolvePreviewActionPrefs({ preview_webui: true, preview_console: false, preview_logs: true }), {
+        preview_webui: true,
+        preview_console: false,
+        preview_logs: true
+    });
+    assert.deepEqual(utils.resolvePreviewActionPrefs(null), {
+        preview_webui: false,
+        preview_console: false,
+        preview_logs: false
+    });
 });
 
 test('orderFoldersByPrefs keeps child folders nested after parent in sorted output', () => {
@@ -578,7 +604,7 @@ test('getAutoRuleDecision supports exclude precedence and advanced docker kinds'
 
 test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {
     const prefs = utils.normalizePrefs({});
-    assert.equal(prefs.runtimePrefsSchema, 2);
+    assert.equal(prefs.runtimePrefsSchema, 3);
     assert.equal(prefs.liveRefreshEnabled, false);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
@@ -634,6 +660,11 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
         pageViewMode: 'TREE-EXPLORER'
     });
     assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
+
+    const orbitMode = utils.normalizePrefs({
+        pageViewMode: 'ORBIT'
+    });
+    assert.equal(orbitMode.pageViewMode, 'orbit');
 
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'
@@ -691,7 +722,7 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
         lazyPreviewEnabled: true,
         lazyPreviewThreshold: 77
     });
-    assert.equal(legacy.runtimePrefsSchema, 2);
+    assert.equal(legacy.runtimePrefsSchema, 3);
     assert.equal(legacy.liveRefreshEnabled, false);
     assert.equal(legacy.performanceMode, false);
     assert.equal(legacy.lazyPreviewEnabled, false);
@@ -709,6 +740,22 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
     assert.equal(upgraded.liveRefreshEnabled, true);
     assert.equal(upgraded.performanceMode, true);
     assert.equal(upgraded.lazyPreviewEnabled, true);
+
+    const legacyPrivacy = utils.normalizePrefs({
+        runtimePrefsSchema: 2,
+        dashboard: {
+            privacyMode: true
+        }
+    });
+    assert.equal(legacyPrivacy.dashboard.privacyMode, false);
+
+    const upgradedPrivacy = utils.normalizePrefs({
+        runtimePrefsSchema: 3,
+        dashboard: {
+            privacyMode: true
+        }
+    });
+    assert.equal(upgradedPrivacy.dashboard.privacyMode, true);
 
     const onboarding = utils.normalizePrefs({
         setupWizardCompleted: true,
@@ -1035,4 +1082,3 @@ test('performance utility helpers are exported and writable in node runtime', as
     assert.equal(storage.get('beta'), '2');
     assert.equal(storage.has('alpha'), false);
 });
-

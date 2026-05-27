@@ -344,14 +344,19 @@
             const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
             const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
             const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
+            const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended()
+                ? readDockerHostRowUpdatedState(safeName)
+                : null;
             const sourceUpdated = typeof sourceState.Updated === 'boolean'
                 ? sourceState.Updated
                 : (typeof source.Updated === 'boolean' ? source.Updated : null);
+            const preservePreviousUpdated = typeof previousState.Updated === 'boolean'
+                && !(manager === 'dockerman' && isHostUpdateSyncSuspended());
             const resolvedUpdated = typeof sourceUpdated === 'boolean'
                 ? sourceUpdated
-                : (typeof previousState.Updated === 'boolean'
-                    ? previousState.Updated
-                    : (manager === 'dockerman' ? readDockerHostRowUpdatedState(safeName) : null));
+                : (typeof hostUpdated === 'boolean'
+                    ? hostUpdated
+                    : (preservePreviousUpdated ? previousState.Updated : null));
             const nextEntry = previous ? { ...previous } : {};
             nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
             nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
@@ -439,6 +444,14 @@
             const runtimeManager = String(runtimeState.manager || '').trim();
             const hasRuntimeState = typeof runtimeState.Running === 'boolean';
             const hasRuntimePause = typeof runtimeState.Paused === 'boolean';
+            const hostUpdated = runtimeManager === 'dockerman' && !isHostUpdateSyncSuspended()
+                ? readDockerHostRowUpdatedState(key)
+                : null;
+            const updateAvailable = typeof runtimeState.Updated === 'boolean'
+                ? (runtimeState.Updated === false && runtimeManager === 'dockerman')
+                : (runtimeManager === 'dockerman'
+                    ? (hostUpdated === false)
+                    : (source.update === true));
             return {
                 ...source,
                 id: source.id || String(runtime?.shortId || '').trim(),
@@ -449,9 +462,7 @@
                 pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
                 state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
                 autostart: typeof runtimeState.Autostart === 'boolean' ? runtimeState.Autostart === true : (source.autostart === true),
-                update: typeof runtimeState.Updated === 'boolean'
-                    ? (runtimeState.Updated === false && runtimeManager === 'dockerman')
-                    : (source.update === true),
+                update: updateAvailable,
                 managed: runtimeManager ? runtimeManager === 'dockerman' : (source.managed === true),
                 manager: runtimeManager || String(source.manager || '').trim()
             };

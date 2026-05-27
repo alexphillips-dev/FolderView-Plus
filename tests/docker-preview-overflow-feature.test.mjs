@@ -20,6 +20,8 @@ const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 test('folder editor exposes preview row limit control and persists the setting', () => {
     assert.match(folderPage, /<select name="preview_rows">/);
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
+    assert.match(folderPage, /<li constraint="preview-1 preview-2 preview-3 preview-4 docker">[\s\S]*<select name="preview_status">/);
+    assert.match(folderPage, /<option value="none">Hide status<\/option>/);
     assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
     assert.match(folderJs, /let folderEditorSharedApi = null;/);
@@ -49,6 +51,10 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
+    assert.match(dockerJs, /const shouldHidePreviewStatus = previewStatusMode === 'none';/);
+    assert.match(dockerJs, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
+    assert.match(dockerJs, /const compactStatusMarkup = shouldHidePreviewStatus[\s\S]*\? ''[\s\S]*: `<span class="fv-preview-status-compact"/);
+    assert.match(dockerJs, /const inlineStatusMarkup = shouldHidePreviewStatus[\s\S]*\? ''[\s\S]*: `<br>/);
     assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
     assert.match(dockerJs, /const buildCompactPreviewDefaultContextItem = \(\$sourceRow, settings = \{\}, autostart = false\) =>/);
     assert.match(dockerJs, /const \$sourceOuter = \$sourceRow\.find\('td\.ct-name > span\.outer'\)\.first\(\)/);
@@ -78,6 +84,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
     assert.match(dockerJs, /const tooltip_trigger_element = addPreview\(id, ct\.shortId, !\(ct\.info\.State\.Autostart === false\), newFolder\[container_name_in_folder\], \$containerTR\);/);
+    assert.match(dockerJs, /previewStatusMode !== 'none' && \(previewMode === 3 \|\| previewMode === 4\)/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);
@@ -116,6 +123,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'webui'\)/);
+    assert.match(dockerPreviewActionsScript, /const hideDockerPreviewStatus = \(\$target\) => \{/);
+    assert.match(dockerPreviewActionsScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
+    assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'none'\) \{[\s\S]*hideDockerPreviewStatus\(\$target\);[\s\S]*\} else \{[\s\S]*syncDockerPreviewStatus\(\$target, entry\);/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-webui-url', webuiUrl\)/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-fv-preview-action', 'console'\)/);
     assert.match(dockerPreviewActionsScript, /\.attr\('data-container-name', containerName\)/);
@@ -130,6 +140,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
 test('docker styles support multi-row previews without the removed member action sheet styling', () => {
     assert.match(dockerCss, /\.hover:hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(dockerCss, /\.hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
+    assert.doesNotMatch(dockerCss, /td\.folder-preview-cell > \.folder-preview:not\(\.fv-preview-multirow\) \{/);
     assert.match(runtimeSharedCss, /\.folder-preview \{/);
     assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*align-items:\s*center/);
     assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*flex-wrap:\s*wrap/);

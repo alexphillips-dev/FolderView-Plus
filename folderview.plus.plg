@@ -5,25 +5,154 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.17.04">
-<!ENTITY md5 "94d7657e44de721e3bab931f98809cfd">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.05.26.01">
+<!ENTITY md5 "3be7f3d04f57b7b6717061f4bcfca2c9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.05.26.01
+- Fix: Clear stale Docker folder update indicators after bulk updates by ignoring saved folder update metadata when live dockerman runtime state is unknown during post-update reconciliation.
+- Fix: Keep polling live Docker update status during the post-update reconcile window so folders refresh again once Unraid reports the final up-to-date state.
+- Regression guard: Add Docker runtime tests for stale update clearing, host update-cell recovery, and post-update live polling.
+
+
+###2026.05.22.05
+- Fix: Add a Settings blank-page watchdog that reports `FVPLUS-SET-BLANK-001` with visible-section, root, topbar, and setup-assistant diagnostics instead of leaving a silent blank page.
+- Fix: Keep Settings visible when the first-run setup assistant fails to render, reporting `FVPLUS-SET-WIZARD-001` as a degraded state so users can still access configuration.
+- Regression guard: Cover Settings blank-watchdog state tracking and setup-assistant degraded fallback behavior.
+
+
+###2026.05.22.04
+- Fix: Restore full-width Docker folder preview borders so bordered preview rows extend across the folder field as before.
+- Regression guard: Ensure Docker CSS does not shrink single-row folder preview borders to content width.
+
+
+###2026.05.22.03
+- Fix: Pass the shared utility helpers into Docker preview actions so folder preview rendering can resolve action preferences during bootstrap.
+- Regression guard: Cover the Docker preview action utility dependency so `utils` cannot be referenced before it is provided.
+
+
+###2026.05.22.02
+- Fix: Scope the extracted Settings section registry so it cannot collide with `folderviewplus.js` top-level identifiers during browser bootstrap.
+- Fix: Normalize legacy Docker preview status values like `hide`, `off`, `false`, and `0` to the same hidden state as `Hide status`.
+- Regression guard: Add coverage for the scoped Settings registry and Docker preview status alias handling.
+
+
+###2026.05.22.01
+- Fix: Prevent Settings bootstrap failure when diagnostics loads before the main Settings runtime defines HTML, timestamp, JSON, or download helpers.
+- Fix: Make Docker preview `Hide status` apply across all preview modes, including compact cards and live refresh updates.
+- UX: Keep single-row Docker preview borders wrapped to preview content instead of stretching across empty table columns.
+- Regression guard: Cover early diagnostics helper fallbacks and Docker preview status visibility behavior.
+
+
+###2026.05.21.06
+- Fix: Prevent Settings bootstrap failure when diagnostics loads before the main Settings runtime defines `showError`.
+- Regression guard: Ensure the diagnostics module uses local safe error fallbacks during early bootstrap.
+
+
+###2026.05.21.05
+- UX: Add Settings search aliases for recent support terms like hide status, WebUI/console/logs, native organizer, dashboard overlap, and bulk apply update.
+- UX: Add native Docker Organizer status and manual sync controls to the Operations workspace.
+- Fix: Replace Docker advanced popup inline action handlers with delegated runtime actions.
+- Fix: Require import review acknowledgement for destructive deletes and untrusted exports even when preview-first is disabled.
+- Quality: Add native organizer diagnostics, performance budget cards, expanded browser smoke coverage, and shared preview action preference handling.
+
+
+###2026.05.21.03
+- Fix: Make Docker only-icon preview `Hide status` actively remove existing status badges during live refreshes.
+- Regression guard: Cover the hidden-status refresh path so saved folders do not keep stale status symbols.
+
+
+###2026.05.21.02
+- Feature: Add opt-in advanced Dashboard member previews with WebUI, console, logs, update, ports, volumes, and CPU/MEM graph details.
+- Feature: Add a per-folder only-icon status setting so icon-only previews can show symbols, grayscale stopped containers, or no status marker.
+- Compatibility: Sync FolderView Plus Docker folders to Unraid's native Docker Organizer on a best-effort basis and include native organizer status in diagnostics.
+- Quality: Harden Docker graph/stat listeners so popup and Dashboard previews clean up stale chart updates and use a CPU core fallback.
+- Compatibility: Preserve Unraid as the owner of Docker `userprefs.cfg` while still reading current order and maintaining autostart state.
+- Security: Sanitize Docker advanced popup runtime metadata, links, icons, and bind mount mappings before rendering.
+
+
+###2026.05.20.04
+- Fix: Format localized Docker folder update dialog titles so folder names replace `$1` instead of showing the raw placeholder.
+- Quality: Add regression coverage for folder batch update dialog title formatting.
+
+
+###2026.05.20.03
+- Fix: Honor per-folder Dashboard WebUI, Console, and Logs action toggles for Docker members.
+- Fix: Keep Dashboard folder and member names inside their allocated card width while reserving space for the quick settings rail.
+- Fix: Restore compact-matrix folder icons and fall back to the FolderView default icon when a Dashboard folder icon is missing.
+
+
+###2026.05.20.01
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.26.01
+- Fix: Privacy mode defaults off again while the Docker and VM mask options stay enabled by default for the runtime toggle.
+- UX: Move Dashboard privacy mask settings below the layout description and render Privacy mode as a section header.
+- Quality: Add regression coverage for privacy mask defaults, legacy privacy-mode migration, and settings mask layout wiring.
+
+
+###2026.04.24.05
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.24.04
+- Quality: Release-note generation, retry cleanup, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.24.03
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.24.02
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+
+
+###2026.04.24.01
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.04.17.08
+- UX: Docker Orbit view no longer auto-selects a folder into the center; it now starts with a neutral center prompt until you choose a folder orbit.
+- UX: Orbit inspector summary stays compact at the top instead of stretching down the full column, and Orbit surfaces now use a unified neutral visual treatment without the orange outline-heavy styling.
+
+###2026.04.17.07
+- UX: Simplified Docker Orbit view by removing the top stats strip and left-side folder rail, leaving a cleaner centered stage plus inspector layout.
+- UX: Orbit member tiles now share the same surface treatment as the center folder and sit on a cleaner circular orbit with improved spacing and less aggressive highlight styling.
+
+
+###2026.04.17.05
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.17.05
+- Feature: Added Docker Orbit view as a new isolated page-view mode with a centered folder hub, orbiting direct members, child-folder navigation, and an inspector panel for practical actions.
+- UX: Orbit view is wired as its own removable runtime module and stylesheet, with settings/runtime normalization and privacy masking support aligned to the other isolated Docker views.
+
 ###2026.04.17.04
-- Fix: Hardened the Docker runtime privacy toggle so rapid repeated clicks now coalesce to the latest intended state instead of throwing a false save failure and reverting the UI.
-- UX: Moved the Docker runtime privacy toggle back into the native Basic View control cluster and kept its placement consistent across FolderView, host-only, Command view, and Tree Explorer surfaces.
-- Fix: Extended Docker runtime privacy masking to isolated Command view and Tree Explorer names and icons so those views honor the same privacy toggle as the host list.
-- Fix: Added stale-response protection to Docker runtime settings saves so fast page-view changes in Settings keep the last selected view instead of letting older requests overwrite newer intent.
-- Refactor: Split the shared folder editor into a type-aware architecture with dedicated Docker and VM type modules while keeping one editor shell, reducing Docker-only logic inside the shared runtime without forking the page.
-- UX: Moved Docker-only folder editor rows, preview signals, runtime member enrichment, rules configuration, and smart-default suggestions into the Docker type layer so Docker keeps its richer editor workflow while VM stays scoped to VM-safe controls.
-- UX: Tightened the VM folder editor path by moving Docker-only field visibility into the VM type layer instead of relying on broad shared-runtime Docker checks.
-- Fix: The folder editor Rules tab now deep-links into Settings > Advanced > Rules > Auto-assignment and honors explicit Docker or VM rules workspace launch overrides instead of restoring the last basic settings tab.
-- Fix: VM runtime folders now keep native VM detail rows attached to the VM you actually clicked, including already-expanded detail blocks during folder renders and later host-inserted detail rows after native toggle actions.
-- Quality: Cleaned up the Docker privacy persistence path so the shipped runtime passes the unused-symbol guard and the full release CI suite on the final stable build.
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
 
 
 ###2026.04.17.03
@@ -5494,7 +5623,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

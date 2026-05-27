@@ -15,11 +15,14 @@ const pluginPageSources = pluginPageFiles.map((entry) => ({
 }));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libDiagnosticsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -51,6 +54,27 @@ test('backup endpoint supports guarded POST download and legacy fallback', () =>
     assert.match(backupPhp, /if \(\$action === 'download'\)/);
     assert.match(backupPhp, /X-FV-Download-Mode: legacy-get/);
     assert.match(backupPhp, /X-Content-Type-Options: nosniff/);
+});
+
+test('docker preview graph listeners and dashboard cpu fallback are guarded', () => {
+    assert.match(dockerJs, /let CPU = \[\]; let MEM = \[\]; let charts = \[\]; let tootltipObserver; let attachedTooltipStatsListener = null;/);
+    assert.match(dockerJs, /!chart \|\| !chart\.canvas \|\| !document\.body\.contains\(chart\.canvas\)/);
+    assert.match(dockerJs, /window\.dockerload && typeof window\.dockerload\.addEventListener === 'function'/);
+    assert.match(dockerJs, /attachedTooltipStatsListener === 'sse' && window\.dockerload && typeof window\.dockerload\.removeEventListener === 'function'/);
+    assert.match(dashboardJs, /refreshDashboardDockerCpuCores\(\);/);
+    assert.match(dashboardJs, /window\.fvplusCpuCores = dashboardDockerCpuCores;/);
+});
+
+test('native organizer sync is best-effort and represented in diagnostics', () => {
+    assert.match(nativeOrganizerJs, /organizerSyncDone = true;/);
+    assert.match(nativeOrganizerJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
+    assert.match(nativeOrganizerJs, /const writeStatus = \(status = \{\}\) => \{/);
+    assert.match(nativeOrganizerJs, /root\.localStorage\?\.setItem\?\.\(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON\.stringify\(lastStatus\)\)/);
+    assert.match(nativeOrganizerJs, /catch \(error\) \{[\s\S]*reason: String\(error\?\.message \|\| error \|\| 'organizer_sync_failed'\)/);
+    assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
+    assert.match(libDiagnosticsPhp, /'clientModule'\s*=>\s*'folderviewplus\.native-organizer\.js'/);
+    assert.match(libDiagnosticsPhp, /'nativeOrganizer'\s*=>\s*diagnosticsBuildNativeOrganizerStatus\(\)/);
 });
 
 test('plugin pages emit request token meta tag', () => {
@@ -122,7 +146,7 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
     assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
-    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
@@ -168,8 +192,16 @@ test('folder editor escapes custom action labels when rendering HTML', () => {
 
 test('folder editor supports unicode names and secure guarded create/update posts', () => {
     assert.doesNotMatch(folderPage, /<input[^>]*name="name"[^>]*pattern=/);
+    assert.match(folderEditorSchemaJs, /const INVALID_FOLDER_NAME_CHAR_REGEX = \/\[\\u0000-\\u001f\\u007f\]\//);
     assert.match(folderJs, /const INVALID_FOLDER_NAME_CHAR_REGEX =/);
-    assert.match(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
+    assert.match(folderJs, /Folder name cannot contain control characters\./);
+    assert.doesNotMatch(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
+    assert.doesNotMatch(folderEditorSchemaJs, /<>:"\/\\\\\|\?\*/);
+    const folderNameControlCharRegex = /[\u0000-\u001f\u007f]/;
+    for (const name of ['Starr*Apps', 'Arr=Apps', 'Media+Tools', 'Label/Derived?Name']) {
+        assert.equal(folderNameControlCharRegex.test(name), false, `${name} should be allowed`);
+    }
+    assert.equal(folderNameControlCharRegex.test("Bad\u0000Name"), true);
     assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
     assert.match(folderIconApiJs, /payload\._fv_request = '1';/);
     assert.match(folderIconApiJs, /'X-FV-Request': '1'/);
@@ -199,6 +231,35 @@ test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });
 
+test('docker advanced popup sanitizes runtime metadata before rendering', () => {
+    assert.match(dockerJs, /const getSafeExternalUrl = \(value\) => \{/);
+    assert.match(dockerJs, /const safeIcon = sanitizeImageSrc\(labels\['net\.unraid\.docker\.icon'\] \|\| ''\);/);
+    assert.match(dockerJs, /const safeContainerName = escapeHtml\(containerName\);/);
+    assert.match(dockerJs, /data-container-name="\$\{safeContainerName\}"/);
+    assert.match(dockerJs, /const buildDockerBindMountMappingsHtml = \(mounts = \[\]\) => \{/);
+    assert.match(dockerJs, /const destination = escapeHtml\(String\(entry\?\.Destination \|\| ''\)\.trim\(\) \|\| 'unknown'\);/);
+    assert.match(dockerJs, /href="\$\{safeReadMeUrl\}"/);
+    assert.match(dockerJs, /title="\$\{safeImage\}"/);
+    assert.doesNotMatch(dockerJs, /src="\$\{labels\['net\.unraid\.docker\.icon'\] \|\| ''\}"/);
+    assert.doesNotMatch(dockerJs, /\$\{runtimeEntry\.info\.Name\}<\/span>/);
+    assert.doesNotMatch(dockerJs, /runtimeEntry\.Mounts\?\.filter\(e => e\.Type==='bind'\)\.map\(e=>`\$\{e\.Destination\}/);
+    assert.doesNotMatch(dockerJs, /href="\$\{runtimeEntry\.info\.(?:ReadMe|Project|Support|registry|DonateLink)\}"/);
+});
+
+test('docker advanced popup uses delegated actions instead of inline handlers', () => {
+    assert.match(dockerJs, /class="fv-runtime-action" data-action="console"/);
+    assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-action'/);
+    assert.match(dockerJs, /const actionMap = new Set\(\['start', 'resume', 'stop', 'pause', 'restart'\]\);/);
+    assert.match(dockerJs, /eventControl\(\{ action, container: containerId \}, 'loadlist'\);/);
+    assert.match(dockerJs, /openTerminal\('docker', actionContainerName, String\(\$link\.attr\('data-shell-value'\)/);
+    assert.match(dockerJs, /class="fv-runtime-toggle-info-list" data-show="\.info-ports-more"/);
+    assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-toggle-info-list'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); openTerminal\('docker'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); eventControl\(\{action:'(?:start|resume|stop|pause|restart)'/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); editContainer\(/);
+    assert.doesNotMatch(dockerJs, /onclick="event\.preventDefault\(\); rmContainer\(/);
+});
+
 test('dashboard script is wrapped in a private scope to avoid global symbol collisions', () => {
     assert.match(dashboardJs, /^\(function fvplusDashboardScope\(window, \$\) \{/);
     assert.match(dashboardJs, /\}\)\(window, window\.jQuery \|\| window\.\$\);\s*$/);
@@ -217,9 +278,18 @@ test('dashboard folder cards are click-to-expand for docker and vm widgets', () 
 });
 
 test('dashboard expanded docker members include guarded quick actions', () => {
-    assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct\) =>/);
+    assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct,\s*settings = \{\}\) =>/);
+    assert.match(dashboardJs, /const resolveDashboardPreviewActionPrefs = \(settings = \{\}\) =>/);
+    assert.match(dashboardJs, /utils\.resolvePreviewActionPrefs\(settings\)/);
+    assert.match(dashboardJs, /const allowWebUiAction = actionPrefs\.preview_webui === true;/);
+    assert.match(dashboardJs, /const allowConsoleAction = actionPrefs\.preview_console === true;/);
+    assert.match(dashboardJs, /const allowLogsAction = actionPrefs\.preview_logs === true;/);
     assert.match(dashboardJs, /fv-dashboard-member-actions/);
     assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(dashboardJs, /if \(allowWebUiAction && webUiUrl\) \{/);
+    assert.match(dashboardJs, /if \(allowConsoleAction\) \{/);
+    assert.match(dashboardJs, /if \(allowLogsAction\) \{/);
     assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, containerShell\)/);
     assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, '\.log'\)/);
+    assert.match(dashboardJs, /appendDashboardDockerMemberQuickActions\(\$containerEl,\s*ct,\s*folder\.settings \|\| \{\}\);/);
 });

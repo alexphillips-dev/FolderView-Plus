@@ -2,6 +2,74 @@ const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
 const diagnosticsUtils = window.FolderViewPlusUtils || null;
 const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
 const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
+const diagnosticsSwal = typeof window.swal === 'function'
+    ? window.swal.bind(window)
+    : ((options) => {
+        const title = String(options?.title || 'FolderView Plus').trim();
+        const text = String(options?.text || '').trim();
+        if (typeof window.alert === 'function') {
+            window.alert(text ? `${title}\n\n${text}` : title);
+        }
+    });
+const diagnosticsShowToastMessage = (options = {}) => {
+    if (typeof window.showToastMessage === 'function') {
+        window.showToastMessage(options);
+        return;
+    }
+    const title = String(options?.title || '').trim();
+    const message = String(options?.message || '').trim();
+    if (message && window.console && typeof window.console.info === 'function') {
+        window.console.info(`[FolderView Plus] ${title ? `${title}: ` : ''}${message}`);
+    }
+};
+const diagnosticsShowError = (title, error) => {
+    if (typeof window.showError === 'function') {
+        window.showError(title, error);
+        return;
+    }
+    const message = String(error?.message || error || 'Unknown error');
+    if (window.console && typeof window.console.error === 'function') {
+        window.console.error(`[FolderView Plus] ${title}: ${message}`, error);
+    }
+};
+const diagnosticsEscapeHtml = (value) => {
+    if (diagnosticsUtils && typeof diagnosticsUtils.escapeHtml === 'function') {
+        return diagnosticsUtils.escapeHtml(value);
+    }
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+const diagnosticsToPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
+const diagnosticsFormatTimestamp = (isoString) => {
+    if (diagnosticsUtils && typeof diagnosticsUtils.formatTimestamp === 'function') {
+        return diagnosticsUtils.formatTimestamp(isoString);
+    }
+    if (!isoString) {
+        return 'Unknown';
+    }
+    const date = new Date(isoString);
+    return Number.isNaN(date.getTime()) ? String(isoString) : date.toLocaleString();
+};
+const diagnosticsDownloadFile = (name, content) => {
+    if (typeof window.downloadFile === 'function') {
+        window.downloadFile(name, content);
+        return;
+    }
+    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
 const normalizeDiagnosticsThemeMode = (value) => {
     if (diagnosticsThemeResolver && typeof diagnosticsThemeResolver.normalizeThemeCompatibilityMode === 'function') {
         return diagnosticsThemeResolver.normalizeThemeCompatibilityMode(value);
@@ -65,6 +133,12 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
+const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
+    refresh: Object.freeze({ docker: 1500, vm: 1500 }),
+    import: Object.freeze({ docker: 5000, vm: 5000 }),
+    wizard: Object.freeze({ apply: 8000 }),
+    settings: Object.freeze({ bootstrap: 2500, diagnostics: 3000 })
+});
 const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
 const performanceDiagnosticsState = {
     refresh: { docker: [], vm: [] },
@@ -77,6 +151,7 @@ const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
+const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv.native.organizer.status.v1';
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
         if (typeof localStorage === 'undefined') {
@@ -143,14 +218,14 @@ const renderFolderEditorDebugDiagnostics = () => {
     if (!host.length) {
         return snapshot;
     }
-    host.text(toPrettyJson(snapshot));
+    host.text(diagnosticsToPrettyJson(snapshot));
     return snapshot;
 };
 
 const copyFolderEditorDebugDiagnostics = async () => {
     try {
         const snapshot = renderFolderEditorDebugDiagnostics();
-        const text = toPrettyJson(snapshot);
+        const text = diagnosticsToPrettyJson(snapshot);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(text);
         } else {
@@ -163,13 +238,13 @@ const copyFolderEditorDebugDiagnostics = async () => {
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-        swal({
+        diagnosticsSwal({
             title: 'Copied',
             text: 'Folder editor diagnostics copied to clipboard.',
             type: 'success'
         });
     } catch (error) {
-        showError('Copy folder editor diagnostics failed', error);
+        diagnosticsShowError('Copy folder editor diagnostics failed', error);
     }
 };
 
@@ -238,7 +313,15 @@ const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = 
     renderPerformanceDiagnostics();
 };
 
-const summarizePerformanceDiagnosticsSamples = (samples) => {
+const resolvePerformanceDiagnosticsBudgetMs = (bucket, type = 'global') => {
+    const bucketKey = String(bucket || '').trim().toLowerCase();
+    const typeKey = String(type || 'global').trim().toLowerCase() || 'global';
+    const budget = PERF_DIAGNOSTICS_BUDGET_MS[bucketKey]?.[typeKey];
+    const numericBudget = Number(budget);
+    return Number.isFinite(numericBudget) && numericBudget > 0 ? numericBudget : null;
+};
+
+const summarizePerformanceDiagnosticsSamples = (samples, budgetMs = null) => {
     const list = Array.isArray(samples) ? samples : [];
     if (!list.length) {
         return null;
@@ -250,11 +333,16 @@ const summarizePerformanceDiagnosticsSamples = (samples) => {
         return null;
     }
     const total = durations.reduce((sum, value) => sum + value, 0);
+    const resolvedBudgetMs = Number(budgetMs);
+    const hasBudget = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0;
+    const maxMs = Number(Math.max(...durations).toFixed(2));
     return {
         count: durations.length,
         lastMs: Number(durations[durations.length - 1].toFixed(2)),
         avgMs: Number((total / durations.length).toFixed(2)),
-        maxMs: Number(Math.max(...durations).toFixed(2))
+        maxMs,
+        budgetMs: hasBudget ? Number(resolvedBudgetMs.toFixed(2)) : null,
+        overBudget: hasBudget ? maxMs > resolvedBudgetMs : false
     };
 };
 
@@ -273,16 +361,16 @@ const collectClientPerformanceTelemetry = () => ({
         : '',
     settings: {
         refresh: {
-            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker),
-            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)
+            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker')),
+            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))
         },
         import: {
-            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker),
-            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm)
+            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker')),
+            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))
         },
-        wizardApply: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply),
-        settingsBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap),
-        diagnosticsRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics)
+        wizardApply: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply')),
+        settingsBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap')),
+        diagnosticsRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics'))
     },
     runtime: getRuntimePerfTelemetrySnapshot(),
     requestErrors: getRequestErrorDiagnosticsSnapshot()
@@ -293,20 +381,23 @@ const renderPerformanceDiagnostics = () => {
     if (!host.length) {
         return;
     }
-    const renderRow = (label, summary) => {
+    const renderRow = (label, summary, budgetMs = null) => {
         if (!summary) {
-            return `<tr><th>${escapeHtml(label)}</th><td colspan="4">No samples yet</td></tr>`;
+            return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td colspan="5">No samples yet</td></tr>`;
         }
-        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td></tr>`;
+        const resolvedBudgetMs = Number(summary.budgetMs || budgetMs);
+        const budgetLabel = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0 ? `${resolvedBudgetMs}ms` : '-';
+        const statusLabel = summary.overBudget ? 'Over budget' : 'OK';
+        return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${diagnosticsEscapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
     };
     const rows = [
-        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker)),
-        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)),
-        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker)),
-        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm)),
-        renderRow('Wizard apply', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply)),
-        renderRow('Settings bootstrap', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap)),
-        renderRow('Diagnostics refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics))
+        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker'))),
+        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))),
+        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker'))),
+        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))),
+        renderRow('Wizard apply', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply'))),
+        renderRow('Settings bootstrap', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap'))),
+        renderRow('Diagnostics refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics')))
     ].join('');
     const runtimeSnapshot = getRuntimePerfTelemetrySnapshot();
     const updatedAt = performanceDiagnosticsState.updatedAt > 0
@@ -316,12 +407,12 @@ const renderPerformanceDiagnostics = () => {
         <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
         <table class="fv-perf-table">
             <thead>
-                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th></tr>
+                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th><th>Budget</th></tr>
             </thead>
             <tbody>${rows}</tbody>
         </table>
-        <div class="fv-perf-summary-note">Runtime telemetry: Docker actions ${escapeHtml(String(Object.keys(runtimeSnapshot.docker || {}).length))}, VM actions ${escapeHtml(String(Object.keys(runtimeSnapshot.vm || {}).length))}</div>
-        <div class="fv-perf-summary-note">Updated: ${escapeHtml(updatedAt)}</div>
+        <div class="fv-perf-summary-note">Runtime telemetry: Docker actions ${diagnosticsEscapeHtml(String(Object.keys(runtimeSnapshot.docker || {}).length))}, VM actions ${diagnosticsEscapeHtml(String(Object.keys(runtimeSnapshot.vm || {}).length))}</div>
+        <div class="fv-perf-summary-note">Updated: ${diagnosticsEscapeHtml(updatedAt)}</div>
     `);
 };
 
@@ -443,11 +534,11 @@ const getSupportBundlePreviewApi = () => {
     if (!supportBundlePreviewApi && supportBundlePreviewModule && typeof supportBundlePreviewModule.createApi === 'function') {
         supportBundlePreviewApi = supportBundlePreviewModule.createApi({
             $,
-            escapeHtml,
+            escapeHtml: diagnosticsEscapeHtml,
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
             getSupportBundle,
-            showError
+            showError: diagnosticsShowError
         });
     }
     return supportBundlePreviewApi;
@@ -490,7 +581,7 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
     if (activityMessage) {
         addActivityEntry(activityMessage, statusValue === 'ok' ? 'info' : 'error');
         if (statusValue === 'ok' && ['import', 'clear_folders', 'delete_folder', 'runtime_bulk_action', 'bulk_assign'].includes(String(eventType))) {
-            showToastMessage({
+            diagnosticsShowToastMessage({
                 title: 'Action completed',
                 message: activityMessage,
                 level: 'success',
@@ -665,7 +756,7 @@ const renderActivityFeed = () => {
     }
     const rows = activityFeedEntries.map((entry) => {
         const level = String(entry?.level || 'info');
-        return `<li class="fv-activity-item is-${escapeHtml(level)}"><span class="fv-activity-time">${escapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${escapeHtml(String(entry.message || ''))}</span></li>`;
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
     }).join('');
     list.html(rows);
     panel.show();
@@ -753,7 +844,7 @@ const renderAdvancedModuleStatus = (moduleKey) => {
     if (status.state === 'loading') {
         host.classList.remove('is-error');
         host.classList.add('is-info');
-        host.innerHTML = `<i class="fa fa-refresh fa-spin"></i> Refreshing ${escapeHtml(config.label)}...`;
+        host.innerHTML = `<i class="fa fa-refresh fa-spin"></i> Refreshing ${diagnosticsEscapeHtml(config.label)}...`;
         host.style.display = '';
         return;
     }
@@ -761,7 +852,7 @@ const renderAdvancedModuleStatus = (moduleKey) => {
         const message = String(status.message || 'Refresh failed.');
         host.classList.remove('is-info');
         host.classList.add('is-error');
-        host.innerHTML = `${escapeHtml(config.label)} failed: ${escapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${escapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
+        host.innerHTML = `${diagnosticsEscapeHtml(config.label)} failed: ${diagnosticsEscapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${diagnosticsEscapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
         host.style.display = '';
         return;
     }
@@ -788,7 +879,7 @@ const claimAdvancedOperationLock = (type, scope, actionLabel = 'Operation') => {
         return true;
     }
     if (map[scope] === true) {
-        swal({
+        diagnosticsSwal({
             title: 'Please wait',
             text: `${actionLabel} is already running for ${resolvedType.toUpperCase()}.`,
             type: 'info'
@@ -854,7 +945,7 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
     if (!filteredTimeline.length) {
         summaryHost.html(`
             <div class="fv-recovery-empty-state">
-                <strong>No recent ${escapeHtml(typeLabel)} changes found.</strong>
+                <strong>No recent ${diagnosticsEscapeHtml(typeLabel)} changes found.</strong>
                 <span>Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.</span>
             </div>
         `);
@@ -874,14 +965,14 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
     summaryHost.html(`
         <div class="fv-recovery-undo-head">
             <div>
-                <div class="fv-recovery-undo-title">Latest ${escapeHtml(typeLabel)} change</div>
-                <div class="fv-recovery-undo-copy">${escapeHtml(latestAction)}${latestSummary ? ` - ${escapeHtml(latestSummary)}` : ''}</div>
+                <div class="fv-recovery-undo-title">Latest ${diagnosticsEscapeHtml(typeLabel)} change</div>
+                <div class="fv-recovery-undo-copy">${diagnosticsEscapeHtml(latestAction)}${latestSummary ? ` - ${diagnosticsEscapeHtml(latestSummary)}` : ''}</div>
             </div>
-            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${escapeHtml(latestStatus)}</span>
+            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${diagnosticsEscapeHtml(latestStatus)}</span>
         </div>
         <div class="fv-recovery-undo-meta">
-            <span>${escapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
-            <span>Undo latest change restores the newest undo-safe backup for ${escapeHtml(typeLabel)}.</span>
+            <span>${diagnosticsEscapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
+            <span>Undo latest change restores the newest undo-safe backup for ${diagnosticsEscapeHtml(typeLabel)}.</span>
         </div>
     `);
 
@@ -893,11 +984,11 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
         return `
             <article class="fv-recovery-timeline-card">
                 <div class="fv-recovery-timeline-head">
-                    <div class="fv-recovery-timeline-title">${escapeHtml(action)}</div>
-                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${escapeHtml(status)}</span>
+                    <div class="fv-recovery-timeline-title">${diagnosticsEscapeHtml(action)}</div>
+                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${diagnosticsEscapeHtml(status)}</span>
                 </div>
-                <div class="fv-recovery-timeline-meta">${escapeHtml(timestamp)}</div>
-                <div class="fv-recovery-timeline-copy">${escapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
+                <div class="fv-recovery-timeline-meta">${diagnosticsEscapeHtml(timestamp)}</div>
+                <div class="fv-recovery-timeline-copy">${diagnosticsEscapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
             </article>
         `;
     }).join(''));
@@ -940,7 +1031,7 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     } catch (error) {
         markAdvancedModuleLoadError('change_history', error);
         if (!quiet) {
-            showError('Change history refresh failed', error);
+            diagnosticsShowError('Change history refresh failed', error);
         }
         return false;
     }
@@ -984,6 +1075,118 @@ const buildThemeDiagnosticsSummaryCard = () => {
             : 'Theme compatibility checks did not report any warnings.',
         count: warnings.length,
         recommendedAction: status === 'warning' ? 'run_theme_self_heal' : ''
+    };
+};
+
+const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
+    const nativeConfig = diagnostics?.nativeOrganizer && typeof diagnostics.nativeOrganizer === 'object'
+        ? diagnostics.nativeOrganizer
+        : null;
+    if (!nativeConfig) {
+        return null;
+    }
+    const browserStatus = readClientDiagnosticsStorageRecord(NATIVE_ORGANIZER_STATUS_STORAGE_KEY);
+    const checkedAt = browserStatus?.checkedAt ? formatCheckedAtLabel(browserStatus.checkedAt) : '';
+    const reason = String(browserStatus?.reason || '').trim();
+    const source = String(browserStatus?.source || '').trim();
+    const created = Number(browserStatus?.created);
+    const updated = Number(browserStatus?.updated);
+    const syncedCount = (Number.isFinite(created) ? created : 0) + (Number.isFinite(updated) ? updated : 0);
+
+    if (!browserStatus) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'warning',
+            headline: 'Native organizer sync status is waiting for the Docker page.',
+            detail: 'Open the Docker page once after updating to capture whether Unraid GraphQL organizer sync is available or skipped.',
+            count: 1
+        };
+    }
+    if (browserStatus.ok === true && browserStatus.skipped !== true) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'healthy',
+            headline: syncedCount > 0
+                ? `Native organizer synced ${syncedCount} folder change${syncedCount === 1 ? '' : 's'}.`
+                : 'Native organizer API detected; no folder changes were needed.',
+            detail: `Last sync ${checkedAt}${source ? ` from ${source}` : ''}.`,
+            count: 0
+        };
+    }
+    if (reason === 'graphql_unavailable' || reason === 'fetch_unavailable') {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'warning',
+            headline: 'Native organizer API was unavailable, so sync was skipped.',
+            detail: `FolderView Plus continued normally. Last checked ${checkedAt || 'recently'}.`,
+            count: 1
+        };
+    }
+    if (browserStatus.ok === true && browserStatus.skipped === true) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'healthy',
+            headline: reason === 'already_synced'
+                ? 'Native organizer sync already ran for this browser session.'
+                : 'Native organizer sync was safely skipped.',
+            detail: `${reason || 'No sync needed'}${checkedAt ? `, checked ${checkedAt}` : ''}.`,
+            count: 0
+        };
+    }
+    return {
+        key: 'nativeOrganizer',
+        label: 'Native Docker Organizer',
+        status: 'error',
+        headline: 'Native organizer sync failed.',
+        detail: reason || 'The client GraphQL sync returned an unexpected failure.',
+        count: 1
+    };
+};
+
+const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
+    const telemetry = collectClientPerformanceTelemetry();
+    const settingsTelemetry = telemetry?.settings && typeof telemetry.settings === 'object'
+        ? telemetry.settings
+        : {};
+    const entries = [
+        { label: 'Docker refresh', summary: settingsTelemetry.refresh?.docker },
+        { label: 'VM refresh', summary: settingsTelemetry.refresh?.vm },
+        { label: 'Docker import', summary: settingsTelemetry.import?.docker },
+        { label: 'VM import', summary: settingsTelemetry.import?.vm },
+        { label: 'Wizard apply', summary: settingsTelemetry.wizardApply },
+        { label: 'Settings bootstrap', summary: settingsTelemetry.settingsBootstrap },
+        { label: 'Diagnostics refresh', summary: settingsTelemetry.diagnosticsRefresh }
+    ].filter((entry) => entry.summary && typeof entry.summary === 'object');
+    if (!entries.length) {
+        return null;
+    }
+    const overBudget = entries.filter((entry) => entry.summary.overBudget === true);
+    const slowest = entries.reduce((current, entry) => {
+        const maxMs = Number(entry.summary.maxMs);
+        const currentMaxMs = Number(current?.summary?.maxMs);
+        if (!Number.isFinite(maxMs)) {
+            return current;
+        }
+        if (!current || !Number.isFinite(currentMaxMs) || maxMs > currentMaxMs) {
+            return entry;
+        }
+        return current;
+    }, null);
+    return {
+        key: 'performanceBudget',
+        label: 'Performance Budgets',
+        status: overBudget.length > 0 ? 'warning' : 'healthy',
+        headline: overBudget.length > 0
+            ? `${overBudget.length} UI operation${overBudget.length === 1 ? '' : 's'} exceeded the local budget.`
+            : 'Recent UI timings are within budget.',
+        detail: slowest
+            ? `Slowest sample: ${slowest.label} ${Number(slowest.summary.maxMs).toFixed(0)}ms.`
+            : 'No slow operation samples were recorded.',
+        count: overBudget.length
     };
 };
 
@@ -1062,11 +1265,11 @@ const renderDiagnosticsActionCards = (actions) => {
             }));
         return `
             <div class="fv-diagnostics-action-card">
-                <div class="fv-diagnostics-action-title">${escapeHtml(action.label)}</div>
-                <div class="fv-diagnostics-action-copy">${escapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
+                <div class="fv-diagnostics-action-title">${diagnosticsEscapeHtml(action.label)}</div>
+                <div class="fv-diagnostics-action-copy">${diagnosticsEscapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
                 <div class="backup-actions">
                     ${buttonConfigs.map(({ config }) => `
-                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${escapeHtml(config.label)}</button>
+                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${diagnosticsEscapeHtml(config.label)}</button>
                     `).join('')}
                 </div>
             </div>
@@ -1098,21 +1301,21 @@ const renderDiagnosticsSummary = (diagnostics) => {
         const themeCheckedAt = formatCheckedAtLabel(lastThemeDiagnostics?.generatedAt);
         summaryHost.html(`
             <div class="fv-diagnostics-overview is-${status}">
-                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</div>
+                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</div>
                 <div class="fv-diagnostics-overview-headline">Theme diagnostics are live before a full health check.</div>
                 <div class="fv-diagnostics-overview-detail">Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.</div>
                 <div class="fv-diagnostics-overview-meta">
-                    <span class="fv-diagnostics-pill">Theme checked ${escapeHtml(themeCheckedAt)}</span>
+                    <span class="fv-diagnostics-pill">Theme checked ${diagnosticsEscapeHtml(themeCheckedAt)}</span>
                 </div>
             </div>
             <div class="fv-diagnostics-card-grid">
                 <div class="fv-diagnostics-card is-${status}">
                     <div class="fv-diagnostics-card-top">
-                        <span class="fv-diagnostics-card-label">${escapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
-                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                        <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
+                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
                     </div>
-                    <div class="fv-diagnostics-card-headline">${escapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
-                    <div class="fv-diagnostics-card-detail">${escapeHtml(String(themeCard.detail || ''))}</div>
+                    <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
+                    <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(themeCard.detail || ''))}</div>
                     <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
                 </div>
             </div>
@@ -1123,14 +1326,26 @@ const renderDiagnosticsSummary = (diagnostics) => {
 
     const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
     const cards = Array.isArray(summary.cards) ? [...summary.cards] : [];
+    const nativeOrganizerCard = buildNativeOrganizerDiagnosticsSummaryCard(diagnostics);
+    const performanceBudgetCard = buildPerformanceBudgetDiagnosticsSummaryCard();
+    if (nativeOrganizerCard) {
+        cards.push(nativeOrganizerCard);
+    }
+    if (performanceBudgetCard) {
+        cards.push(performanceBudgetCard);
+    }
     if (themeCard) {
         cards.push(themeCard);
     }
 
+    const nativeOrganizerWarningCount = nativeOrganizerCard?.status === 'warning' ? 1 : 0;
+    const nativeOrganizerErrorCount = nativeOrganizerCard?.status === 'error' ? 1 : 0;
+    const performanceBudgetWarningCount = performanceBudgetCard?.status === 'warning' ? 1 : 0;
+    const performanceBudgetErrorCount = performanceBudgetCard?.status === 'error' ? 1 : 0;
     const themeWarningCount = themeCard?.status === 'warning' ? 1 : 0;
     const themeErrorCount = themeCard?.status === 'error' ? 1 : 0;
-    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount;
-    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount;
+    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount + nativeOrganizerErrorCount + performanceBudgetErrorCount;
+    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount + nativeOrganizerWarningCount + performanceBudgetWarningCount;
     const overallStatus = normalizeDiagnosticsStatus(
         errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : summary.status)
     );
@@ -1156,11 +1371,11 @@ const renderDiagnosticsSummary = (diagnostics) => {
         return `
             <div class="fv-diagnostics-card is-${status}">
                 <div class="fv-diagnostics-card-top">
-                    <span class="fv-diagnostics-card-label">${escapeHtml(String(card?.label || card?.key || 'Status'))}</span>
-                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                    <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(card?.label || card?.key || 'Status'))}</span>
+                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
                 </div>
-                <div class="fv-diagnostics-card-headline">${escapeHtml(String(card?.headline || 'No summary available.'))}</div>
-                <div class="fv-diagnostics-card-detail">${escapeHtml(String(card?.detail || ''))}</div>
+                <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
+                <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
                 <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
             </div>
         `;
@@ -1168,10 +1383,10 @@ const renderDiagnosticsSummary = (diagnostics) => {
 
     summaryHost.html(`
         <div class="fv-diagnostics-overview is-${overallStatus}">
-            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${escapeHtml(overallConfig.label)}</div>
-            <div class="fv-diagnostics-overview-headline">${escapeHtml(overallHeadline)}</div>
-            <div class="fv-diagnostics-overview-detail">${escapeHtml(overallDetail)}</div>
-            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${escapeHtml(pill)}</span>`).join('')}</div>
+            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(overallConfig.label)}</div>
+            <div class="fv-diagnostics-overview-headline">${diagnosticsEscapeHtml(overallHeadline)}</div>
+            <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(overallDetail)}</div>
+            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${diagnosticsEscapeHtml(pill)}</span>`).join('')}</div>
         </div>
         <div class="fv-diagnostics-card-grid">${cardsHtml}</div>
     `);
@@ -1201,7 +1416,7 @@ const runDiagnostics = async () => {
             source: 'health-check'
         });
     } catch (error) {
-        showError('Diagnostics failed', error);
+        diagnosticsShowError('Diagnostics failed', error);
     }
 };
 
@@ -1210,14 +1425,14 @@ const repairDiagnostics = async (action, type = '') => {
         const response = await runDiagnosticAction(action, type);
         const diagnostics = response?.diagnostics || {};
         renderDiagnostics(diagnostics);
-        swal({
+        diagnosticsSwal({
             title: 'Repair complete',
             text: String(response?.message || 'Repair action finished successfully.'),
             type: 'success'
         });
         await Promise.all([refreshType('docker'), refreshType('vm'), refreshBackups('docker'), refreshBackups('vm')]);
     } catch (error) {
-        showError('Repair failed', error);
+        diagnosticsShowError('Repair failed', error);
     }
 };
 
@@ -1225,7 +1440,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     const mode = privacy === 'full' ? 'full' : 'sanitized';
     try {
         const payload = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
-        downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
+        diagnosticsDownloadFile('FolderView Plus Diagnostics.json', diagnosticsToPrettyJson(payload));
         await trackDiagnosticsEvent({
             eventType: 'diagnostics_export',
             details: {
@@ -1236,7 +1451,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
             }
         });
     } catch (error) {
-        showError('Diagnostics export failed', error);
+        diagnosticsShowError('Diagnostics export failed', error);
     }
 };
 
@@ -1254,7 +1469,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
         const bundle = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
         const generatedAt = String(bundle?.bundleMeta?.generatedAt || '').replace(/[:]/g, '-');
         const suffix = generatedAt ? `-${generatedAt}` : '';
-        downloadFile(`FolderView Plus Support Bundle${suffix}.json`, toPrettyJson(bundle));
+        diagnosticsDownloadFile(`FolderView Plus Support Bundle${suffix}.json`, diagnosticsToPrettyJson(bundle));
         await trackDiagnosticsEvent({
             eventType: 'support_bundle_export',
             details: {
@@ -1272,7 +1487,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
             renderSupportBundlePreview(bundle);
         }
     } catch (error) {
-        showError('Support bundle export failed', error);
+        diagnosticsShowError('Support bundle export failed', error);
     }
 };
 
@@ -1401,13 +1616,13 @@ const copyIssueReport = async () => {
             document.execCommand('copy');
             document.body.removeChild(textarea);
         }
-        swal({
+        diagnosticsSwal({
             title: 'Copied',
             text: 'Issue report copied to clipboard.',
             type: 'success'
         });
     } catch (error) {
-        showError('Copy issue report failed', error);
+        diagnosticsShowError('Copy issue report failed', error);
     }
 };
 
@@ -1569,7 +1784,7 @@ const runThemeDiagnostics = () => {
         }
         return diagnostics;
     } catch (error) {
-        showError('Theme diagnostics failed', error);
+        diagnosticsShowError('Theme diagnostics failed', error);
         return null;
     }
 };
@@ -1597,7 +1812,7 @@ const runThemeSelfHeal = async () => {
         const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
         if (!needsHeal) {
             applyDiagnosticsThemeTokens('self-heal-noop');
-            swal({
+            diagnosticsSwal({
                 title: 'Theme looks healthy',
                 text: 'No fallback changes were needed.',
                 type: 'success',
@@ -1625,13 +1840,13 @@ const runThemeSelfHeal = async () => {
         applyDiagnosticsThemeTokens('self-heal-apply');
         queueSettingsThemeAwareReflow('theme-self-heal');
         runThemeDiagnostics();
-        swal({
+        diagnosticsSwal({
             title: 'Theme self-heal applied',
             text: `Fallback mode switched to ${targetMode}.`,
             type: 'success'
         });
     } catch (error) {
-        showError('Theme self-heal failed', error);
+        diagnosticsShowError('Theme self-heal failed', error);
     }
 };
 

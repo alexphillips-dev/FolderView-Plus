@@ -139,7 +139,7 @@ const utils = window.FolderViewPlusUtils || {
         appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        runtimePrefsSchema: 2,
+        runtimePrefsSchema: 3,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
@@ -150,7 +150,11 @@ const utils = window.FolderViewPlusUtils || {
             expandToggle: true,
             greyscale: false,
             folderLabel: true,
-            privacyMode: false
+            privacyMode: false,
+            privacyMaskNames: true,
+            privacyMaskContainerIps: true,
+            privacyMaskLocalIps: true,
+            privacyMaskPorts: true
         },
         health: {
             cardsEnabled: true,
@@ -3269,7 +3273,9 @@ const applyRuntimePrefs = (prefs) => {
     scheduleVmRuntimeWidthReflow('runtime-prefs', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', vmRuntimePerformanceProfile?.strict === true);
-    $('body').toggleClass('fvplus-privacy-vm-runtime', normalized?.dashboard?.privacyMode === true);
+    const vmPrivacyMode = normalized?.dashboard?.privacyMode === true;
+    $('body').toggleClass('fvplus-privacy-vm-runtime', vmPrivacyMode);
+    $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     scheduleLiveRefresh(normalized);
 };
 window.getVmRuntimePerfTelemetrySnapshot = () => {

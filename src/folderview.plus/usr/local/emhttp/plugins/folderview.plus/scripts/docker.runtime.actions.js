@@ -150,17 +150,27 @@
         const DOCKER_DIALOG_BACKSTOP_REFRESH_DELAYS_MS = [3200, 9000];
         const DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS = 120000;
 
-        const i18nLabel = (key, fallback = '') => {
+        const formatI18nFallback = (message, params = []) => {
+            let formatted = String(message || '');
+            params.forEach((param, index) => {
+                formatted = formatted.replace(new RegExp(`\\$${index + 1}`, 'g'), String(param ?? ''));
+            });
+            return formatted;
+        };
+
+        const i18nLabel = (key, fallback = '', ...params) => {
             const safeKey = String(key || '').trim();
             const safeFallback = String(fallback || safeKey || '').trim();
             try {
                 if (typeof jq?.i18n !== 'function') {
-                    return safeFallback;
+                    return formatI18nFallback(safeFallback, params);
                 }
-                const localized = String(jq.i18n(safeKey) || '').trim();
-                return localized && localized !== safeKey ? localized : safeFallback;
+                const localized = String(jq.i18n(safeKey, ...params) || '').trim();
+                return localized && localized !== safeKey
+                    ? formatI18nFallback(localized, params)
+                    : formatI18nFallback(safeFallback, params);
             } catch (_error) {
-                return safeFallback;
+                return formatI18nFallback(safeFallback, params);
             }
         };
 
@@ -589,7 +599,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
-            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', 'Updating $1 folder containers', folder.name));
         };
 
         const updateFolder = (id, { includeDescendants = true } = {}) => {
@@ -610,7 +620,7 @@
                 return;
             }
             debugLog(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
-            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', folder.name));
+            openDockerFolderUpdateDialog(containersToUpdate, i18nLabel('updating', 'Updating $1 folder containers', folder.name));
         };
 
         const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) =>

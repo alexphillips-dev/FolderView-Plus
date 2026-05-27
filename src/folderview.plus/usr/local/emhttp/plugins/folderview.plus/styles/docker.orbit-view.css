@@ -1,0 +1,404 @@
+body[data-fvplus-docker-orbit-view-mounted="true"] table#docker_containers {
+    display: none !important;
+}
+
+.fv-docker-orbit-view {
+    margin: 14px 0 18px;
+}
+
+.fv-docker-orbit-shell {
+    --fv-docker-orbit-surface: linear-gradient(180deg, rgba(15, 21, 32, 0.98), rgba(10, 15, 24, 0.98));
+    --fv-docker-orbit-panel: rgba(20, 27, 40, 0.88);
+    --fv-docker-orbit-panel-strong: rgba(18, 25, 37, 0.94);
+    --fv-docker-orbit-border: color-mix(in srgb, var(--fvplus-theme-border-subtle, rgba(255, 255, 255, 0.1)) 92%, rgba(119, 216, 255, 0.12));
+    --fv-docker-orbit-border-strong: color-mix(in srgb, var(--fv-docker-orbit-border) 72%, rgba(119, 216, 255, 0.22));
+    --fv-docker-orbit-glow: rgba(119, 216, 255, 0.12);
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--fv-docker-orbit-border);
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at top, rgba(72, 118, 166, 0.1), transparent 42%),
+        radial-gradient(circle at bottom right, rgba(91, 176, 255, 0.06), transparent 30%),
+        var(--fv-docker-orbit-surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3);
+    color: var(--fvplus-theme-text-primary, #f3f6fa);
+}
+
+.fv-docker-orbit-shell.is-loading,
+.fv-docker-orbit-empty {
+    place-items: center;
+    min-height: 360px;
+}
+
+.fv-docker-orbit-loading,
+.fv-docker-orbit-empty {
+    display: grid;
+    gap: 10px;
+    text-align: center;
+    padding: 40px 20px;
+    border: 1px dashed var(--fv-docker-orbit-border);
+    border-radius: 18px;
+    background: rgba(15, 21, 31, 0.72);
+}
+
+.fv-docker-orbit-header,
+.fv-docker-orbit-layout,
+.fv-docker-orbit-hub-stats,
+.fv-docker-orbit-hub-actions,
+.fv-docker-orbit-inspector-meta,
+.fv-docker-orbit-inspector-footer {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.fv-docker-orbit-header {
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.fv-docker-orbit-layout {
+    align-items: flex-start;
+}
+
+.fv-docker-orbit-header h2,
+.fv-docker-orbit-empty h3 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0.02em;
+}
+
+.fv-docker-orbit-header-copy p,
+.fv-docker-orbit-empty p,
+.fv-docker-orbit-inspector-note {
+    margin: 0;
+    color: var(--fvplus-theme-text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.fv-docker-orbit-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fv-docker-orbit-button,
+.fv-docker-orbit-node,
+.fv-docker-orbit-crumb {
+    appearance: none;
+    border: 1px solid rgba(112, 126, 152, 0.46) !important;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.fv-docker-orbit-button {
+    border-radius: 999px;
+    padding: 9px 15px;
+    background: rgba(25, 34, 49, 0.92) !important;
+}
+
+.fv-docker-orbit-button:hover,
+.fv-docker-orbit-button:focus-visible,
+.fv-docker-orbit-node:hover,
+.fv-docker-orbit-node:focus-visible,
+.fv-docker-orbit-crumb:hover,
+.fv-docker-orbit-crumb:focus-visible {
+    transform: translateY(-1px);
+    border-color: rgba(144, 160, 190, 0.58) !important;
+    box-shadow: 0 0 0 1px rgba(119, 216, 255, 0.1), 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.fv-docker-orbit-main,
+.fv-docker-orbit-inspector {
+    min-width: 0;
+}
+
+.fv-docker-orbit-main {
+    flex: 1 1 880px;
+    display: grid;
+    gap: 12px;
+}
+
+.fv-docker-orbit-inspector {
+    flex: 0 0 270px;
+    display: grid;
+    gap: 12px;
+}
+
+.fv-docker-orbit-panel-title {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fvplus-theme-text-secondary, rgba(255, 255, 255, 0.72));
+}
+
+.fv-docker-orbit-breadcrumbs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.fv-docker-orbit-crumb {
+    border-radius: 999px;
+    background: rgba(18, 25, 38, 0.82);
+    padding: 7px 12px;
+}
+
+.fv-docker-orbit-crumb.is-current {
+    background: rgba(33, 45, 66, 0.98) !important;
+}
+
+.fv-docker-orbit-crumb-sep {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.fv-docker-orbit-stage-wrap,
+.fv-docker-orbit-inspector-card {
+    border: 1px solid var(--fv-docker-orbit-border);
+    border-radius: 18px;
+    background: var(--fv-docker-orbit-panel);
+}
+
+.fv-docker-orbit-stage-wrap {
+    padding: 26px;
+    background:
+        radial-gradient(circle at center, rgba(119, 216, 255, 0.06), transparent 35%),
+        var(--fv-docker-orbit-panel-strong);
+    overflow: auto;
+}
+
+.fv-docker-orbit-stage {
+    position: relative;
+    width: min(100%, var(--fv-docker-orbit-stage-size, 980px));
+    min-width: 840px;
+    min-height: var(--fv-docker-orbit-stage-size, 980px);
+    margin: 0 auto;
+}
+
+.fv-docker-orbit-rings,
+.fv-docker-orbit-hub,
+.fv-docker-orbit-node {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+
+.fv-docker-orbit-rings {
+    inset: 0;
+    left: 0;
+    top: 0;
+}
+
+.fv-docker-orbit-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgba(119, 216, 255, 0.14);
+    border-radius: 999px;
+}
+
+.fv-docker-orbit-hub,
+.fv-docker-orbit-node {
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(27, 37, 55, 0.98), rgba(16, 23, 35, 0.98)) !important;
+    border: 1px solid rgba(112, 126, 152, 0.42) !important;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.fv-docker-orbit-hub {
+    width: 274px;
+    min-height: 274px;
+    transform: translate(-50%, -50%);
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+    z-index: 3;
+}
+
+.fv-docker-orbit-hub.is-placeholder {
+    width: 240px;
+    min-height: 180px;
+    justify-content: center;
+}
+
+.fv-docker-orbit-hub-head {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.fv-docker-orbit-folder-icon,
+.fv-docker-orbit-member-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex: 0 0 auto;
+}
+
+.fv-docker-orbit-folder-title,
+.fv-docker-orbit-member-name,
+.fv-docker-orbit-inspector-title {
+    font-weight: 700;
+}
+
+.fv-docker-orbit-folder-meta,
+.fv-docker-orbit-node-meta,
+.fv-docker-orbit-inspector-meta,
+.fv-docker-orbit-inspector-list span,
+.fv-docker-orbit-inspector-list strong {
+    color: var(--fvplus-theme-text-secondary, rgba(255, 255, 255, 0.72));
+    font-size: 12px;
+}
+
+.fv-docker-orbit-hub-stats,
+.fv-docker-orbit-hub-actions {
+    gap: 8px;
+}
+
+.fv-docker-orbit-node {
+    width: 112px;
+    min-height: 112px;
+    transform: translate(calc(-50% + var(--fv-docker-orbit-x, 0px)), calc(-50% + var(--fv-docker-orbit-y, 0px)));
+    padding: 10px 8px;
+    display: grid;
+    gap: 6px;
+    place-items: center;
+    text-align: center;
+    z-index: 2;
+}
+
+.fv-docker-orbit-node.is-folder {
+    width: 124px;
+    min-height: 124px;
+}
+
+.fv-docker-orbit-node.is-member.running,
+.fv-docker-orbit-inspector-card.is-member.running {
+    border-color: rgba(112, 126, 152, 0.42) !important;
+}
+
+.fv-docker-orbit-node.is-member.paused,
+.fv-docker-orbit-inspector-card.is-member.paused {
+    border-color: rgba(112, 126, 152, 0.42) !important;
+}
+
+.fv-docker-orbit-node.is-member.stopped,
+.fv-docker-orbit-inspector-card.is-member.stopped {
+    border-color: rgba(112, 126, 152, 0.42) !important;
+}
+
+.fv-docker-orbit-node.is-selected {
+    border-color: rgba(150, 170, 206, 0.64) !important;
+    box-shadow: 0 0 0 1px rgba(119, 216, 255, 0.12), 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.fv-docker-orbit-node-update {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(119, 216, 255, 0.12);
+    color: #b8ebff;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.fv-docker-orbit-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+}
+
+.fv-docker-orbit-pill.running {
+    background: rgba(54, 208, 122, 0.12);
+    color: #8df1b8;
+}
+
+.fv-docker-orbit-pill.paused {
+    background: rgba(234, 176, 55, 0.12);
+    color: #ffd391;
+}
+
+.fv-docker-orbit-pill.stopped {
+    background: rgba(228, 96, 96, 0.12);
+    color: #ffafaf;
+}
+
+.fv-docker-orbit-pill.update,
+.fv-docker-orbit-pill.pin,
+.fv-docker-orbit-pill.lock {
+    background: rgba(119, 216, 255, 0.1);
+    color: #b8ebff;
+}
+
+.fv-docker-orbit-inspector-card {
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+}
+
+.fv-docker-orbit-inspector-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fv-docker-orbit-inspector-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.fv-docker-orbit-inspector-list {
+    display: grid;
+    gap: 8px;
+}
+
+.fv-docker-orbit-inspector-list > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.fv-docker-orbit-inspector-actions .fv-preview-actions-compact,
+.fv-docker-orbit-inspector-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 1180px) {
+    .fv-docker-orbit-layout {
+        flex-direction: column;
+    }
+
+    .fv-docker-orbit-inspector {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 860px) {
+    .fv-docker-orbit-shell {
+        padding: 14px;
+    }
+
+    .fv-docker-orbit-stage {
+        min-width: 760px;
+    }
+}

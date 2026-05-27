@@ -417,9 +417,10 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerRuntimeHierarchyJs, /appendDockerPreviewActionButtons\(\$actionsTarget,\s*\{[\s\S]*preview_webui:\s*allowWebuiQuickAction,[\s\S]*preview_console:\s*allowConsoleQuickAction,[\s\S]*preview_logs:\s*allowLogsQuickAction[\s\S]*\},\s*containerName,\s*shellValue,\s*webuiUrl\);/);
     assert.match(dockerJs, /const previewWebuiUrl = getSafeWebuiUrl\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\);/);
     assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$targetForAppend,\s*folder\.settings,\s*ct\.info\.Name,\s*ct\.info\.Shell,\s*previewWebuiUrl\);/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_webui && webuiUrl\)/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_console && containerName\)/);
-    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_logs && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /utils\.resolvePreviewActionPrefs\(settings\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_webui && webuiUrl\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_console && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /if \(actionPrefs\.preview_logs && containerName\)/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 
@@ -768,7 +769,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
     assert.match(settingsJs, /const syncRuntimeConflictResolutionBanner = \(\) =>/);
     assert.match(settingsJs, /Conflict removed\. FolderView Plus is active again\./);
-    assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
+    assert.match(settingsJs, /runQuickSetupWizard = \(force = false, options = \{\}\) => \{/);
     assert.match(settingsRuntime, /openSetupAssistant\(force === true\);/);
     assert.match(settingsRuntime, /const bindSetupAssistantEvents = \(\) =>/);
     assert.match(settingsRuntime, /markSetupAssistantCompletedLocal\(\);/);
@@ -787,6 +788,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /data-fv-setup-quick-preset=/);
     assert.match(settingsRuntime, /Dry run only \(preview changes, do not modify folders or settings\)/);
     assert.match(settingsJs, /const shouldRunWizard = !isWizardCompletedServerSide\(\) && !isSetupAssistantCompletedLocal\(\);/);
+    assert.match(settingsJs, /runQuickSetupWizard\(false, \{ source: 'auto-first-run' \}\);/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
     assert.match(settingsJs, /const topbarHtml = settingsChrome && typeof settingsChrome\.getTopbarHtml === 'function'/);
     assert.match(settingsJs, /const enforceNoHorizontalOverflow = \(\) =>/);

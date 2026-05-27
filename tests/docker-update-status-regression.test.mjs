@@ -13,12 +13,19 @@ const dockerJs = fs.readFileSync(
 const dockerPreviewActionsModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js')
 );
+const dockerRuntimeInfoModule = require(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js')
+);
 const dockerPreviewActionsJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
 );
 const dockerRuntimeInfoJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js'),
+    'utf8'
+);
+const dockerRuntimeReconcileJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'),
     'utf8'
 );
 const dockerRuntimeHierarchyJs = fs.readFileSync(
@@ -33,6 +40,7 @@ const dockerCss = fs.readFileSync(
 test('docker runtime preserves hydrated update flags when normalizing partial runtime entries', () => {
     assert.match(dockerRuntimeInfoJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /typeof source\.Updated === 'boolean' \? source\.Updated : null/);
+    assert.match(dockerRuntimeInfoJs, /const preservePreviousUpdated = typeof previousState\.Updated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /typeof previousState\.Updated === 'boolean'/);
 });
@@ -48,8 +56,110 @@ test('docker runtime still falls back to the host row update cell when cached st
     assert.match(dockerRuntimeInfoJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
+    assert.match(dockerRuntimeInfoJs, /const hostUpdated = manager === 'dockerman' && !isHostUpdateSyncSuspended\(\)[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
+    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*typeof hostUpdated === 'boolean'/);
     assert.match(dockerRuntimeInfoJs, /Updated:\s*resolvedUpdated/);
+});
+
+test('docker runtime prefers visible host up-to-date state over stale cached update flags', () => {
+    const previousHTMLElement = globalThis.HTMLElement;
+    class FakeElement {
+        constructor(textContent = '') {
+            this.textContent = textContent;
+        }
+        querySelector() {
+            return null;
+        }
+    }
+    class FakeCell extends FakeElement {}
+    class FakeRow extends FakeElement {
+        constructor(cell) {
+            super('');
+            this.cell = cell;
+        }
+        querySelector(selector) {
+            return selector === 'td.updatecolumn' ? this.cell : null;
+        }
+    }
+    globalThis.HTMLElement = FakeElement;
+    try {
+        const api = dockerRuntimeInfoModule.createApi({
+            window: {},
+            document: {
+                getElementById: (id) => {
+                    assert.equal(id, 'ct-qbittorrentvpn');
+                    return new FakeRow(new FakeCell('up-to-date'));
+                }
+            },
+            $: { i18n: (_key) => '' },
+            isHostUpdateSyncSuspended: () => false
+        });
+        const normalized = api.normalizeDockerRuntimeInfoMap({
+            qbittorrentvpn: {
+                manager: 'dockerman',
+                running: true,
+                paused: false
+            }
+        }, {
+            qbittorrentvpn: {
+                info: {
+                    Name: 'qbittorrentvpn',
+                    State: {
+                        Updated: false,
+                        manager: 'dockerman'
+                    },
+                    Config: {}
+                },
+                Labels: {}
+            }
+        });
+        assert.equal(normalized.qbittorrentvpn.info.State.Updated, true);
+    } finally {
+        if (previousHTMLElement) {
+            globalThis.HTMLElement = previousHTMLElement;
+        } else {
+            delete globalThis.HTMLElement;
+        }
+    }
+});
+
+test('docker runtime clears stale folder update metadata during post-update reconciliation', () => {
+    const api = dockerRuntimeInfoModule.createApi({
+        window: {},
+        isHostUpdateSyncSuspended: () => true
+    });
+    const previous = {
+        info: {
+            Name: 'nextcloud',
+            State: {
+                Updated: false,
+                manager: 'dockerman'
+            },
+            Config: {}
+        },
+        Labels: {}
+    };
+    const normalized = api.normalizeDockerRuntimeInfoMap({
+        nextcloud: {
+            manager: 'dockerman',
+            running: true,
+            paused: false
+        }
+    }, {
+        nextcloud: previous
+    });
+    assert.equal(normalized.nextcloud.info.State.Updated, null);
+
+    const runtimeApi = dockerRuntimeInfoModule.createApi({
+        window: {},
+        getDockerRuntimeInfoMap: () => normalized,
+        isHostUpdateSyncSuspended: () => true
+    });
+    const entry = runtimeApi.buildRuntimeContainerEntry('nextcloud', {
+        update: true,
+        manager: 'dockerman'
+    });
+    assert.equal(entry.update, false);
 });
 
 test('docker runtime observes native update-column mutations and reuses them for folder cache sync', () => {
@@ -94,6 +204,16 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
 });
 
+test('docker post-update reconcile window actively polls live update status until the window closes', () => {
+    assert.match(dockerRuntimeReconcileJs, /let dockerPostUpdateRuntimePollTimer = null;/);
+    assert.match(dockerRuntimeReconcileJs, /const schedulePostUpdateRuntimePoll = \(reason = 'post-update-runtime-poll'/);
+    assert.match(dockerRuntimeReconcileJs, /refreshDockerRuntimeStateInPlace\(\{\s*liveUpdateStatus: true\s*\}\)/);
+    assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePoll'/);
+    assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePollResult'/);
+    assert.match(dockerRuntimeReconcileJs, /strategy:\s*'event-driven-post-render-and-poll'/);
+    assert.match(dockerRuntimeReconcileJs, /schedulePostUpdateRuntimePoll\('reconcile-window-armed', initialDelayMs\);/);
+});
+
 test('docker support bundle snapshot reads only visible update-column text in basic view', () => {
     assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
     assert.doesNotMatch(dockerJs, /const updateCellText = normalizeDockerSupportBundleText\(\$row\.find\('td\.updatecolumn'\)\.first\(\)\.text\(\)\);/);
@@ -103,7 +223,7 @@ test('docker runtime can stay in host-list mode without rendering FolderView row
     assert.match(dockerJs, /const normalizeDockerPageViewMode = \(value\) =>/);
     assert.match(dockerJs, /const resolveDockerPageViewMode = \(prefs = folderTypePrefs\) =>/);
     assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(\) => \{/);
-    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*queueCreateFoldersRender\(\);/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);

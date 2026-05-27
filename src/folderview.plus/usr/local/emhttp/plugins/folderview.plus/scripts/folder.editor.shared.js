@@ -102,6 +102,13 @@
                     preview_update: settings.preview_update === true,
                     preview_text_width: String(settings.preview_text_width || ''),
                     preview_grayscale: settings.preview_grayscale === true,
+                    preview_status: (() => {
+                        const normalized = String(settings.preview_status || '').trim().toLowerCase();
+                        if (['none', 'hide', 'hidden', 'off', 'false', '0', 'no'].includes(normalized)) {
+                            return 'none';
+                        }
+                        return ['symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+                    })(),
                     preview_webui: settings.preview_webui === true,
                     preview_logs: settings.preview_logs === true,
                     preview_console: settings.preview_console === true,

@@ -264,6 +264,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     let activePresetId = '';
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
     let currentDryRunOnly = false;
+    let currentTrustInfo = { level: 'trusted', label: 'Trusted', reason: '' };
     const isPreviewFirstEnabled = () => (
         previewFirstToggle.length ? previewFirstToggle.prop('checked') === true : true
     );
@@ -283,13 +284,37 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
         .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
         .first();
+    const getImportRiskInfo = (selectedOperations) => {
+        const deletes = Array.isArray(selectedOperations?.deletes) ? selectedOperations.deletes.length : 0;
+        if (deletes > 0) {
+            return {
+                level: 'destructive',
+                label: `Deletes ${deletes} folder${deletes === 1 ? '' : 's'}`,
+                requiresReview: true
+            };
+        }
+        if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
+            return {
+                level: 'untrusted',
+                label: currentTrustInfo.label || 'Untrusted export',
+                requiresReview: true
+            };
+        }
+        return {
+            level: 'normal',
+            label: 'Normal',
+            requiresReview: false
+        };
+    };
     const syncImportSafetyUi = () => {
         const selectedOperations = filterOperationsBySelection(currentOperations);
         const selectedCount = countImportOperations(selectedOperations);
         const previewFirstEnabled = isPreviewFirstEnabled();
-        const requireAck = currentDryRunOnly !== true && previewFirstEnabled === true;
+        const riskInfo = getImportRiskInfo(selectedOperations);
+        const requireAck = currentDryRunOnly !== true && (previewFirstEnabled === true || riskInfo.requiresReview === true);
         if (reviewAckRow.length) {
             reviewAckRow.toggle(requireAck);
+            reviewAckRow.attr('title', riskInfo.requiresReview ? `${riskInfo.label} requires review before apply.` : '');
         }
         if (!requireAck) {
             setImportReviewAcked(false);
@@ -320,9 +345,14 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             result.text('No operations selected yet. Use the checkboxes below to include at least one change.');
         } else if (currentDryRunOnly) {
             result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected. Dry run is ON, so no folder changes will be applied.`);
+        } else if (selectedOperations.deletes.length > 0) {
+            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected, including ${selectedOperations.deletes.length} delete${selectedOperations.deletes.length === 1 ? '' : 's'}. Review acknowledgement is required before apply.`);
+        } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
+            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected from an untrusted or incomplete export. Review acknowledgement is required before apply.`);
         } else {
             result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected and ready to apply.`);
         }
+        const riskInfo = getImportRiskInfo(selectedOperations);
 
         counts.html(`
             <span class="import-count-chip is-create">Create: ${selectedCreates}/${currentOperations.creates.length}</span>
@@ -330,6 +360,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             <span class="import-count-chip is-delete">Delete: ${selectedDeletes}/${currentOperations.deletes.length}</span>
             <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
             <span class="import-count-chip is-dryrun">Dry run: ${currentDryRunOnly ? 'ON' : 'OFF'}</span>
+            <span class="import-count-chip is-risk-${escapeHtml(riskInfo.level)}">Risk: ${escapeHtml(riskInfo.label)}</span>
         `);
         syncImportSafetyUi();
     };
@@ -416,6 +447,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const dryRunOnly = isImportDryRunOnly();
         currentOperations = operations;
         currentDryRunOnly = dryRunOnly;
+        currentTrustInfo = trust;
         importSelectionState = buildOperationSelectionState(operations, folders);
         setImportReviewAcked(false);
         renderOperationSelection(updateSelectionSummary);
@@ -556,11 +588,14 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
                 const mode = modeSelect.val();
                 const operations = filterOperationsBySelection(utils.buildImportOperations(folders, parsed, mode));
                 const dryRunOnly = isImportDryRunOnly();
-                const requireAck = dryRunOnly !== true && isPreviewFirstEnabled() === true;
+                const riskInfo = getImportRiskInfo(operations);
+                const requireAck = dryRunOnly !== true && (isPreviewFirstEnabled() === true || riskInfo.requiresReview === true);
                 if (requireAck && !isImportReviewAcked()) {
                     swal({
                         title: 'Review required',
-                        text: 'Review the diff and confirm the acknowledgement checkbox before applying import.',
+                        text: riskInfo.requiresReview
+                            ? `${riskInfo.label} requires review. Confirm the acknowledgement checkbox before applying import.`
+                            : 'Review the diff and confirm the acknowledgement checkbox before applying import.',
                         type: 'warning'
                     });
                     return;

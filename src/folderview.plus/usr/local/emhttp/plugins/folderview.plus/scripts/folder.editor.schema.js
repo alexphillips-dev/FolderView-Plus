@@ -19,7 +19,7 @@
     const FOLDER_HEALTH_PROFILE_VALUES = Object.freeze(['strict', 'balanced', 'lenient']);
     const FOLDER_HEALTH_UPDATES_MODE_VALUES = Object.freeze(['maintenance', 'warn', 'ignore']);
     const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = Object.freeze(['critical', 'warn']);
-    const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
+    const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f]/;
 
     const createModernSchema = (deps = {}) => {
         const sectionMeta = Object.freeze({
@@ -42,6 +42,7 @@
                 'preview_text_width',
                 'preview_rows',
                 'preview_grayscale',
+                'preview_status',
                 'preview_webui',
                 'preview_logs',
                 'preview_console',
@@ -82,6 +83,7 @@
                 preview_text_width: '',
                 preview_rows: '1',
                 preview_grayscale: false,
+                preview_status: 'symbol',
                 preview_webui: false,
                 preview_logs: false,
                 preview_console: false,
@@ -156,6 +158,7 @@
             preview_text_width: 'Preview text width',
             preview_rows: 'Preview rows',
             preview_grayscale: 'Preview grayscale',
+            preview_status: 'Only-icon status',
             preview_webui: 'Preview WebUI action',
             preview_logs: 'Preview logs action',
             preview_console: 'Preview console action',

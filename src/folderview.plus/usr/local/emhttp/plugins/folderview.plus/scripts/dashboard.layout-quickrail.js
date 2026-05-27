@@ -259,6 +259,7 @@
                     || (typeof deps.isDashboardLayoutTransitionInFlightForType === 'function' && deps.isDashboardLayoutTransitionInFlightForType(resolvedType))
                 );
             $host.toggleClass('is-hidden', !shouldShow);
+            jq(parentNode).toggleClass('fv-dashboard-has-visible-quick-rail', shouldShow);
             if (shouldShow) {
                 syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
                 return;

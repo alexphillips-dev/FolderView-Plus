@@ -111,6 +111,7 @@
             return {
                 preview: [
                     findBasicByFieldName(form, 'preview_update'),
+                    findBasicByFieldName(form, 'preview_status'),
                     findBasicByFieldName(form, 'preview_webui'),
                     findBasicByFieldName(form, 'preview_console'),
                     findBasicByFieldName(form, 'context'),
@@ -136,6 +137,7 @@
                 return;
             }
             markSection('div.basic:has([name="preview_update"])', 'preview');
+            markSection('div.basic:has([name="preview_status"])', 'preview');
             markSection('div.basic:has([name="preview_webui"])', 'preview');
             markSection('div.basic:has([name="preview_console"])', 'preview');
             markSection('div.basic:has([name="context"])', 'preview');

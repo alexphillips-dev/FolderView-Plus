@@ -73,6 +73,7 @@ const expectedOrder = [
   'folderviewplus.bulk-assignment.shared.js',
   'folderviewplus.bulk-assignment.js',
   'folderviewplus.runtime-actions.js',
+  'folderviewplus.native-organizer.js',
   'folderviewplus.wizard-smart-detect.js',
   'folderviewplus.wizard.js',
   'folderviewplus.import.js',

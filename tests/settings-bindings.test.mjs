@@ -126,6 +126,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /Docker page view/);
     assert.match(page, /<option value="command">Command view<\/option>/);
     assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
+    assert.match(page, /<option value="orbit">Orbit view<\/option>/);
     const dockerSortRowStart = page.indexOf('<div class="sort-row">');
     const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
@@ -155,7 +156,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
     assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
-    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer'\]/);
+    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer', 'orbit'\]/);
 });
 
 test('settings runtime honors explicit launch overrides for advanced rules workspace deep links', () => {
@@ -204,6 +205,17 @@ test('import preview layout includes user-facing summary cards and collapsible r
     assert.match(runtimeScript, /result\.text\(`\$\{selectedCount\} operation/);
     assert.match(script, /saveCustomImportPresetForType/);
     assert.match(script, /setDefaultImportPresetIdForType/);
+});
+
+test('import preview requires acknowledgement for destructive or untrusted applies', () => {
+    assert.match(runtimeScript, /const getImportRiskInfo = \(selectedOperations\) => \{/);
+    assert.match(runtimeScript, /level:\s*'destructive'[\s\S]*requiresReview:\s*true/);
+    assert.match(runtimeScript, /currentTrustInfo\.level && currentTrustInfo\.level !== 'trusted'/);
+    assert.match(runtimeScript, /const requireAck = currentDryRunOnly !== true && \(previewFirstEnabled === true \|\| riskInfo\.requiresReview === true\);/);
+    assert.match(runtimeScript, /Risk: \$\{escapeHtml\(riskInfo\.label\)\}/);
+    assert.match(runtimeScript, /const requireAck = dryRunOnly !== true && \(isPreviewFirstEnabled\(\) === true \|\| riskInfo\.requiresReview === true\);/);
+    assert.match(settingsCss, /#import-preview-dialog \.import-count-chip\.is-risk-normal/);
+    assert.match(settingsCss, /#import-preview-dialog \.import-count-chip\.is-risk-untrusted,\s*#import-preview-dialog \.import-count-chip\.is-risk-destructive/);
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {
@@ -266,7 +278,7 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /const normalizeOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(localStorage\.getItem\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
+    assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => \{\s*const result = getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);[\s\S]*renderNativeDockerOrganizerStatus\(\);/);
     assert.match(script, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /const selectOperationsTemplate = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.selectOperationsTemplate\(\.\.\.args\);/);
     assert.match(script, /const exportTemplateEntry = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.exportTemplateEntry\(\.\.\.args\);/);
@@ -274,6 +286,18 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry[\s\S]*\}\);/);
+});
+
+test('operations workspace exposes native Docker organizer sync controls', () => {
+    assert.match(page, /folderviewplus\.native-organizer\.js/);
+    assert.match(page, /id="docker-native-organizer-stage"/);
+    assert.match(page, /onclick="refreshNativeDockerOrganizerStatus\(\)"/);
+    assert.match(page, /onclick="syncNativeDockerOrganizerFromSettings\(\)"/);
+    assert.match(script, /const nativeOrganizerModule = window\.FolderViewPlusNativeOrganizer \|\| null;/);
+    assert.match(script, /const buildNativeDockerOrganizerStatusHtml = \(status = null\) => \{/);
+    assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\('Sync native Docker organizer'\)\) \{/);
+    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*source:\s*'settings'/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*refreshNativeDockerOrganizerStatus[\s\S]*syncNativeDockerOrganizerFromSettings[\s\S]*\}\);/);
 });
 
 test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {
@@ -311,6 +335,36 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
     assert.match(script, /for \(const section of getBasicWorkspaceSections\(\)\) \{/);
     assert.match(script, /visibleKeys\.add\(section\.key\);/);
     assert.match(script, /showError\('Initial data load failed', error\);/);
+});
+
+test('settings blank watchdog reports silent startup failures with diagnostics', () => {
+    assert.match(page, /FolderViewPlusSettingsBlankWatchdogInstalled/);
+    assert.match(page, /FolderViewPlusSettingsBootstrapState/);
+    assert.match(page, /FolderViewPlusMarkSettingsBootstrapState/);
+    assert.match(page, /FVPLUS-SET-BLANK-001/);
+    assert.match(page, /Settings page rendered no visible FolderView Plus content before bootstrap completed\./);
+    assert.match(page, /visibleSections=/);
+    assert.match(page, /hiddenSections=/);
+    assert.match(page, /wizardOverlayVisible=/);
+    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-early'\), 3500\);/);
+    assert.match(page, /win\.setTimeout\(\(\) => runCheck\('watchdog-late'\), 8500\);/);
+    assert.match(script, /const markSettingsBootstrapState = \(patch = \{\}\) => \{/);
+    assert.match(script, /FolderViewPlusMarkSettingsBootstrapState\(cleanPatch\)/);
+    assert.match(script, /runtimeLoaded:\s*true/);
+    assert.match(script, /ready:\s*true/);
+    assert.match(script, /lastPhase:\s*'ready'/);
+    assert.match(script, /currentBootstrapState\.degraded !== true/);
+});
+
+test('setup assistant launch failures degrade instead of blanking settings', () => {
+    assert.match(script, /const runQuickSetupWizard = \(force = false, options = \{\}\) => \{/);
+    assert.match(script, /openSetupAssistant\(force === true\);/);
+    assert.match(script, /category:\s*'setup-assistant-failed'/);
+    assert.match(script, /code:\s*'FVPLUS-SET-WIZARD-001'/);
+    assert.match(script, /Settings page visible, but the setup assistant failed to render\./);
+    assert.match(script, /if \(source !== 'auto-first-run'\) \{/);
+    assert.match(script, /showError\('Setup assistant failed', error\);/);
+    assert.match(script, /runQuickSetupWizard\(false, \{ source: 'auto-first-run' \}\);/);
 });
 
 test('fresh install fallback sanitizes error-shaped API payloads and shows empty-state guidance', () => {

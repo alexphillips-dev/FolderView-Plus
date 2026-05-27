@@ -842,6 +842,25 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
+                        <dt>Preview status:</dt>
+                        <dd>
+                            <select name="preview_status">
+                                <option value="symbol" selected>Show status symbol</option>
+                                <option value="grayscale">Grayscale stopped icons</option>
+                                <option value="none">Hide status</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Controls how Docker state is shown in folder previews.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
                         <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_webui" type="checkbox" style="display: none;" />

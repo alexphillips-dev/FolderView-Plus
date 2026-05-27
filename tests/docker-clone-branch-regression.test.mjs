@@ -134,6 +134,12 @@ test('docker folder update dialog callback preserves host loadlist and schedules
                 hide: () => {}
             }),
             {
+                i18n: (key, ...params) => {
+                    if (key === 'updating') {
+                        return `Updating ${params[0]} folder containers`;
+                    }
+                    return key;
+                },
                 post: () => ({
                     promise: async () => ({})
                 })
@@ -185,6 +191,7 @@ test('docker folder update dialog callback preserves host loadlist and schedules
 
     assert.equal(openDockerCalls.length, 1);
     assert.equal(openDockerCalls[0][0], 'update_container sonarr');
+    assert.equal(openDockerCalls[0][1], 'Updating Media folder containers');
     assert.equal(openDockerCalls[0][3], '__fvplusDockerDialogRefresh');
     assert.equal(typeof windowContext.__fvplusDockerDialogRefresh, 'function');
     assert.deepEqual(suspendCalls, [120000]);
@@ -208,6 +215,37 @@ test('docker folder update dialog callback preserves host loadlist and schedules
         { followupDelayMs: 650, liveUpdateStatus: true },
         { followupDelayMs: 650, liveUpdateStatus: true }
     ]);
+});
+
+test('docker folder update dialog formats i18n placeholder titles before opening update dialog', () => {
+    const openDockerCalls = [];
+    const actionsApi = createActionsApi({
+        $: {
+            i18n: (key) => {
+                if (key === 'updating') {
+                    return 'Updating $1 folder containers';
+                }
+                return key;
+            },
+            post: () => ({
+                promise: async () => ({})
+            })
+        },
+        openDocker: (...args) => {
+            openDockerCalls.push(args);
+        },
+        getGlobalFolders: () => ({
+            media: { name: 'Media' }
+        }),
+        getScopedRuntimeContainersForFolder: () => ({
+            sonarr: { managed: true, update: true }
+        })
+    });
+
+    actionsApi.updateFolder('media');
+
+    assert.equal(openDockerCalls.length, 1);
+    assert.equal(openDockerCalls[0][1], 'Updating Media folder containers');
 });
 
 test('docker branch clone order keeps parent folders ahead of nested descendants', () => {

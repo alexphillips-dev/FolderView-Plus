@@ -28,6 +28,121 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
     };
 </script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
+<script>
+    (function installSettingsBlankWatchdog(win, doc) {
+        if (!win || !doc || win.FolderViewPlusSettingsBlankWatchdogInstalled === true) {
+            return;
+        }
+        win.FolderViewPlusSettingsBlankWatchdogInstalled = true;
+        const state = win.FolderViewPlusSettingsBootstrapState = Object.assign({
+            runtimeLoaded: false,
+            ready: false,
+            failed: false,
+            degraded: false,
+            lastPhase: 'page-shell',
+            lastAction: 'Settings page shell loaded',
+            lastStep: 'Settings page shell loaded',
+            lastUpdatedAt: new Date().toISOString()
+        }, win.FolderViewPlusSettingsBootstrapState || {});
+        win.FolderViewPlusMarkSettingsBootstrapState = function markSettingsBootstrapState(patch) {
+            const update = patch && typeof patch === 'object' ? patch : {};
+            Object.assign(state, update, { lastUpdatedAt: new Date().toISOString() });
+            return state;
+        };
+        const isVisible = (node) => {
+            if (!node || node.nodeType !== 1) {
+                return false;
+            }
+            const style = win.getComputedStyle ? win.getComputedStyle(node) : null;
+            if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) {
+                return false;
+            }
+            const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
+            return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
+        };
+        const collectBlankDetails = (root) => {
+            const topbar = doc.getElementById('fv-settings-topbar');
+            const visibleSections = root ? root.querySelectorAll('h2[data-fv-section]:not(.fv-section-hidden)').length : 0;
+            const hiddenSections = root ? root.querySelectorAll('h2[data-fv-section].fv-section-hidden').length : 0;
+            const visibleRows = root ? root.querySelectorAll('tbody#docker tr:not(.fv-section-hidden), tbody#vms tr:not(.fv-section-hidden)').length : 0;
+            const wizardOverlay = doc.getElementById('fv-setup-assistant-overlay');
+            return [
+                'runtimeLoaded=' + (state.runtimeLoaded === true ? 'yes' : 'no'),
+                'ready=' + (state.ready === true ? 'yes' : 'no'),
+                'failed=' + (state.failed === true ? 'yes' : 'no'),
+                'degraded=' + (state.degraded === true ? 'yes' : 'no'),
+                'lastPhase=' + String(state.lastPhase || '(empty)'),
+                'lastAction=' + String(state.lastAction || '(empty)'),
+                'lastStep=' + String(state.lastStep || '(empty)'),
+                'rootChildren=' + (root ? root.children.length : 0),
+                'topbarChildren=' + (topbar ? topbar.children.length : 0),
+                'visibleSections=' + visibleSections,
+                'hiddenSections=' + hiddenSections,
+                'visibleRows=' + visibleRows,
+                'wizardOverlayVisible=' + (isVisible(wizardOverlay) ? 'yes' : 'no')
+            ];
+        };
+        const hasVisibleSettingsContent = (root) => {
+            if (!root || !isVisible(root)) {
+                return false;
+            }
+            if (root.querySelector('#fvplus-fatal-banner')) {
+                return true;
+            }
+            const selectors = [
+                '#fv-settings-topbar > *',
+                'h2[data-fv-section]:not(.fv-section-hidden)',
+                '.settings-mini-card:not(.fv-section-hidden)',
+                '.folder-table:not(.fv-section-hidden)',
+                'tbody#docker tr:not(.fv-section-hidden)',
+                'tbody#vms tr:not(.fv-section-hidden)',
+                '#fv-setup-assistant-overlay',
+                '#fv-first-run-panel:not([style*="display:none"])'
+            ];
+            for (const selector of selectors) {
+                const nodes = root.querySelectorAll(selector);
+                for (const node of nodes) {
+                    if (isVisible(node)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        const runCheck = (reason) => {
+            if (state.ready === true || state.failed === true) {
+                return;
+            }
+            const root = doc.getElementById('fv-settings-root');
+            if (!root) {
+                return;
+            }
+            if (hasVisibleSettingsContent(root)) {
+                return;
+            }
+            state.failed = true;
+            state.lastPhase = state.lastPhase || 'blank-watchdog';
+            state.lastAction = 'Settings blank watchdog fired';
+            state.lastStep = String(reason || 'watchdog');
+            const fatalBanner = win.FolderViewPlusFatalBanner || null;
+            if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
+                fatalBanner.reportFatalError(new Error('Settings page rendered no visible FolderView Plus content before bootstrap completed.'), {
+                    context: 'Settings',
+                    hostSelector: '#fv-settings-root',
+                    title: 'Settings page is blank',
+                    message: 'FolderView Plus detected that the Settings page became blank before initialization completed.',
+                    code: 'FVPLUS-SET-BLANK-001',
+                    phase: state.lastPhase || 'blank-watchdog',
+                    category: 'blank-page',
+                    detailLabel: 'Blank page diagnostics',
+                    details: collectBlankDetails(root)
+                });
+            }
+        };
+        win.setTimeout(() => runCheck('watchdog-early'), 3500);
+        win.setTimeout(() => runCheck('watchdog-late'), 8500);
+    })(window, document);
+</script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('settings'); ?>
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
@@ -217,6 +332,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
                             <option value="tree-explorer">Tree explorer</option>
+                            <option value="orbit">Orbit view</option>
                         </select>
                     </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
@@ -271,8 +387,44 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="docker-dashboard-privacy-mode-row" class="setting-toggle"><input id="docker-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMode', this.checked)"> Privacy mode</label>
+                    <label class="setting-select" for="docker-dashboard-preview-context">
+                        <span>Container preview</span>
+                        <select id="docker-dashboard-preview-context" onchange="changeDashboardPref('docker', 'previewContext', this.value)">
+                            <option value="native">Native menu</option>
+                            <option value="advanced">Advanced popup</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-trigger-row" class="setting-select" for="docker-dashboard-preview-trigger">
+                        <span>Preview activation</span>
+                        <select id="docker-dashboard-preview-trigger" onchange="changeDashboardPref('docker', 'previewTrigger', this.value)">
+                            <option value="click">Click</option>
+                            <option value="hover">Hover</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-graph-row" class="setting-select" for="docker-dashboard-preview-graph">
+                        <span>Preview graph</span>
+                        <select id="docker-dashboard-preview-graph" onchange="changeDashboardPref('docker', 'previewGraph', this.value)">
+                            <option value="0">None</option>
+                            <option value="1">Combined</option>
+                            <option value="2">Split</option>
+                            <option value="3">CPU only</option>
+                            <option value="4">MEM only</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-preview-graph-time-row" class="setting-inline-number" for="docker-dashboard-preview-graph-time">
+                        <span>Graph time (sec)</span>
+                        <input id="docker-dashboard-preview-graph-time" type="number" min="5" max="600" step="5" onchange="changeDashboardPref('docker', 'previewGraphTime', this.value)">
+                    </label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
+                    <div class="settings-privacy-section">
+                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-container-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskContainerIps', this.checked)"> Mask container IPs</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-local-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask local IPs</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -523,8 +675,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
                     <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
-                    <label id="vm-dashboard-privacy-mode-row" class="setting-toggle"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"> Privacy mode</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
+                    <div class="settings-privacy-section">
+                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -1132,6 +1289,23 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </div>
                     </section>
 
+                    <section class="fv-operations-stage" id="docker-native-organizer-stage">
+                        <div class="fv-operations-stage-head">
+                            <strong>Native Docker Organizer</strong>
+                            <span class="rules-help">Check or force the best-effort sync from FolderView Plus folders into Unraid's native organizer view.</span>
+                        </div>
+                        <div class="backup-actions">
+                            <button type="button" onclick="refreshNativeDockerOrganizerStatus()"><i class="fa fa-refresh"></i> Refresh status</button>
+                            <button type="button" onclick="syncNativeDockerOrganizerFromSettings()"><i class="fa fa-exchange"></i> Sync now</button>
+                        </div>
+                        <div id="docker-native-organizer-status" class="fv-operations-runtime-output">
+                            <div class="fv-recovery-empty-state">
+                                <strong>Native organizer status has not been checked in Settings yet.</strong>
+                                <span>Open the Docker page or run Sync now to capture GraphQL organizer availability.</span>
+                            </div>
+                        </div>
+                    </section>
+
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
                             <strong>Template library</strong>
@@ -1513,12 +1687,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>
-
-
-

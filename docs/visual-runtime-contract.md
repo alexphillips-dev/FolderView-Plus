@@ -61,6 +61,9 @@ Use this order for UI/runtime work:
 4. If the fix is ready to package:
    - `git add <files>`
    - `bash scripts/dev_finalize.sh --message "Describe the fix" --open-fixture`
+5. For a fast dev build when local validation is intentionally skipped:
+   - `git add <files>`
+   - `bash scripts/dev_finalize.sh --fast-dev-push --message "Describe the fix"`
 
 ## Review Checklist
 

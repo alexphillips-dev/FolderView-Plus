@@ -14,6 +14,7 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const jq = deps.$ || win?.jQuery || win?.$;
+        const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
         const escapeHtml = typeof deps.escapeHtml === 'function'
             ? deps.escapeHtml
             : ((value) => String(value ?? '')
@@ -116,15 +117,22 @@
             if (!$target || !$target.length) {
                 return;
             }
-            if (settings.preview_webui && webuiUrl) {
+            const actionPrefs = typeof utils.resolvePreviewActionPrefs === 'function'
+                ? utils.resolvePreviewActionPrefs(settings)
+                : {
+                    preview_webui: settings?.preview_webui === true,
+                    preview_console: settings?.preview_console === true,
+                    preview_logs: settings?.preview_logs === true
+                };
+            if (actionPrefs.preview_webui && webuiUrl) {
                 $target.append(buildDockerPreviewWebuiButton(webuiUrl));
-            } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
+            } else if (shouldRenderPreviewWebuiPlaceholder(settings, actionPrefs.preview_webui === true)) {
                 appendPreviewWebuiPlaceholder($target);
             }
-            if (settings.preview_console && containerName) {
+            if (actionPrefs.preview_console && containerName) {
                 $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
             }
-            if (settings.preview_logs && containerName) {
+            if (actionPrefs.preview_logs && containerName) {
                 $target.append(buildDockerPreviewLogsButton(containerName));
             }
         };
@@ -239,6 +247,13 @@
                 legacyToneClass: 'red-text'
             };
         };
+        const normalizePreviewStatusMode = (value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            if (['none', 'hide', 'hidden', 'off', 'false', '0', 'no'].includes(normalized)) {
+                return 'none';
+            }
+            return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+        };
 
         const clearDockerRuntimeStateClasses = ($elements) => {
             if (!$elements || !$elements.length) {
@@ -283,6 +298,18 @@
                 $inlineStatus.find('i.fa').first()
                     .removeClass('fa-play fa-pause fa-square')
                     .addClass(`fa ${statusMeta.icon}`);
+            }
+            const $iconStatus = $outer.find('.fv-preview-icon-status').first();
+            if ($iconStatus.length) {
+                clearDockerRuntimeStateClasses($iconStatus);
+                $iconStatus
+                    .addClass(statusMeta.compactClassName)
+                    .attr('title', localizedLabel)
+                    .attr('data-fv-runtime-state', statusMeta.key);
+                $iconStatus.find('i.fa').first()
+                    .removeClass('fa-play fa-pause fa-square')
+                    .addClass(`fa ${statusMeta.icon}`);
+                $iconStatus.find('span.state').first().text(` ${localizedLabel}`);
             }
         };
 
@@ -433,6 +460,28 @@
             }
         };
 
+        const hideDockerPreviewStatus = ($target) => {
+            if (!$target || !$target.length) {
+                return;
+            }
+            const $outer = $target.hasClass('outer')
+                ? $target
+                : $target.closest('span.outer').first();
+            if (!$outer.length) {
+                return;
+            }
+            clearDockerRuntimeStateClasses($outer.add($outer.find('span.hand, span.inner, span.appname, span.appname > a.exec')));
+            $outer.find('.fv-preview-status-compact, .fv-preview-status-inline').remove();
+            $outer.find('span.state').each((_, node) => {
+                const $state = jq(node);
+                const $icon = $state.prevAll('i.fa').first();
+                $state.remove();
+                if ($icon.length) {
+                    $icon.remove();
+                }
+            });
+        };
+
         const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
@@ -455,8 +504,27 @@
                 const containerName = String(entry?.name || '').trim();
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
-                syncDockerPreviewStatus($target, entry);
+                const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
+                if (previewStatusMode === 'none') {
+                    hideDockerPreviewStatus($target);
+                } else {
+                    syncDockerPreviewStatus($target, entry);
+                }
                 syncDockerPreviewUpdateHighlight($target, settings, entry);
+                if (Number(settings?.preview || 0) === 2) {
+                    const $outer = $target.hasClass('outer') ? $target : $target.closest('span.outer').first();
+                    const $img = $outer.find('img.img').first();
+                    if (previewStatusMode === 'symbol') {
+                        $outer.find('.fv-preview-icon-status').removeClass('fv-preview-status-hidden');
+                    } else {
+                        $outer.find('.fv-preview-icon-status').remove();
+                    }
+                    if (previewStatusMode === 'grayscale' && entry?.state !== true) {
+                        $img.css('filter', 'grayscale(100%)');
+                    } else if (settings?.preview_grayscale !== true) {
+                        $img.css('filter', '');
+                    }
+                }
                 $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
             });

@@ -347,7 +347,9 @@
     const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
-    const FVPLUS_RUNTIME_PREFS_SCHEMA = 2;
+    const FVPLUS_RUNTIME_PREFS_SCHEMA = 3;
+    const FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
+    const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
     const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
@@ -4358,13 +4360,12 @@
     }
 
     function syncContainerOrderUnlocked(): void {
+        // Rewrites the autostart file to match FolderView Plus render order.
+        // Docker userprefs.cfg is owned by Unraid and is only read here.
         global $configDir;
 
         $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
-        if (!file_exists($prefsFile)) { return; }
-
-        $currentPrefsRaw = @file_get_contents($prefsFile);
-        $currentPrefs = @parse_ini_file($prefsFile);
+        $currentPrefs = file_exists($prefsFile) ? @parse_ini_file($prefsFile) : false;
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
 
         $foldersFile = "$configDir/docker.json";
@@ -4432,6 +4433,14 @@
         $seen = [];
         $folderPlaceholders = array_keys($folderContainers);
         $orderedFolderPlaceholders = $folderPlaceholders;
+        if (!$currentPrefs) {
+            $currentOrder = array_values($allContainerNames);
+            natcasesort($currentOrder);
+            $currentOrder = array_values($currentOrder);
+            fv3_debug_log("syncContainerOrder: synthesized container order because userprefs.cfg is unavailable");
+        } else {
+            fv3_debug_log("syncContainerOrder: using userprefs.cfg order with " . count($currentOrder) . " entries");
+        }
 
         foreach ($currentOrder as $item) {
             if (in_array($item, $folderPlaceholders, true)) {
@@ -4469,18 +4478,8 @@
             }
         }
 
-        $ini = "";
-        foreach ($newOrder as $i => $name) {
-            $ini .= ($i + 1) . '="' . $name . '"' . "\n";
-        }
-        if ((string)$currentPrefsRaw !== $ini) {
-            file_put_contents($prefsFile, $ini);
-            fv3_debug_log("syncContainerOrder: wrote userprefs.cfg with " . count($newOrder) . " entries");
-        } else {
-            fv3_debug_log("syncContainerOrder: userprefs.cfg already up to date");
-        }
-
-        // Reorder autostart file to match new container order
+        // Reorder autostart file to match computed container order.
+        // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
         $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
         if (file_exists($autoStartFile)) {

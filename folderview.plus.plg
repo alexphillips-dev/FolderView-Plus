@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.24.03">
-<!ENTITY md5 "6cf639621900fce3830575915cd67514">
+<!ENTITY version "2026.06.24.04">
+<!ENTITY md5 "44f9e8b467bd8490405698c62a7da154">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.24.04
+- Fix: Show the new `Hide nested preview items` toggle in the modern Docker folder editor Preview tab.
+- Regression guard: Cover the modern editor schema, row collection, and Docker section tagging for the nested-preview toggle.
+
 
 ###2026.06.24.03
 - Fix: Docker runtime rows, folder state, and container interactions.

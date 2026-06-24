@@ -20,6 +20,14 @@ const folderEditorPreviewScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
     'utf8'
 );
+const folderEditorChromeScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
+    'utf8'
+);
+const folderEditorTypeDockerScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'),
+    'utf8'
+);
 const folderEditorStyles = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'),
     'utf8'
@@ -106,6 +114,12 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorSharedScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorSchemaScript, /'preview_status'/);
+    assert.match(folderEditorSchemaScript, /'preview_hide_nested_items'/);
+    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*false/);
+    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*'Hide nested preview items'/);
+    assert.match(folderEditorChromeScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
+    assert.match(folderEditorTypeDockerScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
+    assert.match(folderEditorTypeDockerScript, /markSection\('div\.basic:has\(\[name="preview_hide_nested_items"\]\)', 'preview'\);/);
     assert.match(folderEditorScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(folderEditorScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorScript, /setFieldValue\('preview_status', normalizePreviewStatusMode\(normalizedFolder\.settings\.preview_status\)\);/);

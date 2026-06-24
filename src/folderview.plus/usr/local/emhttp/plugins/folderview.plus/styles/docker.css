@@ -629,6 +629,34 @@ tr.folder.fv-parent-expanded div.folder-preview {
     font-size: 0.96em;
 }
 
+.folder-preview .fv-folder-preview-child {
+    cursor: pointer;
+}
+
+.folder-preview .fv-folder-preview-child .inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.folder-preview .fv-folder-preview-child-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.folder-preview .fv-folder-preview-child-name {
+    max-width: clamp(90px, 11vw, 160px);
+}
+
+.folder-preview .fv-folder-preview-child-count {
+    color: var(--fvplus-muted-text, #8b8b8b);
+    font-size: 0.82em;
+    white-space: nowrap;
+}
+
 .folder-preview-status-icon {
     margin-left: 6px;
     display: inline-flex;

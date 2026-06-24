@@ -109,6 +109,8 @@
                         }
                         return ['symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
                     })(),
+                    preview_hide_nested_items: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
+                    previewHideNestedItems: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
                     preview_webui: settings.preview_webui === true,
                     preview_logs: settings.preview_logs === true,
                     preview_console: settings.preview_console === true,

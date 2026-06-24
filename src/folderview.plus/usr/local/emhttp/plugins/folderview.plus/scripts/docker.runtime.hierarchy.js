@@ -154,6 +154,9 @@
 
         const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
 
+        const shouldHideNestedPreviewItems = (settings = {}) => settings?.preview_hide_nested_items === true
+            || settings?.previewHideNestedItems === true;
+
         const resolveFolderUpdateColumnState = (managerTypes, upToDate, managed, options = {}) => {
             const managerTypeSet = managerTypes instanceof Set
                 ? managerTypes
@@ -325,7 +328,47 @@
             folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
         };
 
-        const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
+        const buildChildFolderPreviewItem = (parentId, childId, childFolder) => {
+            const $item = jq('<span class="outer fv-folder-preview-child" role="button" tabindex="0"></span>');
+            const $inner = jq('<span class="inner"></span>');
+            const $hand = jq('<span class="hand fv-folder-preview-child-trigger"></span>');
+            const icon = String(childFolder?.icon || '').trim();
+            const name = String(childFolder?.name || 'Folder').trim() || 'Folder';
+            const runtimeContainers = buildRuntimeContainerMapForFolder(childId, true);
+            const total = Object.keys(runtimeContainers || {}).length;
+            const started = Object.values(runtimeContainers || {}).filter((entry) => entry?.state === true).length;
+
+            $item.attr('data-folder-preview-parent', parentId);
+            $item.attr('data-folder-preview-child', childId);
+            $item.attr('title', name);
+            if (icon) {
+                $hand.append(jq('<img class="img folder-img fv-folder-preview-child-icon" alt="">').attr('src', icon));
+            } else {
+                $hand.append(jq('<i class="fa fa-folder fv-folder-preview-child-icon" aria-hidden="true"></i>'));
+            }
+            $inner.append($hand);
+            $inner.append(jq('<span class="appname fv-folder-preview-child-name"></span>').text(name));
+            $inner.append(jq('<span class="fv-folder-preview-child-count"></span>').text(total > 0 ? `${started}/${total}` : '0'));
+            $item.append($inner);
+            $item.on('click keydown', (event) => {
+                if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                const button = jq(`.dropDown-${parentId}`);
+                if (button.length && button.attr('active') !== 'true') {
+                    dropDownButton(parentId, true);
+                }
+                const $childRow = jq(`tr.folder-id-${childId}`);
+                if ($childRow.length && typeof $childRow.get(0)?.scrollIntoView === 'function') {
+                    $childRow.get(0).scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                }
+            });
+            return $item;
+        };
+
+        const renderNestedAggregatePreview = (id, folder, runtimeContainers, options = {}) => {
             if (!jq) {
                 return;
             }
@@ -338,7 +381,10 @@
                 $preview.empty();
                 return;
             }
-            const entries = Object.values(runtimeContainers || {});
+            const includeChildFolders = options?.includeChildFolders === true;
+            const entries = Object.values(includeChildFolders
+                ? buildRuntimeContainerMapForFolder(id, false)
+                : (runtimeContainers || {}));
             const quickActionPrefs = folder?.settings || {};
             const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
             const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
@@ -371,6 +417,16 @@
                 );
                 $preview.append(item);
             }
+            if (includeChildFolders) {
+                const folders = getGlobalFolders();
+                for (const childId of getFolderChildren(id)) {
+                    const childFolder = folders?.[childId];
+                    if (!childFolder || typeof childFolder !== 'object') {
+                        continue;
+                    }
+                    $preview.append(buildChildFolderPreviewItem(id, childId, childFolder));
+                }
+            }
             $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
             applyFolderPreviewLayout($preview, folder?.settings || {});
             layoutFolderPreviewRows($preview, folder?.settings || {});
@@ -395,7 +451,9 @@
                 renderNestedAggregatePreview(id, folder, directRuntimeContainers);
             } else {
                 const runtimeContainers = folder?.runtimeContainers || {};
-                renderNestedAggregatePreview(id, folder, runtimeContainers);
+                renderNestedAggregatePreview(id, folder, runtimeContainers, {
+                    includeChildFolders: shouldHideNestedPreviewItems(folder?.settings || {})
+                });
             }
             const previewNode = $row.find('div.folder-preview').get(0);
             applyPreviewBorderStyle(previewNode, folder?.settings || {});

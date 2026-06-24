@@ -16,12 +16,15 @@ const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
+const serverLibPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 test('folder editor exposes preview row limit control and persists the setting', () => {
     assert.match(folderPage, /<select name="preview_rows">/);
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
     assert.match(folderPage, /<li constraint="preview-1 preview-2 preview-3 preview-4 docker">[\s\S]*<select name="preview_status">/);
     assert.match(folderPage, /<option value="none">Hide status<\/option>/);
+    assert.match(folderPage, /name="preview_hide_nested_items"/);
+    assert.match(folderPage, /Hide nested preview items:/);
     assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
     assert.match(folderJs, /let folderEditorSharedApi = null;/);
@@ -31,9 +34,15 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
+    assert.match(folderJs, /setFieldChecked\('preview_hide_nested_items', normalizedFolder\.settings\.preview_hide_nested_items\);/);
     assert.match(folderJs, /const normalizedPreviewRows = normalizePreviewRowLimit\(e\.preview_rows\?\.value\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
+    assert.match(folderJs, /preview_hide_nested_items:\s*e\.preview_hide_nested_items\.checked,/);
+    assert.match(folderEditorSharedJs, /preview_hide_nested_items:\s*settings\.preview_hide_nested_items === true \|\| settings\.previewHideNestedItems === true/);
+    assert.match(folderEditorSharedJs, /previewHideNestedItems:\s*settings\.preview_hide_nested_items === true \|\| settings\.previewHideNestedItems === true/);
+    assert.match(serverLibPhp, /\$rawPreviewHideNestedItems = \$normalized\['settings'\]\['preview_hide_nested_items'\]/);
+    assert.match(serverLibPhp, /\$normalized\['settings'\]\['previewHideNestedItems'\] = \$normalized\['settings'\]\['preview_hide_nested_items'\];/);
 });
 
 test('docker runtime applies preview row layout limits and keeps compact preview cards clickable', () => {
@@ -85,6 +94,13 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
     assert.match(dockerJs, /const tooltip_trigger_element = addPreview\(id, ct\.shortId, !\(ct\.info\.State\.Autostart === false\), newFolder\[container_name_in_folder\], \$containerTR\);/);
     assert.match(dockerJs, /previewStatusMode !== 'none' && \(previewMode === 3 \|\| previewMode === 4\)/);
+    assert.match(dockerRuntimeHierarchyJs, /const shouldHideNestedPreviewItems = \(settings = \{\}\) => settings\?\.preview_hide_nested_items === true/);
+    assert.match(dockerRuntimeHierarchyJs, /const buildChildFolderPreviewItem = \(parentId, childId, childFolder\) =>/);
+    assert.match(dockerRuntimeHierarchyJs, /data-folder-preview-child/);
+    assert.match(dockerRuntimeHierarchyJs, /includeChildFolders\s*:\s*shouldHideNestedPreviewItems\(folder\?\.settings \|\| \{\}\)/);
+    assert.match(dockerRuntimeHierarchyJs, /buildRuntimeContainerMapForFolder\(id, false\)/);
+    assert.match(dockerRuntimeHierarchyJs, /for \(const childId of getFolderChildren\(id\)\)/);
+    assert.match(dockerRuntimeHierarchyJs, /dropDownButton\(parentId, true\);/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);
@@ -175,6 +191,8 @@ test('docker styles support multi-row previews without the removed member action
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder-icon \{/);
+    assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child \{/);
+    assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child-count \{/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-actions/);

@@ -861,6 +861,21 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
+                        <dt>Hide nested preview items:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_hide_nested_items" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            When a parent folder is collapsed, show direct containers and child folders instead of every container nested inside child folders.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
                         <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_webui" type="checkbox" style="display: none;" />

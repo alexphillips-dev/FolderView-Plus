@@ -1209,6 +1209,18 @@
             $normalized['preview_rows'],
             $normalized['previewRows']
         );
+        $rawPreviewHideNestedItems = $normalized['settings']['preview_hide_nested_items']
+            ?? ($normalized['settings']['previewHideNestedItems']
+                ?? ($normalized['preview_hide_nested_items']
+                    ?? ($normalized['previewHideNestedItems'] ?? null)));
+        if ($rawPreviewHideNestedItems !== null) {
+            $normalized['settings']['preview_hide_nested_items'] = filter_var($rawPreviewHideNestedItems, FILTER_VALIDATE_BOOLEAN);
+            $normalized['settings']['previewHideNestedItems'] = $normalized['settings']['preview_hide_nested_items'];
+        }
+        unset(
+            $normalized['preview_hide_nested_items'],
+            $normalized['previewHideNestedItems']
+        );
         $rawDropdownStyle = $normalized['settings']['dropdown_style']
             ?? ($normalized['settings']['dropdownStyle']
                 ?? ($normalized['settings']['chevron_style']

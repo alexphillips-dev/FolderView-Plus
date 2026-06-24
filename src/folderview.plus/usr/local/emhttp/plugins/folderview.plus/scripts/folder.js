@@ -3109,6 +3109,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
+    setFieldChecked('preview_hide_nested_items', normalizedFolder.settings.preview_hide_nested_items);
     setFieldChecked('preview_webui', normalizedFolder.settings.preview_webui);
     setFieldChecked('preview_logs', normalizedFolder.settings.preview_logs);
     setFieldChecked('preview_console', normalizedFolder.settings.preview_console || false);
@@ -4304,6 +4305,7 @@ const buildFolderPayloadFromForm = (e) => {
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
+            preview_hide_nested_items: e.preview_hide_nested_items.checked,
             preview_webui: e.preview_webui.checked,
             preview_logs: e.preview_logs.checked,
             preview_console: e.preview_console.checked,

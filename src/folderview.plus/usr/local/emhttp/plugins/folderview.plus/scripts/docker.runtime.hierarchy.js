@@ -329,7 +329,7 @@
         };
 
         const buildChildFolderPreviewItem = (parentId, childId, childFolder) => {
-            const $item = jq('<span class="outer fv-folder-preview-child" role="button" tabindex="0"></span>');
+            const $item = jq('<span class="outer fv-docker-preview-card fv-docker-preview-mode-1 fv-folder-preview-child" role="button" tabindex="0"></span>');
             const $inner = jq('<span class="inner"></span>');
             const $hand = jq('<span class="hand fv-folder-preview-child-trigger"></span>');
             const icon = String(childFolder?.icon || '').trim();

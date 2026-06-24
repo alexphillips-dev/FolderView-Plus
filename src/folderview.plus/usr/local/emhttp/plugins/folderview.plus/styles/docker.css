@@ -631,24 +631,36 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview .fv-folder-preview-child {
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 0;
+    max-width: clamp(150px, 15vw, 210px);
+    min-width: 0;
+    line-height: 1.05;
 }
 
 .folder-preview .fv-folder-preview-child .inner {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
+    line-height: 1.05;
 }
 
 .folder-preview .fv-folder-preview-child-icon {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     flex: 0 0 auto;
 }
 
 .folder-preview .fv-folder-preview-child-name {
-    max-width: clamp(90px, 11vw, 160px);
+    display: inline-block;
+    max-width: clamp(96px, 11vw, 148px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .folder-preview .fv-folder-preview-child-count {

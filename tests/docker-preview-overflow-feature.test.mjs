@@ -96,6 +96,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /previewStatusMode !== 'none' && \(previewMode === 3 \|\| previewMode === 4\)/);
     assert.match(dockerRuntimeHierarchyJs, /const shouldHideNestedPreviewItems = \(settings = \{\}\) => settings\?\.preview_hide_nested_items === true/);
     assert.match(dockerRuntimeHierarchyJs, /const buildChildFolderPreviewItem = \(parentId, childId, childFolder\) =>/);
+    assert.match(dockerRuntimeHierarchyJs, /fv-docker-preview-card fv-docker-preview-mode-1 fv-folder-preview-child/);
     assert.match(dockerRuntimeHierarchyJs, /data-folder-preview-child/);
     assert.match(dockerRuntimeHierarchyJs, /includeChildFolders\s*:\s*shouldHideNestedPreviewItems\(folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerRuntimeHierarchyJs, /buildRuntimeContainerMapForFolder\(id, false\)/);
@@ -192,6 +193,7 @@ test('docker styles support multi-row previews without the removed member action
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder-icon \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child \{/);
+    assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child-icon \{[\s\S]*width:\s*28px/);
     assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child-count \{/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-trigger/);

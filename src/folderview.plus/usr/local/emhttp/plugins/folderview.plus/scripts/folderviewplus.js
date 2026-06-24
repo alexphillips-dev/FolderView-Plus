@@ -2488,6 +2488,139 @@ const refreshSettingsUx = () => {
     });
 };
 
+const isVisibleSettingsElement = (node) => {
+    if (!(node instanceof HTMLElement)) {
+        return false;
+    }
+    const style = typeof window.getComputedStyle === 'function' ? window.getComputedStyle(node) : null;
+    if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) {
+        return false;
+    }
+    const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
+    return Boolean((rect && rect.width > 0 && rect.height > 0) || node.offsetWidth > 0 || node.offsetHeight > 0);
+};
+
+const hasVisibleSettingsSurface = () => {
+    const root = document.getElementById('fv-settings-root');
+    if (!isVisibleSettingsElement(root)) {
+        return false;
+    }
+    const selectors = [
+        '#fvplus-fatal-banner',
+        '#fv-settings-topbar > *',
+        'h2[data-fv-section]:not(.fv-section-hidden)',
+        '.folder-table:not(.fv-section-hidden)',
+        'tbody#docker tr:not(.fv-section-hidden)',
+        'tbody#vms tr:not(.fv-section-hidden)',
+        '#fv-setup-assistant-overlay',
+        '#fv-setup-assistant-dialog',
+        '#fv-first-run-panel:not([style*="display:none"])'
+    ];
+    for (const selector of selectors) {
+        for (const node of root.querySelectorAll(selector)) {
+            if (isVisibleSettingsElement(node)) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
+    if (hasVisibleSettingsSurface()) {
+        return true;
+    }
+    const root = document.getElementById('fv-settings-root');
+    if (!(root instanceof HTMLElement)) {
+        return false;
+    }
+
+    settingsUiState.mode = 'basic';
+    settingsUiState.query = '';
+    settingsUiState.searchAllAdvanced = false;
+    settingsUiState.activeSectionKey = 'docker';
+    try {
+        root.hidden = false;
+        root.removeAttribute('aria-hidden');
+        root.style.display = 'block';
+        root.style.visibility = 'visible';
+        root.style.opacity = '1';
+        $('#fv-settings-topbar').show();
+        $('#fv-settings-search').val('');
+        $('#fv-search-all-advanced').prop('checked', false);
+        removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
+        writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
+        buildSettingsSections();
+        normalizeExpandedAdvancedSections();
+        applySettingsSectionVisibility();
+        syncSectionJumpOptions();
+        refreshInputInvalidStyles();
+        refreshSectionHealthBadges();
+    } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'blank-recovery',
+            category: 'blank-page',
+            action: 'Recover blank Settings surface'
+        });
+        throw error;
+    }
+
+    const recovered = hasVisibleSettingsSurface();
+    markSettingsBootstrapState({
+        degraded: true,
+        failed: recovered ? false : true,
+        lastPhase: 'blank-recovery',
+        lastAction: recovered ? 'Recovered blank Settings surface' : 'Blank Settings surface recovery failed',
+        lastStep: String(reason || 'post-bootstrap')
+    });
+    const details = [
+        `reason=${String(reason || 'post-bootstrap')}`,
+        `mode=${settingsUiState.mode}`,
+        `sections=${settingsUiState.sections.length}`,
+        `basicSections=${getBasicWorkspaceSections().map((section) => section.key).join(',') || '(none)'}`,
+        `rootChildren=${root.children.length}`,
+        `topbarChildren=${document.getElementById('fv-settings-topbar')?.children.length || 0}`
+    ];
+    const error = new Error(
+        recovered
+            ? 'Settings page became blank after bootstrap and was recovered to basic mode.'
+            : 'Settings page became blank after bootstrap and could not be recovered.'
+    );
+    if (recovered) {
+        reportFatalBannerDegradedState(error, {
+            context: 'Settings',
+            hostSelector: '#fv-settings-root',
+            title: 'Settings page recovered from blank state',
+            message: 'FolderView Plus detected an empty Settings surface and restored the basic Settings view.',
+            code: 'FVPLUS-SET-BLANK-RECOVERED',
+            phase: 'blank-recovery',
+            category: 'blank-page',
+            detailLabel: 'Blank recovery diagnostics',
+            details
+        });
+        return true;
+    }
+    if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
+        fatalBanner.reportFatalError(error, {
+            context: 'Settings',
+            hostSelector: '#fv-settings-root',
+            title: 'Settings page is blank',
+            message: 'FolderView Plus could not find visible Settings content after bootstrap.',
+            code: 'FVPLUS-SET-BLANK-002',
+            phase: 'blank-recovery',
+            category: 'blank-page',
+            detailLabel: 'Blank recovery diagnostics',
+            details
+        });
+    }
+    return false;
+};
+
+const scheduleBlankSettingsRecoveryChecks = () => {
+    window.setTimeout(() => recoverBlankSettingsSurface('post-ready-early'), 1200);
+    window.setTimeout(() => recoverBlankSettingsSurface('post-ready-late'), 5000);
+};
+
 const toPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const normalizeImportMode = (value) => {
     const mode = String(value || '').trim().toLowerCase();
@@ -9629,12 +9762,16 @@ settingsActionSupportModule.registerWindowActions(window, {
         setFatalBannerPhase('ready');
         recordFatalBannerAction('Settings bootstrap completed');
         markFatalBannerStep('Settings bootstrap completed');
+        const settingsSurfaceVisible = recoverBlankSettingsSurface('ready');
+        if (settingsSurfaceVisible) {
+            scheduleBlankSettingsRecoveryChecks();
+        }
         markSettingsBootstrapState({
-            ready: true,
-            failed: false,
-            lastPhase: 'ready',
-            lastAction: 'Settings bootstrap completed',
-            lastStep: 'Settings bootstrap completed'
+            ready: settingsSurfaceVisible,
+            failed: !settingsSurfaceVisible,
+            lastPhase: settingsSurfaceVisible ? 'ready' : 'blank-recovery',
+            lastAction: settingsSurfaceVisible ? 'Settings bootstrap completed' : 'Settings bootstrap completed without visible content',
+            lastStep: settingsSurfaceVisible ? 'Settings bootstrap completed' : 'Settings surface stayed blank'
         });
     } catch (error) {
         try {

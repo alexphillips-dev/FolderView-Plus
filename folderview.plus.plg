@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.05.26.01">
-<!ENTITY md5 "3be7f3d04f57b7b6717061f4bcfca2c9">
+<!ENTITY version "2026.06.24.01">
+<!ENTITY md5 "8927e030375d51669c8b5297e69eaf85">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.24.01
+- Quality: Release-note generation, retry cleanup, and packaging guards.
+- Docs: Project documentation and support guidance.
+
 
 ###2026.05.26.01
 - Fix: Clear stale Docker folder update indicators after bulk updates by ignoring saved folder update metadata when live dockerman runtime state is unknown during post-update reconciliation.

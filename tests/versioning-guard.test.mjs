@@ -252,11 +252,13 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /--message TEXT/);
     assert.match(devFinalize, /--skip-build/);
     assert.match(devFinalize, /--no-push/);
+    assert.match(devFinalize, /--full-local-checks/);
     assert.match(devFinalize, /--fast-dev-push/);
     assert.match(devFinalize, /bash scripts\/doctor\.sh/);
     assert.match(devFinalize, /bash scripts\/run_ci_suite\.sh --lane lint --lane tests/);
-    assert.match(devFinalize, /--fast-dev-push cannot be combined with --skip-build/);
-    assert.match(devFinalize, /dev_finalize\.sh fast dev push: skipping doctor \+ shared lint\/tests/);
+    assert.match(devFinalize, /--skip-build requires --full-local-checks/);
+    assert.match(devFinalize, /dev_finalize\.sh default dev push: skipping doctor \+ shared lint\/tests; GitHub CI will validate/);
+    assert.match(devFinalize, /--fast-dev-push is now the default and can be omitted/);
     assert.match(devFinalize, /--message is required unless --skip-build is used/);
     assert.match(devFinalize, /must run from branch 'dev'/);
     assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR/);
@@ -277,11 +279,11 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
 test('docs point dev packaging work to the staged dev finalize workflow', () => {
     assert.match(readme, /git add <files>/);
     assert.match(readme, /bash scripts\/dev_finalize\.sh --message "Describe the change" --open-fixture/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --fast-dev-push --message "Describe the change"/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --open-fixture --skip-build/);
+    assert.match(readme, /bash scripts\/dev_finalize\.sh --full-local-checks --message "Describe the change" --open-fixture/);
+    assert.match(readme, /bash scripts\/dev_finalize\.sh --full-local-checks --open-fixture --skip-build/);
     assert.match(visualRuntimeContract, /git add <files>/);
     assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix" --open-fixture/);
-    assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --fast-dev-push --message "Describe the fix"/);
+    assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix"/);
 });
 
 test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {

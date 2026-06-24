@@ -357,12 +357,12 @@ Recommended migration path:
   - `node scripts/generate_runtime_fixture.mjs`
 - Stage the intended source changes before using the deterministic dev finalize path:
   - `git add <files>`
-- Validate shared runtime or UI work and push `dev` in one step:
+- Package, bump, commit, and push `dev` quickly, leaving validation to GitHub CI:
   - `bash scripts/dev_finalize.sh --message "Describe the change" --open-fixture`
-- Package and push a dev build without local validation checks:
-  - `bash scripts/dev_finalize.sh --fast-dev-push --message "Describe the change"`
-- Run validation only without packaging or push:
-  - `bash scripts/dev_finalize.sh --open-fixture --skip-build`
+- Run full local validation before packaging and pushing:
+  - `bash scripts/dev_finalize.sh --full-local-checks --message "Describe the change" --open-fixture`
+- Run full local validation only without packaging or push:
+  - `bash scripts/dev_finalize.sh --full-local-checks --open-fixture --skip-build`
 - Build a package locally:
   - `bash pkg_build.sh`
 - Curate stable release notes first:

@@ -8,7 +8,7 @@ source "${ROOT_DIR}/scripts/lib.sh"
 RUN_BUILD=true
 OPEN_FIXTURE=false
 PUSH_AFTER_COMMIT=true
-FAST_DEV_PUSH=false
+FULL_LOCAL_CHECKS=false
 COMMIT_MESSAGE=""
 
 print_usage() {
@@ -18,17 +18,18 @@ Usage: scripts/dev_finalize.sh [options]
   --open-fixture         Regenerate the local runtime fixture before validation
   --skip-build           Stop after doctor + lint/tests without packaging, commit, or push
   --no-push              Create the finalize commit locally but do not push dev
-  --fast-dev-push        Package, commit, and push dev without local validation hooks
+  --full-local-checks    Run doctor, lint/tests, and normal pre-push hooks locally
+  --fast-dev-push        Backward-compatible no-op; fast push is now the default
   -h, --help             Show this help
 
 This script is the deterministic "finish dev work" path:
 1. Optionally regenerate the local runtime fixture
-2. Run doctor + shared lint/tests unless --fast-dev-push is used
+2. Skip local doctor + shared lint/tests unless --full-local-checks is used
 3. Require a clean unstaged worktree with intended source changes already staged
 4. Rebuild the dev package via pkg_build.sh
 5. Stage generated manifest/archive artifacts
 6. Commit the staged source + generated artifacts
-7. Push dev, using --no-verify when --fast-dev-push is used
+7. Push dev with --no-verify unless --full-local-checks is used
 EOF
 }
 
@@ -59,8 +60,11 @@ while [[ $# -gt 0 ]]; do
         --no-push)
             PUSH_AFTER_COMMIT=false
             ;;
+        --full-local-checks)
+            FULL_LOCAL_CHECKS=true
+            ;;
         --fast-dev-push)
-            FAST_DEV_PUSH=true
+            echo "dev_finalize.sh: --fast-dev-push is now the default and can be omitted."
             ;;
         -h|--help)
             print_usage
@@ -82,15 +86,15 @@ if [[ "${OPEN_FIXTURE}" == true ]]; then
     "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_runtime_fixture.mjs")"
 fi
 
-if [[ "${FAST_DEV_PUSH}" == true && "${RUN_BUILD}" != true ]]; then
-    fvplus::fail "--fast-dev-push cannot be combined with --skip-build."
+if [[ "${RUN_BUILD}" != true && "${FULL_LOCAL_CHECKS}" != true ]]; then
+    fvplus::fail "--skip-build requires --full-local-checks because the default path skips local validation."
 fi
 
-if [[ "${FAST_DEV_PUSH}" == true ]]; then
-    echo "dev_finalize.sh fast dev push: skipping doctor + shared lint/tests."
-else
+if [[ "${FULL_LOCAL_CHECKS}" == true ]]; then
     bash scripts/doctor.sh
     bash scripts/run_ci_suite.sh --lane lint --lane tests
+else
+    echo "dev_finalize.sh default dev push: skipping doctor + shared lint/tests; GitHub CI will validate."
 fi
 
 if [[ "${RUN_BUILD}" != true ]]; then
@@ -138,10 +142,10 @@ fi
 git commit -m "${COMMIT_MESSAGE}"
 
 if [[ "${PUSH_AFTER_COMMIT}" == true ]]; then
-    if [[ "${FAST_DEV_PUSH}" == true ]]; then
-        git push --no-verify -u origin dev
-    else
+    if [[ "${FULL_LOCAL_CHECKS}" == true ]]; then
         git push -u origin dev
+    else
+        git push --no-verify -u origin dev
     fi
     echo "dev_finalize.sh completed successfully: pushed dev @ version ${VERSION}."
     exit 0

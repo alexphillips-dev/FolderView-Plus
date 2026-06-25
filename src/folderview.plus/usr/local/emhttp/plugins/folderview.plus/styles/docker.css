@@ -688,7 +688,10 @@ tr.folder.fv-parent-expanded div.folder-preview {
     align-items: center;
     gap: 7px;
     width: 100%;
-    padding: 4px 8px;
+    min-height: 0;
+    height: 22px;
+    margin: 0;
+    padding: 2px 8px;
     border: 0;
     border-radius: 4px;
     color: var(--fv-editor-text, #f2f2f2);
@@ -698,6 +701,11 @@ tr.folder.fv-parent-expanded div.folder-preview {
     line-height: 1.15;
     text-align: left;
     cursor: pointer;
+    appearance: none;
+}
+
+.fv-folder-preview-context-menu button i {
+    line-height: 1;
 }
 
 .fv-folder-preview-context-menu button:hover,

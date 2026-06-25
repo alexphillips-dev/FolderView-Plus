@@ -18,9 +18,13 @@ test('folder editor live preview renders members in current checked-table order'
 
 test('folder editor live preview shows nested-folder sample when nested previews are hidden', () => {
     assert.match(folderPreviewJs, /const hideNestedPreviewItems = form\.preview_hide_nested_items\?\.checked === true;/);
+    assert.match(folderPreviewJs, /const getNestedPreviewSample = typeof deps\.getNestedPreviewSample === 'function'/);
+    assert.match(folderPreviewJs, /const nestedPreviewSample = getNestedPreviewSample\(\) \|\| \{\};/);
+    assert.match(folderPreviewJs, /const nestedPreviewName = escapeHtml\(nestedPreviewSample\.name \|\| 'Child folder'\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewIcon = escapeHtml\(nestedPreviewSample\.icon \|\| icon \|\| deps\.defaultFolderIconPath \|\| ''\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewStatus = nestedPreviewCount === null/);
     assert.match(folderPreviewJs, /if \(hideNestedPreviewItems && previewMode !== 0\) \{/);
     assert.match(folderPreviewJs, /fv-live-member-child-folder/);
-    assert.match(folderPreviewJs, /Child folder/);
     assert.match(folderCss, /\.fv-live-member-child-folder \{/);
     assert.match(folderCss, /\.fv-live-member-child-folder \.fv-live-member-status \{/);
 });

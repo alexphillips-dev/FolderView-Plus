@@ -48,6 +48,9 @@
         const getPreviewSignals = typeof deps.getPreviewSignals === 'function'
             ? deps.getPreviewSignals
             : (() => null);
+        const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
+            ? deps.getNestedPreviewSample
+            : (() => null);
 
         const renderLivePreviewCanvas = () => {
             if (!$ || !shouldRender()) {
@@ -103,13 +106,22 @@
                 `;
             });
             if (hideNestedPreviewItems && previewMode !== 0) {
+                const nestedPreviewSample = getNestedPreviewSample() || {};
+                const nestedPreviewName = escapeHtml(nestedPreviewSample.name || 'Child folder');
+                const nestedPreviewIcon = escapeHtml(nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || '');
+                const nestedPreviewCount = Number.isFinite(Number(nestedPreviewSample.memberCount))
+                    ? Math.max(0, Number(nestedPreviewSample.memberCount))
+                    : null;
+                const nestedPreviewStatus = nestedPreviewCount === null
+                    ? 'nested'
+                    : `${nestedPreviewCount} item${nestedPreviewCount === 1 ? '' : 's'}`;
                 memberPreviewItems.push(`
                     <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder">
-                        <img src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
-                        ${previewMode === 2 ? '' : '<span class="fv-live-member-name">Child folder</span>'}
+                        <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
                         ${previewMode === 2
                             ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
-                            : '<span class="fv-live-member-status">nested</span>'}
+                            : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewStatus)}</span>`}
                     </span>
                 `);
             }

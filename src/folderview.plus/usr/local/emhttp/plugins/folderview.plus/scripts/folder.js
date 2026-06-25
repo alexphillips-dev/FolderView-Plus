@@ -1426,6 +1426,29 @@ const getFolderEditorPreviewRuntimeApi = () => {
     if (folderEditorPreviewRuntimeApi || typeof folderEditorPreviewRuntimeModule?.createApi !== 'function') {
         return folderEditorPreviewRuntimeApi;
     }
+    const getNestedPreviewSample = () => {
+        const sourceId = String(activeFolderEditorFolderId || folderId || '').trim();
+        if (!sourceId) {
+            return null;
+        }
+        for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
+            const safeCandidateId = String(candidateId || '').trim();
+            if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
+                continue;
+            }
+            if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
+                continue;
+            }
+            const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
+            return {
+                id: safeCandidateId,
+                name: String(normalizedChild.name || 'Child folder').trim() || 'Child folder',
+                icon: String(normalizedChild.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH,
+                memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0
+            };
+        }
+        return null;
+    };
     folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule.createApi({
         window,
         $,
@@ -1444,6 +1467,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         buildSampleMemberState,
         normalizeParentFolderId,
         getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
+        getNestedPreviewSample,
         applyTypePreviewConstraints: ({ $, form } = {}) => {
             getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
         },

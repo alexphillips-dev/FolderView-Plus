@@ -131,6 +131,10 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderEditorScript, /const getNestedPreviewSample = \(\) => \{/);
+    assert.match(folderEditorScript, /for \(const \[candidateId, candidateFolder\] of Object\.entries\(allFoldersById \|\| \{\}\)\) \{/);
+    assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) !== sourceId/);
+    assert.match(folderEditorScript, /getNestedPreviewSample,/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);

@@ -21,6 +21,7 @@ const fail = (message) => {
 };
 
 const rootReadme = read('README.md');
+const troubleshootingDoc = read('docs/TROUBLESHOOTING.md');
 const pluginReadme = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md');
 const localeEn = JSON.parse(read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/en.json'));
 const xml = read('folderview.plus.xml');
@@ -45,11 +46,10 @@ if (pluginReadme.includes('powerful folder-based organization to Unraid Docker a
 
 const requiredReadmeSections = [
   '## Settings Overview',
-  '## Rules Quick Guide',
-  '## Bulk Assignment Quick Guide',
+  '## Getting Started',
   '## Backups and Recovery',
   '## Troubleshooting',
-  '## Theme and Customization'
+  '## Customization'
 ];
 for (const heading of requiredReadmeSections) {
   if (!rootReadme.includes(heading)) {
@@ -61,11 +61,24 @@ const requiredReadmePhrases = [
   'Settings changes save automatically',
   'Setup Assistant',
   'Dashboard',
-  'Folder editor bootstrap diagnostics'
+  'Folder editor bootstrap diagnostics',
+  'docs/TROUBLESHOOTING.md'
 ];
 for (const phrase of requiredReadmePhrases) {
   if (!rootReadme.includes(phrase)) {
     fail(`README.md is missing required current-state phrase: ${phrase}`);
+  }
+}
+
+const requiredTroubleshootingSections = [
+  '## Common Issues',
+  '## Support Bundles',
+  '## Paths',
+  '## Legacy CSS/JS Overrides'
+];
+for (const heading of requiredTroubleshootingSections) {
+  if (!troubleshootingDoc.includes(heading)) {
+    fail(`docs/TROUBLESHOOTING.md is missing required section: ${heading}`);
   }
 }
 

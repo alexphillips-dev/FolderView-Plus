@@ -18,7 +18,7 @@
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers, VMs, and Dashboard views.
 It is built for real libraries: easier organization, smarter setup, safer recovery, and clearer runtime diagnostics.
 
-Quick links: [Install](#install) | [What It Does](#what-it-does) | [Settings Overview](#settings-overview) | [Rules Quick Guide](#rules-quick-guide) | [Bulk Assignment Quick Guide](#bulk-assignment-quick-guide) | [Backups and Recovery](#backups-and-recovery) | [Troubleshooting](#troubleshooting) | [Theme Guide](docs/THEME_GUIDE.md) | [Support Policy](docs/SUPPORT_POLICY.md) | [Docs Index](docs/README.md)
+Quick links: [Install](#install) | [What It Does](#what-it-does) | [Settings Overview](#settings-overview) | [Getting Started](#getting-started) | [Backups and Recovery](#backups-and-recovery) | [Troubleshooting](#troubleshooting) | [Theme Guide](docs/THEME_GUIDE.md) | [Support Policy](docs/SUPPORT_POLICY.md) | [Docs Index](docs/README.md)
 
 ## Screenshots
 
@@ -42,11 +42,7 @@ Quick links: [Install](#install) | [What It Does](#what-it-does) | [Settings Ove
 ## Requirements
 
 - Unraid `7.0.0+`
-- A current major browser:
-  - Chrome
-  - Edge (Chromium)
-  - Firefox
-  - Safari
+- A current major Chrome, Edge, Firefox, or Safari browser
 
 ## Install
 
@@ -148,7 +144,7 @@ Current behavior:
 - The page remembers whether you last used `Basic` or `Advanced`
 - Rules, Recovery, and Operations remember whether you were working in Docker or VMs
 
-## Quick Start
+## Getting Started
 
 1. Open `Settings -> FolderView Plus`.
 2. Stay in `Basic` for normal folder setup.
@@ -156,28 +152,11 @@ Current behavior:
 4. Confirm the folder groups on the Docker, VM, and Dashboard pages.
 5. Switch to `Advanced` only when you need automation, recovery, operations, or diagnostics.
 
-## Rules Quick Guide
+Common advanced workflows:
 
-1. Open `Settings -> FolderView Plus -> Advanced -> Rules`.
-2. Choose `Docker` or `VMs`.
-3. Create an `Include` or `Exclude` rule:
-   - target folder
-   - rule kind
-   - match value
-4. Review rule order. Rules run from top to bottom.
-5. Use:
-   - `Test rule priority`
-   - `Preview all assignments`
-   - `Scan conflicts`
-6. Changes save automatically.
-
-## Bulk Assignment Quick Guide
-
-1. Open `Settings -> FolderView Plus -> Advanced -> Automation`.
-2. Choose the target folder.
-3. Filter and select the containers or VMs you want to move.
-4. Review the live plan.
-5. Apply the move when the preview looks correct.
+- Rules: use `Advanced -> Rules` to create ordered include/exclude assignments, then test priority, preview assignments, and scan conflicts before relying on them.
+- Bulk Assignment: use `Advanced -> Automation` to select a target folder, filter members, review the live plan, and apply the move.
+- Templates: use `Advanced -> Operations` to save a folder as a reusable template and reapply it later.
 
 ## Backups and Recovery
 
@@ -238,37 +217,13 @@ Template workflow:
 
 - Docker or VMs page shows a runtime banner:
   - Use the banner `Copy diagnostics` action.
-  - The banner is there to show bootstrap, request, or host-page problems clearly.
   - Share that output if you need help.
-
-- Folder editor opens blank or does not load the folder you clicked:
-  - Copy the bootstrap diagnostics shown at the top of the editor.
-  - The modern editor exposes copyable bootstrap details now.
-
-- Folder rendering pauses with a safe-mode banner:
-  - FolderView Plus auto-detects conflicting legacy Folder View runtimes.
-  - Keep FolderView Plus installed.
-  - Remove only the conflicting runtime plugin.
-  - Refresh the Unraid UI after plugin changes.
-
-- Using Compose Manager as well:
-  - FolderView Plus now isolates its Docker runtime to avoid the old shared-page symbol collision.
-  - If the Docker page still shows a runtime banner, copy diagnostics from the banner instead of guessing which plugin failed.
 
 - Updates do not appear immediately:
   - Run `Plugins -> Check for Updates`.
   - If still cached, install once from a commit URL, then return to normal `main` or `dev` tracking.
 
-- Import fails validation:
-  - Make sure Docker exports are imported into Docker and VM exports into VMs.
-  - Re-export with the latest plugin version if the file came from older tooling.
-
-- Sharing a support bundle:
-  - Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
-  - Review the support bundle preview before export.
-  - Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
-  - The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
-  - Share the full export only if you intentionally need raw troubleshooting fields.
+Full troubleshooting, support bundle guidance, and path references live in [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 ## Security and Reliability
 
@@ -277,90 +232,18 @@ Template workflow:
 - Runtime diagnostics instead of silent failure paths
 - Automated regression checks, release guards, and raw-publish validation
 
-## Browser Support
-
-Supported current major browsers:
-
-- Chrome
-- Edge (Chromium)
-- Firefox
-- Safari (macOS and iOS)
-
-Not supported:
-
-- Internet Explorer 11
-- Legacy Edge (EdgeHTML)
-
-## Paths
-
-- Config root: `/boot/config/plugins/folderview.plus`
-- Custom CSS: `/boot/config/plugins/folderview.plus/styles`
-- Custom JS: `/boot/config/plugins/folderview.plus/scripts`
-- Third-party icons: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
-- User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
-
-## Theme and Customization
+## Customization
 
 - Full theme guide: [docs/THEME_GUIDE.md](docs/THEME_GUIDE.md)
 - Versioned theme API contract: [docs/THEME_API_CONTRACT.md](docs/THEME_API_CONTRACT.md)
 - Visual/runtime contract: [docs/visual-runtime-contract.md](docs/visual-runtime-contract.md)
-
-Runtime status colors are CSS-variable driven:
-
-- `--fvplus-status-started`
-- `--fvplus-status-paused`
-- `--fvplus-status-stopped`
-
-Legacy graph aliases remain supported:
-
-- `--folder-view3-graph-cpu`
-- `--folder-view3-graph-mem`
-
-Canonical graph variables:
-
-- `--fvplus-graph-cpu`
-- `--fvplus-graph-mem`
-
-## Legacy CSS/JS Migration (FolderView2/3)
-
-FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.
-
-Supported legacy override roots:
-
-- `/boot/config/plugins/folder.view/styles`
-- `/boot/config/plugins/folder.view2/styles`
-- `/boot/config/plugins/folder.view3/styles`
-- `/boot/config/plugins/folder.view/scripts`
-- `/boot/config/plugins/folder.view2/scripts`
-- `/boot/config/plugins/folder.view3/scripts`
-
-File naming rules:
-
-- Docker page overrides: `*.docker.css` and `*.docker.js`
-- VM page overrides: `*.vm.css` and `*.vm.js`
-- Dashboard overrides: `*.dashboard.css` and `*.dashboard.js`
-- Disable any override file by appending `.disabled`
-
-Stable selector and migration policy:
-
-- [docs/SUPPORT_POLICY.md](docs/SUPPORT_POLICY.md)
-
-Recommended migration path:
-
-1. Copy legacy overrides into `/boot/config/plugins/folderview.plus/styles` and `/boot/config/plugins/folderview.plus/scripts`.
-2. Keep the same filenames where possible.
-3. Hard-refresh the browser after saving (`Ctrl+F5`).
+- Legacy CSS/JS migration and stable selector policy: [docs/SUPPORT_POLICY.md](docs/SUPPORT_POLICY.md)
+- Troubleshooting paths and override directories: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## Included Icon Pack Credits
 
 - https://github.com/sameerasw/folder-icons
 - https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors
-
-## Development
-
-- Runtime source: `src/folderview.plus/`
-- Manifest: `folderview.plus.plg`
-- Archives: `archive/`
 
 ## Support
 

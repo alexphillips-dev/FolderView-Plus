@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.10">
-<!ENTITY md5 "03d8e8deac78e78fec38de7c05e5adc6">
+<!ENTITY version "2026.06.25.11">
+<!ENTITY md5 "e2ec38bc67f6c1f30e03189d6fefcded">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.11
+- Docs: Decluttered the root README by merging quick guides, moving troubleshooting and path details into docs, and removing browser/development sections.
+
 
 ###2026.06.25.10
 - Docs: Removed the root README Dev Workflow section to keep user-facing documentation focused.

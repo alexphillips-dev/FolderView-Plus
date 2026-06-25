@@ -83,27 +83,41 @@
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
             const name = String(form.name?.value || '').trim() || 'Unnamed folder';
+            const hideNestedPreviewItems = form.preview_hide_nested_items?.checked === true;
+
+            const memberPreviewItems = sampleMembers.map((member, index) => {
+                const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
+                const memberIcon = escapeHtml(member?.Icon || deps.iconFallbackPath || '');
+                const state = buildSampleMemberState(member, index);
+                const stateLabel = escapeHtml(state.label);
+                const stateColor = escapeHtml(state.color);
+                const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' style="filter: grayscale(100%);"' : '';
+                return `
+                    <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
+                        <img src="${memberIcon}" alt="" onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
+                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
+                        ${previewMode === 2
+                            ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" style="color:${stateColor};" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
+                            : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
+                    </span>
+                `;
+            });
+            if (hideNestedPreviewItems && previewMode !== 0) {
+                memberPreviewItems.push(`
+                    <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder">
+                        <img src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                        ${previewMode === 2 ? '' : '<span class="fv-live-member-name">Child folder</span>'}
+                        ${previewMode === 2
+                            ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
+                            : '<span class="fv-live-member-status">nested</span>'}
+                    </span>
+                `);
+            }
 
             const membersHtml = previewMode === 0
                 ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
-                : (sampleMembers.length > 0
-                    ? sampleMembers.map((member, index) => {
-                        const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
-                        const memberIcon = escapeHtml(member?.Icon || deps.iconFallbackPath || '');
-                        const state = buildSampleMemberState(member, index);
-                        const stateLabel = escapeHtml(state.label);
-                        const stateColor = escapeHtml(state.color);
-                        const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' style="filter: grayscale(100%);"' : '';
-                        return `
-                            <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
-                                <img src="${memberIcon}" alt="" onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
-                                ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
-                                ${previewMode === 2
-                                    ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" style="color:${stateColor};" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
-                                    : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
-                            </span>
-                        `;
-                    }).join('')
+                : (memberPreviewItems.length > 0
+                    ? memberPreviewItems.join('')
                     : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);

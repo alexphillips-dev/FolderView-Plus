@@ -774,6 +774,17 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     font-size: 8px;
 }
 
+.fv-live-member-child-folder {
+    border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 42%, transparent);
+    border-radius: 6px;
+    padding: 0.22em 0.55em 0.22em 0.22em;
+    background: color-mix(in srgb, var(--fv-editor-accent) 8%, transparent);
+}
+
+.fv-live-member-child-folder .fv-live-member-status {
+    color: var(--fv-editor-muted);
+}
+
 .fv-live-preview-empty {
     color: var(--fv-editor-muted);
     line-height: 1.45;

@@ -574,7 +574,6 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
     font-weight: 700;
 }
 
-.fv-dashboard-advanced-preview-subtitle,
 .fv-dashboard-advanced-preview-muted {
     color: var(--gray-text, #b8b8b8);
     font-size: 12px;
@@ -613,22 +612,6 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
     font-size: 12px;
 }
 
-.fv-dashboard-advanced-preview-field {
-    min-width: 0;
-}
-
-.fv-dashboard-advanced-preview-label {
-    color: var(--gray-text, #b8b8b8);
-    display: block;
-}
-
-.fv-dashboard-advanced-preview-value {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .fv-dashboard-advanced-preview-mono {
     font-family: Consolas, Monaco, monospace;
 }
@@ -641,20 +624,6 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
 .fv-dashboard-advanced-preview-graphs canvas {
     width: 100% !important;
     height: 90px !important;
-}
-
-.fv-dashboard-advanced-preview-list {
-    display: grid;
-    gap: 4px;
-    max-height: 130px;
-    overflow: auto;
-    font-size: 12px;
-}
-
-.fv-dashboard-advanced-preview-list div {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .fv-dashboard-advanced-preview .is-hidden {

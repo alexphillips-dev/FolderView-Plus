@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.11">
-<!ENTITY md5 "e2ec38bc67f6c1f30e03189d6fefcded">
+<!ENTITY version "2026.06.25.12">
+<!ENTITY md5 "7e7c2fc0f6df6065424645043a1fbe97">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.12
+- Fix: Restored dev CI by updating documentation contract tests for moved troubleshooting content and removing stale dashboard preview CSS selectors.
+
 
 ###2026.06.25.11
 - Docs: Decluttered the root README by merging quick guides, moving troubleshooting and path details into docs, and removing browser/development sections.

@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.14">
-<!ENTITY md5 "2d16680bb14c3051320f62fd41cc1935">
+<!ENTITY version "2026.06.25.15">
+<!ENTITY md5 "a9f8a9117e18dadcab8d57ec72b8d29b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.15
+- Feature: Roll up the dev changes since `v2026.05.27.01`, including child-folder collapsed previews, nested descendant chips, depth limits, breadcrumb tooltips, and nested folder preview actions.
+- UX: Updated the folder editor live preview to mirror Docker collapsed child-folder previews using actual child folder names, icons, counts, and saved-folder lookup.
+- Fix: Added Settings blank-page recovery diagnostics and fixed nested folder preview expansion, action-menu positioning, modern editor visibility, and compact context-menu spacing.
+- Quality: Added the shared folder preview model plus regression coverage for Settings recovery, nested preview wiring, live preview data, descendant expansion, right-click actions, and release helper timeout/prune controls.
+- Docs: Decluttered the README and moved troubleshooting/path details into docs while removing development-only content from the user-facing README.
+
 
 ###2026.06.25.14
 - UX: Added a shared folder preview model so Docker collapsed previews and the folder editor live preview resolve child-folder names, icons, counts, and breadcrumbs through the same path.

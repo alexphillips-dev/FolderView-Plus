@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.18">
-<!ENTITY md5 "9594a377cb986ea65bc828eacf5f886c">
+<!ENTITY version "2026.06.25.19">
+<!ENTITY md5 "88776d277ec4ca49463ed578fff55241">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.19
+- UX: Extended the folder editor panel layout to Members, Preview, Chevron, and Status tabs so related controls are grouped into clearer professional sections.
+- Quality: Updated editor layout guards for the shared panel wrapper used across core tabs.
+
 
 ###2026.06.25.18
 - Quality: Removed CSS-only General tab panel modifier classes so the strict dead-code guard accepts the redesigned editor layout.

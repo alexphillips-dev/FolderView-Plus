@@ -21,6 +21,33 @@
     const SECTION_META = sharedSectionMeta && typeof sharedSectionMeta === 'object'
         ? sharedSectionMeta
         : FALLBACK_SECTION_META;
+    const SECTION_PANEL_META = {
+        general: [
+            { key: 'identity', title: 'Identity', description: 'Name and optional folder WebUI behavior.', fields: ['name', 'folder_webui', 'folder_webui_url'] },
+            { key: 'parent', title: 'Parent Folder', description: 'Choose where this folder lives in the hierarchy.', fields: ['parent_folder_id'] },
+            { key: 'icon', title: 'Icon', description: 'Preview and change the folder icon.', match: (row) => Boolean(row?.querySelector?.('.fv-icon-dd')) }
+        ],
+        members: [
+            { key: 'member-manager', title: 'Member Manager', description: 'Choose visible members, filter the list, and set folder order.', match: (row) => row?.classList?.contains('order-section') === true }
+        ],
+        preview: [
+            { key: 'layout', title: 'Layout', description: 'Control what the collapsed row shows and how much room it uses.', fields: ['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_status'] },
+            { key: 'child-folders', title: 'Child Folders', description: 'Show nested folder chips and choose how deep the preview can look.', fields: ['preview_hide_nested_items', 'preview_child_folder_depth'] },
+            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, and update highlighting.', fields: ['preview_grayscale', 'preview_update', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_border', 'preview_border_color'] },
+            { key: 'quick-actions', title: 'Quick Actions', description: 'Add optional actions directly inside Docker previews.', fields: ['preview_logs', 'preview_webui', 'preview_console'] },
+            { key: 'context', title: 'Preview Context', description: 'Configure advanced preview behavior and graph settings.', fields: ['context', 'context_trigger', 'context_graph', 'context_graph_time'] }
+        ],
+        chevron: [
+            { key: 'style', title: 'Chevron Style', description: 'Choose the row expand/collapse affordance.', fields: ['dropdown_style'] },
+            { key: 'color', title: 'Chevron Color', description: 'Override the folder row chevron color.', fields: ['dropdown_color'] }
+        ],
+        status: [
+            { key: 'status-colors', title: 'Status Colors', description: 'Set the started, paused, and stopped colors used by folder rows.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
+            { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
+            { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', fields: ['status_warn_stopped_percent'] },
+            { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
+        ]
+    };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const pageType = String(root.FolderViewPlusFolderEditorPageType || '').trim().toLowerCase();
     const BASIC_MODE = 'basic';
@@ -530,38 +557,76 @@
         launchHost.appendChild(launchLink);
     };
 
-    const ensureGeneralPanel = (body, panelKey, title, description = '') => {
+    const rowHasAnyField = (row, fields = []) => {
+        if (!(row instanceof root.HTMLElement) || !Array.isArray(fields) || !fields.length) {
+            return false;
+        }
+        return fields.some((fieldName) => row.querySelector(`[name="${fieldName}"]`));
+    };
+
+    const ensureEditorPanel = (body, sectionKey, panelDef) => {
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        const selector = `:scope > .fv-general-panel[data-general-panel="${panelKey}"]`;
+        const panelKey = String(panelDef?.key || '').trim();
+        if (!panelKey) {
+            return null;
+        }
+        const selector = `:scope > .fv-editor-panel[data-editor-panel="${panelKey}"]`;
         let panel = body.querySelector(selector);
         if (!(panel instanceof root.HTMLElement)) {
             panel = root.document.createElement('section');
-            panel.className = 'fv-general-panel';
-            panel.setAttribute('data-general-panel', panelKey);
+            panel.className = 'fv-editor-panel';
+            panel.setAttribute('data-editor-panel', panelKey);
+            panel.setAttribute('data-editor-panel-section', sectionKey);
             panel.innerHTML = `
-                <div class="fv-general-panel-head">
-                    <h4>${title}</h4>
-                    ${description ? `<p>${description}</p>` : ''}
+                <div class="fv-editor-panel-head">
+                    <h4>${panelDef.title}</h4>
+                    ${panelDef.description ? `<p>${panelDef.description}</p>` : ''}
                 </div>
-                <div class="fv-general-panel-body"></div>
+                <div class="fv-editor-panel-body"></div>
             `;
             body.appendChild(panel);
         }
         return panel;
     };
 
-    const ensureGeneralPanels = (body) => {
+    const ensureEditorPanels = (body, sectionKey) => {
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        const panels = {
-            identity: ensureGeneralPanel(body, 'identity', 'Identity', 'Name and optional folder WebUI behavior.'),
-            parent: ensureGeneralPanel(body, 'parent', 'Parent Folder', 'Choose where this folder lives in the hierarchy.'),
-            icon: ensureGeneralPanel(body, 'icon', 'Icon', 'Preview and change the folder icon.')
-        };
-        return panels.identity && panels.parent && panels.icon ? panels : null;
+        const panelDefs = SECTION_PANEL_META[sectionKey] || [];
+        if (!panelDefs.length) {
+            return null;
+        }
+        const panels = {};
+        panelDefs.forEach((panelDef) => {
+            const panel = ensureEditorPanel(body, sectionKey, panelDef);
+            if (panel) {
+                panels[panelDef.key] = { panel, panelDef };
+            }
+        });
+        return Object.keys(panels).length ? panels : null;
+    };
+
+    const findPanelForRow = (sectionKey, row, panels) => {
+        const entries = panels && typeof panels === 'object' ? Object.values(panels) : [];
+        if (!entries.length) {
+            return null;
+        }
+        const matched = entries.find(({ panelDef }) => {
+            if (typeof panelDef.match === 'function' && panelDef.match(row)) {
+                return true;
+            }
+            return rowHasAnyField(row, panelDef.fields);
+        });
+        if (matched) {
+            return matched.panel.querySelector('.fv-editor-panel-body') || matched.panel;
+        }
+        if (entries.length === 1) {
+            return entries[0].panel.querySelector('.fv-editor-panel-body') || entries[0].panel;
+        }
+        return null;
     };
 
     const ensureSectionShells = (form) => {
@@ -617,37 +682,35 @@
             shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
             shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
-            const generalPanels = sectionKey === 'general' ? ensureGeneralPanels(body) : null;
+            const editorPanels = ensureEditorPanels(body, sectionKey);
+            body.classList.toggle('fv-section-panel-grid', Boolean(editorPanels));
             rows.forEach((row) => {
                 if (!row) {
                     return;
                 }
                 let targetParent = body;
-                if (sectionKey === 'general' && generalPanels) {
-                    if (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]') || row.querySelector('[name="folder_webui_url"]')) {
-                        targetParent = generalPanels.identity.querySelector('.fv-general-panel-body') || generalPanels.identity;
-                    } else if (row.querySelector('[name="parent_folder_id"]')) {
-                        targetParent = generalPanels.parent.querySelector('.fv-general-panel-body') || generalPanels.parent;
-                    } else if (row.querySelector('.fv-icon-dd')) {
-                        targetParent = generalPanels.icon.querySelector('.fv-general-panel-body') || generalPanels.icon;
-                    }
+                const panelTarget = findPanelForRow(sectionKey, row, editorPanels);
+                if (panelTarget) {
+                    targetParent = panelTarget;
                 }
                 if (row.parentElement !== targetParent) {
                     targetParent.appendChild(row);
                 }
             });
-            if (sectionKey === 'general' && generalPanels) {
-                Object.values(generalPanels).forEach((panel) => {
-                    const panelBody = panel.querySelector('.fv-general-panel-body');
+            if (editorPanels) {
+                Object.values(editorPanels).forEach(({ panel }) => {
+                    const panelBody = panel.querySelector('.fv-editor-panel-body');
                     const isEmpty = !(panelBody instanceof root.HTMLElement) || !panelBody.children.length;
                     if (isEmpty && panel.parentElement === body) {
                         panel.remove();
                     }
                 });
             }
-            if (sectionKey !== 'general') {
-                Array.from(body.querySelectorAll(':scope > .fv-general-panel')).forEach((panel) => panel.remove());
-            }
+            Array.from(body.querySelectorAll(':scope > .fv-editor-panel')).forEach((panel) => {
+                if (panel.getAttribute('data-editor-panel-section') !== sectionKey) {
+                    panel.remove();
+                }
+            });
         });
         syncActionLaunchPlacement(form);
     };

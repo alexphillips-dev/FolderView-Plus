@@ -161,7 +161,7 @@
             preview_rows: 'Preview rows',
             preview_grayscale: 'Preview grayscale',
             preview_status: 'Only-icon status',
-            preview_hide_nested_items: 'Hide nested preview items',
+            preview_hide_nested_items: 'Show child folders in collapsed preview',
             preview_webui: 'Preview WebUI action',
             preview_logs: 'Preview logs action',
             preview_console: 'Preview console action',

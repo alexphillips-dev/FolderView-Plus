@@ -24,7 +24,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderPage, /<li constraint="preview-1 preview-2 preview-3 preview-4 docker">[\s\S]*<select name="preview_status">/);
     assert.match(folderPage, /<option value="none">Hide status<\/option>/);
     assert.match(folderPage, /name="preview_hide_nested_items"/);
-    assert.match(folderPage, /Hide nested preview items:/);
+    assert.match(folderPage, /Show child folders in collapsed preview:/);
     assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
     assert.match(folderJs, /let folderEditorSharedApi = null;/);

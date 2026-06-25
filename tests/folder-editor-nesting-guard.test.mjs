@@ -120,7 +120,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorSchemaScript, /'preview_status'/);
     assert.match(folderEditorSchemaScript, /'preview_hide_nested_items'/);
     assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*false/);
-    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*'Hide nested preview items'/);
+    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*'Show child folders in collapsed preview'/);
     assert.match(folderEditorChromeScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
     assert.match(folderEditorTypeDockerScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
     assert.match(folderEditorTypeDockerScript, /markSection\('div\.basic:has\(\[name="preview_hide_nested_items"\]\)', 'preview'\);/);

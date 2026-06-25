@@ -20,6 +20,10 @@ const folderEditorPreviewScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
     'utf8'
 );
+const folderEditorPreviewRuntimeScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js'),
+    'utf8'
+);
 const folderEditorChromeScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
@@ -143,6 +147,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) !== sourceId/);
     assert.match(folderEditorScript, /sourceId,\s*id: safeCandidateId,/);
     assert.match(folderEditorScript, /getNestedPreviewSample,/);
+    assert.match(folderEditorPreviewRuntimeScript, /const getNestedPreviewSample = typeof deps\.getNestedPreviewSample === 'function'/);
+    assert.match(folderEditorPreviewRuntimeScript, /getNestedPreviewSample,/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);

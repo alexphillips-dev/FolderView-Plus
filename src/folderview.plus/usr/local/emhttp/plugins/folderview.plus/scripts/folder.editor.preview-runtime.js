@@ -57,6 +57,9 @@
         const getPreviewSignals = typeof deps.getPreviewSignals === 'function'
             ? deps.getPreviewSignals
             : (() => null);
+        const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
+            ? deps.getNestedPreviewSample
+            : (() => null);
         const applyTypePreviewConstraints = typeof deps.applyTypePreviewConstraints === 'function'
             ? deps.applyTypePreviewConstraints
             : (() => {});
@@ -102,6 +105,7 @@
                 buildSampleMemberState,
                 normalizeParentFolderId,
                 getPreviewSignals,
+                getNestedPreviewSample,
                 escapeHtml,
                 updateMemberStats,
                 onAfterSummaryUpdate: () => {

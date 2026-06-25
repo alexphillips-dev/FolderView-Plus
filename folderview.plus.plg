@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.24.10">
-<!ENTITY md5 "ebc7718a96763e70081aaba13cfefd2b">
+<!ENTITY version "2026.06.25.01">
+<!ENTITY md5 "f59ed5b955a89afb0eb91105d77dac43">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.01
+- Fix: Live folder preview now passes the nested-folder sample resolver through the preview runtime, so "Hide nested preview items" shows the actual child folder icon, name, and item count.
+
 
 ###2026.06.24.10
 - UX: Live folder preview now prefers the saved resolved folder id when finding nested child folder chips and exposes source/child ids for troubleshooting.

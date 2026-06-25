@@ -623,7 +623,18 @@ const getDockerRuntimeHierarchyApi = () => {
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             editFolder: (id) => editFolder(id),
-            openFolderActions: (id) => addDockerFolderContext(id),
+            openFolderActions: (id) => {
+                const trigger = document.getElementById(String(id || '').trim());
+                if (trigger && typeof trigger.dispatchEvent === 'function') {
+                    trigger.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    }));
+                    return;
+                }
+                addDockerFolderContext(id);
+            },
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
             console: window.console
         });

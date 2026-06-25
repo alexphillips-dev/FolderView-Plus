@@ -123,6 +123,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerRuntimeHierarchyJs, /addAction\('Expand to folder', 'fa-level-down'/);
     assert.match(dockerRuntimeHierarchyJs, /addAction\('Edit folder', 'fa-pencil'/);
     assert.match(dockerRuntimeHierarchyJs, /addAction\('Open folder actions', 'fa-bars'/);
+    assert.match(dockerRuntimeHierarchyJs, /addAction\('Open folder actions', 'fa-bars', \(\) => \{[\s\S]*expandFolderPathToChild\(rootId, childId\);[\s\S]*scrollFolderRowIntoView\(childId\);[\s\S]*openFolderActions\(childId\);/);
     assert.match(dockerRuntimeHierarchyJs, /data-folder-preview-root/);
     assert.match(dockerRuntimeHierarchyJs, /data-folder-preview-child/);
     assert.match(dockerRuntimeHierarchyJs, /data-folder-preview-depth/);
@@ -133,7 +134,10 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.doesNotMatch(dockerRuntimeHierarchyJs, /for \(const childId of getFolderChildren\(id\)\) \{[\s\S]*buildChildFolderPreviewItem\(id, childId, childFolder\)/);
     assert.match(dockerRuntimeHierarchyJs, /expandFolderPathToChild\(parentId, childId\);/);
     assert.match(dockerJs, /editFolder: \(id\) => editFolder\(id\)/);
-    assert.match(dockerJs, /openFolderActions: \(id\) => addDockerFolderContext\(id\)/);
+    assert.match(dockerJs, /openFolderActions: \(id\) => \{/);
+    assert.match(dockerJs, /const trigger = document\.getElementById\(String\(id \|\| ''\)\.trim\(\)\);/);
+    assert.match(dockerJs, /trigger\.dispatchEvent\(new MouseEvent\('click'/);
+    assert.match(dockerJs, /addDockerFolderContext\(id\);/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);

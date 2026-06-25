@@ -437,7 +437,11 @@
                 scrollFolderRowIntoView(childId);
             });
             addAction('Edit folder', 'fa-pencil', () => editFolder(childId));
-            addAction('Open folder actions', 'fa-bars', () => openFolderActions(childId));
+            addAction('Open folder actions', 'fa-bars', () => {
+                expandFolderPathToChild(rootId, childId);
+                scrollFolderRowIntoView(childId);
+                openFolderActions(childId);
+            });
             $menu.attr('aria-label', `${safeChildName} folder actions`);
             jq(doc.body).append($menu);
             const viewportWidth = Number(win?.innerWidth || doc.documentElement?.clientWidth || 0);

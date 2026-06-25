@@ -351,29 +351,6 @@ Recommended migration path:
 2. Keep the same filenames where possible.
 3. Hard-refresh the browser after saving (`Ctrl+F5`).
 
-## Dev Workflow
-
-- Generate the local runtime fixture when working on Docker or VM row layout:
-  - `node scripts/generate_runtime_fixture.mjs`
-- Stage the intended source changes before using the deterministic dev finalize path:
-  - `git add <files>`
-- Package, bump, commit, and push `dev` quickly, leaving validation to GitHub CI:
-  - `bash scripts/dev_finalize.sh --message "Describe the change" --open-fixture`
-- Run full local validation before packaging and pushing:
-  - `bash scripts/dev_finalize.sh --full-local-checks --message "Describe the change" --open-fixture`
-- Run full local validation only without packaging or push:
-  - `bash scripts/dev_finalize.sh --full-local-checks --open-fixture --skip-build`
-- Build a package locally:
-  - `bash pkg_build.sh`
-- Curate stable release notes first:
-  - `docs/releases/<version>.md`
-- Simulate the full `main` release flow safely in a temporary worktree:
-  - `bash scripts/simulate_main_release.sh`
-- Prepare a stable release from `main` with checks:
-  - `bash scripts/release_prepare.sh`
-- Run the automated test suite:
-  - `node --test tests/*.mjs`
-
 ## Included Icon Pack Credits
 
 - https://github.com/sameerasw/folder-icons

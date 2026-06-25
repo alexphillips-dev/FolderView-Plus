@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.09">
-<!ENTITY md5 "f770bd7137d420c4407688b88476ec6d">
+<!ENTITY version "2026.06.25.10">
+<!ENTITY md5 "03d8e8deac78e78fec38de7c05e5adc6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.10
+- Docs: Removed the root README Dev Workflow section to keep user-facing documentation focused.
+
 
 ###2026.06.25.09
 - Fix: Nested folder preview "Open folder actions" now opens the normal folder menu at the expanded child folder icon instead of the page corner.

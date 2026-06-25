@@ -281,11 +281,7 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /git push -u origin dev/);
 });
 
-test('docs point dev packaging work to the staged dev finalize workflow', () => {
-    assert.match(readme, /git add <files>/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --message "Describe the change" --open-fixture/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --full-local-checks --message "Describe the change" --open-fixture/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --full-local-checks --open-fixture --skip-build/);
+test('developer docs point dev packaging work to the staged dev finalize workflow', () => {
     assert.match(visualRuntimeContract, /git add <files>/);
     assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix" --open-fixture/);
     assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix"/);

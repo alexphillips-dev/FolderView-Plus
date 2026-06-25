@@ -2159,15 +2159,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     box-sizing: border-box;
 }
 
-.fv-section-shell[data-section-shell="general"] .fv-general-panel-identity {
+.fv-section-shell[data-section-shell="general"] .fv-general-panel[data-general-panel="identity"] {
     grid-area: identity;
 }
 
-.fv-section-shell[data-section-shell="general"] .fv-general-panel-parent {
+.fv-section-shell[data-section-shell="general"] .fv-general-panel[data-general-panel="parent"] {
     grid-area: parent;
 }
 
-.fv-section-shell[data-section-shell="general"] .fv-general-panel-icon {
+.fv-section-shell[data-section-shell="general"] .fv-general-panel[data-general-panel="icon"] {
     grid-area: icon;
 }
 
@@ -2204,7 +2204,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding: 0.74rem;
 }
 
-.fv-section-shell[data-section-shell="general"] .fv-general-panel-identity .fv-general-panel-body {
+.fv-section-shell[data-section-shell="general"] .fv-general-panel[data-general-panel="identity"] .fv-general-panel-body {
     grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.7fr);
     align-items: stretch;
 }
@@ -2861,7 +2861,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         min-height: 0;
     }
 
-    .fv-section-shell[data-section-shell="general"] .fv-general-panel-identity .fv-general-panel-body {
+    .fv-section-shell[data-section-shell="general"] .fv-general-panel[data-general-panel="identity"] .fv-general-panel-body {
         grid-template-columns: 1fr;
     }
 

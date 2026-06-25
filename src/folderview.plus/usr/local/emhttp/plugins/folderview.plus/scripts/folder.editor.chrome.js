@@ -538,7 +538,7 @@
         let panel = body.querySelector(selector);
         if (!(panel instanceof root.HTMLElement)) {
             panel = root.document.createElement('section');
-            panel.className = `fv-general-panel fv-general-panel-${panelKey}`;
+            panel.className = 'fv-general-panel';
             panel.setAttribute('data-general-panel', panelKey);
             panel.innerHTML = `
                 <div class="fv-general-panel-head">

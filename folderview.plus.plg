@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.17">
-<!ENTITY md5 "337b3a040dc28e42b1d502bafe0efdbb">
+<!ENTITY version "2026.06.25.18">
+<!ENTITY md5 "9594a377cb986ea65bc828eacf5f886c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.18
+- Quality: Removed CSS-only General tab panel modifier classes so the strict dead-code guard accepts the redesigned editor layout.
+
 
 ###2026.06.25.17
 - UX: Reworked the folder editor General tab into clearer Identity, Parent Folder, and Icon panels so simple fields no longer leave large empty card gaps.

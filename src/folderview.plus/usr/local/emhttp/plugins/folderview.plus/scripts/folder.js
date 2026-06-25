@@ -1426,26 +1426,58 @@ const getFolderEditorPreviewRuntimeApi = () => {
     if (folderEditorPreviewRuntimeApi || typeof folderEditorPreviewRuntimeModule?.createApi !== 'function') {
         return folderEditorPreviewRuntimeApi;
     }
+    const getActiveFolderIdsForNestedPreview = () => {
+        const form = getForm();
+        const candidateIds = [];
+        const addCandidateId = (value) => {
+            const safeId = String(value || '').trim();
+            if (safeId && !candidateIds.includes(safeId)) {
+                candidateIds.push(safeId);
+            }
+        };
+        addCandidateId(activeFolderEditorFolderId);
+        addCandidateId(folderId);
+        const currentName = String(form?.name?.value || '').trim();
+        const currentIcon = String(form?.icon?.value || '').trim();
+        if (currentName) {
+            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
+                if (!candidateFolder || typeof candidateFolder !== 'object') {
+                    continue;
+                }
+                const normalizedFolder = normalizeFolderRecordForEditor(candidateFolder);
+                if (String(normalizedFolder.name || '').trim() !== currentName) {
+                    continue;
+                }
+                if (currentIcon && String(normalizedFolder.icon || '').trim() !== currentIcon) {
+                    continue;
+                }
+                addCandidateId(candidateId);
+            }
+        }
+        return candidateIds;
+    };
     const getNestedPreviewSample = () => {
-        const sourceId = String(activeFolderEditorFolderId || folderId || '').trim();
-        if (!sourceId) {
+        const sourceIds = getActiveFolderIdsForNestedPreview();
+        if (!sourceIds.length) {
             return null;
         }
-        for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
-            const safeCandidateId = String(candidateId || '').trim();
-            if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
-                continue;
+        for (const sourceId of sourceIds) {
+            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
+                const safeCandidateId = String(candidateId || '').trim();
+                if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
+                    continue;
+                }
+                if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
+                    continue;
+                }
+                const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
+                return {
+                    id: safeCandidateId,
+                    name: String(normalizedChild.name || 'Child folder').trim() || 'Child folder',
+                    icon: String(normalizedChild.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH,
+                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0
+                };
             }
-            if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
-                continue;
-            }
-            const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
-            return {
-                id: safeCandidateId,
-                name: String(normalizedChild.name || 'Child folder').trim() || 'Child folder',
-                icon: String(normalizedChild.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH,
-                memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0
-            };
         }
         return null;
     };
@@ -3337,6 +3369,7 @@ const startFolderEditorRuntime = async () => {
             );
         }
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+        updateLiveSummary();
         setBootstrapDiagnostics({
             mode: 'hydrate',
             requestedRef: requestedFolderRef,

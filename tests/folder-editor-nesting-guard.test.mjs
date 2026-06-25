@@ -131,7 +131,12 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderEditorScript, /const getActiveFolderIdsForNestedPreview = \(\) => \{/);
+    assert.match(folderEditorScript, /const currentName = String\(form\?\.name\?\.value \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /addCandidateId\(candidateId\);/);
     assert.match(folderEditorScript, /const getNestedPreviewSample = \(\) => \{/);
+    assert.match(folderEditorScript, /const sourceIds = getActiveFolderIdsForNestedPreview\(\);/);
+    assert.match(folderEditorScript, /for \(const sourceId of sourceIds\) \{/);
     assert.match(folderEditorScript, /for \(const \[candidateId, candidateFolder\] of Object\.entries\(allFoldersById \|\| \{\}\)\) \{/);
     assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) !== sourceId/);
     assert.match(folderEditorScript, /getNestedPreviewSample,/);
@@ -150,6 +155,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
     assert.match(folderEditorScript, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
+    assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);\s*updateLiveSummary\(\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);

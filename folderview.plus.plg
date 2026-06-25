@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.04">
-<!ENTITY md5 "71f50903786280e31ddb67444b4b32cd">
+<!ENTITY version "2026.06.25.05">
+<!ENTITY md5 "f6949390118c76e51101a14dd84600b8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.05
+- Docs: Removed the folder.view3 foundation credit from the README Credits section.
+
 
 ###2026.06.25.04
 - UX: Added child-folder preview depth limits for collapsed Docker folder previews.

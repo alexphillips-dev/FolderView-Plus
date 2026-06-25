@@ -530,17 +530,38 @@
         launchHost.appendChild(launchLink);
     };
 
-    const ensureGeneralLeftRail = (body) => {
+    const ensureGeneralPanel = (body, panelKey, title, description = '') => {
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        let rail = body.querySelector(':scope > .fv-general-left-rail');
-        if (!(rail instanceof root.HTMLElement)) {
-            rail = root.document.createElement('div');
-            rail.className = 'fv-general-left-rail';
-            body.insertBefore(rail, body.firstChild);
+        const selector = `:scope > .fv-general-panel[data-general-panel="${panelKey}"]`;
+        let panel = body.querySelector(selector);
+        if (!(panel instanceof root.HTMLElement)) {
+            panel = root.document.createElement('section');
+            panel.className = `fv-general-panel fv-general-panel-${panelKey}`;
+            panel.setAttribute('data-general-panel', panelKey);
+            panel.innerHTML = `
+                <div class="fv-general-panel-head">
+                    <h4>${title}</h4>
+                    ${description ? `<p>${description}</p>` : ''}
+                </div>
+                <div class="fv-general-panel-body"></div>
+            `;
+            body.appendChild(panel);
         }
-        return rail;
+        return panel;
+    };
+
+    const ensureGeneralPanels = (body) => {
+        if (!(body instanceof root.HTMLElement)) {
+            return null;
+        }
+        const panels = {
+            identity: ensureGeneralPanel(body, 'identity', 'Identity', 'Name and optional folder WebUI behavior.'),
+            parent: ensureGeneralPanel(body, 'parent', 'Parent Folder', 'Choose where this folder lives in the hierarchy.'),
+            icon: ensureGeneralPanel(body, 'icon', 'Icon', 'Preview and change the folder icon.')
+        };
+        return panels.identity && panels.parent && panels.icon ? panels : null;
     };
 
     const ensureSectionShells = (form) => {
@@ -596,25 +617,36 @@
             shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
             shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
-            const generalLeftRail = sectionKey === 'general' ? ensureGeneralLeftRail(body) : null;
+            const generalPanels = sectionKey === 'general' ? ensureGeneralPanels(body) : null;
             rows.forEach((row) => {
                 if (!row) {
                     return;
                 }
-                const targetParent = sectionKey === 'general'
-                    && generalLeftRail
-                    && (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]'))
-                    ? generalLeftRail
-                    : body;
+                let targetParent = body;
+                if (sectionKey === 'general' && generalPanels) {
+                    if (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]') || row.querySelector('[name="folder_webui_url"]')) {
+                        targetParent = generalPanels.identity.querySelector('.fv-general-panel-body') || generalPanels.identity;
+                    } else if (row.querySelector('[name="parent_folder_id"]')) {
+                        targetParent = generalPanels.parent.querySelector('.fv-general-panel-body') || generalPanels.parent;
+                    } else if (row.querySelector('.fv-icon-dd')) {
+                        targetParent = generalPanels.icon.querySelector('.fv-general-panel-body') || generalPanels.icon;
+                    }
+                }
                 if (row.parentElement !== targetParent) {
                     targetParent.appendChild(row);
                 }
             });
-            if (sectionKey === 'general' && generalLeftRail && !generalLeftRail.children.length && generalLeftRail.parentElement === body) {
-                generalLeftRail.remove();
+            if (sectionKey === 'general' && generalPanels) {
+                Object.values(generalPanels).forEach((panel) => {
+                    const panelBody = panel.querySelector('.fv-general-panel-body');
+                    const isEmpty = !(panelBody instanceof root.HTMLElement) || !panelBody.children.length;
+                    if (isEmpty && panel.parentElement === body) {
+                        panel.remove();
+                    }
+                });
             }
             if (sectionKey !== 'general') {
-                body.querySelector(':scope > .fv-general-left-rail')?.remove();
+                Array.from(body.querySelectorAll(':scope > .fv-general-panel')).forEach((panel) => panel.remove());
             }
         });
         syncActionLaunchPlacement(form);

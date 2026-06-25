@@ -2138,74 +2138,118 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="general"] .fv-section-shell-body {
     display: grid !important;
-    grid-template-columns: minmax(280px, 340px) minmax(440px, 560px) minmax(440px, 1fr);
-    gap: 0.68em;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-areas:
+        "identity identity"
+        "parent icon";
+    gap: 0.78em;
     align-items: start;
 }
 
-.fv-section-shell[data-section-shell="general"] .fv-general-left-rail {
-    display: flex;
-    flex-direction: column;
-    gap: 0.68em;
-    grid-column: 1;
-    grid-row: 1;
+.fv-section-shell[data-section-shell="general"] .fv-general-panel {
     width: 100%;
-    max-width: 340px;
     min-width: 0;
-    align-self: start;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.012)),
+        var(--fv-editor-control-surface);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-identity {
+    grid-area: identity;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-parent {
+    grid-area: parent;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-icon {
+    grid-area: icon;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.68rem 0.78rem 0.58rem;
+    border-bottom: 1px solid var(--fv-editor-block-border);
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-head > h4 {
+    margin: 0;
+    color: var(--fv-editor-title-accent);
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-head > p {
+    margin: 0;
+    color: var(--fv-editor-muted);
+    font-size: 0.92rem;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-body {
+    display: grid;
+    gap: 0.62rem;
+    padding: 0.74rem;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-general-panel-identity .fv-general-panel-body {
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.7fr);
+    align-items: stretch;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row,
 .canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .basic.fv-modern-field-row,
-.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .fv-general-left-rail > .basic.fv-modern-field-row {
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] .fv-general-panel-body > .basic.fv-modern-field-row {
     width: 100% !important;
     max-width: none !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     justify-self: stretch !important;
+    border-radius: 10px;
+    background: var(--fv-editor-inset-surface);
+    box-shadow: none;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-name-row {
-    grid-column: 1;
-    grid-row: 1;
-    max-width: 340px !important;
+    min-height: 76px;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-row {
-    grid-column: 1;
-    grid-row: 2;
-    max-width: 340px !important;
+    min-height: 76px;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row {
-    grid-column: 1 / span 2;
-    grid-row: 3;
+    grid-column: 1 / -1;
     width: min(100%, 760px) !important;
     max-width: 760px !important;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row {
-    grid-column: 2;
-    grid-row: 1;
-    width: min(100%, 560px) !important;
-    max-width: 560px !important;
-    min-height: 272px;
-    justify-self: start !important;
+    min-height: 0;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl > dd {
     display: flex;
     flex-direction: column;
-    gap: 0.72rem;
+    gap: 0.62rem;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row {
-    grid-column: 3 !important;
-    grid-row: 1;
     width: 100% !important;
     max-width: none !important;
-    min-height: 272px;
-    justify-self: stretch !important;
+    min-height: 0;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {
@@ -2798,9 +2842,13 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 @media (max-width: 1180px) {
     .fv-section-shell[data-section-shell="general"] .fv-section-shell-body {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "identity"
+            "parent"
+            "icon";
     }
 
-    .fv-section-shell[data-section-shell="general"] .fv-general-left-rail,
+    .fv-section-shell[data-section-shell="general"] .fv-general-panel,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-name-row,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-row,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row,
@@ -2811,6 +2859,20 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         max-width: none !important;
         width: 100% !important;
         min-height: 0;
+    }
+
+    .fv-section-shell[data-section-shell="general"] .fv-general-panel-identity .fv-general-panel-body {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-section-shell[data-section-shell="general"] .fv-general-panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.28rem;
+    }
+
+    .fv-section-shell[data-section-shell="general"] .fv-general-panel-head > p {
+        text-align: left;
     }
 
     .fv-parent-picker-toolbar {

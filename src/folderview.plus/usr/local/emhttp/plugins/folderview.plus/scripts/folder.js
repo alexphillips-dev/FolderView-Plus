@@ -2459,7 +2459,7 @@ const enforceLeftAlignedSettingsLayout = () => {
 
         const layoutRows = [
             ...Array.from(form.children),
-            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-general-left-rail > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
+            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-general-panel .fv-general-panel-body > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
         ];
         layoutRows.forEach((row) => {
             const isBasicRow = row.classList?.contains('basic') || row.classList?.contains('order-section');
@@ -2478,6 +2478,13 @@ const enforceLeftAlignedSettingsLayout = () => {
             if (row.classList.contains('order-section')) {
                 return;
             }
+            setImportant(row, 'width', '100%');
+            setImportant(row, 'max-width', 'none');
+            setImportant(row, 'margin-left', '0');
+            setImportant(row, 'margin-right', '0');
+        });
+
+        form.querySelectorAll('.fv-section-shell[data-section-shell="general"] .fv-general-panel-body > .basic').forEach((row) => {
             setImportant(row, 'width', '100%');
             setImportant(row, 'max-width', 'none');
             setImportant(row, 'margin-left', '0');

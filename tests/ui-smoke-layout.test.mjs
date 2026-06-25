@@ -615,7 +615,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
 
 test('folder editor uses a searchable parent picker and custom general-section layout', () => {
     assert.match(folderJs, /const folderParentPickerModule = window\.FolderViewPlusFolderEditorParentPicker \|\| null;/);
-    assert.match(folderJs, /\.fv-section-shell > \.fv-section-shell-body > \.fv-general-left-rail > \.basic/);
+    assert.match(folderJs, /\.fv-section-shell > \.fv-section-shell-body > \.fv-general-panel \.fv-general-panel-body > \.basic/);
     assert.match(folderJs, /const getFolderEditorParentPickerApi = \(\(\) =>/);
     assert.match(folderJs, /const refreshParentFolderChooser = \(foldersMap,\s*selectedParentId = '',\s*blockedIds = new Set\(\)\) =>/);
     assert.match(folderJs, /parentPickerApi\.render\(\{/);
@@ -624,14 +624,19 @@ test('folder editor uses a searchable parent picker and custom general-section l
     assert.match(folderParentPickerJs, /Search folders or full path/);
     assert.match(folderParentPickerJs, /window\.FolderViewPlusFolderEditorParentPicker = Object\.freeze\(\{/);
     assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.parent-picker\.js'/);
-    assert.match(folderChromeJs, /const ensureGeneralLeftRail = \(body\) =>/);
-    assert.match(folderChromeJs, /rail\.className = 'fv-general-left-rail';/);
+    assert.match(folderChromeJs, /const ensureGeneralPanel = \(body,\s*panelKey,\s*title,\s*description = ''\) =>/);
+    assert.match(folderChromeJs, /panel\.className = `fv-general-panel fv-general-panel-\$\{panelKey\}`;/);
+    assert.match(folderChromeJs, /identity: ensureGeneralPanel\(body,\s*'identity',\s*'Identity'/);
+    assert.match(folderChromeJs, /parent: ensureGeneralPanel\(body,\s*'parent',\s*'Parent Folder'/);
+    assert.match(folderChromeJs, /icon: ensureGeneralPanel\(body,\s*'icon',\s*'Icon'/);
     assert.match(folderChromeJs, /row\.querySelector\('\[name="parent_folder_id"\]'\)/);
     assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(440px,\s*560px\)\s+minmax\(440px,\s*1fr\);/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-general-left-rail\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-direction:\s*column;[\s\S]*grid-column:\s*1;/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*560px !important;/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*none !important;[\s\S]*justify-self:\s*stretch !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*0\.92fr\)\s+minmax\(0,\s*1\.08fr\);[\s\S]*grid-template-areas:[\s\S]*"identity identity"[\s\S]*"parent icon";/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-general-panel\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*border-radius:\s*12px;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-general-panel-identity\s*\{[\s\S]*grid-area:\s*identity;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-general-panel-identity \.fv-general-panel-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(220px,\s*1fr\)\s+minmax\(180px,\s*0\.7fr\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*min-height:\s*0;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*min-height:\s*0;/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);

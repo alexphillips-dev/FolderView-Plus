@@ -212,7 +212,7 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     ? bindFolderThemeAwareSurface({
         root: '.canvas form.folder-editor-form',
         sampleRoot: 'body',
-        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorActionBar'],
+        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorNavDock', '#fvEditorActionBar'],
         modeInput: 'auto',
         reasonPrefix: 'folder-editor'
     })
@@ -2890,12 +2890,13 @@ const initEditorChrome = () => {
         || !$('#fvApplyPluginDefaults').length
         || !$('#fvSuggestDefaults').length
         || !$('#fvLivePanel').length
+        || !$('#fvEditorNavDock').length
         || !$('#fvHeroDefaults').length
         || !$('.fv-editor-mode > button[data-mode="basic"]').length
         || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
 
     if (shouldRebuildChrome) {
-        $('#fvEditorChrome, #fvLivePanel').remove();
+        $('#fvEditorChrome, #fvLivePanel, #fvEditorNavDock').remove();
         const navButtons = Object.entries(SECTION_META)
             .map(([key, section]) => `
                 <button type="button" data-target="${key}">
@@ -2928,13 +2929,6 @@ const initEditorChrome = () => {
                         <button type="button" id="fvRestoreSavedValues"><i class="fa fa-history" aria-hidden="true"></i> Restore saved values</button>
                         <button type="button" id="fvApplyPluginDefaults"><i class="fa fa-repeat" aria-hidden="true"></i> Apply plugin defaults</button>
                         <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
-                    </div>
-                </div>
-                <div class="fv-editor-nav-row">
-                    <div class="fv-section-nav">${navButtons}</div>
-                    <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                        <button type="button" data-mode="basic" class="is-active">Basic</button>
-                        <button type="button" data-mode="advanced">Advanced</button>
                     </div>
                 </div>
                 <div class="fv-editor-status-row">
@@ -2971,6 +2965,15 @@ const initEditorChrome = () => {
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
                             <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div id="fvEditorNavDock" class="fv-editor-nav-dock">
+                <div class="fv-editor-nav-row">
+                    <div class="fv-section-nav">${navButtons}</div>
+                    <div class="fv-editor-mode" role="group" aria-label="Editor mode">
+                        <button type="button" data-mode="basic" class="is-active">Basic</button>
+                        <button type="button" data-mode="advanced">Advanced</button>
                     </div>
                 </div>
             </div>

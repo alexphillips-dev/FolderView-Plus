@@ -142,6 +142,7 @@
 
 .fv-modern-editor-stage.is-pending > #fvEditorChrome,
 .fv-modern-editor-stage.is-pending > #fvLivePanel,
+.fv-modern-editor-stage.is-pending > #fvEditorNavDock,
 .fv-modern-editor-stage.is-pending > .fv-section-shell,
 .fv-modern-editor-stage.is-pending > #fvEditorActionBar {
     display: none !important;
@@ -219,13 +220,23 @@
     transform: translateY(-1px);
 }
 
+.fv-editor-nav-dock {
+    margin: 0 1em 0.85em;
+    padding: 0.72em;
+    border: 1px solid var(--fv-editor-border);
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.014)),
+        var(--fv-editor-panel);
+    box-shadow: var(--fv-editor-shadow);
+}
+
 .fv-editor-nav-row {
-    margin-top: 1em;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75em;
+    gap: 0.68em;
 }
 
 @media (max-width: 760px) {
@@ -248,7 +259,9 @@
 .fv-section-nav {
     display: flex;
     flex-wrap: wrap;
+    flex: 1 1 520px;
     gap: 0.45em;
+    min-width: 0;
 }
 
 .fv-section-nav > button {
@@ -3751,7 +3764,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit,
 html[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active,
 body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active,
 .canvas form.folder-editor-form[data-fv-theme-class="light"] .fv-editor-mode > button.is-active,
-#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active {
+#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active,
+#fvEditorNavDock[data-fv-theme-class="light"] .fv-editor-mode > button.is-active {
     background: linear-gradient(180deg, var(--fv-editor-button-bg-top), var(--fv-editor-button-bg-bottom)) !important;
     color: var(--fv-editor-button-fg) !important;
     box-shadow: var(--fv-editor-button-shadow) !important;
@@ -3767,10 +3781,12 @@ html[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:hover,
 body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:hover,
 .canvas form.folder-editor-form[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:hover,
 #fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:hover,
+#fvEditorNavDock[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:hover,
 html[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:focus-visible,
 body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:focus-visible,
 .canvas form.folder-editor-form[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:focus-visible,
-#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:focus-visible {
+#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:focus-visible,
+#fvEditorNavDock[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:focus-visible {
     background: linear-gradient(180deg, var(--fv-editor-button-hover-top), var(--fv-editor-button-hover-bottom)) !important;
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
 }
@@ -3781,7 +3797,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 html[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
 body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
 .canvas form.folder-editor-form[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:active,
-#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:active {
+#fvEditorChrome[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:active,
+#fvEditorNavDock[data-fv-theme-class="light"] .fv-editor-mode > button.is-active:active {
     background: linear-gradient(180deg, var(--fv-editor-button-active-top), var(--fv-editor-button-active-bottom)) !important;
     box-shadow: var(--fv-editor-button-shadow-active) !important;
 }
@@ -3972,6 +3989,10 @@ body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
 
     .fv-editor-nav-row {
         align-items: flex-start;
+    }
+
+    .fv-section-nav {
+        flex-basis: 100%;
     }
 
     .fv-editor-mode {

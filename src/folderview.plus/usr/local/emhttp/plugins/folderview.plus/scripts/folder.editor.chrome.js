@@ -327,21 +327,6 @@
                     <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
                 </div>
             </div>
-            <div class="fv-editor-nav-row">
-                <div class="fv-section-nav">
-                    ${Object.entries(SECTION_META).map(([key, meta], index) => `
-                        <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
-                            <i class="fa ${meta.icon}" aria-hidden="true"></i>
-                            <span>${meta.title}</span>
-                            <em class="fv-nav-count" style="display:none;"></em>
-                        </button>
-                    `).join('')}
-                </div>
-                <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                    <button type="button" data-mode="basic" class="is-active">Basic</button>
-                    <button type="button" data-mode="advanced">Advanced</button>
-                </div>
-            </div>
             <div class="fv-editor-status-row">
                 <span id="fvValidationSummary" class="fv-validation-summary ready">Folder editor shell loaded.</span>
                 <pre id="fvValidationDetails" class="fv-validation-details ready">Core layout is ready. Runtime data and live controls will continue hydrating.</pre>
@@ -421,6 +406,23 @@
                 </div>
             </div>
         </div>
+        <div id="fvEditorNavDock" class="fv-editor-nav-dock">
+            <div class="fv-editor-nav-row">
+                <div class="fv-section-nav">
+                    ${Object.entries(SECTION_META).map(([key, meta], index) => `
+                        <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
+                            <i class="fa ${meta.icon}" aria-hidden="true"></i>
+                            <span>${meta.title}</span>
+                            <em class="fv-nav-count" style="display:none;"></em>
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="fv-editor-mode" role="group" aria-label="Editor mode">
+                    <button type="button" data-mode="basic" class="is-active">Basic</button>
+                    <button type="button" data-mode="advanced">Advanced</button>
+                </div>
+            </div>
+        </div>
     `;
 
     const getModernStage = (form) => {
@@ -459,7 +461,7 @@
         if (!stage) {
             return;
         }
-        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel')) {
+        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel') && stage.querySelector('#fvEditorNavDock')) {
             return;
         }
         stage.insertAdjacentHTML('afterbegin', buildTopChrome());

@@ -258,7 +258,9 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
     assert.match(folderCss, /\.fv-modern-editor-stage\s*\{/);
     assert.match(folderCss, /\.fv-modern-editor-stage\.is-pending > #fvEditorChrome,/);
+    assert.match(folderCss, /\.fv-modern-editor-stage\.is-pending > #fvEditorNavDock,/);
     assert.doesNotMatch(folderCss, /data-fv-page-mode="legacy"/);
+    assert.match(folderCss, /\.fv-editor-nav-dock\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-border\);[\s\S]*border-radius:\s*14px;/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /--fv-editor-control-border:\s*var\(--fvplus-editor-control-border,\s*var\(--fv-editor-border\)\)/);
@@ -275,7 +277,7 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorActionBar \.folder-btn-apply-settings,/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-hover-top\),\s*var\(--fv-editor-button-hover-bottom\)\) !important;/);
-    assert.match(folderCss, /#fvEditorChrome\[data-fv-theme-class="light"\] \.fv-editor-mode > button\.is-active[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
+    assert.match(folderCss, /#fvEditorNavDock\[data-fv-theme-class="light"\] \.fv-editor-mode > button\.is-active[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
@@ -506,6 +508,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-editor-boot-placeholder/);
     assert.match(folderCss, /\.fv-editor-mode/);
     assert.match(folderCss, /\.fv-editor-mode\s*\{[\s\S]*padding:\s*0\.24em 0\.72em 0\.24em 0\.98em;/);
+    assert.match(folderCss, /\.fv-section-nav\s*\{[\s\S]*flex:\s*1 1 520px;/);
     assert.match(folderCss, /\.fv-section-collapse/);
     assert.match(folderCss, /\.fv-docker-signals/);
     assert.match(folderCss, /\.fv-live-chip-panel/);
@@ -692,6 +695,8 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);
     assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
+    assert.match(folderChromeJs, /id="fvLivePanel"[\s\S]*id="fvEditorNavDock"/);
+    assert.doesNotMatch(folderChromeJs, /id="fvEditorChrome"[\s\S]*<div class="fv-editor-nav-row">[\s\S]*id="fvLivePanel"/);
     assert.match(folderChromeJs, /const bindTopButtons = \(form\) =>/);
     assert.match(folderChromeJs, /const runIfAvailable = \(fnName, fallbackSelector = ''\) =>/);
     assert.match(folderChromeJs, /stage\.insertAdjacentHTML\('afterbegin', buildTopChrome\(\)\);/);

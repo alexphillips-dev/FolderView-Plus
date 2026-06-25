@@ -113,6 +113,7 @@
                     findBasicByFieldName(form, 'preview_update'),
                     findBasicByFieldName(form, 'preview_status'),
                     findBasicByFieldName(form, 'preview_hide_nested_items'),
+                    findBasicByFieldName(form, 'preview_child_folder_depth'),
                     findBasicByFieldName(form, 'preview_webui'),
                     findBasicByFieldName(form, 'preview_console'),
                     findBasicByFieldName(form, 'context'),
@@ -140,6 +141,7 @@
             markSection('div.basic:has([name="preview_update"])', 'preview');
             markSection('div.basic:has([name="preview_status"])', 'preview');
             markSection('div.basic:has([name="preview_hide_nested_items"])', 'preview');
+            markSection('div.basic:has([name="preview_child_folder_depth"])', 'preview');
             markSection('div.basic:has([name="preview_webui"])', 'preview');
             markSection('div.basic:has([name="preview_console"])', 'preview');
             markSection('div.basic:has([name="context"])', 'preview');

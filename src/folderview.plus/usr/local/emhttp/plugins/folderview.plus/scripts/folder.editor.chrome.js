@@ -473,6 +473,7 @@
             findBasicByFieldName(form, 'preview_rows'),
             findBasicByFieldName(form, 'preview_grayscale'),
             findBasicByFieldName(form, 'preview_hide_nested_items'),
+            findBasicByFieldName(form, 'preview_child_folder_depth'),
             findBasicByFieldName(form, 'preview_logs'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
             findBasicByFieldName(form, 'preview_vertical_bars_color'),

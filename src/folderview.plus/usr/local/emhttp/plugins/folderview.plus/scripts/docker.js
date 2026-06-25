@@ -622,6 +622,8 @@ const getDockerRuntimeHierarchyApi = () => {
                 decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
+            editFolder: (id) => editFolder(id),
+            openFolderActions: (id) => addDockerFolderContext(id),
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
             console: window.console
         });

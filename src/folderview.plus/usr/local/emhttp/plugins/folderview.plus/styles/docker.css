@@ -669,6 +669,41 @@ tr.folder.fv-parent-expanded div.folder-preview {
     white-space: nowrap;
 }
 
+.fv-folder-preview-context-menu {
+    position: fixed;
+    z-index: 10050;
+    display: grid;
+    gap: 2px;
+    min-width: 180px;
+    padding: 6px;
+    border: 1px solid color-mix(in srgb, var(--fv-editor-accent, #ff9a3c) 38%, rgba(255,255,255,0.22));
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--fv-editor-surface, #1f1f1f) 94%, #000 6%);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.36);
+}
+
+.fv-folder-preview-context-menu button {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 4px;
+    color: var(--fv-editor-text, #f2f2f2);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.fv-folder-preview-context-menu button:hover,
+.fv-folder-preview-context-menu button:focus {
+    outline: none;
+    background: color-mix(in srgb, var(--fv-editor-accent, #ff9a3c) 22%, transparent);
+}
+
 .folder-preview.fv-preview-multirow .fv-folder-preview-child {
     gap: 6px;
     min-height: 0;

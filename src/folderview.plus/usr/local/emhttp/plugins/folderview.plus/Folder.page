@@ -876,6 +876,26 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
+                        <dt>Child folder preview depth:</dt>
+                        <dd>
+                            <select name="preview_child_folder_depth">
+                                <option value="1">Direct children only</option>
+                                <option value="2">2 levels</option>
+                                <option value="3">3 levels</option>
+                                <option value="0">All nested folders</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Controls how many nested folder levels appear as chips when child folders are shown in the collapsed preview.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
                         <dt data-i18n="preview-webui">Add preview open WebUI:</dt>
                         <dd>
                             <input class="basic-switch" name="preview_webui" type="checkbox" style="display: none;" />

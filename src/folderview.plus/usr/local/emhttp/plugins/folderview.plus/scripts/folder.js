@@ -1887,6 +1887,18 @@ const normalizePreviewRowLimit = (value, fallbackSource = null) => {
     }
     return Math.max(1, Math.min(4, parsed));
 };
+const normalizeChildFolderPreviewDepth = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizeChildFolderPreviewDepth === 'function') {
+        return sharedApi.normalizeChildFolderPreviewDepth(value, fallbackSource);
+    }
+    const normalized = String(value ?? fallbackSource?.preview_child_folder_depth ?? fallbackSource?.previewChildFolderDepth ?? '').trim().toLowerCase();
+    if (normalized === '0' || normalized === 'all' || normalized === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(normalized, 10);
+    return Number.isFinite(parsed) ? Math.max(1, Math.min(3, parsed)) : 0;
+};
 
 const normalizeFolderRecordForEditor = (folder) => {
     const sharedApi = getFolderEditorSharedApi();
@@ -3172,6 +3184,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
     setFieldChecked('preview_hide_nested_items', normalizedFolder.settings.preview_hide_nested_items);
+    setFieldValue('preview_child_folder_depth', String(normalizeChildFolderPreviewDepth(normalizedFolder.settings, normalizedFolder)));
     setFieldChecked('preview_webui', normalizedFolder.settings.preview_webui);
     setFieldChecked('preview_logs', normalizedFolder.settings.preview_logs);
     setFieldChecked('preview_console', normalizedFolder.settings.preview_console || false);
@@ -4349,6 +4362,7 @@ const buildFolderPayloadFromForm = (e) => {
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
     const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
+    const normalizedChildFolderPreviewDepth = normalizeChildFolderPreviewDepth(e.preview_child_folder_depth?.value);
     const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
     return {
         name: e.name.value.toString().trim(),
@@ -4372,6 +4386,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
             preview_hide_nested_items: e.preview_hide_nested_items.checked,
+            preview_child_folder_depth: normalizedChildFolderPreviewDepth,
+            previewChildFolderDepth: normalizedChildFolderPreviewDepth,
             preview_webui: e.preview_webui.checked,
             preview_logs: e.preview_logs.checked,
             preview_console: e.preview_console.checked,

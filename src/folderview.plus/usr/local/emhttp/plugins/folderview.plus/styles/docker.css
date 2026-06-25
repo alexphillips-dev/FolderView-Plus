@@ -673,9 +673,9 @@ tr.folder.fv-parent-expanded div.folder-preview {
     position: fixed;
     z-index: 10050;
     display: grid;
-    gap: 2px;
-    min-width: 180px;
-    padding: 6px;
+    gap: 0;
+    min-width: 170px;
+    padding: 4px;
     border: 1px solid color-mix(in srgb, var(--fv-editor-accent, #ff9a3c) 38%, rgba(255,255,255,0.22));
     border-radius: 6px;
     background: color-mix(in srgb, var(--fv-editor-surface, #1f1f1f) 94%, #000 6%);
@@ -686,14 +686,16 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: grid;
     grid-template-columns: 18px 1fr;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     width: 100%;
-    padding: 7px 9px;
+    padding: 4px 8px;
     border: 0;
     border-radius: 4px;
     color: var(--fv-editor-text, #f2f2f2);
     background: transparent;
     font: inherit;
+    font-size: 0.86em;
+    line-height: 1.15;
     text-align: left;
     cursor: pointer;
 }

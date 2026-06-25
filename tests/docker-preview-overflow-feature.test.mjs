@@ -229,7 +229,9 @@ test('docker styles support multi-row previews without the removed member action
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-folder-preview-child-icon \{[\s\S]*width:\s*28px/);
     assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child-count \{/);
     assert.match(dockerCss, /\.fv-folder-preview-context-menu \{/);
+    assert.match(dockerCss, /\.fv-folder-preview-context-menu \{[\s\S]*gap:\s*0/);
     assert.match(dockerCss, /\.fv-folder-preview-context-menu button \{/);
+    assert.match(dockerCss, /\.fv-folder-preview-context-menu button \{[\s\S]*font-size:\s*0\.86em/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-actions/);

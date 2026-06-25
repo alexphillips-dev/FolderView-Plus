@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.24.05">
-<!ENTITY md5 "a786e3cba696c456b1b8fd22779bbfba">
+<!ENTITY version "2026.06.24.06">
+<!ENTITY md5 "627474514b8aba6600ec02200e60e03f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.24.06
+- UX: Make child-folder preview chips use full single-row Docker preview scale with larger icons and normal-sized counts.
+- Regression guard: Keep child-folder preview chips large in single-row mode while preserving compact sizing for multi-row previews.
+
 
 ###2026.06.24.05
 - Fix: Docker runtime rows, folder state, and container interactions.

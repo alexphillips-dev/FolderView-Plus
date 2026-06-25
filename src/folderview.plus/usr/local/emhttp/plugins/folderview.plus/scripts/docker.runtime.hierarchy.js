@@ -157,6 +157,24 @@
         const shouldHideNestedPreviewItems = (settings = {}) => settings?.preview_hide_nested_items === true
             || settings?.previewHideNestedItems === true;
 
+        const getFolderPreviewDescendants = (folderId) => {
+            const result = [];
+            const seen = new Set();
+            const visit = (parentId, depth = 0) => {
+                for (const childId of getFolderChildren(parentId)) {
+                    const safeChildId = String(childId || '').trim();
+                    if (!safeChildId || seen.has(safeChildId)) {
+                        continue;
+                    }
+                    seen.add(safeChildId);
+                    result.push({ id: safeChildId, depth });
+                    visit(safeChildId, depth + 1);
+                }
+            };
+            visit(folderId, 0);
+            return result;
+        };
+
         const resolveFolderUpdateColumnState = (managerTypes, upToDate, managed, options = {}) => {
             const managerTypeSet = managerTypes instanceof Set
                 ? managerTypes
@@ -328,7 +346,27 @@
             folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
         };
 
-        const buildChildFolderPreviewItem = (parentId, childId, childFolder) => {
+        const expandFolderPathToChild = (rootId, childId) => {
+            const safeRootId = String(rootId || '').trim();
+            const safeChildId = String(childId || '').trim();
+            if (!safeRootId || !safeChildId || !jq) {
+                return;
+            }
+            const ancestors = getFolderAncestors(safeChildId).reverse();
+            const rootIndex = ancestors.indexOf(safeRootId);
+            const pathIds = rootIndex >= 0
+                ? ancestors.slice(rootIndex)
+                : [safeRootId];
+            for (const pathId of pathIds) {
+                const button = jq(`.dropDown-${pathId}`);
+                if (button.length && button.attr('active') !== 'true') {
+                    dropDownButton(pathId, false);
+                }
+            }
+            persistExpandedStateFromGlobal();
+        };
+
+        const buildChildFolderPreviewItem = (parentId, childId, childFolder, options = {}) => {
             const $item = jq('<span class="outer fv-docker-preview-card fv-docker-preview-mode-1 fv-folder-preview-child" role="button" tabindex="0"></span>');
             const $inner = jq('<span class="inner"></span>');
             const $hand = jq('<span class="hand fv-folder-preview-child-trigger"></span>');
@@ -337,9 +375,12 @@
             const runtimeContainers = buildRuntimeContainerMapForFolder(childId, true);
             const total = Object.keys(runtimeContainers || {}).length;
             const started = Object.values(runtimeContainers || {}).filter((entry) => entry?.state === true).length;
+            const depth = Math.max(0, Number(options?.depth || 0));
 
+            $item.attr('data-folder-preview-root', parentId);
             $item.attr('data-folder-preview-parent', parentId);
             $item.attr('data-folder-preview-child', childId);
+            $item.attr('data-folder-preview-depth', String(depth));
             $item.attr('title', name);
             if (icon) {
                 $hand.append(jq('<img class="img folder-img fv-folder-preview-child-icon" alt="">').attr('src', icon));
@@ -356,10 +397,7 @@
                 }
                 event.preventDefault();
                 event.stopPropagation();
-                const button = jq(`.dropDown-${parentId}`);
-                if (button.length && button.attr('active') !== 'true') {
-                    dropDownButton(parentId, true);
-                }
+                expandFolderPathToChild(parentId, childId);
                 const $childRow = jq(`tr.folder-id-${childId}`);
                 if ($childRow.length && typeof $childRow.get(0)?.scrollIntoView === 'function') {
                     $childRow.get(0).scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -419,12 +457,13 @@
             }
             if (includeChildFolders) {
                 const folders = getGlobalFolders();
-                for (const childId of getFolderChildren(id)) {
+                for (const descendant of getFolderPreviewDescendants(id)) {
+                    const childId = String(descendant?.id || '').trim();
                     const childFolder = folders?.[childId];
                     if (!childFolder || typeof childFolder !== 'object') {
                         continue;
                     }
-                    $preview.append(buildChildFolderPreviewItem(id, childId, childFolder));
+                    $preview.append(buildChildFolderPreviewItem(id, childId, childFolder, { depth: descendant.depth }));
                 }
             }
             $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.02">
-<!ENTITY md5 "4ee80ec766a8a631344e7db73074a473">
+<!ENTITY version "2026.06.25.03">
+<!ENTITY md5 "acbe81aeb9219f48e6efac6748d1b287">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.03
+- UX: Collapsed Docker folders with child-folder previews enabled now show all nested descendant folders and expand the correct branch path when a nested chip is clicked.
+
 
 ###2026.06.25.02
 - UX: Renamed the nested preview toggle to "Show child folders in collapsed preview" and clarified its help text.

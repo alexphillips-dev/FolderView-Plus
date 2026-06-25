@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderPreviewModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.preview-model.js');
 const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
 const folderMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
@@ -19,12 +20,13 @@ test('folder editor live preview renders members in current checked-table order'
 test('folder editor live preview shows nested-folder sample when nested previews are hidden', () => {
     assert.match(folderPreviewJs, /const hideNestedPreviewItems = form\.preview_hide_nested_items\?\.checked === true;/);
     assert.match(folderPreviewJs, /const getNestedPreviewSample = typeof deps\.getNestedPreviewSample === 'function'/);
+    assert.match(folderPreviewModelJs, /const createChildFolderPreviewModel = \(input = \{\}\) =>/);
     assert.match(folderPreviewJs, /const nestedPreviewSample = getNestedPreviewSample\(\) \|\| \{\};/);
-    assert.match(folderPreviewJs, /const nestedPreviewName = escapeHtml\(nestedPreviewSample\.name \|\| 'Child folder'\);/);
-    assert.match(folderPreviewJs, /const nestedPreviewIcon = escapeHtml\(nestedPreviewSample\.icon \|\| icon \|\| deps\.defaultFolderIconPath \|\| ''\);/);
-    assert.match(folderPreviewJs, /const nestedPreviewStatus = nestedPreviewCount === null/);
-    assert.match(folderPreviewJs, /const nestedPreviewChildId = escapeHtml\(nestedPreviewSample\.id \|\| ''\);/);
-    assert.match(folderPreviewJs, /const nestedPreviewSourceId = escapeHtml\(nestedPreviewSample\.sourceId \|\| ''\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewModel = previewModelModule\.createChildFolderPreviewModel\(\{/);
+    assert.match(folderPreviewJs, /const nestedPreviewName = escapeHtml\(nestedPreviewModel\.name \|\| 'Child folder'\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewIcon = escapeHtml\(nestedPreviewModel\.icon \|\| icon \|\| deps\.defaultFolderIconPath \|\| ''\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewChildId = escapeHtml\(nestedPreviewModel\.childId \|\| ''\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewSourceId = escapeHtml\(nestedPreviewModel\.sourceId \|\| ''\);/);
     assert.match(folderPreviewJs, /data-nested-preview-source="\$\{nestedPreviewSourceId\}" data-nested-preview-child="\$\{nestedPreviewChildId\}"/);
     assert.match(folderPreviewJs, /if \(hideNestedPreviewItems && previewMode !== 0\) \{/);
     assert.match(folderPreviewJs, /fv-live-member-child-folder/);

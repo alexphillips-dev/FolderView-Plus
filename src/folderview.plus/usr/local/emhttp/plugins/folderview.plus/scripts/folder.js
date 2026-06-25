@@ -202,6 +202,7 @@ const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
 const folderEditorPreviewRuntimeModule = window.FolderViewPlusFolderEditorPreviewRuntime || null;
+const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const requestClient = window.FolderViewPlusRequest || null;
 const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
@@ -340,6 +341,9 @@ if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function')
 }
 if (!folderEditorPreviewRuntimeModule || typeof folderEditorPreviewRuntimeModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.preview-runtime.js');
+}
+if (!folderPreviewModelModule || typeof folderPreviewModelModule.createChildFolderPreviewModel !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.preview-model.js');
 }
 if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.state.js');
@@ -1473,13 +1477,22 @@ const getFolderEditorPreviewRuntimeApi = () => {
                     continue;
                 }
                 const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
-                return {
+                return folderPreviewModelModule.createChildFolderPreviewModel({
                     sourceId,
-                    id: safeCandidateId,
-                    name: String(normalizedChild.name || 'Child folder').trim() || 'Child folder',
-                    icon: String(normalizedChild.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH,
-                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0
-                };
+                    parentId: sourceId,
+                    rootId: sourceId,
+                    childId: safeCandidateId,
+                    childFolder: normalizedChild,
+                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
+                    breadcrumb: [
+                        String(allFoldersById?.[sourceId]?.name || sourceId || '').trim(),
+                        String(normalizedChild.name || 'Child folder').trim() || 'Child folder'
+                    ].filter(Boolean),
+                    hasChildren: Object.values(allFoldersById || {}).some((folder) => (
+                        folder && typeof folder === 'object'
+                        && normalizeParentFolderId(folder.parentId || folder.parent_id || '') === safeCandidateId
+                    ))
+                });
             }
         }
         return null;
@@ -1503,6 +1516,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         normalizeParentFolderId,
         getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
         getNestedPreviewSample,
+        previewModelModule: folderPreviewModelModule,
         applyTypePreviewConstraints: ({ $, form } = {}) => {
             getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
         },

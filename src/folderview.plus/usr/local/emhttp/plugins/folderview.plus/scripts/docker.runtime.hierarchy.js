@@ -95,6 +95,27 @@
         const buildDockerPreviewItem = typeof deps.buildDockerPreviewItem === 'function'
             ? deps.buildDockerPreviewItem
             : (() => ({ $item: jq ? jq() : null, $tooltipTrigger: jq ? jq() : null }));
+        const previewModelModule = deps.previewModelModule
+            && typeof deps.previewModelModule.createChildFolderPreviewModel === 'function'
+            ? deps.previewModelModule
+            : {
+                createChildFolderPreviewModel: (input = {}) => Object.freeze({
+                    id: String(input.childId || '').trim(),
+                    childId: String(input.childId || '').trim(),
+                    sourceId: String(input.sourceId || input.parentId || '').trim(),
+                    rootId: String(input.rootId || input.parentId || '').trim(),
+                    parentId: String(input.parentId || '').trim(),
+                    name: String(input.childFolder?.name || 'Folder').trim() || 'Folder',
+                    icon: String(input.childFolder?.icon || '').trim(),
+                    memberCount: Number(input.memberCount) || 0,
+                    startedCount: Number(input.startedCount) || 0,
+                    depth: Number(input.depth) || 0,
+                    breadcrumbText: Array.isArray(input.breadcrumb) && input.breadcrumb.length
+                        ? input.breadcrumb.join(' / ')
+                        : (String(input.childFolder?.name || 'Folder').trim() || 'Folder'),
+                    runtimeCountLabel: Number(input.memberCount) > 0 ? `${Number(input.startedCount) || 0}/${Number(input.memberCount) || 0}` : 'Empty'
+                })
+            };
         const appendDockerPreviewActionButtons = typeof deps.appendDockerPreviewActionButtons === 'function'
             ? deps.appendDockerPreviewActionButtons
             : (() => {});
@@ -467,30 +488,36 @@
             const $item = jq('<span class="outer fv-docker-preview-card fv-docker-preview-mode-1 fv-folder-preview-child" role="button" tabindex="0"></span>');
             const $inner = jq('<span class="inner"></span>');
             const $hand = jq('<span class="hand fv-folder-preview-child-trigger"></span>');
-            const icon = String(childFolder?.icon || '').trim();
-            const name = String(childFolder?.name || 'Folder').trim() || 'Folder';
             const runtimeContainers = buildRuntimeContainerMapForFolder(childId, true);
             const total = Object.keys(runtimeContainers || {}).length;
             const started = Object.values(runtimeContainers || {}).filter((entry) => entry?.state === true).length;
-            const depth = Math.max(0, Number(options?.depth || 0));
-            const breadcrumb = getFolderBreadcrumb(childId);
-            const breadcrumbText = breadcrumb.length ? breadcrumb.join(' / ') : name;
-            const countLabel = total > 0 ? `${started}/${total}` : 'Empty';
+            const model = previewModelModule.createChildFolderPreviewModel({
+                rootId: parentId,
+                parentId,
+                sourceId: parentId,
+                childId,
+                childFolder,
+                memberCount: total,
+                startedCount: started,
+                depth: options?.depth || 0,
+                breadcrumb: getFolderBreadcrumb(childId),
+                hasChildren: folderHasChildren(childId)
+            });
 
             $item.attr('data-folder-preview-root', parentId);
             $item.attr('data-folder-preview-parent', parentId);
-            $item.attr('data-folder-preview-child', childId);
-            $item.attr('data-folder-preview-depth', String(depth));
-            $item.attr('title', `${breadcrumbText}\n${countLabel}`);
-            $item.attr('aria-label', `${breadcrumbText}, ${countLabel}`);
-            if (icon) {
-                $hand.append(jq('<img class="img folder-img fv-folder-preview-child-icon" alt="">').attr('src', icon));
+            $item.attr('data-folder-preview-child', model.childId);
+            $item.attr('data-folder-preview-depth', String(model.depth));
+            $item.attr('title', `${model.breadcrumbText}\n${model.runtimeCountLabel}`);
+            $item.attr('aria-label', `${model.breadcrumbText}, ${model.runtimeCountLabel}`);
+            if (model.icon) {
+                $hand.append(jq('<img class="img folder-img fv-folder-preview-child-icon" alt="">').attr('src', model.icon));
             } else {
                 $hand.append(jq('<i class="fa fa-folder fv-folder-preview-child-icon" aria-hidden="true"></i>'));
             }
             $inner.append($hand);
-            $inner.append(jq('<span class="appname fv-folder-preview-child-name"></span>').text(name));
-            $inner.append(jq('<span class="fv-folder-preview-child-count"></span>').text(countLabel));
+            $inner.append(jq('<span class="appname fv-folder-preview-child-name"></span>').text(model.name));
+            $inner.append(jq('<span class="fv-folder-preview-child-count"></span>').text(model.runtimeCountLabel));
             $item.append($inner);
             $item.on('click keydown', (event) => {
                 if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) {
@@ -504,7 +531,7 @@
             $item.on('contextmenu', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                showFolderPreviewContextMenu(event, parentId, childId, name);
+                showFolderPreviewContextMenu(event, parentId, childId, model.name);
             });
             return $item;
         };

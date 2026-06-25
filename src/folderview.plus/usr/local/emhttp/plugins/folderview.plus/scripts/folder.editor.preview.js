@@ -51,6 +51,20 @@
         const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
             ? deps.getNestedPreviewSample
             : (() => null);
+        const previewModelModule = deps.previewModelModule
+            && typeof deps.previewModelModule.createChildFolderPreviewModel === 'function'
+            ? deps.previewModelModule
+            : {
+                createChildFolderPreviewModel: (input = {}) => Object.freeze({
+                    id: String(input.id || input.childId || '').trim(),
+                    childId: String(input.id || input.childId || '').trim(),
+                    sourceId: String(input.sourceId || '').trim(),
+                    name: String(input.name || input.childFolder?.name || 'Child folder').trim() || 'Child folder',
+                    icon: String(input.icon || input.childFolder?.icon || '').trim(),
+                    memberCount: Number.isFinite(Number(input.memberCount)) ? Math.max(0, Number(input.memberCount)) : 0,
+                    statusLabel: `${Number.isFinite(Number(input.memberCount)) ? Math.max(0, Number(input.memberCount)) : 0} items`
+                })
+            };
 
         const renderLivePreviewCanvas = () => {
             if (!$ || !shouldRender()) {
@@ -107,23 +121,23 @@
             });
             if (hideNestedPreviewItems && previewMode !== 0) {
                 const nestedPreviewSample = getNestedPreviewSample() || {};
-                const nestedPreviewName = escapeHtml(nestedPreviewSample.name || 'Child folder');
-                const nestedPreviewIcon = escapeHtml(nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || '');
-                const nestedPreviewCount = Number.isFinite(Number(nestedPreviewSample.memberCount))
-                    ? Math.max(0, Number(nestedPreviewSample.memberCount))
-                    : null;
-                const nestedPreviewStatus = nestedPreviewCount === null
-                    ? 'nested'
-                    : `${nestedPreviewCount} item${nestedPreviewCount === 1 ? '' : 's'}`;
-                const nestedPreviewChildId = escapeHtml(nestedPreviewSample.id || '');
-                const nestedPreviewSourceId = escapeHtml(nestedPreviewSample.sourceId || '');
+                const nestedPreviewModel = previewModelModule.createChildFolderPreviewModel({
+                    ...nestedPreviewSample,
+                    childId: nestedPreviewSample.childId || nestedPreviewSample.id,
+                    childFolder: nestedPreviewSample,
+                    icon: nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || ''
+                });
+                const nestedPreviewName = escapeHtml(nestedPreviewModel.name || 'Child folder');
+                const nestedPreviewIcon = escapeHtml(nestedPreviewModel.icon || icon || deps.defaultFolderIconPath || '');
+                const nestedPreviewChildId = escapeHtml(nestedPreviewModel.childId || '');
+                const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
                 memberPreviewItems.push(`
                     <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
                         <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
                         ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
                         ${previewMode === 2
                             ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
-                            : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewStatus)}</span>`}
+                            : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewModel.statusLabel)}</span>`}
                     </span>
                 `);
             }

@@ -336,6 +336,7 @@ try {
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
         const scriptQueue = [
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+            '/plugins/folderview.plus/scripts/folder.preview-model.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
@@ -489,6 +490,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.preview-model.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>

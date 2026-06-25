@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderPreviewModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.preview-model.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerPreviewActionsScript = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
@@ -118,7 +119,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerRuntimeHierarchyJs, /dropDownButton\(pathId, false\);/);
     assert.match(dockerRuntimeHierarchyJs, /const getFolderBreadcrumb = \(folderId\) => \{/);
     assert.ok(dockerRuntimeHierarchyJs.includes("breadcrumb.join(' / ')"));
-    assert.match(dockerRuntimeHierarchyJs, /const countLabel = total > 0 \? `\$\{started\}\/\$\{total\}` : 'Empty';/);
+    assert.match(folderPreviewModelJs, /const formatRuntimeCountLabel = \(startedCount, memberCount\) => \{/);
+    assert.match(dockerRuntimeHierarchyJs, /previewModelModule\.createChildFolderPreviewModel\(\{/);
+    assert.match(dockerRuntimeHierarchyJs, /runtimeCountLabel/);
     assert.match(dockerRuntimeHierarchyJs, /const showFolderPreviewContextMenu = \(event, rootId, childId, childName\) => \{/);
     assert.match(dockerRuntimeHierarchyJs, /addAction\('Expand to folder', 'fa-level-down'/);
     assert.match(dockerRuntimeHierarchyJs, /addAction\('Edit folder', 'fa-pencil'/);

@@ -106,6 +106,7 @@
                 normalizeParentFolderId,
                 getPreviewSignals,
                 getNestedPreviewSample,
+                previewModelModule: deps.previewModelModule,
                 escapeHtml,
                 updateMemberStats,
                 onAfterSummaryUpdate: () => {

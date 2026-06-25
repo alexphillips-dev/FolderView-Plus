@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.13">
-<!ENTITY md5 "8faf50260eb581cdcd3ba8ac51ea5c98">
+<!ENTITY version "2026.06.25.14">
+<!ENTITY md5 "2d16680bb14c3051320f62fd41cc1935">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.14
+- UX: Added a shared folder preview model so Docker collapsed previews and the folder editor live preview resolve child-folder names, icons, counts, and breadcrumbs through the same path.
+- Quality: Added regression coverage for the shared preview-model contract across Docker runtime previews and editor live previews.
+
 
 ###2026.06.25.13
 - Quality: Refreshed the performance baseline so the dev guard suite accepts the recent dashboard and nested-preview growth.

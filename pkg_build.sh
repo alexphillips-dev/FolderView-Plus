@@ -10,6 +10,7 @@ xmlfile="$CWD/folderview.plus.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
+changes_entry_timeout_raw="${FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10}"
 archive_prefix="folderview.plus"
 archive_dir="$CWD/archive"
 prune_archives_script="$CWD/scripts/prune_archives.sh"
@@ -469,6 +470,11 @@ if [ -z "$archive_prune_keep" ]; then
     echo "ERROR: archive prune keep value must be a non-negative integer (received: $archive_prune_keep_raw)." >&2
     exit 1
 fi
+changes_entry_timeout="$(parse_nonnegative_integer "$changes_entry_timeout_raw")"
+if [ -z "$changes_entry_timeout" ]; then
+    echo "ERROR: CHANGES helper timeout must be a non-negative integer in seconds (received: $changes_entry_timeout_raw)." >&2
+    exit 1
+fi
 
 if [[ "$archive_dir" != /* && ! "$archive_dir" =~ ^[A-Za-z]:[\\/].* ]]; then
     archive_dir="$CWD/$archive_dir"
@@ -479,6 +485,9 @@ trap cleanup_tmpdir EXIT
 acquire_build_lock
 
 require_commands tar sha256sum md5sum sed find date awk grep cp chmod mkdir rm mktemp sort tail
+if [ "$changes_entry_timeout" -gt 0 ]; then
+    require_commands timeout
+fi
 if [ "$validate_after_build" = true ]; then
     require_commands bash
     if [ ! -f "$release_guard_script" ]; then
@@ -574,6 +583,7 @@ if [ "$dry_run" = true ]; then
         echo "CA template date: $xml_date"
     fi
     echo "Archive retention keep count: $archive_prune_keep"
+    echo "CHANGES helper timeout seconds: $changes_entry_timeout"
     echo "Post-build validation: $validate_after_build"
     echo "Install smoke: $run_install_smoke"
     exit 0
@@ -666,7 +676,20 @@ validate_manifest_branch_matrix "$plgfile" "$version"
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.
 chmod +x "$ensure_changes_entry_script"
-bash "$ensure_changes_entry_script"
+changes_entry_status=0
+if [ "$changes_entry_timeout" -gt 0 ]; then
+    timeout "${changes_entry_timeout}s" bash "$ensure_changes_entry_script" || changes_entry_status=$?
+else
+    bash "$ensure_changes_entry_script" || changes_entry_status=$?
+fi
+if [ "$changes_entry_status" -ne 0 ]; then
+    if [ "$changes_entry_status" -eq 124 ] || [ "$changes_entry_status" -eq 137 ]; then
+        echo "ERROR: CHANGES helper timed out after ${changes_entry_timeout}s. Add a ###${version} block to folderview.plus.plg or docs/releases/${version}.md, then rerun pkg_build.sh." >&2
+    else
+        echo "ERROR: CHANGES helper failed with status ${changes_entry_status}." >&2
+    fi
+    exit "$changes_entry_status"
+fi
 
 if [ "$archive_prune_keep" -gt 0 ]; then
     if [ ! -f "$prune_archives_script" ]; then

@@ -16,8 +16,24 @@ const folderEditorSchemaScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js'),
     'utf8'
 );
+const folderPreviewModelScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.preview-model.js'),
+    'utf8'
+);
 const folderEditorPreviewScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
+    'utf8'
+);
+const folderEditorPreviewRuntimeScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js'),
+    'utf8'
+);
+const folderEditorChromeScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
+    'utf8'
+);
+const folderEditorTypeDockerScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.type-docker.js'),
     'utf8'
 );
 const folderEditorStyles = fs.readFileSync(
@@ -106,6 +122,18 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorSharedScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorSchemaScript, /'preview_status'/);
+    assert.match(folderEditorSchemaScript, /'preview_hide_nested_items'/);
+    assert.match(folderEditorSchemaScript, /'preview_child_folder_depth'/);
+    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*false/);
+    assert.match(folderEditorSchemaScript, /preview_child_folder_depth:\s*'0'/);
+    assert.match(folderEditorSchemaScript, /preview_hide_nested_items:\s*'Show child folders in collapsed preview'/);
+    assert.match(folderEditorSchemaScript, /preview_child_folder_depth:\s*'Child folder preview depth'/);
+    assert.match(folderEditorChromeScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
+    assert.match(folderEditorChromeScript, /findBasicByFieldName\(form,\s*'preview_child_folder_depth'\)/);
+    assert.match(folderEditorTypeDockerScript, /findBasicByFieldName\(form,\s*'preview_hide_nested_items'\)/);
+    assert.match(folderEditorTypeDockerScript, /findBasicByFieldName\(form,\s*'preview_child_folder_depth'\)/);
+    assert.match(folderEditorTypeDockerScript, /markSection\('div\.basic:has\(\[name="preview_hide_nested_items"\]\)', 'preview'\);/);
+    assert.match(folderEditorTypeDockerScript, /markSection\('div\.basic:has\(\[name="preview_child_folder_depth"\]\)', 'preview'\);/);
     assert.match(folderEditorScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(folderEditorScript, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
     assert.match(folderEditorScript, /setFieldValue\('preview_status', normalizePreviewStatusMode\(normalizedFolder\.settings\.preview_status\)\);/);
@@ -117,6 +145,23 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
     assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderEditorScript, /let activeFolderEditorResolvedFolderId = '';/);
+    assert.match(folderEditorScript, /const getActiveFolderIdsForNestedPreview = \(\) => \{/);
+    assert.match(folderEditorScript, /addCandidateId\(activeFolderEditorResolvedFolderId\);\s*addCandidateId\(activeFolderEditorFolderId\);/);
+    assert.match(folderEditorScript, /const currentName = String\(form\?\.name\?\.value \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /addCandidateId\(candidateId\);/);
+    assert.match(folderEditorScript, /const getNestedPreviewSample = \(\) => \{/);
+    assert.match(folderEditorScript, /const sourceIds = getActiveFolderIdsForNestedPreview\(\);/);
+    assert.match(folderEditorScript, /for \(const sourceId of sourceIds\) \{/);
+    assert.match(folderEditorScript, /for \(const \[candidateId, candidateFolder\] of Object\.entries\(allFoldersById \|\| \{\}\)\) \{/);
+    assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) !== sourceId/);
+    assert.match(folderPreviewModelScript, /const createChildFolderPreviewModel = \(input = \{\}\) =>/);
+    assert.match(folderEditorScript, /folderPreviewModelModule\.createChildFolderPreviewModel\(\{/);
+    assert.match(folderEditorScript, /sourceId,\s*[\s\S]*childId: safeCandidateId,/);
+    assert.match(folderEditorScript, /getNestedPreviewSample,/);
+    assert.match(folderEditorPreviewRuntimeScript, /const getNestedPreviewSample = typeof deps\.getNestedPreviewSample === 'function'/);
+    assert.match(folderEditorPreviewRuntimeScript, /getNestedPreviewSample,/);
+    assert.match(folderEditorPreviewRuntimeScript, /previewModelModule: deps\.previewModelModule,/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
@@ -132,6 +177,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
     assert.match(folderEditorScript, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
+    assert.match(folderEditorScript, /activeFolderEditorResolvedFolderId = String\(resolvedEditFolder\?\.id \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);\s*updateLiveSummary\(\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);

@@ -6,30 +6,136 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.05.27.01">
-<!ENTITY md5 "6c619056756930e52df49c2f5b2c9ead">
+<!ENTITY version "2026.06.25.16">
+<!ENTITY md5 "8360d8b5bf349a62ff86f6478112f8cf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.05.27.01
-- Feature: Add the isolated Docker Orbit view with centered folder navigation, refined layout behavior, and dedicated Orbit runtime styling.
-- Feature: Add advanced Dashboard member previews for Docker folders, including WebUI, console, logs, update state, ports, volumes, and CPU/MEM graph details.
-- Feature: Add granular privacy masking controls and keep the Docker/VM privacy toolbar state synchronized with the saved mask settings.
-- Compatibility: Add best-effort sync support for Unraid's native Docker Organizer, including manual sync controls and diagnostics reporting.
-- UX: Allow special characters in folder names by removing the overly strict folder-name validation that blocked valid user naming patterns.
-- UX: Add Settings search aliases and Operations workspace entries for recent support topics including hide status, dashboard preview icons, native organizer sync, diagnostics, and bulk apply update.
-- Fix: Correct Docker folder batch-update dialog titles so localized `$1` placeholders are replaced with the target folder/container count.
-- Fix: Clear stale Docker folder update indicators after bulk updates and keep polling live Docker update state until Unraid reports the final up-to-date result.
-- Fix: Make Docker preview `Hide status` remove stale status badges across compact cards, live refreshes, and legacy status aliases like `hide`, `off`, `false`, and `0`.
-- Fix: Restore full-width Docker folder preview borders after the preview-layout adjustments.
-- Fix: Harden Docker preview action rendering by passing shared utility helpers into the preview-actions runtime before folder previews render.
-- Fix: Improve Dashboard quick actions, card layout, runtime hardening, and preview graph cleanup so Dashboard folder cards stay aligned and responsive.
-- Fix: Prevent Settings blank-page and bootstrap failures by adding early diagnostics fallbacks, scoped settings registries, a blank-page watchdog, and degraded setup-assistant recovery.
-- Fix: Keep Settings visible when first-run setup assistant rendering fails and surface actionable diagnostics instead of a blank Settings page.
-- Quality: Add browser smoke coverage, Docker update-state regression tests, Settings startup guards, privacy contract tests, native organizer diagnostics coverage, and dev finalize workflow checks.
-- Quality: Add a fast dev push workflow and expand release/build validation so dev packages and stable releases catch manifest, note, archive, and runtime regressions earlier.
+###2026.06.25.16
+- Maintenance: Published the stable main-channel package for the dev rollup since `v2026.05.27.01` with the install URL and archive metadata pointing at `main`.
+- Feature: Includes child-folder collapsed previews, nested descendant chips, depth limits, breadcrumb tooltips, and nested folder preview actions.
+- UX: Updated the folder editor live preview to mirror Docker collapsed child-folder previews using actual child folder names, icons, counts, and saved-folder lookup.
+- Fix: Added Settings blank-page recovery diagnostics and fixed nested folder preview expansion, action-menu positioning, modern editor visibility, and compact context-menu spacing.
+- Quality: Added the shared folder preview model plus regression coverage for Settings recovery, nested preview wiring, live preview data, descendant expansion, right-click actions, and release helper timeout/prune controls.
+- Docs: Decluttered the README and moved troubleshooting/path details into docs while removing development-only content from the user-facing README.
+
+
+###2026.06.25.15
+- Feature: Roll up the dev changes since `v2026.05.27.01`, including child-folder collapsed previews, nested descendant chips, depth limits, breadcrumb tooltips, and nested folder preview actions.
+- UX: Updated the folder editor live preview to mirror Docker collapsed child-folder previews using actual child folder names, icons, counts, and saved-folder lookup.
+- Fix: Added Settings blank-page recovery diagnostics and fixed nested folder preview expansion, action-menu positioning, modern editor visibility, and compact context-menu spacing.
+- Quality: Added the shared folder preview model plus regression coverage for Settings recovery, nested preview wiring, live preview data, descendant expansion, right-click actions, and release helper timeout/prune controls.
+- Docs: Decluttered the README and moved troubleshooting/path details into docs while removing development-only content from the user-facing README.
+
+
+###2026.06.25.14
+- UX: Added a shared folder preview model so Docker collapsed previews and the folder editor live preview resolve child-folder names, icons, counts, and breadcrumbs through the same path.
+- Quality: Added regression coverage for the shared preview-model contract across Docker runtime previews and editor live previews.
+
+
+###2026.06.25.13
+- Quality: Refreshed the performance baseline so the dev guard suite accepts the recent dashboard and nested-preview growth.
+
+
+###2026.06.25.12
+- Fix: Restored dev CI by updating documentation contract tests for moved troubleshooting content and removing stale dashboard preview CSS selectors.
+
+
+###2026.06.25.11
+- Docs: Decluttered the root README by merging quick guides, moving troubleshooting and path details into docs, and removing browser/development sections.
+
+
+###2026.06.25.10
+- Docs: Removed the root README Dev Workflow section to keep user-facing documentation focused.
+
+
+###2026.06.25.09
+- Fix: Nested folder preview "Open folder actions" now opens the normal folder menu at the expanded child folder icon instead of the page corner.
+
+
+###2026.06.25.08
+- Fix: Nested folder preview "Open folder actions" now expands to the child folder and opens its normal folder action menu.
+
+
+###2026.06.25.07
+- UX: Removed inherited spacing from nested folder preview right-click menu items.
+
+
+###2026.06.25.06
+- UX: Made the nested folder preview right-click menu more compact with smaller text and no gaps between actions.
+
+
+###2026.06.25.05
+- Docs: Removed the folder.view3 foundation credit from the README Credits section.
+
+
+###2026.06.25.04
+- UX: Added child-folder preview depth limits for collapsed Docker folder previews.
+- UX: Nested folder preview chips now show breadcrumb tooltips, an Empty state, and a right-click menu for expand, edit, and folder actions.
+
+
+###2026.06.25.03
+- UX: Collapsed Docker folders with child-folder previews enabled now show all nested descendant folders and expand the correct branch path when a nested chip is clicked.
+
+
+###2026.06.25.02
+- UX: Renamed the nested preview toggle to "Show child folders in collapsed preview" and clarified its help text.
+
+
+###2026.06.25.01
+- Fix: Live folder preview now passes the nested-folder sample resolver through the preview runtime, so "Hide nested preview items" shows the actual child folder icon, name, and item count.
+
+
+###2026.06.24.10
+- UX: Live folder preview now prefers the saved resolved folder id when finding nested child folder chips and exposes source/child ids for troubleshooting.
+- Quality: Package builds now time out the CHANGES helper instead of waiting indefinitely and make stale changelog pruning opt-in.
+- Regression guard: Cover resolved-id nested preview lookup, child chip debug attributes, and release helper timeout/prune controls.
+
+
+###2026.06.24.09
+- UX: Live folder preview refreshes after the full folder map loads and resolves nested child folder chips from the saved folder record.
+- Regression guard: Cover fallback child-folder lookup and the post-hydration live preview refresh.
+
+
+###2026.06.24.08
+- UX: Live folder preview now uses the actual first child folder name, icon, and member count when `Hide nested preview items` is enabled.
+- Regression guard: Cover child-folder live preview data wiring from the editor folder map into the preview renderer.
+
+
+###2026.06.24.07
+- UX: Live folder preview now shows a child-folder sample when `Hide nested preview items` is enabled.
+- Regression guard: Cover the live preview renderer and styles for the nested-folder sample chip.
+
+
+###2026.06.24.06
+- UX: Make child-folder preview chips use full single-row Docker preview scale with larger icons and normal-sized counts.
+- Regression guard: Keep child-folder preview chips large in single-row mode while preserving compact sizing for multi-row previews.
+
+
+###2026.06.24.05
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.06.24.04
+- Fix: Show the new `Hide nested preview items` toggle in the modern Docker folder editor Preview tab.
+- Regression guard: Cover the modern editor schema, row collection, and Docker section tagging for the nested-preview toggle.
+
+
+###2026.06.24.03
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.06.24.02
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.06.24.01
+- Quality: Release-note generation, retry cleanup, and packaging guards.
+- Docs: Project documentation and support guidance.
 
 
 ###2026.05.26.01

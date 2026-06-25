@@ -66,6 +66,29 @@
                 return Math.max(1, Math.min(4, parsed));
             });
 
+        const normalizeChildFolderPreviewDepth = typeof deps.normalizeChildFolderPreviewDepth === 'function'
+            ? deps.normalizeChildFolderPreviewDepth
+            : ((value, fallbackSource = null) => {
+                const sources = [value, fallbackSource];
+                for (const source of sources) {
+                    const candidate = source && typeof source === 'object'
+                        ? (source.preview_child_folder_depth ?? source.previewChildFolderDepth)
+                        : source;
+                    const normalized = String(candidate ?? '').trim().toLowerCase();
+                    if (!normalized) {
+                        continue;
+                    }
+                    if (normalized === '0' || normalized === 'all' || normalized === 'unlimited') {
+                        return 0;
+                    }
+                    const parsed = Number.parseInt(normalized, 10);
+                    if (Number.isFinite(parsed)) {
+                        return Math.max(1, Math.min(3, parsed));
+                    }
+                }
+                return 0;
+            });
+
         const normalizeFolderRecordForEditor = (folder) => {
             const source = folder && typeof folder === 'object' ? folder : {};
             const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -109,6 +132,10 @@
                         }
                         return ['symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
                     })(),
+                    preview_hide_nested_items: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
+                    previewHideNestedItems: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
+                    preview_child_folder_depth: normalizeChildFolderPreviewDepth(settings, source),
+                    previewChildFolderDepth: normalizeChildFolderPreviewDepth(settings, source),
                     preview_webui: settings.preview_webui === true,
                     preview_logs: settings.preview_logs === true,
                     preview_console: settings.preview_console === true,
@@ -181,6 +208,7 @@
             normalizeDashboardOverflowMode,
             extractPreviewRowLimitValue,
             normalizePreviewRowLimit,
+            normalizeChildFolderPreviewDepth,
             normalizeFolderRecordForEditor
         });
     };

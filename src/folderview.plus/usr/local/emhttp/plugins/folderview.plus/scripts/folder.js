@@ -202,6 +202,7 @@ const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
 const folderEditorPreviewRuntimeModule = window.FolderViewPlusFolderEditorPreviewRuntime || null;
+const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const requestClient = window.FolderViewPlusRequest || null;
 const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
@@ -341,6 +342,9 @@ if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function')
 if (!folderEditorPreviewRuntimeModule || typeof folderEditorPreviewRuntimeModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.preview-runtime.js');
 }
+if (!folderPreviewModelModule || typeof folderPreviewModelModule.createChildFolderPreviewModel !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.preview-model.js');
+}
 if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.state.js');
 }
@@ -380,6 +384,7 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 
 let allFoldersById = {};
 let activeFolderEditorFolderId = '';
+let activeFolderEditorResolvedFolderId = '';
 let folderEditorRulesApi = null;
 let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
@@ -1426,6 +1431,72 @@ const getFolderEditorPreviewRuntimeApi = () => {
     if (folderEditorPreviewRuntimeApi || typeof folderEditorPreviewRuntimeModule?.createApi !== 'function') {
         return folderEditorPreviewRuntimeApi;
     }
+    const getActiveFolderIdsForNestedPreview = () => {
+        const form = getForm();
+        const candidateIds = [];
+        const addCandidateId = (value) => {
+            const safeId = String(value || '').trim();
+            if (safeId && !candidateIds.includes(safeId)) {
+                candidateIds.push(safeId);
+            }
+        };
+        addCandidateId(activeFolderEditorResolvedFolderId);
+        addCandidateId(activeFolderEditorFolderId);
+        addCandidateId(folderId);
+        const currentName = String(form?.name?.value || '').trim();
+        const currentIcon = String(form?.icon?.value || '').trim();
+        if (currentName) {
+            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
+                if (!candidateFolder || typeof candidateFolder !== 'object') {
+                    continue;
+                }
+                const normalizedFolder = normalizeFolderRecordForEditor(candidateFolder);
+                if (String(normalizedFolder.name || '').trim() !== currentName) {
+                    continue;
+                }
+                if (currentIcon && String(normalizedFolder.icon || '').trim() !== currentIcon) {
+                    continue;
+                }
+                addCandidateId(candidateId);
+            }
+        }
+        return candidateIds;
+    };
+    const getNestedPreviewSample = () => {
+        const sourceIds = getActiveFolderIdsForNestedPreview();
+        if (!sourceIds.length) {
+            return null;
+        }
+        for (const sourceId of sourceIds) {
+            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
+                const safeCandidateId = String(candidateId || '').trim();
+                if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
+                    continue;
+                }
+                if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
+                    continue;
+                }
+                const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
+                return folderPreviewModelModule.createChildFolderPreviewModel({
+                    sourceId,
+                    parentId: sourceId,
+                    rootId: sourceId,
+                    childId: safeCandidateId,
+                    childFolder: normalizedChild,
+                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
+                    breadcrumb: [
+                        String(allFoldersById?.[sourceId]?.name || sourceId || '').trim(),
+                        String(normalizedChild.name || 'Child folder').trim() || 'Child folder'
+                    ].filter(Boolean),
+                    hasChildren: Object.values(allFoldersById || {}).some((folder) => (
+                        folder && typeof folder === 'object'
+                        && normalizeParentFolderId(folder.parentId || folder.parent_id || '') === safeCandidateId
+                    ))
+                });
+            }
+        }
+        return null;
+    };
     folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule.createApi({
         window,
         $,
@@ -1444,6 +1515,8 @@ const getFolderEditorPreviewRuntimeApi = () => {
         buildSampleMemberState,
         normalizeParentFolderId,
         getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
+        getNestedPreviewSample,
+        previewModelModule: folderPreviewModelModule,
         applyTypePreviewConstraints: ({ $, form } = {}) => {
             getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
         },
@@ -1827,6 +1900,18 @@ const normalizePreviewRowLimit = (value, fallbackSource = null) => {
         return 1;
     }
     return Math.max(1, Math.min(4, parsed));
+};
+const normalizeChildFolderPreviewDepth = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizeChildFolderPreviewDepth === 'function') {
+        return sharedApi.normalizeChildFolderPreviewDepth(value, fallbackSource);
+    }
+    const normalized = String(value ?? fallbackSource?.preview_child_folder_depth ?? fallbackSource?.previewChildFolderDepth ?? '').trim().toLowerCase();
+    if (normalized === '0' || normalized === 'all' || normalized === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(normalized, 10);
+    return Number.isFinite(parsed) ? Math.max(1, Math.min(3, parsed)) : 0;
 };
 
 const normalizeFolderRecordForEditor = (folder) => {
@@ -3075,6 +3160,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
 
     activeFolderEditorFolderId = safeFolderId;
+    if (safeFolderId && Object.prototype.hasOwnProperty.call(allFoldersById || {}, safeFolderId)) {
+        activeFolderEditorResolvedFolderId = safeFolderId;
+    }
     folderHierarchyState.currentFolderDescendantIds = safeFolderId
         ? computeFolderDescendantIds(allFoldersById, safeFolderId)
         : new Set();
@@ -3109,6 +3197,8 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
+    setFieldChecked('preview_hide_nested_items', normalizedFolder.settings.preview_hide_nested_items);
+    setFieldValue('preview_child_folder_depth', String(normalizeChildFolderPreviewDepth(normalizedFolder.settings, normalizedFolder)));
     setFieldChecked('preview_webui', normalizedFolder.settings.preview_webui);
     setFieldChecked('preview_logs', normalizedFolder.settings.preview_logs);
     setFieldChecked('preview_console', normalizedFolder.settings.preview_console || false);
@@ -3277,6 +3367,7 @@ const startFolderEditorRuntime = async () => {
         ).trim();
         if (!currentEditFolder || !currentEditFolderId) {
             activeFolderEditorFolderId = '';
+            activeFolderEditorResolvedFolderId = '';
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
                 `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
@@ -3311,7 +3402,9 @@ const startFolderEditorRuntime = async () => {
                 'warning'
             );
         }
+        activeFolderEditorResolvedFolderId = String(resolvedEditFolder?.id || '').trim();
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+        updateLiveSummary();
         setBootstrapDiagnostics({
             mode: 'hydrate',
             requestedRef: requestedFolderRef,
@@ -3329,6 +3422,7 @@ const startFolderEditorRuntime = async () => {
         }
     } else {
         activeFolderEditorFolderId = '';
+        activeFolderEditorResolvedFolderId = '';
         setValidationBannerState(
             'Folder editor opened without a folder target.',
             'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
@@ -4282,6 +4376,7 @@ const buildFolderPayloadFromForm = (e) => {
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
     const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
+    const normalizedChildFolderPreviewDepth = normalizeChildFolderPreviewDepth(e.preview_child_folder_depth?.value);
     const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
     return {
         name: e.name.value.toString().trim(),
@@ -4304,6 +4399,9 @@ const buildFolderPayloadFromForm = (e) => {
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
+            preview_hide_nested_items: e.preview_hide_nested_items.checked,
+            preview_child_folder_depth: normalizedChildFolderPreviewDepth,
+            previewChildFolderDepth: normalizedChildFolderPreviewDepth,
             preview_webui: e.preview_webui.checked,
             preview_logs: e.preview_logs.checked,
             preview_console: e.preview_console.checked,

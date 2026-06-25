@@ -8,6 +8,7 @@ AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync.'
 CHECK_ONLY=0
 VERSION_OVERRIDE="${FVPLUS_TARGET_RELEASE_VERSION:-}"
 REQUIRE_EXPLICIT="${FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:-0}"
+PRUNE_STALE_CHANGES="${FVPLUS_PRUNE_STALE_CHANGES:-0}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
@@ -203,7 +204,7 @@ block_is_metadata_only() {
   [[ "${saw_content}" -eq 1 ]]
 }
 
-if [[ "${CHECK_ONLY}" != "1" ]]; then
+if [[ "${CHECK_ONLY}" != "1" && "${PRUNE_STALE_CHANGES}" == "1" ]]; then
   prune_unreleased_retry_blocks "${VERSION}"
 fi
 

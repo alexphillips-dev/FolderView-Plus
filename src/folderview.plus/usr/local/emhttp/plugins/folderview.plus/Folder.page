@@ -336,6 +336,7 @@ try {
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
         const scriptQueue = [
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+            '/plugins/folderview.plus/scripts/folder.preview-model.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
@@ -489,6 +490,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.preview-model.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
@@ -854,6 +856,41 @@ try {
                     <blockquote class="inline_help">
                         <p>
                             Controls how Docker state is shown in folder previews.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt>Show child folders in collapsed preview:</dt>
+                        <dd>
+                            <input class="basic-switch" name="preview_hide_nested_items" type="checkbox" style="display: none;" />
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            When this folder is collapsed, show child folders as folder chips instead of showing every item inside them.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt>Child folder preview depth:</dt>
+                        <dd>
+                            <select name="preview_child_folder_depth">
+                                <option value="1">Direct children only</option>
+                                <option value="2">2 levels</option>
+                                <option value="3">3 levels</option>
+                                <option value="0">All nested folders</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Controls how many nested folder levels appear as chips when child folders are shown in the collapsed preview.
                         </p>
                     </blockquote>
                 </div>

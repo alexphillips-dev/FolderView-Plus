@@ -131,7 +131,12 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /--keep-archives N/);
     assert.match(pkgBuild, /--no-prune-archives/);
     assert.match(pkgBuild, /archive_prune_keep_raw="\$\{FVPLUS_ARCHIVE_PRUNE_KEEP:-24\}"/);
+    assert.match(pkgBuild, /changes_entry_timeout_raw="\$\{FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10\}"/);
     assert.match(pkgBuild, /Archive retention keep count: \$archive_prune_keep/);
+    assert.match(pkgBuild, /CHANGES helper timeout seconds: \$changes_entry_timeout/);
+    assert.match(pkgBuild, /require_commands timeout/);
+    assert.match(pkgBuild, /timeout "\$\{changes_entry_timeout\}s" bash "\$ensure_changes_entry_script"/);
+    assert.match(pkgBuild, /CHANGES helper timed out after \$\{changes_entry_timeout\}s/);
     assert.match(pkgBuild, /bash "\$prune_archives_script" --archive-dir "\$archive_dir" --keep "\$archive_prune_keep" --current-version "\$version"/);
     assert.match(pkgBuild, /--install-smoke/);
     assert.match(pkgBuild, /--dry-run/);
@@ -252,11 +257,13 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /--message TEXT/);
     assert.match(devFinalize, /--skip-build/);
     assert.match(devFinalize, /--no-push/);
+    assert.match(devFinalize, /--full-local-checks/);
     assert.match(devFinalize, /--fast-dev-push/);
     assert.match(devFinalize, /bash scripts\/doctor\.sh/);
     assert.match(devFinalize, /bash scripts\/run_ci_suite\.sh --lane lint --lane tests/);
-    assert.match(devFinalize, /--fast-dev-push cannot be combined with --skip-build/);
-    assert.match(devFinalize, /dev_finalize\.sh fast dev push: skipping doctor \+ shared lint\/tests/);
+    assert.match(devFinalize, /--skip-build requires --full-local-checks/);
+    assert.match(devFinalize, /dev_finalize\.sh default dev push: skipping doctor \+ shared lint\/tests; GitHub CI will validate/);
+    assert.match(devFinalize, /--fast-dev-push is now the default and can be omitted/);
     assert.match(devFinalize, /--message is required unless --skip-build is used/);
     assert.match(devFinalize, /must run from branch 'dev'/);
     assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR/);
@@ -274,14 +281,10 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /git push -u origin dev/);
 });
 
-test('docs point dev packaging work to the staged dev finalize workflow', () => {
-    assert.match(readme, /git add <files>/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --message "Describe the change" --open-fixture/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --fast-dev-push --message "Describe the change"/);
-    assert.match(readme, /bash scripts\/dev_finalize\.sh --open-fixture --skip-build/);
+test('developer docs point dev packaging work to the staged dev finalize workflow', () => {
     assert.match(visualRuntimeContract, /git add <files>/);
     assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix" --open-fixture/);
-    assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --fast-dev-push --message "Describe the fix"/);
+    assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix"/);
 });
 
 test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {
@@ -565,6 +568,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /--require-explicit/);
     assert.match(ensureChanges, /FVPLUS_TARGET_RELEASE_VERSION/);
     assert.match(ensureChanges, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES/);
+    assert.match(ensureChanges, /PRUNE_STALE_CHANGES="\$\{FVPLUS_PRUNE_STALE_CHANGES:-0\}"/);
     assert.match(ensureChanges, /docs\/releases\/\$\{VERSION\}\.md/);
     assert.match(ensureChanges, /guess_category_from_subject/);
     assert.match(ensureChanges, /is_subject_metadata_only/);
@@ -574,6 +578,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /Explicit release notes are required/);
     assert.match(ensureChanges, /head_manifest_version/);
     assert.match(ensureChanges, /prune_unreleased_retry_blocks/);
+    assert.match(ensureChanges, /\[\[ "\$\{CHECK_ONLY\}" != "1" && "\$\{PRUNE_STALE_CHANGES\}" == "1" \]\]/);
     assert.match(ensureChanges, /Pruned .* unreleased local CHANGES block\(s\) newer than HEAD before inserting/);
     assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" show HEAD:folderview\.plus\.plg/);
     assert.match(ensureChanges, /version_greater_than/);

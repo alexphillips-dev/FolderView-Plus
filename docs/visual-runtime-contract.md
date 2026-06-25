@@ -57,13 +57,13 @@ Use this order for UI/runtime work:
    - `node scripts/generate_runtime_fixture.mjs`
 2. Make the smallest contract-safe change.
 3. Run targeted validation:
-   - `bash scripts/dev_finalize.sh --open-fixture --skip-build`
+   - `bash scripts/dev_finalize.sh --full-local-checks --open-fixture --skip-build`
 4. If the fix is ready to package:
    - `git add <files>`
    - `bash scripts/dev_finalize.sh --message "Describe the fix" --open-fixture`
 5. For a fast dev build when local validation is intentionally skipped:
    - `git add <files>`
-   - `bash scripts/dev_finalize.sh --fast-dev-push --message "Describe the fix"`
+   - `bash scripts/dev_finalize.sh --message "Describe the fix"`
 
 ## Review Checklist
 

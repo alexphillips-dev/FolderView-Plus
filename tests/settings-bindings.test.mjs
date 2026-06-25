@@ -351,8 +351,10 @@ test('settings blank watchdog reports silent startup failures with diagnostics',
     assert.match(script, /const markSettingsBootstrapState = \(patch = \{\}\) => \{/);
     assert.match(script, /FolderViewPlusMarkSettingsBootstrapState\(cleanPatch\)/);
     assert.match(script, /runtimeLoaded:\s*true/);
-    assert.match(script, /ready:\s*true/);
-    assert.match(script, /lastPhase:\s*'ready'/);
+    assert.match(script, /const settingsSurfaceVisible = recoverBlankSettingsSurface\('ready'\);/);
+    assert.match(script, /ready:\s*settingsSurfaceVisible/);
+    assert.match(script, /failed:\s*!settingsSurfaceVisible/);
+    assert.match(script, /lastPhase:\s*settingsSurfaceVisible \? 'ready' : 'blank-recovery'/);
     assert.match(script, /currentBootstrapState\.degraded !== true/);
 });
 

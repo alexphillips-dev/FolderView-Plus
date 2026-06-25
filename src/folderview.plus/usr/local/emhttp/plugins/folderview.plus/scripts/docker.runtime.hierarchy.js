@@ -95,6 +95,27 @@
         const buildDockerPreviewItem = typeof deps.buildDockerPreviewItem === 'function'
             ? deps.buildDockerPreviewItem
             : (() => ({ $item: jq ? jq() : null, $tooltipTrigger: jq ? jq() : null }));
+        const previewModelModule = deps.previewModelModule
+            && typeof deps.previewModelModule.createChildFolderPreviewModel === 'function'
+            ? deps.previewModelModule
+            : {
+                createChildFolderPreviewModel: (input = {}) => Object.freeze({
+                    id: String(input.childId || '').trim(),
+                    childId: String(input.childId || '').trim(),
+                    sourceId: String(input.sourceId || input.parentId || '').trim(),
+                    rootId: String(input.rootId || input.parentId || '').trim(),
+                    parentId: String(input.parentId || '').trim(),
+                    name: String(input.childFolder?.name || 'Folder').trim() || 'Folder',
+                    icon: String(input.childFolder?.icon || '').trim(),
+                    memberCount: Number(input.memberCount) || 0,
+                    startedCount: Number(input.startedCount) || 0,
+                    depth: Number(input.depth) || 0,
+                    breadcrumbText: Array.isArray(input.breadcrumb) && input.breadcrumb.length
+                        ? input.breadcrumb.join(' / ')
+                        : (String(input.childFolder?.name || 'Folder').trim() || 'Folder'),
+                    runtimeCountLabel: Number(input.memberCount) > 0 ? `${Number(input.startedCount) || 0}/${Number(input.memberCount) || 0}` : 'Empty'
+                })
+            };
         const appendDockerPreviewActionButtons = typeof deps.appendDockerPreviewActionButtons === 'function'
             ? deps.appendDockerPreviewActionButtons
             : (() => {});
@@ -103,6 +124,8 @@
             : (() => {});
         const getSafeWebuiUrl = typeof deps.getSafeWebuiUrl === 'function' ? deps.getSafeWebuiUrl : ((value) => String(value || '').trim());
         const isCompactMultiRowPreview = typeof deps.isCompactMultiRowPreview === 'function' ? deps.isCompactMultiRowPreview : (() => false);
+        const editFolder = typeof deps.editFolder === 'function' ? deps.editFolder : (() => {});
+        const openFolderActions = typeof deps.openFolderActions === 'function' ? deps.openFolderActions : (() => {});
         const debugEnabled = deps.debugEnabled === true;
         const consoleRef = deps.console || win?.console || null;
 
@@ -153,6 +176,47 @@
         };
 
         const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+
+        const shouldHideNestedPreviewItems = (settings = {}) => settings?.preview_hide_nested_items === true
+            || settings?.previewHideNestedItems === true;
+
+        const normalizeChildFolderPreviewDepth = (settings = {}) => {
+            const rawValue = settings?.preview_child_folder_depth ?? settings?.previewChildFolderDepth ?? 0;
+            const normalized = String(rawValue ?? '').trim().toLowerCase();
+            if (normalized === '0' || normalized === 'all' || normalized === 'unlimited' || normalized === '') {
+                return 0;
+            }
+            const parsed = Number.parseInt(normalized, 10);
+            return Number.isFinite(parsed) ? Math.max(1, Math.min(3, parsed)) : 0;
+        };
+
+        const getFolderBreadcrumb = (folderId) => {
+            const folders = getGlobalFolders();
+            return [...getFolderAncestors(folderId).reverse(), String(folderId || '').trim()]
+                .map((id) => String(folders?.[id]?.name || id || '').trim())
+                .filter(Boolean);
+        };
+
+        const getFolderPreviewDescendants = (folderId, maxDepth = 0) => {
+            const result = [];
+            const seen = new Set();
+            const visit = (parentId, depth = 0) => {
+                if (maxDepth > 0 && depth >= maxDepth) {
+                    return;
+                }
+                for (const childId of getFolderChildren(parentId)) {
+                    const safeChildId = String(childId || '').trim();
+                    if (!safeChildId || seen.has(safeChildId)) {
+                        continue;
+                    }
+                    seen.add(safeChildId);
+                    result.push({ id: safeChildId, depth });
+                    visit(safeChildId, depth + 1);
+                }
+            };
+            visit(folderId, 0);
+            return result;
+        };
 
         const resolveFolderUpdateColumnState = (managerTypes, upToDate, managed, options = {}) => {
             const managerTypeSet = managerTypes instanceof Set
@@ -325,7 +389,154 @@
             folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
         };
 
-        const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
+        const expandFolderPathToChild = (rootId, childId) => {
+            const safeRootId = String(rootId || '').trim();
+            const safeChildId = String(childId || '').trim();
+            if (!safeRootId || !safeChildId || !jq) {
+                return;
+            }
+            const ancestors = getFolderAncestors(safeChildId).reverse();
+            const rootIndex = ancestors.indexOf(safeRootId);
+            const pathIds = rootIndex >= 0
+                ? ancestors.slice(rootIndex)
+                : [safeRootId];
+            for (const pathId of pathIds) {
+                const button = jq(`.dropDown-${pathId}`);
+                if (button.length && button.attr('active') !== 'true') {
+                    dropDownButton(pathId, false);
+                }
+            }
+            persistExpandedStateFromGlobal();
+        };
+
+        const scrollFolderRowIntoView = (folderId) => {
+            if (!jq) {
+                return;
+            }
+            const $folderRow = jq(`tr.folder-id-${folderId}`);
+            if ($folderRow.length && typeof $folderRow.get(0)?.scrollIntoView === 'function') {
+                $folderRow.get(0).scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+        };
+
+        const closeFolderPreviewContextMenu = () => {
+            if (!jq) {
+                return;
+            }
+            jq('.fv-folder-preview-context-menu').remove();
+            const doc = win?.document || (typeof document !== 'undefined' ? document : null);
+            if (doc) {
+                jq(doc).off('click.fvFolderPreviewContext keydown.fvFolderPreviewContext');
+            }
+        };
+
+        const showFolderPreviewContextMenu = (event, rootId, childId, childName) => {
+            if (!jq) {
+                return;
+            }
+            closeFolderPreviewContextMenu();
+            const doc = win?.document || (typeof document !== 'undefined' ? document : null);
+            if (!doc?.body) {
+                return;
+            }
+            const safeChildName = String(childName || 'Folder').trim() || 'Folder';
+            const $menu = jq('<div class="fv-folder-preview-context-menu" role="menu"></div>');
+            const addAction = (label, iconClass, onClick) => {
+                const $button = jq('<button type="button" role="menuitem"></button>');
+                $button.append(jq(`<i class="fa ${iconClass}" aria-hidden="true"></i>`));
+                $button.append(jq('<span></span>').text(label));
+                $button.on('click', (clickEvent) => {
+                    clickEvent.preventDefault();
+                    clickEvent.stopPropagation();
+                    closeFolderPreviewContextMenu();
+                    onClick();
+                });
+                $menu.append($button);
+            };
+            addAction('Expand to folder', 'fa-level-down', () => {
+                expandFolderPathToChild(rootId, childId);
+                scrollFolderRowIntoView(childId);
+            });
+            addAction('Edit folder', 'fa-pencil', () => editFolder(childId));
+            addAction('Open folder actions', 'fa-bars', () => {
+                expandFolderPathToChild(rootId, childId);
+                scrollFolderRowIntoView(childId);
+                openFolderActions(childId);
+            });
+            $menu.attr('aria-label', `${safeChildName} folder actions`);
+            jq(doc.body).append($menu);
+            const viewportWidth = Number(win?.innerWidth || doc.documentElement?.clientWidth || 0);
+            const viewportHeight = Number(win?.innerHeight || doc.documentElement?.clientHeight || 0);
+            const menuNode = $menu.get(0);
+            const menuWidth = Number(menuNode?.offsetWidth || 180);
+            const menuHeight = Number(menuNode?.offsetHeight || 112);
+            const left = Math.max(8, Math.min(Number(event?.clientX || 0), viewportWidth ? viewportWidth - menuWidth - 8 : Number(event?.clientX || 0)));
+            const top = Math.max(8, Math.min(Number(event?.clientY || 0), viewportHeight ? viewportHeight - menuHeight - 8 : Number(event?.clientY || 0)));
+            $menu.css({ left: `${left}px`, top: `${top}px` });
+            setTimeout(() => {
+                jq(doc)
+                    .on('click.fvFolderPreviewContext', closeFolderPreviewContextMenu)
+                    .on('keydown.fvFolderPreviewContext', (keyEvent) => {
+                        if (keyEvent.key === 'Escape') {
+                            closeFolderPreviewContextMenu();
+                        }
+                    });
+            }, 0);
+        };
+
+        const buildChildFolderPreviewItem = (parentId, childId, childFolder, options = {}) => {
+            const $item = jq('<span class="outer fv-docker-preview-card fv-docker-preview-mode-1 fv-folder-preview-child" role="button" tabindex="0"></span>');
+            const $inner = jq('<span class="inner"></span>');
+            const $hand = jq('<span class="hand fv-folder-preview-child-trigger"></span>');
+            const runtimeContainers = buildRuntimeContainerMapForFolder(childId, true);
+            const total = Object.keys(runtimeContainers || {}).length;
+            const started = Object.values(runtimeContainers || {}).filter((entry) => entry?.state === true).length;
+            const model = previewModelModule.createChildFolderPreviewModel({
+                rootId: parentId,
+                parentId,
+                sourceId: parentId,
+                childId,
+                childFolder,
+                memberCount: total,
+                startedCount: started,
+                depth: options?.depth || 0,
+                breadcrumb: getFolderBreadcrumb(childId),
+                hasChildren: folderHasChildren(childId)
+            });
+
+            $item.attr('data-folder-preview-root', parentId);
+            $item.attr('data-folder-preview-parent', parentId);
+            $item.attr('data-folder-preview-child', model.childId);
+            $item.attr('data-folder-preview-depth', String(model.depth));
+            $item.attr('title', `${model.breadcrumbText}\n${model.runtimeCountLabel}`);
+            $item.attr('aria-label', `${model.breadcrumbText}, ${model.runtimeCountLabel}`);
+            if (model.icon) {
+                $hand.append(jq('<img class="img folder-img fv-folder-preview-child-icon" alt="">').attr('src', model.icon));
+            } else {
+                $hand.append(jq('<i class="fa fa-folder fv-folder-preview-child-icon" aria-hidden="true"></i>'));
+            }
+            $inner.append($hand);
+            $inner.append(jq('<span class="appname fv-folder-preview-child-name"></span>').text(model.name));
+            $inner.append(jq('<span class="fv-folder-preview-child-count"></span>').text(model.runtimeCountLabel));
+            $item.append($inner);
+            $item.on('click keydown', (event) => {
+                if (event.type === 'keydown' && !['Enter', ' '].includes(event.key)) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                expandFolderPathToChild(parentId, childId);
+                scrollFolderRowIntoView(childId);
+            });
+            $item.on('contextmenu', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                showFolderPreviewContextMenu(event, parentId, childId, model.name);
+            });
+            return $item;
+        };
+
+        const renderNestedAggregatePreview = (id, folder, runtimeContainers, options = {}) => {
             if (!jq) {
                 return;
             }
@@ -338,7 +549,10 @@
                 $preview.empty();
                 return;
             }
-            const entries = Object.values(runtimeContainers || {});
+            const includeChildFolders = options?.includeChildFolders === true;
+            const entries = Object.values(includeChildFolders
+                ? buildRuntimeContainerMapForFolder(id, false)
+                : (runtimeContainers || {}));
             const quickActionPrefs = folder?.settings || {};
             const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
             const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
@@ -371,6 +585,18 @@
                 );
                 $preview.append(item);
             }
+            if (includeChildFolders) {
+                const folders = getGlobalFolders();
+                const depthLimit = normalizeChildFolderPreviewDepth(folder?.settings || {});
+                for (const descendant of getFolderPreviewDescendants(id, depthLimit)) {
+                    const childId = String(descendant?.id || '').trim();
+                    const childFolder = folders?.[childId];
+                    if (!childFolder || typeof childFolder !== 'object') {
+                        continue;
+                    }
+                    $preview.append(buildChildFolderPreviewItem(id, childId, childFolder, { depth: descendant.depth }));
+                }
+            }
             $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
             applyFolderPreviewLayout($preview, folder?.settings || {});
             layoutFolderPreviewRows($preview, folder?.settings || {});
@@ -395,7 +621,9 @@
                 renderNestedAggregatePreview(id, folder, directRuntimeContainers);
             } else {
                 const runtimeContainers = folder?.runtimeContainers || {};
-                renderNestedAggregatePreview(id, folder, runtimeContainers);
+                renderNestedAggregatePreview(id, folder, runtimeContainers, {
+                    includeChildFolders: shouldHideNestedPreviewItems(folder?.settings || {})
+                });
             }
             const previewNode = $row.find('div.folder-preview').get(0);
             applyPreviewBorderStyle(previewNode, folder?.settings || {});

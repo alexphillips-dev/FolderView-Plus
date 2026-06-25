@@ -1209,6 +1209,38 @@
             $normalized['preview_rows'],
             $normalized['previewRows']
         );
+        $rawPreviewHideNestedItems = $normalized['settings']['preview_hide_nested_items']
+            ?? ($normalized['settings']['previewHideNestedItems']
+                ?? ($normalized['preview_hide_nested_items']
+                    ?? ($normalized['previewHideNestedItems'] ?? null)));
+        if ($rawPreviewHideNestedItems !== null) {
+            $normalized['settings']['preview_hide_nested_items'] = filter_var($rawPreviewHideNestedItems, FILTER_VALIDATE_BOOLEAN);
+            $normalized['settings']['previewHideNestedItems'] = $normalized['settings']['preview_hide_nested_items'];
+        }
+        unset(
+            $normalized['preview_hide_nested_items'],
+            $normalized['previewHideNestedItems']
+        );
+        $rawPreviewChildFolderDepth = $normalized['settings']['preview_child_folder_depth']
+            ?? ($normalized['settings']['previewChildFolderDepth']
+                ?? ($normalized['preview_child_folder_depth']
+                    ?? ($normalized['previewChildFolderDepth'] ?? null)));
+        if ($rawPreviewChildFolderDepth !== null) {
+            $depthToken = strtolower(trim((string)$rawPreviewChildFolderDepth));
+            if ($depthToken === '0' || $depthToken === 'all' || $depthToken === 'unlimited') {
+                $normalizedDepth = 0;
+            } elseif (is_numeric($depthToken)) {
+                $normalizedDepth = max(1, min(3, (int)$depthToken));
+            } else {
+                $normalizedDepth = 0;
+            }
+            $normalized['settings']['preview_child_folder_depth'] = $normalizedDepth;
+            $normalized['settings']['previewChildFolderDepth'] = $normalizedDepth;
+        }
+        unset(
+            $normalized['preview_child_folder_depth'],
+            $normalized['previewChildFolderDepth']
+        );
         $rawDropdownStyle = $normalized['settings']['dropdown_style']
             ?? ($normalized['settings']['dropdownStyle']
                 ?? ($normalized['settings']['chevron_style']

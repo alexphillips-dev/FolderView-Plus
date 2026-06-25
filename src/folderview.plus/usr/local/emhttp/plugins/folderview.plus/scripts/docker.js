@@ -9,6 +9,7 @@ const themeResolver = window.FolderViewPlusThemeResolver || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
+const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
@@ -292,6 +293,16 @@ if (
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'missing', 'Docker preview action helpers unavailable');
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'ok', 'Docker preview action helpers ready');
+}
+if (
+    window.FolderViewPlusFolderPreviewModelModuleLoaded !== true
+    || !folderPreviewModelModule
+    || typeof folderPreviewModelModule.createChildFolderPreviewModel !== 'function'
+) {
+    dockerBootstrapMissingModules.push('folder.preview-model.js');
+    setDockerFatalBannerModuleStatus('folder.preview-model.js', 'missing', 'shared folder preview model unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('folder.preview-model.js', 'ok', 'shared folder preview model ready');
 }
 if (
     window.FolderViewPlusDockerRuntimeHierarchyModuleLoaded !== true
@@ -615,6 +626,7 @@ const getDockerRuntimeHierarchyApi = () => {
             applyPreviewBorderStyle: (previewNode, settings) => applyPreviewBorderStyle(previewNode, settings),
             applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
+            previewModelModule: folderPreviewModelModule,
             buildDockerPreviewItem: (options) => buildDockerPreviewItem(options),
             appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl) =>
                 appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
@@ -622,6 +634,26 @@ const getDockerRuntimeHierarchyApi = () => {
                 decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
+            editFolder: (id) => editFolder(id),
+            openFolderActions: (id) => {
+                const trigger = document.getElementById(String(id || '').trim());
+                if (trigger && typeof trigger.dispatchEvent === 'function') {
+                    const rect = typeof trigger.getBoundingClientRect === 'function'
+                        ? trigger.getBoundingClientRect()
+                        : null;
+                    const clientX = rect ? rect.left + Math.max(1, rect.width / 2) : 0;
+                    const clientY = rect ? rect.top + Math.max(1, rect.height / 2) : 0;
+                    trigger.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                        clientX,
+                        clientY
+                    }));
+                    return;
+                }
+                addDockerFolderContext(id);
+            },
             debugEnabled: FOLDER_VIEW_DEBUG_MODE,
             console: window.console
         });

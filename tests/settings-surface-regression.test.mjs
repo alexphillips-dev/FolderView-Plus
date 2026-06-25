@@ -188,6 +188,20 @@ test('settings headings keep dedicated orange title accents across dark themes',
     assert.match(settingsCss, /#fv-settings-root h2\[data-fv-section\],[\s\S]*#fv-settings-root \.settings-mini-title,[\s\S]*#fv-settings-root \.rules-header h3,[\s\S]*color:\s*var\(--fvplus-settings-title-accent\) !important;/);
 });
 
+test('settings bootstrap verifies visible content after ready and recovers blank surfaces', () => {
+    assert.match(settingsJs, /const hasVisibleSettingsSurface = \(\) => \{/);
+    assert.match(settingsJs, /const recoverBlankSettingsSurface = \(reason = 'post-bootstrap'\) => \{/);
+    assert.match(settingsJs, /settingsUiState\.mode = 'basic';/);
+    assert.match(settingsJs, /settingsUiState\.query = '';/);
+    assert.match(settingsJs, /root\.style\.display = 'block';/);
+    assert.match(settingsJs, /FVPLUS-SET-BLANK-RECOVERED/);
+    assert.match(settingsJs, /FVPLUS-SET-BLANK-002/);
+    assert.match(settingsJs, /scheduleBlankSettingsRecoveryChecks/);
+    assert.match(settingsJs, /recoverBlankSettingsSurface\('ready'\)/);
+    assert.match(settingsJs, /recoverBlankSettingsSurface\('post-ready-early'\)/);
+    assert.match(settingsJs, /recoverBlankSettingsSurface\('post-ready-late'\)/);
+});
+
 test('folder health section uses the simplified summary-card layout', () => {
     assert.match(settingsPage, /Simple folder health snapshot/);
     assert.match(settingsJs, /folder-health-card-headline/);

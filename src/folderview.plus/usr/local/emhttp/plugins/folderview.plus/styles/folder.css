@@ -2157,12 +2157,21 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="preview"] .fv-section-shell-body.fv-section-panel-grid,
-.fv-section-shell[data-section-shell="status"] .fv-section-shell-body.fv-section-panel-grid {
+.fv-section-shell[data-section-shell="status"] .fv-section-shell-body.fv-section-panel-grid,
+.fv-section-shell[data-section-shell="advanced"] .fv-section-shell-body.fv-section-panel-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .fv-section-shell[data-section-shell="chevron"] .fv-section-shell-body.fv-section-panel-grid {
     grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+}
+
+.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body.fv-section-panel-grid {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+}
+
+.fv-section-shell[data-section-shell="actions"] .fv-section-shell-body.fv-section-panel-grid {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .fv-editor-panel {
@@ -2181,7 +2190,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-editor-panel[data-editor-panel="member-manager"],
 .fv-editor-panel[data-editor-panel="quick-actions"],
 .fv-editor-panel[data-editor-panel="context"],
-.fv-editor-panel[data-editor-panel="health"] {
+.fv-editor-panel[data-editor-panel="health"],
+.fv-editor-panel[data-editor-panel="folder-actions"],
+.fv-editor-panel[data-editor-panel="dashboard"] {
     grid-column: 1 / -1;
 }
 
@@ -2522,7 +2533,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     color: var(--fv-editor-muted);
 }
 
-.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
+.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body:not(.fv-section-panel-grid) {
     display: grid !important;
     grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
     gap: 0.68em;
@@ -2535,7 +2546,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
-.canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row {
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row,
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] .fv-editor-panel-body > .basic.fv-modern-field-row {
     width: 100% !important;
     max-width: none !important;
     margin-left: 0 !important;
@@ -2884,7 +2896,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
     .fv-section-shell[data-section-shell="preview"] .fv-section-shell-body.fv-section-panel-grid,
     .fv-section-shell[data-section-shell="chevron"] .fv-section-shell-body.fv-section-panel-grid,
-    .fv-section-shell[data-section-shell="status"] .fv-section-shell-body.fv-section-panel-grid {
+    .fv-section-shell[data-section-shell="status"] .fv-section-shell-body.fv-section-panel-grid,
+    .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body.fv-section-panel-grid,
+    .fv-section-shell[data-section-shell="actions"] .fv-section-shell-body.fv-section-panel-grid,
+    .fv-section-shell[data-section-shell="advanced"] .fv-section-shell-body.fv-section-panel-grid {
         grid-template-columns: 1fr;
     }
 

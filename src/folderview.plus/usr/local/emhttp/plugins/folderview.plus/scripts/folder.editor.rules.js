@@ -256,15 +256,17 @@
             if (!(body instanceof rootWindow.HTMLElement)) {
                 return null;
             }
+            const panelHost = rootDocument.querySelector('.fv-section-shell[data-section-shell="rules"] .fv-editor-panel[data-editor-panel="auto-rules"] .fv-editor-panel-body');
+            const target = panelHost instanceof rootWindow.HTMLElement ? panelHost : body;
             let panel = rootDocument.getElementById('fvFolderAutoRulesPanel');
-            if (!(panel instanceof rootWindow.HTMLElement) || panel.parentElement !== body) {
+            if (!(panel instanceof rootWindow.HTMLElement) || panel.parentElement !== target) {
                 if (panel instanceof rootWindow.HTMLElement) {
                     panel.remove();
                 }
                 panel = rootDocument.createElement('section');
                 panel.id = 'fvFolderAutoRulesPanel';
                 panel.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';
-                body.appendChild(panel);
+                target.appendChild(panel);
             }
             return panel;
         };

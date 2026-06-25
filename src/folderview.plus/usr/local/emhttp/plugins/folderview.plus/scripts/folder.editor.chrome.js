@@ -46,6 +46,19 @@
             { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
             { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', fields: ['status_warn_stopped_percent'] },
             { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
+        ],
+        rules: [
+            { key: 'regex', title: 'Legacy Regex', description: 'Keep the folder populated with the saved name-matching regex rule.', fields: ['regex'] },
+            { key: 'auto-rules', title: 'Advanced Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' }
+        ],
+        actions: [
+            { key: 'folder-actions', title: 'Folder Actions', description: 'Manage the custom actions shown in this folder’s context menu.', match: (row) => row?.classList?.contains('custom-action-wrapper-parent') === true }
+        ],
+        advanced: [
+            { key: 'action-behavior', title: 'Action Behavior', description: 'Override default action behavior for this folder.', fields: ['override_default_actions', 'default_action'] },
+            { key: 'expansion', title: 'Expansion', description: 'Control whether this folder opens automatically on Docker and Dashboard views.', fields: ['expand_tab', 'expand_dashboard'] },
+            { key: 'dashboard', title: 'Dashboard', description: 'Tune Dashboard-specific display behavior.', fields: ['dashboard_overflow'] },
+            { key: 'docker', title: 'Docker', description: 'Control Docker-specific advanced behavior.', fields: ['update_column'] }
         ]
     };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
@@ -518,7 +531,8 @@
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
         rules: [
-            findBasicByFieldName(form, 'regex')
+            findBasicByFieldName(form, 'regex'),
+            root.document.getElementById('fvFolderAutoRulesPanel')
         ],
         actions: [
             form.querySelector('.basic.custom-action-wrapper-parent')
@@ -698,10 +712,11 @@
                 }
             });
             if (editorPanels) {
-                Object.values(editorPanels).forEach(({ panel }) => {
+                Object.values(editorPanels).forEach(({ panel, panelDef }) => {
                     const panelBody = panel.querySelector('.fv-editor-panel-body');
                     const isEmpty = !(panelBody instanceof root.HTMLElement) || !panelBody.children.length;
-                    if (isEmpty && panel.parentElement === body) {
+                    const keepEmpty = panelDef?.keepEmpty === true;
+                    if (isEmpty && !keepEmpty && panel.parentElement === body) {
                         panel.remove();
                     }
                 });

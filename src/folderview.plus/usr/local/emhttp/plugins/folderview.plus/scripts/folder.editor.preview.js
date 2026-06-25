@@ -115,8 +115,10 @@
                 const nestedPreviewStatus = nestedPreviewCount === null
                     ? 'nested'
                     : `${nestedPreviewCount} item${nestedPreviewCount === 1 ? '' : 's'}`;
+                const nestedPreviewChildId = escapeHtml(nestedPreviewSample.id || '');
+                const nestedPreviewSourceId = escapeHtml(nestedPreviewSample.sourceId || '');
                 memberPreviewItems.push(`
-                    <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder">
+                    <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
                         <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
                         ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
                         ${previewMode === 2

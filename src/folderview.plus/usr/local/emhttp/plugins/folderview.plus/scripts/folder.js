@@ -380,6 +380,7 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 
 let allFoldersById = {};
 let activeFolderEditorFolderId = '';
+let activeFolderEditorResolvedFolderId = '';
 let folderEditorRulesApi = null;
 let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
@@ -1435,6 +1436,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
                 candidateIds.push(safeId);
             }
         };
+        addCandidateId(activeFolderEditorResolvedFolderId);
         addCandidateId(activeFolderEditorFolderId);
         addCandidateId(folderId);
         const currentName = String(form?.name?.value || '').trim();
@@ -1472,6 +1474,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
                 }
                 const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
                 return {
+                    sourceId,
                     id: safeCandidateId,
                     name: String(normalizedChild.name || 'Child folder').trim() || 'Child folder',
                     icon: String(normalizedChild.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH,
@@ -3131,6 +3134,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
 
     activeFolderEditorFolderId = safeFolderId;
+    if (safeFolderId && Object.prototype.hasOwnProperty.call(allFoldersById || {}, safeFolderId)) {
+        activeFolderEditorResolvedFolderId = safeFolderId;
+    }
     folderHierarchyState.currentFolderDescendantIds = safeFolderId
         ? computeFolderDescendantIds(allFoldersById, safeFolderId)
         : new Set();
@@ -3334,6 +3340,7 @@ const startFolderEditorRuntime = async () => {
         ).trim();
         if (!currentEditFolder || !currentEditFolderId) {
             activeFolderEditorFolderId = '';
+            activeFolderEditorResolvedFolderId = '';
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
                 `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
@@ -3368,6 +3375,7 @@ const startFolderEditorRuntime = async () => {
                 'warning'
             );
         }
+        activeFolderEditorResolvedFolderId = String(resolvedEditFolder?.id || '').trim();
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
         updateLiveSummary();
         setBootstrapDiagnostics({
@@ -3387,6 +3395,7 @@ const startFolderEditorRuntime = async () => {
         }
     } else {
         activeFolderEditorFolderId = '';
+        activeFolderEditorResolvedFolderId = '';
         setValidationBannerState(
             'Folder editor opened without a folder target.',
             'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',

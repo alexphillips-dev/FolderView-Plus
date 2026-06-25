@@ -131,7 +131,12 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /--keep-archives N/);
     assert.match(pkgBuild, /--no-prune-archives/);
     assert.match(pkgBuild, /archive_prune_keep_raw="\$\{FVPLUS_ARCHIVE_PRUNE_KEEP:-24\}"/);
+    assert.match(pkgBuild, /changes_entry_timeout_raw="\$\{FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10\}"/);
     assert.match(pkgBuild, /Archive retention keep count: \$archive_prune_keep/);
+    assert.match(pkgBuild, /CHANGES helper timeout seconds: \$changes_entry_timeout/);
+    assert.match(pkgBuild, /require_commands timeout/);
+    assert.match(pkgBuild, /timeout "\$\{changes_entry_timeout\}s" bash "\$ensure_changes_entry_script"/);
+    assert.match(pkgBuild, /CHANGES helper timed out after \$\{changes_entry_timeout\}s/);
     assert.match(pkgBuild, /bash "\$prune_archives_script" --archive-dir "\$archive_dir" --keep "\$archive_prune_keep" --current-version "\$version"/);
     assert.match(pkgBuild, /--install-smoke/);
     assert.match(pkgBuild, /--dry-run/);
@@ -567,6 +572,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /--require-explicit/);
     assert.match(ensureChanges, /FVPLUS_TARGET_RELEASE_VERSION/);
     assert.match(ensureChanges, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES/);
+    assert.match(ensureChanges, /PRUNE_STALE_CHANGES="\$\{FVPLUS_PRUNE_STALE_CHANGES:-0\}"/);
     assert.match(ensureChanges, /docs\/releases\/\$\{VERSION\}\.md/);
     assert.match(ensureChanges, /guess_category_from_subject/);
     assert.match(ensureChanges, /is_subject_metadata_only/);
@@ -576,6 +582,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /Explicit release notes are required/);
     assert.match(ensureChanges, /head_manifest_version/);
     assert.match(ensureChanges, /prune_unreleased_retry_blocks/);
+    assert.match(ensureChanges, /\[\[ "\$\{CHECK_ONLY\}" != "1" && "\$\{PRUNE_STALE_CHANGES\}" == "1" \]\]/);
     assert.match(ensureChanges, /Pruned .* unreleased local CHANGES block\(s\) newer than HEAD before inserting/);
     assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" show HEAD:folderview\.plus\.plg/);
     assert.match(ensureChanges, /version_greater_than/);

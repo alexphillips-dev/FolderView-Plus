@@ -23,6 +23,9 @@ test('folder editor live preview shows nested-folder sample when nested previews
     assert.match(folderPreviewJs, /const nestedPreviewName = escapeHtml\(nestedPreviewSample\.name \|\| 'Child folder'\);/);
     assert.match(folderPreviewJs, /const nestedPreviewIcon = escapeHtml\(nestedPreviewSample\.icon \|\| icon \|\| deps\.defaultFolderIconPath \|\| ''\);/);
     assert.match(folderPreviewJs, /const nestedPreviewStatus = nestedPreviewCount === null/);
+    assert.match(folderPreviewJs, /const nestedPreviewChildId = escapeHtml\(nestedPreviewSample\.id \|\| ''\);/);
+    assert.match(folderPreviewJs, /const nestedPreviewSourceId = escapeHtml\(nestedPreviewSample\.sourceId \|\| ''\);/);
+    assert.match(folderPreviewJs, /data-nested-preview-source="\$\{nestedPreviewSourceId\}" data-nested-preview-child="\$\{nestedPreviewChildId\}"/);
     assert.match(folderPreviewJs, /if \(hideNestedPreviewItems && previewMode !== 0\) \{/);
     assert.match(folderPreviewJs, /fv-live-member-child-folder/);
     assert.match(folderCss, /\.fv-live-member-child-folder \{/);

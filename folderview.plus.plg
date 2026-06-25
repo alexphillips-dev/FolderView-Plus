@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.24.09">
-<!ENTITY md5 "64e829990a58ef6f5a2927b1caee4cd2">
+<!ENTITY version "2026.06.24.10">
+<!ENTITY md5 "ebc7718a96763e70081aaba13cfefd2b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.24.10
+- UX: Live folder preview now prefers the saved resolved folder id when finding nested child folder chips and exposes source/child ids for troubleshooting.
+- Quality: Package builds now time out the CHANGES helper instead of waiting indefinitely and make stale changelog pruning opt-in.
+- Regression guard: Cover resolved-id nested preview lookup, child chip debug attributes, and release helper timeout/prune controls.
+
 
 ###2026.06.24.09
 - UX: Live folder preview refreshes after the full folder map loads and resolves nested child folder chips from the saved folder record.

@@ -136,7 +136,11 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /editFolder: \(id\) => editFolder\(id\)/);
     assert.match(dockerJs, /openFolderActions: \(id\) => \{/);
     assert.match(dockerJs, /const trigger = document\.getElementById\(String\(id \|\| ''\)\.trim\(\)\);/);
+    assert.match(dockerJs, /const rect = typeof trigger\.getBoundingClientRect === 'function'/);
+    assert.match(dockerJs, /const clientX = rect \? rect\.left \+ Math\.max\(1, rect\.width \/ 2\) : 0;/);
+    assert.match(dockerJs, /const clientY = rect \? rect\.top \+ Math\.max\(1, rect\.height \/ 2\) : 0;/);
     assert.match(dockerJs, /trigger\.dispatchEvent\(new MouseEvent\('click'/);
+    assert.match(dockerJs, /clientX,\s*[\r\n]+\s*clientY/);
     assert.match(dockerJs, /addDockerFolderContext\(id\);/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);

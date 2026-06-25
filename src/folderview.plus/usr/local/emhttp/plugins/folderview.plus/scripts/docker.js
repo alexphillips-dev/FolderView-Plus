@@ -626,10 +626,17 @@ const getDockerRuntimeHierarchyApi = () => {
             openFolderActions: (id) => {
                 const trigger = document.getElementById(String(id || '').trim());
                 if (trigger && typeof trigger.dispatchEvent === 'function') {
+                    const rect = typeof trigger.getBoundingClientRect === 'function'
+                        ? trigger.getBoundingClientRect()
+                        : null;
+                    const clientX = rect ? rect.left + Math.max(1, rect.width / 2) : 0;
+                    const clientY = rect ? rect.top + Math.max(1, rect.height / 2) : 0;
                     trigger.dispatchEvent(new MouseEvent('click', {
                         bubbles: true,
                         cancelable: true,
-                        view: window
+                        view: window,
+                        clientX,
+                        clientY
                     }));
                     return;
                 }

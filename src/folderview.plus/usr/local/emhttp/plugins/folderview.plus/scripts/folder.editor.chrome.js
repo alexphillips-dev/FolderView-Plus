@@ -820,6 +820,36 @@
         }
     };
 
+    const ensureAccentControlPlacement = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return;
+        }
+        const accentControls = form.querySelector('.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-color-dd > .fv-accent-inline-controls');
+        if (!(accentControls instanceof root.HTMLElement)) {
+            return;
+        }
+        const accentField = accentControls.parentElement;
+        if (!(accentField instanceof root.HTMLElement)) {
+            return;
+        }
+        let toggleGroup = accentField.querySelector(':scope > .fv-accent-toggle-group');
+        if (!(toggleGroup instanceof root.HTMLElement)) {
+            toggleGroup = root.document.createElement('span');
+            toggleGroup.className = 'fv-accent-toggle-group';
+            accentField.insertBefore(toggleGroup, accentControls);
+        }
+        Array.from(accentField.childNodes).forEach((node) => {
+            if (node === toggleGroup || node === accentControls) {
+                return;
+            }
+            toggleGroup.appendChild(node);
+        });
+        if (accentControls.parentElement !== accentField) {
+            accentField.appendChild(accentControls);
+        }
+        accentField.classList.add('is-fv-accent-grouped');
+    };
+
     const hideOrphanRows = (form) => {
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
@@ -909,6 +939,7 @@
         ensureSectionShells(form);
         decorateSectionRows(form);
         ensureIconPanelPreviewPlacement(form);
+        ensureAccentControlPlacement(form);
         hideOrphanRows(form);
         applySectionVisibility(form);
     };

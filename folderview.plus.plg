@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.24">
-<!ENTITY md5 "1f5d3dec3dcebb21d66b37937caa2bdc">
+<!ENTITY version "2026.06.25.25">
+<!ENTITY md5 "479cfaac1892d73a6e73e0e0bb1896c2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.25
+- UX: Compacted the folder editor header, tightened the right-side action buttons, and enlarged the folder title.
+
 
 ###2026.06.25.24
 - UX: Removed the Basic / Advanced editor switch and now shows all folder editor tabs by default.

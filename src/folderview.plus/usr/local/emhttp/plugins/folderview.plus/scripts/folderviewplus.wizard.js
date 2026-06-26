@@ -27,257 +27,6 @@ const normalizeSetupAssistantSafetyMode = (value) => (
         : 'auto'
 );
 
-const SETUP_ASSISTANT_CONTRAST_PREFERENCES = new Set(['auto', 'normal', 'high', 'max']);
-const SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE = Object.freeze(['normal', 'high', 'max']);
-const SETUP_ASSISTANT_CONTRAST_TARGETS = Object.freeze([
-    { selector: '.fv-setup-assistant-head h4', minRatio: 4.5 },
-    { selector: '.fv-setup-card h4', minRatio: 4.5 },
-    { selector: '.fv-setup-muted', minRatio: 4.0 },
-    { selector: '.fv-setup-step-label', minRatio: 4.0 },
-    { selector: '.fv-setup-chip', minRatio: 3.5 }
-]);
-
-let setupAssistantViewportAccessibilityBound = false;
-let setupAssistantThemeSurfaceBinding = null;
-
-const normalizeSetupAssistantContrastPreference = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return SETUP_ASSISTANT_CONTRAST_PREFERENCES.has(normalized) ? normalized : 'auto';
-};
-
-const normalizeSetupAssistantContrastTier = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE.includes(normalized) ? normalized : 'normal';
-};
-
-const resolveSetupAssistantThemeMode = () => (
-    typeof getEffectiveThemeCompatibilityMode === 'function'
-        ? getEffectiveThemeCompatibilityMode()
-        : 'auto'
-);
-
-const ensureSetupAssistantThemeSurfaceBinding = () => {
-    if (setupAssistantThemeSurfaceBinding) {
-        return setupAssistantThemeSurfaceBinding;
-    }
-    const resolver = window.FolderViewPlusThemeResolver || null;
-    if (!resolver || typeof resolver.bindThemeAwareSurface !== 'function') {
-        return null;
-    }
-    const dialog = document.getElementById('fv-setup-assistant-dialog');
-    if (!dialog) {
-        return null;
-    }
-    setupAssistantThemeSurfaceBinding = resolver.bindThemeAwareSurface({
-        root: dialog,
-        getMode: resolveSetupAssistantThemeMode,
-        reasonPrefix: 'wizard',
-        applyDelayMs: 48
-    });
-    setupAssistantThemeSurfaceBinding.bind();
-    return setupAssistantThemeSurfaceBinding;
-};
-
-const applySetupAssistantThemeSurface = (reason = 'render') => {
-    const binding = ensureSetupAssistantThemeSurfaceBinding();
-    if (binding && typeof binding.runApply === 'function') {
-        return binding.runApply(reason);
-    }
-    const resolver = window.FolderViewPlusThemeResolver || null;
-    const dialog = document.getElementById('fv-setup-assistant-dialog');
-    if (!resolver || typeof resolver.applyResolvedThemeTokens !== 'function' || !dialog) {
-        return null;
-    }
-    return resolver.applyResolvedThemeTokens(`wizard:${String(reason || 'render')}`, {
-        root: dialog,
-        getMode: resolveSetupAssistantThemeMode
-    });
-};
-
-const isSetupAssistantCompactViewport = () => {
-    const bodyCompact = document?.body?.classList?.contains('fv-mobile-compact') === true;
-    if (bodyCompact) {
-        return true;
-    }
-    try {
-        return window.matchMedia('(max-width: 860px)').matches;
-    } catch (_error) {
-        return window.innerWidth <= 860;
-    }
-};
-
-const parseSetupAssistantCssColor = (value) => {
-    const text = String(value || '').trim().toLowerCase();
-    if (!text || text === 'transparent') {
-        return null;
-    }
-    const rgbaMatch = text.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/);
-    if (rgbaMatch) {
-        return {
-            r: Math.max(0, Math.min(255, Number(rgbaMatch[1]) || 0)),
-            g: Math.max(0, Math.min(255, Number(rgbaMatch[2]) || 0)),
-            b: Math.max(0, Math.min(255, Number(rgbaMatch[3]) || 0)),
-            a: Math.max(0, Math.min(1, rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 0))
-        };
-    }
-    const hexMatch = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
-    if (!hexMatch) {
-        return null;
-    }
-    const hex = hexMatch[1];
-    if (hex.length === 3) {
-        return {
-            r: parseInt(`${hex[0]}${hex[0]}`, 16),
-            g: parseInt(`${hex[1]}${hex[1]}`, 16),
-            b: parseInt(`${hex[2]}${hex[2]}`, 16),
-            a: 1
-        };
-    }
-    if (hex.length === 6 || hex.length === 8) {
-        return {
-            r: parseInt(hex.slice(0, 2), 16),
-            g: parseInt(hex.slice(2, 4), 16),
-            b: parseInt(hex.slice(4, 6), 16),
-            a: hex.length === 8 ? Math.round((parseInt(hex.slice(6, 8), 16) / 255) * 1000) / 1000 : 1
-        };
-    }
-    return null;
-};
-
-const blendSetupAssistantColor = (foreground, background) => {
-    const alpha = Math.max(0, Math.min(1, Number(foreground?.a ?? 1)));
-    return {
-        r: (foreground.r * alpha) + (background.r * (1 - alpha)),
-        g: (foreground.g * alpha) + (background.g * (1 - alpha)),
-        b: (foreground.b * alpha) + (background.b * (1 - alpha)),
-        a: 1
-    };
-};
-
-const setupAssistantColorToLinear = (channel) => {
-    const value = Math.max(0, Math.min(255, Number(channel) || 0)) / 255;
-    return value <= 0.03928
-        ? value / 12.92
-        : ((value + 0.055) / 1.055) ** 2.4;
-};
-
-const getSetupAssistantLuminance = (color) => (
-    (0.2126 * setupAssistantColorToLinear(color.r))
-    + (0.7152 * setupAssistantColorToLinear(color.g))
-    + (0.0722 * setupAssistantColorToLinear(color.b))
-);
-
-const getSetupAssistantContrastRatio = (foreground, background) => {
-    const light = Math.max(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
-    const dark = Math.min(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
-    return (light + 0.05) / (dark + 0.05);
-};
-
-const isSetupAssistantElementVisible = (element) => {
-    if (!element) {
-        return false;
-    }
-    const style = window.getComputedStyle(element);
-    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
-        return false;
-    }
-    const rect = element.getBoundingClientRect();
-    return rect.width > 1 && rect.height > 1;
-};
-
-const resolveSetupAssistantBackgroundColor = (element, fallback) => {
-    let current = element;
-    let color = fallback;
-    while (current && current !== document.body) {
-        const parsed = parseSetupAssistantCssColor(window.getComputedStyle(current).backgroundColor);
-        if (parsed && parsed.a > 0) {
-            color = blendSetupAssistantColor(parsed, color);
-            if (parsed.a >= 0.98) {
-                break;
-            }
-        }
-        current = current.parentElement;
-    }
-    return {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: 1
-    };
-};
-
-const evaluateSetupAssistantContrast = (dialog) => {
-    const fallback = parseSetupAssistantCssColor(window.getComputedStyle(dialog).backgroundColor)
-        || { r: 10, g: 14, b: 20, a: 1 };
-    let minimumRatio = Number.POSITIVE_INFINITY;
-    const failures = [];
-    for (const target of SETUP_ASSISTANT_CONTRAST_TARGETS) {
-        const elements = Array.from(dialog.querySelectorAll(target.selector)).filter((element) => isSetupAssistantElementVisible(element));
-        if (!elements.length) {
-            continue;
-        }
-        const sample = elements[0];
-        const foreground = parseSetupAssistantCssColor(window.getComputedStyle(sample).color);
-        if (!foreground) {
-            continue;
-        }
-        const background = resolveSetupAssistantBackgroundColor(sample, fallback);
-        const ratio = getSetupAssistantContrastRatio({ ...foreground, a: 1 }, background);
-        minimumRatio = Math.min(minimumRatio, ratio);
-        if (ratio < target.minRatio) {
-            failures.push({
-                selector: target.selector,
-                ratio,
-                minRatio: target.minRatio
-            });
-        }
-    }
-    return {
-        minRatio: Number.isFinite(minimumRatio) ? minimumRatio : 21,
-        failures,
-        pass: failures.length === 0
-    };
-};
-
-const applySetupAssistantContrastTier = () => {
-    const dialog = document.querySelector('#fv-setup-assistant-dialog');
-    if (!dialog || setupAssistantState.open !== true) {
-        return;
-    }
-    const preference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
-    const candidates = preference === 'auto'
-        ? SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE
-        : [normalizeSetupAssistantContrastTier(preference)];
-    let chosenTier = candidates[candidates.length - 1] || 'normal';
-    let chosenReport = null;
-
-    for (const tier of candidates) {
-        dialog.setAttribute('data-fv-wizard-contrast-tier', tier);
-        const report = evaluateSetupAssistantContrast(dialog);
-        chosenReport = report;
-        chosenTier = tier;
-        if (report.pass) {
-            break;
-        }
-    }
-
-    setupAssistantState.contrastPreference = preference;
-    setupAssistantState.contrastTierApplied = chosenTier;
-    setupAssistantState.lastContrastReport = chosenReport;
-    dialog.setAttribute('data-fv-wizard-contrast-tier', chosenTier);
-    dialog.setAttribute('data-fv-wizard-contrast-auto', preference === 'auto' ? '1' : '0');
-    dialog.setAttribute('data-fv-wizard-contrast-score', String((chosenReport?.minRatio || 0).toFixed(2)));
-};
-
-const cycleSetupAssistantContrastPreference = () => {
-    const ordered = ['auto', 'normal', 'high', 'max'];
-    const current = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
-    const index = ordered.indexOf(current);
-    const next = ordered[(index + 1) % ordered.length];
-    setupAssistantState.contrastPreference = next;
-    renderSetupAssistant();
-};
-
 const decorateSetupAssistantChipRows = () => {
     const root = document.getElementById('fv-setup-assistant-content');
     if (!root) {
@@ -331,7 +80,6 @@ const bindSetupAssistantViewportAccessibilityHandlers = () => {
             return;
         }
         decorateSetupAssistantChipRows();
-        applySetupAssistantContrastTier();
     };
     $(window).off('resize.fvsetupwizardaccess').on('resize.fvsetupwizardaccess', () => {
         window.requestAnimationFrame(rerun);
@@ -838,8 +586,6 @@ const serializeSetupAssistantDraft = () => ({
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
     focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
-    contrastTierApplied: normalizeSetupAssistantContrastTier(setupAssistantState.contrastTierApplied),
     collapsedChipRows: setupAssistantState.collapsedChipRows && typeof setupAssistantState.collapsedChipRows === 'object'
         ? { ...setupAssistantState.collapsedChipRows }
         : {},
@@ -954,7 +700,6 @@ const buildSetupAssistantPresetPayload = () => ({
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
     focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
     importPlans: {
         docker: {
             include: setupAssistantState.importPlans?.docker?.include === true,
@@ -1012,7 +757,6 @@ const applySetupAssistantPresetPayload = (payload) => {
     setupAssistantState.applyEnvironmentDefaults = payload.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = payload.dryRunOnly === true;
     setupAssistantState.focusModeEnabled = payload.focusModeEnabled !== false;
-    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(payload.contrastPreference);
     setupAssistantState.collapsedChipRows = {};
 
     for (const type of ['docker', 'vm']) {
@@ -1142,8 +886,6 @@ const restoreSetupAssistantDraftFromStorage = () => {
     setupAssistantState.applyEnvironmentDefaults = parsed.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = parsed.dryRunOnly === true;
     setupAssistantState.focusModeEnabled = parsed.focusModeEnabled !== false;
-    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(parsed.contrastPreference);
-    setupAssistantState.contrastTierApplied = normalizeSetupAssistantContrastTier(parsed.contrastTierApplied);
     setupAssistantState.collapsedChipRows = parsed.collapsedChipRows && typeof parsed.collapsedChipRows === 'object'
         ? { ...parsed.collapsedChipRows }
         : {};
@@ -1291,9 +1033,6 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.applyEnvironmentDefaults = route !== 'migrate';
     setupAssistantState.dryRunOnly = false;
     setupAssistantState.focusModeEnabled = true;
-    setupAssistantState.contrastPreference = 'auto';
-    setupAssistantState.contrastTierApplied = 'normal';
-    setupAssistantState.lastContrastReport = null;
     setupAssistantState.context = {
         dockerFolders,
         vmFolders,
@@ -2052,24 +1791,21 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
         }
     });
 
-    if (!hints.length && (step === 'welcome' || step === 'review')) {
-        addHint('Use Focus mode for guided scanning and switch Contrast mode if text appears low-contrast.');
-    }
-
     return hints.slice(0, 4);
 };
 
 const renderSetupAssistantInlineGuidance = (stepKey, validation) => {
+    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
+    if (!isBlocking) {
+        return '';
+    }
     const hints = buildSetupAssistantFixHints(stepKey, validation);
     if (!hints.length) {
         return '';
     }
-    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
-    const toneClass = isBlocking ? 'is-blocking' : 'is-warning';
-    const title = isBlocking ? 'How to fix before continuing' : 'Suggested improvements';
     return `
-        <section class="fv-setup-inline-guidance ${toneClass}" role="status" aria-live="polite" aria-atomic="true">
-            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> ${escapeHtml(title)}</div>
+        <section class="fv-setup-inline-guidance is-blocking" role="status" aria-live="polite" aria-atomic="true">
+            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> How to fix before continuing</div>
             <ul>
                 ${hints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join('')}
             </ul>
@@ -2992,7 +2728,7 @@ const renderSetupAssistantReviewStep = () => {
             </div>
             <div class="fv-setup-import-actions">
                 <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
-                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies, <kbd>Alt</kbd> + <kbd>F</kbd> toggles focus mode, <kbd>Alt</kbd> + <kbd>C</kbd> cycles contrast.</span>
+                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies from the review step.</span>
             </div>
             ${notes.length ? `
                 <div class="fv-setup-warning-box">
@@ -3166,21 +2902,6 @@ const handleSetupAssistantDialogKeydown = (event) => {
             renderSetupAssistant();
         } else {
             renderSetupAssistant();
-        }
-        return;
-    }
-    if (event.altKey && String(event.key || '').toLowerCase() === 'f') {
-        event.preventDefault();
-        if (!setupAssistantState.busy && !setupAssistantState.applying) {
-            setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
-            renderSetupAssistant();
-        }
-        return;
-    }
-    if (event.altKey && String(event.key || '').toLowerCase() === 'c') {
-        event.preventDefault();
-        if (!setupAssistantState.busy && !setupAssistantState.applying) {
-            cycleSetupAssistantContrastPreference();
         }
         return;
     }
@@ -3444,8 +3165,7 @@ const renderSetupAssistant = () => {
     const primaryBlocker = hasBlockers ? String(stepValidation.blockers[0] || '').trim() : '';
     const blockerHintId = primaryBlocker ? 'fv-setup-blocker-hint' : '';
     const mobileSidebarSummaryOpen = setupAssistantState.mobileSidebarSummaryOpen === true;
-    const focusModeEnabled = setupAssistantState.focusModeEnabled !== false;
-    const contrastPreference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
+    const focusModeEnabled = true;
     const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
     const nextButtonLabel = step === 'welcome' ? 'Begin Setup' : 'Next';
     const restoredBanner = setupAssistantState.draftRestored && step !== 'welcome'
@@ -3505,24 +3225,6 @@ const renderSetupAssistant = () => {
                 <header class="fv-setup-assistant-head">
                     <h4>${escapeHtml(setupAssistantStepLabel(step))}</h4>
                     <div class="fv-setup-head-actions">
-                        <button type="button"
-                            id="fv-setup-focus-mode"
-                            class="${focusModeEnabled ? 'is-active' : ''}"
-                            title="Toggle focus mode (Alt+F)"
-                            aria-pressed="${focusModeEnabled ? 'true' : 'false'}"
-                            aria-keyshortcuts="Alt+F"
-                            ${canMove ? '' : 'disabled'}>
-                            <i class="fa fa-bullseye"></i> Focus
-                        </button>
-                        <label class="fv-setup-contrast-field" for="fv-setup-contrast-mode">
-                            <span>Contrast</span>
-                            <select id="fv-setup-contrast-mode" aria-label="Wizard contrast mode (Alt+C)" aria-keyshortcuts="Alt+C" ${canMove ? '' : 'disabled'}>
-                                <option value="auto" ${contrastPreference === 'auto' ? 'selected' : ''}>Auto</option>
-                                <option value="normal" ${contrastPreference === 'normal' ? 'selected' : ''}>Normal</option>
-                                <option value="high" ${contrastPreference === 'high' ? 'selected' : ''}>High</option>
-                                <option value="max" ${contrastPreference === 'max' ? 'selected' : ''}>Max</option>
-                            </select>
-                        </label>
                         <button type="button" id="fv-setup-close" aria-keyshortcuts="Escape" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> Close</button>
                     </div>
                 </header>
@@ -3569,7 +3271,6 @@ const renderSetupAssistant = () => {
     dialog.show().attr('aria-hidden', 'false');
     bindSetupAssistantViewportAccessibilityHandlers();
     decorateSetupAssistantChipRows();
-    applySetupAssistantContrastTier();
     bindSetupAssistantEvents();
     dialog.off('keydown.fvsetupa11y').on('keydown.fvsetupa11y', handleSetupAssistantDialogKeydown);
     persistSetupAssistantDraft();
@@ -4189,14 +3890,6 @@ const bindSetupAssistantEvents = () => {
 
     root.find('#fv-setup-close').off('click.fvsetup').on('click.fvsetup', () => {
         closeSetupAssistant();
-    });
-    root.find('#fv-setup-focus-mode').off('click.fvsetup').on('click.fvsetup', () => {
-        setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
-        rerender();
-    });
-    root.find('#fv-setup-contrast-mode').off('change.fvsetup').on('change.fvsetup', (event) => {
-        setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference($(event.currentTarget).val());
-        rerender();
     });
     root.find('[data-fv-chip-toggle]').off('click.fvsetup').on('click.fvsetup', (event) => {
         const rowKey = String($(event.currentTarget).attr('data-fv-chip-toggle') || '').trim();

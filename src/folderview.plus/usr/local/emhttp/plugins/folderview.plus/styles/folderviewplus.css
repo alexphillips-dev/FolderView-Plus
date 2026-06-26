@@ -6049,30 +6049,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-focus-outline: rgba(var(--fv-wizard-color-info-rgb), 0.8);
 }
 
-#fv-setup-assistant-dialog[data-fv-wizard-contrast-tier="high"] {
-    --fv-wizard-text-primary: #f3f8ff;
-    --fv-wizard-text-muted: #dbe8f8;
-    --fv-wizard-text-dim: #c9daee;
-    --fv-wizard-border-subtle: rgba(188, 211, 238, 0.34);
-    --fv-wizard-border-strong: rgba(198, 220, 245, 0.48);
-    --fv-wizard-row-bg: rgba(14, 22, 34, 0.88);
-    --fv-wizard-card-border-alpha: 0.45;
-    --fv-wizard-card-tint-alpha: 0.19;
-}
-
-#fv-setup-assistant-dialog[data-fv-wizard-contrast-tier="max"] {
-    --fv-wizard-text-primary: #ffffff;
-    --fv-wizard-text-muted: #eef5ff;
-    --fv-wizard-text-dim: #deecff;
-    --fv-wizard-border-subtle: rgba(214, 232, 255, 0.48);
-    --fv-wizard-border-strong: rgba(224, 238, 255, 0.64);
-    --fv-wizard-row-bg: rgba(12, 18, 28, 0.95);
-    --fv-wizard-card-border-alpha: 0.58;
-    --fv-wizard-card-tint-alpha: 0.24;
-    --fv-wizard-card-topline-strong-alpha: 0.98;
-    --fv-wizard-card-topline-soft-alpha: 0.54;
-}
-
 #fv-setup-assistant-dialog[data-fv-theme-class="light"] {
     color-scheme: light;
     --fv-wizard-text-primary: var(--fvplus-settings-text-primary, #324253);
@@ -6394,29 +6370,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     gap: 0.34rem;
     flex-wrap: wrap;
     justify-content: flex-end;
-}
-
-.fv-setup-contrast-field {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.32rem;
-    font-size: var(--fv-wizard-font-103);
-}
-
-.fv-setup-contrast-field > span {
-    font-weight: 600;
-    color: var(--fv-wizard-text-muted);
-}
-
-#fv-setup-contrast-mode {
-    min-width: 96px;
-    min-height: 30px;
-}
-
-#fv-setup-focus-mode.is-active {
-    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.58);
-    background: rgba(var(--fv-wizard-color-info-rgb), 0.22);
-    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45);
 }
 
 .fv-setup-assistant-body {
@@ -7295,10 +7248,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     .fv-setup-head-actions {
         width: 100%;
         justify-content: flex-start;
-    }
-
-    .fv-setup-contrast-field {
-        flex-wrap: wrap;
     }
 
     .fv-setup-chip,

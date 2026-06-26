@@ -799,8 +799,6 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const SETUP_ASSISTANT_ENV_PRESETS = \{/);
     assert.match(settingsRuntime, /const normalizeSetupAssistantExperienceMode = \(value\) =>/);
     assert.match(settingsRuntime, /const normalizeSetupAssistantSafetyMode = \(value\) =>/);
-    assert.match(settingsRuntime, /const normalizeSetupAssistantContrastPreference = \(value\) =>/);
-    assert.match(settingsRuntime, /const applySetupAssistantContrastTier = \(\) =>/);
     assert.match(settingsRuntime, /const decorateSetupAssistantChipRows = \(\) =>/);
     assert.match(settingsRuntime, /const detectSetupAssistantDefaultsFromContext = \(context = null\) =>/);
     assert.match(settingsRuntime, /const openSetupAssistant = \(force = false\) =>/);
@@ -832,8 +830,12 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /id="fv-setup-close-welcome"/);
     assert.match(settingsRuntime, /id="fv-setup-continue-draft"/);
     assert.match(settingsRuntime, /Nothing changes until you review the final setup plan and choose to apply it\./);
-    assert.match(settingsRuntime, /id="fv-setup-focus-mode"/);
-    assert.match(settingsRuntime, /id="fv-setup-contrast-mode"/);
+    assert.match(settingsRuntime, /data-fv-focus-mode="\$\{focusModeEnabled \? '1' : '0'\}"/);
+    assert.doesNotMatch(settingsRuntime, /id="fv-setup-focus-mode"/);
+    assert.doesNotMatch(settingsRuntime, /id="fv-setup-contrast-mode"/);
+    assert.doesNotMatch(settingsRuntime, /Suggested improvements/);
+    assert.doesNotMatch(settingsRuntime, /Use Focus mode/);
+    assert.doesNotMatch(settingsRuntime, />Contrast</);
     assert.match(settingsRuntime, /name="fv-setup-safety-mode"/);
     assert.doesNotMatch(settingsRuntime, /<h4>Default settings mode<\/h4>/);
     assert.doesNotMatch(settingsRuntime, /<h4>Quick start bundle<\/h4>/);

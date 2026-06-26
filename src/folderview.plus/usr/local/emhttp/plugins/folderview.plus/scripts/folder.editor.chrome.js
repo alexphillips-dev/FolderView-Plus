@@ -584,13 +584,6 @@
         const selector = `:scope > .fv-editor-panel[data-editor-panel="${panelKey}"]`;
         let panel = body.querySelector(selector);
         if (!(panel instanceof root.HTMLElement)) {
-            const iconPreviewMarkup = panelKey === 'icon'
-                ? `
-                    <span class="fv-editor-panel-icon-preview" title="Selected icon preview" aria-label="Selected icon preview">
-                        <img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
-                    </span>
-                `
-                : '';
             panel = root.document.createElement('section');
             panel.className = 'fv-editor-panel';
             panel.setAttribute('data-editor-panel', panelKey);
@@ -600,7 +593,7 @@
                     <h4>${panelDef.title}</h4>
                     ${panelDef.description ? `<p>${panelDef.description}</p>` : ''}
                 </div>
-                <div class="fv-editor-panel-body">${iconPreviewMarkup}</div>
+                <div class="fv-editor-panel-body"></div>
             `;
             body.appendChild(panel);
         }
@@ -806,6 +799,27 @@
         });
     };
 
+    const ensureIconPanelPreviewPlacement = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return;
+        }
+        const iconRow = form.querySelector('.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row');
+        if (!(iconRow instanceof root.HTMLElement)) {
+            return;
+        }
+        let preview = form.querySelector('#fvIconPanelPreview')?.closest('.fv-editor-panel-icon-preview');
+        if (!(preview instanceof root.HTMLElement)) {
+            preview = root.document.createElement('span');
+            preview.className = 'fv-editor-panel-icon-preview';
+            preview.title = 'Selected icon preview';
+            preview.setAttribute('aria-label', 'Selected icon preview');
+            preview.innerHTML = `<img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">`;
+        }
+        if (preview.parentElement !== iconRow) {
+            iconRow.appendChild(preview);
+        }
+    };
+
     const hideOrphanRows = (form) => {
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
@@ -894,6 +908,7 @@
         ensureActionBar(form);
         ensureSectionShells(form);
         decorateSectionRows(form);
+        ensureIconPanelPreviewPlacement(form);
         hideOrphanRows(form);
         applySectionVisibility(form);
     };

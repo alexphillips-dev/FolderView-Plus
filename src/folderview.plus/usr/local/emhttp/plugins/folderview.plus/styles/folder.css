@@ -2268,7 +2268,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
     position: absolute;
     top: 0.78rem;
     right: 0.78rem;
@@ -2289,14 +2288,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-editor-panel-body {
-    position: relative;
     display: grid;
     gap: 0.62rem;
     padding: 0.74rem;
-}
-
-.fv-section-shell[data-section-shell="general"] .fv-editor-panel[data-editor-panel="icon"] .fv-editor-panel-body {
-    padding-right: 4.25rem;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-editor-panel[data-editor-panel="identity"] .fv-editor-panel-body {
@@ -2361,9 +2355,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row {
+    position: relative;
     width: 100% !important;
     max-width: none !important;
     min-height: 0;
+    padding-right: 4.95rem;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {

@@ -2269,6 +2269,28 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: min(100%, 260px) !important;
 }
 
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-editor-panel-body {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-modern-field-row {
+    min-height: 94px;
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-modern-field-row > dl > dd.fv-accent-color-dd {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    width: auto !important;
+    max-width: 100% !important;
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-inline-controls {
+    align-items: center;
+    margin-top: 0;
+}
+
 .fv-section-shell[data-section-shell="general"] .fv-editor-panel[data-editor-panel="identity"] {
     grid-area: identity;
 }

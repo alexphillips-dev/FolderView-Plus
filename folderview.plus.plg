@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.06">
-<!ENTITY md5 "38f2b2dac965da79b8bb8d0c8c4c4ba3">
+<!ENTITY version "2026.06.26.07">
+<!ENTITY md5 "931d8c85af80aaeeb9599c37cde63796">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.07
+- UX: Aligned the Status tab Accent Bar enable toggle and bar color controls on one row.
+
 
 ###2026.06.26.06
 - UX: Tightened the Status tab spacing and made Docker Health options flow horizontally instead of wasting full-width rows.

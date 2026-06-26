@@ -651,7 +651,11 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-editor-panel\[data-editor-panel="identity"\]\s*\{[\s\S]*grid-area:\s*identity;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-editor-panel\[data-editor-panel="identity"\] \.fv-editor-panel-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(220px,\s*1fr\)\s+minmax\(180px,\s*0\.7fr\);/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*min-height:\s*0;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row > dl,[\s\S]*\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-list\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*min-height:\s*0;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row > dl,[\s\S]*\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-panel\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-item\s*\{[\s\S]*border-color:\s*transparent !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row \.fv-icon-picker-item\.is-selected\s*\{[\s\S]*box-shadow:\s*inset 3px 0 0 var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);

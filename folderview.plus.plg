@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.21">
-<!ENTITY md5 "4557d598afe4a86b0fa01bb67fc57e93">
+<!ENTITY version "2026.06.25.22">
+<!ENTITY md5 "39e81fd893fb9b42d7a99926c2b9d644">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.22
+- UX: Expanded the General tab parent picker and icon picker content so each fills its editor module without awkward unused space.
+- UX: Removed the heavy boxed styling from built-in icon choices while preserving hover and selected states.
+- Quality: Added layout guards for the full-width General tab parent and icon picker sections.
+
 
 ###2026.06.25.21
 - UX: Moved the folder editor tab navigation and Basic / Advanced switch below the live preview so section switching stays closer to the editable content.

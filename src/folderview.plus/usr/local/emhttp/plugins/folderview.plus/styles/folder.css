@@ -2298,6 +2298,17 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 0;
 }
 
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl > dd,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row #fvParentFolderPicker,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-current,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-toolbar,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-list {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl > dd {
     display: flex;
     flex-direction: column;
@@ -2312,6 +2323,45 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {
     align-items: flex-start;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row > dl,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row > dl > dd,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-panel {
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-toolbar > input[type="text"] {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item {
+    min-height: 40px;
+    padding: 0.34em 0.28em;
+    border-color: transparent !important;
+    border-radius: 8px;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item:hover,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item:focus-visible {
+    background: var(--fv-editor-control-surface-hover) !important;
+    border-color: transparent !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-picker-item.is-selected {
+    background: var(--fv-editor-accent-soft) !important;
+    border-color: transparent !important;
+    box-shadow: inset 3px 0 0 var(--fv-editor-title-accent) !important;
 }
 
 .fv-parent-picker-native {

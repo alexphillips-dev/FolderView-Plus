@@ -2305,11 +2305,13 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-editor-panel-body {
+    align-items: stretch;
     grid-template-columns: minmax(0, 1fr);
 }
 
 .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-modern-field-row {
-    min-height: 94px;
+    min-height: 72px;
+    padding-bottom: 0.12em;
 }
 
 .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-modern-field-row > dl > dd.fv-accent-color-dd {
@@ -2328,7 +2330,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-control-row {
     display: grid !important;
     grid-template-columns: max-content max-content;
-    align-items: start;
+    align-items: center;
     gap: 1.15rem;
 }
 

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.15">
-<!ENTITY md5 "d8b04fdfa13fbb168abed0bc3aa64f82">
+<!ENTITY version "2026.06.26.16">
+<!ENTITY md5 "1fe72561968aa852193f265e7b841ab7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.16
+- Fix: Kept the active Setup Assistant step accent inside the rounded sidebar step tile so the selected backdrop fully contains the highlight.
+
 
 ###2026.06.26.15
 - Fix: Restored the Setup Assistant theme binding helpers removed during the Focus/Contrast cleanup so the wizard renders again.

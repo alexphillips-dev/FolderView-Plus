@@ -6232,6 +6232,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-list li {
+    position: relative;
     padding: 0;
     border-radius: 8px;
     border: 1px solid var(--fv-wizard-border-subtle);
@@ -6239,6 +6240,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     font-size: var(--fv-wizard-font-103);
     color: var(--fv-wizard-text-primary);
     opacity: 0.92;
+    overflow: hidden;
 }
 
 .fv-setup-step-jump {
@@ -6268,8 +6270,20 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-step-list li.is-active {
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.65);
     background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
-    box-shadow: inset 3px 0 0 rgba(var(--fv-wizard-color-info-rgb), 0.95), 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.4);
+    box-shadow: 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.4);
     opacity: 1;
+}
+
+.fv-setup-step-list li.is-active::before {
+    content: "";
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    left: 1px;
+    width: 3px;
+    border-radius: 6px;
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.95);
+    pointer-events: none;
 }
 
 .fv-setup-step-list li.is-complete {

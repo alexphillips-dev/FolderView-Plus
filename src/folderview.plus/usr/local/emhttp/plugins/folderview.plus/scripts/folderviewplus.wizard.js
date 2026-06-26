@@ -27,6 +27,65 @@ const normalizeSetupAssistantSafetyMode = (value) => (
         : 'auto'
 );
 
+let setupAssistantViewportAccessibilityBound = false;
+let setupAssistantThemeSurfaceBinding = null;
+
+const resolveSetupAssistantThemeMode = () => (
+    typeof getEffectiveThemeCompatibilityMode === 'function'
+        ? getEffectiveThemeCompatibilityMode()
+        : 'auto'
+);
+
+const ensureSetupAssistantThemeSurfaceBinding = () => {
+    if (setupAssistantThemeSurfaceBinding) {
+        return setupAssistantThemeSurfaceBinding;
+    }
+    const resolver = window.FolderViewPlusThemeResolver || null;
+    if (!resolver || typeof resolver.bindThemeAwareSurface !== 'function') {
+        return null;
+    }
+    const dialog = document.getElementById('fv-setup-assistant-dialog');
+    if (!dialog) {
+        return null;
+    }
+    setupAssistantThemeSurfaceBinding = resolver.bindThemeAwareSurface({
+        root: dialog,
+        getMode: resolveSetupAssistantThemeMode,
+        reasonPrefix: 'wizard',
+        applyDelayMs: 48
+    });
+    setupAssistantThemeSurfaceBinding.bind();
+    return setupAssistantThemeSurfaceBinding;
+};
+
+const applySetupAssistantThemeSurface = (reason = 'render') => {
+    const binding = ensureSetupAssistantThemeSurfaceBinding();
+    if (binding && typeof binding.runApply === 'function') {
+        return binding.runApply(reason);
+    }
+    const resolver = window.FolderViewPlusThemeResolver || null;
+    const dialog = document.getElementById('fv-setup-assistant-dialog');
+    if (!resolver || typeof resolver.applyResolvedThemeTokens !== 'function' || !dialog) {
+        return null;
+    }
+    return resolver.applyResolvedThemeTokens(`wizard:${String(reason || 'render')}`, {
+        root: dialog,
+        getMode: resolveSetupAssistantThemeMode
+    });
+};
+
+const isSetupAssistantCompactViewport = () => {
+    const bodyCompact = document?.body?.classList?.contains('fv-mobile-compact') === true;
+    if (bodyCompact) {
+        return true;
+    }
+    try {
+        return window.matchMedia('(max-width: 860px)').matches;
+    } catch (_error) {
+        return window.innerWidth <= 860;
+    }
+};
+
 const decorateSetupAssistantChipRows = () => {
     const root = document.getElementById('fv-setup-assistant-content');
     if (!root) {

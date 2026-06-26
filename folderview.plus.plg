@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.01">
-<!ENTITY md5 "92c9b88f46081ecf6a3507559f25ffba">
+<!ENTITY version "2026.06.26.02">
+<!ENTITY md5 "1333935a982383d11be52810574f072c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.02
+- UX: Reworked the Preview tab modules into an even four-column layout on wide screens.
+
 
 ###2026.06.26.01
 - UX: Doubled the General tab Icon preview size so the selected folder icon is easier to see.

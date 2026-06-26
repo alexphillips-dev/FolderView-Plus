@@ -2191,7 +2191,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="preview"] .fv-section-shell-body.fv-section-panel-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .fv-section-shell[data-section-shell="chevron"] .fv-section-shell-body.fv-section-panel-grid {
@@ -2228,19 +2228,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-column: 1 / -1;
 }
 
-.fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="quick-actions"] {
-    grid-column: auto;
-}
-
-.fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="context"] {
+.fv-section-shell[data-section-shell="preview"] .fv-editor-panel {
     grid-column: 1 / -1;
 }
 
-.fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="context"] .fv-editor-panel-body {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.fv-section-shell[data-section-shell="preview"] .fv-editor-panel .fv-editor-panel-body {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
-.fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="context"] .fv-modern-field-row {
+.fv-section-shell[data-section-shell="preview"] .fv-editor-panel .fv-modern-field-row {
     min-height: 92px;
 }
 
@@ -3009,12 +3005,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 @media (max-width: 1560px) {
-    .fv-section-shell[data-section-shell="preview"] .fv-section-shell-body.fv-section-panel-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="context"] .fv-editor-panel-body {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .fv-section-shell[data-section-shell="preview"] .fv-editor-panel .fv-editor-panel-body {
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     }
 }
 
@@ -3036,7 +3028,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         grid-template-columns: 1fr;
     }
 
-    .fv-section-shell[data-section-shell="preview"] .fv-editor-panel[data-editor-panel="context"] .fv-editor-panel-body {
+    .fv-section-shell[data-section-shell="preview"] .fv-editor-panel .fv-editor-panel-body {
         grid-template-columns: 1fr;
     }
 

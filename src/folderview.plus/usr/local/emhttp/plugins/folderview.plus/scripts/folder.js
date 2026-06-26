@@ -2275,10 +2275,9 @@ const moveMemberRow = (button, direction) => {
     getFolderEditorMembersApi()?.moveMemberRow(button, direction);
 };
 
-const normalizeEditorMode = (value) => (String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'basic');
+const normalizeEditorMode = () => 'advanced';
 
-const getVisibleEditorSectionKeys = (mode = editorMode) => Object.entries(SECTION_META)
-    .filter(([, section]) => normalizeEditorMode(mode) === 'advanced' || section?.advanced !== true)
+const getVisibleEditorSectionKeys = () => Object.entries(SECTION_META)
     .map(([key]) => key);
 
 const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
@@ -2291,12 +2290,12 @@ const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
 };
 
 const loadEditorModePreference = () => {
-    return 'basic';
+    return 'advanced';
 };
 
 const saveEditorModePreference = (mode) => {
     try {
-        localStorage.setItem(EDITOR_MODE_STORAGE_KEY, normalizeEditorMode(mode));
+        localStorage.setItem(EDITOR_MODE_STORAGE_KEY, 'advanced');
     } catch (_error) {
         // Ignore storage failures; runtime mode still works.
     }
@@ -2398,11 +2397,9 @@ const applyAdvancedMode = () => {
         return;
     }
     editorMode = normalizeEditorMode(editorMode);
-    const showAdvanced = editorMode === 'advanced';
+    const showAdvanced = true;
     activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
-    $('.fv-editor-mode > button').removeClass('is-active');
-    $(`.fv-editor-mode > button[data-mode="${showAdvanced ? 'advanced' : 'basic'}"]`).addClass('is-active');
-    $('#fvHeroMode').text(showAdvanced ? 'Advanced editor' : 'Basic editor');
+    $('#fvHeroMode').text('All sections');
 
     Object.entries(SECTION_META).forEach(([key, meta]) => {
         const isAdvancedSection = meta?.advanced === true;
@@ -2411,12 +2408,6 @@ const applyAdvancedMode = () => {
         const navButton = $(`.fv-section-nav > button[data-target="${key}"]`);
         const collapseButton = heading.find('.fv-section-collapse');
         const shell = $(`.fv-section-shell[data-section-shell="${key}"]`);
-
-        if (!showAdvanced && isAdvancedSection) {
-            shell.hide();
-            navButton.hide();
-            return;
-        }
 
         const isActiveSection = activeEditorSection === key;
         shell.toggle(isActiveSection);
@@ -2432,7 +2423,7 @@ const applyAdvancedMode = () => {
         rows.toggle(!collapsed);
     });
 
-    $('.fv-advanced-setting').toggleClass('fv-advanced-hidden', !showAdvanced);
+    $('.fv-advanced-setting').removeClass('fv-advanced-hidden');
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
@@ -2891,9 +2882,7 @@ const initEditorChrome = () => {
         || !$('#fvSuggestDefaults').length
         || !$('#fvLivePanel').length
         || !$('#fvEditorNavDock').length
-        || !$('#fvHeroDefaults').length
-        || !$('.fv-editor-mode > button[data-mode="basic"]').length
-        || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
+        || !$('#fvHeroDefaults').length;
 
     if (shouldRebuildChrome) {
         $('#fvEditorChrome, #fvLivePanel, #fvEditorNavDock').remove();
@@ -2921,7 +2910,7 @@ const initEditorChrome = () => {
                                 <span id="fvHeroScope">Top-level folder</span>
                                 <span id="fvHeroMembers">0/0 included</span>
                                 <span id="fvHeroDefaults">Checking inherited defaults</span>
-                                <span id="fvHeroMode">Basic editor</span>
+                                <span id="fvHeroMode">All sections</span>
                             </div>
                         </div>
                     </div>
@@ -2971,10 +2960,6 @@ const initEditorChrome = () => {
             <div id="fvEditorNavDock" class="fv-editor-nav-dock">
                 <div class="fv-editor-nav-row">
                     <div class="fv-section-nav">${navButtons}</div>
-                    <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                        <button type="button" data-mode="basic" class="is-active">Basic</button>
-                        <button type="button" data-mode="advanced">Advanced</button>
-                    </div>
                 </div>
             </div>
         `);
@@ -3121,9 +3106,6 @@ const initEditorChrome = () => {
         applyEditorPluginDefaults();
     });
 
-    $('.fv-editor-mode > button').off('click').on('click', function onModeClick() {
-        setEditorMode($(this).attr('data-mode'));
-    });
     $('.fv-section-collapse').off('click').on('click', function onCollapseClick() {
         toggleAdvancedSectionCollapse($(this).attr('data-section'));
     });

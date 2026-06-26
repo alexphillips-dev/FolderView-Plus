@@ -63,12 +63,11 @@
     };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const pageType = String(root.FolderViewPlusFolderEditorPageType || '').trim().toLowerCase();
-    const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
     const pageReportFolderEditorBootstrap = typeof root.FolderViewPlusReportFolderEditorBootstrap === 'function'
         ? root.FolderViewPlusReportFolderEditorBootstrap.bind(root)
         : null;
-    let currentMode = BASIC_MODE;
+    let currentMode = ADVANCED_MODE;
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
     let folderEditorTypeApi = null;
@@ -289,9 +288,7 @@
         return sourceRow;
     };
 
-    const getVisibleSectionKeys = (mode = currentMode) => Object.entries(SECTION_META)
-        .filter(([, meta]) => mode === ADVANCED_MODE || meta.advanced !== true)
-        .map(([key]) => key);
+    const getVisibleSectionKeys = () => Object.keys(SECTION_META);
 
     const normalizeSectionKey = (sectionKey, mode = currentMode) => {
         const visible = getVisibleSectionKeys(mode);
@@ -317,7 +314,7 @@
                             <span id="fvHeroScope">Top-level folder</span>
                             <span id="fvHeroMembers">0/0 included</span>
                             <span id="fvHeroDefaults">Checking inherited defaults</span>
-                            <span id="fvHeroMode">Basic editor</span>
+                            <span id="fvHeroMode">All sections</span>
                         </div>
                     </div>
                 </div>
@@ -416,10 +413,6 @@
                             <em class="fv-nav-count" style="display:none;"></em>
                         </button>
                     `).join('')}
-                </div>
-                <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                    <button type="button" data-mode="basic" class="is-active">Basic</button>
-                    <button type="button" data-mode="advanced">Advanced</button>
                 </div>
             </div>
         </div>
@@ -611,8 +604,7 @@
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        const panelDefs = (SECTION_PANEL_META[sectionKey] || [])
-            .filter((panelDef) => currentMode === ADVANCED_MODE || panelDef?.advancedOnly !== true);
+        const panelDefs = SECTION_PANEL_META[sectionKey] || [];
         if (!panelDefs.length) {
             return null;
         }
@@ -831,25 +823,15 @@
 
     const applySectionVisibility = (form) => {
         currentSection = normalizeSectionKey(currentSection, currentMode);
-        const showAdvanced = currentMode === ADVANCED_MODE;
-        const modeButtons = Array.from(form.querySelectorAll('.fv-editor-mode > button[data-mode]'));
-        modeButtons.forEach((button) => {
-            button.classList.toggle('is-active', button.getAttribute('data-mode') === currentMode);
-        });
         const heroMode = form.querySelector('#fvHeroMode');
         if (heroMode) {
-            heroMode.textContent = showAdvanced ? 'Advanced editor' : 'Basic editor';
+            heroMode.textContent = 'All sections';
         }
 
         Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
             const navButton = form.querySelector(`.fv-section-nav > button[data-target="${sectionKey}"]`);
             const shell = form.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
             if (!shell || !navButton) {
-                return;
-            }
-            if (!showAdvanced && meta.advanced === true) {
-                navButton.style.display = 'none';
-                shell.style.display = 'none';
                 return;
             }
             const isActive = currentSection === sectionKey;
@@ -894,13 +876,6 @@
                 applySectionVisibility(form);
             });
         });
-        Array.from(form.querySelectorAll('.fv-editor-mode > button[data-mode]')).forEach((button) => {
-            button.addEventListener('click', () => {
-                currentMode = button.getAttribute('data-mode') === ADVANCED_MODE ? ADVANCED_MODE : BASIC_MODE;
-                currentSection = normalizeSectionKey(currentSection, currentMode);
-                refreshModernEditorChromeLayout();
-            });
-        });
     };
 
     const refreshModernEditorChromeLayout = () => {
@@ -930,7 +905,7 @@
         if (!form) {
             return;
         }
-        currentMode = BASIC_MODE;
+        currentMode = ADVANCED_MODE;
         currentSection = 'general';
         refreshModernEditorChromeLayout();
         bindTopButtons(form);

@@ -221,7 +221,11 @@
             $('#fvLivePreview').text(previewLabel);
             $('#fvLiveContext').text(contextLabel);
             $('#fvHeroTitle').text(folderName);
-            $('#fvHeroIcon').attr('src', String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '');
+            const selectedIconPath = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
+            $('#fvHeroIcon').attr('src', selectedIconPath);
+            $('#fvIconPanelPreview')
+                .attr('src', selectedIconPath)
+                .attr('title', selectedIconPath ? `Selected icon: ${selectedIconPath}` : 'Selected icon preview');
             $('#fvHeroScope').text(
                 normalizeParentFolderId(form.parent_folder_id?.value || '')
                     ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`

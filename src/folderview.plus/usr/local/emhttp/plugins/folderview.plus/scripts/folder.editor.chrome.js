@@ -584,6 +584,13 @@
         const selector = `:scope > .fv-editor-panel[data-editor-panel="${panelKey}"]`;
         let panel = body.querySelector(selector);
         if (!(panel instanceof root.HTMLElement)) {
+            const iconPreviewMarkup = panelKey === 'icon'
+                ? `
+                    <span class="fv-editor-panel-icon-preview" title="Selected icon preview" aria-label="Selected icon preview">
+                        <img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
+                    </span>
+                `
+                : '';
             panel = root.document.createElement('section');
             panel.className = 'fv-editor-panel';
             panel.setAttribute('data-editor-panel', panelKey);
@@ -592,6 +599,7 @@
                 <div class="fv-editor-panel-head">
                     <h4>${panelDef.title}</h4>
                     ${panelDef.description ? `<p>${panelDef.description}</p>` : ''}
+                    ${iconPreviewMarkup}
                 </div>
                 <div class="fv-editor-panel-body"></div>
             `;

@@ -2225,6 +2225,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.fv-section-shell[data-section-shell="advanced"] .fv-section-shell-body.fv-section-panel-grid {
+    grid-template-areas:
+        "action expansion"
+        "dashboard docker";
+}
+
 .fv-section-shell[data-section-shell="preview"] .fv-section-shell-body.fv-section-panel-grid {
     grid-template-columns: minmax(0, 1fr);
 }
@@ -2258,9 +2264,24 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-editor-panel[data-editor-panel="quick-actions"],
 .fv-editor-panel[data-editor-panel="context"],
 .fv-editor-panel[data-editor-panel="health"],
-.fv-editor-panel[data-editor-panel="folder-actions"],
-.fv-editor-panel[data-editor-panel="dashboard"] {
+.fv-editor-panel[data-editor-panel="folder-actions"] {
     grid-column: 1 / -1;
+}
+
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel[data-editor-panel="action-behavior"] {
+    grid-area: action;
+}
+
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel[data-editor-panel="expansion"] {
+    grid-area: expansion;
+}
+
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel[data-editor-panel="dashboard"] {
+    grid-area: dashboard;
+}
+
+.fv-section-shell[data-section-shell="advanced"] .fv-editor-panel[data-editor-panel="docker"] {
+    grid-area: docker;
 }
 
 .fv-section-shell[data-section-shell="preview"] .fv-editor-panel {
@@ -3216,6 +3237,14 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     .fv-section-shell[data-section-shell="actions"] .fv-section-shell-body.fv-section-panel-grid,
     .fv-section-shell[data-section-shell="advanced"] .fv-section-shell-body.fv-section-panel-grid {
         grid-template-columns: 1fr;
+    }
+
+    .fv-section-shell[data-section-shell="advanced"] .fv-section-shell-body.fv-section-panel-grid {
+        grid-template-areas:
+            "action"
+            "expansion"
+            "dashboard"
+            "docker";
     }
 
     .fv-section-shell[data-section-shell="preview"] .fv-editor-panel .fv-editor-panel-body {

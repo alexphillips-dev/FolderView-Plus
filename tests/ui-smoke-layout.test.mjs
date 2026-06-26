@@ -632,13 +632,17 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderChromeJs, /members:\s*\[[\s\S]*key:\s*'member-manager'/);
     assert.match(folderChromeJs, /preview:\s*\[[\s\S]*key:\s*'layout'[\s\S]*key:\s*'child-folders'[\s\S]*key:\s*'appearance'[\s\S]*key:\s*'quick-actions'[\s\S]*key:\s*'context'/);
     assert.match(folderChromeJs, /chevron:\s*\[[\s\S]*key:\s*'style'[\s\S]*key:\s*'color'/);
-    assert.match(folderChromeJs, /status:\s*\[[\s\S]*key:\s*'status-colors'[\s\S]*key:\s*'accent'[\s\S]*key:\s*'thresholds'[\s\S]*key:\s*'health'/);
+    assert.match(folderChromeJs, /status:\s*\[[\s\S]*key:\s*'status-colors'[\s\S]*key:\s*'accent'[\s\S]*key:\s*'thresholds'[\s\S]*advancedOnly:\s*true[\s\S]*key:\s*'health'[\s\S]*advancedOnly:\s*true/);
     assert.match(folderChromeJs, /rules:\s*\[[\s\S]*key:\s*'regex'[\s\S]*key:\s*'auto-rules'[\s\S]*keepEmpty:\s*true/);
     assert.match(folderChromeJs, /actions:\s*\[[\s\S]*key:\s*'folder-actions'/);
     assert.match(folderChromeJs, /advanced:\s*\[[\s\S]*key:\s*'action-behavior'[\s\S]*key:\s*'expansion'[\s\S]*key:\s*'dashboard'[\s\S]*key:\s*'docker'/);
     assert.match(folderChromeJs, /const ensureEditorPanel = \(body,\s*sectionKey,\s*panelDef\) =>/);
     assert.match(folderChromeJs, /panel\.className = 'fv-editor-panel';/);
     assert.match(folderChromeJs, /const keepEmpty = panelDef\?\.keepEmpty === true;/);
+    assert.match(folderChromeJs, /filter\(\(panelDef\) => currentMode === ADVANCED_MODE \|\| panelDef\?\.advancedOnly !== true\)/);
+    assert.match(folderChromeJs, /const activePanelKeys = new Set\(panelDefs\.map/);
+    assert.match(folderChromeJs, /if \(!activePanelKeys\.has\(panelKey\)\) \{[\s\S]*panel\.remove\(\);/);
+    assert.match(folderChromeJs, /currentMode = button\.getAttribute\('data-mode'\) === ADVANCED_MODE \? ADVANCED_MODE : BASIC_MODE;[\s\S]*refreshModernEditorChromeLayout\(\);/);
     assert.match(folderChromeJs, /body\.classList\.toggle\('fv-section-panel-grid', Boolean\(editorPanels\)\);/);
     assert.match(folderChromeJs, /row\.querySelector\('\[name="parent_folder_id"\]'\)/);
     assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);

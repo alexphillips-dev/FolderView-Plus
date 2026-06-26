@@ -969,20 +969,32 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-accent-color-dd {
-    display: block;
+    display: flex !important;
+    align-items: center;
+    gap: 0.7em;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 .fv-accent-inline-controls {
-    margin-top: 0.68em;
-    display: grid;
-    gap: 0.34em;
+    margin-top: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.48em;
+    width: auto;
+    max-width: 100%;
 }
 
 .fv-accent-inline-label {
-    display: block;
+    display: inline-flex;
+    align-items: center;
     font-size: 0.95rem;
     color: var(--fv-editor-muted);
+    white-space: nowrap;
+}
+
+.fv-accent-inline-controls .fv-inline-control-row {
+    padding: 0;
 }
 
 .fv-inline-reset-btn {

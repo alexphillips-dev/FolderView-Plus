@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.22">
-<!ENTITY md5 "39e81fd893fb9b42d7a99926c2b9d644">
+<!ENTITY version "2026.06.25.23">
+<!ENTITY md5 "d0e80c276390df0d2bd7d33b8d33015f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.23
+- UX: Reworked the Status tab accent bar controls so the bar color picker sits beside the enable toggle.
+- UX: Hid advanced-only Status Thresholds and Docker Health panels while the folder editor is in Basic mode.
+- Quality: Added editor layout guards for Basic/Advanced status panel filtering and accent control alignment.
+
 
 ###2026.06.25.22
 - UX: Expanded the General tab parent picker and icon picker content so each fills its editor module without awkward unused space.

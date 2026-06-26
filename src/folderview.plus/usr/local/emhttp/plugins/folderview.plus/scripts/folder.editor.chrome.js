@@ -44,8 +44,8 @@
         status: [
             { key: 'status-colors', title: 'Status Colors', description: 'Set the started, paused, and stopped colors used by folder rows.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
             { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
-            { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', fields: ['status_warn_stopped_percent'] },
-            { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
+            { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', advancedOnly: true, fields: ['status_warn_stopped_percent'] },
+            { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
         ],
         rules: [
             { key: 'regex', title: 'Legacy Regex', description: 'Keep the folder populated with the saved name-matching regex rule.', fields: ['regex'] },
@@ -611,10 +611,18 @@
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        const panelDefs = SECTION_PANEL_META[sectionKey] || [];
+        const panelDefs = (SECTION_PANEL_META[sectionKey] || [])
+            .filter((panelDef) => currentMode === ADVANCED_MODE || panelDef?.advancedOnly !== true);
         if (!panelDefs.length) {
             return null;
         }
+        const activePanelKeys = new Set(panelDefs.map((panelDef) => String(panelDef?.key || '').trim()).filter(Boolean));
+        Array.from(body.querySelectorAll(':scope > .fv-editor-panel')).forEach((panel) => {
+            const panelKey = String(panel.getAttribute('data-editor-panel') || '').trim();
+            if (!activePanelKeys.has(panelKey)) {
+                panel.remove();
+            }
+        });
         const panels = {};
         panelDefs.forEach((panelDef) => {
             const panel = ensureEditorPanel(body, sectionKey, panelDef);
@@ -890,7 +898,7 @@
             button.addEventListener('click', () => {
                 currentMode = button.getAttribute('data-mode') === ADVANCED_MODE ? ADVANCED_MODE : BASIC_MODE;
                 currentSection = normalizeSectionKey(currentSection, currentMode);
-                applySectionVisibility(form);
+                refreshModernEditorChromeLayout();
             });
         });
     };

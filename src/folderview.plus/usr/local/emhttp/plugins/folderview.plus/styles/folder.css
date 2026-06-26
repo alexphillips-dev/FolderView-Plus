@@ -2240,6 +2240,35 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 92px;
 }
 
+.fv-section-shell[data-section-shell="status"] .fv-section-shell-body.fv-section-panel-grid {
+    gap: 0.64em;
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"],
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] {
+    grid-column: 1 / -1;
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"] .fv-editor-panel-body,
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] .fv-editor-panel-body {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] .fv-modern-field-row,
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"] .fv-modern-field-row {
+    min-height: 92px;
+}
+
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] .fv-modern-field-row input[type="text"],
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] .fv-modern-field-row input[type="number"],
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="health"] .fv-modern-field-row select,
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"] .fv-modern-field-row input[type="text"],
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"] .fv-modern-field-row input[type="number"],
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="thresholds"] .fv-modern-field-row select {
+    width: min(100%, 260px) !important;
+    max-width: min(100%, 260px) !important;
+}
+
 .fv-section-shell[data-section-shell="general"] .fv-editor-panel[data-editor-panel="identity"] {
     grid-area: identity;
 }

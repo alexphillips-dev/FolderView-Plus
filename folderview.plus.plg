@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.05">
-<!ENTITY md5 "6a025bebb6c8afb1b33aa2766b14ef46">
+<!ENTITY version "2026.06.26.06">
+<!ENTITY md5 "38f2b2dac965da79b8bb8d0c8c4c4ba3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.06
+- UX: Tightened the Status tab spacing and made Docker Health options flow horizontally instead of wasting full-width rows.
+
 
 ###2026.06.26.05
 - UX: Redesigned the General tab Parent Folder module with a clearer current location summary, pinned top-level option, integrated search, and improved folder rows.

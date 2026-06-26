@@ -653,7 +653,9 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="thresholds"\],[\s\S]*\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="health"\]\s*\{[\s\S]*grid-column:\s*1 \/ -1;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="thresholds"\] \.fv-editor-panel-body,[\s\S]*\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="health"\] \.fv-editor-panel-body\s*\{[\s\S]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(220px,\s*1fr\)\);/);
     assert.match(folderChromeJs, /const ensureAccentControlPlacement = \(form\) =>/);
+    assert.match(folderChromeJs, /root\.FolderViewPlusEnsureAccentControlPlacement = ensureAccentControlPlacement;/);
     assert.match(folderChromeJs, /toggleGroup\.className = 'fv-accent-toggle-group';/);
+    assert.match(folderJs, /FolderViewPlusEnsureAccentControlPlacement\(getForm\(\)\)/);
     assert.match(folderCss, /\.fv-accent-toggle-group\s*\{[\s\S]*flex-direction:\s*column;[\s\S]*min-width:\s*78px;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="accent"\] \.fv-modern-field-row > dl > dd\.fv-accent-color-dd\s*\{[\s\S]*display:\s*flex !important;[\s\S]*flex-wrap:\s*nowrap;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="preview"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);

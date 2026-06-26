@@ -521,7 +521,6 @@
         ],
         status: [
             findBasicByFieldName(form, 'folder_accent_enabled'),
-            findBasicByFieldName(form, 'folder_accent_color'),
             findBasicByFieldName(form, 'status_color_started'),
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
@@ -824,11 +823,11 @@
         if (!(form instanceof root.HTMLElement)) {
             return;
         }
-        const accentControls = form.querySelector('.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-color-dd > .fv-accent-inline-controls');
+        const accentControls = form.querySelector('.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-color-dd .fv-accent-inline-controls');
         if (!(accentControls instanceof root.HTMLElement)) {
             return;
         }
-        const accentField = accentControls.parentElement;
+        const accentField = accentControls.closest('.fv-accent-color-dd');
         if (!(accentField instanceof root.HTMLElement)) {
             return;
         }
@@ -849,6 +848,8 @@
         }
         accentField.classList.add('is-fv-accent-grouped');
     };
+
+    root.FolderViewPlusEnsureAccentControlPlacement = ensureAccentControlPlacement;
 
     const hideOrphanRows = (form) => {
         Array.from(form.children).forEach((child) => {

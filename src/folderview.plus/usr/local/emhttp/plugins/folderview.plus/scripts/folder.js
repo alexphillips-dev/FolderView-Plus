@@ -3489,6 +3489,9 @@ const startFolderEditorRuntime = async () => {
 
     // create the *cool* unraid button for the autostart
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
+    if (typeof window.FolderViewPlusEnsureAccentControlPlacement === 'function') {
+        window.FolderViewPlusEnsureAccentControlPlacement(getForm());
+    }
 
     // iterate over the folders
     for (const value of Object.values(folders)) {

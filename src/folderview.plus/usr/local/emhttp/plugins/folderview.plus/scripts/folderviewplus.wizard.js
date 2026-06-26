@@ -2567,116 +2567,69 @@ const renderSetupAssistantWelcomeStep = () => {
         dockerTemplates: 0,
         vmTemplates: 0
     };
-    const routeDescriptions = {
-        new: 'New install (recommended when starting fresh).',
-        migrate: 'Migrate existing config from export files.',
-        advanced: 'Advanced custom setup with manual choices.'
-    };
-    const routeLabelByKey = {
-        new: 'New install',
-        migrate: 'Migrate',
-        advanced: 'Advanced'
-    };
-    const selectedQuickPreset = normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset);
-    const experienceMode = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode);
-    const detectedRoute = ['new', 'migrate', 'advanced'].includes(setupAssistantState.suggestedRoute)
-        ? setupAssistantState.suggestedRoute
-        : 'new';
-    const detectedMode = setupAssistantState.suggestedMode === 'advanced' ? 'advanced' : 'basic';
-    const detectedPreset = normalizeQuickProfilePresetId(setupAssistantState.suggestedQuickPreset, 'balanced');
-    const savedPresets = readSetupAssistantPresetStore();
-    const availablePresetIds = new Set(savedPresets.map((entry) => String(entry.id || '')));
-    if (!availablePresetIds.has(String(setupAssistantState.selectedPresetId || ''))) {
-        setupAssistantState.selectedPresetId = savedPresets.length ? String(savedPresets[0].id || '') : '';
-    }
-    const selectedPresetId = String(setupAssistantState.selectedPresetId || '');
-    const detectedSummary = `Auto-detected: ${routeLabelByKey[detectedRoute]} route, ${detectedMode} mode, ${detectedPreset} bundle.`;
-    const quickPresetHtml = Object.entries(QUICK_PROFILE_PRESETS).map(([presetKey, preset]) => `
-        <button type="button"
-            class="fv-setup-quick-preset ${selectedQuickPreset === presetKey ? 'is-active' : ''}"
-            data-fv-setup-quick-preset="${escapeHtml(presetKey)}">
-            <span class="fv-setup-quick-preset-title">${escapeHtml(preset.label)}</span>
-            <span class="fv-setup-quick-preset-help">${escapeHtml(preset.description)}</span>
-        </button>
-    `).join('');
+    const detectedCounts = [
+        Number(context.dockerFolders) > 0 ? `${context.dockerFolders} Docker folder${Number(context.dockerFolders) === 1 ? '' : 's'}` : '',
+        Number(context.vmFolders) > 0 ? `${context.vmFolders} VM folder${Number(context.vmFolders) === 1 ? '' : 's'}` : '',
+        (Number(context.dockerRules) + Number(context.vmRules)) > 0 ? `${Number(context.dockerRules) + Number(context.vmRules)} rule${(Number(context.dockerRules) + Number(context.vmRules)) === 1 ? '' : 's'}` : '',
+        (Number(context.dockerBackups) + Number(context.vmBackups)) > 0 ? `${Number(context.dockerBackups) + Number(context.vmBackups)} backup${(Number(context.dockerBackups) + Number(context.vmBackups)) === 1 ? '' : 's'}` : ''
+    ].filter(Boolean);
+    const draftHtml = setupAssistantState.draftRestored
+        ? `
+            <section class="fv-setup-welcome-draft" aria-live="polite">
+                <div>
+                    <h4>Continue your previous setup?</h4>
+                    <p class="fv-setup-muted">A draft from ${escapeHtml(formatSetupAssistantSavedAt(setupAssistantState.restoredDraftSavedAt))} was restored. You can continue it or start fresh.</p>
+                </div>
+                <div class="fv-setup-welcome-actions">
+                    <button type="button" id="fv-setup-continue-draft"><i class="fa fa-play"></i> Continue draft</button>
+                    <button type="button" id="fv-setup-discard-draft"><i class="fa fa-trash"></i> Start fresh</button>
+                </div>
+            </section>
+        `
+        : '';
+    const detectedHtml = detectedCounts.length
+        ? `<p class="fv-setup-welcome-detected">Detected ${escapeHtml(detectedCounts.join(', '))}. The next steps will use this only to suggest a setup plan.</p>`
+        : '<p class="fv-setup-welcome-detected">The wizard will scan your current setup and suggest a safe starting plan.</p>';
     return `
-        <div class="fv-setup-step-grid">
-            <section class="fv-setup-card" data-fv-card-tone="env">
-                <h4>Detected environment</h4>
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="welcome-environment">
-                    <span class="fv-setup-chip">Docker folders: ${context.dockerFolders}</span>
-                    <span class="fv-setup-chip">VM folders: ${context.vmFolders}</span>
-                    <span class="fv-setup-chip">Rules: ${context.dockerRules + context.vmRules}</span>
-                    <span class="fv-setup-chip">Backups: ${context.dockerBackups + context.vmBackups}</span>
-                    <span class="fv-setup-chip">Templates: ${context.dockerTemplates + context.vmTemplates}</span>
-                </div>
-                <div class="fv-setup-route-grid">
-                    ${['new', 'migrate', 'advanced'].map((route) => `
-                        <label class="fv-setup-route-option ${setupAssistantState.route === route ? 'is-active' : ''}">
-                            <input type="radio" name="fv-setup-route" value="${route}" ${setupAssistantState.route === route ? 'checked' : ''}>
-                            <span class="fv-setup-route-title">${escapeHtml(route === 'new' ? 'New install' : route === 'migrate' ? 'Migrate existing' : 'Advanced custom')}</span>
-                            <span class="fv-setup-route-help">${escapeHtml(routeDescriptions[route])}</span>
-                        </label>
-                    `).join('')}
-                </div>
-                <div class="fv-setup-detected-row">
-                    <span class="fv-setup-muted">${escapeHtml(detectedSummary)} ${setupAssistantState.suggestedReason ? `(${escapeHtml(setupAssistantState.suggestedReason)})` : ''}</span>
-                    <button type="button" id="fv-setup-apply-detected"><i class="fa fa-magic"></i> Use detected setup</button>
+        <div class="fv-setup-welcome-screen">
+            <section class="fv-setup-welcome-hero">
+                <div class="fv-setup-welcome-mark" aria-hidden="true"><i class="fa fa-folder-open-o"></i></div>
+                <div class="fv-setup-welcome-copy">
+                    <p class="fv-setup-welcome-kicker">FolderView Plus Setup Assistant</p>
+                    <h3>Organize your Docker containers and VMs into folders.</h3>
+                    <p>FolderView Plus helps group related apps, preview changes before they are applied, and optionally keep future apps organized automatically.</p>
+                    ${detectedHtml}
+                    <div class="fv-setup-welcome-actions">
+                        <button type="button" id="fv-setup-begin" class="fv-setup-primary-action"><i class="fa fa-arrow-right"></i> Begin Setup</button>
+                        <button type="button" id="fv-setup-close-welcome"><i class="fa fa-times"></i> Skip wizard</button>
+                    </div>
                 </div>
             </section>
-            <section class="fv-setup-card" data-fv-card-tone="mode">
-                <h4>Default settings mode</h4>
-                <p class="fv-setup-muted">You can change this any time in the top bar.</p>
-                <div class="fv-setup-mode-toggle">
-                    <button type="button" class="${setupAssistantState.mode === 'basic' ? 'is-active' : ''}" data-fv-setup-mode="basic">Basic</button>
-                    <button type="button" class="${setupAssistantState.mode === 'advanced' ? 'is-active' : ''}" data-fv-setup-mode="advanced">Advanced</button>
-                </div>
-                <p class="fv-setup-muted">Basic keeps day-to-day settings visible. Advanced unlocks all sections.</p>
-                <h4>Wizard detail level</h4>
-                <p class="fv-setup-muted">Guided keeps setup simple. Expert exposes every control.</p>
-                <div class="fv-setup-mode-toggle">
-                    <button type="button" class="${experienceMode === 'guided' ? 'is-active' : ''}" data-fv-setup-experience="guided">Guided</button>
-                    <button type="button" class="${experienceMode === 'expert' ? 'is-active' : ''}" data-fv-setup-experience="expert">Expert</button>
-                </div>
+            ${draftHtml}
+            <section class="fv-setup-welcome-benefits" aria-label="What FolderView Plus can do">
+                <article>
+                    <i class="fa fa-th-large" aria-hidden="true"></i>
+                    <h4>Group related apps</h4>
+                    <p>Keep media, downloads, utilities, home automation, and other apps together.</p>
+                </article>
+                <article>
+                    <i class="fa fa-list-alt" aria-hidden="true"></i>
+                    <h4>Preview before applying</h4>
+                    <p>You will review folders, assignments, rules, and settings before anything changes.</p>
+                </article>
+                <article>
+                    <i class="fa fa-magic" aria-hidden="true"></i>
+                    <h4>Stay organized automatically</h4>
+                    <p>Optional starter rules can place future matching apps into the right folders.</p>
+                </article>
             </section>
-            <section class="fv-setup-card" data-fv-card-tone="bundle">
-                <h4>Quick start bundle</h4>
-                <p class="fv-setup-muted">Pick a ready-made bundle. You can still fine tune profile and behavior in later steps.</p>
-                <div class="fv-setup-quick-preset-grid">
-                    ${quickPresetHtml}
-                </div>
-                <p class="fv-setup-muted">Current bundle: <strong>${escapeHtml(selectedQuickPreset)}</strong></p>
-            </section>
-            <section class="fv-setup-card" data-fv-card-tone="preset">
-                <h4>Saved wizard presets</h4>
-                <p class="fv-setup-muted">Save your preferred setup path and reuse it later.</p>
-                <div class="fv-setup-field-grid">
-                    <label class="fv-setup-field">
-                        <span>Preset name</span>
-                        <input type="text" id="fv-setup-preset-name" value="${escapeHtml(setupAssistantState.presetDraftName || '')}" maxlength="60" placeholder="Example: media-stack-fast">
-                    </label>
-                    <label class="fv-setup-field">
-                        <span>Saved presets</span>
-                        <select id="fv-setup-preset-select">
-                            <option value="">Select preset</option>
-                            ${savedPresets.map((entry) => `
-                                <option value="${escapeHtml(entry.id)}" ${selectedPresetId === String(entry.id || '') ? 'selected' : ''}>
-                                    ${escapeHtml(entry.name)} (${escapeHtml(formatSetupAssistantSavedAt(entry.savedAt))})
-                                </option>
-                            `).join('')}
-                        </select>
-                    </label>
-                </div>
-                <div class="fv-setup-import-actions">
-                    <button type="button" id="fv-setup-preset-save"><i class="fa fa-save"></i> Save current</button>
-                    <button type="button" id="fv-setup-preset-load" ${selectedPresetId ? '' : 'disabled'}><i class="fa fa-download"></i> Load</button>
-                    <button type="button" id="fv-setup-preset-delete" ${selectedPresetId ? '' : 'disabled'}><i class="fa fa-trash"></i> Delete</button>
-                </div>
+            <section class="fv-setup-welcome-safety">
+                <i class="fa fa-shield" aria-hidden="true"></i>
+                <span>Nothing changes until you review the final setup plan and choose to apply it.</span>
             </section>
         </div>
     `;
 };
-
 const renderSetupAssistantProfileStep = () => {
     return `
         <div class="fv-setup-card" data-fv-card-tone="profile">
@@ -3494,7 +3447,8 @@ const renderSetupAssistant = () => {
     const focusModeEnabled = setupAssistantState.focusModeEnabled !== false;
     const contrastPreference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
     const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
-    const restoredBanner = setupAssistantState.draftRestored
+    const nextButtonLabel = step === 'welcome' ? 'Begin Setup' : 'Next';
+    const restoredBanner = setupAssistantState.draftRestored && step !== 'welcome'
         ? `
             <div class="fv-setup-draft-banner">
                 <span><i class="fa fa-history"></i> Restored draft from ${escapeHtml(formatSetupAssistantSavedAt(setupAssistantState.restoredDraftSavedAt))}.</span>
@@ -3587,7 +3541,7 @@ const renderSetupAssistant = () => {
                 <footer class="fv-setup-assistant-foot">
                     <div class="fv-setup-foot-left">
                         <button type="button" id="fv-setup-prev" aria-keyshortcuts="Alt+ArrowLeft" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
-                        <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>Next <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>${escapeHtml(nextButtonLabel)} <i class="fa fa-arrow-right"></i></button>
                         <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
                     </div>
                     <div class="fv-setup-foot-right">
@@ -4291,6 +4245,13 @@ const bindSetupAssistantEvents = () => {
         const target = Number($(event.currentTarget).attr('data-fv-setup-step-jump'));
         jumpSetupAssistantToStep(target);
         rerender();
+    });
+    root.find('#fv-setup-begin, #fv-setup-continue-draft').off('click.fvsetup').on('click.fvsetup', () => {
+        jumpSetupAssistantToStep(1);
+        rerender();
+    });
+    root.find('#fv-setup-close-welcome').off('click.fvsetup').on('click.fvsetup', () => {
+        closeSetupAssistant();
     });
     root.find('input[name="fv-setup-route"]').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.route = String($(event.currentTarget).val() || 'new');

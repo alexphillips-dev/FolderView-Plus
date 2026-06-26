@@ -6530,6 +6530,158 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-review-rgb);
 }
 
+.fv-setup-welcome-screen {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.fv-setup-welcome-hero,
+.fv-setup-welcome-draft,
+.fv-setup-welcome-safety {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.14), transparent 58%),
+        var(--fv-wizard-surface-card);
+    box-shadow: var(--fv-wizard-card-shadow), var(--fv-wizard-card-inset-highlight);
+}
+
+.fv-setup-welcome-hero {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+    align-items: start;
+}
+
+.fv-setup-welcome-mark {
+    width: 64px;
+    height: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--fv-wizard-color-info-rgb), 0.44);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.16);
+    color: var(--fv-wizard-color-info);
+    font-size: 2rem;
+}
+
+.fv-setup-welcome-copy {
+    display: grid;
+    gap: 0.62rem;
+    min-width: 0;
+}
+
+.fv-setup-welcome-kicker {
+    margin: 0;
+    color: var(--fv-wizard-color-info);
+    font-size: var(--fv-wizard-font-103);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-setup-welcome-copy h3 {
+    margin: 0;
+    font-size: clamp(1.42rem, 2vw, 2rem);
+    line-height: 1.12;
+}
+
+.fv-setup-welcome-copy p,
+.fv-setup-welcome-detected {
+    margin: 0;
+    color: var(--fv-wizard-text-muted);
+    font-size: var(--fv-wizard-font-108);
+    line-height: 1.42;
+}
+
+.fv-setup-welcome-detected {
+    border-left: 3px solid rgba(var(--fv-wizard-color-info-rgb), 0.72);
+    padding-left: 0.62rem;
+}
+
+.fv-setup-welcome-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+#fv-setup-assistant-dialog .fv-setup-welcome-actions .fv-setup-primary-action {
+    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.36), rgba(var(--fv-wizard-color-info-rgb), 0.22)) !important;
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.68) !important;
+    color: var(--fv-wizard-text) !important;
+}
+
+.fv-setup-welcome-draft {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+}
+
+.fv-setup-welcome-draft h4 {
+    margin: 0 0 0.22rem;
+}
+
+.fv-setup-welcome-benefits {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fv-setup-welcome-benefits > article {
+    display: grid;
+    gap: 0.42rem;
+    align-content: start;
+    min-width: 0;
+    padding: 0.78rem;
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 10px;
+    background: var(--fv-wizard-surface-card);
+}
+
+.fv-setup-welcome-benefits i {
+    color: var(--fv-wizard-color-info);
+    font-size: 1.22rem;
+}
+
+.fv-setup-welcome-benefits h4,
+.fv-setup-welcome-benefits p {
+    margin: 0;
+}
+
+.fv-setup-welcome-benefits p {
+    color: var(--fv-wizard-text-muted);
+    line-height: 1.38;
+}
+
+.fv-setup-welcome-safety {
+    display: flex;
+    align-items: center;
+    gap: 0.62rem;
+    padding: 0.78rem 0.9rem;
+    color: var(--fv-wizard-text);
+}
+
+.fv-setup-welcome-safety i {
+    color: var(--fv-wizard-color-success);
+}
+
+@media (max-width: 1180px) {
+    .fv-setup-welcome-hero,
+    .fv-setup-welcome-benefits {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-setup-welcome-draft {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
 .fv-setup-card h4 {
     margin: 0;
     font-size: var(--fv-wizard-font-108);

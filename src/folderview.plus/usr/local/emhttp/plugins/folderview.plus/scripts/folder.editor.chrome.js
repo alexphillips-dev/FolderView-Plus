@@ -827,26 +827,26 @@
         if (!(accentControls instanceof root.HTMLElement)) {
             return;
         }
-        const accentField = accentControls.closest('.fv-accent-color-dd');
-        if (!(accentField instanceof root.HTMLElement)) {
+        const accentHost = accentControls.closest('.fv-accent-control-row') || accentControls.closest('.fv-accent-color-dd');
+        if (!(accentHost instanceof root.HTMLElement)) {
             return;
         }
-        let toggleGroup = accentField.querySelector(':scope > .fv-accent-toggle-group');
+        let toggleGroup = accentHost.querySelector(':scope > .fv-accent-toggle-group');
         if (!(toggleGroup instanceof root.HTMLElement)) {
             toggleGroup = root.document.createElement('span');
             toggleGroup.className = 'fv-accent-toggle-group';
-            accentField.insertBefore(toggleGroup, accentControls);
+            accentHost.insertBefore(toggleGroup, accentControls);
         }
-        Array.from(accentField.childNodes).forEach((node) => {
+        Array.from(accentHost.childNodes).forEach((node) => {
             if (node === toggleGroup || node === accentControls) {
                 return;
             }
             toggleGroup.appendChild(node);
         });
-        if (accentControls.parentElement !== accentField) {
-            accentField.appendChild(accentControls);
+        if (accentControls.parentElement !== accentHost) {
+            accentHost.appendChild(accentControls);
         }
-        accentField.classList.add('is-fv-accent-grouped');
+        accentHost.classList.add('is-fv-accent-grouped');
     };
 
     root.FolderViewPlusEnsureAccentControlPlacement = ensureAccentControlPlacement;

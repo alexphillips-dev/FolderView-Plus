@@ -980,6 +980,23 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     flex-wrap: wrap;
 }
 
+.fv-accent-control-row {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    align-items: start;
+    gap: 1.15rem;
+    width: max-content;
+    max-width: 100%;
+}
+
+.fv-accent-enable-control {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.28rem;
+    min-width: 78px;
+}
+
 .fv-accent-inline-controls {
     margin-top: 0;
     display: inline-flex;
@@ -1008,6 +1025,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: flex-start;
     gap: 0.28rem;
     min-width: 78px;
+}
+
+.fv-accent-toggle-group > .fv-accent-enable-control {
+    min-width: 0;
 }
 
 .fv-accent-toggle-group > * {
@@ -2304,10 +2325,17 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     justify-content: flex-start;
 }
 
+.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-control-row {
+    display: grid !important;
+    grid-template-columns: max-content max-content;
+    align-items: start;
+    gap: 1.15rem;
+}
+
 .fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-inline-controls {
     flex: 0 0 auto;
     align-items: center;
-    margin-top: 0.16rem;
+    margin-top: 0;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-editor-panel[data-editor-panel="identity"] {

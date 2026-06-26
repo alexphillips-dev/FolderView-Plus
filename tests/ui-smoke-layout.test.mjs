@@ -655,7 +655,10 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderChromeJs, /const ensureAccentControlPlacement = \(form\) =>/);
     assert.match(folderChromeJs, /root\.FolderViewPlusEnsureAccentControlPlacement = ensureAccentControlPlacement;/);
     assert.match(folderChromeJs, /toggleGroup\.className = 'fv-accent-toggle-group';/);
+    assert.match(folderChromeJs, /accentControls\.closest\('\.fv-accent-control-row'\)/);
     assert.match(folderJs, /FolderViewPlusEnsureAccentControlPlacement\(getForm\(\)\)/);
+    assert.match(folderPage, /<div class="fv-accent-control-row">[\s\S]*<div class="fv-accent-enable-control">[\s\S]*name="folder_accent_enabled"[\s\S]*<div class="fv-accent-inline-controls"/);
+    assert.match(folderCss, /\.fv-accent-control-row\s*\{[\s\S]*display:\s*grid;[\s\S]*grid-template-columns:\s*max-content max-content;/);
     assert.match(folderCss, /\.fv-accent-toggle-group\s*\{[\s\S]*flex-direction:\s*column;[\s\S]*min-width:\s*78px;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="status"\] \.fv-editor-panel\[data-editor-panel="accent"\] \.fv-modern-field-row > dl > dd\.fv-accent-color-dd\s*\{[\s\S]*display:\s*flex !important;[\s\S]*flex-wrap:\s*nowrap;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="preview"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);

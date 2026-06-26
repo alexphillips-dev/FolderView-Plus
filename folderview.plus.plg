@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.09">
-<!ENTITY md5 "ccd5063ef3bbcd5a11717cd03981e645">
+<!ENTITY version "2026.06.26.10">
+<!ENTITY md5 "e3df96a9f4cd8a118007ace3073884d9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.10
+- UX: Rebuilt the Status tab Accent Bar source markup so the enable switch and Bar color picker render as a fixed two-column row.
+
 
 ###2026.06.26.09
 - UX: Re-applied the Status tab Accent Bar alignment after Unraid generates the visible switch control so the Bar color picker stays beside the toggle.

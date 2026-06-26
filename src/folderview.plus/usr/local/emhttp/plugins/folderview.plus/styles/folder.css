@@ -2272,8 +2272,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     top: 0.78rem;
     right: 0.78rem;
     z-index: 2;
-    width: 42px;
-    height: 42px;
+    width: 84px;
+    height: 84px;
     border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 34%, transparent);
     border-radius: 6px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(0, 0, 0, 0.13));
@@ -2282,8 +2282,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-editor-panel-icon-preview > img {
     display: block;
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
 }
 
@@ -2359,7 +2359,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     width: 100% !important;
     max-width: none !important;
     min-height: 0;
-    padding-right: 4.95rem;
+    padding-right: 7.65rem;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {

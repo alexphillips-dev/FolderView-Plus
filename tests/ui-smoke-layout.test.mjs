@@ -649,7 +649,9 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*0\.92fr\)\s+minmax\(0,\s*1\.08fr\);[\s\S]*grid-template-areas:[\s\S]*"identity identity"[\s\S]*"parent icon";/);
     assert.match(folderCss, /\.fv-editor-panel\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*border-radius:\s*12px;/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="preview"\] \.fv-section-shell-body\.fv-section-panel-grid,[\s\S]*\.fv-section-shell\[data-section-shell="status"\] \.fv-section-shell-body\.fv-section-panel-grid,[\s\S]*\.fv-section-shell\[data-section-shell="advanced"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="status"\] \.fv-section-shell-body\.fv-section-panel-grid,[\s\S]*\.fv-section-shell\[data-section-shell="advanced"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="preview"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="preview"\] \.fv-editor-panel \.fv-editor-panel-body\s*\{[\s\S]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(210px,\s*1fr\)\);/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*0\.82fr\)\s+minmax\(0,\s*1\.18fr\);/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="actions"\] \.fv-section-shell-body\.fv-section-panel-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
     assert.match(folderRulesJs, /const panelHost = rootDocument\.querySelector\('\.fv-section-shell\[data-section-shell="rules"\] \.fv-editor-panel\[data-editor-panel="auto-rules"\] \.fv-editor-panel-body'\);/);
@@ -665,7 +667,8 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-option:hover,[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 32%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-pinned\s*\{[\s\S]*border:\s*1px solid color-mix\(in srgb,\s*var\(--fv-editor-accent\) 28%,\s*var\(--fv-editor-block-border\)\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 42%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-search-input/);
 });
 

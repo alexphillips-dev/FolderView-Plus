@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.26.04">
-<!ENTITY md5 "20b79645867585bd296d9f4f122676dd">
+<!ENTITY version "2026.06.26.05">
+<!ENTITY md5 "6a025bebb6c8afb1b33aa2766b14ef46">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.26.05
+- UX: Redesigned the General tab Parent Folder module with a clearer current location summary, pinned top-level option, integrated search, and improved folder rows.
+
 
 ###2026.06.26.04
 - UX: Changed Preview tab modules to full-width rows with controls flowing left-to-right inside each module.

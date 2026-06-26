@@ -2441,14 +2441,27 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-parent-picker-current {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
     gap: 0.9rem;
-    padding: 0.8rem 0.9rem;
+    padding: 0.82rem 0.92rem;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 14px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--fv-editor-control-surface);
+}
+
+.fv-parent-picker-current-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 32%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--fv-editor-accent) 12%, transparent);
+    color: var(--fv-editor-title-accent);
+    font-size: 1.1rem;
 }
 
 .fv-parent-picker-current-copy {
@@ -2484,6 +2497,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-items: center;
     gap: 0.45rem;
 }
 
@@ -2504,11 +2518,28 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     color: var(--fv-editor-title-accent);
 }
 
+.fv-parent-picker-current-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    min-height: 30px;
+    padding: 0.26rem 0.68rem;
+    border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 34%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fv-editor-accent) 8%, transparent);
+    color: var(--fv-editor-title-accent) !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.fv-parent-picker-current-action:hover,
+.fv-parent-picker-current-action:focus-visible {
+    background: color-mix(in srgb, var(--fv-editor-accent) 16%, transparent);
+}
+
 .fv-parent-picker-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: end;
+    display: block;
 }
 
 .fv-parent-picker-search {
@@ -2518,7 +2549,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-width: 0;
 }
 
-.fv-parent-picker-search > span {
+.fv-parent-picker-search > span:first-child {
     color: var(--fv-editor-title-accent);
     font-size: 0.76rem;
     font-weight: 700;
@@ -2526,9 +2557,22 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     text-transform: uppercase;
 }
 
+.fv-parent-picker-search-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding: 0.38rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 13px;
+    background: var(--fv-editor-inset-surface);
+}
+
 .fv-parent-picker-search-input {
     width: 100% !important;
     min-width: 0 !important;
+    border-color: transparent !important;
+    background: transparent !important;
 }
 
 .fv-parent-picker-clear {
@@ -2536,10 +2580,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: center;
     justify-content: center;
     gap: 0.42rem;
-    min-height: 38px;
-    padding: 0.58rem 0.9rem;
+    min-height: 34px;
+    padding: 0.42rem 0.72rem;
     border: 1px solid var(--fv-editor-block-border);
-    border-radius: 12px;
+    border-radius: 10px;
     background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
     color: var(--fv-editor-text-primary) !important;
     font-size: 0.9rem;
@@ -2564,6 +2608,17 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     line-height: 1.45;
 }
 
+.fv-parent-picker-pinned {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 28%, var(--fv-editor-block-border));
+    border-radius: 12px;
+    background:
+        linear-gradient(90deg, color-mix(in srgb, var(--fv-editor-accent) 10%, transparent), transparent 42%),
+        var(--fv-editor-inset-surface);
+    overflow: hidden;
+}
+
 .fv-parent-picker-list {
     display: flex;
     flex-direction: column;
@@ -2577,12 +2632,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-parent-picker-option {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.85rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.72rem;
     width: 100%;
-    padding: 0.78rem 0.86rem;
+    padding: 0.72rem 0.78rem;
     margin: 0 !important;
     border: 0 !important;
     border-top: 1px solid var(--fv-editor-block-border) !important;
@@ -2592,6 +2647,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     color: var(--fv-editor-text-primary) !important;
     text-align: left;
     cursor: pointer;
+}
+
+.fv-parent-picker-pinned .fv-parent-picker-option {
+    border-top: 0 !important;
 }
 
 .fv-parent-picker-option:first-child {
@@ -2606,8 +2665,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-parent-picker-option.is-selected {
     background:
-        linear-gradient(90deg, var(--fv-editor-accent-soft), transparent 32%),
+        linear-gradient(90deg, var(--fv-editor-accent-soft), transparent 42%),
         var(--fv-editor-control-surface) !important;
+}
+
+.fv-parent-picker-option-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--fv-editor-title-accent);
 }
 
 .fv-parent-picker-option-main {
@@ -2629,6 +2699,26 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     font-size: 0.88rem;
     line-height: 1.4;
     word-break: break-word;
+}
+
+.fv-parent-picker-option-meta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.38rem;
+    min-width: max-content;
+}
+
+.fv-parent-picker-option-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fv-editor-accent) 18%, transparent);
+    color: var(--fv-editor-title-accent);
+    font-size: 0.72rem;
 }
 
 .fv-parent-picker-option-scope {
@@ -3064,7 +3154,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-parent-picker-current {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        align-items: start;
     }
 
     .fv-parent-picker-current-stats {

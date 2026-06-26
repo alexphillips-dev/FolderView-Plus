@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.25.26">
-<!ENTITY md5 "d80356e12183f75b59689981e2252d75">
+<!ENTITY version "2026.06.25.27">
+<!ENTITY md5 "ec05869334e669fc8079f8a1a0ee7da0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.25.27
+- UX: Moved the General tab Icon live preview into the upper-right of the Icon module content.
+
 
 ###2026.06.25.26
 - UX: Added a live selected-icon preview to the top-right of the General tab Icon module.

@@ -599,9 +599,8 @@
                 <div class="fv-editor-panel-head">
                     <h4>${panelDef.title}</h4>
                     ${panelDef.description ? `<p>${panelDef.description}</p>` : ''}
-                    ${iconPreviewMarkup}
                 </div>
-                <div class="fv-editor-panel-body"></div>
+                <div class="fv-editor-panel-body">${iconPreviewMarkup}</div>
             `;
             body.appendChild(panel);
         }

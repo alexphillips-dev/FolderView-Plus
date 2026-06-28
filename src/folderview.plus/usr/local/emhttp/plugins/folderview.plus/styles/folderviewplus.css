@@ -6332,7 +6332,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-step-jump > .fv-setup-step-index,
 .fv-setup-step-jump > .fv-setup-step-label,
 .fv-setup-step-jump > .fv-setup-step-state {
-    transform: translateY(3px);
+    transform: translateY(-3px);
 }
 
 .fv-setup-step-state.is-ready {

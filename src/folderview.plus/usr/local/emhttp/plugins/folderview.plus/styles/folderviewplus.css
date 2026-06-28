@@ -5227,7 +5227,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 
     .fv-setup-step-jump {
-        grid-template-columns: 18px minmax(0, 1fr);
         gap: 0.28rem;
         padding: 0.2rem 0.28rem;
     }
@@ -5345,7 +5344,6 @@ body.fv-mobile-compact .fv-setup-step-list li {
 }
 
 body.fv-mobile-compact .fv-setup-step-jump {
-    grid-template-columns: 18px minmax(0, 1fr);
     gap: 0.28rem;
     padding: 0.2rem 0.28rem;
 }
@@ -5463,7 +5461,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     }
 
     .fv-setup-step-jump {
-        grid-template-columns: 18px minmax(0, 1fr);
         gap: 0.28rem;
         padding: 0.2rem 0.28rem;
     }
@@ -6251,8 +6248,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     border-radius: inherit;
     background: transparent;
     color: inherit;
-    display: grid;
-    grid-template-columns: 21px minmax(0, 1fr) auto;
+    display: flex;
     align-items: center;
     gap: 0.34rem;
     padding: 0 0.24rem;
@@ -6292,10 +6288,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-index {
+    flex: 0 0 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    align-self: center;
     width: 20px;
     height: 20px;
     border-radius: 999px;
@@ -6305,8 +6301,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-label {
-    align-self: center;
+    flex: 1 1 auto;
+    min-width: 0;
     line-height: 20px;
+    text-align: center;
 }
 
 .fv-setup-assistant-main {
@@ -6323,10 +6321,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     justify-content: center;
     border-radius: 999px;
     border: 1px solid var(--fv-wizard-pill-border-strong);
+    flex: 0 0 auto;
     min-height: 20px;
     padding: 0 0.42rem;
-    align-self: center;
-    justify-self: end;
     font-size: var(--fv-wizard-font-103);
     line-height: 20px;
     white-space: nowrap;

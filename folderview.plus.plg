@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.28.01">
-<!ENTITY md5 "ee732538f7c925331556bb5a76e096a3">
+<!ENTITY version "2026.06.28.02">
+<!ENTITY md5 "9a6e55f528916987c13337d7198477eb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.28.02
+- Fix: Moved Setup Assistant step centering to the clickable step row itself so inactive steps align the number, label, and badge like the active step.
+
 
 ###2026.06.28.01
 - Fix: Centered the Setup Assistant step number, label, and status badge consistently across every sidebar step.

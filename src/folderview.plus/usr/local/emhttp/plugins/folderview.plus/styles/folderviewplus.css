@@ -6233,7 +6233,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-step-list li {
     padding: 0;
-    min-height: 42px;
     border-radius: 8px;
     border: 1px solid var(--fv-wizard-border-subtle);
     background: var(--fv-wizard-row-bg);
@@ -6246,6 +6245,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-step-jump {
     width: 100%;
     height: 100%;
+    min-height: 42px;
     min-width: 0;
     border: 0;
     border-radius: inherit;
@@ -6255,7 +6255,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     grid-template-columns: 21px minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.34rem;
-    padding: 0.18rem 0.24rem;
+    padding: 0 0.24rem;
     text-align: left;
     line-height: 1;
 }
@@ -6301,12 +6301,12 @@ body.fv-mobile-compact .fv-setup-field-grid {
     border-radius: 999px;
     border: 1px solid var(--fv-wizard-pill-border);
     font-size: var(--fv-wizard-font-103);
-    line-height: 1;
+    line-height: 20px;
 }
 
 .fv-setup-step-label {
     align-self: center;
-    line-height: 1;
+    line-height: 20px;
 }
 
 .fv-setup-assistant-main {
@@ -6323,11 +6323,12 @@ body.fv-mobile-compact .fv-setup-field-grid {
     justify-content: center;
     border-radius: 999px;
     border: 1px solid var(--fv-wizard-pill-border-strong);
-    padding: 0.12rem 0.42rem;
+    min-height: 20px;
+    padding: 0 0.42rem;
     align-self: center;
     justify-self: end;
     font-size: var(--fv-wizard-font-103);
-    line-height: 1;
+    line-height: 20px;
     white-space: nowrap;
 }
 

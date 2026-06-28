@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.28.10">
-<!ENTITY md5 "086bff6d392ac8ecbe3ca8850158ad47">
+<!ENTITY version "2026.06.28.11">
+<!ENTITY md5 "cc93ab36b0fe50d0f5e704059298e4b9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.28.11
+- UX: Expanded the Setup Assistant Welcome step with beginner-friendly orientation panels and a simple setup path preview while keeping the screen informational.
+
 
 ###2026.06.28.10
 - UX: Rebuilt the Setup Assistant Review step as a final confirmation screen with status banner, summary cards, apply mode choices, safety cards, and collapsible details.

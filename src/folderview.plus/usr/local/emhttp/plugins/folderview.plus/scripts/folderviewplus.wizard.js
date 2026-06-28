@@ -2498,6 +2498,39 @@ const renderSetupAssistantWelcomeStep = () => {
                     <p>Optional starter rules can place future matching apps into the right folders.</p>
                 </article>
             </section>
+            <section class="fv-setup-welcome-orientation" aria-label="Setup assistant overview">
+                <article>
+                    <h4><i class="fa fa-check-circle" aria-hidden="true"></i> What this assistant will do</h4>
+                    <ul>
+                        <li>Scan your current Docker and VM folder setup.</li>
+                        <li>Suggest folder defaults based on your environment.</li>
+                        <li>Help create starter folders, optional rules, and behavior defaults.</li>
+                        <li>Show a final review before anything is applied.</li>
+                    </ul>
+                </article>
+                <article>
+                    <h4><i class="fa fa-ban" aria-hidden="true"></i> What it will not do</h4>
+                    <ul>
+                        <li>It will not start, stop, edit, or remove containers or VMs.</li>
+                        <li>It will not apply changes from the Welcome screen.</li>
+                        <li>It will not delete folders without showing it in Review.</li>
+                        <li>You can close the assistant and return later.</li>
+                    </ul>
+                </article>
+            </section>
+            <section class="fv-setup-welcome-path" aria-label="Setup path">
+                <div>
+                    <h4>Setup path</h4>
+                    <p>Move step by step, then preview or apply from Review.</p>
+                </div>
+                <ol>
+                    <li><strong>Profile</strong><span>Choose defaults</span></li>
+                    <li><strong>Import</strong><span>Optional restore</span></li>
+                    <li><strong>Rules</strong><span>Future placement</span></li>
+                    <li><strong>Behavior</strong><span>Display choices</span></li>
+                    <li><strong>Review</strong><span>Confirm changes</span></li>
+                </ol>
+            </section>
             <section class="fv-setup-welcome-safety">
                 <i class="fa fa-shield" aria-hidden="true"></i>
                 <span>Nothing changes until you review the final setup plan and choose to apply it.</span>

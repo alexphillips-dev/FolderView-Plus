@@ -7275,6 +7275,23 @@ body.fv-mobile-compact .fv-setup-field-grid {
     }
 }
 
+#fv-setup-assistant-dialog .fv-setup-step-list li {
+    display: flex;
+    align-items: stretch;
+}
+
+#fv-setup-assistant-dialog .fv-setup-step-jump {
+    min-height: 62px !important;
+    padding: 0 0.42rem !important;
+    align-items: center !important;
+}
+
+#fv-setup-assistant-dialog .fv-setup-step-index,
+#fv-setup-assistant-dialog .fv-setup-step-label,
+#fv-setup-assistant-dialog .fv-setup-step-state {
+    align-self: center !important;
+}
+
 .fv-advanced-nav {
     margin: 0.4rem 0 0.8rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);

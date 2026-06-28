@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.28.03">
-<!ENTITY md5 "a147f77903d040992cf1e548389b1e12">
+<!ENTITY version "2026.06.28.04">
+<!ENTITY md5 "bac7fdb3e3dbe1df76077d1f518135ad">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.28.04
+- Revert: Removed the oversized Setup Assistant sidebar step override from the previous dev build.
+
 
 ###2026.06.28.03
 - Fix: Added a final Setup Assistant sidebar step override so the clickable step row fills the visible tile and centers inactive step content.

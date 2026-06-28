@@ -6329,6 +6329,12 @@ body.fv-mobile-compact .fv-setup-field-grid {
     white-space: nowrap;
 }
 
+.fv-setup-step-jump > .fv-setup-step-index,
+.fv-setup-step-jump > .fv-setup-step-label,
+.fv-setup-step-jump > .fv-setup-step-state {
+    transform: translateY(3px);
+}
+
 .fv-setup-step-state.is-ready {
     border-color: rgba(var(--fv-wizard-color-success-rgb), 0.45);
     color: var(--fv-wizard-color-success);

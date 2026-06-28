@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.28.05">
-<!ENTITY md5 "a17161d5574d558497159772ccb4b802">
+<!ENTITY version "2026.06.28.06">
+<!ENTITY md5 "954616acb1772c17c95124fac1f491df">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.28.06
+- Fix: Nudged Setup Assistant sidebar step contents down slightly so the number, label, and badge sit visually centered in the step tile.
+
 
 ###2026.06.28.05
 - Fix: Switched Setup Assistant sidebar step rows from grid to flexbox so the number, label, and badge center vertically without changing step height.

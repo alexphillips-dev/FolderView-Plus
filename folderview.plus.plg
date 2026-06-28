@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.28.08">
-<!ENTITY md5 "f69f3d6b6ed7f23c2580e0f4aa2154e9">
+<!ENTITY version "2026.06.28.09">
+<!ENTITY md5 "f580921340a127f18489ce135b129f7a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.28.09
+- UX: Stretched the Setup Assistant "What will change" panel to fill the sidebar and rebuilt it into grouped setup path, safety, detected, planned changes, and current-step summaries.
+
 
 ###2026.06.28.08
 - Fix: Adjusted Setup Assistant sidebar step content upward further to better center the step number, label, and badge.

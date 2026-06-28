@@ -2320,33 +2320,113 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
     const impact = impactSummary && typeof impactSummary === 'object'
         ? impactSummary
         : buildSetupAssistantImpactSummary();
+    const context = setupAssistantState.context || {};
     const importTotals = impact.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
     const templateTotals = impact.templates?.totals || { creatable: 0, autoAssignMatched: 0 };
     const prefsTotal = Number(impact.prefs?.totalChanges) || 0;
     const rulesTotal = Number(impact.rules?.creatable) || 0;
     const hasDeletes = Number(importTotals.deletes) > 0;
+    const currentStep = currentSetupAssistantStepKey();
+    const currentValidation = getSetupAssistantStepValidation(currentStep);
+    const delta = getSetupAssistantImpactDelta(impact);
+    const totalPlanned = Number(impact.totalPlannedChanges) || 0;
+    const totalDetectedFolders = (Number(context.dockerFolders) || 0) + (Number(context.vmFolders) || 0);
+    const totalDetectedRules = (Number(context.dockerRules) || 0) + (Number(context.vmRules) || 0);
+    const totalDetectedBackups = (Number(context.dockerBackups) || 0) + (Number(context.vmBackups) || 0);
+    const totalDetectedTemplates = (Number(context.dockerTemplates) || 0) + (Number(context.vmTemplates) || 0);
     const routeLabel = setupAssistantState.route === 'migrate'
         ? 'Migration flow'
         : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
+    const modeLabel = setupAssistantState.mode === 'advanced' ? 'Advanced' : 'Basic';
+    const detailLabel = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert' ? 'Expert' : 'Guided';
+    const presetLabel = normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset);
+    const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
+    const statusClass = currentValidation.blockers.length > 0
+        ? 'is-blocked'
+        : (currentValidation.warnings.length > 0 ? 'is-warn' : 'is-ready');
+    const statusLabel = currentValidation.blockers.length > 0
+        ? 'Needs attention'
+        : (currentValidation.warnings.length > 0 ? 'Review recommended' : 'Ready to apply');
+    const statusDetail = currentValidation.blockers[0]
+        || currentValidation.warnings[0]
+        || (setupAssistantState.dryRunOnly ? 'Preview only. Nothing will be applied.' : 'A live summary of what this assistant will change.');
+    const currentDelta = (() => {
+        if (currentStep === 'profile' || currentStep === 'behavior') {
+            return `${Math.abs(Number(delta.prefs) || 0)} setting ${Math.abs(Number(delta.prefs) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        if (currentStep === 'templates') {
+            return `${Math.abs(Number(delta.templates) || 0)} starter folder ${Math.abs(Number(delta.templates) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        if (currentStep === 'import') {
+            return `${Math.abs(Number(delta.imports) || 0)} import ${Math.abs(Number(delta.imports) || 0) === 1 ? 'operation' : 'operations'} from this step`;
+        }
+        if (currentStep === 'rules') {
+            return `${Math.abs(Number(delta.rules) || 0)} starter rule ${Math.abs(Number(delta.rules) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        return totalPlanned > 0
+            ? `${totalPlanned} total planned ${totalPlanned === 1 ? 'change' : 'changes'}`
+            : 'No changes queued yet';
+    })();
+    const renderInfoRow = (label, value, className = '') => `
+        <div class="fv-setup-summary-row ${className}">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+        </div>
+    `;
+    const renderStat = (value, label, className = '') => `
+        <div class="${className}">
+            <strong>${escapeHtml(String(value))}</strong>
+            <span>${escapeHtml(label)}</span>
+        </div>
+    `;
     return `
         <section id="fv-setup-sidebar-summary" class="fv-setup-sidebar-summary">
-            <h4>What will change</h4>
-            <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="sidebar-summary">
-                <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
-                <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
-                <span class="fv-setup-chip">Detail: ${escapeHtml(normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode))}</span>
-                <span class="fv-setup-chip">Preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
-                <span class="fv-setup-chip">Safety: ${escapeHtml(normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode))}</span>
-                <span class="fv-setup-chip ${setupAssistantState.dryRunOnly ? 'is-update' : ''}">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
+            <div class="fv-setup-summary-head">
+                <div>
+                    <h4>What will change</h4>
+                    <p>A live summary of the setup this assistant will apply.</p>
+                </div>
+                <span class="fv-setup-summary-status ${statusClass}">${escapeHtml(statusLabel)}</span>
             </div>
-            <div class="fv-setup-sidebar-stats">
-                <div><strong>${importTotals.totalOps}</strong><span>Import ops</span></div>
-                <div><strong>${templateTotals.creatable}</strong><span>Starter folders</span></div>
-                <div><strong>${prefsTotal}</strong><span>Setting changes</span></div>
-                <div><strong>${rulesTotal}</strong><span>Starter rules</span></div>
+            <p class="fv-setup-summary-message">${escapeHtml(statusDetail)}</p>
+            <div class="fv-setup-summary-scroll">
+                <div class="fv-setup-summary-section">
+                    <h5>Setup path</h5>
+                    ${renderInfoRow('Flow', routeLabel)}
+                    ${renderInfoRow('Editor mode', modeLabel)}
+                    ${renderInfoRow('Detail level', detailLabel)}
+                    ${renderInfoRow('Preset', presetLabel)}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Safety</h5>
+                    ${renderInfoRow('Apply mode', setupAssistantState.dryRunOnly ? 'Dry run only' : 'Will apply changes', setupAssistantState.dryRunOnly ? 'is-preview' : '')}
+                    ${renderInfoRow('Safety checks', safetyMode)}
+                    ${hasDeletes ? renderInfoRow('Deletes', `${importTotals.deletes} detected`, 'is-warning') : renderInfoRow('Deletes', 'None')}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Detected</h5>
+                    <div class="fv-setup-sidebar-stats">
+                        ${renderStat(totalDetectedFolders, 'Folders')}
+                        ${renderStat(totalDetectedRules, 'Rules')}
+                        ${renderStat(totalDetectedBackups, 'Backups')}
+                        ${renderStat(totalDetectedTemplates, 'Templates')}
+                    </div>
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Planned changes</h5>
+                    <div class="fv-setup-sidebar-stats">
+                        ${renderStat(importTotals.totalOps, 'Import ops')}
+                        ${renderStat(templateTotals.creatable, 'Starter folders')}
+                        ${renderStat(prefsTotal, 'Settings')}
+                        ${renderStat(rulesTotal, 'Starter rules')}
+                    </div>
+                    ${templateTotals.autoAssignMatched > 0 ? `<p class="fv-setup-muted">Auto-assign matches: ${templateTotals.autoAssignMatched}</p>` : ''}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Current step</h5>
+                    ${renderInfoRow(setupAssistantStepLabel(currentStep), currentDelta)}
+                </div>
             </div>
-            ${templateTotals.autoAssignMatched > 0 ? `<p class="fv-setup-muted">Auto-assign matches: ${templateTotals.autoAssignMatched}</p>` : ''}
-            ${hasDeletes ? '<p class="fv-setup-sidebar-alert"><i class="fa fa-exclamation-triangle"></i> Delete operations detected.</p>' : ''}
         </section>
     `;
 };

@@ -2797,86 +2797,142 @@ const renderSetupAssistantBehaviorStep = () => `
 const renderSetupAssistantReviewStep = () => {
     const impact = buildSetupAssistantImpactSummary();
     const notes = buildSetupAssistantReviewNotes();
+    const validation = getSetupAssistantStepValidation('review');
+    const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
+    const hasBlockers = validation.blockers.length > 0;
+    const hasWarnings = validation.warnings.length > 0 || notes.length > 0;
+    const statusClass = hasBlockers ? 'is-blocked' : (hasWarnings ? 'is-warn' : 'is-ready');
+    const statusTitle = hasBlockers
+        ? 'Needs attention before applying'
+        : (hasWarnings ? 'Review recommended' : (setupAssistantState.dryRunOnly ? 'Ready to preview' : 'Ready to apply setup'));
+    const statusText = hasBlockers
+        ? validation.blockers[0]
+        : (hasWarnings ? (validation.warnings[0] || notes[0]) : 'Review the summary below, choose an apply mode, then finish setup.');
+    const applyButtonLabel = setupAssistantState.dryRunOnly ? 'Run preview' : 'Apply setup';
+    const flowLabel = setupAssistantState.route === 'migrate'
+        ? 'Migration flow'
+        : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
+    const environmentLabel = SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab';
+    const renderReviewStat = (value, label, detail, tone = '') => `
+        <article class="fv-setup-review-stat ${tone}">
+            <strong>${escapeHtml(String(value))}</strong>
+            <span>${escapeHtml(label)}</span>
+            <em>${escapeHtml(detail)}</em>
+        </article>
+    `;
+    const renderDetail = (title, summary, rows) => `
+        <details class="fv-setup-review-detail">
+            <summary>
+                <span>${escapeHtml(title)}</span>
+                <strong>${escapeHtml(summary)}</strong>
+            </summary>
+            <div class="fv-setup-review-detail-body">
+                ${rows.map((row) => `
+                    <div>
+                        <span>${escapeHtml(row.label)}</span>
+                        <strong>${escapeHtml(String(row.value))}</strong>
+                    </div>
+                `).join('')}
+            </div>
+        </details>
+    `;
     setupAssistantState.reviewNotes = notes;
 
     return `
-        <div class="fv-setup-card" data-fv-card-tone="review">
-            <h4>Review planned changes</h4>
-            <div class="fv-setup-review-grid fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="review-summary">
-                <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
-                <span class="fv-setup-chip">Route: ${escapeHtml(setupAssistantState.route)}</span>
-                <span class="fv-setup-chip">Quick preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
-                <span class="fv-setup-chip">Profile: ${escapeHtml(setupAssistantState.profile)}</span>
-                <span class="fv-setup-chip">Environment: ${escapeHtml(SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab')}</span>
-                <span class="fv-setup-chip">Starter folders: ${impact.templates.totals.creatable}</span>
-                <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
-            </div>
-            <div class="fv-setup-impact-grid">
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-prefs">
-                    <h5>Preferences</h5>
-                    <p>${impact.prefs.totalChanges} changes planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-prefs">
-                        <span class="fv-setup-chip">Docker: ${impact.prefs.byType.docker.count}</span>
-                        <span class="fv-setup-chip">VM: ${impact.prefs.byType.vm.count}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-imports">
-                    <h5>Imports</h5>
-                    <p>${impact.imports.totals.totalOps} operations planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-imports">
-                        <span class="fv-setup-chip is-create">Create: ${impact.imports.totals.creates}</span>
-                        <span class="fv-setup-chip is-update">Update: ${impact.imports.totals.updates}</span>
-                        <span class="fv-setup-chip is-delete">Delete: ${impact.imports.totals.deletes}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-templates">
-                    <h5>Starter folders</h5>
-                    <p>${impact.templates.totals.creatable} folder creates planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-templates">
-                        <span class="fv-setup-chip">Selected: ${impact.templates.totals.selected}</span>
-                        <span class="fv-setup-chip">Skip existing: ${impact.templates.totals.skippedExisting}</span>
-                        <span class="fv-setup-chip">Auto-assign: ${impact.templates.totals.autoAssignMatched}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-rules">
-                    <h5>Starter rules</h5>
-                    <p>${impact.rules.creatable} new rules planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-rules">
-                        <span class="fv-setup-chip">Selected: ${impact.rules.selected}</span>
-                        <span class="fv-setup-chip">Duplicates: ${impact.rules.duplicates}</span>
-                        <span class="fv-setup-chip">Missing folder: ${impact.rules.unresolvedFolder}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-total">
-                    <h5>Total impact</h5>
-                    <p>${impact.totalPlannedChanges} net changes estimated</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="2" data-fv-chip-key="review-impact-total">
-                        <span class="fv-setup-chip">${setupAssistantState.route === 'migrate' ? 'Migration' : 'Configuration'} flow</span>
-                    </div>
-                </article>
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-dry-run" ${setupAssistantState.dryRunOnly ? 'checked' : ''}>
-                Dry run only (preview changes, do not modify folders or settings)
-            </label>
-            <div class="fv-setup-safety-grid">
-                <span class="fv-setup-muted">Apply safety mode</span>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="auto" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'auto' ? 'checked' : ''}> Auto (recommended)</label>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="strict" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'strict' ? 'checked' : ''}> Strict (block on warnings)</label>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="fast" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'fast' ? 'checked' : ''}> Fast (skip rollback checkpoint)</label>
-            </div>
-            <div class="fv-setup-import-actions">
-                <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
-                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, and <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies from the review step.</span>
-            </div>
-            ${notes.length ? `
-                <div class="fv-setup-warning-box">
-                    <strong>Review notes</strong>
-                    <ul>
-                        ${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}
-                    </ul>
+        <div class="fv-setup-review">
+            <section class="fv-setup-review-hero ${statusClass}">
+                <div>
+                    <span class="fv-setup-review-eyebrow">Final review</span>
+                    <h4>${escapeHtml(statusTitle)}</h4>
+                    <p>${escapeHtml(statusText || 'Review the setup plan before continuing.')}</p>
                 </div>
-            ` : '<div class="fv-setup-muted">No warnings detected. Apply to finalize setup.</div>'}
+                <strong>${escapeHtml(applyButtonLabel)}</strong>
+            </section>
+            <section class="fv-setup-review-stats" aria-label="Setup summary">
+                ${renderReviewStat(impact.prefs.totalChanges, 'Settings', `Docker ${impact.prefs.byType.docker.count}, VM ${impact.prefs.byType.vm.count}`, 'is-settings')}
+                ${renderReviewStat(impact.templates.totals.creatable, 'Starter folders', `${impact.templates.totals.selected} selected, ${impact.templates.totals.skippedExisting} skipped`, 'is-folders')}
+                ${renderReviewStat(impact.imports.totals.totalOps, 'Imports', `${impact.imports.totals.creates} create, ${impact.imports.totals.updates} update, ${impact.imports.totals.deletes} delete`, 'is-imports')}
+                ${renderReviewStat(impact.rules.creatable, 'Rules', `${impact.rules.selected} selected, ${impact.rules.duplicates} duplicates`, 'is-rules')}
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Apply mode</h5>
+                    <span>Choose whether this run changes anything.</span>
+                </div>
+                <div class="fv-setup-review-option-grid">
+                    <button type="button" class="fv-setup-review-option ${setupAssistantState.dryRunOnly ? 'is-active' : ''}" data-fv-setup-dry-run-mode="preview">
+                        <i class="fa fa-eye"></i>
+                        <strong>Preview only</strong>
+                        <span>Show what would happen without changing folders or settings.</span>
+                    </button>
+                    <button type="button" class="fv-setup-review-option ${setupAssistantState.dryRunOnly ? '' : 'is-active'}" data-fv-setup-dry-run-mode="apply">
+                        <i class="fa fa-check"></i>
+                        <strong>Apply changes</strong>
+                        <span>Update settings, folders, and rules now.</span>
+                    </button>
+                    <input type="checkbox" id="fv-setup-dry-run" ${setupAssistantState.dryRunOnly ? 'checked' : ''} hidden>
+                </div>
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Safety mode</h5>
+                    <span>Auto is recommended for normal setup runs.</span>
+                </div>
+                <div class="fv-setup-review-option-grid is-three">
+                    <label class="fv-setup-review-option ${safetyMode === 'auto' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="auto" ${safetyMode === 'auto' ? 'checked' : ''}>
+                        <i class="fa fa-shield"></i>
+                        <strong>Auto</strong>
+                        <span>Recommended. Blocks risky changes automatically.</span>
+                    </label>
+                    <label class="fv-setup-review-option ${safetyMode === 'strict' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="strict" ${safetyMode === 'strict' ? 'checked' : ''}>
+                        <i class="fa fa-lock"></i>
+                        <strong>Strict</strong>
+                        <span>Stops if warnings are found.</span>
+                    </label>
+                    <label class="fv-setup-review-option ${safetyMode === 'fast' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="fast" ${safetyMode === 'fast' ? 'checked' : ''}>
+                        <i class="fa fa-bolt"></i>
+                        <strong>Fast</strong>
+                        <span>Skips rollback checkpoint.</span>
+                    </label>
+                </div>
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Details</h5>
+                    <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
+                </div>
+                <div class="fv-setup-review-details">
+                    ${renderDetail('Settings changes', `${impact.prefs.totalChanges} planned`, [
+                        { label: 'Docker settings', value: impact.prefs.byType.docker.count },
+                        { label: 'VM settings', value: impact.prefs.byType.vm.count },
+                        { label: 'Setup path', value: `${flowLabel}, ${environmentLabel}` }
+                    ])}
+                    ${renderDetail('Starter folders', `${impact.templates.totals.creatable} creates`, [
+                        { label: 'Selected templates', value: impact.templates.totals.selected },
+                        { label: 'Skip existing', value: impact.templates.totals.skippedExisting },
+                        { label: 'Auto-assign matches', value: impact.templates.totals.autoAssignMatched }
+                    ])}
+                    ${renderDetail('Imports', `${impact.imports.totals.totalOps} operations`, [
+                        { label: 'Create', value: impact.imports.totals.creates },
+                        { label: 'Update', value: impact.imports.totals.updates },
+                        { label: 'Delete', value: impact.imports.totals.deletes }
+                    ])}
+                    ${renderDetail('Starter rules', `${impact.rules.creatable} new rules`, [
+                        { label: 'Selected', value: impact.rules.selected },
+                        { label: 'Duplicates', value: impact.rules.duplicates },
+                        { label: 'Missing folder', value: impact.rules.unresolvedFolder }
+                    ])}
+                </div>
+            </section>
+            ${notes.length ? `
+                <section class="fv-setup-review-notes">
+                    <strong>Review notes</strong>
+                    <ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>
+                </section>
+            ` : ''}
         </div>
     `;
 };
@@ -3307,6 +3363,7 @@ const renderSetupAssistant = () => {
     const focusModeEnabled = true;
     const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
     const nextButtonLabel = step === 'welcome' ? 'Begin Setup' : 'Next';
+    const applyButtonLabel = setupAssistantState.dryRunOnly ? 'Run preview' : 'Apply setup';
     const restoredBanner = setupAssistantState.draftRestored && step !== 'welcome'
         ? `
             <div class="fv-setup-draft-banner">
@@ -3386,7 +3443,7 @@ const renderSetupAssistant = () => {
                         <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
                     </div>
                     <div class="fv-setup-foot-right">
-                        <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> Apply setup</button>
+                        <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> ${escapeHtml(applyButtonLabel)}</button>
                     </div>
                 </footer>
                 <div class="fv-setup-nav-note" ${blockerHintId ? `id="${blockerHintId}"` : ''} role="status" aria-live="polite">
@@ -4158,6 +4215,10 @@ const bindSetupAssistantEvents = () => {
     });
     root.find('#fv-setup-dry-run').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.dryRunOnly = $(event.currentTarget).prop('checked') === true;
+        rerender();
+    });
+    root.find('[data-fv-setup-dry-run-mode]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        setupAssistantState.dryRunOnly = String($(event.currentTarget).attr('data-fv-setup-dry-run-mode') || '') === 'preview';
         rerender();
     });
     root.find('#fv-setup-copy-summary').off('click.fvsetup').on('click.fvsetup', () => {

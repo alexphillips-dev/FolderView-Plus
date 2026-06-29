@@ -3491,6 +3491,7 @@ const getSettingsWorkspacesApi = (() => {
             restoreBackupEntry,
             downloadBackupEntry,
             deleteBackupEntry,
+            deleteAllBackupEntries,
             runScheduledBackupNow,
             compareBackupSnapshots,
             changeBackupSchedulePref,
@@ -4325,6 +4326,7 @@ const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi(
 const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
 const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
 const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
+const deleteAllActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().deleteAllActiveRecoveryBackups(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
 const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
@@ -5302,6 +5304,22 @@ const deleteBackupByName = async (type, name) => {
         throw new Error(response.error || 'Delete failed.');
     }
     return Array.isArray(response.backups) ? response.backups : [];
+};
+
+const deleteAllBackupsForType = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Delete all ${resolvedType === 'docker' ? 'Docker' : 'VM'} backups`);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
+        type: resolvedType,
+        action: 'delete_all'
+    });
+    if (!response.ok) {
+        throw new Error(response.error || 'Delete all backups failed.');
+    }
+    return {
+        result: response.deleted || {},
+        backups: Array.isArray(response.backups) ? response.backups : []
+    };
 };
 
 const fetchTemplates = async (type) => {
@@ -9101,6 +9119,62 @@ const deleteBackupEntry = (type, name) => {
     });
 };
 
+const deleteAllBackupEntries = (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Delete all backups failed', error);
+        return;
+    }
+    const label = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const count = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].length : 0;
+    if (count < 1) {
+        showError('Delete all backups failed', new Error(`No ${label} backups are available to delete.`));
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Delete all ${label} backups`)) {
+        return;
+    }
+    swal({
+        title: `Delete all ${label} backups?`,
+        text: `This will permanently delete ${count} ${label} backup snapshot${count === 1 ? '' : 's'}. This cannot be undone.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Continue',
+        cancelButtonText: 'Cancel'
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        swal({
+            title: 'Confirm delete all',
+            text: `Are you sure you want to delete every ${label} backup snapshot?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete all',
+            cancelButtonText: 'No',
+            showLoaderOnConfirm: true
+        }, async (secondConfirmed) => {
+            if (!secondConfirmed) {
+                return;
+            }
+            await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup delete all`, async () => {
+                try {
+                    const response = await deleteAllBackupsForType(resolvedType);
+                    backupsByType[resolvedType] = response.backups;
+                    const deletedCount = Number(response.result?.deletedCount || 0);
+                    const failedCount = Number(response.result?.failedCount || 0);
+                    addActivityEntry(`Deleted ${deletedCount} ${label} backup snapshot${deletedCount === 1 ? '' : 's'}${failedCount > 0 ? `; ${failedCount} failed` : ''}.`, failedCount > 0 ? 'warning' : 'success');
+                    renderBackupRows(resolvedType);
+                } catch (error) {
+                    showError('Delete all backups failed', error);
+                }
+            });
+        });
+    });
+};
+
 const validateTemplateNameInput = (type, strict = false) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const raw = String($(`#${resolvedType}-template-name`).val() || '').trim();
@@ -9567,11 +9641,13 @@ settingsActionSupportModule.registerWindowActions(window, {
     restoreSelectedActiveRecoveryBackup,
     downloadSelectedActiveRecoveryBackup,
     deleteSelectedActiveRecoveryBackup,
+    deleteAllActiveRecoveryBackups,
     compareBackupSnapshots,
     compareActiveRecoverySnapshots,
     restoreBackupEntry,
     downloadBackupEntry,
     deleteBackupEntry,
+    deleteAllBackupEntries,
     previewFolderRuntimeAction,
     applyFolderRuntimeAction,
     refreshChangeHistory,

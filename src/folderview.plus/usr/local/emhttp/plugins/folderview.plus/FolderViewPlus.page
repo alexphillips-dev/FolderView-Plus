@@ -1414,7 +1414,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <section class="fv-recovery-stage">
                     <div class="fv-recovery-stage-head">
                         <strong>Restore and safety</strong>
-                        <span class="rules-help">Restore the latest snapshot, create a manual checkpoint, or compare two restore points before applying anything.</span>
+                        <span class="rules-help">Restore the latest safe snapshot or create a manual checkpoint before making changes.</span>
                     </div>
                     <div class="backup-actions fv-recovery-primary-actions">
                         <button type="button" onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
@@ -1423,6 +1423,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                     <div id="fv-recovery-safety-note" class="fv-recovery-callout">
                         Restoring always creates a fresh safety backup first.
+                    </div>
+                </section>
+
+                <section class="fv-recovery-stage fv-recovery-compare-stage">
+                    <div class="fv-recovery-stage-head">
+                        <strong>Compare snapshots</strong>
+                        <span class="rules-help">Preview folder and preference differences before restoring anything.</span>
                     </div>
                     <div class="backup-compare-row fv-recovery-compare-row">
                         <label for="recovery-backup-compare-left">Compare</label>

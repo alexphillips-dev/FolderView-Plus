@@ -12,6 +12,11 @@
         const $ = deps.$ || windowRef?.jQuery || windowRef?.$ || null;
         const utils = deps.utils || {};
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
+        const escapeJsString = (value) => String(value ?? '')
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/\r/g, '\\r')
+            .replace(/\n/g, '\\n');
         const getFolderMap = typeof deps.getFolderMap === 'function' ? deps.getFolderMap : (() => ({}));
         const getFolderNameForId = typeof deps.getFolderNameForId === 'function' ? deps.getFolderNameForId : ((type, id) => String(id || ''));
         const getSortedBackupsForType = typeof deps.getSortedBackupsForType === 'function' ? deps.getSortedBackupsForType : (() => []);
@@ -32,6 +37,7 @@
         const restoreBackupEntry = typeof deps.restoreBackupEntry === 'function' ? deps.restoreBackupEntry : (() => {});
         const downloadBackupEntry = typeof deps.downloadBackupEntry === 'function' ? deps.downloadBackupEntry : (() => {});
         const deleteBackupEntry = typeof deps.deleteBackupEntry === 'function' ? deps.deleteBackupEntry : (() => {});
+        const deleteAllBackupEntries = typeof deps.deleteAllBackupEntries === 'function' ? deps.deleteAllBackupEntries : (() => {});
         const runScheduledBackupNow = typeof deps.runScheduledBackupNow === 'function' ? deps.runScheduledBackupNow : (() => {});
         const compareBackupSnapshots = typeof deps.compareBackupSnapshots === 'function' ? deps.compareBackupSnapshots : (() => {});
         const changeBackupSchedulePref = typeof deps.changeBackupSchedulePref === 'function' ? deps.changeBackupSchedulePref : (() => {});
@@ -520,6 +526,26 @@
                 const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
                 return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
             }).join('');
+            const recentHtml = backups.slice(0, 5).map((backup, index) => {
+                const name = String(backup?.name || '').trim();
+                const activeClass = name === resolvedSelectedName ? ' is-active' : '';
+                const backupCountLabel = formatRecoveryBackupFolderCount(backup);
+                const backupReason = formatRecoveryReasonLabel(backup?.reason);
+                const backupCreated = formatTimestamp(backup?.createdAt || '');
+                const backupBadges = [
+                    index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '',
+                    isRecoveryBackupEmpty(backup) ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : ''
+                ].join('');
+                return `
+                    <button type="button" class="fv-recovery-snapshot-item${activeClass}" onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
+                        <span>
+                            <strong>${escapeHtml(backupCreated)}</strong>
+                            <small>${escapeHtml(`${backupReason} - ${backupCountLabel}`)}</small>
+                        </span>
+                        <span class="fv-recovery-history-badges">${backupBadges}</span>
+                    </button>
+                `;
+            }).join('');
 
             summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Empty snapshots stay visible for audit/history, but Restore Latest skips them.`);
             return `
@@ -546,8 +572,18 @@
                         <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
                         <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
                         <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" class="fv-recovery-danger-action" onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
                     </div>
                 </article>
+                <div class="fv-recovery-snapshot-list">
+                    <div class="fv-recovery-snapshot-list-head">
+                        <strong>Recent snapshots</strong>
+                        <span>Click a snapshot to inspect or restore it.</span>
+                    </div>
+                    <div class="fv-recovery-snapshot-items">
+                        ${recentHtml}
+                    </div>
+                </div>
             `;
         };
 
@@ -691,6 +727,7 @@
             }
             deleteBackupEntry(resolvedType, selectedName);
         };
+        const deleteAllActiveRecoveryBackups = () => deleteAllBackupEntries(getActiveRecoveryWorkspaceType());
         const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
         const compareActiveRecoverySnapshots = () => {
             const resolvedType = getActiveRecoveryWorkspaceType();
@@ -1033,6 +1070,7 @@
             restoreSelectedActiveRecoveryBackup,
             downloadSelectedActiveRecoveryBackup,
             deleteSelectedActiveRecoveryBackup,
+            deleteAllActiveRecoveryBackups,
             renderRecoveryEnvironmentSummary,
             exportEnvironmentSnapshot,
             importEnvironmentSnapshot,

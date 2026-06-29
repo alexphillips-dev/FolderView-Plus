@@ -3493,6 +3493,42 @@
         ];
     }
 
+    function deleteAllBackupSnapshots(string $type): array {
+        $type = ensureType($type);
+        $snapshots = listBackupSnapshots($type);
+        $deleted = [];
+        $failed = [];
+        foreach ($snapshots as $snapshot) {
+            $name = (string)($snapshot['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            try {
+                $deleted[] = deleteBackupSnapshot($type, $name);
+            } catch (Throwable $err) {
+                $failed[] = [
+                    'name' => $name,
+                    'error' => $err->getMessage()
+                ];
+            }
+        }
+        try {
+            appendDiagnosticsHistoryEvent('backup_delete_all', $type, [
+                'deletedCount' => count($deleted),
+                'failedCount' => count($failed)
+            ], empty($failed) ? 'ok' : 'warning', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
+        return [
+            'deletedCount' => count($deleted),
+            'failedCount' => count($failed),
+            'deleted' => $deleted,
+            'failed' => $failed,
+            'deletedAt' => gmdate('c')
+        ];
+    }
+
     function normalizeImportedFoldersPayload($decoded): array {
         if (!is_array($decoded)) {
             throw new RuntimeException('Backup payload is not a JSON object.');

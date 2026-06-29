@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.11">
-<!ENTITY md5 "cde6cb81994260a7d7d25e6bbe21779d">
+<!ENTITY version "2026.06.29.12">
+<!ENTITY md5 "6df17ddde2f1135c1d7bc89102902ddd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.12
+- UX: Continued the Recovery workspace overhaul with a neutral Docker/VM switch, separated compare snapshots into its own card, added a recent snapshot picker, and added a double-confirmed delete-all-backups action for the active source.
+
 
 ###2026.06.29.11
 - UX: Made the Recovery workspace redesign more visible with a clearer intro, stronger status banner, segmented source switch, and more distinct restore, policy, history, and environment cards.

@@ -4177,6 +4177,24 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
 }
 
+.fv-section-nav > button.is-active {
+    border-color: color-mix(in srgb, var(--fv-editor-accent) 78%, white 14%) !important;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--fv-editor-accent) 42%, transparent), color-mix(in srgb, var(--fv-editor-accent) 28%, transparent)),
+        var(--fv-editor-control-surface-hover) !important;
+    color: #fff7ed !important;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 52%, white 10%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 24%, transparent),
+        0 6px 14px rgba(0, 0, 0, 0.24) !important;
+}
+
+.fv-section-nav > button.is-active > i,
+.fv-section-nav > button.is-active > span {
+    color: inherit !important;
+}
+
 :is(
     .order-buttons > button,
     .custom-action-wrapper > div > button,

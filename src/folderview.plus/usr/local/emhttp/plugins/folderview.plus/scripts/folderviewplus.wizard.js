@@ -3007,16 +3007,54 @@ const renderSetupAssistantRulesStep = () => `
     </div>
 `;
 
+const getSetupAssistantBehaviorSortLabel = (value) => ({
+    created: 'Created order',
+    created_newest: 'Created newest first',
+    created_oldest: 'Created oldest first',
+    updated_newest: 'Last updated newest first',
+    manual: 'Manual sort',
+    alpha: 'Name A-Z',
+    name_desc: 'Name Z-A'
+}[String(value || 'created')] || 'Created order');
+
+const getSetupAssistantBehaviorStatusLabel = (value) => ({
+    summary: 'Summary status',
+    dominant: 'Dominant status'
+}[normalizeStatusMode(value)] || 'Summary status');
+
+const renderSetupAssistantBehaviorSetting = (type, key, checked, title, help) => `
+    <label class="fv-setup-behavior-setting">
+        <input type="checkbox" data-fv-setup-behavior-${key}="${type}" ${checked ? 'checked' : ''}>
+        <span>
+            <strong>${title}</strong>
+            <small>${help}</small>
+        </span>
+    </label>
+`;
+
 const renderSetupAssistantBehaviorTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const behavior = setupAssistantState.behavior[resolvedType];
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const titlePlural = resolvedType === 'docker' ? 'Docker folders' : 'VM folders';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     return `
-        <section class="fv-setup-card" data-fv-card-tone="behavior-${resolvedType}">
-            <h4>${title} behavior</h4>
-            <div class="fv-setup-field-grid ${isExpert ? '' : 'is-guided'}">
-                <label class="fv-setup-field">
+        <section class="fv-setup-card fv-setup-behavior-card" data-fv-card-tone="behavior-${resolvedType}">
+            <div class="fv-setup-behavior-head">
+                <span class="fv-setup-rules-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} behavior</h4>
+                    <p class="fv-setup-muted">Controls how ${titlePlural} sort, display, and summarize status after setup.</p>
+                </div>
+                <span class="fv-setup-chip">${escapeHtml(getSetupAssistantBehaviorSortLabel(behavior.sortMode))}</span>
+            </div>
+            <div class="fv-setup-behavior-section">
+                <div>
+                    <span class="fv-setup-kicker">Display order</span>
+                    <p class="fv-setup-muted">Choose the default order folders use in this view.</p>
+                </div>
+                <label class="fv-setup-field fv-setup-behavior-sort">
                     <span>Sort mode</span>
                     <select data-fv-setup-behavior-sort="${resolvedType}">
                         <option value="created" ${behavior.sortMode === 'created' ? 'selected' : ''}>Created order</option>
@@ -3028,34 +3066,91 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                         <option value="name_desc" ${behavior.sortMode === 'name_desc' ? 'selected' : ''}>Name (Z-A)</option>
                     </select>
                 </label>
+            </div>
+            <div class="fv-setup-behavior-section">
+                <div>
+                    <span class="fv-setup-kicker">Visibility and status</span>
+                    <p class="fv-setup-muted">Pick how much folder detail should be visible in day-to-day use.</p>
+                </div>
+                <div class="fv-setup-behavior-setting-list">
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'hide-empty', behavior.hideEmptyFolders, 'Hide empty folders', 'Keep folders with no matching items out of the main view.')}
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'health-cards', behavior.healthCardsEnabled, 'Health cards', 'Show folder health and status summary cards.')}
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'runtime-badge', behavior.runtimeBadgeEnabled, 'Runtime summary badge', 'Show compact runtime totals on folder rows.')}
+                </div>
+            </div>
+            <div class="fv-setup-behavior-advanced">
+                <div>
+                    <span class="fv-setup-kicker">Advanced status tuning</span>
+                    <p class="fv-setup-muted">${isExpert ? 'Fine tune how folder status warnings are calculated.' : 'Status mode and warning thresholds are handled by the selected profile. You can adjust them later in Settings.'}</p>
+                </div>
                 ${isExpert ? `
-                    <label class="fv-setup-field">
-                        <span>Status mode</span>
-                        <select data-fv-setup-behavior-status="${resolvedType}">
-                            <option value="summary" ${behavior.statusMode === 'summary' ? 'selected' : ''}>Summary</option>
-                            <option value="dominant" ${behavior.statusMode === 'dominant' ? 'selected' : ''}>Dominant</option>
-                        </select>
-                    </label>
-                    <label class="fv-setup-field">
-                        <span>Status warn (%)</span>
-                        <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number(behavior.statusWarnStoppedPercent) || 60}">
-                    </label>
+                    <div class="fv-setup-field-grid">
+                        <label class="fv-setup-field">
+                            <span>Status mode</span>
+                            <select data-fv-setup-behavior-status="${resolvedType}">
+                                <option value="summary" ${behavior.statusMode === 'summary' ? 'selected' : ''}>Summary</option>
+                                <option value="dominant" ${behavior.statusMode === 'dominant' ? 'selected' : ''}>Dominant</option>
+                            </select>
+                        </label>
+                        <label class="fv-setup-field">
+                            <span>Status warn (%)</span>
+                            <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number(behavior.statusWarnStoppedPercent) || 60}">
+                        </label>
+                    </div>
                 ` : ''}
             </div>
-            <div class="fv-setup-inline-grid">
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-hide-empty="${resolvedType}" ${behavior.hideEmptyFolders ? 'checked' : ''}> Hide empty folders</label>
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-health-cards="${resolvedType}" ${behavior.healthCardsEnabled ? 'checked' : ''}> Health cards</label>
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-runtime-badge="${resolvedType}" ${behavior.runtimeBadgeEnabled ? 'checked' : ''}> Runtime summary badge</label>
-            </div>
-            ${isExpert ? '' : '<p class="fv-setup-muted">Switch to Expert mode for status-mode and threshold controls.</p>'}
         </section>
     `;
 };
 
+const renderSetupAssistantBehaviorSummaryCard = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const behavior = setupAssistantState.behavior[resolvedType];
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    return `
+        <div class="fv-setup-behavior-summary-card">
+            <strong>${title}</strong>
+            <span>${escapeHtml(getSetupAssistantBehaviorSortLabel(behavior.sortMode))}</span>
+            <span>${behavior.hideEmptyFolders ? 'Hide empty folders' : 'Show empty folders'}</span>
+            <span>${behavior.healthCardsEnabled ? 'Health cards on' : 'Health cards off'}</span>
+            <span>${behavior.runtimeBadgeEnabled ? 'Runtime badge on' : 'Runtime badge off'}</span>
+            <span>${escapeHtml(getSetupAssistantBehaviorStatusLabel(behavior.statusMode))}, warning at ${Number(behavior.statusWarnStoppedPercent) || 60}%</span>
+        </div>
+    `;
+};
+
 const renderSetupAssistantBehaviorStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantBehaviorTypeCard('docker')}
-        ${renderSetupAssistantBehaviorTypeCard('vm')}
+    <div class="fv-setup-behavior-step">
+        <section class="fv-setup-card fv-setup-behavior-hero" data-fv-card-tone="behavior">
+            <div>
+                <span class="fv-setup-kicker">Folder behavior</span>
+                <h4>Choose how folders behave after setup.</h4>
+                <p class="fv-setup-muted">These settings control sorting, empty folders, and status details for Docker and VM folder views. They only affect FolderView display and can be changed later.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Applies after setup</span>
+                <span class="fv-setup-chip is-update">Docker and VM separate</span>
+                <span class="fv-setup-chip is-create">No app changes</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-behavior-grid">
+            ${renderSetupAssistantBehaviorTypeCard('docker')}
+            ${renderSetupAssistantBehaviorTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-behavior-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">Selected behavior summary</span>
+                <div class="fv-setup-behavior-summary-grid">
+                    ${renderSetupAssistantBehaviorSummaryCard('docker')}
+                    ${renderSetupAssistantBehaviorSummaryCard('vm')}
+                </div>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-sort" aria-hidden="true"></i> Sorting controls folder order</span>
+                <span><i class="fa fa-eye-slash" aria-hidden="true"></i> Visibility can hide empty folders</span>
+                <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Status details add health and runtime context</span>
+            </div>
+        </section>
     </div>
 `;
 

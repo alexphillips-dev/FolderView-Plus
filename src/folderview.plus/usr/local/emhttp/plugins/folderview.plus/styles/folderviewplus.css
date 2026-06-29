@@ -5299,6 +5299,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-import-guide,
     .fv-setup-rules-toolbar,
     .fv-setup-rules-guide,
+    .fv-setup-behavior-guide,
+    .fv-setup-behavior-summary-grid,
     .fv-setup-quick-preset-grid,
     .fv-setup-impact-grid,
     .fv-setup-field-grid {
@@ -5308,7 +5310,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-profile-hero,
     .fv-setup-profile-section-head,
     .fv-setup-import-hero,
-    .fv-setup-rules-hero {
+    .fv-setup-rules-hero,
+    .fv-setup-behavior-hero {
         align-items: flex-start;
         flex-direction: column;
     }
@@ -5436,6 +5439,8 @@ body.fv-mobile-compact .fv-setup-profile-preview-effects,
 body.fv-mobile-compact .fv-setup-import-guide,
 body.fv-mobile-compact .fv-setup-rules-toolbar,
 body.fv-mobile-compact .fv-setup-rules-guide,
+body.fv-mobile-compact .fv-setup-behavior-guide,
+body.fv-mobile-compact .fv-setup-behavior-summary-grid,
 body.fv-mobile-compact .fv-setup-quick-preset-grid,
 body.fv-mobile-compact .fv-setup-impact-grid,
 body.fv-mobile-compact .fv-setup-field-grid {
@@ -5445,7 +5450,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 body.fv-mobile-compact .fv-setup-profile-hero,
 body.fv-mobile-compact .fv-setup-profile-section-head,
 body.fv-mobile-compact .fv-setup-import-hero,
-body.fv-mobile-compact .fv-setup-rules-hero {
+body.fv-mobile-compact .fv-setup-rules-hero,
+body.fv-mobile-compact .fv-setup-behavior-hero {
     align-items: flex-start;
     flex-direction: column;
 }
@@ -5573,6 +5579,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     .fv-setup-import-guide,
     .fv-setup-rules-toolbar,
     .fv-setup-rules-guide,
+    .fv-setup-behavior-guide,
+    .fv-setup-behavior-summary-grid,
     .fv-setup-quick-preset-grid,
     .fv-setup-impact-grid,
     .fv-setup-field-grid {
@@ -5582,7 +5590,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     .fv-setup-profile-hero,
     .fv-setup-profile-section-head,
     .fv-setup-import-hero,
-    .fv-setup-rules-hero {
+    .fv-setup-rules-hero,
+    .fv-setup-behavior-hero {
         align-items: flex-start;
         flex-direction: column;
     }
@@ -7797,6 +7806,133 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin-top: 0.08rem;
     color: var(--fv-wizard-text-muted);
     line-height: 1.3;
+}
+
+.fv-setup-behavior-step {
+    display: grid;
+    gap: 0.6rem;
+    min-height: 100%;
+}
+
+.fv-setup-behavior-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.fv-setup-behavior-hero h4 {
+    margin: 0.12rem 0 0.22rem;
+    font-size: var(--fv-wizard-font-130);
+    line-height: 1.2;
+}
+
+.fv-setup-behavior-grid {
+    align-items: stretch;
+}
+
+.fv-setup-behavior-card {
+    display: grid;
+    gap: 0.62rem;
+    align-content: start;
+    min-height: 100%;
+}
+
+.fv-setup-behavior-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.55rem;
+}
+
+.fv-setup-behavior-head h4 {
+    margin: 0 0 0.15rem;
+    font-size: var(--fv-wizard-font-118);
+}
+
+.fv-setup-behavior-section,
+.fv-setup-behavior-advanced {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 10px;
+    background: var(--fv-wizard-surface-panel);
+    padding: 0.58rem 0.62rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fv-setup-behavior-sort {
+    max-width: 320px;
+}
+
+.fv-setup-behavior-setting-list {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.fv-setup-behavior-setting {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 8px;
+    background: var(--fv-wizard-chip-bg);
+    padding: 0.46rem 0.5rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.48rem;
+}
+
+.fv-setup-behavior-setting input {
+    margin-top: 0.1rem;
+}
+
+.fv-setup-behavior-setting strong,
+.fv-setup-behavior-setting small {
+    display: block;
+}
+
+.fv-setup-behavior-setting small {
+    margin-top: 0.12rem;
+    color: var(--fv-wizard-text-muted);
+    line-height: 1.32;
+}
+
+.fv-setup-behavior-guide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+    gap: 0.75rem;
+    align-items: stretch;
+}
+
+.fv-setup-behavior-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-top: 0.38rem;
+}
+
+.fv-setup-behavior-summary-card {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 8px;
+    background: var(--fv-wizard-chip-bg);
+    padding: 0.5rem 0.55rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.32rem;
+}
+
+.fv-setup-behavior-summary-card strong {
+    flex: 1 1 100%;
+    font-size: var(--fv-wizard-font-112);
+}
+
+.fv-setup-behavior-summary-card span {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 999px;
+    background: var(--fv-wizard-surface-panel);
+    color: var(--fv-wizard-text-muted);
+    padding: 0.22rem 0.42rem;
+    line-height: 1.15;
 }
 
 .fv-setup-assistant-shell[data-fv-active-step="review"] .fv-setup-step-delta {

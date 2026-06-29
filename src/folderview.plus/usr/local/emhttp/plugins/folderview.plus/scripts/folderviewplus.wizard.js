@@ -2539,38 +2539,137 @@ const renderSetupAssistantWelcomeStep = () => {
     `;
 };
 const renderSetupAssistantProfileStep = () => {
+    const profileDetails = {
+        safe: {
+            icon: 'fa-shield',
+            bestFor: 'Smaller installs or cautious changes.',
+            behavior: 'Lower background activity and conservative status detail.',
+            goodIf: 'You want FolderView Plus to stay quiet.'
+        },
+        balanced: {
+            icon: 'fa-sliders',
+            bestFor: 'Most daily-use servers.',
+            behavior: 'Normal refresh behavior with useful status visibility.',
+            goodIf: 'You want sensible defaults without much tuning.'
+        },
+        power: {
+            icon: 'fa-bolt',
+            bestFor: 'Larger installs with lots of folders or apps.',
+            behavior: 'Richer telemetry and more live status detail.',
+            goodIf: 'You want more information at a glance.'
+        }
+    };
+    const environmentDetails = {
+        home_lab: {
+            icon: 'fa-home',
+            bestFor: 'Personal or mixed-use servers.',
+            behavior: 'Balanced folder behavior and relaxed alerting.',
+            goodIf: 'Your server runs a mix of apps and experiments.'
+        },
+        production: {
+            icon: 'fa-server',
+            bestFor: 'Critical services and tighter control.',
+            behavior: 'Stricter visibility and stronger health thresholds.',
+            goodIf: 'You want warnings surfaced earlier.'
+        },
+        media_stack: {
+            icon: 'fa-film',
+            bestFor: 'Plex, downloaders, indexers, and media tools.',
+            behavior: 'Relaxed thresholds tuned for larger container groups.',
+            goodIf: 'You organize many related media apps together.'
+        }
+    };
+    const selectedProfile = SETUP_ASSISTANT_PROFILE_PRESETS[setupAssistantState.profile] || SETUP_ASSISTANT_PROFILE_PRESETS.balanced;
+    const selectedEnvironment = SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset] || SETUP_ASSISTANT_ENV_PRESETS.home_lab;
+    const selectedProfileDetails = profileDetails[setupAssistantState.profile] || profileDetails.balanced;
+    const selectedEnvironmentDetails = environmentDetails[setupAssistantState.environmentPreset] || environmentDetails.home_lab;
+
+    const renderChoiceCard = (type, key, preset, details, active, inputName) => `
+        <label class="fv-setup-${type}-option fv-setup-profile-choice ${active ? 'is-active' : ''}">
+            <input type="radio" name="${inputName}" value="${escapeHtml(key)}" ${active ? 'checked' : ''}>
+            <span class="fv-setup-choice-topline">
+                <span class="fv-setup-choice-icon"><i class="fa ${escapeHtml(details.icon)}" aria-hidden="true"></i></span>
+                <span>
+                    <span class="fv-setup-${type}-title">${escapeHtml(preset.label)}</span>
+                    <span class="fv-setup-${type}-help">${escapeHtml(preset.description)}</span>
+                </span>
+                <span class="fv-setup-choice-check"><i class="fa fa-check" aria-hidden="true"></i></span>
+            </span>
+            <span class="fv-setup-choice-meta">
+                <span><strong>Best for:</strong> ${escapeHtml(details.bestFor)}</span>
+                <span><strong>Behavior:</strong> ${escapeHtml(details.behavior)}</span>
+                <span><strong>Good if:</strong> ${escapeHtml(details.goodIf)}</span>
+            </span>
+        </label>
+    `;
+
     return `
-        <div class="fv-setup-card" data-fv-card-tone="profile">
-            <h4>Choose a defaults profile</h4>
-            <p class="fv-setup-muted">Profile defaults only apply if you enable them below.</p>
-            <div class="fv-setup-profile-grid">
-                ${Object.entries(SETUP_ASSISTANT_PROFILE_PRESETS).map(([profileKey, preset]) => `
-                    <label class="fv-setup-profile-option ${setupAssistantState.profile === profileKey ? 'is-active' : ''}">
-                        <input type="radio" name="fv-setup-profile" value="${escapeHtml(profileKey)}" ${setupAssistantState.profile === profileKey ? 'checked' : ''}>
-                        <span class="fv-setup-profile-title">${escapeHtml(preset.label)}</span>
-                        <span class="fv-setup-profile-help">${escapeHtml(preset.description)}</span>
-                    </label>
-                `).join('')}
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-apply-profile" ${setupAssistantState.applyProfileDefaults ? 'checked' : ''}>
-                Apply profile runtime/status defaults during setup
-            </label>
-            <h4>Environment preset</h4>
-            <p class="fv-setup-muted">Environment presets tune folder behavior defaults for Docker and VMs.</p>
-            <div class="fv-setup-env-grid">
-                ${Object.entries(SETUP_ASSISTANT_ENV_PRESETS).map(([presetKey, preset]) => `
-                    <label class="fv-setup-env-option ${setupAssistantState.environmentPreset === presetKey ? 'is-active' : ''}">
-                        <input type="radio" name="fv-setup-environment" value="${escapeHtml(presetKey)}" ${setupAssistantState.environmentPreset === presetKey ? 'checked' : ''}>
-                        <span class="fv-setup-env-title">${escapeHtml(preset.label)}</span>
-                        <span class="fv-setup-env-help">${escapeHtml(preset.description)}</span>
-                    </label>
-                `).join('')}
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-apply-environment" ${setupAssistantState.applyEnvironmentDefaults ? 'checked' : ''}>
-                Apply environment behavior defaults during setup
-            </label>
+        <div class="fv-setup-profile-step">
+            <section class="fv-setup-card fv-setup-profile-hero" data-fv-card-tone="profile">
+                <div>
+                    <span class="fv-setup-kicker">Defaults profile</span>
+                    <h4>Choose your setup style.</h4>
+                    <p class="fv-setup-muted">Pick how FolderView Plus should balance stability, visibility, and automation. You can change every setting later.</p>
+                </div>
+                <div class="fv-setup-profile-current">
+                    <span>${escapeHtml(selectedProfile.label)}</span>
+                    <strong>+</strong>
+                    <span>${escapeHtml(selectedEnvironment.label)}</span>
+                </div>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-section" data-fv-card-tone="profile">
+                <div class="fv-setup-profile-section-head">
+                    <div>
+                        <h4>Usage profile</h4>
+                        <p class="fv-setup-muted">Controls runtime refresh, status visibility, and how much live information the plugin shows.</p>
+                    </div>
+                    <span class="fv-setup-chip">Selected: ${escapeHtml(selectedProfile.label)}</span>
+                </div>
+                <div class="fv-setup-profile-grid">
+                    ${Object.entries(SETUP_ASSISTANT_PROFILE_PRESETS).map(([profileKey, preset]) => renderChoiceCard('profile', profileKey, preset, profileDetails[profileKey] || profileDetails.balanced, setupAssistantState.profile === profileKey, 'fv-setup-profile')).join('')}
+                </div>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-section" data-fv-card-tone="environment">
+                <div class="fv-setup-profile-section-head">
+                    <div>
+                        <h4>Server environment</h4>
+                        <p class="fv-setup-muted">Tunes folder behavior, status thresholds, and visibility defaults for Docker and VMs.</p>
+                    </div>
+                    <span class="fv-setup-chip">Selected: ${escapeHtml(selectedEnvironment.label)}</span>
+                </div>
+                <div class="fv-setup-env-grid">
+                    ${Object.entries(SETUP_ASSISTANT_ENV_PRESETS).map(([presetKey, preset]) => renderChoiceCard('env', presetKey, preset, environmentDetails[presetKey] || environmentDetails.home_lab, setupAssistantState.environmentPreset === presetKey, 'fv-setup-environment')).join('')}
+                </div>
+            </section>
+            <section class="fv-setup-default-toggle-grid">
+                <label class="fv-setup-default-toggle">
+                    <input type="checkbox" id="fv-setup-apply-profile" ${setupAssistantState.applyProfileDefaults ? 'checked' : ''}>
+                    <span>
+                        <strong>Apply usage defaults</strong>
+                        <small>Use the selected profile for runtime refresh, status cards, and telemetry visibility.</small>
+                    </span>
+                </label>
+                <label class="fv-setup-default-toggle">
+                    <input type="checkbox" id="fv-setup-apply-environment" ${setupAssistantState.applyEnvironmentDefaults ? 'checked' : ''}>
+                    <span>
+                        <strong>Apply environment defaults</strong>
+                        <small>Use the selected environment for folder behavior and warning thresholds.</small>
+                    </span>
+                </label>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-preview" data-fv-card-tone="summary">
+                <div>
+                    <span class="fv-setup-kicker">Selected defaults preview</span>
+                    <h4>${escapeHtml(selectedProfile.label)} + ${escapeHtml(selectedEnvironment.label)}</h4>
+                    <p class="fv-setup-muted">${escapeHtml(selectedProfileDetails.behavior)} ${escapeHtml(selectedEnvironmentDetails.behavior)}</p>
+                </div>
+                <div class="fv-setup-profile-preview-effects">
+                    <span><i class="fa fa-refresh" aria-hidden="true"></i> Runtime/status defaults</span>
+                    <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Health thresholds</span>
+                    <span><i class="fa fa-folder-open" aria-hidden="true"></i> Folder display behavior</span>
+                    <span><i class="fa fa-dashboard" aria-hidden="true"></i> Dashboard visibility</span>
+                </div>
+            </section>
         </div>
     `;
 };

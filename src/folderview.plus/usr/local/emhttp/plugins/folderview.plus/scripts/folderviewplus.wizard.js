@@ -1787,7 +1787,6 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
 };
 
 const buildSetupAssistantFixHints = (stepKey, validation) => {
-    const step = String(stepKey || '').trim();
     const blockers = Array.isArray(validation?.blockers) ? validation.blockers : [];
     const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
     const hints = [];

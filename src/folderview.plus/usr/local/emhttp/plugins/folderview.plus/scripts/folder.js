@@ -318,7 +318,6 @@ const THIRD_PARTY_PINNED_STORAGE_KEY = 'fv.folder.icon.thirdparty.pinnedFolders.
 const THIRD_PARTY_HIDDEN_STORAGE_KEY = 'fv.folder.icon.thirdparty.hiddenFolders.v1';
 const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1';
 const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
-const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const MEMBER_BULK_SCOPE_OPTIONS = Object.freeze([
     { value: 'shown', label: 'Move shown' },
@@ -2293,14 +2292,6 @@ const loadEditorModePreference = () => {
     return 'advanced';
 };
 
-const saveEditorModePreference = (mode) => {
-    try {
-        localStorage.setItem(EDITOR_MODE_STORAGE_KEY, 'advanced');
-    } catch (_error) {
-        // Ignore storage failures; runtime mode still works.
-    }
-};
-
 const loadAdvancedCollapseState = () => {
     try {
         const raw = localStorage.getItem(EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY);
@@ -2369,13 +2360,6 @@ const ensureInheritedFieldControls = () => {
         }
         clearFieldToInheritedValue(fieldName);
     });
-};
-
-const setEditorMode = (mode) => {
-    editorMode = normalizeEditorMode(mode);
-    activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
-    saveEditorModePreference(editorMode);
-    applyAdvancedMode();
 };
 
 const setActiveEditorSection = (sectionKey) => {

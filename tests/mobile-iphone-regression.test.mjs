@@ -74,5 +74,6 @@ test('quick-actions modal remains iPhone safe-area bounded and scroll-safe', () 
     assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-x:\s*hidden !important/);
     assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*-webkit-overflow-scrolling:\s*touch/);
     assert.match(settingsJs, /\$\('\.sweet-alert'\)\.removeClass\('fv-row-quick-actions-modal'\);/);
-    assert.match(settingsJs, /\$\('\.sweet-alert:visible'\)\.addClass\('fv-row-quick-actions-modal'\);/);
+    assert.match(settingsJs, /const modal = \$\('\.sweet-alert:visible'\);/);
+    assert.match(settingsJs, /modal\.addClass\('fv-row-quick-actions-modal'\);/);
 });

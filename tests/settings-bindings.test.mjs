@@ -222,10 +222,12 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(page, /id="import-apply-progress-overlay"/);
     assert.match(page, /id="import-apply-progress-dialog"/);
     assert.match(page, /id="import-apply-progress-bar"/);
-    assert.match(runtimeScript, /const openImportApplyProgressDialog = \(type, totalSteps\) =>/);
-    assert.match(runtimeScript, /const updateImportApplyProgressDialog = \(\{ completed = 0, total = 1, label = '' \}\) =>/);
-    assert.match(runtimeScript, /overlay\.show\(\);/);
-    assert.match(runtimeScript, /overlay\.hide\(\);/);
+    assert.match(importScript, /const openImportApplyProgressDialog = \(type, totalSteps, options = \{\}\) =>/);
+    assert.match(importScript, /const updateImportApplyProgressDialog = \(\{[\s\S]*completed = 0,[\s\S]*total = 1,[\s\S]*label = ''/);
+    assert.match(importScript, /current = ''/);
+    assert.match(importScript, /note = ''/);
+    assert.match(importScript, /overlay\.show\(\);/);
+    assert.match(importScript, /overlay\.hide\(\);/);
     assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
 });
 
@@ -456,10 +458,10 @@ test('nested folder rendering keeps highlighted display HTML isolated from aria/
 });
 
 test('nested folder branch and integrity actions are reachable from quick actions and exported', () => {
-    assert.match(script, /data-action="branchCollapse"/);
-    assert.match(script, /data-action="branchExpand"/);
-    assert.match(script, /data-action="branchExport"/);
-    assert.match(script, /data-action="branchImport"/);
+    assert.match(script, /id:\s*'branchCollapse'/);
+    assert.match(script, /id:\s*'branchExpand'/);
+    assert.match(script, /\['branchExport',\s*'fa-sign-out',\s*'Export branch'/);
+    assert.match(script, /\['branchImport',\s*'fa-sign-in',\s*'Import branch here'/);
     assert.match(script, /const setFolderBranchPinned = async \(type, folderId, pinned = true\) =>/);
     assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
     assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);

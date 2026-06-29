@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.13">
-<!ENTITY md5 "375f8e72fce82379e44c1a835b89c40a">
+<!ENTITY version "2026.06.29.14">
+<!ENTITY md5 "29e28c4b5ef324f89949882e7e12e8ef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.14
+- Fix: Corrected the Settings row action modal opening position, reset its scroll state on open, compacted the folder header, and removed the orange outline from the copy-ID button.
+
 
 ###2026.06.29.13
 - UX: Rebuilt the Settings row overflow action modal with grouped actions, a clearer folder header, quieter button styling, disabled-action reasons, and a shared action dispatcher with inline status feedback.

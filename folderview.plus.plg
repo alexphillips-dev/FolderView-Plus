@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.15">
-<!ENTITY md5 "cdc5d171d0dd08fc01b8b3e9133dd3d1">
+<!ENTITY version "2026.06.29.16">
+<!ENTITY md5 "2003f934a0b40cbdaf9bed87b9842cc5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.16
+- UX: Reflowed the Settings row action modal into a wider two-column desktop layout so folder actions fit without unnecessary vertical scrolling.
+
 
 ###2026.06.29.15
 - UX: Enlarged the Settings row action modal, removed excess top spacing, and opened it at a stable top position to reduce internal scrolling.

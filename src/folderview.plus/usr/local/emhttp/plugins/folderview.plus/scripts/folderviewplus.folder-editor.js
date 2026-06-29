@@ -550,16 +550,20 @@ const showFolderRowQuickActions = (type, folderId) => {
     });
     const html = `
         <div class="fv-row-quick-actions">
-            <div class="fv-row-quick-actions-header">
-                <div>
-                    <div class="fv-row-quick-actions-title">${safeFolderName}</div>
-                    <div class="fv-row-quick-actions-meta">${typeLabel} folder <span>ID: <code>${safeFolderId}</code></span></div>
+            <div class="fv-row-quick-actions-top">
+                <div class="fv-row-quick-actions-header">
+                    <div>
+                        <div class="fv-row-quick-actions-title">${safeFolderName}</div>
+                        <div class="fv-row-quick-actions-meta">${typeLabel} folder <span>ID: <code>${safeFolderId}</code></span></div>
+                    </div>
+                    <button type="button" class="fv-row-quick-copy-id" data-action="copy" title="Copy folder ID"><i class="fa fa-clipboard"></i></button>
                 </div>
-                <button type="button" class="fv-row-quick-copy-id" data-action="copy" title="Copy folder ID"><i class="fa fa-clipboard"></i></button>
+                ${renderFolderQuickActionSummaryHtml(summary)}
             </div>
-            ${renderFolderQuickActionSummaryHtml(summary)}
             <div id="fv-row-quick-action-status" class="fv-row-quick-action-status" role="status" aria-live="polite"></div>
-            ${actionGroups.map(renderFolderActionGroup).join('')}
+            <div class="fv-row-quick-action-groups">
+                ${actionGroups.map(renderFolderActionGroup).join('')}
+            </div>
         </div>
     `;
     $('.sweet-alert').removeClass('fv-row-quick-actions-modal');
@@ -577,6 +581,8 @@ const showFolderRowQuickActions = (type, folderId) => {
         modal.css({
             top: '10px',
             left: '50%',
+            width: 'min(1440px, calc(100vw - 24px))',
+            maxWidth: 'none',
             marginTop: '0',
             marginLeft: '0',
             transform: 'translateX(-50%)'

@@ -4177,21 +4177,26 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
 }
 
-.fv-section-nav > button.is-active {
+.fv-section-nav > button.is-active,
+.fv-section-nav > button[data-active="true"],
+.fv-section-nav > button[aria-current="page"] {
     border-color: color-mix(in srgb, var(--fv-editor-accent) 78%, white 14%) !important;
     background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fv-editor-accent) 42%, transparent), color-mix(in srgb, var(--fv-editor-accent) 28%, transparent)),
-        var(--fv-editor-control-surface-hover) !important;
+        linear-gradient(180deg, color-mix(in srgb, var(--fv-editor-accent) 72%, #ffffff 4%), color-mix(in srgb, var(--fv-editor-accent) 56%, #000000 10%)) !important;
     color: #fff7ed !important;
     box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 52%, white 10%),
+        inset 0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 74%, white 12%),
         inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 24%, transparent),
-        0 6px 14px rgba(0, 0, 0, 0.24) !important;
+        0 0 0 1px color-mix(in srgb, var(--fv-editor-accent) 42%, transparent),
+        0 7px 16px rgba(0, 0, 0, 0.28) !important;
 }
 
 .fv-section-nav > button.is-active > i,
-.fv-section-nav > button.is-active > span {
+.fv-section-nav > button.is-active > span,
+.fv-section-nav > button[data-active="true"] > i,
+.fv-section-nav > button[data-active="true"] > span,
+.fv-section-nav > button[aria-current="page"] > i,
+.fv-section-nav > button[aria-current="page"] > span {
     color: inherit !important;
 }
 

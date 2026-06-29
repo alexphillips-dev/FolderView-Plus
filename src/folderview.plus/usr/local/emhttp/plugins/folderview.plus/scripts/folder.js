@@ -2440,6 +2440,8 @@ const applyAdvancedMode = () => {
         shell.toggle(isActiveSection);
         navButton.show();
         navButton.toggleClass('is-active', isActiveSection);
+        navButton.attr('data-active', isActiveSection ? 'true' : null);
+        navButton.attr('aria-current', isActiveSection ? 'page' : null);
         const collapsed = showAdvanced && isAdvancedSection && advancedSectionCollapsedState[key] === true;
         heading.toggleClass('is-collapsed', collapsed);
         shell.toggleClass('is-collapsed', collapsed);

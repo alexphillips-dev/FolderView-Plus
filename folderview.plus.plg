@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.26">
-<!ENTITY md5 "c15f28a5c647f69a26fa9111b1843c7f">
+<!ENTITY version "2026.06.29.27">
+<!ENTITY md5 "a91db948e0758357634122c56e2a5ee8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.27
+- Fix: Make the active folder editor tab visibly distinct and reliable across editor render paths.
+
 
 ###2026.06.29.26
 - UX: Make the active folder editor tab visually distinct with stronger accent styling.

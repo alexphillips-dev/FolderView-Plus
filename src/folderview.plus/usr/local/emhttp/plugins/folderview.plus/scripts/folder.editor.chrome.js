@@ -889,6 +889,13 @@
             const isActive = currentSection === sectionKey;
             navButton.style.display = '';
             navButton.classList.toggle('is-active', isActive);
+            if (isActive) {
+                navButton.setAttribute('data-active', 'true');
+                navButton.setAttribute('aria-current', 'page');
+            } else {
+                navButton.removeAttribute('data-active');
+                navButton.removeAttribute('aria-current');
+            }
             shell.style.display = isActive ? '' : 'none';
         });
     };

@@ -109,6 +109,293 @@ const renderFolderQuickActionSummaryHtml = (summary) => {
     `;
 };
 
+const buildSettingsFolderEditorUrl = (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
+    params.set('type', resolvedType);
+    hashParams.set('type', resolvedType);
+    if (String(folderId || '').trim()) {
+        params.set('id', String(folderId || '').trim());
+        hashParams.set('id', String(folderId || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `/${resolvedType === 'vm' ? 'VMs' : 'Docker'}/Folder?${params.toString()}#${hashParams.toString()}`;
+};
+
+const openSettingsFolderEditor = (type, folderId) => {
+    location.href = buildSettingsFolderEditorUrl(type, folderId);
+};
+
+const buildFolderActionRegistry = ({
+    resolvedType,
+    folderId,
+    folder,
+    pinned,
+    hasParent,
+    treeMoveAvailable
+}) => {
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const treeDisabled = treeMoveAvailable
+        ? ''
+        : 'No valid target folders are available for this move.';
+    const canEdit = typeof openSettingsFolderEditor === 'function';
+    const exportFolder = () => (
+        resolvedType === 'docker'
+            ? downloadDocker(folderId)
+            : downloadVm(folderId)
+    );
+    const deleteFolder = () => (
+        resolvedType === 'docker'
+            ? clearDocker(folderId)
+            : clearVm(folderId)
+    );
+
+    return [
+        {
+            title: 'Quick actions',
+            description: 'Common actions for this folder.',
+            actions: [
+                {
+                    id: 'edit',
+                    label: 'Edit folder',
+                    icon: 'fa-pencil',
+                    primary: true,
+                    closeBeforeRun: true,
+                    disabledReason: canEdit ? '' : 'Folder editor launcher is unavailable on this page.',
+                    run: () => openSettingsFolderEditor(resolvedType, folderId)
+                },
+                {
+                    id: 'pin',
+                    label: pinned ? 'Unpin from top' : 'Pin to top',
+                    icon: pinned ? 'fa-star-o' : 'fa-star',
+                    run: () => toggleFolderPin(resolvedType, folderId)
+                },
+                {
+                    id: 'up',
+                    label: 'Move up',
+                    icon: 'fa-chevron-up',
+                    run: () => moveFolderRow(resolvedType, folderId, -1)
+                },
+                {
+                    id: 'down',
+                    label: 'Move down',
+                    icon: 'fa-chevron-down',
+                    run: () => moveFolderRow(resolvedType, folderId, 1)
+                },
+                {
+                    id: 'branchCollapse',
+                    label: 'Collapse branch',
+                    icon: 'fa-compress',
+                    run: () => setFolderBranchCollapse(resolvedType, folderId, true)
+                },
+                {
+                    id: 'branchExpand',
+                    label: 'Expand branch',
+                    icon: 'fa-expand',
+                    run: () => setFolderBranchCollapse(resolvedType, folderId, false)
+                }
+            ]
+        },
+        {
+            title: 'Move and hierarchy',
+            description: 'Change where this folder sits in the tree.',
+            actions: [
+                {
+                    id: 'root',
+                    label: 'Move to root',
+                    icon: 'fa-level-up',
+                    disabledReason: hasParent ? '' : 'This folder is already at the top level.',
+                    run: () => moveFolderToRootQuick(resolvedType, folderId)
+                },
+                {
+                    id: 'under',
+                    label: 'Move under...',
+                    icon: 'fa-level-down',
+                    closeBeforeRun: true,
+                    disabledReason: treeDisabled,
+                    run: () => moveFolderUnderDialog(resolvedType, folderId)
+                },
+                {
+                    id: 'tree',
+                    label: 'Tree move...',
+                    icon: 'fa-sitemap',
+                    closeBeforeRun: true,
+                    disabledReason: treeDisabled,
+                    run: () => openFolderTreeMoveDialog(resolvedType, folderId)
+                },
+                {
+                    id: 'branchPin',
+                    label: 'Pin branch',
+                    icon: 'fa-thumb-tack',
+                    run: () => setFolderBranchPinned(resolvedType, folderId, true)
+                },
+                {
+                    id: 'branchUnpin',
+                    label: 'Unpin branch',
+                    icon: 'fa-thumb-tack',
+                    run: () => setFolderBranchPinned(resolvedType, folderId, false)
+                }
+            ]
+        },
+        {
+            title: 'Branch tools',
+            description: 'Export, import, and validate this folder branch.',
+            actions: [
+                {
+                    id: 'branchExport',
+                    label: 'Export branch',
+                    icon: 'fa-sign-out',
+                    closeBeforeRun: true,
+                    run: () => exportFolderBranch(resolvedType, folderId)
+                },
+                {
+                    id: 'branchImport',
+                    label: 'Import branch here',
+                    icon: 'fa-sign-in',
+                    closeBeforeRun: true,
+                    run: () => importFolderBranch(resolvedType, folderId)
+                },
+                {
+                    id: 'treeScan',
+                    label: 'Scan tree integrity',
+                    icon: 'fa-stethoscope',
+                    closeBeforeRun: true,
+                    run: () => runTreeIntegrityCheck(resolvedType)
+                },
+                {
+                    id: 'treeRepair',
+                    label: 'Repair tree integrity',
+                    icon: 'fa-wrench',
+                    closeBeforeRun: true,
+                    run: () => runTreeIntegrityCheck(resolvedType, { repair: true })
+                }
+            ]
+        },
+        {
+            title: 'Info and diagnostics',
+            description: `Inspect or copy details for this ${typeLabel} folder.`,
+            actions: [
+                {
+                    id: 'status',
+                    label: 'Status breakdown',
+                    icon: 'fa-info-circle',
+                    closeBeforeRun: true,
+                    run: () => showFolderStatusBreakdown(resolvedType, folderId)
+                },
+                {
+                    id: 'copy',
+                    label: 'Copy ID',
+                    icon: 'fa-clipboard',
+                    run: () => copyFolderId(resolvedType, folderId)
+                },
+                {
+                    id: 'export',
+                    label: 'Export folder',
+                    icon: 'fa-download',
+                    closeBeforeRun: true,
+                    run: exportFolder
+                }
+            ]
+        },
+        {
+            title: 'Danger zone',
+            description: 'Permanent or disruptive actions.',
+            danger: true,
+            actions: [
+                {
+                    id: 'delete',
+                    label: 'Delete folder',
+                    icon: 'fa-trash',
+                    danger: true,
+                    closeBeforeRun: true,
+                    run: deleteFolder
+                }
+            ]
+        }
+    ].map((group) => ({
+        ...group,
+        actions: group.actions.map((action) => ({
+            ...action,
+            folderName: String(folder?.name || folderId)
+        }))
+    }));
+};
+
+const findFolderActionById = (groups, actionId) => {
+    for (const group of groups) {
+        const action = group.actions.find((entry) => entry.id === actionId);
+        if (action) {
+            return action;
+        }
+    }
+    return null;
+};
+
+const renderFolderActionButton = (action) => {
+    const disabled = String(action.disabledReason || '').trim();
+    const classes = [
+        'fv-row-quick-action',
+        action.primary ? 'is-primary' : '',
+        action.danger ? 'is-danger' : ''
+    ].filter(Boolean).join(' ');
+    return `
+        <button type="button"
+            class="${classes}"
+            data-action="${escapeHtml(action.id)}"
+            ${disabled ? 'disabled aria-disabled="true"' : ''}
+            title="${escapeHtml(disabled || action.label)}">
+            <i class="fa ${escapeHtml(action.icon)}"></i>
+            <span>${escapeHtml(action.label)}</span>
+            ${disabled ? `<small>${escapeHtml(disabled)}</small>` : ''}
+        </button>
+    `;
+};
+
+const renderFolderActionGroup = (group) => `
+    <section class="fv-row-quick-action-group${group.danger ? ' is-danger' : ''}">
+        <div class="fv-row-quick-action-group-head">
+            <strong>${escapeHtml(group.title)}</strong>
+            <span>${escapeHtml(group.description || '')}</span>
+        </div>
+        <div class="fv-row-quick-actions-grid">
+            ${group.actions.map(renderFolderActionButton).join('')}
+        </div>
+    </section>
+`;
+
+const setFolderActionModalStatus = (text = '', tone = 'info') => {
+    const host = document.querySelector('#fv-row-quick-action-status');
+    if (!host) {
+        return;
+    }
+    const message = String(text || '').trim();
+    host.textContent = message;
+    host.className = `fv-row-quick-action-status ${message ? 'is-visible' : ''} is-${String(tone || 'info').trim() || 'info'}`;
+};
+
+const setFolderActionModalBusy = (button, busy = true) => {
+    if (!(button instanceof HTMLButtonElement)) {
+        return;
+    }
+    button.classList.toggle('is-running', busy);
+    button.disabled = busy || button.getAttribute('aria-disabled') === 'true';
+    const label = button.querySelector('span');
+    if (!label) {
+        return;
+    }
+    if (busy) {
+        button.setAttribute('data-original-label', label.textContent || '');
+        label.textContent = 'Running...';
+        return;
+    }
+    const original = String(button.getAttribute('data-original-label') || '').trim();
+    if (original) {
+        label.textContent = original;
+    }
+    button.removeAttribute('data-original-label');
+};
+
 const closeVmRowDetailsDrawer = () => {
     const current = rowDetailsDrawerByType.vm;
     if (!current) {
@@ -253,46 +540,31 @@ const showFolderRowQuickActions = (type, folderId) => {
     const safeFolderName = escapeHtml(String(folder.name || folderId));
     const safeFolderId = escapeHtml(String(folderId || ''));
     const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
-    const rootActionHtml = hasParent
-        ? '<button type="button" class="fv-row-quick-action" data-action="root"><i class="fa fa-level-up"></i> Move to root</button>'
-        : '';
-    const treeActionHtml = treeMoveAvailable
-        ? '<button type="button" class="fv-row-quick-action" data-action="tree"><i class="fa fa-sitemap"></i> Tree move...</button>'
-        : '';
-    const underActionHtml = treeMoveAvailable
-        ? '<button type="button" class="fv-row-quick-action" data-action="under"><i class="fa fa-level-down"></i> Move under...</button>'
-        : '';
-    const branchActionsHtml = ''
-        + '<button type="button" class="fv-row-quick-action" data-action="branchCollapse"><i class="fa fa-compress"></i> Collapse branch</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="branchExpand"><i class="fa fa-expand"></i> Expand branch</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="branchPin"><i class="fa fa-thumb-tack"></i> Pin branch</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="branchUnpin"><i class="fa fa-thumb-tack"></i> Unpin branch</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="branchExport"><i class="fa fa-sign-out"></i> Export branch</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="branchImport"><i class="fa fa-sign-in"></i> Import branch here</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="treeScan"><i class="fa fa-stethoscope"></i> Scan tree integrity</button>'
-        + '<button type="button" class="fv-row-quick-action" data-action="treeRepair"><i class="fa fa-wrench"></i> Repair tree integrity</button>';
+    const actionGroups = buildFolderActionRegistry({
+        resolvedType,
+        folderId,
+        folder,
+        pinned,
+        hasParent,
+        treeMoveAvailable
+    });
     const html = `
         <div class="fv-row-quick-actions">
-            <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
-            ${renderFolderQuickActionSummaryHtml(summary)}
-            <div class="fv-row-quick-actions-grid">
-                <button type="button" class="fv-row-quick-action" data-action="up"><i class="fa fa-chevron-up"></i> Move up</button>
-                <button type="button" class="fv-row-quick-action" data-action="down"><i class="fa fa-chevron-down"></i> Move down</button>
-                <button type="button" class="fv-row-quick-action" data-action="pin"><i class="fa ${pinned ? 'fa-star-o' : 'fa-star'}"></i> ${pinned ? 'Unpin' : 'Pin to top'}</button>
-                ${rootActionHtml}
-                ${underActionHtml}
-                ${treeActionHtml}
-                ${branchActionsHtml}
-                <button type="button" class="fv-row-quick-action" data-action="status"><i class="fa fa-info-circle"></i> Status breakdown</button>
-                <button type="button" class="fv-row-quick-action" data-action="copy"><i class="fa fa-clipboard"></i> Copy ID</button>
-                <button type="button" class="fv-row-quick-action" data-action="export"><i class="fa fa-download"></i> Export folder</button>
-                <button type="button" class="fv-row-quick-action is-danger" data-action="delete"><i class="fa fa-trash"></i> Delete folder</button>
+            <div class="fv-row-quick-actions-header">
+                <div>
+                    <div class="fv-row-quick-actions-title">${safeFolderName}</div>
+                    <div class="fv-row-quick-actions-meta">${typeLabel} folder <span>ID: <code>${safeFolderId}</code></span></div>
+                </div>
+                <button type="button" class="fv-row-quick-copy-id" data-action="copy" title="Copy folder ID"><i class="fa fa-clipboard"></i></button>
             </div>
+            ${renderFolderQuickActionSummaryHtml(summary)}
+            <div id="fv-row-quick-action-status" class="fv-row-quick-action-status" role="status" aria-live="polite"></div>
+            ${actionGroups.map(renderFolderActionGroup).join('')}
         </div>
     `;
     $('.sweet-alert').removeClass('fv-row-quick-actions-modal');
     swal({
-        title: safeFolderName,
+        title: '',
         text: html,
         html: true,
         customClass: 'fv-row-quick-actions-modal',
@@ -300,88 +572,34 @@ const showFolderRowQuickActions = (type, folderId) => {
     });
     window.setTimeout(() => {
         $('.sweet-alert:visible').addClass('fv-row-quick-actions-modal');
-        $('.fv-row-quick-action').off('click.fvrowquick').on('click.fvrowquick', (event) => {
+        $('.fv-row-quick-action, .fv-row-quick-copy-id').off('click.fvrowquick').on('click.fvrowquick', async (event) => {
             event.preventDefault();
-            const action = String($(event.currentTarget).attr('data-action') || '');
-            swal.close();
-            if (action === 'pin') {
-                void toggleFolderPin(resolvedType, folderId);
+            event.stopPropagation();
+            const button = event.currentTarget;
+            const actionId = String($(button).attr('data-action') || '');
+            const action = findFolderActionById(actionGroups, actionId);
+            if (!action || action.disabledReason) {
                 return;
             }
-            if (action === 'up') {
-                void moveFolderRow(resolvedType, folderId, -1);
-                return;
-            }
-            if (action === 'down') {
-                void moveFolderRow(resolvedType, folderId, 1);
-                return;
-            }
-            if (action === 'root') {
-                void moveFolderToRootQuick(resolvedType, folderId);
-                return;
-            }
-            if (action === 'under') {
-                moveFolderUnderDialog(resolvedType, folderId);
-                return;
-            }
-            if (action === 'tree') {
-                openFolderTreeMoveDialog(resolvedType, folderId);
-                return;
-            }
-            if (action === 'branchCollapse') {
-                setFolderBranchCollapse(resolvedType, folderId, true);
-                return;
-            }
-            if (action === 'branchExpand') {
-                setFolderBranchCollapse(resolvedType, folderId, false);
-                return;
-            }
-            if (action === 'branchPin') {
-                void setFolderBranchPinned(resolvedType, folderId, true);
-                return;
-            }
-            if (action === 'branchUnpin') {
-                void setFolderBranchPinned(resolvedType, folderId, false);
-                return;
-            }
-            if (action === 'branchExport') {
-                void exportFolderBranch(resolvedType, folderId);
-                return;
-            }
-            if (action === 'branchImport') {
-                void importFolderBranch(resolvedType, folderId);
-                return;
-            }
-            if (action === 'treeScan') {
-                void runTreeIntegrityCheck(resolvedType);
-                return;
-            }
-            if (action === 'treeRepair') {
-                void runTreeIntegrityCheck(resolvedType, { repair: true });
-                return;
-            }
-            if (action === 'status') {
-                showFolderStatusBreakdown(resolvedType, folderId);
-                return;
-            }
-            if (action === 'copy') {
-                void copyFolderId(resolvedType, folderId);
-                return;
-            }
-            if (action === 'export') {
-                if (resolvedType === 'docker') {
-                    void downloadDocker(folderId);
-                } else {
-                    void downloadVm(folderId);
+            if (action.closeBeforeRun) {
+                swal.close();
+                try {
+                    await Promise.resolve(action.run());
+                } catch (error) {
+                    showError('Action failed', error);
                 }
                 return;
             }
-            if (action === 'delete') {
-                if (resolvedType === 'docker') {
-                    void clearDocker(folderId);
-                } else {
-                    void clearVm(folderId);
-                }
+            setFolderActionModalBusy(button, true);
+            setFolderActionModalStatus(`${action.label} is running...`, 'info');
+            try {
+                await Promise.resolve(action.run());
+                setFolderActionModalStatus(`${action.label} complete.`, 'success');
+            } catch (error) {
+                setFolderActionModalStatus(error?.message || 'Action failed.', 'error');
+                showError('Action failed', error);
+            } finally {
+                setFolderActionModalBusy(button, false);
             }
         });
     }, 0);

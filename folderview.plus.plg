@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.12">
-<!ENTITY md5 "6df17ddde2f1135c1d7bc89102902ddd">
+<!ENTITY version "2026.06.29.13">
+<!ENTITY md5 "375f8e72fce82379e44c1a835b89c40a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.13
+- UX: Rebuilt the Settings row overflow action modal with grouped actions, a clearer folder header, quieter button styling, disabled-action reasons, and a shared action dispatcher with inline status feedback.
+
 
 ###2026.06.29.12
 - UX: Continued the Recovery workspace overhaul with a neutral Docker/VM switch, separated compare snapshots into its own card, added a recent snapshot picker, and added a double-confirmed delete-all-backups action for the active source.

@@ -3443,7 +3443,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
-    align-items: stretch;
+    align-items: start;
 }
 
 .fv-recovery-stage {
@@ -3455,7 +3455,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
     align-content: start;
-    height: 100%;
+    min-height: 0;
 }
 
 .fv-recovery-stage-head {
@@ -3545,12 +3545,14 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-recovery-history-stage {
     padding-block: 1rem;
+    margin-top: 0.15rem;
 }
 
 .fv-recovery-history-stage,
 .fv-recovery-environment-stage {
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
+    clear: both;
 }
 
 .fv-recovery-history-picker-row {

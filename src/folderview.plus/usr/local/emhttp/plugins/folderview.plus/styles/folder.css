@@ -1927,8 +1927,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 @media (min-width: 981px) {
     .fv-live-insights {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.38em;
-        align-items: stretch;
+        gap: 0.24em;
+        align-items: start;
+        align-content: start;
     }
 
     .fv-live-grid {
@@ -1938,64 +1939,65 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     .fv-live-stat-card,
     .fv-live-chip-panel {
         min-width: 0;
-        min-height: 45px;
-        height: 100%;
-        padding: 0.34em 0.48em;
-        border-radius: 10px;
+        min-height: 30px;
+        height: auto;
+        padding: 0.18em 0.36em;
+        border-radius: 8px;
     }
 
     .fv-live-stat-card {
-        gap: 0.12em;
+        gap: 0.04em;
     }
 
     .fv-live-stat-label,
     .fv-live-chip-panel-head {
-        font-size: 0.76rem;
-        letter-spacing: 0.06em;
+        font-size: 0.66rem;
+        letter-spacing: 0.05em;
+        line-height: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .fv-live-stat-value {
-        font-size: 0.96rem;
-        line-height: 1.2;
+        font-size: 0.82rem;
+        line-height: 1.05;
         overflow-wrap: anywhere;
     }
 
     .fv-live-chip-panel-head {
-        margin-bottom: 0.18em;
+        margin-bottom: 0.1em;
     }
 
     .fv-live-swatches,
     .fv-docker-signals {
-        gap: 0.24em;
+        gap: 0.16em;
     }
 
     .fv-swatch-item {
-        gap: 0.18em;
-        padding: 0.08em 0.24em;
+        gap: 0.12em;
+        padding: 0.04em 0.16em;
         min-width: 0;
     }
 
     .fv-swatch-item > em {
-        font-size: 0.82rem;
+        font-size: 0.7rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .fv-swatch-item > i {
-        width: 17px;
-        height: 12px;
+        width: 15px;
+        height: 10px;
         flex: 0 0 auto;
     }
 
     .fv-docker-signal-chip {
-        min-height: 20px;
+        min-height: 16px;
         max-width: 100%;
-        padding: 0.08em 0.34em;
-        font-size: 0.78rem;
+        padding: 0.04em 0.24em;
+        font-size: 0.68rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

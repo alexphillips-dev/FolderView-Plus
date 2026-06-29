@@ -9977,7 +9977,7 @@ tr.is-long-press-active {
 
 .fv-row-quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
     gap: 0.5rem;
 }
 
@@ -10049,9 +10049,10 @@ tr.is-long-press-active {
 }
 
 .sweet-alert.fv-row-quick-actions-modal {
-    width: min(920px, calc(100vw - 48px)) !important;
-    top: 32px !important;
-    max-height: calc(100vh - 64px) !important;
+    width: min(1560px, calc(100vw - 28px)) !important;
+    top: 10px !important;
+    max-height: calc(100vh - 20px) !important;
+    padding: 14px !important;
     margin-top: 0 !important;
     margin-left: 0 !important;
     transform: translateX(-50%) !important;
@@ -10068,11 +10069,17 @@ tr.is-long-press-active {
 
 .sweet-alert.fv-row-quick-actions-modal p {
     margin: 0 !important;
+    padding: 0 !important;
     text-align: left !important;
 }
 
+.sweet-alert.fv-row-quick-actions-modal .sa-html {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 .sweet-alert.fv-row-quick-actions-modal .sa-button-container {
-    margin-top: 0.95rem;
+    margin-top: 0.45rem;
 }
 
 :root {

@@ -574,19 +574,13 @@ const showFolderRowQuickActions = (type, folderId) => {
         const modal = $('.sweet-alert:visible');
         modal.addClass('fv-row-quick-actions-modal');
         modal.scrollTop(0);
-        const rawTop = Math.max(16, Math.round((window.innerHeight - modal.outerHeight()) / 2));
-        const top = Math.min(rawTop, 48);
         modal.css({
-            top: `${top}px`,
+            top: '10px',
             left: '50%',
             marginTop: '0',
             marginLeft: '0',
             transform: 'translateX(-50%)'
         });
-        const body = document.scrollingElement || document.documentElement;
-        if (body) {
-            body.scrollTop = body.scrollTop;
-        }
         $('.fv-row-quick-action, .fv-row-quick-copy-id').off('click.fvrowquick').on('click.fvrowquick', async (event) => {
             event.preventDefault();
             event.stopPropagation();

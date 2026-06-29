@@ -5366,48 +5366,12 @@ const showToastMessage = ({
     actionLabel = '',
     onAction = null
 } = {}) => {
-    const host = $('#fv-toast-host');
-    if (!host.length) {
-        return;
-    }
-    const toastId = `fv-toast-${Date.now()}-${++toastSerial}`;
-    const safeTitle = String(title || '').trim();
-    const safeMessage = String(message || '').trim();
-    const safeActionLabel = String(actionLabel || '').trim();
-    host.append(`
-        <div id="${toastId}" class="fv-toast is-${escapeHtml(level)}" role="status">
-            <div class="fv-toast-main">
-                ${safeTitle ? `<div class="fv-toast-title">${escapeHtml(safeTitle)}</div>` : ''}
-                ${safeMessage ? `<div class="fv-toast-message">${escapeHtml(safeMessage)}</div>` : ''}
-            </div>
-            <div class="fv-toast-actions">
-                ${safeActionLabel ? `<button type="button" class="fv-toast-action">${escapeHtml(safeActionLabel)}</button>` : ''}
-                <button type="button" class="fv-toast-close" aria-label="Dismiss notification"><i class="fa fa-times"></i></button>
-            </div>
-        </div>
-    `);
-    const toast = host.find(`#${toastId}`);
-    const removeToast = () => {
-        toast.fadeOut(120, () => {
-            toast.remove();
-        });
-    };
-
-    toast.find('.fv-toast-close').off('click.fvtoast').on('click.fvtoast', () => {
-        removeToast();
-    });
-    toast.find('.fv-toast-action').off('click.fvtoast').on('click.fvtoast', async () => {
-        if (typeof onAction === 'function') {
-            await onAction();
-        }
-        removeToast();
-    });
-
-    if (Number.isFinite(Number(durationMs)) && Number(durationMs) > 0) {
-        window.setTimeout(() => {
-            removeToast();
-        }, Number(durationMs));
-    }
+    void title;
+    void message;
+    void level;
+    void durationMs;
+    void actionLabel;
+    void onAction;
 };
 
 const formatTimestamp = (isoString) => {

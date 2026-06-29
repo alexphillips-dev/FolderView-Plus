@@ -9322,7 +9322,7 @@ h2[data-fv-section].fv-search-match {
     right: 1rem;
     bottom: calc(var(--fv-unraid-bottom-bar-offset) + 0.8rem);
     z-index: 1300;
-    display: grid;
+    display: none;
     gap: 0.42rem;
     width: min(420px, calc(100vw - 1.6rem));
     pointer-events: none;

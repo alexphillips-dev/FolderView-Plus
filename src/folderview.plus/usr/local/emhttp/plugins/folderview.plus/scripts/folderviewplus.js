@@ -7966,8 +7966,11 @@ const clearType = (type, id) => {
             });
 
             const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
-            setProgress(1, `Safety backup created: ${backup?.name || 'ready'}`, {
-                current: `Backup ready: ${backup?.name || 'rollback point created'}`,
+            const backupSkipped = backup?.skipped === true;
+            setProgress(1, backupSkipped ? 'Safety backup skipped: no folders to protect.' : `Safety backup created: ${backup?.name || 'ready'}`, {
+                current: backupSkipped
+                    ? 'No backup file was created because the folder map is empty.'
+                    : `Backup ready: ${backup?.name || 'rollback point created'}`,
                 deletedCount: 0
             });
 
@@ -8890,9 +8893,17 @@ const createManualBackup = async (type) => {
         try {
             const backup = await createBackup(resolvedType, 'manual');
             await refreshBackups(resolvedType);
+            if (backup?.skipped === true) {
+                swal({
+                    title: 'Backup skipped',
+                    text: 'There are no folders to back up yet.',
+                    type: 'info'
+                });
+                return;
+            }
             swal({
                 title: 'Backup created',
-                text: backup.name,
+                text: backup?.name || 'Backup ready.',
                 type: 'success'
             });
         } catch (error) {

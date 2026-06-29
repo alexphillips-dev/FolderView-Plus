@@ -3311,9 +3311,54 @@
         return $removed;
     }
 
+    function backupReasonAllowsEmptySnapshot(string $reason): bool {
+        $normalized = strtolower(trim($reason));
+        if ($normalized === '') {
+            return false;
+        }
+        return strpos($normalized, 'before-import') === 0
+            || strpos($normalized, 'before-restore') === 0
+            || strpos($normalized, 'before-template') === 0
+            || strpos($normalized, 'transaction-') === 0
+            || strpos($normalized, 'rollback') !== false;
+    }
+
+    function getBackupPayloadFolderCount($decoded): ?int {
+        if (!is_array($decoded)) {
+            return null;
+        }
+        if (isset($decoded['folders']) && is_array($decoded['folders'])) {
+            return count($decoded['folders']);
+        }
+        if (!array_key_exists('schemaVersion', $decoded) && !array_key_exists('type', $decoded) && !array_key_exists('prefs', $decoded)) {
+            return count($decoded);
+        }
+        return null;
+    }
+
     function createBackupSnapshot(string $type, string $reason = 'manual'): array {
         $type = ensureType($type);
         $folders = readRawFolderMap($type);
+        $folderCount = count($folders);
+        if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
+            try {
+                appendDiagnosticsHistoryEvent('backup_skipped', $type, [
+                    'reason' => $reason,
+                    'folderCount' => 0,
+                    'skipReason' => 'empty-folder-map'
+                ], 'ok', 'server');
+            } catch (Throwable $err) {
+                // Keep backup skip reporting non-fatal.
+            }
+            return [
+                'name' => '',
+                'createdAt' => gmdate('c'),
+                'count' => 0,
+                'pruned' => [],
+                'skipped' => true,
+                'skipReason' => 'empty-folder-map'
+            ];
+        }
         $prefs = readTypePrefs($type);
         $backupDir = getBackupsDirPath();
         if (!is_dir($backupDir)) {
@@ -3340,7 +3385,7 @@
             appendDiagnosticsHistoryEvent('backup_create', $type, [
                 'reason' => $reason,
                 'name' => $filename,
-                'folderCount' => count($folders),
+                'folderCount' => $folderCount,
                 'prunedCount' => count($pruned)
             ], 'ok', 'server');
         } catch (Throwable $err) {
@@ -3349,8 +3394,9 @@
         return [
             'name' => $filename,
             'createdAt' => gmdate('c'),
-            'count' => count($folders),
-            'pruned' => $pruned
+            'count' => $folderCount,
+            'pruned' => $pruned,
+            'skipped' => false
         ];
     }
 
@@ -3377,9 +3423,7 @@
             $count = null;
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
-                if (isset($decoded['folders']) && is_array($decoded['folders'])) {
-                    $count = count($decoded['folders']);
-                }
+                $count = getBackupPayloadFolderCount($decoded);
             }
             $entries[] = [
                 'name' => $file,
@@ -3510,7 +3554,14 @@
         if (empty($snapshots)) {
             throw new RuntimeException('No backups available.');
         }
-        return restoreBackupSnapshot($type, $snapshots[0]['name']);
+        foreach ($snapshots as $snapshot) {
+            $count = $snapshot['count'] ?? null;
+            if ($count !== null && (int)$count <= 0) {
+                continue;
+            }
+            return restoreBackupSnapshot($type, (string)$snapshot['name']);
+        }
+        throw new RuntimeException('No non-empty backups available.');
     }
 
     function isUndoBackupReason(string $reason): bool {

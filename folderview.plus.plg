@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.08">
-<!ENTITY md5 "e67c6b7cd763847836db2d2c512e6c47">
+<!ENTITY version "2026.06.29.09">
+<!ENTITY md5 "a61264fb3fe9a6344d856f7d171a7810">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.09
+- Fix: Skip normal backup snapshots when there are no folders to protect and make Restore Latest choose the newest non-empty backup.
+
 
 ###2026.06.29.08
 - UX: Automatically clears the Recent Activity panel 10 seconds after the latest activity update.

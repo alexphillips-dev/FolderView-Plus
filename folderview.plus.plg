@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.04">
-<!ENTITY md5 "235c4f364ddde5217e39cee21c066e77">
+<!ENTITY version "2026.06.29.05">
+<!ENTITY md5 "daad87b26f325fb669d96840d31dc26c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.05
+- UX: Open the built-in icon picker by default in the folder editor General tab so the icon module no longer starts with empty space.
+- Docs: Updated the GitHub banner image.
+
 
 ###2026.06.29.04
 - UX: Rebuilt the Setup Assistant Behavior step with clearer Docker/VM behavior cards, explained setting rows, advanced status guidance, and a selected behavior summary.

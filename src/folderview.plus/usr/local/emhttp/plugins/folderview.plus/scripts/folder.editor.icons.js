@@ -2161,7 +2161,12 @@
             renderThirdPartyPackMenu();
             resetIconUploadProgress();
             setIconUploadStatus('');
+            if (!builtInIconManifestLoaded) {
+                await loadBuiltInIcons();
+            }
+            builtInIconPage = 1;
             renderBuiltInIconPicker();
+            setBuiltInIconPickerOpen(true);
             renderThirdPartyFolderList();
             renderThirdPartyIconGrid();
             renderCustomIconStats();

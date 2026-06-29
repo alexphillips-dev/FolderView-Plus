@@ -7962,40 +7962,96 @@ const clearType = (type, id) => {
         const syncStepCount = resolvedType === 'docker' ? 1 : 0;
         const progressTotal = Math.max(3, deleteIds.length + syncStepCount + 2);
         let progressOpen = false;
-        const setProgress = (completed, label) => {
+        const operationTitle = id
+            ? `Deleting ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`
+            : `Clearing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`;
+        const setProgress = (completed, label, detail = {}) => {
+            const safeCompleted = Math.max(0, Math.min(progressTotal, completed));
+            const deletedCount = Number.isFinite(Number(detail.deletedCount))
+                ? Math.max(0, Number(detail.deletedCount))
+                : Math.max(0, Math.min(deleteIds.length, safeCompleted - 1));
+            const remainingFolders = Math.max(0, deleteIds.length - deletedCount);
             updateImportApplyProgressDialog({
-                completed: Math.max(0, Math.min(progressTotal, completed)),
+                completed: safeCompleted,
                 total: progressTotal,
-                label
+                label,
+                title: operationTitle,
+                kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                current: detail.current || label,
+                state: detail.state || 'running',
+                completedLabel: detail.completedLabel ?? deletedCount,
+                remainingLabel: detail.remainingLabel ?? remainingFolders,
+                note: detail.note || (id
+                    ? 'Do not close this page until the folder delete finishes.'
+                    : 'Do not close this page until all folders are cleared.')
             });
         };
         try {
-            openImportApplyProgressDialog(resolvedType, progressTotal);
+            openImportApplyProgressDialog(resolvedType, progressTotal, {
+                title: operationTitle,
+                kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                current: 'Preparing cleanup...',
+                note: id
+                    ? 'Do not close this page until the folder delete finishes.'
+                    : 'Do not close this page until all folders are cleared.'
+            });
             progressOpen = true;
-            setProgress(0, 'Creating safety backup...');
+            setProgress(0, 'Creating safety backup...', {
+                current: 'Creating a rollback point before deleting anything.',
+                deletedCount: 0
+            });
 
             const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
-            setProgress(1, `Safety backup created: ${backup?.name || 'ready'}`);
+            setProgress(1, `Safety backup created: ${backup?.name || 'ready'}`, {
+                current: `Backup ready: ${backup?.name || 'rollback point created'}`,
+                deletedCount: 0
+            });
 
             let completed = 1;
             const foldersBeforeDelete = getFolderMap(resolvedType);
+            let deletedCount = 0;
             for (const currentId of deleteIds) {
                 const currentName = foldersBeforeDelete[currentId]?.name || currentId;
+                setProgress(completed, `Deleting ${currentName}`, {
+                    current: `Removing folder: ${currentName}`,
+                    deletedCount
+                });
                 await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId });
                 completed += 1;
-                setProgress(completed, `Deleted ${currentName}`);
+                deletedCount += 1;
+                setProgress(completed, `Deleted ${currentName}`, {
+                    current: `Removed folder: ${currentName}`,
+                    deletedCount
+                });
             }
 
             if (resolvedType === 'docker') {
+                setProgress(completed, 'Syncing Docker folder order...', {
+                    current: 'Removing deleted folders from Docker order.',
+                    deletedCount
+                });
                 await syncDockerOrder();
                 completed += 1;
-                setProgress(completed, 'Synced Docker folder order');
+                setProgress(completed, 'Synced Docker folder order', {
+                    current: 'Docker folder order synced.',
+                    deletedCount
+                });
             }
 
-            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
+                current: 'Refreshing settings table and backups.',
+                deletedCount
+            });
             await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.');
-            await new Promise((resolve) => setTimeout(resolve, 180));
+            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.', {
+                current: id ? 'Cleanup complete.' : `${deletedCount} folders removed. Settings table refreshed.`,
+                state: 'success',
+                deletedCount,
+                completedLabel: deletedCount,
+                remainingLabel: 0,
+                note: 'Cleanup complete. The settings view has been refreshed.'
+            });
+            await new Promise((resolve) => setTimeout(resolve, 650));
             closeImportApplyProgressDialog();
             progressOpen = false;
 
@@ -8017,6 +8073,17 @@ const clearType = (type, id) => {
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
         } catch (error) {
             if (progressOpen) {
+                updateImportApplyProgressDialog({
+                    completed: progressTotal,
+                    total: progressTotal,
+                    label: 'Cleanup stopped.',
+                    title: operationTitle,
+                    kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                    current: String(error?.message || 'Folder cleanup failed.'),
+                    state: 'error',
+                    note: 'Review the error message and try again.'
+                });
+                await new Promise((resolve) => setTimeout(resolve, 900));
                 closeImportApplyProgressDialog();
             }
             showError('Delete failed', error);

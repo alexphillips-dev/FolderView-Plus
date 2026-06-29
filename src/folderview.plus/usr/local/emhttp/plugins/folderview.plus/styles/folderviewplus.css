@@ -5095,44 +5095,111 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     position: fixed;
     inset: 0;
     z-index: 5000;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(2px);
 }
 
 #import-apply-progress-dialog {
     position: fixed;
-    top: 18vh;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     z-index: 5001;
     display: grid;
     grid-template-columns: 1fr;
     align-content: start;
     justify-items: stretch;
-    gap: 0.55rem;
-    width: 100%;
-    max-width: min(500px, calc(100vw - 1.5rem));
+    gap: 0.72rem;
+    width: min(560px, calc(100vw - 2rem));
+    max-width: none;
     margin: 0 auto;
-    padding: 0.72rem 0.78rem 0.68rem 0.78rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    background: rgba(8, 12, 18, 0.98);
-    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55);
+    padding: 1rem 1.05rem 1.05rem;
+    border: 1px solid rgba(86, 162, 255, 0.34);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(7, 11, 18, 0.98));
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
+    color: #f4f7fb;
+}
+
+.import-apply-progress-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.import-apply-progress-kicker {
+    color: #ff9b32;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.import-apply-progress-title {
+    margin-top: 0.16rem;
+    font-size: 1.28rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.import-apply-progress-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.22rem 0.56rem;
+    border: 1px solid rgba(86, 162, 255, 0.34);
+    border-radius: 999px;
+    background: rgba(86, 162, 255, 0.12);
+    color: #9ed0ff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+#import-apply-progress-dialog.is-success {
+    border-color: rgba(91, 214, 132, 0.42);
+}
+
+#import-apply-progress-dialog.is-success .import-apply-progress-state {
+    border-color: rgba(91, 214, 132, 0.48);
+    background: rgba(91, 214, 132, 0.14);
+    color: #8dedae;
+}
+
+#import-apply-progress-dialog.is-error {
+    border-color: rgba(255, 91, 108, 0.48);
+}
+
+#import-apply-progress-dialog.is-error .import-apply-progress-state {
+    border-color: rgba(255, 91, 108, 0.5);
+    background: rgba(255, 91, 108, 0.14);
+    color: #ff9aa5;
 }
 
 .import-apply-progress-label {
-    font-size: 1.03rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    font-size: 1rem;
+    font-weight: 700;
     line-height: 1.35;
-    min-height: 1.45em;
+    color: #ffffff;
+}
+
+.import-apply-progress-current {
+    min-height: 2.65rem;
+    padding: 0.58rem 0.66rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(244, 247, 251, 0.78);
+    line-height: 1.35;
 }
 
 .import-apply-progress-bar-wrap {
     position: relative;
     width: 100%;
-    max-width: 360px;
-    margin: 0 auto;
-    height: 12px;
+    height: 18px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.05);
@@ -5144,18 +5211,28 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     height: 100%;
     border-radius: 999px;
     background: linear-gradient(90deg, #ff8f2a 0%, #ffd26f 100%);
-    transition: width 120ms ease;
+    box-shadow: 0 0 18px rgba(255, 165, 58, 0.32);
+    transition: width 160ms ease;
+}
+
+#import-apply-progress-dialog.is-success .import-apply-progress-bar {
+    background: linear-gradient(90deg, #38c46b 0%, #8dedae 100%);
+    box-shadow: 0 0 18px rgba(91, 214, 132, 0.32);
+}
+
+#import-apply-progress-dialog.is-error .import-apply-progress-bar {
+    background: linear-gradient(90deg, #ff4b5f 0%, #ff9aa5 100%);
+    box-shadow: 0 0 18px rgba(255, 91, 108, 0.32);
 }
 
 .import-apply-progress-meta {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.45rem 0.65rem;
-    font-size: 1.03rem;
+    gap: 0.45rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    opacity: 0.9;
 }
 
 #import-apply-progress-step,
@@ -5163,12 +5240,42 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 150px;
+    min-width: 160px;
     padding: 0.24rem 0.55rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
     line-height: 1.2;
+}
+
+.import-apply-progress-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.import-apply-progress-detail-grid > span {
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.54rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.import-apply-progress-detail-grid strong {
+    font-size: 1.14rem;
+    line-height: 1.1;
+}
+
+.import-apply-progress-detail-grid small,
+.import-apply-progress-note {
+    color: rgba(244, 247, 251, 0.64);
+    line-height: 1.3;
+}
+
+.import-apply-progress-note {
+    font-size: 0.92rem;
 }
 
 @media (max-width: 980px) {
@@ -5611,9 +5718,24 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     }
 
     #import-apply-progress-dialog {
-        top: 12vh;
-        max-width: calc(100vw - 1rem);
-        padding: 0.62rem 0.62rem 0.6rem 0.62rem;
+        top: 50%;
+        width: calc(100vw - 1rem);
+        padding: 0.72rem;
+        gap: 0.58rem;
+    }
+
+    .import-apply-progress-head {
+        flex-direction: column;
+    }
+
+    .import-apply-progress-meta,
+    .import-apply-progress-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #import-apply-progress-step,
+    #import-apply-progress-percent {
+        width: 100%;
     }
 
     .import-preset-actions > button {

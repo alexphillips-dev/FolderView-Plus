@@ -1644,7 +1644,15 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <div id="import-apply-progress-overlay" style="display:none;"></div>
 <div id="import-apply-progress-dialog" style="display:none;" role="dialog" aria-modal="true" aria-live="polite">
+    <div class="import-apply-progress-head">
+        <div>
+            <div class="import-apply-progress-kicker" id="import-apply-progress-kicker">FolderView Plus</div>
+            <div class="import-apply-progress-title" id="import-apply-progress-title">Preparing operation</div>
+        </div>
+        <span class="import-apply-progress-state" id="import-apply-progress-state">Running</span>
+    </div>
     <div class="import-apply-progress-label" id="import-apply-progress-label">Preparing import...</div>
+    <div class="import-apply-progress-current" id="import-apply-progress-current">Please keep this page open.</div>
     <div class="import-apply-progress-bar-wrap">
         <div id="import-apply-progress-bar" class="import-apply-progress-bar"></div>
     </div>
@@ -1652,6 +1660,12 @@ if (!empty($fvplusRuntimeConflicts)) {
         <span id="import-apply-progress-step">0 / 0</span>
         <span id="import-apply-progress-percent">0%</span>
     </div>
+    <div class="import-apply-progress-detail-grid">
+        <span><strong id="import-apply-progress-completed">0</strong><small>Completed</small></span>
+        <span><strong id="import-apply-progress-remaining">0</strong><small>Remaining</small></span>
+        <span><strong id="import-apply-progress-total">0</strong><small>Total steps</small></span>
+    </div>
+    <div class="import-apply-progress-note" id="import-apply-progress-note">Do not close this page until the operation completes.</div>
 </div>
 
 <div id="fv-setup-assistant-overlay" style="display:none;"></div>

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.02">
-<!ENTITY md5 "70e367bb77196e53e4811de7a3e54319">
+<!ENTITY version "2026.06.29.03">
+<!ENTITY md5 "6f59663b0d834040f8f9d93a20e4d0d7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.03
+- UX: Rebuilt the Setup Assistant Rules step with a beginner-friendly automation intro, clearer Docker/VM rule cards, plain-language match descriptions, bulk select controls, and rules guidance.
+
 
 ###2026.06.29.02
 - UX: Rebuilt the Setup Assistant Import step with an optional-import intro, clearer Docker/VM import cards, file status previews, and beginner-friendly import guidance.

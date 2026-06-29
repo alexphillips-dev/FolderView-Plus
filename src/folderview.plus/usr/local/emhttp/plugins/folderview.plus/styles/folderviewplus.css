@@ -5297,6 +5297,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-profile-preview,
     .fv-setup-profile-preview-effects,
     .fv-setup-import-guide,
+    .fv-setup-rules-toolbar,
+    .fv-setup-rules-guide,
     .fv-setup-quick-preset-grid,
     .fv-setup-impact-grid,
     .fv-setup-field-grid {
@@ -5305,7 +5307,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .fv-setup-profile-hero,
     .fv-setup-profile-section-head,
-    .fv-setup-import-hero {
+    .fv-setup-import-hero,
+    .fv-setup-rules-hero {
         align-items: flex-start;
         flex-direction: column;
     }
@@ -5431,6 +5434,8 @@ body.fv-mobile-compact .fv-setup-default-toggle-grid,
 body.fv-mobile-compact .fv-setup-profile-preview,
 body.fv-mobile-compact .fv-setup-profile-preview-effects,
 body.fv-mobile-compact .fv-setup-import-guide,
+body.fv-mobile-compact .fv-setup-rules-toolbar,
+body.fv-mobile-compact .fv-setup-rules-guide,
 body.fv-mobile-compact .fv-setup-quick-preset-grid,
 body.fv-mobile-compact .fv-setup-impact-grid,
 body.fv-mobile-compact .fv-setup-field-grid {
@@ -5439,7 +5444,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 body.fv-mobile-compact .fv-setup-profile-hero,
 body.fv-mobile-compact .fv-setup-profile-section-head,
-body.fv-mobile-compact .fv-setup-import-hero {
+body.fv-mobile-compact .fv-setup-import-hero,
+body.fv-mobile-compact .fv-setup-rules-hero {
     align-items: flex-start;
     flex-direction: column;
 }
@@ -5565,6 +5571,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     .fv-setup-profile-preview,
     .fv-setup-profile-preview-effects,
     .fv-setup-import-guide,
+    .fv-setup-rules-toolbar,
+    .fv-setup-rules-guide,
     .fv-setup-quick-preset-grid,
     .fv-setup-impact-grid,
     .fv-setup-field-grid {
@@ -5573,7 +5581,8 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
     .fv-setup-profile-hero,
     .fv-setup-profile-section-head,
-    .fv-setup-import-hero {
+    .fv-setup-import-hero,
+    .fv-setup-rules-hero {
         align-items: flex-start;
         flex-direction: column;
     }
@@ -7578,14 +7587,6 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     line-height: 1.2;
 }
 
-.fv-setup-rule-list {
-    max-height: 270px;
-    overflow: auto;
-    display: grid;
-    gap: 0.35rem;
-    padding-right: 0.1rem;
-}
-
 .fv-setup-import-warnings {
     margin: 0.05rem 0 0 0;
     padding-left: 1rem;
@@ -7595,38 +7596,159 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     color: var(--fv-wizard-color-warning);
 }
 
+.fv-setup-rules-step {
+    display: grid;
+    gap: 0.6rem;
+    min-height: 100%;
+}
+
+.fv-setup-rules-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.fv-setup-rules-hero h4 {
+    margin: 0.12rem 0 0.22rem;
+    font-size: var(--fv-wizard-font-130);
+    line-height: 1.2;
+}
+
+.fv-setup-rules-grid {
+    align-items: stretch;
+}
+
+.fv-setup-rules-type-card {
+    display: grid;
+    gap: 0.58rem;
+    align-content: start;
+    min-height: 100%;
+}
+
+.fv-setup-rules-type-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.55rem;
+}
+
+.fv-setup-rules-type-head h4 {
+    margin: 0 0 0.15rem;
+    font-size: var(--fv-wizard-font-118);
+}
+
+.fv-setup-rules-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(var(--fv-wizard-color-info-rgb), 1);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.1);
+}
+
+.fv-setup-rules-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.fv-setup-rules-enable {
+    min-height: 100%;
+}
+
+.fv-setup-rules-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-content: start;
+    justify-content: flex-end;
+}
+
+.fv-setup-rules-actions button {
+    min-height: 34px;
+}
+
+.fv-setup-rule-list {
+    max-height: 315px;
+    overflow: auto;
+    display: grid;
+    gap: 0.42rem;
+    padding-right: 0.12rem;
+}
+
 .fv-setup-rule-row {
     display: grid;
-    grid-template-columns: 20px minmax(0, 1fr);
-    gap: 0.35rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.5rem;
     align-items: start;
     border: 1px solid var(--fv-wizard-border-subtle);
-    border-radius: 8px;
-    padding: 0.34rem 0.4rem;
+    border-radius: 10px;
+    padding: 0.52rem 0.58rem;
     background: var(--fv-wizard-rule-row-bg);
+    cursor: pointer;
+}
+
+.fv-setup-rule-row input {
+    margin-top: 0.18rem;
+}
+
+.fv-setup-rule-content {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
 }
 
 .fv-setup-rule-main,
 .fv-setup-rule-help {
     display: block;
-    font-size: var(--fv-wizard-font-103);
+}
+
+.fv-setup-rule-main {
+    font-size: var(--fv-wizard-font-112);
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.fv-setup-rule-target {
+    display: block;
+    color: var(--fv-wizard-text-muted);
+    line-height: 1.3;
 }
 
 .fv-setup-rule-help {
-    color: var(--fv-wizard-text-dim);
+    color: var(--fv-wizard-text-muted);
     opacity: 1;
-    margin-top: 0.1rem;
+    line-height: 1.32;
+}
+
+.fv-setup-rule-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.08rem;
 }
 
 .fv-setup-rule-preview {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 999px;
+    background: var(--fv-wizard-chip-bg);
+    padding: 0.22rem 0.42rem;
+    line-height: 1.15;
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.9;
-    margin-top: 0.08rem;
 }
 
 .fv-setup-rule-preview.is-match {
     color: var(--fv-wizard-color-success);
+    border-color: rgba(var(--fv-wizard-color-success-rgb), 0.48);
 }
 
 .fv-setup-rule-preview.is-empty {
@@ -7635,6 +7757,46 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-setup-rule-preview.is-error {
     color: var(--fv-wizard-color-danger);
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.5);
+}
+
+.fv-setup-rules-empty {
+    border: 1px dashed var(--fv-wizard-border-subtle);
+    border-radius: 10px;
+    background: var(--fv-wizard-surface-panel);
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.18rem;
+    color: var(--fv-wizard-text-muted);
+}
+
+.fv-setup-rules-empty strong {
+    color: var(--fv-wizard-text-primary);
+}
+
+.fv-setup-rules-guide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+    gap: 0.75rem;
+    align-items: stretch;
+}
+
+.fv-setup-rules-guide ol {
+    margin: 0.35rem 0 0;
+    padding-left: 1.15rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.fv-setup-rules-guide li strong,
+.fv-setup-rules-guide li span {
+    display: block;
+}
+
+.fv-setup-rules-guide li span {
+    margin-top: 0.08rem;
+    color: var(--fv-wizard-text-muted);
+    line-height: 1.3;
 }
 
 .fv-setup-assistant-shell[data-fv-active-step="review"] .fv-setup-step-delta {

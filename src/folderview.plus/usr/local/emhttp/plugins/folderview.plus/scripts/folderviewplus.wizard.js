@@ -2886,9 +2886,31 @@ const renderSetupAssistantTemplatesStep = () => `
     </div>
 `;
 
+const formatSetupAssistantRuleMatchText = (type, pattern) => {
+    const title = normalizeManagedType(type) === 'docker' ? 'Docker container' : 'VM';
+    const rawPattern = String(pattern || '').trim();
+    const cleanPattern = rawPattern.replace(/^\*+|\*+$/g, '').trim();
+    const displayPattern = cleanPattern || rawPattern || 'matching value';
+    if (!rawPattern) {
+        return `${title} names using a custom match.`;
+    }
+    if (rawPattern.startsWith('*') && rawPattern.endsWith('*') && cleanPattern) {
+        return `${title} names containing "${displayPattern}".`;
+    }
+    if (rawPattern.endsWith('*') && cleanPattern) {
+        return `${title} names starting with "${displayPattern}".`;
+    }
+    if (rawPattern.startsWith('*') && cleanPattern) {
+        return `${title} names ending with "${displayPattern}".`;
+    }
+    return `${title} names matching "${displayPattern}".`;
+};
+
 const renderSetupAssistantRuleTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const titlePlural = resolvedType === 'docker' ? 'Docker containers' : 'VMs';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const bootstrap = setupAssistantState.ruleBootstrap[resolvedType];
     const suggestions = Array.isArray(bootstrap?.suggestions) ? bootstrap.suggestions : [];
     const selectedCount = suggestions.filter((row) => row.enabled !== false).length;
@@ -2898,32 +2920,90 @@ const renderSetupAssistantRuleTypeCard = (type) => {
         return `
             <label class="fv-setup-rule-row">
                 <input type="checkbox" data-fv-setup-rule-toggle="${resolvedType}" data-fv-setup-rule-index="${index}" ${row.enabled !== false ? 'checked' : ''} ${bootstrap.enabled ? '' : 'disabled'}>
-                <span class="fv-setup-rule-main">${escapeHtml(row.folderName)} -> <code>${escapeHtml(row.pattern)}</code></span>
-                <span class="fv-setup-rule-help">${escapeHtml(row.note || '')}</span>
-                <span class="fv-setup-rule-preview ${previewClass}">${escapeHtml(preview.text)}</span>
+                <span class="fv-setup-rule-content">
+                    <span class="fv-setup-rule-main">${escapeHtml(row.folderName || 'Folder')}</span>
+                    <span class="fv-setup-rule-target">Sends matches to: <strong>${escapeHtml(row.folderName || 'Folder')}</strong></span>
+                    <span class="fv-setup-rule-help">${escapeHtml(formatSetupAssistantRuleMatchText(resolvedType, row.pattern))}</span>
+                    <span class="fv-setup-rule-meta">
+                        <span class="fv-setup-chip">${title}</span>
+                        <span class="fv-setup-chip">Pattern: ${escapeHtml(row.pattern || '')}</span>
+                        <span class="fv-setup-rule-preview ${previewClass}">${escapeHtml(preview.text)}</span>
+                    </span>
+                </span>
             </label>
         `;
     }).join('');
 
     return `
-        <section class="fv-setup-card" data-fv-card-tone="rules-${resolvedType}">
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
-                Add starter ${title} rules (${selectedCount}/${suggestions.length} selected)
-            </label>
+        <section class="fv-setup-card fv-setup-rules-type-card" data-fv-card-tone="rules-${resolvedType}">
+            <div class="fv-setup-rules-type-head">
+                <span class="fv-setup-rules-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} starter rules</h4>
+                    <p class="fv-setup-muted">Automatically place future ${titlePlural} into matching folders.</p>
+                </div>
+                <span class="fv-setup-chip">${selectedCount} of ${suggestions.length} selected</span>
+            </div>
+            <div class="fv-setup-rules-toolbar">
+                <label class="fv-setup-import-include fv-setup-rules-enable">
+                    <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
+                    <span>
+                        <strong>Add starter ${title} rules</strong>
+                        <small>Create the selected starter rules during setup.</small>
+                    </span>
+                </label>
+                <div class="fv-setup-rules-actions">
+                    <button type="button" data-fv-setup-rules-select="${resolvedType}" data-fv-setup-rules-select-mode="all" ${suggestions.length && bootstrap.enabled ? '' : 'disabled'}>Select all</button>
+                    <button type="button" data-fv-setup-rules-select="${resolvedType}" data-fv-setup-rules-select-mode="none" ${suggestions.length && bootstrap.enabled ? '' : 'disabled'}>Select none</button>
+                </div>
+            </div>
             ${suggestions.length ? `
                 <div class="fv-setup-rule-list">
                     ${rowsHtml}
                 </div>
-            ` : '<div class="fv-setup-muted">No suggestions available yet. Use the Templates step, import files, or create folders manually first.</div>'}
+            ` : `
+                <div class="fv-setup-rules-empty">
+                    <strong>No starter rules suggested</strong>
+                    <span>Use the Templates step, import files, or create folders manually first.</span>
+                </div>
+            `}
         </section>
     `;
 };
 
 const renderSetupAssistantRulesStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantRuleTypeCard('docker')}
-        ${renderSetupAssistantRuleTypeCard('vm')}
+    <div class="fv-setup-rules-step">
+        <section class="fv-setup-card fv-setup-rules-hero" data-fv-card-tone="rules">
+            <div>
+                <span class="fv-setup-kicker">Optional automation</span>
+                <h4>Automatically organize future apps.</h4>
+                <p class="fv-setup-muted">Starter rules watch for matching Docker containers or VMs and place them into the right folder when setup is applied. You can edit or remove rules later.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Optional automation</span>
+                <span class="fv-setup-chip is-update">Editable later</span>
+                <span class="fv-setup-chip is-create">No app changes</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-rules-grid">
+            ${renderSetupAssistantRuleTypeCard('docker')}
+            ${renderSetupAssistantRuleTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-rules-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">How starter rules work</span>
+                <ol>
+                    <li><strong>A rule checks the app name</strong><span>For example, names starting with a folder keyword.</span></li>
+                    <li><strong>Matching apps go to the selected folder</strong><span>Rules keep future installs organized automatically.</span></li>
+                    <li><strong>You review before applying</strong><span>Nothing changes until you confirm the final setup plan.</span></li>
+                </ol>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-pencil" aria-hidden="true"></i> Rules are editable later</span>
+                <span><i class="fa fa-power-off" aria-hidden="true"></i> Rules do not start or stop apps</span>
+                <span><i class="fa fa-folder-open" aria-hidden="true"></i> Rules only organize FolderView folders</span>
+            </div>
+        </section>
     </div>
 `;
 
@@ -4606,6 +4686,17 @@ const bindSetupAssistantEvents = () => {
         const row = setupAssistantState.ruleBootstrap[type].suggestions[index];
         if (row) {
             row.enabled = $(event.currentTarget).prop('checked') === true;
+        }
+        rerender();
+    });
+    root.find('[data-fv-setup-rules-select]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-rules-select'));
+        const mode = String($(event.currentTarget).attr('data-fv-setup-rules-select-mode') || 'all');
+        const suggestions = setupAssistantState.ruleBootstrap[type]?.suggestions;
+        if (Array.isArray(suggestions)) {
+            suggestions.forEach((row) => {
+                row.enabled = mode !== 'none';
+            });
         }
         rerender();
     });

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.24">
-<!ENTITY md5 "66d1356766b6546f3afcf520ac5bad8c">
+<!ENTITY version "2026.06.29.25">
+<!ENTITY md5 "c03943cf7f331eb95be94a62b9b1f841">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.25
+- UX: Restore normal text sizing for folder editor live preview insight cards while keeping the compact layout.
+
 
 ###2026.06.29.24
 - UX: Reduce folder editor live preview insight card height to prevent overlap and keep the preview row compact.

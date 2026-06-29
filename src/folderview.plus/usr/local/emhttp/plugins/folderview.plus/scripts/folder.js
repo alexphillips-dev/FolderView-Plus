@@ -1462,39 +1462,81 @@ const getFolderEditorPreviewRuntimeApi = () => {
         return candidateIds;
     };
     const getNestedPreviewSample = () => {
+        const samples = getNestedPreviewSamples();
+        return samples.length ? samples[0] : null;
+    };
+    const getNestedPreviewSamples = () => {
+        const form = getForm();
         const sourceIds = getActiveFolderIdsForNestedPreview();
         if (!sourceIds.length) {
-            return null;
+            return [];
         }
+        const depthLimit = normalizeChildFolderPreviewDepth(form?.preview_child_folder_depth?.value || '0');
+        const folders = allFoldersById || {};
+        const getChildIds = (parentId) => Object.entries(folders)
+            .filter(([, candidateFolder]) => (
+                candidateFolder && typeof candidateFolder === 'object'
+                && normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId
+            ))
+            .map(([candidateId]) => String(candidateId || '').trim())
+            .filter(Boolean);
+        const hasChildFolders = (parentId) => getChildIds(parentId).length > 0;
+        const buildBreadcrumb = (sourceId, childId) => {
+            const parts = [];
+            const seen = new Set();
+            let cursor = String(childId || '').trim();
+            while (cursor && !seen.has(cursor)) {
+                seen.add(cursor);
+                const folderRecord = folders?.[cursor];
+                const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+                parts.unshift(String(normalizedFolder?.name || cursor || '').trim());
+                if (cursor === sourceId) {
+                    break;
+                }
+                cursor = normalizeParentFolderId(folderRecord?.parentId || folderRecord?.parent_id || '');
+            }
+            if (!parts.length || parts[0] !== String(folders?.[sourceId]?.name || sourceId || '').trim()) {
+                parts.unshift(String(folders?.[sourceId]?.name || sourceId || '').trim());
+            }
+            return parts.filter(Boolean);
+        };
         for (const sourceId of sourceIds) {
-            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
-                const safeCandidateId = String(candidateId || '').trim();
-                if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
-                    continue;
+            const result = [];
+            const seen = new Set();
+            const visit = (parentId, depth = 0) => {
+                if (depthLimit > 0 && depth >= depthLimit) {
+                    return;
                 }
-                if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
-                    continue;
+                for (const safeCandidateId of getChildIds(parentId)) {
+                    if (!safeCandidateId || safeCandidateId === sourceId || seen.has(safeCandidateId)) {
+                        continue;
+                    }
+                    const candidateFolder = folders?.[safeCandidateId];
+                    if (!candidateFolder || typeof candidateFolder !== 'object') {
+                        continue;
+                    }
+                    seen.add(safeCandidateId);
+                    const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
+                    result.push(folderPreviewModelModule.createChildFolderPreviewModel({
+                        sourceId,
+                        parentId,
+                        rootId: sourceId,
+                        childId: safeCandidateId,
+                        childFolder: normalizedChild,
+                        memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
+                        depth,
+                        breadcrumb: buildBreadcrumb(sourceId, safeCandidateId),
+                        hasChildren: hasChildFolders(safeCandidateId)
+                    }));
+                    visit(safeCandidateId, depth + 1);
                 }
-                const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
-                return folderPreviewModelModule.createChildFolderPreviewModel({
-                    sourceId,
-                    parentId: sourceId,
-                    rootId: sourceId,
-                    childId: safeCandidateId,
-                    childFolder: normalizedChild,
-                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
-                    breadcrumb: [
-                        String(allFoldersById?.[sourceId]?.name || sourceId || '').trim(),
-                        String(normalizedChild.name || 'Child folder').trim() || 'Child folder'
-                    ].filter(Boolean),
-                    hasChildren: Object.values(allFoldersById || {}).some((folder) => (
-                        folder && typeof folder === 'object'
-                        && normalizeParentFolderId(folder.parentId || folder.parent_id || '') === safeCandidateId
-                    ))
-                });
+            };
+            visit(sourceId, 0);
+            if (result.length) {
+                return result;
             }
         }
-        return null;
+        return [];
     };
     folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule.createApi({
         window,
@@ -1515,6 +1557,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         normalizeParentFolderId,
         getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
         getNestedPreviewSample,
+        getNestedPreviewSamples,
         previewModelModule: folderPreviewModelModule,
         applyTypePreviewConstraints: ({ $, form } = {}) => {
             getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });

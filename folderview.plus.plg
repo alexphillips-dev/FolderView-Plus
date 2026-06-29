@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.19">
-<!ENTITY md5 "285ef4d5e8f8fa77387817577301b42f">
+<!ENTITY version "2026.06.29.21">
+<!ENTITY md5 "ff186708f53c8fc963b8fd78650e1f7c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.21
+- Fix: Live folder editor preview now shows all nested child folder chips for the visible root when collapsed child-folder previews are enabled.
+
 
 ###2026.06.29.19
 - UX: Settings workspace layout, section flows, and table behavior.

@@ -51,6 +51,12 @@
         const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
             ? deps.getNestedPreviewSample
             : (() => null);
+        const getNestedPreviewSamples = typeof deps.getNestedPreviewSamples === 'function'
+            ? deps.getNestedPreviewSamples
+            : (() => {
+                const sample = getNestedPreviewSample();
+                return sample ? [sample] : [];
+            });
         const previewModelModule = deps.previewModelModule
             && typeof deps.previewModelModule.createChildFolderPreviewModel === 'function'
             ? deps.previewModelModule
@@ -120,26 +126,31 @@
                 `;
             });
             if (hideNestedPreviewItems && previewMode !== 0) {
-                const nestedPreviewSample = getNestedPreviewSample() || {};
-                const nestedPreviewModel = previewModelModule.createChildFolderPreviewModel({
-                    ...nestedPreviewSample,
-                    childId: nestedPreviewSample.childId || nestedPreviewSample.id,
-                    childFolder: nestedPreviewSample,
-                    icon: nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || ''
+                const nestedPreviewSamples = getNestedPreviewSamples();
+                const samples = Array.isArray(nestedPreviewSamples) && nestedPreviewSamples.length
+                    ? nestedPreviewSamples
+                    : [getNestedPreviewSample()].filter(Boolean);
+                samples.forEach((nestedPreviewSample) => {
+                    const nestedPreviewModel = previewModelModule.createChildFolderPreviewModel({
+                        ...nestedPreviewSample,
+                        childId: nestedPreviewSample.childId || nestedPreviewSample.id,
+                        childFolder: nestedPreviewSample,
+                        icon: nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || ''
+                    });
+                    const nestedPreviewName = escapeHtml(nestedPreviewModel.name || 'Child folder');
+                    const nestedPreviewIcon = escapeHtml(nestedPreviewModel.icon || icon || deps.defaultFolderIconPath || '');
+                    const nestedPreviewChildId = escapeHtml(nestedPreviewModel.childId || '');
+                    const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
+                    memberPreviewItems.push(`
+                        <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
+                            <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                            ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
+                            ${previewMode === 2
+                                ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
+                                : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewModel.statusLabel)}</span>`}
+                        </span>
+                    `);
                 });
-                const nestedPreviewName = escapeHtml(nestedPreviewModel.name || 'Child folder');
-                const nestedPreviewIcon = escapeHtml(nestedPreviewModel.icon || icon || deps.defaultFolderIconPath || '');
-                const nestedPreviewChildId = escapeHtml(nestedPreviewModel.childId || '');
-                const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
-                memberPreviewItems.push(`
-                    <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
-                        <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
-                        ${previewMode === 2
-                            ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
-                            : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewModel.statusLabel)}</span>`}
-                    </span>
-                `);
             }
 
             const membersHtml = previewMode === 0

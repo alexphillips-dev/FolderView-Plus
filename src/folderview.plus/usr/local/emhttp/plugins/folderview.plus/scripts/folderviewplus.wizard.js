@@ -2677,6 +2677,7 @@ const renderSetupAssistantProfileStep = () => {
 const renderSetupAssistantImportTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const plan = setupAssistantState.importPlans[resolvedType];
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     const hasFile = Boolean(plan?.parsed);
@@ -2691,31 +2692,62 @@ const renderSetupAssistantImportTypeCard = (type) => {
     const fileSizeText = hasFile ? formatBytesShort(plan?.fileSizeBytes || 0) : '';
     const fileDateText = hasFile ? formatTimestamp(plan?.fileLastModified || '') : '';
     const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
+    const statusTone = plan.error ? 'error' : warnings.length ? 'warning' : hasFile ? 'ready' : 'empty';
+    const operationText = hasFile
+        ? `${operationCount} planned operation${operationCount === 1 ? '' : 's'}`
+        : 'Waiting for export file';
+    const importKindText = hasFile
+        ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder export' : 'Full export')
+        : 'No file selected';
+    const fileMeta = [
+        fileSizeText ? `Size: ${fileSizeText}` : '',
+        fileDateText ? `Modified: ${fileDateText}` : ''
+    ].filter(Boolean);
 
     return `
-        <section class="fv-setup-card fv-setup-import-card" data-fv-card-tone="import-${resolvedType}">
+        <section class="fv-setup-card fv-setup-import-card fv-setup-import-card-${statusTone}" data-fv-card-tone="import-${resolvedType}">
             <div class="fv-setup-import-header">
-                <h4>${title} import</h4>
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-meta">
-                    <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : 'is-update'}">${escapeHtml(formatText)}</span>
-                    <span class="fv-setup-chip">${hasFile ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder' : 'Full export') : 'Waiting for file'}</span>
-                    <span class="fv-setup-chip">Operations: ${operationCount}</span>
+                <span class="fv-setup-import-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} import</h4>
+                    <p class="fv-setup-muted">Use this if you exported ${title} folders, rules, or settings from FolderView Plus.</p>
                 </div>
             </div>
             <div class="fv-setup-import-actions">
                 <button type="button" data-fv-setup-import-select="${resolvedType}"><i class="fa fa-upload"></i> Select ${title} export</button>
                 <button type="button" data-fv-setup-import-clear="${resolvedType}" ${hasFile ? '' : 'disabled'}><i class="fa fa-trash"></i> Clear</button>
             </div>
-            <div class="fv-setup-muted">${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `Choose a ${title} export JSON to preview changes.`}</div>
-            ${hasFile && (fileSizeText || fileDateText) ? `
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-summary">
-                    ${fileSizeText ? `<span class="fv-setup-chip">Size: ${escapeHtml(fileSizeText)}</span>` : ''}
-                    ${fileDateText ? `<span class="fv-setup-chip">Modified: ${escapeHtml(fileDateText)}</span>` : ''}
+            <div class="fv-setup-import-status" data-fv-status-tone="${statusTone}">
+                <div>
+                    <span class="fv-setup-kicker">File status</span>
+                    <strong>${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `No ${title} export selected`}</strong>
+                    <small>${hasFile ? `${escapeHtml(formatText)} - ${operationText}` : `Choose a JSON export to preview what would be created, updated, skipped, or removed.`}</small>
+                </div>
+                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="import-${resolvedType}-meta">
+                    <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : hasFile ? 'is-update' : ''}">${importKindText}</span>
+                    <span class="fv-setup-chip">${hasFile ? `Operations: ${operationCount}` : 'Preview before apply'}</span>
+                    ${fileMeta.map((item) => `<span class="fv-setup-chip">${escapeHtml(item)}</span>`).join('')}
+                </div>
+            </div>
+            ${hasFile ? `
+                <div class="fv-setup-import-plan">
+                    <span class="fv-setup-chip is-create">Create: ${summary?.creates?.length || 0}</span>
+                    <span class="fv-setup-chip is-update">Update: ${summary?.updates?.length || 0}</span>
+                    <span class="fv-setup-chip is-delete">Delete: ${summary?.deletes?.length || 0}</span>
+                    <span class="fv-setup-chip">Unchanged: ${summary?.unchanged?.length || 0}</span>
                 </div>
             ` : ''}
-            <label class="fv-setup-inline-toggle">
+            <div class="fv-setup-import-can-import">
+                <span><i class="fa fa-folder-open" aria-hidden="true"></i> Folders</span>
+                <span><i class="fa fa-magic" aria-hidden="true"></i> Rules</span>
+                <span><i class="fa fa-sliders" aria-hidden="true"></i> Settings</span>
+            </div>
+            <label class="fv-setup-import-include">
                 <input type="checkbox" data-fv-setup-import-include="${resolvedType}" ${plan.include ? 'checked' : ''} ${hasFile ? '' : 'disabled'}>
-                Include this ${title} import in Apply
+                <span>
+                    <strong>Use this ${title} import during setup</strong>
+                    <small>If enabled, these imported items are included in the final Review step.</small>
+                </span>
             </label>
             ${isExpert ? `
                 <label class="fv-setup-field">
@@ -2729,14 +2761,6 @@ const renderSetupAssistantImportTypeCard = (type) => {
             ` : `
                 <div class="fv-setup-muted">Guided mode uses <strong>Merge</strong> for safer imports.</div>
             `}
-            ${hasFile ? `
-                <div class="fv-setup-chip-row">
-                    <span class="fv-setup-chip is-create">Create: ${summary?.creates?.length || 0}</span>
-                    <span class="fv-setup-chip is-update">Update: ${summary?.updates?.length || 0}</span>
-                    <span class="fv-setup-chip is-delete">Delete: ${summary?.deletes?.length || 0}</span>
-                    <span class="fv-setup-chip">Unchanged: ${summary?.unchanged?.length || 0}</span>
-                </div>
-            ` : ''}
             ${warnings.length ? `
                 <ul class="fv-setup-import-warnings">
                     ${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}
@@ -2748,9 +2772,38 @@ const renderSetupAssistantImportTypeCard = (type) => {
 };
 
 const renderSetupAssistantImportStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantImportTypeCard('docker')}
-        ${renderSetupAssistantImportTypeCard('vm')}
+    <div class="fv-setup-import-step">
+        <section class="fv-setup-card fv-setup-import-hero" data-fv-card-tone="import">
+            <div>
+                <span class="fv-setup-kicker">Optional import</span>
+                <h4>Bring in an existing FolderView setup.</h4>
+                <p class="fv-setup-muted">Select an export file only if you already have folders, rules, or settings from another install. You can skip this step and continue with a fresh setup.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Optional step</span>
+                <span class="fv-setup-chip is-update">Preview before apply</span>
+                <span class="fv-setup-chip is-create">No changes yet</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-import-grid">
+            ${renderSetupAssistantImportTypeCard('docker')}
+            ${renderSetupAssistantImportTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-import-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">How import works</span>
+                <ol>
+                    <li><strong>Select an export file</strong><span>FolderView Plus reads the file and builds a preview.</span></li>
+                    <li><strong>Choose whether to use it</strong><span>Docker and VM imports can be included separately.</span></li>
+                    <li><strong>Review before applying</strong><span>Nothing changes until you confirm the final setup plan.</span></li>
+                </ol>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-file-code-o" aria-hidden="true"></i> FolderView Plus JSON exports</span>
+                <span><i class="fa fa-history" aria-hidden="true"></i> Compatible legacy exports</span>
+                <span><i class="fa fa-shield" aria-hidden="true"></i> Safer merge mode by default</span>
+            </div>
+        </section>
     </div>
 `;
 

@@ -1924,6 +1924,84 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: inline-block;
 }
 
+@media (min-width: 981px) {
+    .fv-live-insights {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.38em;
+        align-items: stretch;
+    }
+
+    .fv-live-grid {
+        display: contents;
+    }
+
+    .fv-live-stat-card,
+    .fv-live-chip-panel {
+        min-width: 0;
+        min-height: 52px;
+        height: 100%;
+        padding: 0.42em 0.5em;
+        border-radius: 10px;
+    }
+
+    .fv-live-stat-card {
+        gap: 0.12em;
+    }
+
+    .fv-live-stat-label,
+    .fv-live-chip-panel-head {
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .fv-live-stat-value {
+        font-size: 0.96rem;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .fv-live-chip-panel-head {
+        margin-bottom: 0.28em;
+    }
+
+    .fv-live-swatches,
+    .fv-docker-signals {
+        gap: 0.24em;
+    }
+
+    .fv-swatch-item {
+        gap: 0.18em;
+        padding: 0.12em 0.28em;
+        min-width: 0;
+    }
+
+    .fv-swatch-item > em {
+        font-size: 0.82rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .fv-swatch-item > i {
+        width: 18px;
+        height: 13px;
+        flex: 0 0 auto;
+    }
+
+    .fv-docker-signal-chip {
+        min-height: 22px;
+        max-width: 100%;
+        padding: 0.12em 0.38em;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
 /* Member tools + table */
 .fv-member-tools {
     margin-bottom: 0.95em;

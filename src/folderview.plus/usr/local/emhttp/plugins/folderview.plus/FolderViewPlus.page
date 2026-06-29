@@ -1392,9 +1392,15 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Choose Docker or VMs, confirm you are protected, then create, compare, restore, or review snapshots from one place.</span>
         </div>
         <div class="fv-recovery-section-body">
-            <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
-                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
-                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+            <div class="fv-recovery-intro">
+                <div>
+                    <strong>Recovery protects your FolderView Plus setup.</strong>
+                    <span>Use this page to create restore points, restore a previous folder layout, compare two snapshots, or move your setup to another server.</span>
+                </div>
+                <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+                </div>
             </div>
 
             <div id="fv-recovery-overview" class="fv-recovery-overview">

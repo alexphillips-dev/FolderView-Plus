@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.10">
-<!ENTITY md5 "a82a098dabd2cccfd4107b2bf8d816b8">
+<!ENTITY version "2026.06.29.11">
+<!ENTITY md5 "cde6cb81994260a7d7d25e6bbe21779d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.11
+- UX: Made the Recovery workspace redesign more visible with a clearer intro, stronger status banner, segmented source switch, and more distinct restore, policy, history, and environment cards.
+
 
 ###2026.06.29.10
 - UX: Rebuilt the Recovery workspace overview and backup history with clearer restore guidance, protection status, empty-snapshot labeling, and beginner-friendly explanations.

@@ -132,6 +132,8 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
     })
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
+const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
+let activityFeedAutoClearTimer = null;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
     refresh: Object.freeze({ docker: 1500, vm: 1500 }),
@@ -762,6 +764,25 @@ const renderActivityFeed = () => {
     panel.show();
 };
 
+const cancelActivityFeedAutoClear = () => {
+    if (activityFeedAutoClearTimer) {
+        window.clearTimeout(activityFeedAutoClearTimer);
+        activityFeedAutoClearTimer = null;
+    }
+};
+
+const scheduleActivityFeedAutoClear = () => {
+    cancelActivityFeedAutoClear();
+    if (!activityFeedEntries.length) {
+        return;
+    }
+    activityFeedAutoClearTimer = window.setTimeout(() => {
+        activityFeedAutoClearTimer = null;
+        activityFeedEntries = [];
+        renderActivityFeed();
+    }, ACTIVITY_FEED_AUTO_CLEAR_MS);
+};
+
 const addActivityEntry = (message, level = 'info') => {
     const text = String(message || '').trim();
     if (!text) {
@@ -776,9 +797,11 @@ const addActivityEntry = (message, level = 'info') => {
         activityFeedEntries = activityFeedEntries.slice(0, ACTIVITY_FEED_MAX_ENTRIES);
     }
     renderActivityFeed();
+    scheduleActivityFeedAutoClear();
 };
 
 const clearActivityFeed = () => {
+    cancelActivityFeedAutoClear();
     activityFeedEntries = [];
     renderActivityFeed();
 };
@@ -1863,6 +1886,7 @@ if (document.readyState === 'loading') {
 Object.assign(window, {
     lastDiagnostics,
     ACTIVITY_FEED_MAX_ENTRIES,
+    ACTIVITY_FEED_AUTO_CLEAR_MS,
     PERF_DIAGNOSTICS_SAMPLE_LIMIT,
     performanceDiagnosticsState,
     perfNowMs,

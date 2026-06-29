@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.07">
-<!ENTITY md5 "5b831f12b69dfaba4287e2ebebed7ced">
+<!ENTITY version "2026.06.29.08">
+<!ENTITY md5 "e67c6b7cd763847836db2d2c512e6c47">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.08
+- UX: Automatically clears the Recent Activity panel 10 seconds after the latest activity update.
+
 
 ###2026.06.29.07
 - UX: Removed bottom-right action toast notifications so completed actions rely on Recent Activity instead of redundant popups.

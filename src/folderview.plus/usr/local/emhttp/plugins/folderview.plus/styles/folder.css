@@ -1926,7 +1926,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 @media (min-width: 981px) {
     .fv-live-insights {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.38em;
         align-items: stretch;
     }
@@ -1938,9 +1938,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     .fv-live-stat-card,
     .fv-live-chip-panel {
         min-width: 0;
-        min-height: 52px;
+        min-height: 45px;
         height: 100%;
-        padding: 0.42em 0.5em;
+        padding: 0.34em 0.48em;
         border-radius: 10px;
     }
 
@@ -1964,7 +1964,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-live-chip-panel-head {
-        margin-bottom: 0.28em;
+        margin-bottom: 0.18em;
     }
 
     .fv-live-swatches,
@@ -1974,7 +1974,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
     .fv-swatch-item {
         gap: 0.18em;
-        padding: 0.12em 0.28em;
+        padding: 0.08em 0.24em;
         min-width: 0;
     }
 
@@ -1986,15 +1986,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-swatch-item > i {
-        width: 18px;
-        height: 13px;
+        width: 17px;
+        height: 12px;
         flex: 0 0 auto;
     }
 
     .fv-docker-signal-chip {
-        min-height: 22px;
+        min-height: 20px;
         max-width: 100%;
-        padding: 0.12em 0.38em;
+        padding: 0.08em 0.34em;
         font-size: 0.78rem;
         white-space: nowrap;
         overflow: hidden;

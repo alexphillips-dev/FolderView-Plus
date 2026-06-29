@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.29.22">
-<!ENTITY md5 "8f9aa9924e80387b603bb82a592d10eb">
+<!ENTITY version "2026.06.29.23">
+<!ENTITY md5 "6d2bf33d3595231fb118f6d052398214">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.29.23
+- UX: Reflow the folder editor live preview insight cards into a compact two-column desktop layout.
+
 
 ###2026.06.29.22
 - UX: Compact the folder editor live preview insight cards into one equal-width desktop row.

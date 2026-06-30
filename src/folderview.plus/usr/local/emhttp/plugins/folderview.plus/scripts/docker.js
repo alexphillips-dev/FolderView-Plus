@@ -2986,20 +2986,29 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
         if (!changed) {
             return;
         }
+        const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+        const previousOrder = fullOrder.slice();
         folderTypePrefs = utils.normalizePrefs({
             ...(folderTypePrefs || {}),
             sortMode: 'manual',
             manualOrder: nextOrder
         });
         applyRuntimePrefs(folderTypePrefs);
-        const response = await persistDockerFolderManualOrder(nextOrder);
-        folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
-        applyRuntimePrefs(folderTypePrefs);
         applyDockerFolderMenuOrderToDom(nextOrder);
-        folderReq = buildDockerFolderReq({
-            liveUpdateStatus: true
-        });
-        queueCreateFoldersRender();
+        try {
+            const response = await persistDockerFolderManualOrder(nextOrder);
+            folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
+            applyRuntimePrefs(folderTypePrefs);
+            folderReq = buildDockerFolderReq({
+                liveUpdateStatus: true
+            });
+            queueCreateFoldersRender();
+        } catch (error) {
+            folderTypePrefs = previousPrefs;
+            applyRuntimePrefs(folderTypePrefs);
+            applyDockerFolderMenuOrderToDom(previousOrder);
+            throw error;
+        }
     });
 };
 const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {

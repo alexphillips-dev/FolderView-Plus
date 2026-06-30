@@ -56,8 +56,10 @@ test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const siblingIds = parentId[\s\S]*childrenById\[parentId\][\s\S]*fullOrder\.filter/);
     assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
     assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
-    assert.match(dockerScript, /await persistDockerFolderManualOrder\(nextOrder\);|const response = await persistDockerFolderManualOrder\(nextOrder\);/);
-    assert.match(dockerScript, /applyDockerFolderMenuOrderToDom\(nextOrder\);/);
+    assert.match(dockerScript, /const previousPrefs = utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\);/);
+    assert.match(dockerScript, /const previousOrder = fullOrder\.slice\(\);/);
+    assert.match(dockerScript, /applyDockerFolderMenuOrderToDom\(nextOrder\);[\s\S]*const response = await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerScript, /catch \(error\) \{[\s\S]*folderTypePrefs = previousPrefs;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);[\s\S]*throw error;/);
     assert.match(dockerScript, /folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus:\s*true[\s\S]*\}\);/);
     assert.match(dockerScript, /queueCreateFoldersRender\(\);/);
     assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);

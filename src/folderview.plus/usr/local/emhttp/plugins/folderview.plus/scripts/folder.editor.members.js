@@ -78,6 +78,7 @@
                 $row.find('.member-drag-handle')
                     .toggleClass('is-disabled', !draggable)
                     .attr('aria-disabled', draggable ? 'false' : 'true')
+                    .attr('draggable', draggable ? 'true' : 'false')
                     .attr('title', locked ? 'Auto-included members cannot be manually reordered.' : disabledTitle);
             });
         };
@@ -270,19 +271,19 @@
 
             tableBody.off('.fvMemberDrag');
             tableBody
-                .on('dragstart.fvMemberDrag', 'tr', function(event) {
+                .on('dragstart.fvMemberDrag', '.member-drag-handle', function(event) {
                     const originalEvent = event.originalEvent || event;
-                    const target = originalEvent.target;
-                    if (!target || !$(target).closest('.member-drag-handle').length || isMemberReorderFiltered() || isLockedMemberRow(this)) {
+                    const row = $(this).closest('tr').get(0);
+                    if (!row || isMemberReorderFiltered() || isLockedMemberRow(row)) {
                         event.preventDefault();
                         return false;
                     }
-                    draggedRow = this;
+                    draggedRow = row;
                     moved = false;
-                    $(this).addClass('is-dragging');
+                    $(row).addClass('is-dragging');
                     if (originalEvent.dataTransfer) {
                         originalEvent.dataTransfer.effectAllowed = 'move';
-                        originalEvent.dataTransfer.setData('text/plain', String($(this).attr('data-name') || 'member'));
+                        originalEvent.dataTransfer.setData('text/plain', String($(row).attr('data-name') || 'member'));
                     }
                     return true;
                 })

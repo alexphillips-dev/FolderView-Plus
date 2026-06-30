@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.02">
-<!ENTITY md5 "8e594dc638188aad1824bf09fd4d5779">
+<!ENTITY version "2026.06.30.03">
+<!ENTITY md5 "0ae9fd5eb171eac97dec1b5a832d2368">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.03
+- Fix: Make folder editor member drag handles start the drag operation correctly.
+
 
 ###2026.06.30.02
 - UX: Add drag-and-drop member reordering to the new folder editor while keeping up/down buttons as fallback controls.

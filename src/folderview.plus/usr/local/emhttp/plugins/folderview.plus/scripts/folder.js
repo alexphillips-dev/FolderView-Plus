@@ -4301,7 +4301,7 @@ const updateList = (afterRender = null) => {
         const stateKey = getMemberStateKey(member);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
-            : '<div class="order-buttons"><button type="button" class="member-drag-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
+            : '<div class="order-buttons"><button type="button" class="member-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
             <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="${locked ? 'false' : 'true'}">
                 <td class="order-col">${orderControls}</td>

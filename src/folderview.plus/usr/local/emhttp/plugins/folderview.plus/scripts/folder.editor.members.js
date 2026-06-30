@@ -74,7 +74,7 @@
                 $row
                     .toggleClass('fv-member-row-locked', locked)
                     .toggleClass('fv-member-row-draggable', draggable)
-                    .attr('draggable', draggable ? 'true' : 'false');
+                    .attr('draggable', 'false');
                 $row.find('.member-drag-handle')
                     .toggleClass('is-disabled', !draggable)
                     .attr('aria-disabled', draggable ? 'false' : 'true')

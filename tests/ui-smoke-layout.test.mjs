@@ -541,7 +541,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
     assert.match(folderCss, /\.order-buttons > button,\s*[\s\S]*\.order-buttons > button > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.order-buttons > button:hover,\s*[\s\S]*\.order-buttons > button:focus-visible,\s*[\s\S]*\.order-buttons > button:hover > i,\s*[\s\S]*\.order-buttons > button:focus-visible > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
-    assert.match(folderCss, /\.item\.fv-member-row-draggable\s*\{[\s\S]*cursor:\s*grab;/);
+    assert.match(folderCss, /\.item\.fv-member-row-draggable\s*\{[\s\S]*cursor:\s*default;/);
+    assert.match(folderCss, /\.member-drag-handle\s*\{[\s\S]*cursor:\s*grab;/);
     assert.match(folderCss, /\.item\.is-dragging\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface-active\);/);
     assert.match(folderCss, /\.member-drag-handle\.is-disabled\s*\{[\s\S]*cursor:\s*not-allowed;/);
     assert.match(folderJs, /class="member-drag-handle"/);

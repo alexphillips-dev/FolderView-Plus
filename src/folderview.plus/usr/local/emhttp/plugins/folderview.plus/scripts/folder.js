@@ -4303,7 +4303,7 @@ const updateList = (afterRender = null) => {
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
             : '<div class="order-buttons"><button type="button" class="member-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
-            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="${locked ? 'false' : 'true'}">
+            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>

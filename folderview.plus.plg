@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.03">
-<!ENTITY md5 "0ae9fd5eb171eac97dec1b5a832d2368">
+<!ENTITY version "2026.06.30.04">
+<!ENTITY md5 "0372923d307d8b0dc3eafd9244e8c981">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.04
+- UX: Limit member reorder drag cursor and drag start behavior to the dedicated grab handle.
+
 
 ###2026.06.30.03
 - Fix: Make folder editor member drag handles start the drag operation correctly.

@@ -144,6 +144,13 @@ const folderId = String(
     || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
+const requestedCreateParentId = String(
+    folderEditorQueryParams.get('parentId')
+    || folderEditorHashParams.get('parentId')
+    || folderEditorQueryParams.get('parent')
+    || folderEditorHashParams.get('parent')
+    || ''
+).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
     || folderEditorBootstrapSeed?.id
@@ -3475,25 +3482,33 @@ const startFolderEditorRuntime = async () => {
     } else {
         activeFolderEditorFolderId = '';
         activeFolderEditorResolvedFolderId = '';
+        const hasCreateParentRequest = Boolean(normalizeParentFolderId(requestedCreateParentId));
         setValidationBannerState(
-            'Folder editor opened without a folder target.',
-            'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
-            'warning'
+            hasCreateParentRequest
+                ? 'Creating a child folder.'
+                : 'Folder editor opened without a folder target.',
+            hasCreateParentRequest
+                ? 'The editor opened in new-folder mode with the clicked folder preselected as the parent.'
+                : 'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
+            hasCreateParentRequest ? 'info' : 'warning'
         );
         setBootstrapDiagnostics({
             mode: 'hydrate',
             requestedFolderRefs,
+            requestedCreateParentId: normalizeParentFolderId(requestedCreateParentId),
             navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
             navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
             foldersLoaded: String(folderCount),
-            result: 'no-target',
+            result: hasCreateParentRequest ? 'create-child-target' : 'no-target',
             effectiveFolderId: '',
             routeTargetRecovered: false,
             routeTargetMismatch: false
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
-        if (!applySavedFolderDefaultsToNewFolder(folders)) {
+        const appliedSavedDefaults = applySavedFolderDefaultsToNewFolder(folders);
+        const appliedRequestedParent = await applyRequestedCreateParentToNewFolder(folders);
+        if (!appliedRequestedParent && !appliedSavedDefaults) {
             refreshParentFolderChooser(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         }
@@ -4273,6 +4288,24 @@ const applySavedFolderDefaultsToNewFolder = (foldersMap = {}) => {
     hydrateCurrentEditFolder(savedDefaults.folder, '', foldersMap, { clearPrefill: false });
     const sourceLabel = savedDefaults.sourceName || savedDefaults.sourceId || 'saved profile';
     setParentDefaultsNote(`Loaded saved defaults from "${sourceLabel}".`, 'info');
+    return true;
+};
+const applyRequestedCreateParentToNewFolder = async (foldersMap = {}) => {
+    const parentId = normalizeParentFolderId(requestedCreateParentId);
+    if (!parentId || String(activeFolderEditorFolderId || folderId || '').trim()) {
+        return false;
+    }
+    if (!Object.prototype.hasOwnProperty.call(foldersMap || {}, parentId)) {
+        return false;
+    }
+    refreshParentFolderChooser(foldersMap, parentId, new Set());
+    const form = getForm();
+    if (form?.parent_folder_id) {
+        form.parent_folder_id.value = parentId;
+    }
+    const parentName = String(foldersMap?.[parentId]?.name || parentId).trim();
+    setParentDefaultsNote(`Creating this folder under "${parentName}".`, 'info');
+    await applySmartDefaultsFromParent(parentId, { force: true });
     return true;
 };
 const getFolderEditorParentPickerApi = (() => {

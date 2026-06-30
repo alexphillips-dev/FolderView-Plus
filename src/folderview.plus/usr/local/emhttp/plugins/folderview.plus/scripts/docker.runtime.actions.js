@@ -555,7 +555,7 @@
             }
         };
 
-        const buildDockerFolderEditorUrl = (id = '') => {
+        const buildDockerFolderEditorUrl = (id = '', options = {}) => {
             const params = new URLSearchParams();
             const hashParams = new URLSearchParams();
             params.set('type', 'docker');
@@ -563,6 +563,11 @@
             if (String(id || '').trim()) {
                 params.set('id', String(id || '').trim());
                 hashParams.set('id', String(id || '').trim());
+            }
+            const parentId = normalizeFolderParentId(options?.parentId || '');
+            if (parentId) {
+                params.set('parentId', parentId);
+                hashParams.set('parentId', parentId);
             }
             params.set('_', String(Date.now()));
             return `/Docker/Folder?${params.toString()}#${hashParams.toString()}`;
@@ -576,6 +581,22 @@
             seedFolderEditorPrefill('docker', id);
             const targetUrl = buildDockerFolderEditorUrl(id);
             recordFolderEditorLaunchDebug('docker', 'docker', id, targetUrl);
+            if (win?.location) {
+                win.location.href = targetUrl;
+            }
+        };
+
+        const createChildFolder = (parentId) => {
+            const safeParentId = normalizeFolderParentId(parentId);
+            if (!safeParentId || !getFolderById(safeParentId)) {
+                return;
+            }
+            if (!ensureDockerFolderUnlocked(safeParentId, 'Add child folder')) {
+                return;
+            }
+            clearFolderEditorPrefill();
+            const targetUrl = buildDockerFolderEditorUrl('', { parentId: safeParentId });
+            recordFolderEditorLaunchDebug('docker', 'docker', '', targetUrl);
             if (win?.location) {
                 win.location.href = targetUrl;
             }
@@ -1154,6 +1175,7 @@
             seedFolderEditorPrefill,
             buildDockerFolderEditorUrl,
             editFolder,
+            createChildFolder,
             forceUpdateFolder,
             updateFolder,
             collectFolderWebuiTargets,

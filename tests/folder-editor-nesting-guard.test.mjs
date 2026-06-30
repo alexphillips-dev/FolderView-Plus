@@ -153,8 +153,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const getNestedPreviewSample = \(\) => \{/);
     assert.match(folderEditorScript, /const sourceIds = getActiveFolderIdsForNestedPreview\(\);/);
     assert.match(folderEditorScript, /for \(const sourceId of sourceIds\) \{/);
-    assert.match(folderEditorScript, /for \(const \[candidateId, candidateFolder\] of Object\.entries\(allFoldersById \|\| \{\}\)\) \{/);
-    assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) !== sourceId/);
+    assert.match(folderEditorScript, /const getChildIds = \(parentId\) => \{/);
+    assert.match(folderEditorScript, /normalizeParentFolderId\(candidateFolder\.parentId \|\| candidateFolder\.parent_id \|\| ''\) === parentId/);
     assert.match(folderPreviewModelScript, /const createChildFolderPreviewModel = \(input = \{\}\) =>/);
     assert.match(folderEditorScript, /folderPreviewModelModule\.createChildFolderPreviewModel\(\{/);
     assert.match(folderEditorScript, /sourceId,\s*[\s\S]*childId: safeCandidateId,/);
@@ -204,8 +204,8 @@ test('runtime folder editor redirects include a cache-busting query marker', () 
         path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'),
         'utf8'
     );
-    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) => \{/);
-    assert.match(dockerRuntimeActionsScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = '', options = \{\}\) => \{/);
+    assert.match(dockerRuntimeActionsScript, /const buildDockerFolderEditorUrl = \(id = '', options = \{\}\) =>/);
     assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
     assert.match(dockerRuntimeActionsScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);

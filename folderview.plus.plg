@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.08">
-<!ENTITY md5 "69010956998f854e365cd07f354fbab1">
+<!ENTITY version "2026.06.30.10">
+<!ENTITY md5 "47bae841e35b5f3d887838b0ee963626">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.10
+- UX: Add an Add child folder action to the Docker folder left-click menu, opening the folder editor with the clicked folder preselected as parent.
+
+
+###2026.06.30.09
+- UX: Add an Add child folder action to the Docker folder left-click menu, opening the folder editor with the clicked folder preselected as parent.
+
 
 ###2026.06.30.08
 - Fix: Place the new Folder Members ordering block inside the modern Members tab so it appears above the Docker/VM member manager.

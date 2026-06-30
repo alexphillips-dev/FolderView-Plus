@@ -97,7 +97,26 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
     assert.doesNotMatch(dashboardJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.doesNotMatch(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(dockerRuntimeActionsJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
-    assert.match(dockerJs, /const buildDockerFolderEditorUrl = \(id = ''\) => \{[\s\S]*actionsApi\.buildDockerFolderEditorUrl\(id\)/);
+    assert.match(dockerRuntimeActionsJs, /const buildDockerFolderEditorUrl = \(id = '', options = \{\}\) => \{/);
+    assert.match(dockerRuntimeActionsJs, /params\.set\('parentId', parentId\);/);
+    assert.match(dockerRuntimeActionsJs, /hashParams\.set\('parentId', parentId\);/);
+    assert.match(dockerJs, /const buildDockerFolderEditorUrl = \(id = '', options = \{\}\) => \{[\s\S]*actionsApi\.buildDockerFolderEditorUrl\(id, options\)/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.doesNotMatch(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+});
+
+test('docker folder context can create a new child folder with parent preselected', () => {
+    assert.match(folderJs, /const requestedCreateParentId = String\(/);
+    assert.match(folderJs, /folderEditorQueryParams\.get\('parentId'\)/);
+    assert.match(folderJs, /folderEditorHashParams\.get\('parentId'\)/);
+    assert.match(folderJs, /const applyRequestedCreateParentToNewFolder = async \(foldersMap = \{\}\) => \{/);
+    assert.match(folderJs, /refreshParentFolderChooser\(foldersMap, parentId, new Set\(\)\);/);
+    assert.match(folderJs, /await applySmartDefaultsFromParent\(parentId, \{ force: true \}\);/);
+    assert.match(folderJs, /const appliedRequestedParent = await applyRequestedCreateParentToNewFolder\(folders\);/);
+    assert.match(dockerRuntimeActionsJs, /const createChildFolder = \(parentId\) => \{/);
+    assert.match(dockerRuntimeActionsJs, /buildDockerFolderEditorUrl\('', \{ parentId: safeParentId \}\)/);
+    assert.match(dockerJs, /const createChildFolder = \(id\) => \{/);
+    assert.match(dockerJs, /actionsApi\.createChildFolder\(id\);/);
+    assert.match(dockerJs, /text:\s*'Add child folder'/);
+    assert.match(dockerJs, /createChildFolder\(id\);/);
 });

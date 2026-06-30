@@ -5358,16 +5358,22 @@ const clearFolderEditorPrefill = () => {
         actionsApi.clearFolderEditorPrefill();
     }
 };
-const buildDockerFolderEditorUrl = (id = '') => {
+const buildDockerFolderEditorUrl = (id = '', options = {}) => {
     const actionsApi = getDockerRuntimeActionsApi();
     return actionsApi && typeof actionsApi.buildDockerFolderEditorUrl === 'function'
-        ? actionsApi.buildDockerFolderEditorUrl(id)
+        ? actionsApi.buildDockerFolderEditorUrl(id, options)
         : `/Docker/Folder?type=docker&_=${String(Date.now())}#type=docker`;
 };
 const editFolder = (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.editFolder === 'function') {
         actionsApi.editFolder(id);
+    }
+};
+const createChildFolder = (id) => {
+    const actionsApi = getDockerRuntimeActionsApi();
+    if (actionsApi && typeof actionsApi.createChildFolder === 'function') {
+        actionsApi.createChildFolder(id);
     }
 };
 
@@ -5959,6 +5965,11 @@ const addDockerFolderContext = (id) => {
         text: $.i18n('edit'),
         icon: 'fa-wrench',
         action: (evt) => { evt.preventDefault(); editFolder(id); }
+    });
+    opts.push({
+        text: 'Add child folder',
+        icon: 'fa-folder-open-o',
+        action: (evt) => { evt.preventDefault(); createChildFolder(id); }
     });
 
     const cloneSubMenu = [

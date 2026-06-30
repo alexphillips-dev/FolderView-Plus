@@ -2798,6 +2798,152 @@ const toggleDockerFolderPin = async (folderId) => {
         }
     });
 };
+const buildDockerFolderRuntimeOrderState = () => {
+    const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};
+    const orderedMap = getPrefsOrderedFolderMap(folders, folderTypePrefs || {});
+    const fullOrder = Object.keys(orderedMap || {});
+    for (const id of Object.keys(folders)) {
+        if (!fullOrder.includes(id)) {
+            fullOrder.push(id);
+        }
+    }
+    const validIds = new Set(Object.keys(folders));
+    const parentById = {};
+    const childrenById = {};
+    for (const id of Object.keys(folders)) {
+        childrenById[id] = [];
+    }
+    for (const id of Object.keys(folders)) {
+        const rawParentId = normalizeFolderParentId(folders[id]?.parentId || folders[id]?.parent_id || '');
+        const parentId = rawParentId && rawParentId !== id && validIds.has(rawParentId) ? rawParentId : '';
+        parentById[id] = parentId;
+        if (parentId) {
+            childrenById[parentId].push(id);
+        }
+    }
+    const indexById = new Map(fullOrder.map((id, index) => [id, index]));
+    for (const children of Object.values(childrenById)) {
+        children.sort((left, right) => (indexById.get(left) ?? 0) - (indexById.get(right) ?? 0));
+    }
+    const collectDescendants = (folderId, seen = new Set()) => {
+        const id = String(folderId || '').trim();
+        if (!id || seen.has(id)) {
+            return [];
+        }
+        seen.add(id);
+        const output = [];
+        for (const childId of (childrenById[id] || [])) {
+            output.push(childId);
+            output.push(...collectDescendants(childId, seen));
+        }
+        return output;
+    };
+    return {
+        folders,
+        fullOrder,
+        parentById,
+        childrenById,
+        collectDescendants
+    };
+};
+const persistDockerFolderManualOrder = async (nextOrder) => {
+    const payload = {
+        type: 'docker',
+        prefs: JSON.stringify({
+            sortMode: 'manual',
+            manualOrder: Array.isArray(nextOrder) ? nextOrder : []
+        })
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so Docker menu ordering still
+            // works if the runtime request wrapper is temporarily unavailable.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
+const moveDockerFolderFromMenu = async (folderId, direction) => {
+    const id = String(folderId || '').trim();
+    const moveDirection = direction < 0 ? -1 : 1;
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (!ensureDockerFolderUnlocked(id, moveDirection < 0 ? 'Move folder up' : 'Move folder down')) {
+        return;
+    }
+    return dockerSafeUiActionRunner.run(`docker-folder-menu-move:${id}:${moveDirection}`, async () => {
+        const {
+            folders,
+            fullOrder,
+            parentById,
+            childrenById,
+            collectDescendants
+        } = buildDockerFolderRuntimeOrderState();
+        if (!Object.prototype.hasOwnProperty.call(folders, id)) {
+            return;
+        }
+        const parentId = String(parentById[id] || '').trim();
+        const siblingIds = parentId
+            ? [...(childrenById[parentId] || [])]
+            : fullOrder.filter((candidateId) => !String(parentById[candidateId] || '').trim());
+        const sourceIndex = siblingIds.indexOf(id);
+        const targetIndex = sourceIndex + moveDirection;
+        if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= siblingIds.length) {
+            swal({
+                title: 'Folder order unchanged',
+                text: moveDirection < 0
+                    ? 'This folder is already first in this level.'
+                    : 'This folder is already last in this level.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const targetSiblingId = siblingIds[targetIndex];
+        const sourceSubtreeIds = [id, ...collectDescendants(id)];
+        const targetSubtreeIds = [targetSiblingId, ...collectDescendants(targetSiblingId)];
+        const sourceSet = new Set(sourceSubtreeIds);
+        const orderWithoutSource = fullOrder.filter((candidateId) => !sourceSet.has(candidateId));
+        const insertIndex = moveDirection < 0
+            ? orderWithoutSource.findIndex((candidateId) => targetSubtreeIds.includes(candidateId))
+            : (() => {
+                let lastIndex = -1;
+                orderWithoutSource.forEach((candidateId, index) => {
+                    if (targetSubtreeIds.includes(candidateId)) {
+                        lastIndex = index;
+                    }
+                });
+                return lastIndex >= 0 ? lastIndex + 1 : orderWithoutSource.length;
+            })();
+        const nextOrder = orderWithoutSource.slice();
+        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const changed = nextOrder.length === fullOrder.length
+            && nextOrder.some((candidateId, index) => String(candidateId || '') !== String(fullOrder[index] || ''));
+        if (!changed) {
+            return;
+        }
+        folderTypePrefs = utils.normalizePrefs({
+            ...(folderTypePrefs || {}),
+            sortMode: 'manual',
+            manualOrder: nextOrder
+        });
+        applyRuntimePrefs(folderTypePrefs);
+        const response = await persistDockerFolderManualOrder(nextOrder);
+        folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
+        applyRuntimePrefs(folderTypePrefs);
+        await Promise.resolve(refreshDockerRuntimeStateInPlace({
+            followupDelayMs: 250,
+            liveUpdateStatus: true
+        }));
+    });
+};
 const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {
     if (!isDockerFolderLocked(id)) {
         return true;
@@ -5970,6 +6116,16 @@ const addDockerFolderContext = (id) => {
         text: 'Add child folder',
         icon: 'fa-folder-open-o',
         action: (evt) => { evt.preventDefault(); createChildFolder(id); }
+    });
+    opts.push({
+        text: 'Move up',
+        icon: 'fa-chevron-up',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderFromMenu(id, -1); }
+    });
+    opts.push({
+        text: 'Move down',
+        icon: 'fa-chevron-down',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderFromMenu(id, 1); }
     });
 
     const cloneSubMenu = [

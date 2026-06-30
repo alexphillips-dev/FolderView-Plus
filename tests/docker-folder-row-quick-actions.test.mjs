@@ -43,6 +43,21 @@ test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 
+test('docker folder menu can move folders within the current level', () => {
+    assert.match(dockerScript, /const buildDockerFolderRuntimeOrderState = \(\) =>/);
+    assert.match(dockerScript, /const persistDockerFolderManualOrder = async \(nextOrder\) =>/);
+    assert.match(dockerScript, /prefs:\s*JSON\.stringify\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*Array\.isArray\(nextOrder\) \? nextOrder : \[\][\s\S]*\}\)/);
+    assert.match(dockerScript, /const moveDockerFolderFromMenu = async \(folderId,\s*direction\) =>/);
+    assert.match(dockerScript, /ensureDockerFolderUnlocked\(id,\s*moveDirection < 0 \? 'Move folder up' : 'Move folder down'\)/);
+    assert.match(dockerScript, /const siblingIds = parentId[\s\S]*childrenById\[parentId\][\s\S]*fullOrder\.filter/);
+    assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
+    assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
+    assert.match(dockerScript, /await persistDockerFolderManualOrder\(nextOrder\);|const response = await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerScript, /refreshDockerRuntimeStateInPlace\(\{[\s\S]*followupDelayMs:\s*250,[\s\S]*liveUpdateStatus:\s*true/);
+    assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);
+    assert.match(dockerScript, /text:\s*'Move down'[\s\S]*moveDockerFolderFromMenu\(id,\s*1\)/);
+});
+
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
     assert.match(dockerPreviewActionsScript, /const utils = deps\.utils && typeof deps\.utils === 'object' \? deps\.utils : \{\};/);
     assert.match(dockerScript, /dockerPreviewActionsModule\.createApi\(\{[\s\S]*utils,[\s\S]*escapeHtml:/);

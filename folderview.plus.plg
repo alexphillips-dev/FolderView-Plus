@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.10">
-<!ENTITY md5 "47bae841e35b5f3d887838b0ee963626">
+<!ENTITY version "2026.06.30.11">
+<!ENTITY md5 "12d0a778b0b478555f5c6b2c2ba16709">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.11
+- UX: Add Move up and Move down actions to the Docker folder left-click menu for direct same-level folder reordering.
+
 
 ###2026.06.30.10
 - UX: Add an Add child folder action to the Docker folder left-click menu, opening the folder editor with the clicked folder preselected as parent.

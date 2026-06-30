@@ -28,6 +28,7 @@
             { key: 'icon', title: 'Icon', description: 'Preview and change the folder icon.', match: (row) => Boolean(row?.querySelector?.('.fv-icon-dd')) }
         ],
         members: [
+            { key: 'folder-members', title: 'Folder Members', description: 'Order child folders shown in nested previews and expanded rows.', match: (row) => row?.id === 'fvFolderMembersSection' },
             { key: 'member-manager', title: 'Member Manager', description: 'Choose visible members, filter the list, and set folder order.', match: (row) => row?.classList?.contains('order-section') === true }
         ],
         preview: [
@@ -499,6 +500,7 @@
             findBasicByFieldName(form, 'folder_webui_url')
         ],
         members: [
+            form.querySelector('#fvFolderMembersSection'),
             form.querySelector('.basic.order-section')
         ],
         preview: [

@@ -2838,6 +2838,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="folder_webui"])', 'general');
     markSection('ul[constraint*="folder-webui"]', 'general');
 
+    markSection('#fvFolderMembersSection', 'members');
     markSection('div.basic.order-section', 'members');
 
     markSection('div.basic:has([name="preview"])', 'preview');

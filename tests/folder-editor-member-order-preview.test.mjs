@@ -12,6 +12,7 @@ const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const folderMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
+const folderChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
 test('folder editor live preview renders members in current checked-table order', () => {
     assert.match(folderPreviewJs, /const memberNames = getIncludedMemberNames\(\);/);
@@ -58,6 +59,9 @@ test('modern folder editor exposes separate child-folder ordering above app memb
     assert.match(folderJs, /const bindChildFolderDragReorder = \(\) => \{/);
     assert.match(folderJs, /const syncChildFolderOrderFromTable = \(\) => \{/);
     assert.match(folderJs, /const getChildFolderOrderIds = \(\) => \{/);
+    assert.match(folderJs, /markSection\('#fvFolderMembersSection', 'members'\);/);
+    assert.match(folderChromeJs, /form\.querySelector\('#fvFolderMembersSection'\)/);
+    assert.match(folderChromeJs, /key:\s*'folder-members'/);
     assert.match(folderJs, /childFolderOrder = normalizeChildFolderOrder\(normalizedFolder\.settings\.child_folder_order \|\| normalizedFolder\.settings\.childFolderOrder\);/);
     assert.match(folderJs, /renderFolderMembersSection\(\);/);
     assert.match(folderJs, /#fvFolderMembersBody > tr\[data-child-folder-id\]/);

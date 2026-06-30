@@ -409,6 +409,7 @@ let advancedSectionCollapsedState = {};
 let memberBulkMoveInFlight = false;
 let memberBulkMoveUndoState = null;
 let memberBulkMoveUndoInFlight = false;
+let childFolderOrder = [];
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
@@ -1248,6 +1249,7 @@ const computeFormSnapshot = () => {
     const state = {
         fields: {},
         members: [],
+        childFolders: [],
         actions: $('input[name*="custom_action"]').map((_, el) => $(el).val()).get()
     };
 
@@ -1275,6 +1277,7 @@ const computeFormSnapshot = () => {
             locked: input.prop('disabled')
         });
     });
+    state.childFolders = getChildFolderOrderIds();
 
     return JSON.stringify(state);
 };
@@ -1473,13 +1476,32 @@ const getFolderEditorPreviewRuntimeApi = () => {
         }
         const depthLimit = normalizeChildFolderPreviewDepth(form?.preview_child_folder_depth?.value || '0');
         const folders = allFoldersById || {};
-        const getChildIds = (parentId) => Object.entries(folders)
+        const getChildOrderForParent = (parentId) => {
+            if (String(parentId || '').trim() === getActiveFolderIdForChildOrdering()) {
+                return normalizeChildFolderOrder(childFolderOrder);
+            }
+            const folderSettings = folders?.[parentId]?.settings || {};
+            return normalizeChildFolderOrder(folderSettings.child_folder_order || folderSettings.childFolderOrder);
+        };
+        const getChildIds = (parentId) => {
+            const rawIds = Object.entries(folders)
             .filter(([, candidateFolder]) => (
                 candidateFolder && typeof candidateFolder === 'object'
                 && normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId
             ))
             .map(([candidateId]) => String(candidateId || '').trim())
             .filter(Boolean);
+            const sourceIndex = new Map(rawIds.map((id, index) => [id, index]));
+            const orderIndex = new Map(getChildOrderForParent(parentId).map((id, index) => [id, index]));
+            return rawIds.sort((left, right) => {
+                const leftOrder = orderIndex.has(left) ? orderIndex.get(left) : Number.MAX_SAFE_INTEGER;
+                const rightOrder = orderIndex.has(right) ? orderIndex.get(right) : Number.MAX_SAFE_INTEGER;
+                if (leftOrder !== rightOrder) {
+                    return leftOrder - rightOrder;
+                }
+                return (sourceIndex.get(left) || 0) - (sourceIndex.get(right) || 0);
+            });
+        };
         const hasChildFolders = (parentId) => getChildIds(parentId).length > 0;
         const buildBreadcrumb = (sourceId, childId) => {
             const parts = [];
@@ -3179,6 +3201,7 @@ resetStatusColorDefaults();
 const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
     const safeFolderId = String(folderRecordId || '').trim();
     const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+    childFolderOrder = normalizeChildFolderOrder(normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder);
     const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
     if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
         delete folders[safeFolderId];
@@ -4283,6 +4306,189 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
     });
 };
 
+const normalizeChildFolderOrder = (value) => {
+    const source = Array.isArray(value) ? value : [];
+    const seen = new Set();
+    const result = [];
+    source.forEach((entry) => {
+        const id = String(entry || '').trim();
+        if (!id || seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        result.push(id);
+    });
+    return result;
+};
+
+const getActiveFolderIdForChildOrdering = () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim();
+
+const getDirectChildFolderEntries = () => {
+    const parentId = getActiveFolderIdForChildOrdering();
+    if (!parentId) {
+        return [];
+    }
+    return Object.entries(allFoldersById || {})
+        .filter(([candidateId, candidateFolder]) => {
+            const childId = String(candidateId || '').trim();
+            if (!childId || childId === parentId || !candidateFolder || typeof candidateFolder !== 'object') {
+                return false;
+            }
+            return normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId;
+        })
+        .map(([candidateId, candidateFolder], sourceIndex) => {
+            const normalizedFolder = normalizeFolderRecordForEditor(candidateFolder);
+            return {
+                id: String(candidateId || '').trim(),
+                sourceIndex,
+                name: String(normalizedFolder.name || candidateId || '').trim(),
+                icon: String(normalizedFolder.icon || DEFAULT_FOLDER_ICON_PATH || ICON_FALLBACK_PATH || '').trim(),
+                memberCount: Array.isArray(normalizedFolder.containers) ? normalizedFolder.containers.length : 0
+            };
+        });
+};
+
+const sortChildFolderEntries = (entries, order = childFolderOrder) => {
+    const orderIndex = new Map(normalizeChildFolderOrder(order).map((id, index) => [id, index]));
+    return [...entries].sort((left, right) => {
+        const leftOrder = orderIndex.has(left.id) ? orderIndex.get(left.id) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = orderIndex.has(right.id) ? orderIndex.get(right.id) : Number.MAX_SAFE_INTEGER;
+        if (leftOrder !== rightOrder) {
+            return leftOrder - rightOrder;
+        }
+        return left.sourceIndex - right.sourceIndex;
+    });
+};
+
+const syncChildFolderOrderFromTable = () => {
+    childFolderOrder = normalizeChildFolderOrder(
+        $('#fvFolderMembersBody > tr[data-child-folder-id]').map((_, row) => $(row).attr('data-child-folder-id')).get()
+    );
+    return childFolderOrder;
+};
+
+const getChildFolderOrderIds = () => {
+    const directIds = new Set(getDirectChildFolderEntries().map((entry) => entry.id));
+    return sortChildFolderEntries(getDirectChildFolderEntries())
+        .map((entry) => entry.id)
+        .filter((id) => directIds.has(id));
+};
+
+const moveChildFolderRow = (button, direction) => {
+    const row = $(button).closest('tr');
+    if (!row.length) {
+        return;
+    }
+    if (direction === 'up') {
+        const previous = row.prev('tr');
+        if (previous.length) {
+            previous.before(row);
+        }
+    } else if (direction === 'down') {
+        const next = row.next('tr');
+        if (next.length) {
+            next.after(row);
+        }
+    }
+    syncChildFolderOrderFromTable();
+    updateLiveSummary();
+    if (isFormInitialized) {
+        updateUnsavedIndicator();
+    }
+};
+
+const bindChildFolderDragReorder = () => {
+    const tableBody = $('#fvFolderMembersBody');
+    if (!tableBody.length) {
+        return;
+    }
+    tableBody.off('.fvChildFolderDrag');
+    let draggedRow = null;
+
+    tableBody
+        .on('dragstart.fvChildFolderDrag', '.folder-member-drag-handle', function(event) {
+            draggedRow = $(this).closest('tr')[0] || null;
+            if (!draggedRow) {
+                return;
+            }
+            $(draggedRow).addClass('is-dragging');
+            const originalEvent = event.originalEvent || event;
+            if (originalEvent.dataTransfer) {
+                originalEvent.dataTransfer.effectAllowed = 'move';
+                originalEvent.dataTransfer.setData('text/plain', $(draggedRow).attr('data-child-folder-id') || '');
+            }
+        })
+        .on('dragover.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
+            if (!draggedRow || draggedRow === this) {
+                return;
+            }
+            event.preventDefault();
+            const target = this;
+            const targetRect = target.getBoundingClientRect();
+            const originalEvent = event.originalEvent || event;
+            const beforeTarget = originalEvent.clientY < targetRect.top + (targetRect.height / 2);
+            if (beforeTarget) {
+                target.parentNode.insertBefore(draggedRow, target);
+            } else {
+                target.parentNode.insertBefore(draggedRow, target.nextSibling);
+            }
+        })
+        .on('drop.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
+            event.preventDefault();
+        })
+        .on('dragend.fvChildFolderDrag', '.folder-member-drag-handle', function() {
+            if (draggedRow) {
+                $(draggedRow).removeClass('is-dragging');
+            }
+            draggedRow = null;
+            syncChildFolderOrderFromTable();
+            updateLiveSummary();
+            if (isFormInitialized) {
+                updateUnsavedIndicator();
+            }
+        });
+};
+
+const renderFolderMembersSection = () => {
+    const section = $('#fvFolderMembersSection');
+    const body = $('#fvFolderMembersBody');
+    const empty = $('#fvFolderMembersEmpty');
+    const summary = $('#fvFolderMembersSummary');
+    if (!section.length || !body.length) {
+        return;
+    }
+    const entries = sortChildFolderEntries(getDirectChildFolderEntries());
+    const countLabel = `${entries.length} folder${entries.length === 1 ? '' : 's'}`;
+    section.prop('hidden', entries.length === 0);
+    summary.text(countLabel);
+    body.empty();
+    empty.prop('hidden', entries.length !== 0);
+    if (!entries.length) {
+        return;
+    }
+    const rows = entries.map((entry) => `
+        <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
+            <td class="order-col">
+                <div class="order-buttons">
+                    <button type="button" class="folder-member-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button>
+                    <button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                    <button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                </div>
+            </td>
+            <td class="fv-folder-member-name">
+                <img src="${escapeHtml(entry.icon)}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';">
+                <span>${escapeHtml(entry.name)}</span>
+                <small>${entry.memberCount} item${entry.memberCount === 1 ? '' : 's'}</small>
+            </td>
+        </tr>
+    `).join('');
+    body.append($(rows));
+    body.find('.folder-member-move').off('click').on('click', function() {
+        moveChildFolderRow(this, $(this).data('direction'));
+    });
+    bindChildFolderDragReorder();
+};
+
 /**
  * Create the element select table
  */
@@ -4328,6 +4534,7 @@ const updateList = (afterRender = null) => {
             moveMemberRow(this, $(this).data('direction'));
         });
         bindMemberDragReorder();
+        renderFolderMembersSection();
 
         $('input.container-switch').off('change').on('change', () => {
             updateMemberStats();
@@ -4429,6 +4636,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
             preview_hide_nested_items: e.preview_hide_nested_items.checked,
+            child_folder_order: getChildFolderOrderIds(),
+            childFolderOrder: getChildFolderOrderIds(),
             preview_child_folder_depth: normalizedChildFolderPreviewDepth,
             previewChildFolderDepth: normalizedChildFolderPreviewDepth,
             preview_webui: e.preview_webui.checked,

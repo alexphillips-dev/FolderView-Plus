@@ -1461,6 +1461,37 @@ try {
         <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
+        <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
+            <dl>
+                <dt>Folder members:</dt>
+                <dd>
+                    <div class="fv-folder-members-panel">
+                        <div class="fv-folder-members-intro">
+                            <div>
+                                <strong>Nested folders</strong>
+                                <span>Drag child folders to control the order shown in previews and expanded rows.</span>
+                            </div>
+                            <span id="fvFolderMembersSummary" class="fv-folder-members-summary">0 folders</span>
+                        </div>
+                        <div id="fvFolderMembersEmpty" class="fv-folder-members-empty" hidden>No nested folders are currently inside this folder.</div>
+                        <table class="fv-folder-members-table" aria-label="Nested folder order">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Folder</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fvFolderMembersBody"></tbody>
+                        </table>
+                    </div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    This only changes the order of child folders. Docker containers and VMs stay managed in the member list below.
+                </p>
+            </blockquote>
+        </div>
         <div class="basic order-section">
             <dl>
                 <dt data-i18n="order">Order:</dt>

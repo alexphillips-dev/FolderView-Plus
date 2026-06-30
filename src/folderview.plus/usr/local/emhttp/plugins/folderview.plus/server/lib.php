@@ -1221,6 +1221,26 @@
             $normalized['preview_hide_nested_items'],
             $normalized['previewHideNestedItems']
         );
+        $rawChildFolderOrder = $normalized['settings']['child_folder_order']
+            ?? ($normalized['settings']['childFolderOrder']
+                ?? ($normalized['child_folder_order']
+                    ?? ($normalized['childFolderOrder'] ?? [])));
+        $childFolderOrder = [];
+        if (is_array($rawChildFolderOrder)) {
+            foreach ($rawChildFolderOrder as $rawChildFolderId) {
+                $childFolderId = truncateUtf8String(trim((string)$rawChildFolderId), 64);
+                if ($childFolderId === '' || in_array($childFolderId, $childFolderOrder, true)) {
+                    continue;
+                }
+                $childFolderOrder[] = $childFolderId;
+            }
+        }
+        $normalized['settings']['child_folder_order'] = $childFolderOrder;
+        $normalized['settings']['childFolderOrder'] = $childFolderOrder;
+        unset(
+            $normalized['child_folder_order'],
+            $normalized['childFolderOrder']
+        );
         $rawPreviewChildFolderDepth = $normalized['settings']['preview_child_folder_depth']
             ?? ($normalized['settings']['previewChildFolderDepth']
                 ?? ($normalized['preview_child_folder_depth']

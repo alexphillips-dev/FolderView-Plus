@@ -89,6 +89,21 @@
                 return 0;
             });
 
+        const normalizeChildFolderOrder = (value) => {
+            const source = Array.isArray(value) ? value : [];
+            const seen = new Set();
+            const result = [];
+            source.forEach((entry) => {
+                const id = String(entry || '').trim();
+                if (!id || seen.has(id)) {
+                    return;
+                }
+                seen.add(id);
+                result.push(id);
+            });
+            return result;
+        };
+
         const normalizeFolderRecordForEditor = (folder) => {
             const source = folder && typeof folder === 'object' ? folder : {};
             const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -134,6 +149,8 @@
                     })(),
                     preview_hide_nested_items: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
                     previewHideNestedItems: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
+                    child_folder_order: normalizeChildFolderOrder(settings.child_folder_order || settings.childFolderOrder),
+                    childFolderOrder: normalizeChildFolderOrder(settings.child_folder_order || settings.childFolderOrder),
                     preview_child_folder_depth: normalizeChildFolderPreviewDepth(settings, source),
                     previewChildFolderDepth: normalizeChildFolderPreviewDepth(settings, source),
                     preview_webui: settings.preview_webui === true,

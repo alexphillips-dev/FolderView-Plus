@@ -66,6 +66,22 @@ test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /text:\s*'Move down'[\s\S]*moveDockerFolderFromMenu\(id,\s*1\)/);
 });
 
+test('docker folder menu can move folders under another folder or back to root', () => {
+    assert.match(dockerScript, /const persistDockerFolderRecord = async \(folderId,\s*folderPayload\) =>/);
+    assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/update\.php/);
+    assert.match(dockerScript, /const buildDockerFolderMoveTargetOptions = \(sourceId,\s*state\) =>/);
+    assert.match(dockerScript, /const blocked = new Set\(\[safeSourceId,\s*\.\.\.descendants\]\);/);
+    assert.match(dockerScript, /const applyDockerFolderHierarchyMoveFromMenu = async \(folderId,\s*nextParentId\) =>/);
+    assert.match(dockerScript, /descendants\.includes\(parentId\)/);
+    assert.match(dockerScript, /const nextFolder = \{[\s\S]*\.\.\.sourceFolder,[\s\S]*parentId[\s\S]*\};/);
+    assert.match(dockerScript, /await persistDockerFolderRecord\(id,\s*nextFolder\);[\s\S]*await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerScript, /globalFolders = previousFolders;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);/);
+    assert.match(dockerScript, /const moveDockerFolderUnderFromMenu = \(folderId\) =>/);
+    assert.match(dockerScript, /id="fv-docker-menu-move-target"/);
+    assert.match(dockerScript, /text:\s*'Move under\.\.\.'[\s\S]*moveDockerFolderUnderFromMenu\(id\)/);
+    assert.match(dockerScript, /text:\s*'Move to root'[\s\S]*applyDockerFolderHierarchyMoveFromMenu\(id,\s*''\)/);
+});
+
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
     assert.match(dockerPreviewActionsScript, /const utils = deps\.utils && typeof deps\.utils === 'object' \? deps\.utils : \{\};/);
     assert.match(dockerScript, /dockerPreviewActionsModule\.createApi\(\{[\s\S]*utils,[\s\S]*escapeHtml:/);

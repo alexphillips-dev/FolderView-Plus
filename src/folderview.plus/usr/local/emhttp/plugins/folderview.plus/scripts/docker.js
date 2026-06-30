@@ -2869,6 +2869,31 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
     const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
     return parseJsonPayloadSafe(response);
 };
+const persistDockerFolderRecord = async (folderId, folderPayload) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        throw new Error('Missing folder ID.');
+    }
+    const payload = {
+        type: 'docker',
+        id,
+        content: JSON.stringify(folderPayload && typeof folderPayload === 'object' ? folderPayload : {})
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/update.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so hierarchy moves still work
+            // if the runtime request wrapper is temporarily unavailable.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/update.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
 const applyDockerFolderMenuOrderToDom = (orderedIds) => {
     if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
         return false;
@@ -2925,6 +2950,167 @@ const applyDockerFolderMenuOrderToDom = (orderedIds) => {
         } catch (_error) {}
     }
     return true;
+};
+const buildDockerFolderMoveTargetOptions = (sourceId, state) => {
+    const safeSourceId = String(sourceId || '').trim();
+    const folders = state?.folders && typeof state.folders === 'object' ? state.folders : {};
+    const descendants = state?.collectDescendants ? state.collectDescendants(safeSourceId) : [];
+    const blocked = new Set([safeSourceId, ...descendants]);
+    return (state?.fullOrder || [])
+        .filter((id) => Object.prototype.hasOwnProperty.call(folders, id) && !blocked.has(id))
+        .map((id) => {
+            const folder = folders[id] || {};
+            const depth = Math.max(0, Number(buildFolderDepthById(folders)[id]) || 0);
+            const prefix = depth > 0 ? `${'-- '.repeat(Math.min(depth, 6))}` : '';
+            return `<option value="${escapeHtml(id)}">${escapeHtml(prefix + String(folder.name || id))}</option>`;
+        })
+        .join('');
+};
+const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) => {
+    const id = String(folderId || '').trim();
+    const parentId = normalizeFolderParentId(nextParentId);
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (!ensureDockerFolderUnlocked(id, parentId ? 'Move folder under another folder' : 'Move folder to root')) {
+        return;
+    }
+    return dockerSafeUiActionRunner.run(`docker-folder-menu-hierarchy:${id}:${parentId || 'root'}`, async () => {
+        const state = buildDockerFolderRuntimeOrderState();
+        const { folders, fullOrder, parentById, collectDescendants } = state;
+        const sourceFolder = folders[id];
+        if (!sourceFolder) {
+            return;
+        }
+        const descendants = collectDescendants(id);
+        if (parentId && (!Object.prototype.hasOwnProperty.call(folders, parentId) || parentId === id || descendants.includes(parentId))) {
+            swal({
+                title: 'Folder move blocked',
+                text: 'Choose a different target folder. A folder cannot be moved under itself or one of its children.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const currentParentId = String(parentById[id] || '').trim();
+        if (currentParentId === parentId) {
+            swal({
+                title: 'Folder already there',
+                text: parentId ? 'This folder is already under the selected folder.' : 'This folder is already at the top level.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const sourceSubtreeIds = [id, ...descendants];
+        const sourceSet = new Set(sourceSubtreeIds);
+        const orderWithoutSource = fullOrder.filter((candidateId) => !sourceSet.has(candidateId));
+        let insertIndex = orderWithoutSource.length;
+        if (parentId) {
+            const parentSubtreeIds = [parentId, ...collectDescendants(parentId)].filter((candidateId) => !sourceSet.has(candidateId));
+            let lastParentSubtreeIndex = -1;
+            orderWithoutSource.forEach((candidateId, index) => {
+                if (parentSubtreeIds.includes(candidateId)) {
+                    lastParentSubtreeIndex = index;
+                }
+            });
+            insertIndex = lastParentSubtreeIndex >= 0 ? lastParentSubtreeIndex + 1 : orderWithoutSource.length;
+        }
+        const nextOrder = orderWithoutSource.slice();
+        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const previousFolders = { ...globalFolders };
+        const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+        const previousOrder = fullOrder.slice();
+        const nextFolder = {
+            ...sourceFolder,
+            parentId
+        };
+        globalFolders = {
+            ...globalFolders,
+            [id]: nextFolder
+        };
+        folderTypePrefs = utils.normalizePrefs({
+            ...(folderTypePrefs || {}),
+            sortMode: 'manual',
+            manualOrder: nextOrder
+        });
+        applyRuntimePrefs(folderTypePrefs);
+        applyDockerFolderMenuOrderToDom(nextOrder);
+        const depthById = buildFolderDepthById(globalFolders);
+        sourceSubtreeIds.forEach((movedId) => {
+            const safeDepth = Math.max(0, Math.min(8, Number(depthById[movedId]) || 0));
+            $(`tr.folder-id-${movedId}`)
+                .attr('data-folder-depth', String(safeDepth))
+                .find('.folder-name-sub')
+                .css('padding-left', `${safeDepth * 20}px`);
+            forceFolderRowVerticalCenter(movedId);
+        });
+        try {
+            await persistDockerFolderRecord(id, nextFolder);
+            const response = await persistDockerFolderManualOrder(nextOrder);
+            folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
+            applyRuntimePrefs(folderTypePrefs);
+            folderReq = buildDockerFolderReq({
+                liveUpdateStatus: true
+            });
+            queueCreateFoldersRender();
+        } catch (error) {
+            globalFolders = previousFolders;
+            folderTypePrefs = previousPrefs;
+            applyRuntimePrefs(folderTypePrefs);
+            applyDockerFolderMenuOrderToDom(previousOrder);
+            const previousDepthById = buildFolderDepthById(previousFolders);
+            sourceSubtreeIds.forEach((movedId) => {
+                const safeDepth = Math.max(0, Math.min(8, Number(previousDepthById[movedId]) || 0));
+                $(`tr.folder-id-${movedId}`)
+                    .attr('data-folder-depth', String(safeDepth))
+                    .find('.folder-name-sub')
+                    .css('padding-left', `${safeDepth * 20}px`);
+                forceFolderRowVerticalCenter(movedId);
+            });
+            throw error;
+        }
+    });
+};
+const moveDockerFolderUnderFromMenu = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    const state = buildDockerFolderRuntimeOrderState();
+    const targetOptions = buildDockerFolderMoveTargetOptions(id, state);
+    if (!targetOptions) {
+        swal({
+            title: 'No target folders',
+            text: 'There are no valid folders to move this folder under.',
+            type: 'info',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+    const folderName = escapeHtml(String(globalFolders[id]?.name || id));
+    swal({
+        title: 'Move under...',
+        text: `
+            <div class="fv-tree-move-dialog">
+                <div class="fv-tree-move-source">Source: <strong>${folderName}</strong></div>
+                <label class="fv-tree-move-field-label" for="fv-docker-menu-move-target">Move under folder</label>
+                <select id="fv-docker-menu-move-target">${targetOptions}</select>
+            </div>
+        `,
+        html: true,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Move under folder',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: true
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        const targetId = String($('#fv-docker-menu-move-target').val() || '').trim();
+        void applyDockerFolderHierarchyMoveFromMenu(id, targetId);
+    });
 };
 const moveDockerFolderFromMenu = async (folderId, direction) => {
     const id = String(folderId || '').trim();
@@ -5960,6 +6146,7 @@ const addDockerFolderContext = (id) => {
     const focused = dockerFocusedFolderId === id;
     const pinned = isDockerFolderPinned(id);
     const locked = isDockerFolderLocked(id);
+    const currentParentId = normalizeFolderParentId(folderData?.parentId || folderData?.parent_id || '');
     const directScopeContainers = getScopedRuntimeContainersForFolder(id, false);
     const branchScopeContainers = getScopedRuntimeContainersForFolder(id, true);
     const directCounts = summarizeFolderActionCounts(directScopeContainers);
@@ -6194,6 +6381,18 @@ const addDockerFolderContext = (id) => {
         icon: 'fa-chevron-down',
         action: (evt) => { evt.preventDefault(); moveDockerFolderFromMenu(id, 1); }
     });
+    opts.push({
+        text: 'Move under...',
+        icon: 'fa-level-down',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderUnderFromMenu(id); }
+    });
+    if (currentParentId) {
+        opts.push({
+            text: 'Move to root',
+            icon: 'fa-level-up',
+            action: (evt) => { evt.preventDefault(); applyDockerFolderHierarchyMoveFromMenu(id, ''); }
+        });
+    }
 
     const cloneSubMenu = [
         {

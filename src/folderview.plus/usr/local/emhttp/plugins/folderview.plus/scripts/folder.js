@@ -1277,7 +1277,10 @@ const computeFormSnapshot = () => {
             locked: input.prop('disabled')
         });
     });
-    state.childFolders = getChildFolderOrderIds();
+    state.childFolders = $('#fvFolderMembersBody > tr[data-child-folder-id]')
+        .map((_, row) => String($(row).attr('data-child-folder-id') || '').trim())
+        .get()
+        .filter(Boolean);
 
     return JSON.stringify(state);
 };

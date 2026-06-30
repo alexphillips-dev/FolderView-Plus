@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.06">
-<!ENTITY md5 "acf96ed81fcdc364d51351ce36586321">
+<!ENTITY version "2026.06.30.07">
+<!ENTITY md5 "dffd8a0cfe1f954894622aae9d8bc2c5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.07
+- Fix: Prevent the new folder editor from crashing during bootstrap when child folder ordering is included in dirty-state snapshots.
+
 
 ###2026.06.30.06
 - UX: Add a Folder Members ordering section to the new folder editor for reordering nested child folders separately from Docker/VM members.

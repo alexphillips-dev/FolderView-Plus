@@ -4083,9 +4083,30 @@
         if($type == 'docker') { $prefsFilePath = "$userPrefsDir/dockerMan/userprefs.cfg"; }
         elseif($type == 'vm') { $prefsFilePath = "$userPrefsDir/dynamix.vm.manager/userprefs.cfg"; }
         else { return '[]'; }
-        if(!file_exists($prefsFilePath)) { return '[]'; }
-        $parsedIni = @parse_ini_file($prefsFilePath);
-        return json_encode(array_values($parsedIni ?: []));
+        $parsedIni = file_exists($prefsFilePath) ? @parse_ini_file($prefsFilePath) : false;
+        $order = array_values($parsedIni ?: []);
+        if ($type === 'docker') {
+            $folders = readRawFolderMap('docker');
+            $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
+            $folderIds = array_keys($folders);
+            $folderPlaceholders = array_map(function($id) {
+                return 'folder-' . (string)$id;
+            }, array_keys($orderedFolders));
+            $order = array_values(array_filter($order, function($entry) use ($folderIds) {
+                $value = trim((string)$entry);
+                if (strpos($value, 'folder-') !== 0) {
+                    return true;
+                }
+                $folderId = substr($value, 7);
+                return !in_array($folderId, $folderIds, true);
+            }));
+            foreach ($folderPlaceholders as $placeholder) {
+                if (!in_array($placeholder, $order, true)) {
+                    $order[] = $placeholder;
+                }
+            }
+        }
+        return json_encode($order);
     }
 
     function normalizeFolderMembers($members): array {

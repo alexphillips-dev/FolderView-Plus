@@ -53,7 +53,8 @@ test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
     assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
     assert.match(dockerScript, /await persistDockerFolderManualOrder\(nextOrder\);|const response = await persistDockerFolderManualOrder\(nextOrder\);/);
-    assert.match(dockerScript, /refreshDockerRuntimeStateInPlace\(\{[\s\S]*followupDelayMs:\s*250,[\s\S]*liveUpdateStatus:\s*true/);
+    assert.match(dockerScript, /folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus:\s*true[\s\S]*\}\);/);
+    assert.match(dockerScript, /queueCreateFoldersRender\(\);/);
     assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);
     assert.match(dockerScript, /text:\s*'Move down'[\s\S]*moveDockerFolderFromMenu\(id,\s*1\)/);
 });

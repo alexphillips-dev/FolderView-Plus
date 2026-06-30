@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.11">
-<!ENTITY md5 "12d0a778b0b478555f5c6b2c2ba16709">
+<!ENTITY version "2026.06.30.12">
+<!ENTITY md5 "eab2f8b49cf5273a18b0a633b073ff1d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.12
+- Fix: Apply Docker folder menu reordering to the live Docker page and refresh order by using FolderView Plus saved folder order instead of stale Docker userprefs folder placeholders.
+
 
 ###2026.06.30.11
 - UX: Add Move up and Move down actions to the Docker folder left-click menu for direct same-level folder reordering.

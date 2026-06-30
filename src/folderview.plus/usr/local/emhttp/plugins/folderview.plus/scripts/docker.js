@@ -2938,10 +2938,10 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
         const response = await persistDockerFolderManualOrder(nextOrder);
         folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
         applyRuntimePrefs(folderTypePrefs);
-        await Promise.resolve(refreshDockerRuntimeStateInPlace({
-            followupDelayMs: 250,
+        folderReq = buildDockerFolderReq({
             liveUpdateStatus: true
-        }));
+        });
+        queueCreateFoldersRender();
     });
 };
 const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {

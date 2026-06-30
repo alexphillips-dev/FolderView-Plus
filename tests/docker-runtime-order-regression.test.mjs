@@ -149,6 +149,18 @@ test('docker order sync uses prefs-ordered folders when explicit sort or pinning
     assert.match(libPhp, /foreach \(\$orderedFolders as \$folderId => \$folder\) \{/);
 });
 
+test('docker read order response replaces stale userprefs folder placeholders with prefs order', () => {
+    const readUserPrefsMatch = libPhp.match(/function readUserPrefs\(string \$type\) : string \{([\s\S]*?)\n    \}\n\n    function normalizeFolderMembers/);
+    assert.ok(readUserPrefsMatch, 'readUserPrefs body should be present');
+    const body = readUserPrefsMatch[1];
+    assert.match(body, /\$orderedFolders = reorderFolderMapByPrefs\('docker', \$folders\);/);
+    assert.match(body, /\$folderPlaceholders = array_map/);
+    assert.match(body, /strpos\(\$value, 'folder-'\) !== 0/);
+    assert.match(body, /return !in_array\(\$folderId, \$folderIds, true\);/);
+    assert.match(body, /foreach \(\$folderPlaceholders as \$placeholder\) \{/);
+    assert.match(body, /\$order\[\] = \$placeholder;/);
+});
+
 test('docker order sync reads but does not write Docker userprefs', () => {
     const syncMatch = libPhp.match(/function syncContainerOrderUnlocked\(\): void \{([\s\S]*?)\n    \}\n\n    function syncContainerOrder/);
     assert.ok(syncMatch, 'syncContainerOrderUnlocked body should be present');

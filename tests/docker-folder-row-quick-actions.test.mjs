@@ -46,6 +46,10 @@ test('docker pin quick action updates visible folder order immediately', () => {
 test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const buildDockerFolderRuntimeOrderState = \(\) =>/);
     assert.match(dockerScript, /const persistDockerFolderManualOrder = async \(nextOrder\) =>/);
+    assert.match(dockerScript, /const applyDockerFolderMenuOrderToDom = \(orderedIds\) =>/);
+    assert.match(dockerScript, /const \$folderRows = \$\('#docker_list > tr\.folder'\);/);
+    assert.match(dockerScript, /fragment\.appendChild\(row\);/);
+    assert.match(dockerScript, /\$dockerList\.sortable\('refresh'\);/);
     assert.match(dockerScript, /prefs:\s*JSON\.stringify\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*Array\.isArray\(nextOrder\) \? nextOrder : \[\][\s\S]*\}\)/);
     assert.match(dockerScript, /const moveDockerFolderFromMenu = async \(folderId,\s*direction\) =>/);
     assert.match(dockerScript, /ensureDockerFolderUnlocked\(id,\s*moveDirection < 0 \? 'Move folder up' : 'Move folder down'\)/);
@@ -53,6 +57,7 @@ test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
     assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
     assert.match(dockerScript, /await persistDockerFolderManualOrder\(nextOrder\);|const response = await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerScript, /applyDockerFolderMenuOrderToDom\(nextOrder\);/);
     assert.match(dockerScript, /folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus:\s*true[\s\S]*\}\);/);
     assert.match(dockerScript, /queueCreateFoldersRender\(\);/);
     assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);

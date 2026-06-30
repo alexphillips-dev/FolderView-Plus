@@ -2869,6 +2869,63 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
     const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
     return parseJsonPayloadSafe(response);
 };
+const applyDockerFolderMenuOrderToDom = (orderedIds) => {
+    if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
+        return false;
+    }
+    const $folderRows = $('#docker_list > tr.folder');
+    if (!$folderRows.length) {
+        return false;
+    }
+    const rowById = new Map();
+    $folderRows.each((_index, row) => {
+        const id = readFolderIdFromRow(row);
+        if (id) {
+            rowById.set(id, row);
+        }
+    });
+    const orderedRows = [];
+    orderedIds.forEach((id) => {
+        const row = rowById.get(String(id || '').trim());
+        if (row) {
+            orderedRows.push(row);
+            rowById.delete(String(id || '').trim());
+        }
+    });
+    rowById.forEach((row) => orderedRows.push(row));
+    if (orderedRows.length <= 1) {
+        return false;
+    }
+    const currentRows = $folderRows.get();
+    const changed = orderedRows.some((row, index) => row !== currentRows[index]);
+    if (!changed) {
+        return false;
+    }
+    const $firstFolderRow = $folderRows.first();
+    const $previous = $firstFolderRow.prev();
+    const fragment = document.createDocumentFragment();
+    orderedRows.forEach((row) => {
+        fragment.appendChild(row);
+    });
+    if ($previous.length) {
+        $previous.after(fragment);
+    } else {
+        $('#docker_list').prepend(fragment);
+    }
+    orderedRows.forEach((row) => {
+        const id = readFolderIdFromRow(row);
+        if (id) {
+            forceFolderRowVerticalCenter(id);
+        }
+    });
+    const $dockerList = $('#docker_list');
+    if ($dockerList.length && typeof $dockerList.sortable === 'function') {
+        try {
+            $dockerList.sortable('refresh');
+        } catch (_error) {}
+    }
+    return true;
+};
 const moveDockerFolderFromMenu = async (folderId, direction) => {
     const id = String(folderId || '').trim();
     const moveDirection = direction < 0 ? -1 : 1;
@@ -2938,6 +2995,7 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
         const response = await persistDockerFolderManualOrder(nextOrder);
         folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
         applyRuntimePrefs(folderTypePrefs);
+        applyDockerFolderMenuOrderToDom(nextOrder);
         folderReq = buildDockerFolderReq({
             liveUpdateStatus: true
         });

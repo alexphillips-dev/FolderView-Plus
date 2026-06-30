@@ -3721,7 +3721,7 @@ table.sortable tbody tr:hover {
 
 table.sortable th:nth-child(1),
 table.sortable td:nth-child(1) {
-    width: 92px;
+    width: 118px;
     text-align: center;
 }
 
@@ -3747,6 +3747,24 @@ table.sortable td:nth-child(3) {
     pointer-events: none;
 }
 
+.item.fv-member-row-draggable {
+    cursor: grab;
+}
+
+.item.fv-member-row-draggable:active {
+    cursor: grabbing;
+}
+
+.item.is-dragging {
+    opacity: 0.62;
+    background: var(--fv-editor-control-surface-active);
+    box-shadow: inset 3px 0 0 var(--fv-editor-title-accent);
+}
+
+.fv-member-drag-disabled .item {
+    cursor: default;
+}
+
 .order-buttons {
     display: inline-flex;
     align-items: center;
@@ -3761,6 +3779,19 @@ table.sortable td:nth-child(3) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.member-drag-handle {
+    cursor: grab;
+}
+
+.member-drag-handle:active {
+    cursor: grabbing;
+}
+
+.member-drag-handle.is-disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
 }
 
 .order-lock {

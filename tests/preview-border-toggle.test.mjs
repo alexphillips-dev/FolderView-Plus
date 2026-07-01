@@ -16,6 +16,7 @@ const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const folderEditorPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
+const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -105,6 +106,9 @@ test('docker preview renderer respects preview border toggle', () => {
 
 test('folder hover animations are configurable and runtime-safe', () => {
     assert.match(folderPage, /<select name="preview_hover_animation">[\s\S]*<option value="none" selected>None<\/option>[\s\S]*<option value="bounce">Bounce<\/option>[\s\S]*<option value="grow">Grow<\/option>[\s\S]*<option value="spin">Spin<\/option>[\s\S]*<option value="pulse">Pulse<\/option>[\s\S]*<option value="wiggle">Wiggle<\/option>/);
+    assert.match(folderEditorSchemaJs, /'preview_hover_animation'/);
+    assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'none'/);
+    assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'Hover animation'/);
     assert.match(folderJs, /const normalizePreviewHoverAnimation = \(value\) =>/);
     assert.match(folderJs, /'bounce', 'grow', 'spin', 'pulse', 'wiggle'/);
     assert.match(folderJs, /setFieldValue\('preview_hover_animation', normalizePreviewHoverAnimation\(normalizedFolder\.settings\.preview_hover_animation \|\| normalizedFolder\.settings\.previewHoverAnimation\)\);/);

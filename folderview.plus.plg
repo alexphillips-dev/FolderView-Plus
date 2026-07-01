@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.07.01.09">
-<!ENTITY md5 "c9af524ccdc4f75d836cf4d9baf42c32">
+<!ENTITY version "2026.07.01.10">
+<!ENTITY md5 "8bb759c48a9a22f88278fe69faa55c30">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.10
+- Feature: Stable rollup of all dev changes since `v2026.06.25.16`, including the redesigned folder editor, child-folder ordering, Docker folder menu hierarchy actions, hover animations, Recovery workspace updates, and Setup Assistant overhaul.
+- UX: Reworked editor tabs, parent/icon/preview/status/advanced sections, settings action modal, Recovery workspace, activity center, and wizard steps for clearer beginner-friendly workflows.
+- Performance: Reduced Docker tab first-load jiggle, improved visual row ordering after folder moves, and refreshed the accepted performance baseline for the larger runtime bundle.
+- Fix: Corrected release validation contracts, setup assistant bootstrap rendering, live nested-folder preview data, empty-backup restore behavior, Recovery layout overlap, menu viewport placement, and hover animation runtime wiring.
+- Docs: Added full curated release notes for this stable release and updated the GitHub banner/readme cleanup.
+- Quality: Added and refreshed regression coverage for editor layout, hover animations, preview border glow, Docker quick actions, folder ordering, settings bindings, theme compatibility, UI smoke layout, and performance checks.
+
 
 ###2026.07.01.09
 - Feature: Stable rollup of all dev changes since `v2026.06.25.16`, including the redesigned folder editor, child-folder ordering, Docker folder menu hierarchy actions, hover animations, Recovery workspace updates, and Setup Assistant overhaul.

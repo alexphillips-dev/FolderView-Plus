@@ -848,10 +848,11 @@ try {
                         <dd>
                             <select name="preview_hover_animation">
                                 <option value="none" selected>None</option>
+                                <option value="lift">Lift</option>
                                 <option value="bounce">Bounce</option>
-                                <option value="grow">Grow</option>
-                                <option value="spin">Spin</option>
-                                <option value="pulse">Pulse</option>
+                                <option value="pop">Pop</option>
+                                <option value="glow">Glow</option>
+                                <option value="flip">Flip</option>
                                 <option value="wiggle">Wiggle</option>
                             </select>
                         </dd>

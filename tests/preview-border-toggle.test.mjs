@@ -106,13 +106,14 @@ test('docker preview renderer respects preview border toggle', () => {
 });
 
 test('folder hover animations are configurable and runtime-safe', () => {
-    assert.match(folderPage, /<select name="preview_hover_animation">[\s\S]*<option value="none" selected>None<\/option>[\s\S]*<option value="bounce">Bounce<\/option>[\s\S]*<option value="grow">Grow<\/option>[\s\S]*<option value="spin">Spin<\/option>[\s\S]*<option value="pulse">Pulse<\/option>[\s\S]*<option value="wiggle">Wiggle<\/option>/);
+    assert.match(folderPage, /<select name="preview_hover_animation">[\s\S]*<option value="none" selected>None<\/option>[\s\S]*<option value="lift">Lift<\/option>[\s\S]*<option value="bounce">Bounce<\/option>[\s\S]*<option value="pop">Pop<\/option>[\s\S]*<option value="glow">Glow<\/option>[\s\S]*<option value="flip">Flip<\/option>[\s\S]*<option value="wiggle">Wiggle<\/option>/);
     assert.match(folderEditorSchemaJs, /'preview_hover_animation'/);
     assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'none'/);
     assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'Hover animation'/);
     assert.match(folderEditorChromeJs, /findBasicByFieldName\(form, 'preview_hover_animation'\)/);
     assert.match(folderJs, /const normalizePreviewHoverAnimation = \(value\) =>/);
-    assert.match(folderJs, /'bounce', 'grow', 'spin', 'pulse', 'wiggle'/);
+    assert.match(folderJs, /const aliases = \{ grow: 'pop', pulse: 'glow', spin: 'flip' \};/);
+    assert.match(folderJs, /'none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'/);
     assert.match(folderJs, /setFieldValue\('preview_hover_animation', normalizePreviewHoverAnimation\(normalizedFolder\.settings\.preview_hover_animation \|\| normalizedFolder\.settings\.previewHoverAnimation\)\);/);
     assert.match(folderJs, /preview_hover_animation:\s*normalizePreviewHoverAnimation\(e\.preview_hover_animation\?\.value\)/);
     assert.match(folderJs, /previewHoverAnimation:\s*normalizePreviewHoverAnimation\(e\.preview_hover_animation\?\.value\)/);
@@ -135,12 +136,16 @@ test('folder hover animations are configurable and runtime-safe', () => {
     assert.doesNotMatch(vmJs, /preview_hover_animation:\s*'none'/);
     assert.doesNotMatch(dashboardJs, /preview_hover_animation:\s*'none'/);
     assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-bounce/);
-    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-spin/);
-    assert.match(runtimeSharedCss, /tr\.folder\.fv-hover-animation-spin:hover \.folder-outer/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-lift/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-pop/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-glow/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-flip/);
+    assert.match(runtimeSharedCss, /tr\.folder\.fv-hover-animation-flip:hover \.folder-outer/);
     assert.match(runtimeSharedCss, /prefers-reduced-motion: reduce/);
     assert.match(folderCss, /\.fv-live-preview-row\.fv-hover-animation-bounce:hover \.fv-live-folder-anchor/);
     assert.match(serverLibPhp, /\$rawPreviewHoverAnimation = \$normalized\['settings'\]\['preview_hover_animation'\]/);
-    assert.match(serverLibPhp, /\$allowedAnimations = \['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'\];/);
+    assert.match(serverLibPhp, /\$animationAliases = \['grow' => 'pop', 'pulse' => 'glow', 'spin' => 'flip'\];/);
+    assert.match(serverLibPhp, /\$allowedAnimations = \['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'\];/);
 });
 
 test('vm preview renderer honors explicit preview border OFF values', () => {

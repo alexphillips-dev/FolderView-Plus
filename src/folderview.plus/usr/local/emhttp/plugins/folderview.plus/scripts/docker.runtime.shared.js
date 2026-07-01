@@ -251,9 +251,9 @@
     const normalizePreviewHoverAnimation = (settings = {}) => {
         const source = settings && typeof settings === 'object' ? settings : {};
         const normalized = String(source.preview_hover_animation || source.previewHoverAnimation || '').trim().toLowerCase();
-        return ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized)
-            ? normalized
-            : 'none';
+        const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+        const token = aliases[normalized] || normalized;
+        return ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token) ? token : 'none';
     };
 
     const getPreviewHoverAnimationClass = (settings = {}) => {

@@ -65,7 +65,9 @@ const getPreviewHoverAnimationClass = typeof dockerRuntimeShared.getPreviewHover
     ? dockerRuntimeShared.getPreviewHoverAnimationClass
     : ((settings = {}) => {
         const normalized = String(settings?.preview_hover_animation || settings?.previewHoverAnimation || '').trim().toLowerCase();
-        return ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized) ? `fv-hover-animation-${normalized}` : '';
+        const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+        const token = aliases[normalized] || normalized;
+        return ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token) ? `fv-hover-animation-${token}` : '';
     });
 const applyFolderPreviewLayout = typeof dockerRuntimeShared.applyFolderPreviewLayout === 'function'
     ? dockerRuntimeShared.applyFolderPreviewLayout

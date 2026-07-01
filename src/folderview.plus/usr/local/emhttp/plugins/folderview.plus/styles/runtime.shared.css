@@ -207,32 +207,37 @@ body ul.dropdown-menu .context-menu-disabled {
     align-items: center;
 }
 
-tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) .folder-outer,
-.folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) > .outer {
+tr.folder:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle) .folder-outer,
+.folder-showcase-outer:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle) > .outer {
     display: inline-flex;
     align-items: center;
     transform-origin: center;
-    will-change: transform;
+    will-change: transform, filter;
+}
+
+tr.folder.fv-hover-animation-lift:hover .folder-outer,
+.folder-showcase-outer.fv-hover-animation-lift:hover > .outer {
+    animation: fv-folder-hover-lift 460ms ease-out both;
 }
 
 tr.folder.fv-hover-animation-bounce:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-bounce:hover > .outer {
-    animation: fv-folder-hover-bounce 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fv-folder-hover-bounce 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-tr.folder.fv-hover-animation-grow:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-grow:hover > .outer {
-    animation: fv-folder-hover-grow 420ms ease-out both;
+tr.folder.fv-hover-animation-pop:hover .folder-outer,
+.folder-showcase-outer.fv-hover-animation-pop:hover > .outer {
+    animation: fv-folder-hover-pop 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-tr.folder.fv-hover-animation-spin:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-spin:hover > .outer {
-    animation: fv-folder-hover-spin 560ms ease-in-out both;
+tr.folder.fv-hover-animation-glow:hover .folder-outer,
+.folder-showcase-outer.fv-hover-animation-glow:hover > .outer {
+    animation: fv-folder-hover-glow 620ms ease-out both;
 }
 
-tr.folder.fv-hover-animation-pulse:hover .folder-outer,
-.folder-showcase-outer.fv-hover-animation-pulse:hover > .outer {
-    animation: fv-folder-hover-pulse 480ms ease-out both;
+tr.folder.fv-hover-animation-flip:hover .folder-outer,
+.folder-showcase-outer.fv-hover-animation-flip:hover > .outer {
+    animation: fv-folder-hover-flip 560ms ease-in-out both;
 }
 
 tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
@@ -240,27 +245,32 @@ tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
     animation: fv-folder-hover-wiggle 460ms ease-in-out both;
 }
 
+@keyframes fv-folder-hover-lift {
+    0%, 100% { filter: none; transform: translateY(0); }
+    48% { filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.42)); transform: translateY(-6px); }
+}
+
 @keyframes fv-folder-hover-bounce {
-    0%, 100% { transform: translateY(0); }
-    35% { transform: translateY(-5px); }
-    62% { transform: translateY(2px); }
-    82% { transform: translateY(-1px); }
+    0%, 100% { transform: translateY(0) scale(1); }
+    28% { transform: translateY(-8px) scale(1.03, 0.97); }
+    56% { transform: translateY(3px) scale(0.98, 1.04); }
+    78% { transform: translateY(-2px) scale(1.01, 0.99); }
 }
 
-@keyframes fv-folder-hover-grow {
+@keyframes fv-folder-hover-pop {
     0%, 100% { transform: scale(1); }
-    48% { transform: scale(1.075); }
+    42% { transform: scale(1.16) rotate(-1deg); }
+    70% { transform: scale(0.98) rotate(0.5deg); }
 }
 
-@keyframes fv-folder-hover-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes fv-folder-hover-glow {
+    0%, 100% { filter: none; transform: scale(1); }
+    45% { filter: drop-shadow(0 0 9px rgba(255, 154, 60, 0.78)) drop-shadow(0 0 16px rgba(82, 190, 255, 0.42)); transform: scale(1.025); }
 }
 
-@keyframes fv-folder-hover-pulse {
-    0%, 100% { transform: scale(1); }
-    45% { transform: scale(1.055); }
-    70% { transform: scale(0.985); }
+@keyframes fv-folder-hover-flip {
+    0%, 100% { transform: perspective(420px) rotateY(0deg); }
+    48% { transform: perspective(420px) rotateY(180deg); }
 }
 
 @keyframes fv-folder-hover-wiggle {
@@ -272,8 +282,8 @@ tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
 }
 
 @media (prefers-reduced-motion: reduce) {
-    tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover .folder-outer,
-    .folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover > .outer {
+    tr.folder:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle):hover .folder-outer,
+    .folder-showcase-outer:is(.fv-hover-animation-lift, .fv-hover-animation-bounce, .fv-hover-animation-pop, .fv-hover-animation-glow, .fv-hover-animation-flip, .fv-hover-animation-wiggle):hover > .outer {
         animation: none !important;
     }
 }

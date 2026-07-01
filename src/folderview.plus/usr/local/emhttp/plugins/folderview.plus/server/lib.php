@@ -1267,7 +1267,9 @@
                     ?? ($normalized['previewHoverAnimation'] ?? null)));
         if ($rawPreviewHoverAnimation !== null) {
             $animationToken = strtolower(trim((string)$rawPreviewHoverAnimation));
-            $allowedAnimations = ['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'];
+            $animationAliases = ['grow' => 'pop', 'pulse' => 'glow', 'spin' => 'flip'];
+            $animationToken = $animationAliases[$animationToken] ?? $animationToken;
+            $allowedAnimations = ['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'];
             if (!in_array($animationToken, $allowedAnimations, true)) {
                 $animationToken = 'none';
             }

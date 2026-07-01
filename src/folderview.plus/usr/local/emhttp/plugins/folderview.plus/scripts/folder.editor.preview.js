@@ -104,7 +104,9 @@
             const dropdownColor = normalizeHexColor(form.dropdown_color?.value, deps.defaultDropdownColor || '#ff9a3c');
             const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color?.value, deps.defaultDropdownHoverColor || '#111111');
             const hoverAnimation = String(form.preview_hover_animation?.value || 'none').trim().toLowerCase();
-            const safeHoverAnimation = ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(hoverAnimation) ? hoverAnimation : 'none';
+            const hoverAnimationAliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+            const hoverAnimationToken = hoverAnimationAliases[hoverAnimation] || hoverAnimation;
+            const safeHoverAnimation = ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(hoverAnimationToken) ? hoverAnimationToken : 'none';
             const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';

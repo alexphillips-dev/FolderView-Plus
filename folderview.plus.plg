@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.07">
-<!ENTITY md5 "5454afbbcf42ee376bd8d0d122a84530">
+<!ENTITY version "2026.07.01.08">
+<!ENTITY md5 "9ef48f9538c5d024e71e0b238c798225">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.08
+- UX: Refresh folder hover animations with clearer Lift, Bounce, Pop, Glow, Flip, and Wiggle choices while mapping old Grow, Pulse, and Spin selections forward.
+
 
 ###2026.07.01.07
 - Fix: Preserve saved folder hover animations in runtime performance paths and target the visible folder icon/name block for Docker and VM row animations.

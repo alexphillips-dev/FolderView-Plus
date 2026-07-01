@@ -631,8 +631,10 @@ const normalizePreviewStatusMode = (value) => {
 
 const normalizePreviewHoverAnimation = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
-    return ['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized)
-        ? normalized
+    const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+    const token = aliases[normalized] || normalized;
+    return ['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token)
+        ? token
         : 'none';
 };
 

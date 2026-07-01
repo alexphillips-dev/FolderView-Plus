@@ -3497,6 +3497,42 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     background: var(--fv-editor-input-bg);
 }
 
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row.is-preview-border-color-row {
+    min-height: 72px;
+}
+
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row.is-preview-border-color-row > dl > dd {
+    width: auto !important;
+    max-width: 100%;
+}
+
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row.is-preview-border-color-row .fv-inline-control-row {
+    display: inline-flex !important;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    width: auto;
+    max-width: 100%;
+}
+
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row.is-preview-border-color-row input[name="preview_border_color"] {
+    flex: 0 0 54px;
+    width: 54px !important;
+    min-width: 54px !important;
+    height: 32px !important;
+}
+
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row.is-preview-border-color-row input[name="preview_border_width"] {
+    flex: 0 0 54px;
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0.2em 0.42em !important;
+    text-align: center;
+}
+
 .fv-modern-field-row.is-toggle-row > dl > dd {
     display: inline-flex;
     align-items: flex-start;

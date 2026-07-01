@@ -1873,6 +1873,82 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
 
+const applyDockerRuntimeAppColumnInlineWidth = (desktopWidthPx = null) => {
+    const effectiveWidth = clampDockerRuntimeColumnWidth(desktopWidthPx, 1);
+    if (!effectiveWidth) {
+        return;
+    }
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets) {
+        return;
+    }
+    const applyWidth = (element) => {
+        if (!element || !element.style) {
+            return;
+        }
+        element.style.setProperty('width', `${effectiveWidth}px`);
+        element.style.setProperty('min-width', `${effectiveWidth}px`);
+        element.style.setProperty('max-width', `${effectiveWidth}px`);
+    };
+    applyWidth(targets.headers[0]);
+    const cells = document.querySelectorAll('tbody#docker_list > tr > td:nth-child(1), tbody#docker_view > tr > td:nth-child(1)');
+    cells.forEach((cell) => applyWidth(cell));
+};
+
+const primeDockerRuntimeAppWidthBeforeRender = (folders = null) => {
+    const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    let estimatedWidth = baseline;
+    const folderEntries = folders && typeof folders === 'object'
+        ? Object.values(folders).filter((folder) => folder && typeof folder === 'object')
+        : [];
+    if (folderEntries.length > 0 && document && typeof document.createElement === 'function') {
+        const measureCanvas = document.createElement('canvas');
+        const ctx = measureCanvas && typeof measureCanvas.getContext === 'function'
+            ? measureCanvas.getContext('2d')
+            : null;
+        if (ctx) {
+            const sampleNode = document.querySelector('tbody#docker_list td.ct-name, tbody#docker_view td.ct-name, body');
+            const style = sampleNode ? window.getComputedStyle(sampleNode) : null;
+            ctx.font = style
+                ? `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`
+                : '700 14px Arial, sans-serif';
+            const stoppedText = typeof $ !== 'undefined' && $.i18n ? $.i18n('stopped') : 'stopped';
+            folderEntries.forEach((folder) => {
+                const nameText = String(folder.name || '').trim();
+                const members = Array.isArray(folder.children)
+                    ? folder.children.length
+                    : (Array.isArray(folder.containers) ? folder.containers.length : 0);
+                const statusText = `${Math.max(0, members)}/${Math.max(0, members)} ${stoppedText}`;
+                const textWidth = Math.max(
+                    nameText ? ctx.measureText(nameText).width : 0,
+                    statusText ? ctx.measureText(statusText).width : 0
+                );
+                if (textWidth <= 0) {
+                    return;
+                }
+                const width = Math.ceil(textWidth + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
+                if (width > estimatedWidth) {
+                    estimatedWidth = width;
+                }
+            });
+        }
+    }
+    const mode = getDockerRuntimeAppColumnMode();
+    const cachedWidth = readDockerRuntimeCachedAppWidth(mode);
+    const primedWidth = clampDockerRuntimeColumnWidth(Math.max(
+        estimatedWidth || 0,
+        cachedWidth || 0,
+        Number(dockerRuntimeAutoAppWidthFloor) || 0
+    ), 1);
+    if (!primedWidth) {
+        return null;
+    }
+    dockerRuntimeAutoAppWidthFloor = primedWidth;
+    applyDockerRuntimeAppWidthVariables(primedWidth);
+    applyDockerRuntimeAppColumnInlineWidth(primedWidth);
+    return primedWidth;
+};
+
 const estimateDockerRuntimeAutoAppWidth = () => {
     const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
     const rows = Array.from(document.querySelectorAll('tbody#docker_list tr.folder, tbody#docker_view tr.folder'));
@@ -1954,11 +2030,11 @@ const buildDockerRuntimeWidthDecision = () => {
     let boundedFloor = null;
     let appliedWidth = gapAdjustedWidth;
     if (Number.isFinite(dockerRuntimeAutoAppWidthFloor)) {
-        boundedFloor = Math.min(dockerRuntimeAutoAppWidthFloor, floorLimit);
+        boundedFloor = dockerRuntimeAutoAppWidthFloor;
         appliedWidth = Math.max(appliedWidth, boundedFloor);
     }
     appliedWidth = clampDockerRuntimeColumnWidth(appliedWidth, 1) || estimatedAppWidth;
-    const nextFloor = Math.min(appliedWidth, floorLimit);
+    const nextFloor = appliedWidth;
     return {
         mode,
         estimatedAppWidth,
@@ -1992,17 +2068,7 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
                 Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
             )
             : decision.appliedWidth;
-        const applyWidth = (element) => {
-            if (!element || !element.style) {
-                return;
-            }
-            element.style.setProperty('width', `${effectiveWidth}px`);
-            element.style.setProperty('min-width', `${effectiveWidth}px`);
-            element.style.setProperty('max-width', `${effectiveWidth}px`);
-        };
-        applyWidth(header);
-        const cells = document.querySelectorAll(`tbody#docker_list > tr > td:nth-child(${index}), tbody#docker_view > tr > td:nth-child(${index})`);
-        cells.forEach((cell) => applyWidth(cell));
+        applyDockerRuntimeAppColumnInlineWidth(effectiveWidth);
     });
     applyDockerRuntimeAppWidthVariables(decision.appliedWidth || null);
     const gapMetricsAfter = readDockerRuntimeGapMetrics();
@@ -4352,6 +4418,7 @@ const createFolders = async () => {
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
+    primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
     if (order.length <= 0) {
         order = [...unraidOrder];

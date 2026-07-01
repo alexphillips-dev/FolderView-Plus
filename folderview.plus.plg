@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.05">
-<!ENTITY md5 "45f12ee2519d225324b8756d8772cf23">
+<!ENTITY version "2026.07.01.06">
+<!ENTITY md5 "69be732d5611f1bfb8e9abdc1f4871ba">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.06
+- Fix: Include the folder Hover Animation control in the modern editor Preview row collector so the Appearance module renders it.
+
 
 ###2026.07.01.05
 - Fix: Register the folder Hover Animation field with the modern editor schema so it appears in the Preview Appearance module.

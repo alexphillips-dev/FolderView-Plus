@@ -509,6 +509,7 @@
             findBasicByFieldName(form, 'preview_text_width'),
             findBasicByFieldName(form, 'preview_rows'),
             findBasicByFieldName(form, 'preview_grayscale'),
+            findBasicByFieldName(form, 'preview_hover_animation'),
             findBasicByFieldName(form, 'preview_hide_nested_items'),
             findBasicByFieldName(form, 'preview_child_folder_depth'),
             findBasicByFieldName(form, 'preview_logs'),

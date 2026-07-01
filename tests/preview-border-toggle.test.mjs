@@ -17,6 +17,7 @@ const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const folderEditorPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
+const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -109,6 +110,7 @@ test('folder hover animations are configurable and runtime-safe', () => {
     assert.match(folderEditorSchemaJs, /'preview_hover_animation'/);
     assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'none'/);
     assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'Hover animation'/);
+    assert.match(folderEditorChromeJs, /findBasicByFieldName\(form, 'preview_hover_animation'\)/);
     assert.match(folderJs, /const normalizePreviewHoverAnimation = \(value\) =>/);
     assert.match(folderJs, /'bounce', 'grow', 'spin', 'pulse', 'wiggle'/);
     assert.match(folderJs, /setFieldValue\('preview_hover_animation', normalizePreviewHoverAnimation\(normalizedFolder\.settings\.preview_hover_animation \|\| normalizedFolder\.settings\.previewHoverAnimation\)\);/);

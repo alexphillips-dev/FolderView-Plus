@@ -193,6 +193,26 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.doesNotMatch(settingsPage, /Use new folder settings page/);
 });
 
+test('settings activity center replaces plain recent activity feed', () => {
+    assert.match(settingsPage, /Activity Center/);
+    assert.match(settingsPage, /id="fv-activity-center-status"/);
+    assert.match(settingsPage, /id="fv-activity-center-summary"/);
+    assert.match(settingsPage, /id="fv-activity-center-toggle"/);
+    assert.match(settingsPage, /onclick="toggleActivityCenterHistory\(\)"/);
+    assert.match(settingsPage, /id="fv-activity-center-latest"/);
+    assert.match(settingsCss, /\.fv-activity-center-head\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-center-latest\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-latest-icon\.is-error\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-center-actions > button\.is-expanded\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-level\s*\{/);
+    assert.match(settingsJs, /const normalizeActivityLevel = \(level\) =>/);
+    assert.match(settingsJs, /const summarizeActivityFeed = \(\) =>/);
+    assert.match(settingsJs, /list\.toggle\(activityCenterHistoryExpanded\)/);
+    assert.match(settingsJs, /activityFeedEntries\.some\(\(entry\) => normalizeActivityLevel\(entry\?\.level\) === 'error'\)/);
+    assert.match(settingsJs, /const toggleActivityCenterHistory = \(\) =>/);
+    assert.match(settingsJs, /toggleActivityCenterHistory,/);
+});
+
 test('folder page ships the modern editor runtime only', () => {
     assert.match(folderPage, /\$folderEditorPageBuildVersion = readInstalledVersion\(\);/);
     assert.match(folderPage, /\$folderEditorPageMode = 'modern';/);

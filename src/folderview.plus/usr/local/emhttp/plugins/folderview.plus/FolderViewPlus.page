@@ -180,11 +180,21 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div id="fv-runtime-resolved-panel" class="fv-runtime-resolved-panel" style="display:none"></div>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
 <div id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;">
-    <div class="fv-activity-feed-head">
-        <strong>Recent activity</strong>
-        <button type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+    <div class="fv-activity-center-head">
+        <div class="fv-activity-center-title">
+            <span class="fv-activity-center-kicker">Activity Center</span>
+            <strong id="fv-activity-center-status">Recent activity</strong>
+            <span id="fv-activity-center-summary" class="fv-activity-center-summary">No recent activity.</span>
+        </div>
+        <div class="fv-activity-center-actions">
+            <button id="fv-activity-center-toggle" type="button" onclick="toggleActivityCenterHistory()" aria-expanded="false">
+                <i class="fa fa-history"></i> History
+            </button>
+            <button type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+        </div>
     </div>
-    <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
+    <div id="fv-activity-center-latest" class="fv-activity-center-latest"></div>
+    <ul id="fv-activity-feed-list" class="fv-activity-feed-list" style="display:none;"></ul>
 </div>
 
 <div class="fv-customizations-header" data-fv-section-row="1">

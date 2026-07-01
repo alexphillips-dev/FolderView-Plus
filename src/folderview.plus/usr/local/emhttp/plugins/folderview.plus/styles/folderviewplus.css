@@ -8908,44 +8908,144 @@ h2[data-fv-section].fv-search-match {
 }
 
 .fv-activity-feed-panel {
-    margin: 0 0 0.65rem 0;
+    margin: 0.2rem 0 0.85rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
-    background: var(--fvplus-settings-surface-muted);
-    padding: 0.5rem 0.65rem;
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
+        var(--fvplus-settings-surface-muted);
+    padding: 0.68rem 0.78rem;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
-.fv-activity-feed-head {
+.fv-activity-center-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.45rem;
+    gap: 0.8rem;
 }
 
-.fv-activity-feed-head > strong {
+.fv-activity-center-title {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.fv-activity-center-kicker {
+    color: var(--orange, #ff8c2a);
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-activity-center-title > strong {
+    font-size: 1.18rem;
+    line-height: 1.2;
+}
+
+.fv-activity-center-summary {
     font-size: 1.03rem;
+    opacity: 0.78;
 }
 
-.fv-activity-feed-head > button {
-    min-height: 28px;
-    padding: 0.16rem 0.48rem;
+.fv-activity-center-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+}
+
+.fv-activity-center-actions > button {
+    min-height: 30px;
+    padding: 0.18rem 0.58rem;
+}
+
+.fv-activity-center-actions > button.is-expanded {
+    border-color: var(--orange, #ff8c2a);
+    color: var(--orange, #ff8c2a);
+}
+
+.fv-activity-center-latest {
+    margin-top: 0.62rem;
+    padding: 0.58rem 0.66rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.14);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.62rem;
+}
+
+.fv-activity-latest-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(128, 128, 128, 0.16);
+}
+
+.fv-activity-latest-icon.is-success {
+    color: var(--fvplus-settings-success);
+}
+
+.fv-activity-latest-icon.is-warning {
+    color: var(--fvplus-settings-warning, #f0ad4e);
+}
+
+.fv-activity-latest-icon.is-error {
+    color: var(--fvplus-settings-danger);
+}
+
+.fv-activity-latest-copy {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.fv-activity-latest-copy > strong {
+    font-size: 0.98rem;
+}
+
+.fv-activity-latest-copy > span {
+    font-size: 1.04rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.fv-activity-latest-time {
+    opacity: 0.72;
+    white-space: nowrap;
 }
 
 .fv-activity-feed-list {
     list-style: none;
-    margin: 0.42rem 0 0 0;
+    margin: 0.58rem 0 0 0;
     padding: 0;
     display: grid;
-    gap: 0.26rem;
+    gap: 0.3rem;
 }
 
 .fv-activity-item {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(92px, auto) auto minmax(0, 1fr);
     align-items: baseline;
-    gap: 0.45rem;
+    gap: 0.56rem;
     font-size: 1.03rem;
     line-height: 1.3;
+    padding: 0.34rem 0.46rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.fv-activity-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-weight: 700;
 }
 
 .fv-activity-time {
@@ -8957,8 +9057,21 @@ h2[data-fv-section].fv-search-match {
     color: var(--fvplus-settings-danger);
 }
 
+.fv-activity-item.is-error .fv-activity-level {
+    color: var(--fvplus-settings-danger);
+}
+
 .fv-activity-item.is-success .fv-activity-text {
     color: var(--fvplus-settings-success);
+}
+
+.fv-activity-item.is-success .fv-activity-level {
+    color: var(--fvplus-settings-success);
+}
+
+.fv-activity-item.is-warning .fv-activity-level,
+.fv-activity-item.is-warning .fv-activity-text {
+    color: var(--fvplus-settings-warning, #f0ad4e);
 }
 
 .folder-quick-filters {

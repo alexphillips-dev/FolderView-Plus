@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.01">
-<!ENTITY md5 "5bdf205030606432a2c1d08961152d6f">
+<!ENTITY version "2026.07.01.02">
+<!ENTITY md5 "ee97fd8221c2e2e2b05d122a647c40d7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.02
+- UX: Replace the Settings Recent Activity feed with a compact Activity Center that summarizes the latest action, expands history on demand, and keeps error activity visible until cleared.
+
 
 ###2026.07.01.01
 - Feature: Add a Preview tab border glow toggle that uses the selected preview border color in the folder editor and Docker/VM runtime previews.

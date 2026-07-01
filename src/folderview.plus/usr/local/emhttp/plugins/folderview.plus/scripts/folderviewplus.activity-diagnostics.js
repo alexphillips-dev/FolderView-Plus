@@ -134,6 +134,7 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
 let activityFeedAutoClearTimer = null;
+let activityCenterHistoryExpanded = false;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
     refresh: Object.freeze({ docker: 1500, vm: 1500 }),
@@ -745,22 +746,95 @@ const formatActivityTimestamp = (at) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const normalizeActivityLevel = (level) => {
+    const normalized = String(level || 'info').trim().toLowerCase();
+    if (normalized === 'error' || normalized === 'danger') {
+        return 'error';
+    }
+    if (normalized === 'success' || normalized === 'ok') {
+        return 'success';
+    }
+    if (normalized === 'warning' || normalized === 'warn') {
+        return 'warning';
+    }
+    return 'info';
+};
+
+const getActivityLevelMeta = (level) => {
+    switch (normalizeActivityLevel(level)) {
+        case 'success':
+            return { label: 'Complete', icon: 'fa-check-circle' };
+        case 'warning':
+            return { label: 'Attention', icon: 'fa-exclamation-triangle' };
+        case 'error':
+            return { label: 'Issue', icon: 'fa-times-circle' };
+        case 'info':
+        default:
+            return { label: 'Info', icon: 'fa-info-circle' };
+    }
+};
+
+const summarizeActivityFeed = () => {
+    const counts = activityFeedEntries.reduce((acc, entry) => {
+        const level = normalizeActivityLevel(entry?.level);
+        acc[level] = (acc[level] || 0) + 1;
+        return acc;
+    }, {});
+    const total = activityFeedEntries.length;
+    if (!total) {
+        return 'No recent activity.';
+    }
+    if (counts.error > 0) {
+        return `${counts.error} issue${counts.error === 1 ? '' : 's'} need attention.`;
+    }
+    if (counts.warning > 0) {
+        return `${counts.warning} item${counts.warning === 1 ? '' : 's'} need review.`;
+    }
+    if (counts.success > 0) {
+        return `${counts.success} action${counts.success === 1 ? '' : 's'} completed.`;
+    }
+    return `${total} recent update${total === 1 ? '' : 's'}.`;
+};
+
 const renderActivityFeed = () => {
     const panel = $('#fv-activity-feed-panel');
     const list = $('#fv-activity-feed-list');
+    const latest = $('#fv-activity-center-latest');
+    const status = $('#fv-activity-center-status');
+    const summary = $('#fv-activity-center-summary');
+    const toggle = $('#fv-activity-center-toggle');
     if (!panel.length || !list.length) {
         return;
     }
     if (!activityFeedEntries.length) {
         panel.hide();
         list.empty();
+        latest.empty();
+        summary.text('No recent activity.');
         return;
     }
+    const first = activityFeedEntries[0];
+    const firstLevel = normalizeActivityLevel(first?.level);
+    const firstMeta = getActivityLevelMeta(firstLevel);
+    status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? 'Review recent action' : 'Recent activity');
+    summary.text(summarizeActivityFeed());
+    latest.html(`
+        <div class="fv-activity-latest-icon is-${diagnosticsEscapeHtml(firstLevel)}"><i class="fa ${diagnosticsEscapeHtml(firstMeta.icon)}" aria-hidden="true"></i></div>
+        <div class="fv-activity-latest-copy">
+            <strong>${diagnosticsEscapeHtml(firstMeta.label)}</strong>
+            <span>${diagnosticsEscapeHtml(String(first?.message || 'Activity recorded.'))}</span>
+        </div>
+        <span class="fv-activity-latest-time">${diagnosticsEscapeHtml(formatActivityTimestamp(first?.at))}</span>
+    `);
     const rows = activityFeedEntries.map((entry) => {
-        const level = String(entry?.level || 'info');
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
+        const level = normalizeActivityLevel(entry?.level);
+        const meta = getActivityLevelMeta(level);
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
     }).join('');
     list.html(rows);
+    list.toggle(activityCenterHistoryExpanded);
+    toggle.attr('aria-expanded', activityCenterHistoryExpanded ? 'true' : 'false');
+    toggle.toggleClass('is-expanded', activityCenterHistoryExpanded);
     panel.show();
 };
 
@@ -774,6 +848,9 @@ const cancelActivityFeedAutoClear = () => {
 const scheduleActivityFeedAutoClear = () => {
     cancelActivityFeedAutoClear();
     if (!activityFeedEntries.length) {
+        return;
+    }
+    if (activityFeedEntries.some((entry) => normalizeActivityLevel(entry?.level) === 'error')) {
         return;
     }
     activityFeedAutoClearTimer = window.setTimeout(() => {
@@ -802,7 +879,13 @@ const addActivityEntry = (message, level = 'info') => {
 
 const clearActivityFeed = () => {
     cancelActivityFeedAutoClear();
+    activityCenterHistoryExpanded = false;
     activityFeedEntries = [];
+    renderActivityFeed();
+};
+
+const toggleActivityCenterHistory = () => {
+    activityCenterHistoryExpanded = !activityCenterHistoryExpanded;
     renderActivityFeed();
 };
 
@@ -1915,6 +1998,7 @@ Object.assign(window, {
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
+    toggleActivityCenterHistory,
     ADVANCED_MODULE_STATUS_CONFIG,
     ensureAdvancedModuleStatusHost,
     renderAdvancedModuleStatus,
@@ -1954,6 +2038,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
+    toggleActivityCenterHistory,
     setAdvancedModuleStatus,
     claimAdvancedOperationLock,
     releaseAdvancedOperationLock,

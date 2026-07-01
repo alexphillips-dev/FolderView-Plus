@@ -684,6 +684,68 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: center;
     gap: 0.65em;
     min-width: 0;
+    transform-origin: center;
+}
+
+.fv-live-preview-row:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) .fv-live-folder-anchor {
+    will-change: transform;
+}
+
+.fv-live-preview-row.fv-hover-animation-bounce:hover .fv-live-folder-anchor {
+    animation: fv-folder-hover-bounce 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.fv-live-preview-row.fv-hover-animation-grow:hover .fv-live-folder-anchor {
+    animation: fv-folder-hover-grow 420ms ease-out both;
+}
+
+.fv-live-preview-row.fv-hover-animation-spin:hover .fv-live-folder-anchor {
+    animation: fv-folder-hover-spin 560ms ease-in-out both;
+}
+
+.fv-live-preview-row.fv-hover-animation-pulse:hover .fv-live-folder-anchor {
+    animation: fv-folder-hover-pulse 480ms ease-out both;
+}
+
+.fv-live-preview-row.fv-hover-animation-wiggle:hover .fv-live-folder-anchor {
+    animation: fv-folder-hover-wiggle 460ms ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fv-live-preview-row:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover .fv-live-folder-anchor {
+        animation: none !important;
+    }
+}
+
+@keyframes fv-folder-hover-bounce {
+    0%, 100% { transform: translateY(0); }
+    35% { transform: translateY(-5px); }
+    62% { transform: translateY(2px); }
+    82% { transform: translateY(-1px); }
+}
+
+@keyframes fv-folder-hover-grow {
+    0%, 100% { transform: scale(1); }
+    48% { transform: scale(1.075); }
+}
+
+@keyframes fv-folder-hover-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fv-folder-hover-pulse {
+    0%, 100% { transform: scale(1); }
+    45% { transform: scale(1.055); }
+    70% { transform: scale(0.985); }
+}
+
+@keyframes fv-folder-hover-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-3deg); }
+    42% { transform: rotate(3deg); }
+    64% { transform: rotate(-2deg); }
+    82% { transform: rotate(1deg); }
 }
 
 .fv-live-folder-icon {

@@ -1261,6 +1261,23 @@
             $normalized['preview_child_folder_depth'],
             $normalized['previewChildFolderDepth']
         );
+        $rawPreviewHoverAnimation = $normalized['settings']['preview_hover_animation']
+            ?? ($normalized['settings']['previewHoverAnimation']
+                ?? ($normalized['preview_hover_animation']
+                    ?? ($normalized['previewHoverAnimation'] ?? null)));
+        if ($rawPreviewHoverAnimation !== null) {
+            $animationToken = strtolower(trim((string)$rawPreviewHoverAnimation));
+            $allowedAnimations = ['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'];
+            if (!in_array($animationToken, $allowedAnimations, true)) {
+                $animationToken = 'none';
+            }
+            $normalized['settings']['preview_hover_animation'] = $animationToken;
+            $normalized['settings']['previewHoverAnimation'] = $animationToken;
+        }
+        unset(
+            $normalized['preview_hover_animation'],
+            $normalized['previewHoverAnimation']
+        );
         $rawDropdownStyle = $normalized['settings']['dropdown_style']
             ?? ($normalized['settings']['dropdownStyle']
                 ?? ($normalized['settings']['chevron_style']

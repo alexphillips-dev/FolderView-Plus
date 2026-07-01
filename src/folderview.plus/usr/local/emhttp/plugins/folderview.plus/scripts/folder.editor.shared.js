@@ -104,6 +104,13 @@
             return result;
         };
 
+        const normalizePreviewHoverAnimation = (value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            return ['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized)
+                ? normalized
+                : 'none';
+        };
+
         const normalizeFolderRecordForEditor = (folder) => {
             const source = folder && typeof folder === 'object' ? folder : {};
             const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -137,6 +144,8 @@
                     preview_rows: normalizePreviewRowLimit(settings, source),
                     previewRows: normalizePreviewRowLimit(settings, source),
                     preview_hover: settings.preview_hover === true,
+                    preview_hover_animation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
+                    previewHoverAnimation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
                     preview_update: settings.preview_update === true,
                     preview_text_width: String(settings.preview_text_width || ''),
                     preview_grayscale: settings.preview_grayscale === true,
@@ -227,6 +236,7 @@
             extractPreviewRowLimitValue,
             normalizePreviewRowLimit,
             normalizeChildFolderPreviewDepth,
+            normalizePreviewHoverAnimation,
             normalizeFolderRecordForEditor
         });
     };

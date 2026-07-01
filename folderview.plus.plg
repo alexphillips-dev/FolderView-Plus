@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.03">
-<!ENTITY md5 "a7a0b102160476995094f8bd5f34c0b4">
+<!ENTITY version "2026.07.01.04">
+<!ENTITY md5 "439961162136cd5497b662a5d58a799f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.04
+- Feature: Add a folder Preview tab Hover Animation setting with one-shot Bounce, Grow, Spin, Pulse, and Wiggle effects for folder rows, live preview, and dashboard folder tiles.
+
 
 ###2026.07.01.03
 - UX: Make the Settings Activity Center persistent with an empty state, retained session history, expandable details, and temporary fresh-state highlighting instead of auto-hiding completed actions.

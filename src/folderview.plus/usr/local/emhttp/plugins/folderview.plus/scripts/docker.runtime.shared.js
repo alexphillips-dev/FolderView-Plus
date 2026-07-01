@@ -248,6 +248,19 @@
         return normalizedRows === 0 || normalizedRows > 1;
     };
 
+    const normalizePreviewHoverAnimation = (settings = {}) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        const normalized = String(source.preview_hover_animation || source.previewHoverAnimation || '').trim().toLowerCase();
+        return ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized)
+            ? normalized
+            : 'none';
+    };
+
+    const getPreviewHoverAnimationClass = (settings = {}) => {
+        const normalized = normalizePreviewHoverAnimation(settings);
+        return normalized === 'none' ? '' : `fv-hover-animation-${normalized}`;
+    };
+
     const applyFolderPreviewLayout = ($preview, settings = {}) => {
         if (!$preview || !$preview.length) {
             return;
@@ -931,6 +944,8 @@
         applyPreviewBorderStyle,
         getPreviewRowLimitValue,
         normalizeFolderPreviewRowLimit,
+        normalizePreviewHoverAnimation,
+        getPreviewHoverAnimationClass,
         isCompactMultiRowPreview,
         applyFolderPreviewLayout,
         flattenPreviewWrappers,

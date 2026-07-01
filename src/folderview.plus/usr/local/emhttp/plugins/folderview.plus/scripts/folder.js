@@ -421,6 +421,7 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
     'preview_hover',
+    'preview_hover_animation',
     'preview_border',
     'preview_border_color',
     'preview_border_width',
@@ -626,6 +627,13 @@ const normalizePreviewStatusMode = (value) => {
         return 'none';
     }
     return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+};
+
+const normalizePreviewHoverAnimation = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['none', 'bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized)
+        ? normalized
+        : 'none';
 };
 
 const extractDropdownStyleValue = typeof folderContract?.extractDropdownStyleValue === 'function'
@@ -954,6 +962,8 @@ const buildParentSmartDefaults = (parentFolder) => {
         preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
         preview_status: normalizePreviewStatusMode(settings.preview_status),
         preview_hover: settings.preview_hover === true,
+        preview_hover_animation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
+        previewHoverAnimation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
         preview_border: isLegacyPreviewBorderEnabled(settings),
         preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
         preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
@@ -2855,6 +2865,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="preview_text_width"])', 'preview');
     markSection('div.basic:has([name="preview_rows"])', 'preview');
     markSection('div.basic:has([name="preview_grayscale"])', 'preview');
+    markSection('div.basic:has([name="preview_hover_animation"])', 'preview');
     markSection('div.basic:has([name="preview_logs"])', 'preview');
     markSection('div.basic:has([name="preview_vertical_bars"])', 'preview');
     markSection('ul[constraint*="bars-color"]', 'preview');
@@ -3200,6 +3211,7 @@ const initEditorChrome = () => {
 };
 
 getForm().preview_border.checked = true;
+getForm().preview_hover_animation.value = 'none';
 getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
 getForm().preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
 getForm().preview_border_glow.checked = false;
@@ -3256,6 +3268,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
     setFieldValue('preview_status', normalizePreviewStatusMode(normalizedFolder.settings.preview_status));
     setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
+    setFieldValue('preview_hover_animation', normalizePreviewHoverAnimation(normalizedFolder.settings.preview_hover_animation || normalizedFolder.settings.previewHoverAnimation));
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
@@ -4673,6 +4686,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_status: normalizePreviewStatusMode(e.preview_status?.value),
             previewRows: normalizedPreviewRows,
             preview_hover: e.preview_hover.checked,
+            preview_hover_animation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
+            previewHoverAnimation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,

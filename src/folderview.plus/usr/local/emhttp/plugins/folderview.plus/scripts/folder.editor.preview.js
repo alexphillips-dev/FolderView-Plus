@@ -103,6 +103,8 @@
             const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width?.value, deps.defaultPreviewVerticalBarsWidth || 1, 1, 4));
             const dropdownColor = normalizeHexColor(form.dropdown_color?.value, deps.defaultDropdownColor || '#ff9a3c');
             const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color?.value, deps.defaultDropdownHoverColor || '#111111');
+            const hoverAnimation = String(form.preview_hover_animation?.value || 'none').trim().toLowerCase();
+            const safeHoverAnimation = ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(hoverAnimation) ? hoverAnimation : 'none';
             const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
@@ -161,7 +163,7 @@
                     : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''}${safeHoverAnimation !== 'none' ? ` fv-hover-animation-${safeHoverAnimation}` : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
             const surfaceClass = deps.wrapPreviewSurface === false ? '' : 'fv-live-preview-surface';
             canvas.html(`
                 ${surfaceClass ? `<div class="${surfaceClass}">` : ''}

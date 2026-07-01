@@ -206,3 +206,72 @@ body ul.dropdown-menu .context-menu-disabled {
     display: inline-flex;
     align-items: center;
 }
+
+tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) .folder-name-sub,
+.folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) > .outer {
+    transform-origin: center;
+    will-change: transform;
+}
+
+tr.folder.fv-hover-animation-bounce:hover .folder-name-sub,
+.folder-showcase-outer.fv-hover-animation-bounce:hover > .outer {
+    animation: fv-folder-hover-bounce 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+tr.folder.fv-hover-animation-grow:hover .folder-name-sub,
+.folder-showcase-outer.fv-hover-animation-grow:hover > .outer {
+    animation: fv-folder-hover-grow 420ms ease-out both;
+}
+
+tr.folder.fv-hover-animation-spin:hover .folder-name-sub,
+.folder-showcase-outer.fv-hover-animation-spin:hover > .outer {
+    animation: fv-folder-hover-spin 560ms ease-in-out both;
+}
+
+tr.folder.fv-hover-animation-pulse:hover .folder-name-sub,
+.folder-showcase-outer.fv-hover-animation-pulse:hover > .outer {
+    animation: fv-folder-hover-pulse 480ms ease-out both;
+}
+
+tr.folder.fv-hover-animation-wiggle:hover .folder-name-sub,
+.folder-showcase-outer.fv-hover-animation-wiggle:hover > .outer {
+    animation: fv-folder-hover-wiggle 460ms ease-in-out both;
+}
+
+@keyframes fv-folder-hover-bounce {
+    0%, 100% { transform: translateY(0); }
+    35% { transform: translateY(-5px); }
+    62% { transform: translateY(2px); }
+    82% { transform: translateY(-1px); }
+}
+
+@keyframes fv-folder-hover-grow {
+    0%, 100% { transform: scale(1); }
+    48% { transform: scale(1.075); }
+}
+
+@keyframes fv-folder-hover-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fv-folder-hover-pulse {
+    0%, 100% { transform: scale(1); }
+    45% { transform: scale(1.055); }
+    70% { transform: scale(0.985); }
+}
+
+@keyframes fv-folder-hover-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-3deg); }
+    42% { transform: rotate(3deg); }
+    64% { transform: rotate(-2deg); }
+    82% { transform: rotate(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover .folder-name-sub,
+    .folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover > .outer {
+        animation: none !important;
+    }
+}

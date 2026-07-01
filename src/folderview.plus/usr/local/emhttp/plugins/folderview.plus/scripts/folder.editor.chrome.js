@@ -34,7 +34,7 @@
         preview: [
             { key: 'layout', title: 'Layout', description: 'Control what the collapsed row shows and how much room it uses.', fields: ['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_status'] },
             { key: 'child-folders', title: 'Child Folders', description: 'Show nested folder chips and choose how deep the preview can look.', fields: ['preview_hide_nested_items', 'preview_child_folder_depth'] },
-            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, and update highlighting.', fields: ['preview_grayscale', 'preview_update', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_border', 'preview_border_color', 'preview_border_glow'] },
+            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, hover animation, and update highlighting.', fields: ['preview_grayscale', 'preview_hover_animation', 'preview_update', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_border', 'preview_border_color', 'preview_border_glow'] },
             { key: 'quick-actions', title: 'Quick Actions', description: 'Add optional actions directly inside Docker previews.', fields: ['preview_logs', 'preview_webui', 'preview_console'] },
             { key: 'context', title: 'Preview Context', description: 'Configure advanced preview behavior and graph settings.', fields: ['context', 'context_trigger', 'context_graph', 'context_graph_time'] }
         ],

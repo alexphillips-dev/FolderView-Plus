@@ -841,6 +841,28 @@ try {
                     </blockquote>
                 </div>
             </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt>Hover animation:</dt>
+                        <dd>
+                            <select name="preview_hover_animation">
+                                <option value="none" selected>None</option>
+                                <option value="bounce">Bounce</option>
+                                <option value="grow">Grow</option>
+                                <option value="spin">Spin</option>
+                                <option value="pulse">Pulse</option>
+                                <option value="wiggle">Wiggle</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Runs a short one-time animation on the folder icon and name when the folder is hovered.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>

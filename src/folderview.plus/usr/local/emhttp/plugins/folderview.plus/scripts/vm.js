@@ -53,6 +53,12 @@ const isCompactMultiRowPreview = typeof runtimeShared.isCompactMultiRowPreview =
         const normalizedRows = normalizeFolderPreviewRowLimit(settings);
         return normalizedRows === 0 || normalizedRows > 1;
     });
+const getPreviewHoverAnimationClass = typeof runtimeShared.getPreviewHoverAnimationClass === 'function'
+    ? runtimeShared.getPreviewHoverAnimationClass
+    : ((settings = {}) => {
+        const normalized = String(settings?.preview_hover_animation || settings?.previewHoverAnimation || '').trim().toLowerCase();
+        return ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized) ? `fv-hover-animation-${normalized}` : '';
+    });
 const applyFolderPreviewLayout = typeof runtimeShared.applyFolderPreviewLayout === 'function'
     ? runtimeShared.applyFolderPreviewLayout
     : (($preview, settings = {}) => {
@@ -1662,7 +1668,9 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1741,7 +1749,9 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1757,7 +1767,8 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const lockedClass = locked ? 'fv-folder-locked' : '';
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
+    const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
 
     // insertion at position of the folder
     if (position === 0) {

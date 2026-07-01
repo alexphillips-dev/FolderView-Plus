@@ -15,6 +15,10 @@ const localResolvedFolderStatusColors = {
     stopped: 'var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped, #ff4d4d))'
 };
 const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
+const getPreviewHoverAnimationClass = (settings = {}) => {
+    const normalized = String(settings?.preview_hover_animation || settings?.previewHoverAnimation || '').trim().toLowerCase();
+    return ['bounce', 'grow', 'spin', 'pulse', 'wiggle'].includes(normalized) ? `fv-hover-animation-${normalized}` : '';
+};
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
     if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
@@ -1454,7 +1458,9 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1546,7 +1552,9 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1554,7 +1562,8 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     const safeFolderIcon = sanitizeImageSrc(folder.icon, DEFAULT_FOLDER_ICON_PATH);
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -1764,7 +1773,9 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1845,7 +1856,9 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false
+            preview_grayscale: false,
+            preview_hover_animation: 'none',
+            previewHoverAnimation: 'none'
         };
     }
 
@@ -1853,7 +1866,8 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {

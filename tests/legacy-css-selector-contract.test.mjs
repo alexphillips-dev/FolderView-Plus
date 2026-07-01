@@ -38,7 +38,7 @@ test('vm legacy CSS selector contract remains stable for folder rows', () => {
 });
 
 test('dashboard legacy CSS selector contract remains stable for folder cards', () => {
-    assert.match(dashboardJs, /class="folder-showcase-outer-\$\{id\} folder-showcase-outer"/);
+    assert.match(dashboardJs, /class="folder-showcase-outer-\$\{id\} folder-showcase-outer(?: [^"]*)?"/);
     assert.match(dashboardJs, /class="img folder-img-docker"/);
     assert.match(dashboardJs, /class="state folder-state-docker"/);
     assert.match(dashboardJs, /class="img folder-img-vm"/);

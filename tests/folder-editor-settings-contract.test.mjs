@@ -93,5 +93,7 @@ test('modern folder editor create mode receives server prefs and can apply saved
     assert.match(folderJs, /const getSavedFolderDefaultsProfile = \(\) => \{/);
     assert.match(folderJs, /const applySavedFolderDefaultsToNewFolder = \(foldersMap = \{\}\) => \{/);
     assert.match(folderJs, /hydrateCurrentEditFolder\(savedDefaults\.folder, '', foldersMap, \{ clearPrefill: false \}\);/);
-    assert.match(folderJs, /if \(!applySavedFolderDefaultsToNewFolder\(folders\)\) \{/);
+    assert.match(folderJs, /const appliedSavedDefaults = applySavedFolderDefaultsToNewFolder\(folders\);/);
+    assert.match(folderJs, /const appliedRequestedParent = await applyRequestedCreateParentToNewFolder\(folders\);/);
+    assert.match(folderJs, /if \(!appliedRequestedParent && !appliedSavedDefaults\) \{/);
 });

@@ -3587,7 +3587,6 @@ const queueConditionalDockerPostRenderPolish = ({ delayMs, reason, folderIds = [
         if (signatureRef && typeof signatureRef === 'object') {
             signatureRef.value = currentSignature;
         }
-        folderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
         queueForceAllFolderRowsVerticalCenter();
         scheduleDockerRuntimeWidthReflow(reason, 18);
     }, Math.max(0, Number(delayMs) || 0));
@@ -3655,7 +3654,6 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
     const run = () => {
         const signatureRef = { value: readDockerPostRenderPolishSignature() };
         startFolderRowCenterObserver();
-        safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
         queueForceAllFolderRowsVerticalCenter();
         bindDockerRuntimeAppColumnResizer();
         scheduleDockerRuntimeWidthReflow('render-complete', 12);
@@ -6977,16 +6975,32 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         : null;
 };
 
+let dockerSupportBundlePageSnapshotWriteTimer = null;
+let dockerSupportBundlePageSnapshotPendingReason = '';
 const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
     if (!(diagnosticsApi && typeof diagnosticsApi.queuePageSnapshot === 'function')) {
         return;
     }
-    diagnosticsApi.queuePageSnapshot(reason, delayMs);
-    const snapshot = collectDockerSupportBundlePageSnapshot(reason);
-    if (snapshot) {
-        writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+    const safeReason = String(reason || 'runtime-sync');
+    const safeDelay = Math.max(0, Number(delayMs) || 0);
+    const offCriticalPathDelay = /^(render-complete|runtime-sync)$/.test(safeReason)
+        ? Math.max(safeDelay, 1200)
+        : safeDelay;
+    diagnosticsApi.queuePageSnapshot(safeReason, offCriticalPathDelay);
+    dockerSupportBundlePageSnapshotPendingReason = safeReason;
+    if (dockerSupportBundlePageSnapshotWriteTimer) {
+        clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
     }
+    dockerSupportBundlePageSnapshotWriteTimer = window.setTimeout(() => {
+        dockerSupportBundlePageSnapshotWriteTimer = null;
+        const snapshotReason = dockerSupportBundlePageSnapshotPendingReason || safeReason;
+        dockerSupportBundlePageSnapshotPendingReason = '';
+        const snapshot = collectDockerSupportBundlePageSnapshot(snapshotReason);
+        if (snapshot) {
+            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+        }
+    }, offCriticalPathDelay);
 };
 const bindDockerUpdateActionClickCapture = () => {
     getDockerRuntimeReconcileApi()?.bindUpdateActionClickCapture?.();

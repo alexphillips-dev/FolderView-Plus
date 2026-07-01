@@ -328,6 +328,17 @@ test('docker post-render polish retries only when rows are still settling', () =
     assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*1000\)/);
 });
 
+test('docker first paint avoids repeated full-row polish and defers support snapshots', () => {
+    assert.match(dockerJs, /const scheduleDockerPostRenderPolish = \(folderIds = \[\]\) => \{/);
+    assert.doesNotMatch(dockerJs, /safeFolderIds\.forEach\(\(folderId\) => forceFolderRowVerticalCenter\(folderId\)\);/);
+    assert.match(dockerJs, /queueForceAllFolderRowsVerticalCenter\(\);/);
+    assert.match(dockerJs, /let dockerSupportBundlePageSnapshotWriteTimer = null;/);
+    assert.match(dockerJs, /const offCriticalPathDelay = \/\^\(render-complete\|runtime-sync\)\$\/\.test\(safeReason\)[\s\S]*Math\.max\(safeDelay,\s*1200\)/);
+    assert.match(dockerJs, /diagnosticsApi\.queuePageSnapshot\(safeReason,\s*offCriticalPathDelay\);/);
+    assert.match(dockerJs, /dockerSupportBundlePageSnapshotWriteTimer = window\.setTimeout\(\(\) => \{/);
+    assert.match(dockerJs, /writeDockerSupportBundleStorageRecord\(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY,\s*snapshot\);/);
+});
+
 test('vm runtime tiny-width overflow guard can still recover clipped folder names', () => {
     assert.match(vmJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
     assert.match(vmJs, /if \(clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);

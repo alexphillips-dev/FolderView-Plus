@@ -1023,6 +1023,23 @@ try {
                         </div>
                     </li>
                 </ul>
+                <ul constraint="border-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt>Preview border glow:</dt>
+                                <dd>
+                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" onchange="updateForm()" />
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p>
+                                    Adds a soft glow around the preview border using the selected border color.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
             </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">

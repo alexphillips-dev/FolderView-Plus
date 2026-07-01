@@ -479,6 +479,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'folder_webui_url'\)/);
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'preview_vertical_bars_color'\)/);
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'preview_border_color'\)/);
+    assert.match(folderChromeJs, /findBasicByFieldName\(form, 'preview_border_glow'\)/);
     assert.match(folderChromeJs, /const getFolderEditorTypeApi = \(\) =>/);
     assert.match(folderChromeJs, /const mergeSectionRows = \(baseRows,\s*extraRows\) =>/);
     assert.match(folderChromeJs, /const syncActionLaunchPlacement = \(form\) =>/);
@@ -487,7 +488,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'/);
     assert.match(folderChromeJs, /shell\.classList\.toggle\('is-members-shell', sectionKey === 'members'\)/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
-    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-preview-border-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row', 'is-wide-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);

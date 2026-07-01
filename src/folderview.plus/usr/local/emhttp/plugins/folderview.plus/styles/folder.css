@@ -665,6 +665,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     box-shadow: inset 0 0 0 var(--fv-preview-border-width) var(--fv-preview-border-color);
 }
 
+.fv-live-preview-row.has-border.has-border-glow {
+    box-shadow:
+        inset 0 0 0 var(--fv-preview-border-width) var(--fv-preview-border-color),
+        var(--fv-preview-border-glow);
+}
+
 .fv-live-folder-head {
     display: inline-flex;
     align-items: center;

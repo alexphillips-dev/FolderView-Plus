@@ -424,6 +424,7 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'preview_border',
     'preview_border_color',
     'preview_border_width',
+    'preview_border_glow',
     'preview_vertical_bars',
     'preview_vertical_bars_color',
     'preview_vertical_bars_width',
@@ -956,6 +957,7 @@ const buildParentSmartDefaults = (parentFolder) => {
         preview_border: isLegacyPreviewBorderEnabled(settings),
         preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
         preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
+        preview_border_glow: settings.preview_border_glow === true || settings.previewBorderGlow === true,
         preview_vertical_bars: settings.preview_vertical_bars === true,
         preview_vertical_bars_color: normalizeHexColor(
             settings.preview_vertical_bars_color || settings.preview_border_color,
@@ -3200,6 +3202,7 @@ const initEditorChrome = () => {
 getForm().preview_border.checked = true;
 getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
 getForm().preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
+getForm().preview_border_glow.checked = false;
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 getForm().preview_vertical_bars_width.value = String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH);
 getForm().dropdown_style.value = DEFAULT_DROPDOWN_STYLE;
@@ -3269,6 +3272,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(normalizedFolder.settings || {}));
     setFieldValue('preview_border_color', normalizeHexColor(normalizedFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
     setFieldValue('preview_border_width', String(normalizePositiveInt(normalizedFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
+    setFieldChecked('preview_border_glow', normalizedFolder.settings.preview_border_glow === true || normalizedFolder.settings.previewBorderGlow === true);
     setFieldValue('preview_vertical_bars_color', normalizeHexColor(
         normalizedFolder.settings.preview_vertical_bars_color || normalizedFolder.settings.preview_border_color,
         DEFAULT_BORDER_COLOR
@@ -3646,7 +3650,7 @@ const startFolderEditorRuntime = async () => {
             return;
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
-            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width'
+            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width' || fieldName === 'preview_border_glow'
             || fieldName === 'folder_accent_enabled' || fieldName === 'folder_accent_color') {
             if (event.type === 'input' && isLivePreviewColorField) {
                 scheduleEditorPreviewRender();
@@ -4688,6 +4692,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
             preview_border_width: normalizePositiveInt(e.preview_border_width.value.toString(), DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
+            preview_border_glow: e.preview_border_glow.checked,
+            previewBorderGlow: e.preview_border_glow.checked,
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             preview_vertical_bars_width: normalizePositiveInt(e.preview_vertical_bars_width.value.toString(), DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
             dropdown_style: normalizedDropdownStyle,

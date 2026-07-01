@@ -170,6 +170,7 @@
                     preview_border_width: typeof deps.normalizePositiveInt === 'function'
                         ? deps.normalizePositiveInt(settings.preview_border_width, deps.defaultPreviewBorderWidth || 1, 1, 4)
                         : (deps.defaultPreviewBorderWidth || 1),
+                    preview_border_glow: settings.preview_border_glow === true || settings.previewBorderGlow === true,
                     preview_vertical_bars_color: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(
                             settings.preview_vertical_bars_color || settings.preview_border_color,

@@ -97,6 +97,7 @@
             const borderEnabled = previewMode !== 0 && form.preview_border?.checked === true;
             const borderColor = normalizeHexColor(form.preview_border_color?.value, deps.defaultBorderColor || '#afa89e');
             const borderWidth = String(normalizePositiveInt(form.preview_border_width?.value, deps.defaultPreviewBorderWidth || 1, 1, 4));
+            const borderGlowEnabled = borderEnabled && form.preview_border_glow?.checked === true;
             const dividerEnabled = previewMode !== 0 && form.preview_vertical_bars?.checked === true;
             const dividerColor = normalizeHexColor(form.preview_vertical_bars_color?.value || deps.defaultDividerColor || '', deps.defaultDividerColor || '#afa89e');
             const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width?.value, deps.defaultPreviewVerticalBarsWidth || 1, 1, 4));
@@ -160,11 +161,11 @@
                     : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${accentEnabled ? ' has-accent' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
             const surfaceClass = deps.wrapPreviewSurface === false ? '' : 'fv-live-preview-surface';
             canvas.html(`
                 ${surfaceClass ? `<div class="${surfaceClass}">` : ''}
-                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
+                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-preview-border-glow:0 0 10px ${borderColor}, 0 0 18px ${borderColor};--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
                         <div class="fv-live-folder-head">
                             <div class="fv-live-folder-anchor">
                                 <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">

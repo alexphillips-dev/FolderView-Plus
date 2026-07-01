@@ -21,11 +21,14 @@ const serverLibPhp = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 
 test('folder editor persists preview border directly from checkbox state', () => {
     assert.match(folderJs, /preview_border:\s*e\.preview_border\.checked/);
+    assert.match(folderJs, /preview_border_glow:\s*e\.preview_border_glow\.checked/);
+    assert.match(folderJs, /previewBorderGlow:\s*e\.preview_border_glow\.checked/);
     assert.doesNotMatch(folderJs, /preview_border:\s*e\.preview_border\.checked\s*\|\|/);
 });
 
 test('folder editor keeps border and chevron reset controls grouped with their fields', () => {
     assert.match(folderPage, /<div class="fv-inline-control-row">[\s\S]*name="preview_border_color"[\s\S]*name="preview_border_width"[\s\S]*resetPreviewBorderDefaults\(\)/);
+    assert.match(folderPage, /name="preview_border_glow"[\s\S]*Adds a soft glow around the preview border using the selected border color\./);
     assert.match(folderPage, /<div class="fv-inline-control-row">[\s\S]*name="dropdown_color"[\s\S]*name="dropdown_hover_color"[\s\S]*resetDropdownColorDefaults\(\)/);
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
@@ -37,6 +40,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
+    assert.match(folderJs, /getForm\(\)\.preview_border_glow\.checked = false;/);
     assert.match(folderJs, /scheduleEditorRecalculation\(0\);/);
     assert.match(folderJs, /updateLiveSummary\(\);/);
     assert.match(folderJs, /const scheduleEditorPreviewRender = \(\) =>/);
@@ -56,7 +60,9 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderContractJs, /const isPreviewBorderEnabled = \(settings\) =>/);
     assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(folderJs, /setFieldChecked\('preview_border',\s*isLegacyPreviewBorderEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
+    assert.match(folderJs, /setFieldChecked\('preview_border_glow',\s*normalizedFolder\.settings\.preview_border_glow === true \|\| normalizedFolder\.settings\.previewBorderGlow === true\);/);
     assert.match(folderEditorSharedJs, /preview_border_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
+    assert.match(folderEditorSharedJs, /preview_border_glow:\s*settings\.preview_border_glow === true \|\| settings\.previewBorderGlow === true/);
     assert.match(folderEditorSharedJs, /preview_vertical_bars_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
     assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderEditorSharedJs, /dropdown_style:\s*typeof deps\.normalizeDropdownStyle === 'function'/);
@@ -81,6 +87,8 @@ test('docker preview renderer respects preview border toggle', () => {
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-border-width', `\$\{previewBorderWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-divider-width', `\$\{previewBarsWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('border', enabled \? `\$\{previewBorderWidth\}px solid \$\{previewColor\}` : 'none', 'important'\)/);
+    assert.match(sharedRuntimeJs, /const glowEnabled = enabled && \(source\.preview_border_glow === true \|\| source\.previewBorderGlow === true\);/);
+    assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('box-shadow', glowEnabled \? previewBorderGlowShadow\(previewColor\) : 'none', 'important'\)/);
     assert.match(sharedRuntimeJs, /const dropdownStyle = normalizeDropdownStyle\(source\);/);
     assert.match(sharedRuntimeJs, /const applyFolderDropdownStyle = \(\$folderRow, settings\) =>/);
     assert.match(sharedRuntimeJs, /const getDropdownStyleTokens = typeof folderContract\?\.getDropdownStyleTokens === 'function'/);

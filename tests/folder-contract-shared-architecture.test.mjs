@@ -135,6 +135,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const dockerSettingsTransferIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
     const dockerSharedRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const dockerRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
+    const dockerThemeTokensCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const dockerSharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerTypeCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
     const vmThemeResolverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
@@ -142,6 +143,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const vmSettingsTransferIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.settings-transfer.js');
     const vmSharedRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const vmRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
+    const vmThemeTokensCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const vmSharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const vmTypeCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     const folderThemeResolverIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
@@ -174,8 +176,10 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(dockerContractIndex < dockerSettingsTransferIndex, 'shared contract must load before folder.settings-transfer.js on docker page');
     assert.ok(dockerSettingsTransferIndex < dockerRuntimeIndex, 'folder.settings-transfer.js must load before docker.js');
     assert.ok(dockerContractIndex < dockerRuntimeIndex, 'shared contract must load before docker.js');
+    assert.ok(dockerThemeTokensCssIndex >= 0, 'docker page missing shared theme token stylesheet');
     assert.ok(dockerSharedCssIndex >= 0, 'docker page missing shared runtime stylesheet');
     assert.ok(dockerTypeCssIndex >= 0, 'docker page missing docker stylesheet');
+    assert.ok(dockerThemeTokensCssIndex < dockerSharedCssIndex, 'theme token stylesheet must load before shared runtime stylesheet on docker page');
     assert.ok(dockerSharedCssIndex < dockerTypeCssIndex, 'shared runtime stylesheet must load before docker.css');
 
     assert.ok(vmThemeResolverIndex >= 0, 'vm page missing shared theme resolver include');
@@ -189,8 +193,10 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(vmContractIndex < vmSettingsTransferIndex, 'shared contract must load before folder.settings-transfer.js on VMs page');
     assert.ok(vmSettingsTransferIndex < vmRuntimeIndex, 'folder.settings-transfer.js must load before vm.js');
     assert.ok(vmContractIndex < vmRuntimeIndex, 'shared contract must load before vm.js');
+    assert.ok(vmThemeTokensCssIndex >= 0, 'vm page missing shared theme token stylesheet');
     assert.ok(vmSharedCssIndex >= 0, 'vm page missing shared runtime stylesheet');
     assert.ok(vmTypeCssIndex >= 0, 'vm page missing vm stylesheet');
+    assert.ok(vmThemeTokensCssIndex < vmSharedCssIndex, 'theme token stylesheet must load before shared runtime stylesheet on VMs page');
     assert.ok(vmSharedCssIndex < vmTypeCssIndex, 'shared runtime stylesheet must load before vm.css');
 
     assert.ok(folderThemeResolverIndex >= 0, 'folder editor page missing shared theme resolver include');

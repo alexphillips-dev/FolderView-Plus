@@ -145,6 +145,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 </script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('settings'); ?>
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 <script>
     window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;

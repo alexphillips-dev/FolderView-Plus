@@ -10,6 +10,7 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
+const themeTokensCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
@@ -60,7 +61,11 @@ test('dashboard quick action palette is tokenized', () => {
 });
 
 test('runtime context menus follow resolved dark and light theme tokens', () => {
-    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*rgba\(22,\s*20,\s*18,\s*0\.985\)/);
+    assert.match(themeTokensCss, /--fvplus-graphite-page:\s*#0d1015/);
+    assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1a1f27/);
+    assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-graphite-accent\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-bg:[\s\S]*rgba\(21,\s*25,\s*32,\s*0\.98\)/);
+    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*22,\s*29,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-runtime-menu-bg\) !important;/);

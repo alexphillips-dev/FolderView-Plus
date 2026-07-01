@@ -1,17 +1,17 @@
 :root {
-    --fvplus-settings-safe-text-primary: #e7eef9;
-    --fvplus-settings-safe-text-muted: #cfd9e7;
-    --fvplus-settings-safe-text-dim: #b7c5d7;
-    --fvplus-settings-safe-border-subtle: rgba(255, 255, 255, 0.12);
-    --fvplus-settings-safe-border-faint: rgba(255, 255, 255, 0.08);
-    --fvplus-settings-safe-surface-muted: rgba(255, 255, 255, 0.02);
-    --fvplus-settings-safe-surface-strong: rgba(0, 0, 0, 0.2);
-    --fvplus-settings-safe-accent: rgba(77, 163, 255, 0.72);
-    --fvplus-settings-safe-accent-soft: rgba(77, 163, 255, 0.18);
-    --fvplus-settings-safe-focus-ring: rgba(103, 214, 255, 0.35);
-    --fvplus-settings-safe-surface-panel: rgba(0, 0, 0, 0.14);
+    --fvplus-settings-safe-text-primary: var(--fvplus-graphite-text-primary, #f2f4f7);
+    --fvplus-settings-safe-text-muted: var(--fvplus-graphite-text-muted, #a8b0bc);
+    --fvplus-settings-safe-text-dim: var(--fvplus-graphite-text-dim, #7d8794);
+    --fvplus-settings-safe-border-subtle: var(--fvplus-graphite-border-subtle, rgba(255, 255, 255, 0.12));
+    --fvplus-settings-safe-border-faint: var(--fvplus-graphite-border-faint, rgba(255, 255, 255, 0.08));
+    --fvplus-settings-safe-surface-muted: var(--fvplus-theme-surface-muted, rgba(255, 255, 255, 0.025));
+    --fvplus-settings-safe-surface-strong: var(--fvplus-theme-surface-strong, rgba(255, 255, 255, 0.06));
+    --fvplus-settings-safe-accent: var(--fvplus-graphite-accent, #ff8a1f);
+    --fvplus-settings-safe-accent-soft: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
+    --fvplus-settings-safe-focus-ring: var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.42));
+    --fvplus-settings-safe-surface-panel: var(--fvplus-theme-surface-panel, rgba(21, 25, 32, 0.92));
 
-    --fvplus-theme-text-primary: var(--text, currentColor);
+    --fvplus-theme-text-primary: var(--fvplus-settings-safe-text-primary, var(--text, currentColor));
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
     --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
     --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);
@@ -40,7 +40,7 @@
     --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
     --fvplus-settings-focus-ring: var(--fvplus-theme-focus-ring, var(--fvplus-settings-safe-focus-ring));
     --fvplus-settings-surface-panel: var(--fvplus-theme-surface-panel, var(--fvplus-settings-safe-surface-panel));
-    --fvplus-settings-title-accent: #ff9a3c;
+    --fvplus-settings-title-accent: var(--fvplus-graphite-accent-strong, #ff9d36);
     --fvplus-settings-tree-guide: rgba(173, 178, 192, 0.55);
     --fvplus-settings-breadcrumb-text: rgba(180, 197, 221, 0.88);
     --fvplus-settings-members-meta-text: rgba(187, 199, 219, 0.82);
@@ -63,23 +63,23 @@
     --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
     --fvplus-settings-button-bg-top: rgba(255, 255, 255, 0.05);
     --fvplus-settings-button-bg-bottom: rgba(255, 255, 255, 0.045);
-    --fvplus-settings-button-hover-top: rgba(255, 191, 123, 0.14);
-    --fvplus-settings-button-hover-bottom: rgba(255, 191, 123, 0.11);
-    --fvplus-settings-button-active-top: rgba(255, 165, 74, 0.22);
-    --fvplus-settings-button-active-bottom: rgba(255, 165, 74, 0.19);
+    --fvplus-settings-button-hover-top: rgba(255, 255, 255, 0.072);
+    --fvplus-settings-button-hover-bottom: rgba(255, 255, 255, 0.058);
+    --fvplus-settings-button-active-top: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
+    --fvplus-settings-button-active-bottom: rgba(255, 138, 31, 0.1);
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.12), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 191, 123, 0.16), 0 1px 3px rgba(0, 0, 0, 0.16);
+    --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.18);
+    --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
     --fvplus-settings-button-accent-fg: #fff4e8;
     --fvplus-settings-button-accent-top: rgba(255, 171, 91, 0.26);
     --fvplus-settings-button-accent-bottom: rgba(255, 171, 91, 0.22);
     --fvplus-settings-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-quiet-top: rgba(255, 255, 255, 0.036);
     --fvplus-settings-button-quiet-bottom: rgba(255, 255, 255, 0.032);
-    --fvplus-settings-button-quiet-hover-top: rgba(255, 191, 123, 0.1);
-    --fvplus-settings-button-quiet-hover-bottom: rgba(255, 191, 123, 0.08);
+    --fvplus-settings-button-quiet-hover-top: rgba(255, 255, 255, 0.064);
+    --fvplus-settings-button-quiet-hover-bottom: rgba(255, 255, 255, 0.052);
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
-    --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
+    --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root,

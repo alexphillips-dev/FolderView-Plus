@@ -483,6 +483,7 @@ try {
 <?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
 <link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>

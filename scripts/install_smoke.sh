@@ -78,6 +78,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/server/update.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/delete.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/backup.php"
+  "./usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 )
 
@@ -143,6 +144,7 @@ REQUIRED_FILES=(
   "scripts/folder.editor.preview-runtime.js"
   "scripts/folder.editor.icons.js"
   "scripts/folder.js"
+  "styles/theme.tokens.css"
   "styles/folderviewplus.css"
   "styles/folder.css"
   "server/lib.php"

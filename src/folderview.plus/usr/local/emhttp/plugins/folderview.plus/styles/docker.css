@@ -1189,6 +1189,24 @@ div.folder-preview-4 span.outer {
     clear: both;
 }
 
+.fvplus-docker-context-menu {
+    overflow: visible !important;
+}
+
+.fvplus-docker-context-menu ul {
+    overflow: visible !important;
+}
+
+.fvplus-docker-context-menu li.fvplus-context-submenu-open-up > ul {
+    top: auto !important;
+    bottom: 0 !important;
+}
+
+.fvplus-docker-context-menu li.fvplus-context-submenu-open-left > ul {
+    left: auto !important;
+    right: 100% !important;
+}
+
 /* Touch/mobile behavior: avoid hover-only interactions. */
 @media (hover: none), (pointer: coarse) {
     .hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {

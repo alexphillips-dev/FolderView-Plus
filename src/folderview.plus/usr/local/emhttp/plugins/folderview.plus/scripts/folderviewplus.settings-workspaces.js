@@ -12,6 +12,11 @@
         const $ = deps.$ || windowRef?.jQuery || windowRef?.$ || null;
         const utils = deps.utils || {};
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
+        const escapeJsString = (value) => String(value ?? '')
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/\r/g, '\\r')
+            .replace(/\n/g, '\\n');
         const getFolderMap = typeof deps.getFolderMap === 'function' ? deps.getFolderMap : (() => ({}));
         const getFolderNameForId = typeof deps.getFolderNameForId === 'function' ? deps.getFolderNameForId : ((type, id) => String(id || ''));
         const getSortedBackupsForType = typeof deps.getSortedBackupsForType === 'function' ? deps.getSortedBackupsForType : (() => []);
@@ -32,6 +37,7 @@
         const restoreBackupEntry = typeof deps.restoreBackupEntry === 'function' ? deps.restoreBackupEntry : (() => {});
         const downloadBackupEntry = typeof deps.downloadBackupEntry === 'function' ? deps.downloadBackupEntry : (() => {});
         const deleteBackupEntry = typeof deps.deleteBackupEntry === 'function' ? deps.deleteBackupEntry : (() => {});
+        const deleteAllBackupEntries = typeof deps.deleteAllBackupEntries === 'function' ? deps.deleteAllBackupEntries : (() => {});
         const runScheduledBackupNow = typeof deps.runScheduledBackupNow === 'function' ? deps.runScheduledBackupNow : (() => {});
         const compareBackupSnapshots = typeof deps.compareBackupSnapshots === 'function' ? deps.compareBackupSnapshots : (() => {});
         const changeBackupSchedulePref = typeof deps.changeBackupSchedulePref === 'function' ? deps.changeBackupSchedulePref : (() => {});
@@ -374,6 +380,26 @@
                 .replace(/\b([a-z])/g, (match) => match.toUpperCase());
         };
 
+        const getRecoveryBackupFolderCount = (backup) => {
+            const count = Number(backup?.count);
+            return Number.isFinite(count) ? Math.max(0, count) : null;
+        };
+
+        const isRecoveryBackupEmpty = (backup) => getRecoveryBackupFolderCount(backup) === 0;
+
+        const getLatestRestorableRecoveryBackup = (backups) => {
+            const list = Array.isArray(backups) ? backups : [];
+            return list.find((backup) => !isRecoveryBackupEmpty(backup)) || null;
+        };
+
+        const formatRecoveryBackupFolderCount = (backup) => {
+            const count = getRecoveryBackupFolderCount(backup);
+            if (count === null) {
+                return 'Folder count unavailable';
+            }
+            return `${count} folder${count === 1 ? '' : 's'}`;
+        };
+
         const buildRecoveryOverviewHtml = (type) => {
             const resolvedType = normalizeRecoveryWorkspaceType(type);
             const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
@@ -382,55 +408,84 @@
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsByType[resolvedType]) : (prefsByType[resolvedType] || {});
             const schedule = prefs.backupSchedule || {};
             const latest = backups[0] || null;
+            const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const backupCount = backups.length;
+            const emptyCount = backups.filter(isRecoveryBackupEmpty).length;
             const scheduleEnabled = schedule.enabled === true;
             const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
             const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
             const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : 'Not created yet';
-            const latestReason = latest ? formatRecoveryReasonLabel(latest.reason) : 'Create a manual checkpoint first';
+            const latestRestorableCreated = latestRestorable?.createdAt ? formatTimestamp(latestRestorable.createdAt) : 'None available';
+            const latestRestorableReason = latestRestorable ? formatRecoveryReasonLabel(latestRestorable.reason) : 'Create a backup after folders exist';
             const folderCount = Object.keys(folders || {}).length;
-            const statusClass = latest
+            const statusClass = latestRestorable
                 ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
                 : 'is-warning';
-            const statusLabel = latest
+            const statusLabel = latestRestorable
                 ? (scheduleEnabled ? 'Ready' : 'Watch')
                 : 'No backup yet';
-            const headline = latest
-                ? `Latest ${title} backup is ready to restore.`
-                : `No ${title} backup snapshot is available yet.`;
-            const copy = latest
-                ? `Latest snapshot: ${escapeHtml(latestCreated)}. Restore latest will create a fresh safety backup first.`
-                : 'Create a manual backup before making larger changes so you have a safe rollback point.';
+            const headline = latestRestorable
+                ? `${title} recovery is ready.`
+                : `No restorable ${title} backup is available yet.`;
+            const copy = latestRestorable
+                ? `Restore Latest will use ${escapeHtml(latestRestorableCreated)} and create a fresh safety backup first when folders exist.`
+                : (latest
+                    ? 'Only empty snapshots were found. Restore Latest skips empty backups so it does not roll you back to no folders.'
+                    : 'Create a manual backup before making larger changes so you have a safe rollback point.');
+            const scheduleCopy = scheduleEnabled
+                ? `${escapeHtml(`Runs every ${interval}h and keeps ${retention} snapshot${retention === 1 ? '' : 's'}.`)}`
+                : 'Manual only. Enable scheduled backups if you want automatic recovery points.';
+            const latestRawCopy = latest
+                ? `${escapeHtml(latestCreated)} (${escapeHtml(formatRecoveryBackupFolderCount(latest))})`
+                : 'No snapshots yet';
 
             return `
-                <div class="fv-recovery-overview-head">
-                    <div>
-                        <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
-                        <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
-                        <div class="fv-recovery-copy">${copy}</div>
+                <div class="fv-recovery-hero">
+                    <div class="fv-recovery-overview-head">
+                        <div>
+                            <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
+                            <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
+                            <div class="fv-recovery-copy">${copy}</div>
+                        </div>
+                        <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
                     </div>
-                    <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
+                    <div class="fv-recovery-chip-row">
+                        <span class="fv-recovery-chip">${escapeHtml(`${folderCount} live folder${folderCount === 1 ? '' : 's'}`)}</span>
+                        <span class="fv-recovery-chip">${escapeHtml(`${backupCount} snapshot${backupCount === 1 ? '' : 's'}`)}</span>
+                        ${emptyCount > 0 ? `<span class="fv-recovery-chip is-warning">${escapeHtml(`${emptyCount} empty skipped by Restore Latest`)}</span>` : ''}
+                        <span class="fv-recovery-chip ${scheduleEnabled ? 'is-success' : ''}">${escapeHtml(scheduleEnabled ? `Scheduled every ${interval}h` : 'Manual backups')}</span>
+                    </div>
                 </div>
                 <div class="fv-recovery-stat-grid">
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Latest backup</span>
+                        <span class="fv-recovery-stat-label">Restore Latest uses</span>
+                        <strong>${escapeHtml(latestRestorableCreated)}</strong>
+                        <span>${escapeHtml(latestRestorableReason)}</span>
+                    </div>
+                    <div class="fv-recovery-stat-card">
+                        <span class="fv-recovery-stat-label">Newest snapshot</span>
                         <strong>${escapeHtml(latestCreated)}</strong>
-                        <span>${escapeHtml(latestReason)}</span>
+                        <span>${latestRawCopy}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Snapshots kept</span>
-                        <strong>${escapeHtml(String(backupCount))}</strong>
-                        <span>${escapeHtml(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`)}</span>
-                    </div>
-                    <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Auto backup</span>
+                        <span class="fv-recovery-stat-label">Backup policy</span>
                         <strong>${escapeHtml(scheduleEnabled ? `Every ${interval}h` : 'Manual only')}</strong>
-                        <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : 'Scheduler has not run yet')}</span>
+                        <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : scheduleCopy)}</span>
                     </div>
                     <div class="fv-recovery-stat-card">
-                        <span class="fv-recovery-stat-label">Retention</span>
-                        <strong>${escapeHtml(`${retention} snapshot${retention === 1 ? '' : 's'}`)}</strong>
-                        <span>${escapeHtml(scheduleEnabled ? 'Old backups rotate automatically.' : 'Retention applies after scheduler runs.')}</span>
+                        <span class="fv-recovery-stat-label">What is protected</span>
+                        <strong>FolderView setup</strong>
+                        <span>Folders, rules, preferences, defaults, and workspace settings. Container data and VM disks are not included.</span>
+                    </div>
+                </div>
+                <div class="fv-recovery-explainer-grid">
+                    <div class="fv-recovery-explainer-card">
+                        <strong>Restore safely</strong>
+                        <span>Restores create a fresh checkpoint first when there are folders to protect.</span>
+                    </div>
+                    <div class="fv-recovery-explainer-card">
+                        <strong>Compare before restoring</strong>
+                        <span>Use Compare Snapshots to inspect preference and folder differences before applying a restore.</span>
                     </div>
                 </div>
             `;
@@ -458,20 +513,44 @@
             recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
             const created = formatTimestamp(selectedBackup?.createdAt || '');
             const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
-            const count = Number.isFinite(Number(selectedBackup?.count)) ? Number(selectedBackup.count) : 0;
+            const count = getRecoveryBackupFolderCount(selectedBackup);
+            const countLabel = count === null ? 'Folder count unavailable' : `${count} folder${count === 1 ? '' : 's'}`;
+            const isEmpty = isRecoveryBackupEmpty(selectedBackup);
             const latestName = String(backups[0]?.name || '').trim();
             const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
+            const emptyBadge = isEmpty ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : '';
             const optionsHtml = backups.map((backup, index) => {
                 const name = String(backup?.name || '').trim();
-                const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}`;
+                const emptyLabel = isRecoveryBackupEmpty(backup) ? ' - empty' : '';
+                const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}${emptyLabel}`;
                 const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
                 return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
             }).join('');
+            const recentHtml = backups.slice(0, 5).map((backup, index) => {
+                const name = String(backup?.name || '').trim();
+                const activeClass = name === resolvedSelectedName ? ' is-active' : '';
+                const backupCountLabel = formatRecoveryBackupFolderCount(backup);
+                const backupReason = formatRecoveryReasonLabel(backup?.reason);
+                const backupCreated = formatTimestamp(backup?.createdAt || '');
+                const backupBadges = [
+                    index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '',
+                    isRecoveryBackupEmpty(backup) ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : ''
+                ].join('');
+                return `
+                    <button type="button" class="fv-recovery-snapshot-item${activeClass}" onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
+                        <span>
+                            <strong>${escapeHtml(backupCreated)}</strong>
+                            <small>${escapeHtml(`${backupReason} - ${backupCountLabel}`)}</small>
+                        </span>
+                        <span class="fv-recovery-history-badges">${backupBadges}</span>
+                    </button>
+                `;
+            }).join('');
 
-            summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Select one restore point and use the shared actions below.`);
+            summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Empty snapshots stay visible for audit/history, but Restore Latest skips them.`);
             return `
                 <div class="fv-recovery-history-picker-row">
-                    <label for="recovery-backup-entry-select">Snapshot date</label>
+                    <label for="recovery-backup-entry-select">Choose snapshot</label>
                     <select id="recovery-backup-entry-select" onchange="selectActiveRecoveryBackup(this.value)">
                         ${optionsHtml}
                     </select>
@@ -482,18 +561,29 @@
                             <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
                             <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
                         </div>
-                        ${latestBadge}
+                        <div class="fv-recovery-history-badges">${latestBadge}${emptyBadge}</div>
                     </div>
                     <div class="fv-recovery-history-meta">
-                        <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
+                        <span>${escapeHtml(countLabel)}</span>
                         <span>${escapeHtml(resolvedSelectedName)}</span>
                     </div>
+                    ${isEmpty ? '<div class="fv-recovery-history-callout">This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it.</div>' : ''}
                     <div class="backup-actions fv-recovery-history-actions-row">
                         <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
                         <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
                         <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" class="fv-recovery-danger-action" onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
                     </div>
                 </article>
+                <div class="fv-recovery-snapshot-list">
+                    <div class="fv-recovery-snapshot-list-head">
+                        <strong>Recent snapshots</strong>
+                        <span>Click a snapshot to inspect or restore it.</span>
+                    </div>
+                    <div class="fv-recovery-snapshot-items">
+                        ${recentHtml}
+                    </div>
+                </div>
             `;
         };
 
@@ -550,17 +640,20 @@
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsByType[resolvedType]) : (prefsByType[resolvedType] || {});
             const schedule = prefs.backupSchedule || {};
             const latest = backups[0] || null;
+            const latestRestorable = getLatestRestorableRecoveryBackup(backups);
             const title = resolvedType === 'docker' ? 'Docker' : 'VM';
 
             overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
             listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
             renderRecoveryEnvironmentSummary();
-            safetyNote.text(latest
-                ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
-                : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
+            safetyNote.text(latestRestorable
+                ? `Restore Latest will use ${formatTimestamp(latestRestorable.createdAt || '')}. A safety backup is created automatically before restore when folders exist.`
+                : (latest
+                    ? `Only empty ${title} snapshots are available. Create a new backup after folders exist before using Restore Latest.`
+                    : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`));
             policySummary.text(schedule.enabled === true
                 ? `Every ${schedule.intervalHours || 24}h, keep ${schedule.retention || 25}, ${schedule.lastRunAt ? `last run ${formatTimestamp(schedule.lastRunAt)}` : 'waiting for first run'}.`
-                : 'Manual backups only. Enable the scheduler to keep automatic recovery points.');
+                : 'Manual backups only. Enable scheduled backups to keep automatic recovery points.');
             syncVisibleRecoveryCompareControls(resolvedType);
             windowRef?.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
         };
@@ -634,6 +727,7 @@
             }
             deleteBackupEntry(resolvedType, selectedName);
         };
+        const deleteAllActiveRecoveryBackups = () => deleteAllBackupEntries(getActiveRecoveryWorkspaceType());
         const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
         const compareActiveRecoverySnapshots = () => {
             const resolvedType = getActiveRecoveryWorkspaceType();
@@ -976,6 +1070,7 @@
             restoreSelectedActiveRecoveryBackup,
             downloadSelectedActiveRecoveryBackup,
             deleteSelectedActiveRecoveryBackup,
+            deleteAllActiveRecoveryBackups,
             renderRecoveryEnvironmentSummary,
             exportEnvironmentSnapshot,
             importEnvironmentSnapshot,

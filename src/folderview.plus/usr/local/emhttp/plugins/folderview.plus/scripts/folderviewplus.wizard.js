@@ -27,28 +27,8 @@ const normalizeSetupAssistantSafetyMode = (value) => (
         : 'auto'
 );
 
-const SETUP_ASSISTANT_CONTRAST_PREFERENCES = new Set(['auto', 'normal', 'high', 'max']);
-const SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE = Object.freeze(['normal', 'high', 'max']);
-const SETUP_ASSISTANT_CONTRAST_TARGETS = Object.freeze([
-    { selector: '.fv-setup-assistant-head h4', minRatio: 4.5 },
-    { selector: '.fv-setup-card h4', minRatio: 4.5 },
-    { selector: '.fv-setup-muted', minRatio: 4.0 },
-    { selector: '.fv-setup-step-label', minRatio: 4.0 },
-    { selector: '.fv-setup-chip', minRatio: 3.5 }
-]);
-
 let setupAssistantViewportAccessibilityBound = false;
 let setupAssistantThemeSurfaceBinding = null;
-
-const normalizeSetupAssistantContrastPreference = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return SETUP_ASSISTANT_CONTRAST_PREFERENCES.has(normalized) ? normalized : 'auto';
-};
-
-const normalizeSetupAssistantContrastTier = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE.includes(normalized) ? normalized : 'normal';
-};
 
 const resolveSetupAssistantThemeMode = () => (
     typeof getEffectiveThemeCompatibilityMode === 'function'
@@ -106,178 +86,6 @@ const isSetupAssistantCompactViewport = () => {
     }
 };
 
-const parseSetupAssistantCssColor = (value) => {
-    const text = String(value || '').trim().toLowerCase();
-    if (!text || text === 'transparent') {
-        return null;
-    }
-    const rgbaMatch = text.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/);
-    if (rgbaMatch) {
-        return {
-            r: Math.max(0, Math.min(255, Number(rgbaMatch[1]) || 0)),
-            g: Math.max(0, Math.min(255, Number(rgbaMatch[2]) || 0)),
-            b: Math.max(0, Math.min(255, Number(rgbaMatch[3]) || 0)),
-            a: Math.max(0, Math.min(1, rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 0))
-        };
-    }
-    const hexMatch = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
-    if (!hexMatch) {
-        return null;
-    }
-    const hex = hexMatch[1];
-    if (hex.length === 3) {
-        return {
-            r: parseInt(`${hex[0]}${hex[0]}`, 16),
-            g: parseInt(`${hex[1]}${hex[1]}`, 16),
-            b: parseInt(`${hex[2]}${hex[2]}`, 16),
-            a: 1
-        };
-    }
-    if (hex.length === 6 || hex.length === 8) {
-        return {
-            r: parseInt(hex.slice(0, 2), 16),
-            g: parseInt(hex.slice(2, 4), 16),
-            b: parseInt(hex.slice(4, 6), 16),
-            a: hex.length === 8 ? Math.round((parseInt(hex.slice(6, 8), 16) / 255) * 1000) / 1000 : 1
-        };
-    }
-    return null;
-};
-
-const blendSetupAssistantColor = (foreground, background) => {
-    const alpha = Math.max(0, Math.min(1, Number(foreground?.a ?? 1)));
-    return {
-        r: (foreground.r * alpha) + (background.r * (1 - alpha)),
-        g: (foreground.g * alpha) + (background.g * (1 - alpha)),
-        b: (foreground.b * alpha) + (background.b * (1 - alpha)),
-        a: 1
-    };
-};
-
-const setupAssistantColorToLinear = (channel) => {
-    const value = Math.max(0, Math.min(255, Number(channel) || 0)) / 255;
-    return value <= 0.03928
-        ? value / 12.92
-        : ((value + 0.055) / 1.055) ** 2.4;
-};
-
-const getSetupAssistantLuminance = (color) => (
-    (0.2126 * setupAssistantColorToLinear(color.r))
-    + (0.7152 * setupAssistantColorToLinear(color.g))
-    + (0.0722 * setupAssistantColorToLinear(color.b))
-);
-
-const getSetupAssistantContrastRatio = (foreground, background) => {
-    const light = Math.max(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
-    const dark = Math.min(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
-    return (light + 0.05) / (dark + 0.05);
-};
-
-const isSetupAssistantElementVisible = (element) => {
-    if (!element) {
-        return false;
-    }
-    const style = window.getComputedStyle(element);
-    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
-        return false;
-    }
-    const rect = element.getBoundingClientRect();
-    return rect.width > 1 && rect.height > 1;
-};
-
-const resolveSetupAssistantBackgroundColor = (element, fallback) => {
-    let current = element;
-    let color = fallback;
-    while (current && current !== document.body) {
-        const parsed = parseSetupAssistantCssColor(window.getComputedStyle(current).backgroundColor);
-        if (parsed && parsed.a > 0) {
-            color = blendSetupAssistantColor(parsed, color);
-            if (parsed.a >= 0.98) {
-                break;
-            }
-        }
-        current = current.parentElement;
-    }
-    return {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: 1
-    };
-};
-
-const evaluateSetupAssistantContrast = (dialog) => {
-    const fallback = parseSetupAssistantCssColor(window.getComputedStyle(dialog).backgroundColor)
-        || { r: 10, g: 14, b: 20, a: 1 };
-    let minimumRatio = Number.POSITIVE_INFINITY;
-    const failures = [];
-    for (const target of SETUP_ASSISTANT_CONTRAST_TARGETS) {
-        const elements = Array.from(dialog.querySelectorAll(target.selector)).filter((element) => isSetupAssistantElementVisible(element));
-        if (!elements.length) {
-            continue;
-        }
-        const sample = elements[0];
-        const foreground = parseSetupAssistantCssColor(window.getComputedStyle(sample).color);
-        if (!foreground) {
-            continue;
-        }
-        const background = resolveSetupAssistantBackgroundColor(sample, fallback);
-        const ratio = getSetupAssistantContrastRatio({ ...foreground, a: 1 }, background);
-        minimumRatio = Math.min(minimumRatio, ratio);
-        if (ratio < target.minRatio) {
-            failures.push({
-                selector: target.selector,
-                ratio,
-                minRatio: target.minRatio
-            });
-        }
-    }
-    return {
-        minRatio: Number.isFinite(minimumRatio) ? minimumRatio : 21,
-        failures,
-        pass: failures.length === 0
-    };
-};
-
-const applySetupAssistantContrastTier = () => {
-    const dialog = document.querySelector('#fv-setup-assistant-dialog');
-    if (!dialog || setupAssistantState.open !== true) {
-        return;
-    }
-    const preference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
-    const candidates = preference === 'auto'
-        ? SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE
-        : [normalizeSetupAssistantContrastTier(preference)];
-    let chosenTier = candidates[candidates.length - 1] || 'normal';
-    let chosenReport = null;
-
-    for (const tier of candidates) {
-        dialog.setAttribute('data-fv-wizard-contrast-tier', tier);
-        const report = evaluateSetupAssistantContrast(dialog);
-        chosenReport = report;
-        chosenTier = tier;
-        if (report.pass) {
-            break;
-        }
-    }
-
-    setupAssistantState.contrastPreference = preference;
-    setupAssistantState.contrastTierApplied = chosenTier;
-    setupAssistantState.lastContrastReport = chosenReport;
-    dialog.setAttribute('data-fv-wizard-contrast-tier', chosenTier);
-    dialog.setAttribute('data-fv-wizard-contrast-auto', preference === 'auto' ? '1' : '0');
-    dialog.setAttribute('data-fv-wizard-contrast-score', String((chosenReport?.minRatio || 0).toFixed(2)));
-};
-
-const cycleSetupAssistantContrastPreference = () => {
-    const ordered = ['auto', 'normal', 'high', 'max'];
-    const current = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
-    const index = ordered.indexOf(current);
-    const next = ordered[(index + 1) % ordered.length];
-    setupAssistantState.contrastPreference = next;
-    renderSetupAssistant();
-};
-
 const decorateSetupAssistantChipRows = () => {
     const root = document.getElementById('fv-setup-assistant-content');
     if (!root) {
@@ -331,7 +139,6 @@ const bindSetupAssistantViewportAccessibilityHandlers = () => {
             return;
         }
         decorateSetupAssistantChipRows();
-        applySetupAssistantContrastTier();
     };
     $(window).off('resize.fvsetupwizardaccess').on('resize.fvsetupwizardaccess', () => {
         window.requestAnimationFrame(rerun);
@@ -838,8 +645,6 @@ const serializeSetupAssistantDraft = () => ({
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
     focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
-    contrastTierApplied: normalizeSetupAssistantContrastTier(setupAssistantState.contrastTierApplied),
     collapsedChipRows: setupAssistantState.collapsedChipRows && typeof setupAssistantState.collapsedChipRows === 'object'
         ? { ...setupAssistantState.collapsedChipRows }
         : {},
@@ -954,7 +759,6 @@ const buildSetupAssistantPresetPayload = () => ({
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
     focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
-    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
     importPlans: {
         docker: {
             include: setupAssistantState.importPlans?.docker?.include === true,
@@ -1012,7 +816,6 @@ const applySetupAssistantPresetPayload = (payload) => {
     setupAssistantState.applyEnvironmentDefaults = payload.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = payload.dryRunOnly === true;
     setupAssistantState.focusModeEnabled = payload.focusModeEnabled !== false;
-    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(payload.contrastPreference);
     setupAssistantState.collapsedChipRows = {};
 
     for (const type of ['docker', 'vm']) {
@@ -1142,8 +945,6 @@ const restoreSetupAssistantDraftFromStorage = () => {
     setupAssistantState.applyEnvironmentDefaults = parsed.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = parsed.dryRunOnly === true;
     setupAssistantState.focusModeEnabled = parsed.focusModeEnabled !== false;
-    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(parsed.contrastPreference);
-    setupAssistantState.contrastTierApplied = normalizeSetupAssistantContrastTier(parsed.contrastTierApplied);
     setupAssistantState.collapsedChipRows = parsed.collapsedChipRows && typeof parsed.collapsedChipRows === 'object'
         ? { ...parsed.collapsedChipRows }
         : {};
@@ -1291,9 +1092,6 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.applyEnvironmentDefaults = route !== 'migrate';
     setupAssistantState.dryRunOnly = false;
     setupAssistantState.focusModeEnabled = true;
-    setupAssistantState.contrastPreference = 'auto';
-    setupAssistantState.contrastTierApplied = 'normal';
-    setupAssistantState.lastContrastReport = null;
     setupAssistantState.context = {
         dockerFolders,
         vmFolders,
@@ -1989,7 +1787,6 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
 };
 
 const buildSetupAssistantFixHints = (stepKey, validation) => {
-    const step = String(stepKey || '').trim();
     const blockers = Array.isArray(validation?.blockers) ? validation.blockers : [];
     const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
     const hints = [];
@@ -2052,24 +1849,21 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
         }
     });
 
-    if (!hints.length && (step === 'welcome' || step === 'review')) {
-        addHint('Use Focus mode for guided scanning and switch Contrast mode if text appears low-contrast.');
-    }
-
     return hints.slice(0, 4);
 };
 
 const renderSetupAssistantInlineGuidance = (stepKey, validation) => {
+    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
+    if (!isBlocking) {
+        return '';
+    }
     const hints = buildSetupAssistantFixHints(stepKey, validation);
     if (!hints.length) {
         return '';
     }
-    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
-    const toneClass = isBlocking ? 'is-blocking' : 'is-warning';
-    const title = isBlocking ? 'How to fix before continuing' : 'Suggested improvements';
     return `
-        <section class="fv-setup-inline-guidance ${toneClass}" role="status" aria-live="polite" aria-atomic="true">
-            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> ${escapeHtml(title)}</div>
+        <section class="fv-setup-inline-guidance is-blocking" role="status" aria-live="polite" aria-atomic="true">
+            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> How to fix before continuing</div>
             <ul>
                 ${hints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join('')}
             </ul>
@@ -2525,33 +2319,113 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
     const impact = impactSummary && typeof impactSummary === 'object'
         ? impactSummary
         : buildSetupAssistantImpactSummary();
+    const context = setupAssistantState.context || {};
     const importTotals = impact.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
     const templateTotals = impact.templates?.totals || { creatable: 0, autoAssignMatched: 0 };
     const prefsTotal = Number(impact.prefs?.totalChanges) || 0;
     const rulesTotal = Number(impact.rules?.creatable) || 0;
     const hasDeletes = Number(importTotals.deletes) > 0;
+    const currentStep = currentSetupAssistantStepKey();
+    const currentValidation = getSetupAssistantStepValidation(currentStep);
+    const delta = getSetupAssistantImpactDelta(impact);
+    const totalPlanned = Number(impact.totalPlannedChanges) || 0;
+    const totalDetectedFolders = (Number(context.dockerFolders) || 0) + (Number(context.vmFolders) || 0);
+    const totalDetectedRules = (Number(context.dockerRules) || 0) + (Number(context.vmRules) || 0);
+    const totalDetectedBackups = (Number(context.dockerBackups) || 0) + (Number(context.vmBackups) || 0);
+    const totalDetectedTemplates = (Number(context.dockerTemplates) || 0) + (Number(context.vmTemplates) || 0);
     const routeLabel = setupAssistantState.route === 'migrate'
         ? 'Migration flow'
         : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
+    const modeLabel = setupAssistantState.mode === 'advanced' ? 'Advanced' : 'Basic';
+    const detailLabel = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert' ? 'Expert' : 'Guided';
+    const presetLabel = normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset);
+    const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
+    const statusClass = currentValidation.blockers.length > 0
+        ? 'is-blocked'
+        : (currentValidation.warnings.length > 0 ? 'is-warn' : 'is-ready');
+    const statusLabel = currentValidation.blockers.length > 0
+        ? 'Needs attention'
+        : (currentValidation.warnings.length > 0 ? 'Review recommended' : 'Ready to apply');
+    const statusDetail = currentValidation.blockers[0]
+        || currentValidation.warnings[0]
+        || (setupAssistantState.dryRunOnly ? 'Preview only. Nothing will be applied.' : 'A live summary of what this assistant will change.');
+    const currentDelta = (() => {
+        if (currentStep === 'profile' || currentStep === 'behavior') {
+            return `${Math.abs(Number(delta.prefs) || 0)} setting ${Math.abs(Number(delta.prefs) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        if (currentStep === 'templates') {
+            return `${Math.abs(Number(delta.templates) || 0)} starter folder ${Math.abs(Number(delta.templates) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        if (currentStep === 'import') {
+            return `${Math.abs(Number(delta.imports) || 0)} import ${Math.abs(Number(delta.imports) || 0) === 1 ? 'operation' : 'operations'} from this step`;
+        }
+        if (currentStep === 'rules') {
+            return `${Math.abs(Number(delta.rules) || 0)} starter rule ${Math.abs(Number(delta.rules) || 0) === 1 ? 'change' : 'changes'} from this step`;
+        }
+        return totalPlanned > 0
+            ? `${totalPlanned} total planned ${totalPlanned === 1 ? 'change' : 'changes'}`
+            : 'No changes queued yet';
+    })();
+    const renderInfoRow = (label, value, className = '') => `
+        <div class="fv-setup-summary-row ${className}">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+        </div>
+    `;
+    const renderStat = (value, label, className = '') => `
+        <div class="${className}">
+            <strong>${escapeHtml(String(value))}</strong>
+            <span>${escapeHtml(label)}</span>
+        </div>
+    `;
     return `
         <section id="fv-setup-sidebar-summary" class="fv-setup-sidebar-summary">
-            <h4>What will change</h4>
-            <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="sidebar-summary">
-                <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
-                <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
-                <span class="fv-setup-chip">Detail: ${escapeHtml(normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode))}</span>
-                <span class="fv-setup-chip">Preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
-                <span class="fv-setup-chip">Safety: ${escapeHtml(normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode))}</span>
-                <span class="fv-setup-chip ${setupAssistantState.dryRunOnly ? 'is-update' : ''}">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
+            <div class="fv-setup-summary-head">
+                <div>
+                    <h4>What will change</h4>
+                    <p>A live summary of the setup this assistant will apply.</p>
+                </div>
+                <span class="fv-setup-summary-status ${statusClass}">${escapeHtml(statusLabel)}</span>
             </div>
-            <div class="fv-setup-sidebar-stats">
-                <div><strong>${importTotals.totalOps}</strong><span>Import ops</span></div>
-                <div><strong>${templateTotals.creatable}</strong><span>Starter folders</span></div>
-                <div><strong>${prefsTotal}</strong><span>Setting changes</span></div>
-                <div><strong>${rulesTotal}</strong><span>Starter rules</span></div>
+            <p class="fv-setup-summary-message">${escapeHtml(statusDetail)}</p>
+            <div class="fv-setup-summary-scroll">
+                <div class="fv-setup-summary-section">
+                    <h5>Setup path</h5>
+                    ${renderInfoRow('Flow', routeLabel)}
+                    ${renderInfoRow('Editor mode', modeLabel)}
+                    ${renderInfoRow('Detail level', detailLabel)}
+                    ${renderInfoRow('Preset', presetLabel)}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Safety</h5>
+                    ${renderInfoRow('Apply mode', setupAssistantState.dryRunOnly ? 'Dry run only' : 'Will apply changes', setupAssistantState.dryRunOnly ? 'is-preview' : '')}
+                    ${renderInfoRow('Safety checks', safetyMode)}
+                    ${hasDeletes ? renderInfoRow('Deletes', `${importTotals.deletes} detected`, 'is-warning') : renderInfoRow('Deletes', 'None')}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Detected</h5>
+                    <div class="fv-setup-sidebar-stats">
+                        ${renderStat(totalDetectedFolders, 'Folders')}
+                        ${renderStat(totalDetectedRules, 'Rules')}
+                        ${renderStat(totalDetectedBackups, 'Backups')}
+                        ${renderStat(totalDetectedTemplates, 'Templates')}
+                    </div>
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Planned changes</h5>
+                    <div class="fv-setup-sidebar-stats">
+                        ${renderStat(importTotals.totalOps, 'Import ops')}
+                        ${renderStat(templateTotals.creatable, 'Starter folders')}
+                        ${renderStat(prefsTotal, 'Settings')}
+                        ${renderStat(rulesTotal, 'Starter rules')}
+                    </div>
+                    ${templateTotals.autoAssignMatched > 0 ? `<p class="fv-setup-muted">Auto-assign matches: ${templateTotals.autoAssignMatched}</p>` : ''}
+                </div>
+                <div class="fv-setup-summary-section">
+                    <h5>Current step</h5>
+                    ${renderInfoRow(setupAssistantStepLabel(currentStep), currentDelta)}
+                </div>
             </div>
-            ${templateTotals.autoAssignMatched > 0 ? `<p class="fv-setup-muted">Auto-assign matches: ${templateTotals.autoAssignMatched}</p>` : ''}
-            ${hasDeletes ? '<p class="fv-setup-sidebar-alert"><i class="fa fa-exclamation-triangle"></i> Delete operations detected.</p>' : ''}
         </section>
     `;
 };
@@ -2567,149 +2441,234 @@ const renderSetupAssistantWelcomeStep = () => {
         dockerTemplates: 0,
         vmTemplates: 0
     };
-    const routeDescriptions = {
-        new: 'New install (recommended when starting fresh).',
-        migrate: 'Migrate existing config from export files.',
-        advanced: 'Advanced custom setup with manual choices.'
-    };
-    const routeLabelByKey = {
-        new: 'New install',
-        migrate: 'Migrate',
-        advanced: 'Advanced'
-    };
-    const selectedQuickPreset = normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset);
-    const experienceMode = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode);
-    const detectedRoute = ['new', 'migrate', 'advanced'].includes(setupAssistantState.suggestedRoute)
-        ? setupAssistantState.suggestedRoute
-        : 'new';
-    const detectedMode = setupAssistantState.suggestedMode === 'advanced' ? 'advanced' : 'basic';
-    const detectedPreset = normalizeQuickProfilePresetId(setupAssistantState.suggestedQuickPreset, 'balanced');
-    const savedPresets = readSetupAssistantPresetStore();
-    const availablePresetIds = new Set(savedPresets.map((entry) => String(entry.id || '')));
-    if (!availablePresetIds.has(String(setupAssistantState.selectedPresetId || ''))) {
-        setupAssistantState.selectedPresetId = savedPresets.length ? String(savedPresets[0].id || '') : '';
-    }
-    const selectedPresetId = String(setupAssistantState.selectedPresetId || '');
-    const detectedSummary = `Auto-detected: ${routeLabelByKey[detectedRoute]} route, ${detectedMode} mode, ${detectedPreset} bundle.`;
-    const quickPresetHtml = Object.entries(QUICK_PROFILE_PRESETS).map(([presetKey, preset]) => `
-        <button type="button"
-            class="fv-setup-quick-preset ${selectedQuickPreset === presetKey ? 'is-active' : ''}"
-            data-fv-setup-quick-preset="${escapeHtml(presetKey)}">
-            <span class="fv-setup-quick-preset-title">${escapeHtml(preset.label)}</span>
-            <span class="fv-setup-quick-preset-help">${escapeHtml(preset.description)}</span>
-        </button>
-    `).join('');
+    const detectedCounts = [
+        Number(context.dockerFolders) > 0 ? `${context.dockerFolders} Docker folder${Number(context.dockerFolders) === 1 ? '' : 's'}` : '',
+        Number(context.vmFolders) > 0 ? `${context.vmFolders} VM folder${Number(context.vmFolders) === 1 ? '' : 's'}` : '',
+        (Number(context.dockerRules) + Number(context.vmRules)) > 0 ? `${Number(context.dockerRules) + Number(context.vmRules)} rule${(Number(context.dockerRules) + Number(context.vmRules)) === 1 ? '' : 's'}` : '',
+        (Number(context.dockerBackups) + Number(context.vmBackups)) > 0 ? `${Number(context.dockerBackups) + Number(context.vmBackups)} backup${(Number(context.dockerBackups) + Number(context.vmBackups)) === 1 ? '' : 's'}` : ''
+    ].filter(Boolean);
+    const draftHtml = setupAssistantState.draftRestored
+        ? `
+            <section class="fv-setup-welcome-draft" aria-live="polite">
+                <div>
+                    <h4>Continue your previous setup?</h4>
+                    <p class="fv-setup-muted">A draft from ${escapeHtml(formatSetupAssistantSavedAt(setupAssistantState.restoredDraftSavedAt))} was restored. You can continue it or start fresh.</p>
+                </div>
+                <div class="fv-setup-welcome-actions">
+                    <button type="button" id="fv-setup-continue-draft"><i class="fa fa-play"></i> Continue draft</button>
+                    <button type="button" id="fv-setup-discard-draft"><i class="fa fa-trash"></i> Start fresh</button>
+                </div>
+            </section>
+        `
+        : '';
+    const detectedHtml = detectedCounts.length
+        ? `<p class="fv-setup-welcome-detected">Detected ${escapeHtml(detectedCounts.join(', '))}. The next steps will use this only to suggest a setup plan.</p>`
+        : '<p class="fv-setup-welcome-detected">The wizard will scan your current setup and suggest a safe starting plan.</p>';
     return `
-        <div class="fv-setup-step-grid">
-            <section class="fv-setup-card" data-fv-card-tone="env">
-                <h4>Detected environment</h4>
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="welcome-environment">
-                    <span class="fv-setup-chip">Docker folders: ${context.dockerFolders}</span>
-                    <span class="fv-setup-chip">VM folders: ${context.vmFolders}</span>
-                    <span class="fv-setup-chip">Rules: ${context.dockerRules + context.vmRules}</span>
-                    <span class="fv-setup-chip">Backups: ${context.dockerBackups + context.vmBackups}</span>
-                    <span class="fv-setup-chip">Templates: ${context.dockerTemplates + context.vmTemplates}</span>
-                </div>
-                <div class="fv-setup-route-grid">
-                    ${['new', 'migrate', 'advanced'].map((route) => `
-                        <label class="fv-setup-route-option ${setupAssistantState.route === route ? 'is-active' : ''}">
-                            <input type="radio" name="fv-setup-route" value="${route}" ${setupAssistantState.route === route ? 'checked' : ''}>
-                            <span class="fv-setup-route-title">${escapeHtml(route === 'new' ? 'New install' : route === 'migrate' ? 'Migrate existing' : 'Advanced custom')}</span>
-                            <span class="fv-setup-route-help">${escapeHtml(routeDescriptions[route])}</span>
-                        </label>
-                    `).join('')}
-                </div>
-                <div class="fv-setup-detected-row">
-                    <span class="fv-setup-muted">${escapeHtml(detectedSummary)} ${setupAssistantState.suggestedReason ? `(${escapeHtml(setupAssistantState.suggestedReason)})` : ''}</span>
-                    <button type="button" id="fv-setup-apply-detected"><i class="fa fa-magic"></i> Use detected setup</button>
+        <div class="fv-setup-welcome-screen">
+            <section class="fv-setup-welcome-hero">
+                <div class="fv-setup-welcome-mark" aria-hidden="true"><i class="fa fa-folder-open-o"></i></div>
+                <div class="fv-setup-welcome-copy">
+                    <p class="fv-setup-welcome-kicker">FolderView Plus Setup Assistant</p>
+                    <h3>Organize your Docker containers and VMs into folders.</h3>
+                    <p>FolderView Plus helps group related apps, preview changes before they are applied, and optionally keep future apps organized automatically.</p>
+                    ${detectedHtml}
+                    <div class="fv-setup-welcome-actions">
+                        <button type="button" id="fv-setup-begin" class="fv-setup-primary-action"><i class="fa fa-arrow-right"></i> Begin Setup</button>
+                        <button type="button" id="fv-setup-close-welcome"><i class="fa fa-times"></i> Skip wizard</button>
+                    </div>
                 </div>
             </section>
-            <section class="fv-setup-card" data-fv-card-tone="mode">
-                <h4>Default settings mode</h4>
-                <p class="fv-setup-muted">You can change this any time in the top bar.</p>
-                <div class="fv-setup-mode-toggle">
-                    <button type="button" class="${setupAssistantState.mode === 'basic' ? 'is-active' : ''}" data-fv-setup-mode="basic">Basic</button>
-                    <button type="button" class="${setupAssistantState.mode === 'advanced' ? 'is-active' : ''}" data-fv-setup-mode="advanced">Advanced</button>
-                </div>
-                <p class="fv-setup-muted">Basic keeps day-to-day settings visible. Advanced unlocks all sections.</p>
-                <h4>Wizard detail level</h4>
-                <p class="fv-setup-muted">Guided keeps setup simple. Expert exposes every control.</p>
-                <div class="fv-setup-mode-toggle">
-                    <button type="button" class="${experienceMode === 'guided' ? 'is-active' : ''}" data-fv-setup-experience="guided">Guided</button>
-                    <button type="button" class="${experienceMode === 'expert' ? 'is-active' : ''}" data-fv-setup-experience="expert">Expert</button>
-                </div>
+            ${draftHtml}
+            <section class="fv-setup-welcome-benefits" aria-label="What FolderView Plus can do">
+                <article>
+                    <i class="fa fa-th-large" aria-hidden="true"></i>
+                    <h4>Group related apps</h4>
+                    <p>Keep media, downloads, utilities, home automation, and other apps together.</p>
+                </article>
+                <article>
+                    <i class="fa fa-list-alt" aria-hidden="true"></i>
+                    <h4>Preview before applying</h4>
+                    <p>You will review folders, assignments, rules, and settings before anything changes.</p>
+                </article>
+                <article>
+                    <i class="fa fa-magic" aria-hidden="true"></i>
+                    <h4>Stay organized automatically</h4>
+                    <p>Optional starter rules can place future matching apps into the right folders.</p>
+                </article>
             </section>
-            <section class="fv-setup-card" data-fv-card-tone="bundle">
-                <h4>Quick start bundle</h4>
-                <p class="fv-setup-muted">Pick a ready-made bundle. You can still fine tune profile and behavior in later steps.</p>
-                <div class="fv-setup-quick-preset-grid">
-                    ${quickPresetHtml}
-                </div>
-                <p class="fv-setup-muted">Current bundle: <strong>${escapeHtml(selectedQuickPreset)}</strong></p>
+            <section class="fv-setup-welcome-orientation" aria-label="Setup assistant overview">
+                <article>
+                    <h4><i class="fa fa-check-circle" aria-hidden="true"></i> What this assistant will do</h4>
+                    <ul>
+                        <li>Scan your current Docker and VM folder setup.</li>
+                        <li>Suggest folder defaults based on your environment.</li>
+                        <li>Help create starter folders, optional rules, and behavior defaults.</li>
+                        <li>Show a final review before anything is applied.</li>
+                    </ul>
+                </article>
+                <article>
+                    <h4><i class="fa fa-ban" aria-hidden="true"></i> What it will not do</h4>
+                    <ul>
+                        <li>It will not start, stop, edit, or remove containers or VMs.</li>
+                        <li>It will not apply changes from the Welcome screen.</li>
+                        <li>It will not delete folders without showing it in Review.</li>
+                        <li>You can close the assistant and return later.</li>
+                    </ul>
+                </article>
             </section>
-            <section class="fv-setup-card" data-fv-card-tone="preset">
-                <h4>Saved wizard presets</h4>
-                <p class="fv-setup-muted">Save your preferred setup path and reuse it later.</p>
-                <div class="fv-setup-field-grid">
-                    <label class="fv-setup-field">
-                        <span>Preset name</span>
-                        <input type="text" id="fv-setup-preset-name" value="${escapeHtml(setupAssistantState.presetDraftName || '')}" maxlength="60" placeholder="Example: media-stack-fast">
-                    </label>
-                    <label class="fv-setup-field">
-                        <span>Saved presets</span>
-                        <select id="fv-setup-preset-select">
-                            <option value="">Select preset</option>
-                            ${savedPresets.map((entry) => `
-                                <option value="${escapeHtml(entry.id)}" ${selectedPresetId === String(entry.id || '') ? 'selected' : ''}>
-                                    ${escapeHtml(entry.name)} (${escapeHtml(formatSetupAssistantSavedAt(entry.savedAt))})
-                                </option>
-                            `).join('')}
-                        </select>
-                    </label>
+            <section class="fv-setup-welcome-path" aria-label="Setup path">
+                <div>
+                    <h4>Setup path</h4>
+                    <p>Move step by step, then preview or apply from Review.</p>
                 </div>
-                <div class="fv-setup-import-actions">
-                    <button type="button" id="fv-setup-preset-save"><i class="fa fa-save"></i> Save current</button>
-                    <button type="button" id="fv-setup-preset-load" ${selectedPresetId ? '' : 'disabled'}><i class="fa fa-download"></i> Load</button>
-                    <button type="button" id="fv-setup-preset-delete" ${selectedPresetId ? '' : 'disabled'}><i class="fa fa-trash"></i> Delete</button>
-                </div>
+                <ol>
+                    <li><strong>Profile</strong><span>Choose defaults</span></li>
+                    <li><strong>Import</strong><span>Optional restore</span></li>
+                    <li><strong>Rules</strong><span>Future placement</span></li>
+                    <li><strong>Behavior</strong><span>Display choices</span></li>
+                    <li><strong>Review</strong><span>Confirm changes</span></li>
+                </ol>
+            </section>
+            <section class="fv-setup-welcome-safety">
+                <i class="fa fa-shield" aria-hidden="true"></i>
+                <span>Nothing changes until you review the final setup plan and choose to apply it.</span>
             </section>
         </div>
     `;
 };
-
 const renderSetupAssistantProfileStep = () => {
+    const profileDetails = {
+        safe: {
+            icon: 'fa-shield',
+            bestFor: 'Smaller installs or cautious changes.',
+            behavior: 'Lower background activity and conservative status detail.',
+            goodIf: 'You want FolderView Plus to stay quiet.'
+        },
+        balanced: {
+            icon: 'fa-sliders',
+            bestFor: 'Most daily-use servers.',
+            behavior: 'Normal refresh behavior with useful status visibility.',
+            goodIf: 'You want sensible defaults without much tuning.'
+        },
+        power: {
+            icon: 'fa-bolt',
+            bestFor: 'Larger installs with lots of folders or apps.',
+            behavior: 'Richer telemetry and more live status detail.',
+            goodIf: 'You want more information at a glance.'
+        }
+    };
+    const environmentDetails = {
+        home_lab: {
+            icon: 'fa-home',
+            bestFor: 'Personal or mixed-use servers.',
+            behavior: 'Balanced folder behavior and relaxed alerting.',
+            goodIf: 'Your server runs a mix of apps and experiments.'
+        },
+        production: {
+            icon: 'fa-server',
+            bestFor: 'Critical services and tighter control.',
+            behavior: 'Stricter visibility and stronger health thresholds.',
+            goodIf: 'You want warnings surfaced earlier.'
+        },
+        media_stack: {
+            icon: 'fa-film',
+            bestFor: 'Plex, downloaders, indexers, and media tools.',
+            behavior: 'Relaxed thresholds tuned for larger container groups.',
+            goodIf: 'You organize many related media apps together.'
+        }
+    };
+    const selectedProfile = SETUP_ASSISTANT_PROFILE_PRESETS[setupAssistantState.profile] || SETUP_ASSISTANT_PROFILE_PRESETS.balanced;
+    const selectedEnvironment = SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset] || SETUP_ASSISTANT_ENV_PRESETS.home_lab;
+    const selectedProfileDetails = profileDetails[setupAssistantState.profile] || profileDetails.balanced;
+    const selectedEnvironmentDetails = environmentDetails[setupAssistantState.environmentPreset] || environmentDetails.home_lab;
+
+    const renderChoiceCard = (type, key, preset, details, active, inputName) => `
+        <label class="fv-setup-${type}-option fv-setup-profile-choice ${active ? 'is-active' : ''}">
+            <input type="radio" name="${inputName}" value="${escapeHtml(key)}" ${active ? 'checked' : ''}>
+            <span class="fv-setup-choice-topline">
+                <span class="fv-setup-choice-icon"><i class="fa ${escapeHtml(details.icon)}" aria-hidden="true"></i></span>
+                <span>
+                    <span class="fv-setup-${type}-title">${escapeHtml(preset.label)}</span>
+                    <span class="fv-setup-${type}-help">${escapeHtml(preset.description)}</span>
+                </span>
+                <span class="fv-setup-choice-check"><i class="fa fa-check" aria-hidden="true"></i></span>
+            </span>
+            <span class="fv-setup-choice-meta">
+                <span><strong>Best for:</strong> ${escapeHtml(details.bestFor)}</span>
+                <span><strong>Behavior:</strong> ${escapeHtml(details.behavior)}</span>
+                <span><strong>Good if:</strong> ${escapeHtml(details.goodIf)}</span>
+            </span>
+        </label>
+    `;
+
     return `
-        <div class="fv-setup-card" data-fv-card-tone="profile">
-            <h4>Choose a defaults profile</h4>
-            <p class="fv-setup-muted">Profile defaults only apply if you enable them below.</p>
-            <div class="fv-setup-profile-grid">
-                ${Object.entries(SETUP_ASSISTANT_PROFILE_PRESETS).map(([profileKey, preset]) => `
-                    <label class="fv-setup-profile-option ${setupAssistantState.profile === profileKey ? 'is-active' : ''}">
-                        <input type="radio" name="fv-setup-profile" value="${escapeHtml(profileKey)}" ${setupAssistantState.profile === profileKey ? 'checked' : ''}>
-                        <span class="fv-setup-profile-title">${escapeHtml(preset.label)}</span>
-                        <span class="fv-setup-profile-help">${escapeHtml(preset.description)}</span>
-                    </label>
-                `).join('')}
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-apply-profile" ${setupAssistantState.applyProfileDefaults ? 'checked' : ''}>
-                Apply profile runtime/status defaults during setup
-            </label>
-            <h4>Environment preset</h4>
-            <p class="fv-setup-muted">Environment presets tune folder behavior defaults for Docker and VMs.</p>
-            <div class="fv-setup-env-grid">
-                ${Object.entries(SETUP_ASSISTANT_ENV_PRESETS).map(([presetKey, preset]) => `
-                    <label class="fv-setup-env-option ${setupAssistantState.environmentPreset === presetKey ? 'is-active' : ''}">
-                        <input type="radio" name="fv-setup-environment" value="${escapeHtml(presetKey)}" ${setupAssistantState.environmentPreset === presetKey ? 'checked' : ''}>
-                        <span class="fv-setup-env-title">${escapeHtml(preset.label)}</span>
-                        <span class="fv-setup-env-help">${escapeHtml(preset.description)}</span>
-                    </label>
-                `).join('')}
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-apply-environment" ${setupAssistantState.applyEnvironmentDefaults ? 'checked' : ''}>
-                Apply environment behavior defaults during setup
-            </label>
+        <div class="fv-setup-profile-step">
+            <section class="fv-setup-card fv-setup-profile-hero" data-fv-card-tone="profile">
+                <div>
+                    <span class="fv-setup-kicker">Defaults profile</span>
+                    <h4>Choose your setup style.</h4>
+                    <p class="fv-setup-muted">Pick how FolderView Plus should balance stability, visibility, and automation. You can change every setting later.</p>
+                </div>
+                <div class="fv-setup-profile-current">
+                    <span>${escapeHtml(selectedProfile.label)}</span>
+                    <strong>+</strong>
+                    <span>${escapeHtml(selectedEnvironment.label)}</span>
+                </div>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-section" data-fv-card-tone="profile">
+                <div class="fv-setup-profile-section-head">
+                    <div>
+                        <h4>Usage profile</h4>
+                        <p class="fv-setup-muted">Controls runtime refresh, status visibility, and how much live information the plugin shows.</p>
+                    </div>
+                    <span class="fv-setup-chip">Selected: ${escapeHtml(selectedProfile.label)}</span>
+                </div>
+                <div class="fv-setup-profile-grid">
+                    ${Object.entries(SETUP_ASSISTANT_PROFILE_PRESETS).map(([profileKey, preset]) => renderChoiceCard('profile', profileKey, preset, profileDetails[profileKey] || profileDetails.balanced, setupAssistantState.profile === profileKey, 'fv-setup-profile')).join('')}
+                </div>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-section" data-fv-card-tone="environment">
+                <div class="fv-setup-profile-section-head">
+                    <div>
+                        <h4>Server environment</h4>
+                        <p class="fv-setup-muted">Tunes folder behavior, status thresholds, and visibility defaults for Docker and VMs.</p>
+                    </div>
+                    <span class="fv-setup-chip">Selected: ${escapeHtml(selectedEnvironment.label)}</span>
+                </div>
+                <div class="fv-setup-env-grid">
+                    ${Object.entries(SETUP_ASSISTANT_ENV_PRESETS).map(([presetKey, preset]) => renderChoiceCard('env', presetKey, preset, environmentDetails[presetKey] || environmentDetails.home_lab, setupAssistantState.environmentPreset === presetKey, 'fv-setup-environment')).join('')}
+                </div>
+            </section>
+            <section class="fv-setup-default-toggle-grid">
+                <label class="fv-setup-default-toggle">
+                    <input type="checkbox" id="fv-setup-apply-profile" ${setupAssistantState.applyProfileDefaults ? 'checked' : ''}>
+                    <span>
+                        <strong>Apply usage defaults</strong>
+                        <small>Use the selected profile for runtime refresh, status cards, and telemetry visibility.</small>
+                    </span>
+                </label>
+                <label class="fv-setup-default-toggle">
+                    <input type="checkbox" id="fv-setup-apply-environment" ${setupAssistantState.applyEnvironmentDefaults ? 'checked' : ''}>
+                    <span>
+                        <strong>Apply environment defaults</strong>
+                        <small>Use the selected environment for folder behavior and warning thresholds.</small>
+                    </span>
+                </label>
+            </section>
+            <section class="fv-setup-card fv-setup-profile-preview" data-fv-card-tone="summary">
+                <div>
+                    <span class="fv-setup-kicker">Selected defaults preview</span>
+                    <h4>${escapeHtml(selectedProfile.label)} + ${escapeHtml(selectedEnvironment.label)}</h4>
+                    <p class="fv-setup-muted">${escapeHtml(selectedProfileDetails.behavior)} ${escapeHtml(selectedEnvironmentDetails.behavior)}</p>
+                </div>
+                <div class="fv-setup-profile-preview-effects">
+                    <span><i class="fa fa-refresh" aria-hidden="true"></i> Runtime/status defaults</span>
+                    <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Health thresholds</span>
+                    <span><i class="fa fa-folder-open" aria-hidden="true"></i> Folder display behavior</span>
+                    <span><i class="fa fa-dashboard" aria-hidden="true"></i> Dashboard visibility</span>
+                </div>
+            </section>
         </div>
     `;
 };
@@ -2717,6 +2676,7 @@ const renderSetupAssistantProfileStep = () => {
 const renderSetupAssistantImportTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const plan = setupAssistantState.importPlans[resolvedType];
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     const hasFile = Boolean(plan?.parsed);
@@ -2731,31 +2691,62 @@ const renderSetupAssistantImportTypeCard = (type) => {
     const fileSizeText = hasFile ? formatBytesShort(plan?.fileSizeBytes || 0) : '';
     const fileDateText = hasFile ? formatTimestamp(plan?.fileLastModified || '') : '';
     const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
+    const statusTone = plan.error ? 'error' : warnings.length ? 'warning' : hasFile ? 'ready' : 'empty';
+    const operationText = hasFile
+        ? `${operationCount} planned operation${operationCount === 1 ? '' : 's'}`
+        : 'Waiting for export file';
+    const importKindText = hasFile
+        ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder export' : 'Full export')
+        : 'No file selected';
+    const fileMeta = [
+        fileSizeText ? `Size: ${fileSizeText}` : '',
+        fileDateText ? `Modified: ${fileDateText}` : ''
+    ].filter(Boolean);
 
     return `
-        <section class="fv-setup-card fv-setup-import-card" data-fv-card-tone="import-${resolvedType}">
+        <section class="fv-setup-card fv-setup-import-card fv-setup-import-card-${statusTone}" data-fv-card-tone="import-${resolvedType}">
             <div class="fv-setup-import-header">
-                <h4>${title} import</h4>
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-meta">
-                    <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : 'is-update'}">${escapeHtml(formatText)}</span>
-                    <span class="fv-setup-chip">${hasFile ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder' : 'Full export') : 'Waiting for file'}</span>
-                    <span class="fv-setup-chip">Operations: ${operationCount}</span>
+                <span class="fv-setup-import-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} import</h4>
+                    <p class="fv-setup-muted">Use this if you exported ${title} folders, rules, or settings from FolderView Plus.</p>
                 </div>
             </div>
             <div class="fv-setup-import-actions">
                 <button type="button" data-fv-setup-import-select="${resolvedType}"><i class="fa fa-upload"></i> Select ${title} export</button>
                 <button type="button" data-fv-setup-import-clear="${resolvedType}" ${hasFile ? '' : 'disabled'}><i class="fa fa-trash"></i> Clear</button>
             </div>
-            <div class="fv-setup-muted">${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `Choose a ${title} export JSON to preview changes.`}</div>
-            ${hasFile && (fileSizeText || fileDateText) ? `
-                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-summary">
-                    ${fileSizeText ? `<span class="fv-setup-chip">Size: ${escapeHtml(fileSizeText)}</span>` : ''}
-                    ${fileDateText ? `<span class="fv-setup-chip">Modified: ${escapeHtml(fileDateText)}</span>` : ''}
+            <div class="fv-setup-import-status" data-fv-status-tone="${statusTone}">
+                <div>
+                    <span class="fv-setup-kicker">File status</span>
+                    <strong>${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `No ${title} export selected`}</strong>
+                    <small>${hasFile ? `${escapeHtml(formatText)} - ${operationText}` : `Choose a JSON export to preview what would be created, updated, skipped, or removed.`}</small>
+                </div>
+                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="import-${resolvedType}-meta">
+                    <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : hasFile ? 'is-update' : ''}">${importKindText}</span>
+                    <span class="fv-setup-chip">${hasFile ? `Operations: ${operationCount}` : 'Preview before apply'}</span>
+                    ${fileMeta.map((item) => `<span class="fv-setup-chip">${escapeHtml(item)}</span>`).join('')}
+                </div>
+            </div>
+            ${hasFile ? `
+                <div class="fv-setup-import-plan">
+                    <span class="fv-setup-chip is-create">Create: ${summary?.creates?.length || 0}</span>
+                    <span class="fv-setup-chip is-update">Update: ${summary?.updates?.length || 0}</span>
+                    <span class="fv-setup-chip is-delete">Delete: ${summary?.deletes?.length || 0}</span>
+                    <span class="fv-setup-chip">Unchanged: ${summary?.unchanged?.length || 0}</span>
                 </div>
             ` : ''}
-            <label class="fv-setup-inline-toggle">
+            <div class="fv-setup-import-can-import">
+                <span><i class="fa fa-folder-open" aria-hidden="true"></i> Folders</span>
+                <span><i class="fa fa-magic" aria-hidden="true"></i> Rules</span>
+                <span><i class="fa fa-sliders" aria-hidden="true"></i> Settings</span>
+            </div>
+            <label class="fv-setup-import-include">
                 <input type="checkbox" data-fv-setup-import-include="${resolvedType}" ${plan.include ? 'checked' : ''} ${hasFile ? '' : 'disabled'}>
-                Include this ${title} import in Apply
+                <span>
+                    <strong>Use this ${title} import during setup</strong>
+                    <small>If enabled, these imported items are included in the final Review step.</small>
+                </span>
             </label>
             ${isExpert ? `
                 <label class="fv-setup-field">
@@ -2769,14 +2760,6 @@ const renderSetupAssistantImportTypeCard = (type) => {
             ` : `
                 <div class="fv-setup-muted">Guided mode uses <strong>Merge</strong> for safer imports.</div>
             `}
-            ${hasFile ? `
-                <div class="fv-setup-chip-row">
-                    <span class="fv-setup-chip is-create">Create: ${summary?.creates?.length || 0}</span>
-                    <span class="fv-setup-chip is-update">Update: ${summary?.updates?.length || 0}</span>
-                    <span class="fv-setup-chip is-delete">Delete: ${summary?.deletes?.length || 0}</span>
-                    <span class="fv-setup-chip">Unchanged: ${summary?.unchanged?.length || 0}</span>
-                </div>
-            ` : ''}
             ${warnings.length ? `
                 <ul class="fv-setup-import-warnings">
                     ${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}
@@ -2788,9 +2771,38 @@ const renderSetupAssistantImportTypeCard = (type) => {
 };
 
 const renderSetupAssistantImportStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantImportTypeCard('docker')}
-        ${renderSetupAssistantImportTypeCard('vm')}
+    <div class="fv-setup-import-step">
+        <section class="fv-setup-card fv-setup-import-hero" data-fv-card-tone="import">
+            <div>
+                <span class="fv-setup-kicker">Optional import</span>
+                <h4>Bring in an existing FolderView setup.</h4>
+                <p class="fv-setup-muted">Select an export file only if you already have folders, rules, or settings from another install. You can skip this step and continue with a fresh setup.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Optional step</span>
+                <span class="fv-setup-chip is-update">Preview before apply</span>
+                <span class="fv-setup-chip is-create">No changes yet</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-import-grid">
+            ${renderSetupAssistantImportTypeCard('docker')}
+            ${renderSetupAssistantImportTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-import-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">How import works</span>
+                <ol>
+                    <li><strong>Select an export file</strong><span>FolderView Plus reads the file and builds a preview.</span></li>
+                    <li><strong>Choose whether to use it</strong><span>Docker and VM imports can be included separately.</span></li>
+                    <li><strong>Review before applying</strong><span>Nothing changes until you confirm the final setup plan.</span></li>
+                </ol>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-file-code-o" aria-hidden="true"></i> FolderView Plus JSON exports</span>
+                <span><i class="fa fa-history" aria-hidden="true"></i> Compatible legacy exports</span>
+                <span><i class="fa fa-shield" aria-hidden="true"></i> Safer merge mode by default</span>
+            </div>
+        </section>
     </div>
 `;
 
@@ -2873,9 +2885,31 @@ const renderSetupAssistantTemplatesStep = () => `
     </div>
 `;
 
+const formatSetupAssistantRuleMatchText = (type, pattern) => {
+    const title = normalizeManagedType(type) === 'docker' ? 'Docker container' : 'VM';
+    const rawPattern = String(pattern || '').trim();
+    const cleanPattern = rawPattern.replace(/^\*+|\*+$/g, '').trim();
+    const displayPattern = cleanPattern || rawPattern || 'matching value';
+    if (!rawPattern) {
+        return `${title} names using a custom match.`;
+    }
+    if (rawPattern.startsWith('*') && rawPattern.endsWith('*') && cleanPattern) {
+        return `${title} names containing "${displayPattern}".`;
+    }
+    if (rawPattern.endsWith('*') && cleanPattern) {
+        return `${title} names starting with "${displayPattern}".`;
+    }
+    if (rawPattern.startsWith('*') && cleanPattern) {
+        return `${title} names ending with "${displayPattern}".`;
+    }
+    return `${title} names matching "${displayPattern}".`;
+};
+
 const renderSetupAssistantRuleTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const titlePlural = resolvedType === 'docker' ? 'Docker containers' : 'VMs';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const bootstrap = setupAssistantState.ruleBootstrap[resolvedType];
     const suggestions = Array.isArray(bootstrap?.suggestions) ? bootstrap.suggestions : [];
     const selectedCount = suggestions.filter((row) => row.enabled !== false).length;
@@ -2885,45 +2919,141 @@ const renderSetupAssistantRuleTypeCard = (type) => {
         return `
             <label class="fv-setup-rule-row">
                 <input type="checkbox" data-fv-setup-rule-toggle="${resolvedType}" data-fv-setup-rule-index="${index}" ${row.enabled !== false ? 'checked' : ''} ${bootstrap.enabled ? '' : 'disabled'}>
-                <span class="fv-setup-rule-main">${escapeHtml(row.folderName)} -> <code>${escapeHtml(row.pattern)}</code></span>
-                <span class="fv-setup-rule-help">${escapeHtml(row.note || '')}</span>
-                <span class="fv-setup-rule-preview ${previewClass}">${escapeHtml(preview.text)}</span>
+                <span class="fv-setup-rule-content">
+                    <span class="fv-setup-rule-main">${escapeHtml(row.folderName || 'Folder')}</span>
+                    <span class="fv-setup-rule-target">Sends matches to: <strong>${escapeHtml(row.folderName || 'Folder')}</strong></span>
+                    <span class="fv-setup-rule-help">${escapeHtml(formatSetupAssistantRuleMatchText(resolvedType, row.pattern))}</span>
+                    <span class="fv-setup-rule-meta">
+                        <span class="fv-setup-chip">${title}</span>
+                        <span class="fv-setup-chip">Pattern: ${escapeHtml(row.pattern || '')}</span>
+                        <span class="fv-setup-rule-preview ${previewClass}">${escapeHtml(preview.text)}</span>
+                    </span>
+                </span>
             </label>
         `;
     }).join('');
 
     return `
-        <section class="fv-setup-card" data-fv-card-tone="rules-${resolvedType}">
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
-                Add starter ${title} rules (${selectedCount}/${suggestions.length} selected)
-            </label>
+        <section class="fv-setup-card fv-setup-rules-type-card" data-fv-card-tone="rules-${resolvedType}">
+            <div class="fv-setup-rules-type-head">
+                <span class="fv-setup-rules-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} starter rules</h4>
+                    <p class="fv-setup-muted">Automatically place future ${titlePlural} into matching folders.</p>
+                </div>
+                <span class="fv-setup-chip">${selectedCount} of ${suggestions.length} selected</span>
+            </div>
+            <div class="fv-setup-rules-toolbar">
+                <label class="fv-setup-import-include fv-setup-rules-enable">
+                    <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
+                    <span>
+                        <strong>Add starter ${title} rules</strong>
+                        <small>Create the selected starter rules during setup.</small>
+                    </span>
+                </label>
+                <div class="fv-setup-rules-actions">
+                    <button type="button" data-fv-setup-rules-select="${resolvedType}" data-fv-setup-rules-select-mode="all" ${suggestions.length && bootstrap.enabled ? '' : 'disabled'}>Select all</button>
+                    <button type="button" data-fv-setup-rules-select="${resolvedType}" data-fv-setup-rules-select-mode="none" ${suggestions.length && bootstrap.enabled ? '' : 'disabled'}>Select none</button>
+                </div>
+            </div>
             ${suggestions.length ? `
                 <div class="fv-setup-rule-list">
                     ${rowsHtml}
                 </div>
-            ` : '<div class="fv-setup-muted">No suggestions available yet. Use the Templates step, import files, or create folders manually first.</div>'}
+            ` : `
+                <div class="fv-setup-rules-empty">
+                    <strong>No starter rules suggested</strong>
+                    <span>Use the Templates step, import files, or create folders manually first.</span>
+                </div>
+            `}
         </section>
     `;
 };
 
 const renderSetupAssistantRulesStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantRuleTypeCard('docker')}
-        ${renderSetupAssistantRuleTypeCard('vm')}
+    <div class="fv-setup-rules-step">
+        <section class="fv-setup-card fv-setup-rules-hero" data-fv-card-tone="rules">
+            <div>
+                <span class="fv-setup-kicker">Optional automation</span>
+                <h4>Automatically organize future apps.</h4>
+                <p class="fv-setup-muted">Starter rules watch for matching Docker containers or VMs and place them into the right folder when setup is applied. You can edit or remove rules later.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Optional automation</span>
+                <span class="fv-setup-chip is-update">Editable later</span>
+                <span class="fv-setup-chip is-create">No app changes</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-rules-grid">
+            ${renderSetupAssistantRuleTypeCard('docker')}
+            ${renderSetupAssistantRuleTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-rules-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">How starter rules work</span>
+                <ol>
+                    <li><strong>A rule checks the app name</strong><span>For example, names starting with a folder keyword.</span></li>
+                    <li><strong>Matching apps go to the selected folder</strong><span>Rules keep future installs organized automatically.</span></li>
+                    <li><strong>You review before applying</strong><span>Nothing changes until you confirm the final setup plan.</span></li>
+                </ol>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-pencil" aria-hidden="true"></i> Rules are editable later</span>
+                <span><i class="fa fa-power-off" aria-hidden="true"></i> Rules do not start or stop apps</span>
+                <span><i class="fa fa-folder-open" aria-hidden="true"></i> Rules only organize FolderView folders</span>
+            </div>
+        </section>
     </div>
+`;
+
+const getSetupAssistantBehaviorSortLabel = (value) => ({
+    created: 'Created order',
+    created_newest: 'Created newest first',
+    created_oldest: 'Created oldest first',
+    updated_newest: 'Last updated newest first',
+    manual: 'Manual sort',
+    alpha: 'Name A-Z',
+    name_desc: 'Name Z-A'
+}[String(value || 'created')] || 'Created order');
+
+const getSetupAssistantBehaviorStatusLabel = (value) => ({
+    summary: 'Summary status',
+    dominant: 'Dominant status'
+}[normalizeStatusMode(value)] || 'Summary status');
+
+const renderSetupAssistantBehaviorSetting = (type, key, checked, title, help) => `
+    <label class="fv-setup-behavior-setting">
+        <input type="checkbox" data-fv-setup-behavior-${key}="${type}" ${checked ? 'checked' : ''}>
+        <span>
+            <strong>${title}</strong>
+            <small>${help}</small>
+        </span>
+    </label>
 `;
 
 const renderSetupAssistantBehaviorTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const behavior = setupAssistantState.behavior[resolvedType];
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const titlePlural = resolvedType === 'docker' ? 'Docker folders' : 'VM folders';
+    const icon = resolvedType === 'docker' ? 'fa-cubes' : 'fa-desktop';
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     return `
-        <section class="fv-setup-card" data-fv-card-tone="behavior-${resolvedType}">
-            <h4>${title} behavior</h4>
-            <div class="fv-setup-field-grid ${isExpert ? '' : 'is-guided'}">
-                <label class="fv-setup-field">
+        <section class="fv-setup-card fv-setup-behavior-card" data-fv-card-tone="behavior-${resolvedType}">
+            <div class="fv-setup-behavior-head">
+                <span class="fv-setup-rules-icon"><i class="fa ${icon}" aria-hidden="true"></i></span>
+                <div>
+                    <h4>${title} behavior</h4>
+                    <p class="fv-setup-muted">Controls how ${titlePlural} sort, display, and summarize status after setup.</p>
+                </div>
+                <span class="fv-setup-chip">${escapeHtml(getSetupAssistantBehaviorSortLabel(behavior.sortMode))}</span>
+            </div>
+            <div class="fv-setup-behavior-section">
+                <div>
+                    <span class="fv-setup-kicker">Display order</span>
+                    <p class="fv-setup-muted">Choose the default order folders use in this view.</p>
+                </div>
+                <label class="fv-setup-field fv-setup-behavior-sort">
                     <span>Sort mode</span>
                     <select data-fv-setup-behavior-sort="${resolvedType}">
                         <option value="created" ${behavior.sortMode === 'created' ? 'selected' : ''}>Created order</option>
@@ -2935,120 +3065,233 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                         <option value="name_desc" ${behavior.sortMode === 'name_desc' ? 'selected' : ''}>Name (Z-A)</option>
                     </select>
                 </label>
+            </div>
+            <div class="fv-setup-behavior-section">
+                <div>
+                    <span class="fv-setup-kicker">Visibility and status</span>
+                    <p class="fv-setup-muted">Pick how much folder detail should be visible in day-to-day use.</p>
+                </div>
+                <div class="fv-setup-behavior-setting-list">
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'hide-empty', behavior.hideEmptyFolders, 'Hide empty folders', 'Keep folders with no matching items out of the main view.')}
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'health-cards', behavior.healthCardsEnabled, 'Health cards', 'Show folder health and status summary cards.')}
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'runtime-badge', behavior.runtimeBadgeEnabled, 'Runtime summary badge', 'Show compact runtime totals on folder rows.')}
+                </div>
+            </div>
+            <div class="fv-setup-behavior-advanced">
+                <div>
+                    <span class="fv-setup-kicker">Advanced status tuning</span>
+                    <p class="fv-setup-muted">${isExpert ? 'Fine tune how folder status warnings are calculated.' : 'Status mode and warning thresholds are handled by the selected profile. You can adjust them later in Settings.'}</p>
+                </div>
                 ${isExpert ? `
-                    <label class="fv-setup-field">
-                        <span>Status mode</span>
-                        <select data-fv-setup-behavior-status="${resolvedType}">
-                            <option value="summary" ${behavior.statusMode === 'summary' ? 'selected' : ''}>Summary</option>
-                            <option value="dominant" ${behavior.statusMode === 'dominant' ? 'selected' : ''}>Dominant</option>
-                        </select>
-                    </label>
-                    <label class="fv-setup-field">
-                        <span>Status warn (%)</span>
-                        <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number(behavior.statusWarnStoppedPercent) || 60}">
-                    </label>
+                    <div class="fv-setup-field-grid">
+                        <label class="fv-setup-field">
+                            <span>Status mode</span>
+                            <select data-fv-setup-behavior-status="${resolvedType}">
+                                <option value="summary" ${behavior.statusMode === 'summary' ? 'selected' : ''}>Summary</option>
+                                <option value="dominant" ${behavior.statusMode === 'dominant' ? 'selected' : ''}>Dominant</option>
+                            </select>
+                        </label>
+                        <label class="fv-setup-field">
+                            <span>Status warn (%)</span>
+                            <input type="number" min="0" max="100" step="1" data-fv-setup-behavior-status-warn="${resolvedType}" value="${Number(behavior.statusWarnStoppedPercent) || 60}">
+                        </label>
+                    </div>
                 ` : ''}
             </div>
-            <div class="fv-setup-inline-grid">
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-hide-empty="${resolvedType}" ${behavior.hideEmptyFolders ? 'checked' : ''}> Hide empty folders</label>
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-health-cards="${resolvedType}" ${behavior.healthCardsEnabled ? 'checked' : ''}> Health cards</label>
-                <label class="fv-setup-inline-toggle"><input type="checkbox" data-fv-setup-behavior-runtime-badge="${resolvedType}" ${behavior.runtimeBadgeEnabled ? 'checked' : ''}> Runtime summary badge</label>
-            </div>
-            ${isExpert ? '' : '<p class="fv-setup-muted">Switch to Expert mode for status-mode and threshold controls.</p>'}
         </section>
     `;
 };
 
+const renderSetupAssistantBehaviorSummaryCard = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const behavior = setupAssistantState.behavior[resolvedType];
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    return `
+        <div class="fv-setup-behavior-summary-card">
+            <strong>${title}</strong>
+            <span>${escapeHtml(getSetupAssistantBehaviorSortLabel(behavior.sortMode))}</span>
+            <span>${behavior.hideEmptyFolders ? 'Hide empty folders' : 'Show empty folders'}</span>
+            <span>${behavior.healthCardsEnabled ? 'Health cards on' : 'Health cards off'}</span>
+            <span>${behavior.runtimeBadgeEnabled ? 'Runtime badge on' : 'Runtime badge off'}</span>
+            <span>${escapeHtml(getSetupAssistantBehaviorStatusLabel(behavior.statusMode))}, warning at ${Number(behavior.statusWarnStoppedPercent) || 60}%</span>
+        </div>
+    `;
+};
+
 const renderSetupAssistantBehaviorStep = () => `
-    <div class="fv-setup-step-grid">
-        ${renderSetupAssistantBehaviorTypeCard('docker')}
-        ${renderSetupAssistantBehaviorTypeCard('vm')}
+    <div class="fv-setup-behavior-step">
+        <section class="fv-setup-card fv-setup-behavior-hero" data-fv-card-tone="behavior">
+            <div>
+                <span class="fv-setup-kicker">Folder behavior</span>
+                <h4>Choose how folders behave after setup.</h4>
+                <p class="fv-setup-muted">These settings control sorting, empty folders, and status details for Docker and VM folder views. They only affect FolderView display and can be changed later.</p>
+            </div>
+            <div class="fv-setup-import-hero-chips">
+                <span class="fv-setup-chip">Applies after setup</span>
+                <span class="fv-setup-chip is-update">Docker and VM separate</span>
+                <span class="fv-setup-chip is-create">No app changes</span>
+            </div>
+        </section>
+        <div class="fv-setup-step-grid fv-setup-behavior-grid">
+            ${renderSetupAssistantBehaviorTypeCard('docker')}
+            ${renderSetupAssistantBehaviorTypeCard('vm')}
+        </div>
+        <section class="fv-setup-card fv-setup-behavior-guide" data-fv-card-tone="summary">
+            <div>
+                <span class="fv-setup-kicker">Selected behavior summary</span>
+                <div class="fv-setup-behavior-summary-grid">
+                    ${renderSetupAssistantBehaviorSummaryCard('docker')}
+                    ${renderSetupAssistantBehaviorSummaryCard('vm')}
+                </div>
+            </div>
+            <div class="fv-setup-import-guide-panels">
+                <span><i class="fa fa-sort" aria-hidden="true"></i> Sorting controls folder order</span>
+                <span><i class="fa fa-eye-slash" aria-hidden="true"></i> Visibility can hide empty folders</span>
+                <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Status details add health and runtime context</span>
+            </div>
+        </section>
     </div>
 `;
 
 const renderSetupAssistantReviewStep = () => {
     const impact = buildSetupAssistantImpactSummary();
     const notes = buildSetupAssistantReviewNotes();
+    const validation = getSetupAssistantStepValidation('review');
+    const safetyMode = normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode);
+    const hasBlockers = validation.blockers.length > 0;
+    const hasWarnings = validation.warnings.length > 0 || notes.length > 0;
+    const statusClass = hasBlockers ? 'is-blocked' : (hasWarnings ? 'is-warn' : 'is-ready');
+    const statusTitle = hasBlockers
+        ? 'Needs attention before applying'
+        : (hasWarnings ? 'Review recommended' : (setupAssistantState.dryRunOnly ? 'Ready to preview' : 'Ready to apply setup'));
+    const statusText = hasBlockers
+        ? validation.blockers[0]
+        : (hasWarnings ? (validation.warnings[0] || notes[0]) : 'Review the summary below, choose an apply mode, then finish setup.');
+    const applyButtonLabel = setupAssistantState.dryRunOnly ? 'Run preview' : 'Apply setup';
+    const flowLabel = setupAssistantState.route === 'migrate'
+        ? 'Migration flow'
+        : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
+    const environmentLabel = SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab';
+    const renderReviewStat = (value, label, detail, tone = '') => `
+        <article class="fv-setup-review-stat ${tone}">
+            <strong>${escapeHtml(String(value))}</strong>
+            <span>${escapeHtml(label)}</span>
+            <em>${escapeHtml(detail)}</em>
+        </article>
+    `;
+    const renderDetail = (title, summary, rows) => `
+        <details class="fv-setup-review-detail">
+            <summary>
+                <span>${escapeHtml(title)}</span>
+                <strong>${escapeHtml(summary)}</strong>
+            </summary>
+            <div class="fv-setup-review-detail-body">
+                ${rows.map((row) => `
+                    <div>
+                        <span>${escapeHtml(row.label)}</span>
+                        <strong>${escapeHtml(String(row.value))}</strong>
+                    </div>
+                `).join('')}
+            </div>
+        </details>
+    `;
     setupAssistantState.reviewNotes = notes;
 
     return `
-        <div class="fv-setup-card" data-fv-card-tone="review">
-            <h4>Review planned changes</h4>
-            <div class="fv-setup-review-grid fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="review-summary">
-                <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
-                <span class="fv-setup-chip">Route: ${escapeHtml(setupAssistantState.route)}</span>
-                <span class="fv-setup-chip">Quick preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
-                <span class="fv-setup-chip">Profile: ${escapeHtml(setupAssistantState.profile)}</span>
-                <span class="fv-setup-chip">Environment: ${escapeHtml(SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab')}</span>
-                <span class="fv-setup-chip">Starter folders: ${impact.templates.totals.creatable}</span>
-                <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
-            </div>
-            <div class="fv-setup-impact-grid">
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-prefs">
-                    <h5>Preferences</h5>
-                    <p>${impact.prefs.totalChanges} changes planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-prefs">
-                        <span class="fv-setup-chip">Docker: ${impact.prefs.byType.docker.count}</span>
-                        <span class="fv-setup-chip">VM: ${impact.prefs.byType.vm.count}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-imports">
-                    <h5>Imports</h5>
-                    <p>${impact.imports.totals.totalOps} operations planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-imports">
-                        <span class="fv-setup-chip is-create">Create: ${impact.imports.totals.creates}</span>
-                        <span class="fv-setup-chip is-update">Update: ${impact.imports.totals.updates}</span>
-                        <span class="fv-setup-chip is-delete">Delete: ${impact.imports.totals.deletes}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-templates">
-                    <h5>Starter folders</h5>
-                    <p>${impact.templates.totals.creatable} folder creates planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-templates">
-                        <span class="fv-setup-chip">Selected: ${impact.templates.totals.selected}</span>
-                        <span class="fv-setup-chip">Skip existing: ${impact.templates.totals.skippedExisting}</span>
-                        <span class="fv-setup-chip">Auto-assign: ${impact.templates.totals.autoAssignMatched}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-rules">
-                    <h5>Starter rules</h5>
-                    <p>${impact.rules.creatable} new rules planned</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-rules">
-                        <span class="fv-setup-chip">Selected: ${impact.rules.selected}</span>
-                        <span class="fv-setup-chip">Duplicates: ${impact.rules.duplicates}</span>
-                        <span class="fv-setup-chip">Missing folder: ${impact.rules.unresolvedFolder}</span>
-                    </div>
-                </article>
-                <article class="fv-setup-impact-card" data-fv-card-tone="impact-total">
-                    <h5>Total impact</h5>
-                    <p>${impact.totalPlannedChanges} net changes estimated</p>
-                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="2" data-fv-chip-key="review-impact-total">
-                        <span class="fv-setup-chip">${setupAssistantState.route === 'migrate' ? 'Migration' : 'Configuration'} flow</span>
-                    </div>
-                </article>
-            </div>
-            <label class="fv-setup-inline-toggle">
-                <input type="checkbox" id="fv-setup-dry-run" ${setupAssistantState.dryRunOnly ? 'checked' : ''}>
-                Dry run only (preview changes, do not modify folders or settings)
-            </label>
-            <div class="fv-setup-safety-grid">
-                <span class="fv-setup-muted">Apply safety mode</span>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="auto" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'auto' ? 'checked' : ''}> Auto (recommended)</label>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="strict" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'strict' ? 'checked' : ''}> Strict (block on warnings)</label>
-                <label class="fv-setup-inline-toggle"><input type="radio" name="fv-setup-safety-mode" value="fast" ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) === 'fast' ? 'checked' : ''}> Fast (skip rollback checkpoint)</label>
-            </div>
-            <div class="fv-setup-import-actions">
-                <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
-                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies, <kbd>Alt</kbd> + <kbd>F</kbd> toggles focus mode, <kbd>Alt</kbd> + <kbd>C</kbd> cycles contrast.</span>
-            </div>
-            ${notes.length ? `
-                <div class="fv-setup-warning-box">
-                    <strong>Review notes</strong>
-                    <ul>
-                        ${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}
-                    </ul>
+        <div class="fv-setup-review">
+            <section class="fv-setup-review-hero ${statusClass}">
+                <div>
+                    <span class="fv-setup-review-eyebrow">Final review</span>
+                    <h4>${escapeHtml(statusTitle)}</h4>
+                    <p>${escapeHtml(statusText || 'Review the setup plan before continuing.')}</p>
                 </div>
-            ` : '<div class="fv-setup-muted">No warnings detected. Apply to finalize setup.</div>'}
+                <strong>${escapeHtml(applyButtonLabel)}</strong>
+            </section>
+            <section class="fv-setup-review-stats" aria-label="Setup summary">
+                ${renderReviewStat(impact.prefs.totalChanges, 'Settings', `Docker ${impact.prefs.byType.docker.count}, VM ${impact.prefs.byType.vm.count}`, 'is-settings')}
+                ${renderReviewStat(impact.templates.totals.creatable, 'Starter folders', `${impact.templates.totals.selected} selected, ${impact.templates.totals.skippedExisting} skipped`, 'is-folders')}
+                ${renderReviewStat(impact.imports.totals.totalOps, 'Imports', `${impact.imports.totals.creates} create, ${impact.imports.totals.updates} update, ${impact.imports.totals.deletes} delete`, 'is-imports')}
+                ${renderReviewStat(impact.rules.creatable, 'Rules', `${impact.rules.selected} selected, ${impact.rules.duplicates} duplicates`, 'is-rules')}
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Apply mode</h5>
+                    <span>Choose whether this run changes anything.</span>
+                </div>
+                <div class="fv-setup-review-option-grid">
+                    <button type="button" class="fv-setup-review-option ${setupAssistantState.dryRunOnly ? 'is-active' : ''}" data-fv-setup-dry-run-mode="preview">
+                        <i class="fa fa-eye"></i>
+                        <strong>Preview only</strong>
+                        <span>Show what would happen without changing folders or settings.</span>
+                    </button>
+                    <button type="button" class="fv-setup-review-option ${setupAssistantState.dryRunOnly ? '' : 'is-active'}" data-fv-setup-dry-run-mode="apply">
+                        <i class="fa fa-check"></i>
+                        <strong>Apply changes</strong>
+                        <span>Update settings, folders, and rules now.</span>
+                    </button>
+                    <input type="checkbox" id="fv-setup-dry-run" ${setupAssistantState.dryRunOnly ? 'checked' : ''} hidden>
+                </div>
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Safety mode</h5>
+                    <span>Auto is recommended for normal setup runs.</span>
+                </div>
+                <div class="fv-setup-review-option-grid is-three">
+                    <label class="fv-setup-review-option ${safetyMode === 'auto' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="auto" ${safetyMode === 'auto' ? 'checked' : ''}>
+                        <i class="fa fa-shield"></i>
+                        <strong>Auto</strong>
+                        <span>Recommended. Blocks risky changes automatically.</span>
+                    </label>
+                    <label class="fv-setup-review-option ${safetyMode === 'strict' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="strict" ${safetyMode === 'strict' ? 'checked' : ''}>
+                        <i class="fa fa-lock"></i>
+                        <strong>Strict</strong>
+                        <span>Stops if warnings are found.</span>
+                    </label>
+                    <label class="fv-setup-review-option ${safetyMode === 'fast' ? 'is-active' : ''}">
+                        <input type="radio" name="fv-setup-safety-mode" value="fast" ${safetyMode === 'fast' ? 'checked' : ''}>
+                        <i class="fa fa-bolt"></i>
+                        <strong>Fast</strong>
+                        <span>Skips rollback checkpoint.</span>
+                    </label>
+                </div>
+            </section>
+            <section class="fv-setup-review-section">
+                <div class="fv-setup-review-section-head">
+                    <h5>Details</h5>
+                    <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
+                </div>
+                <div class="fv-setup-review-details">
+                    ${renderDetail('Settings changes', `${impact.prefs.totalChanges} planned`, [
+                        { label: 'Docker settings', value: impact.prefs.byType.docker.count },
+                        { label: 'VM settings', value: impact.prefs.byType.vm.count },
+                        { label: 'Setup path', value: `${flowLabel}, ${environmentLabel}` }
+                    ])}
+                    ${renderDetail('Starter folders', `${impact.templates.totals.creatable} creates`, [
+                        { label: 'Selected templates', value: impact.templates.totals.selected },
+                        { label: 'Skip existing', value: impact.templates.totals.skippedExisting },
+                        { label: 'Auto-assign matches', value: impact.templates.totals.autoAssignMatched }
+                    ])}
+                    ${renderDetail('Imports', `${impact.imports.totals.totalOps} operations`, [
+                        { label: 'Create', value: impact.imports.totals.creates },
+                        { label: 'Update', value: impact.imports.totals.updates },
+                        { label: 'Delete', value: impact.imports.totals.deletes }
+                    ])}
+                    ${renderDetail('Starter rules', `${impact.rules.creatable} new rules`, [
+                        { label: 'Selected', value: impact.rules.selected },
+                        { label: 'Duplicates', value: impact.rules.duplicates },
+                        { label: 'Missing folder', value: impact.rules.unresolvedFolder }
+                    ])}
+                </div>
+            </section>
+            ${notes.length ? `
+                <section class="fv-setup-review-notes">
+                    <strong>Review notes</strong>
+                    <ul>${notes.map((note) => `<li>${escapeHtml(note)}</li>`).join('')}</ul>
+                </section>
+            ` : ''}
         </div>
     `;
 };
@@ -3213,21 +3456,6 @@ const handleSetupAssistantDialogKeydown = (event) => {
             renderSetupAssistant();
         } else {
             renderSetupAssistant();
-        }
-        return;
-    }
-    if (event.altKey && String(event.key || '').toLowerCase() === 'f') {
-        event.preventDefault();
-        if (!setupAssistantState.busy && !setupAssistantState.applying) {
-            setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
-            renderSetupAssistant();
-        }
-        return;
-    }
-    if (event.altKey && String(event.key || '').toLowerCase() === 'c') {
-        event.preventDefault();
-        if (!setupAssistantState.busy && !setupAssistantState.applying) {
-            cycleSetupAssistantContrastPreference();
         }
         return;
     }
@@ -3491,10 +3719,11 @@ const renderSetupAssistant = () => {
     const primaryBlocker = hasBlockers ? String(stepValidation.blockers[0] || '').trim() : '';
     const blockerHintId = primaryBlocker ? 'fv-setup-blocker-hint' : '';
     const mobileSidebarSummaryOpen = setupAssistantState.mobileSidebarSummaryOpen === true;
-    const focusModeEnabled = setupAssistantState.focusModeEnabled !== false;
-    const contrastPreference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
+    const focusModeEnabled = true;
     const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
-    const restoredBanner = setupAssistantState.draftRestored
+    const nextButtonLabel = step === 'welcome' ? 'Begin Setup' : 'Next';
+    const applyButtonLabel = setupAssistantState.dryRunOnly ? 'Run preview' : 'Apply setup';
+    const restoredBanner = setupAssistantState.draftRestored && step !== 'welcome'
         ? `
             <div class="fv-setup-draft-banner">
                 <span><i class="fa fa-history"></i> Restored draft from ${escapeHtml(formatSetupAssistantSavedAt(setupAssistantState.restoredDraftSavedAt))}.</span>
@@ -3551,24 +3780,6 @@ const renderSetupAssistant = () => {
                 <header class="fv-setup-assistant-head">
                     <h4>${escapeHtml(setupAssistantStepLabel(step))}</h4>
                     <div class="fv-setup-head-actions">
-                        <button type="button"
-                            id="fv-setup-focus-mode"
-                            class="${focusModeEnabled ? 'is-active' : ''}"
-                            title="Toggle focus mode (Alt+F)"
-                            aria-pressed="${focusModeEnabled ? 'true' : 'false'}"
-                            aria-keyshortcuts="Alt+F"
-                            ${canMove ? '' : 'disabled'}>
-                            <i class="fa fa-bullseye"></i> Focus
-                        </button>
-                        <label class="fv-setup-contrast-field" for="fv-setup-contrast-mode">
-                            <span>Contrast</span>
-                            <select id="fv-setup-contrast-mode" aria-label="Wizard contrast mode (Alt+C)" aria-keyshortcuts="Alt+C" ${canMove ? '' : 'disabled'}>
-                                <option value="auto" ${contrastPreference === 'auto' ? 'selected' : ''}>Auto</option>
-                                <option value="normal" ${contrastPreference === 'normal' ? 'selected' : ''}>Normal</option>
-                                <option value="high" ${contrastPreference === 'high' ? 'selected' : ''}>High</option>
-                                <option value="max" ${contrastPreference === 'max' ? 'selected' : ''}>Max</option>
-                            </select>
-                        </label>
                         <button type="button" id="fv-setup-close" aria-keyshortcuts="Escape" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> Close</button>
                     </div>
                 </header>
@@ -3587,11 +3798,11 @@ const renderSetupAssistant = () => {
                 <footer class="fv-setup-assistant-foot">
                     <div class="fv-setup-foot-left">
                         <button type="button" id="fv-setup-prev" aria-keyshortcuts="Alt+ArrowLeft" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
-                        <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>Next <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>${escapeHtml(nextButtonLabel)} <i class="fa fa-arrow-right"></i></button>
                         <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
                     </div>
                     <div class="fv-setup-foot-right">
-                        <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> Apply setup</button>
+                        <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> ${escapeHtml(applyButtonLabel)}</button>
                     </div>
                 </footer>
                 <div class="fv-setup-nav-note" ${blockerHintId ? `id="${blockerHintId}"` : ''} role="status" aria-live="polite">
@@ -3615,7 +3826,6 @@ const renderSetupAssistant = () => {
     dialog.show().attr('aria-hidden', 'false');
     bindSetupAssistantViewportAccessibilityHandlers();
     decorateSetupAssistantChipRows();
-    applySetupAssistantContrastTier();
     bindSetupAssistantEvents();
     dialog.off('keydown.fvsetupa11y').on('keydown.fvsetupa11y', handleSetupAssistantDialogKeydown);
     persistSetupAssistantDraft();
@@ -4236,14 +4446,6 @@ const bindSetupAssistantEvents = () => {
     root.find('#fv-setup-close').off('click.fvsetup').on('click.fvsetup', () => {
         closeSetupAssistant();
     });
-    root.find('#fv-setup-focus-mode').off('click.fvsetup').on('click.fvsetup', () => {
-        setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
-        rerender();
-    });
-    root.find('#fv-setup-contrast-mode').off('change.fvsetup').on('change.fvsetup', (event) => {
-        setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference($(event.currentTarget).val());
-        rerender();
-    });
     root.find('[data-fv-chip-toggle]').off('click.fvsetup').on('click.fvsetup', (event) => {
         const rowKey = String($(event.currentTarget).attr('data-fv-chip-toggle') || '').trim();
         if (!rowKey) {
@@ -4291,6 +4493,13 @@ const bindSetupAssistantEvents = () => {
         const target = Number($(event.currentTarget).attr('data-fv-setup-step-jump'));
         jumpSetupAssistantToStep(target);
         rerender();
+    });
+    root.find('#fv-setup-begin, #fv-setup-continue-draft').off('click.fvsetup').on('click.fvsetup', () => {
+        jumpSetupAssistantToStep(1);
+        rerender();
+    });
+    root.find('#fv-setup-close-welcome').off('click.fvsetup').on('click.fvsetup', () => {
+        closeSetupAssistant();
     });
     root.find('input[name="fv-setup-route"]').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.route = String($(event.currentTarget).val() || 'new');
@@ -4365,6 +4574,10 @@ const bindSetupAssistantEvents = () => {
     });
     root.find('#fv-setup-dry-run').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.dryRunOnly = $(event.currentTarget).prop('checked') === true;
+        rerender();
+    });
+    root.find('[data-fv-setup-dry-run-mode]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        setupAssistantState.dryRunOnly = String($(event.currentTarget).attr('data-fv-setup-dry-run-mode') || '') === 'preview';
         rerender();
     });
     root.find('#fv-setup-copy-summary').off('click.fvsetup').on('click.fvsetup', () => {
@@ -4567,6 +4780,17 @@ const bindSetupAssistantEvents = () => {
         const row = setupAssistantState.ruleBootstrap[type].suggestions[index];
         if (row) {
             row.enabled = $(event.currentTarget).prop('checked') === true;
+        }
+        rerender();
+    });
+    root.find('[data-fv-setup-rules-select]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-rules-select'));
+        const mode = String($(event.currentTarget).attr('data-fv-setup-rules-select-mode') || 'all');
+        const suggestions = setupAssistantState.ruleBootstrap[type]?.suggestions;
+        if (Array.isArray(suggestions)) {
+            suggestions.forEach((row) => {
+                row.enabled = mode !== 'none';
+            });
         }
         rerender();
     });

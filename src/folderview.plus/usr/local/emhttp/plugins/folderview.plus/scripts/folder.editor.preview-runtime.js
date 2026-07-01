@@ -60,6 +60,12 @@
         const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
             ? deps.getNestedPreviewSample
             : (() => null);
+        const getNestedPreviewSamples = typeof deps.getNestedPreviewSamples === 'function'
+            ? deps.getNestedPreviewSamples
+            : (() => {
+                const sample = getNestedPreviewSample();
+                return sample ? [sample] : [];
+            });
         const applyTypePreviewConstraints = typeof deps.applyTypePreviewConstraints === 'function'
             ? deps.applyTypePreviewConstraints
             : (() => {});
@@ -106,6 +112,7 @@
                 normalizeParentFolderId,
                 getPreviewSignals,
                 getNestedPreviewSample,
+                getNestedPreviewSamples,
                 previewModelModule: deps.previewModelModule,
                 escapeHtml,
                 updateMemberStats,

@@ -6,20 +6,410 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.06.25.16">
-<!ENTITY md5 "8360d8b5bf349a62ff86f6478112f8cf">
+<!ENTITY version "2026.07.01.09">
+<!ENTITY md5 "c9af524ccdc4f75d836cf4d9baf42c32">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.06.25.16
-- Maintenance: Published the stable main-channel package for the dev rollup since `v2026.05.27.01` with the install URL and archive metadata pointing at `main`.
-- Feature: Includes child-folder collapsed previews, nested descendant chips, depth limits, breadcrumb tooltips, and nested folder preview actions.
-- UX: Updated the folder editor live preview to mirror Docker collapsed child-folder previews using actual child folder names, icons, counts, and saved-folder lookup.
-- Fix: Added Settings blank-page recovery diagnostics and fixed nested folder preview expansion, action-menu positioning, modern editor visibility, and compact context-menu spacing.
-- Quality: Added the shared folder preview model plus regression coverage for Settings recovery, nested preview wiring, live preview data, descendant expansion, right-click actions, and release helper timeout/prune controls.
-- Docs: Decluttered the README and moved troubleshooting/path details into docs while removing development-only content from the user-facing README.
+###2026.07.01.09
+- Feature: Stable rollup of all dev changes since `v2026.06.25.16`, including the redesigned folder editor, child-folder ordering, Docker folder menu hierarchy actions, hover animations, Recovery workspace updates, and Setup Assistant overhaul.
+- UX: Reworked folder editor tabs, General/Preview/Status/Advanced modules, live preview insights, Settings action modal, Activity Center, Recovery workspace, and wizard screens for clearer beginner-friendly workflows.
+- Performance: Reduced Docker tab first-load jiggle and column bounce with deferred non-critical work, batched row centering, cached Application column widths, and first-paint width priming.
+- Fix: Corrected hover animation runtime wiring, nested folder live preview data, child-folder member ordering, Docker menu reordering, context menu viewport placement, empty-backup restore behavior, setup assistant bootstrap binding, and Recovery layout overlap.
+- Docs: Added full curated release notes for `2026.07.01.09`, refreshed the GitHub banner, removed README clutter, and moved troubleshooting/development details out of the user-facing README.
+- Quality: Added and refreshed regression coverage for preview controls, hover animations, Docker quick actions, folder ordering, editor layout, settings bindings, performance optimizations, theme compatibility, and UI smoke behavior.
+
+
+###2026.07.01.08
+- UX: Refresh folder hover animations with clearer Lift, Bounce, Pop, Glow, Flip, and Wiggle choices while mapping old Grow, Pulse, and Spin selections forward.
+
+
+###2026.07.01.07
+- Fix: Preserve saved folder hover animations in runtime performance paths and target the visible folder icon/name block for Docker and VM row animations.
+
+
+###2026.07.01.06
+- Fix: Include the folder Hover Animation control in the modern editor Preview row collector so the Appearance module renders it.
+
+
+###2026.07.01.05
+- Fix: Register the folder Hover Animation field with the modern editor schema so it appears in the Preview Appearance module.
+
+
+###2026.07.01.04
+- Feature: Add a folder Preview tab Hover Animation setting with one-shot Bounce, Grow, Spin, Pulse, and Wiggle effects for folder rows, live preview, and dashboard folder tiles.
+
+
+###2026.07.01.03
+- UX: Make the Settings Activity Center persistent with an empty state, retained session history, expandable details, and temporary fresh-state highlighting instead of auto-hiding completed actions.
+
+
+###2026.07.01.02
+- UX: Replace the Settings Recent Activity feed with a compact Activity Center that summarizes the latest action, expands history on demand, and keeps error activity visible until cleared.
+
+
+###2026.07.01.01
+- Feature: Add a Preview tab border glow toggle that uses the selected preview border color in the folder editor and Docker/VM runtime previews.
+
+
+###2026.06.30.23
+- UX: Compact the folder editor Preview tab border color controls by placing border thickness beside the color picker with a smaller numeric input.
+
+
+###2026.06.30.22
+- UX: Further reduce Docker tab column bounce by priming the FolderView Application column width before rows render and preventing same-load width shrink-back.
+
+
+###2026.06.30.21
+- UX: Stabilize Docker tab Application column placement on first load by caching the last-good FolderView width and only applying width changes to the Application column.
+
+
+###2026.06.30.20
+- Performance: Speed up initial Docker tab load by batching first-paint row centering and deferring support-bundle page snapshots off the critical render path.
+
+
+###2026.06.30.19
+- UX: Reduce initial Docker tab visual jiggle by running delayed row-centering and width-polish passes only when folder rows are still settling.
+
+
+###2026.06.30.18
+- UX: Stop Docker folder menu move actions from repainting the Docker folder list after the optimistic row move has already applied.
+
+
+###2026.06.30.17
+- UX: Keep Docker folder context menus and submenus inside the viewport by opening upward or left when they are near the page edge.
+
+
+###2026.06.30.15
+- UX: Add Docker folder menu hierarchy actions for Move under and Move to root, with cycle protection and optimistic visual updates.
+
+
+###2026.06.30.14
+- UX: Make Docker folder Move up/Move down feel instant by applying the visual row reorder before the server save completes, with rollback on failure.
+
+
+###2026.06.30.13
+- Fix: Apply Docker folder Move up/Move down changes visually on the current Docker page immediately after saving.
+
+
+###2026.06.30.12
+- Fix: Apply Docker folder menu reordering to the live Docker page and refresh order by using FolderView Plus saved folder order instead of stale Docker userprefs folder placeholders.
+
+
+###2026.06.30.11
+- UX: Add Move up and Move down actions to the Docker folder left-click menu for direct same-level folder reordering.
+
+
+###2026.06.30.10
+- UX: Add an Add child folder action to the Docker folder left-click menu, opening the folder editor with the clicked folder preselected as parent.
+
+
+###2026.06.30.09
+- UX: Add an Add child folder action to the Docker folder left-click menu, opening the folder editor with the clicked folder preselected as parent.
+
+
+###2026.06.30.08
+- Fix: Place the new Folder Members ordering block inside the modern Members tab so it appears above the Docker/VM member manager.
+
+
+###2026.06.30.07
+- Fix: Prevent the new folder editor from crashing during bootstrap when child folder ordering is included in dirty-state snapshots.
+
+
+###2026.06.30.06
+- UX: Add a Folder Members ordering section to the new folder editor for reordering nested child folders separately from Docker/VM members.
+- Fix: Persist child folder order and apply it to live previews, Docker runtime previews, and VM folder hierarchy traversal.
+
+
+###2026.06.30.04
+- UX: Limit member reorder drag cursor and drag start behavior to the dedicated grab handle.
+
+
+###2026.06.30.03
+- Fix: Make folder editor member drag handles start the drag operation correctly.
+
+
+###2026.06.30.02
+- UX: Add drag-and-drop member reordering to the new folder editor while keeping up/down buttons as fallback controls.
+
+
+###2026.06.30.01
+- UX: Make folder editor tab text larger and make the active tab state much more obvious.
+
+
+###2026.06.29.27
+- Fix: Make the active folder editor tab visibly distinct and reliable across editor render paths.
+
+
+###2026.06.29.26
+- UX: Make the active folder editor tab visually distinct with stronger accent styling.
+
+
+###2026.06.29.25
+- UX: Restore normal text sizing for folder editor live preview insight cards while keeping the compact layout.
+
+
+###2026.06.29.24
+- UX: Reduce folder editor live preview insight card height to prevent overlap and keep the preview row compact.
+
+
+###2026.06.29.23
+- UX: Reflow the folder editor live preview insight cards into a compact two-column desktop layout.
+
+
+###2026.06.29.22
+- UX: Compact the folder editor live preview insight cards into one equal-width desktop row.
+
+
+###2026.06.29.21
+- Fix: Live folder editor preview now shows all nested child folder chips for the visible root when collapsed child-folder previews are enabled.
+
+
+###2026.06.29.19
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.06.29.18
+- Quality: Removed stale editor and setup-assistant CSS/JS contracts so dev GitHub checks pass after the action modal reflow.
+
+
+###2026.06.29.16
+- UX: Reflowed the Settings row action modal into a wider two-column desktop layout so folder actions fit without unnecessary vertical scrolling.
+
+
+###2026.06.29.15
+- UX: Enlarged the Settings row action modal, removed excess top spacing, and opened it at a stable top position to reduce internal scrolling.
+
+
+###2026.06.29.14
+- Fix: Corrected the Settings row action modal opening position, reset its scroll state on open, compacted the folder header, and removed the orange outline from the copy-ID button.
+
+
+###2026.06.29.13
+- UX: Rebuilt the Settings row overflow action modal with grouped actions, a clearer folder header, quieter button styling, disabled-action reasons, and a shared action dispatcher with inline status feedback.
+
+
+###2026.06.29.12
+- UX: Continued the Recovery workspace overhaul with a neutral Docker/VM switch, separated compare snapshots into its own card, added a recent snapshot picker, and added a double-confirmed delete-all-backups action for the active source.
+
+
+###2026.06.29.11
+- UX: Made the Recovery workspace redesign more visible with a clearer intro, stronger status banner, segmented source switch, and more distinct restore, policy, history, and environment cards.
+
+
+###2026.06.29.10
+- UX: Rebuilt the Recovery workspace overview and backup history with clearer restore guidance, protection status, empty-snapshot labeling, and beginner-friendly explanations.
+
+
+###2026.06.29.09
+- Fix: Skip normal backup snapshots when there are no folders to protect and make Restore Latest choose the newest non-empty backup.
+
+
+###2026.06.29.08
+- UX: Automatically clears the Recent Activity panel 10 seconds after the latest activity update.
+
+
+###2026.06.29.07
+- UX: Removed bottom-right action toast notifications so completed actions rely on Recent Activity instead of redundant popups.
+
+
+###2026.06.29.06
+- UX: Rebuilt the folder clear/delete progress window as a centered operation modal with a larger progress bar, live current-action detail, completed/remaining counters, and success/error states.
+
+
+###2026.06.29.05
+- UX: Open the built-in icon picker by default in the folder editor General tab so the icon module no longer starts with empty space.
+- Docs: Updated the GitHub banner image.
+
+
+###2026.06.29.04
+- UX: Rebuilt the Setup Assistant Behavior step with clearer Docker/VM behavior cards, explained setting rows, advanced status guidance, and a selected behavior summary.
+
+
+###2026.06.29.03
+- UX: Rebuilt the Setup Assistant Rules step with a beginner-friendly automation intro, clearer Docker/VM rule cards, plain-language match descriptions, bulk select controls, and rules guidance.
+
+
+###2026.06.29.02
+- UX: Rebuilt the Setup Assistant Import step with an optional-import intro, clearer Docker/VM import cards, file status previews, and beginner-friendly import guidance.
+
+
+###2026.06.29.01
+- UX: Rebuilt the Setup Assistant Profile step with clearer usage and environment cards, friendlier defaults toggles, and a selected defaults preview.
+
+
+###2026.06.28.11
+- UX: Expanded the Setup Assistant Welcome step with beginner-friendly orientation panels and a simple setup path preview while keeping the screen informational.
+
+
+###2026.06.28.10
+- UX: Rebuilt the Setup Assistant Review step as a final confirmation screen with status banner, summary cards, apply mode choices, safety cards, and collapsible details.
+
+
+###2026.06.28.09
+- UX: Stretched the Setup Assistant "What will change" panel to fill the sidebar and rebuilt it into grouped setup path, safety, detected, planned changes, and current-step summaries.
+
+
+###2026.06.28.08
+- Fix: Adjusted Setup Assistant sidebar step content upward further to better center the step number, label, and badge.
+
+
+###2026.06.28.07
+- Fix: Moved Setup Assistant sidebar step contents upward so the number, label, and badge sit visually centered in the step tile.
+
+
+###2026.06.28.06
+- Fix: Nudged Setup Assistant sidebar step contents down slightly so the number, label, and badge sit visually centered in the step tile.
+
+
+###2026.06.28.05
+- Fix: Switched Setup Assistant sidebar step rows from grid to flexbox so the number, label, and badge center vertically without changing step height.
+
+
+###2026.06.28.04
+- Revert: Removed the oversized Setup Assistant sidebar step override from the previous dev build.
+
+
+###2026.06.28.03
+- Fix: Added a final Setup Assistant sidebar step override so the clickable step row fills the visible tile and centers inactive step content.
+
+
+###2026.06.28.02
+- Fix: Moved Setup Assistant step centering to the clickable step row itself so inactive steps align the number, label, and badge like the active step.
+
+
+###2026.06.28.01
+- Fix: Centered the Setup Assistant step number, label, and status badge consistently across every sidebar step.
+
+
+###2026.06.27.01
+- Fix: Removed the Setup Assistant step sidebar accent bar and expanded the active step surface so the selected tile fills the highlighted outline.
+
+
+###2026.06.26.16
+- Fix: Kept the active Setup Assistant step accent inside the rounded sidebar step tile so the selected backdrop fully contains the highlight.
+
+
+###2026.06.26.15
+- Fix: Restored the Setup Assistant theme binding helpers removed during the Focus/Contrast cleanup so the wizard renders again.
+
+
+###2026.06.26.14
+- UX: Removed Setup Assistant Focus and Contrast controls from the header, kept the wizard in focus mode by default, and removed non-blocking Suggested improvements guidance from Welcome.
+
+
+###2026.06.26.13
+- UX: Simplified the Setup Assistant welcome screen with a plain-language introduction, Begin Setup action, draft choice, benefits, and safety note before showing configuration steps.
+
+
+###2026.06.26.12
+- UX: Repositioned the Advanced tab Dashboard and Docker modules side by side to remove the long full-width Dashboard row and blank space.
+
+
+###2026.06.26.11
+- UX: Matched the Status tab Accent Bar panel height to Status Colors so the top row no longer leaves an uneven gap.
+
+
+###2026.06.26.10
+- UX: Rebuilt the Status tab Accent Bar source markup so the enable switch and Bar color picker render as a fixed two-column row.
+
+
+###2026.06.26.09
+- UX: Re-applied the Status tab Accent Bar alignment after Unraid generates the visible switch control so the Bar color picker stays beside the toggle.
+
+
+###2026.06.26.08
+- UX: Fixed the Status tab Accent Bar layout by grouping the generated toggle controls and Bar color picker into one horizontal row.
+
+
+###2026.06.26.07
+- UX: Aligned the Status tab Accent Bar enable toggle and bar color controls on one row.
+
+
+###2026.06.26.06
+- UX: Tightened the Status tab spacing and made Docker Health options flow horizontally instead of wasting full-width rows.
+
+
+###2026.06.26.05
+- UX: Redesigned the General tab Parent Folder module with a clearer current location summary, pinned top-level option, integrated search, and improved folder rows.
+
+
+###2026.06.26.04
+- UX: Changed Preview tab modules to full-width rows with controls flowing left-to-right inside each module.
+
+
+###2026.06.26.03
+- UX: Made Preview Context a full-width Preview tab row with compact responsive controls beneath the four main preview modules.
+
+
+###2026.06.26.02
+- UX: Reworked the Preview tab modules into an even four-column layout on wide screens.
+
+
+###2026.06.26.01
+- UX: Doubled the General tab Icon preview size so the selected folder icon is easier to see.
+
+
+###2026.06.25.28
+- UX: Anchored the General tab Icon preview inside the actual icon control module with the rest of the icon content.
+
+
+###2026.06.25.27
+- UX: Moved the General tab Icon live preview into the upper-right of the Icon module content.
+
+
+###2026.06.25.26
+- UX: Added a live selected-icon preview to the top-right of the General tab Icon module.
+
+
+###2026.06.25.25
+- UX: Compacted the folder editor header, tightened the right-side action buttons, and enlarged the folder title.
+
+
+###2026.06.25.24
+- UX: Removed the Basic / Advanced editor switch and now shows all folder editor tabs by default.
+- UX: Kept advanced sections available at all times to reduce mode confusion while editing folders.
+
+
+###2026.06.25.23
+- UX: Reworked the Status tab accent bar controls so the bar color picker sits beside the enable toggle.
+- UX: Hid advanced-only Status Thresholds and Docker Health panels while the folder editor is in Basic mode.
+- Quality: Added editor layout guards for Basic/Advanced status panel filtering and accent control alignment.
+
+
+###2026.06.25.22
+- UX: Expanded the General tab parent picker and icon picker content so each fills its editor module without awkward unused space.
+- UX: Removed the heavy boxed styling from built-in icon choices while preserving hover and selected states.
+- Quality: Added layout guards for the full-width General tab parent and icon picker sections.
+
+
+###2026.06.25.21
+- UX: Moved the folder editor tab navigation and Basic / Advanced switch below the live preview so section switching stays closer to the editable content.
+- UX: Added a dedicated editor navigation dock with responsive wrapping for core and advanced tabs.
+- Quality: Updated editor layout guards for the new navigation dock placement and theme-aware surface binding.
+
+
+###2026.06.25.20
+- UX: Extended the folder editor panel layout to the advanced Rules, Actions, and Advanced tabs so advanced-only controls are grouped into clearer sections.
+- UX: Moved folder auto-rules into a dedicated Advanced Auto-Rules panel while preserving the legacy regex and custom action behavior.
+- Quality: Updated editor layout guards for the advanced panel groups and stable auto-rules panel target.
+
+
+###2026.06.25.19
+- UX: Extended the folder editor panel layout to Members, Preview, Chevron, and Status tabs so related controls are grouped into clearer professional sections.
+- Quality: Updated editor layout guards for the shared panel wrapper used across core tabs.
+
+
+###2026.06.25.18
+- Quality: Removed CSS-only General tab panel modifier classes so the strict dead-code guard accepts the redesigned editor layout.
+
+
+###2026.06.25.17
+- UX: Reworked the folder editor General tab into clearer Identity, Parent Folder, and Icon panels so simple fields no longer leave large empty card gaps.
+- UX: Made the General tab responsive with compact identity rows on desktop and stacked panels on narrower screens.
+- Quality: Updated the folder editor layout regression guard to cover the new General tab panel structure.
 
 
 ###2026.06.25.15

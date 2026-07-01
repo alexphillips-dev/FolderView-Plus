@@ -51,6 +51,12 @@
         const getNestedPreviewSample = typeof deps.getNestedPreviewSample === 'function'
             ? deps.getNestedPreviewSample
             : (() => null);
+        const getNestedPreviewSamples = typeof deps.getNestedPreviewSamples === 'function'
+            ? deps.getNestedPreviewSamples
+            : (() => {
+                const sample = getNestedPreviewSample();
+                return sample ? [sample] : [];
+            });
         const previewModelModule = deps.previewModelModule
             && typeof deps.previewModelModule.createChildFolderPreviewModel === 'function'
             ? deps.previewModelModule
@@ -91,11 +97,16 @@
             const borderEnabled = previewMode !== 0 && form.preview_border?.checked === true;
             const borderColor = normalizeHexColor(form.preview_border_color?.value, deps.defaultBorderColor || '#afa89e');
             const borderWidth = String(normalizePositiveInt(form.preview_border_width?.value, deps.defaultPreviewBorderWidth || 1, 1, 4));
+            const borderGlowEnabled = borderEnabled && form.preview_border_glow?.checked === true;
             const dividerEnabled = previewMode !== 0 && form.preview_vertical_bars?.checked === true;
             const dividerColor = normalizeHexColor(form.preview_vertical_bars_color?.value || deps.defaultDividerColor || '', deps.defaultDividerColor || '#afa89e');
             const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width?.value, deps.defaultPreviewVerticalBarsWidth || 1, 1, 4));
             const dropdownColor = normalizeHexColor(form.dropdown_color?.value, deps.defaultDropdownColor || '#ff9a3c');
             const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color?.value, deps.defaultDropdownHoverColor || '#111111');
+            const hoverAnimation = String(form.preview_hover_animation?.value || 'none').trim().toLowerCase();
+            const hoverAnimationAliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+            const hoverAnimationToken = hoverAnimationAliases[hoverAnimation] || hoverAnimation;
+            const safeHoverAnimation = ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(hoverAnimationToken) ? hoverAnimationToken : 'none';
             const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
             const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
@@ -120,26 +131,31 @@
                 `;
             });
             if (hideNestedPreviewItems && previewMode !== 0) {
-                const nestedPreviewSample = getNestedPreviewSample() || {};
-                const nestedPreviewModel = previewModelModule.createChildFolderPreviewModel({
-                    ...nestedPreviewSample,
-                    childId: nestedPreviewSample.childId || nestedPreviewSample.id,
-                    childFolder: nestedPreviewSample,
-                    icon: nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || ''
+                const nestedPreviewSamples = getNestedPreviewSamples();
+                const samples = Array.isArray(nestedPreviewSamples) && nestedPreviewSamples.length
+                    ? nestedPreviewSamples
+                    : [getNestedPreviewSample()].filter(Boolean);
+                samples.forEach((nestedPreviewSample) => {
+                    const nestedPreviewModel = previewModelModule.createChildFolderPreviewModel({
+                        ...nestedPreviewSample,
+                        childId: nestedPreviewSample.childId || nestedPreviewSample.id,
+                        childFolder: nestedPreviewSample,
+                        icon: nestedPreviewSample.icon || icon || deps.defaultFolderIconPath || ''
+                    });
+                    const nestedPreviewName = escapeHtml(nestedPreviewModel.name || 'Child folder');
+                    const nestedPreviewIcon = escapeHtml(nestedPreviewModel.icon || icon || deps.defaultFolderIconPath || '');
+                    const nestedPreviewChildId = escapeHtml(nestedPreviewModel.childId || '');
+                    const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
+                    memberPreviewItems.push(`
+                        <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
+                            <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                            ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
+                            ${previewMode === 2
+                                ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
+                                : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewModel.statusLabel)}</span>`}
+                        </span>
+                    `);
                 });
-                const nestedPreviewName = escapeHtml(nestedPreviewModel.name || 'Child folder');
-                const nestedPreviewIcon = escapeHtml(nestedPreviewModel.icon || icon || deps.defaultFolderIconPath || '');
-                const nestedPreviewChildId = escapeHtml(nestedPreviewModel.childId || '');
-                const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
-                memberPreviewItems.push(`
-                    <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
-                        <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
-                        ${previewMode === 2
-                            ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
-                            : `<span class="fv-live-member-status">${escapeHtml(nestedPreviewModel.statusLabel)}</span>`}
-                    </span>
-                `);
             }
 
             const membersHtml = previewMode === 0
@@ -149,11 +165,11 @@
                     : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${accentEnabled ? ' has-accent' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''}${safeHoverAnimation !== 'none' ? ` fv-hover-animation-${safeHoverAnimation}` : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
             const surfaceClass = deps.wrapPreviewSurface === false ? '' : 'fv-live-preview-surface';
             canvas.html(`
                 ${surfaceClass ? `<div class="${surfaceClass}">` : ''}
-                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
+                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-preview-border-glow:0 0 10px ${borderColor}, 0 0 18px ${borderColor};--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
                         <div class="fv-live-folder-head">
                             <div class="fv-live-folder-anchor">
                                 <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
@@ -221,7 +237,11 @@
             $('#fvLivePreview').text(previewLabel);
             $('#fvLiveContext').text(contextLabel);
             $('#fvHeroTitle').text(folderName);
-            $('#fvHeroIcon').attr('src', String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '');
+            const selectedIconPath = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
+            $('#fvHeroIcon').attr('src', selectedIconPath);
+            $('#fvIconPanelPreview')
+                .attr('src', selectedIconPath)
+                .attr('title', selectedIconPath ? `Selected icon: ${selectedIconPath}` : 'Selected icon preview');
             $('#fvHeroScope').text(
                 normalizeParentFolderId(form.parent_folder_id?.value || '')
                     ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`

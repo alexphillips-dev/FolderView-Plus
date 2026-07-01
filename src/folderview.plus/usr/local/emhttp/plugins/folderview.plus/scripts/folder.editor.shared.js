@@ -89,6 +89,30 @@
                 return 0;
             });
 
+        const normalizeChildFolderOrder = (value) => {
+            const source = Array.isArray(value) ? value : [];
+            const seen = new Set();
+            const result = [];
+            source.forEach((entry) => {
+                const id = String(entry || '').trim();
+                if (!id || seen.has(id)) {
+                    return;
+                }
+                seen.add(id);
+                result.push(id);
+            });
+            return result;
+        };
+
+        const normalizePreviewHoverAnimation = (value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+            const token = aliases[normalized] || normalized;
+            return ['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token)
+                ? token
+                : 'none';
+        };
+
         const normalizeFolderRecordForEditor = (folder) => {
             const source = folder && typeof folder === 'object' ? folder : {};
             const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -122,6 +146,8 @@
                     preview_rows: normalizePreviewRowLimit(settings, source),
                     previewRows: normalizePreviewRowLimit(settings, source),
                     preview_hover: settings.preview_hover === true,
+                    preview_hover_animation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
+                    previewHoverAnimation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
                     preview_update: settings.preview_update === true,
                     preview_text_width: String(settings.preview_text_width || ''),
                     preview_grayscale: settings.preview_grayscale === true,
@@ -134,6 +160,8 @@
                     })(),
                     preview_hide_nested_items: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
                     previewHideNestedItems: settings.preview_hide_nested_items === true || settings.previewHideNestedItems === true,
+                    child_folder_order: normalizeChildFolderOrder(settings.child_folder_order || settings.childFolderOrder),
+                    childFolderOrder: normalizeChildFolderOrder(settings.child_folder_order || settings.childFolderOrder),
                     preview_child_folder_depth: normalizeChildFolderPreviewDepth(settings, source),
                     previewChildFolderDepth: normalizeChildFolderPreviewDepth(settings, source),
                     preview_webui: settings.preview_webui === true,
@@ -153,6 +181,7 @@
                     preview_border_width: typeof deps.normalizePositiveInt === 'function'
                         ? deps.normalizePositiveInt(settings.preview_border_width, deps.defaultPreviewBorderWidth || 1, 1, 4)
                         : (deps.defaultPreviewBorderWidth || 1),
+                    preview_border_glow: settings.preview_border_glow === true || settings.previewBorderGlow === true,
                     preview_vertical_bars_color: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(
                             settings.preview_vertical_bars_color || settings.preview_border_color,
@@ -209,6 +238,7 @@
             extractPreviewRowLimitValue,
             normalizePreviewRowLimit,
             normalizeChildFolderPreviewDepth,
+            normalizePreviewHoverAnimation,
             normalizeFolderRecordForEditor
         });
     };

@@ -1221,6 +1221,26 @@
             $normalized['preview_hide_nested_items'],
             $normalized['previewHideNestedItems']
         );
+        $rawChildFolderOrder = $normalized['settings']['child_folder_order']
+            ?? ($normalized['settings']['childFolderOrder']
+                ?? ($normalized['child_folder_order']
+                    ?? ($normalized['childFolderOrder'] ?? [])));
+        $childFolderOrder = [];
+        if (is_array($rawChildFolderOrder)) {
+            foreach ($rawChildFolderOrder as $rawChildFolderId) {
+                $childFolderId = truncateUtf8String(trim((string)$rawChildFolderId), 64);
+                if ($childFolderId === '' || in_array($childFolderId, $childFolderOrder, true)) {
+                    continue;
+                }
+                $childFolderOrder[] = $childFolderId;
+            }
+        }
+        $normalized['settings']['child_folder_order'] = $childFolderOrder;
+        $normalized['settings']['childFolderOrder'] = $childFolderOrder;
+        unset(
+            $normalized['child_folder_order'],
+            $normalized['childFolderOrder']
+        );
         $rawPreviewChildFolderDepth = $normalized['settings']['preview_child_folder_depth']
             ?? ($normalized['settings']['previewChildFolderDepth']
                 ?? ($normalized['preview_child_folder_depth']
@@ -1240,6 +1260,25 @@
         unset(
             $normalized['preview_child_folder_depth'],
             $normalized['previewChildFolderDepth']
+        );
+        $rawPreviewHoverAnimation = $normalized['settings']['preview_hover_animation']
+            ?? ($normalized['settings']['previewHoverAnimation']
+                ?? ($normalized['preview_hover_animation']
+                    ?? ($normalized['previewHoverAnimation'] ?? null)));
+        if ($rawPreviewHoverAnimation !== null) {
+            $animationToken = strtolower(trim((string)$rawPreviewHoverAnimation));
+            $animationAliases = ['grow' => 'pop', 'pulse' => 'glow', 'spin' => 'flip'];
+            $animationToken = $animationAliases[$animationToken] ?? $animationToken;
+            $allowedAnimations = ['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'];
+            if (!in_array($animationToken, $allowedAnimations, true)) {
+                $animationToken = 'none';
+            }
+            $normalized['settings']['preview_hover_animation'] = $animationToken;
+            $normalized['settings']['previewHoverAnimation'] = $animationToken;
+        }
+        unset(
+            $normalized['preview_hover_animation'],
+            $normalized['previewHoverAnimation']
         );
         $rawDropdownStyle = $normalized['settings']['dropdown_style']
             ?? ($normalized['settings']['dropdownStyle']
@@ -3311,9 +3350,54 @@
         return $removed;
     }
 
+    function backupReasonAllowsEmptySnapshot(string $reason): bool {
+        $normalized = strtolower(trim($reason));
+        if ($normalized === '') {
+            return false;
+        }
+        return strpos($normalized, 'before-import') === 0
+            || strpos($normalized, 'before-restore') === 0
+            || strpos($normalized, 'before-template') === 0
+            || strpos($normalized, 'transaction-') === 0
+            || strpos($normalized, 'rollback') !== false;
+    }
+
+    function getBackupPayloadFolderCount($decoded): ?int {
+        if (!is_array($decoded)) {
+            return null;
+        }
+        if (isset($decoded['folders']) && is_array($decoded['folders'])) {
+            return count($decoded['folders']);
+        }
+        if (!array_key_exists('schemaVersion', $decoded) && !array_key_exists('type', $decoded) && !array_key_exists('prefs', $decoded)) {
+            return count($decoded);
+        }
+        return null;
+    }
+
     function createBackupSnapshot(string $type, string $reason = 'manual'): array {
         $type = ensureType($type);
         $folders = readRawFolderMap($type);
+        $folderCount = count($folders);
+        if ($folderCount === 0 && !backupReasonAllowsEmptySnapshot($reason)) {
+            try {
+                appendDiagnosticsHistoryEvent('backup_skipped', $type, [
+                    'reason' => $reason,
+                    'folderCount' => 0,
+                    'skipReason' => 'empty-folder-map'
+                ], 'ok', 'server');
+            } catch (Throwable $err) {
+                // Keep backup skip reporting non-fatal.
+            }
+            return [
+                'name' => '',
+                'createdAt' => gmdate('c'),
+                'count' => 0,
+                'pruned' => [],
+                'skipped' => true,
+                'skipReason' => 'empty-folder-map'
+            ];
+        }
         $prefs = readTypePrefs($type);
         $backupDir = getBackupsDirPath();
         if (!is_dir($backupDir)) {
@@ -3340,7 +3424,7 @@
             appendDiagnosticsHistoryEvent('backup_create', $type, [
                 'reason' => $reason,
                 'name' => $filename,
-                'folderCount' => count($folders),
+                'folderCount' => $folderCount,
                 'prunedCount' => count($pruned)
             ], 'ok', 'server');
         } catch (Throwable $err) {
@@ -3349,8 +3433,9 @@
         return [
             'name' => $filename,
             'createdAt' => gmdate('c'),
-            'count' => count($folders),
-            'pruned' => $pruned
+            'count' => $folderCount,
+            'pruned' => $pruned,
+            'skipped' => false
         ];
     }
 
@@ -3377,9 +3462,7 @@
             $count = null;
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
-                if (isset($decoded['folders']) && is_array($decoded['folders'])) {
-                    $count = count($decoded['folders']);
-                }
+                $count = getBackupPayloadFolderCount($decoded);
             }
             $entries[] = [
                 'name' => $file,
@@ -3449,6 +3532,42 @@
         ];
     }
 
+    function deleteAllBackupSnapshots(string $type): array {
+        $type = ensureType($type);
+        $snapshots = listBackupSnapshots($type);
+        $deleted = [];
+        $failed = [];
+        foreach ($snapshots as $snapshot) {
+            $name = (string)($snapshot['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            try {
+                $deleted[] = deleteBackupSnapshot($type, $name);
+            } catch (Throwable $err) {
+                $failed[] = [
+                    'name' => $name,
+                    'error' => $err->getMessage()
+                ];
+            }
+        }
+        try {
+            appendDiagnosticsHistoryEvent('backup_delete_all', $type, [
+                'deletedCount' => count($deleted),
+                'failedCount' => count($failed)
+            ], empty($failed) ? 'ok' : 'warning', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
+        return [
+            'deletedCount' => count($deleted),
+            'failedCount' => count($failed),
+            'deleted' => $deleted,
+            'failed' => $failed,
+            'deletedAt' => gmdate('c')
+        ];
+    }
+
     function normalizeImportedFoldersPayload($decoded): array {
         if (!is_array($decoded)) {
             throw new RuntimeException('Backup payload is not a JSON object.');
@@ -3510,7 +3629,14 @@
         if (empty($snapshots)) {
             throw new RuntimeException('No backups available.');
         }
-        return restoreBackupSnapshot($type, $snapshots[0]['name']);
+        foreach ($snapshots as $snapshot) {
+            $count = $snapshot['count'] ?? null;
+            if ($count !== null && (int)$count <= 0) {
+                continue;
+            }
+            return restoreBackupSnapshot($type, (string)$snapshot['name']);
+        }
+        throw new RuntimeException('No non-empty backups available.');
     }
 
     function isUndoBackupReason(string $reason): bool {
@@ -3976,9 +4102,30 @@
         if($type == 'docker') { $prefsFilePath = "$userPrefsDir/dockerMan/userprefs.cfg"; }
         elseif($type == 'vm') { $prefsFilePath = "$userPrefsDir/dynamix.vm.manager/userprefs.cfg"; }
         else { return '[]'; }
-        if(!file_exists($prefsFilePath)) { return '[]'; }
-        $parsedIni = @parse_ini_file($prefsFilePath);
-        return json_encode(array_values($parsedIni ?: []));
+        $parsedIni = file_exists($prefsFilePath) ? @parse_ini_file($prefsFilePath) : false;
+        $order = array_values($parsedIni ?: []);
+        if ($type === 'docker') {
+            $folders = readRawFolderMap('docker');
+            $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
+            $folderIds = array_keys($folders);
+            $folderPlaceholders = array_map(function($id) {
+                return 'folder-' . (string)$id;
+            }, array_keys($orderedFolders));
+            $order = array_values(array_filter($order, function($entry) use ($folderIds) {
+                $value = trim((string)$entry);
+                if (strpos($value, 'folder-') !== 0) {
+                    return true;
+                }
+                $folderId = substr($value, 7);
+                return !in_array($folderId, $folderIds, true);
+            }));
+            foreach ($folderPlaceholders as $placeholder) {
+                if (!in_array($placeholder, $order, true)) {
+                    $order[] = $placeholder;
+                }
+            }
+        }
+        return json_encode($order);
     }
 
     function normalizeFolderMembers($members): array {

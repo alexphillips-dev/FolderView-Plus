@@ -21,14 +21,54 @@
     const SECTION_META = sharedSectionMeta && typeof sharedSectionMeta === 'object'
         ? sharedSectionMeta
         : FALLBACK_SECTION_META;
+    const SECTION_PANEL_META = {
+        general: [
+            { key: 'identity', title: 'Identity', description: 'Name and optional folder WebUI behavior.', fields: ['name', 'folder_webui', 'folder_webui_url'] },
+            { key: 'parent', title: 'Parent Folder', description: 'Choose where this folder lives in the hierarchy.', fields: ['parent_folder_id'] },
+            { key: 'icon', title: 'Icon', description: 'Preview and change the folder icon.', match: (row) => Boolean(row?.querySelector?.('.fv-icon-dd')) }
+        ],
+        members: [
+            { key: 'folder-members', title: 'Folder Members', description: 'Order child folders shown in nested previews and expanded rows.', match: (row) => row?.id === 'fvFolderMembersSection' },
+            { key: 'member-manager', title: 'Member Manager', description: 'Choose visible members, filter the list, and set folder order.', match: (row) => row?.classList?.contains('order-section') === true }
+        ],
+        preview: [
+            { key: 'layout', title: 'Layout', description: 'Control what the collapsed row shows and how much room it uses.', fields: ['preview', 'preview_hover', 'preview_text_width', 'preview_rows', 'preview_status'] },
+            { key: 'child-folders', title: 'Child Folders', description: 'Show nested folder chips and choose how deep the preview can look.', fields: ['preview_hide_nested_items', 'preview_child_folder_depth'] },
+            { key: 'appearance', title: 'Appearance', description: 'Tune borders, divider bars, grayscale, hover animation, and update highlighting.', fields: ['preview_grayscale', 'preview_hover_animation', 'preview_update', 'preview_vertical_bars', 'preview_vertical_bars_color', 'preview_border', 'preview_border_color', 'preview_border_glow'] },
+            { key: 'quick-actions', title: 'Quick Actions', description: 'Add optional actions directly inside Docker previews.', fields: ['preview_logs', 'preview_webui', 'preview_console'] },
+            { key: 'context', title: 'Preview Context', description: 'Configure advanced preview behavior and graph settings.', fields: ['context', 'context_trigger', 'context_graph', 'context_graph_time'] }
+        ],
+        chevron: [
+            { key: 'style', title: 'Chevron Style', description: 'Choose the row expand/collapse affordance.', fields: ['dropdown_style'] },
+            { key: 'color', title: 'Chevron Color', description: 'Override the folder row chevron color.', fields: ['dropdown_color'] }
+        ],
+        status: [
+            { key: 'status-colors', title: 'Status Colors', description: 'Set the started, paused, and stopped colors used by folder rows.', fields: ['status_color_started', 'status_color_paused', 'status_color_stopped'], match: (row) => Boolean(row?.querySelector?.('.folder-status-colors-dd')) },
+            { key: 'accent', title: 'Accent Bar', description: 'Enable and color the optional folder accent bar.', fields: ['folder_accent_enabled', 'folder_accent_color'] },
+            { key: 'thresholds', title: 'Status Thresholds', description: 'Override warning levels for this folder only.', advancedOnly: true, fields: ['status_warn_stopped_percent'] },
+            { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
+        ],
+        rules: [
+            { key: 'regex', title: 'Legacy Regex', description: 'Keep the folder populated with the saved name-matching regex rule.', fields: ['regex'] },
+            { key: 'auto-rules', title: 'Advanced Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' }
+        ],
+        actions: [
+            { key: 'folder-actions', title: 'Folder Actions', description: 'Manage the custom actions shown in this folder’s context menu.', match: (row) => row?.classList?.contains('custom-action-wrapper-parent') === true }
+        ],
+        advanced: [
+            { key: 'action-behavior', title: 'Action Behavior', description: 'Override default action behavior for this folder.', fields: ['override_default_actions', 'default_action'] },
+            { key: 'expansion', title: 'Expansion', description: 'Control whether this folder opens automatically on Docker and Dashboard views.', fields: ['expand_tab', 'expand_dashboard'] },
+            { key: 'dashboard', title: 'Dashboard', description: 'Tune Dashboard-specific display behavior.', fields: ['dashboard_overflow'] },
+            { key: 'docker', title: 'Docker', description: 'Control Docker-specific advanced behavior.', fields: ['update_column'] }
+        ]
+    };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const pageType = String(root.FolderViewPlusFolderEditorPageType || '').trim().toLowerCase();
-    const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
     const pageReportFolderEditorBootstrap = typeof root.FolderViewPlusReportFolderEditorBootstrap === 'function'
         ? root.FolderViewPlusReportFolderEditorBootstrap.bind(root)
         : null;
-    let currentMode = BASIC_MODE;
+    let currentMode = ADVANCED_MODE;
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
     let folderEditorTypeApi = null;
@@ -249,9 +289,7 @@
         return sourceRow;
     };
 
-    const getVisibleSectionKeys = (mode = currentMode) => Object.entries(SECTION_META)
-        .filter(([, meta]) => mode === ADVANCED_MODE || meta.advanced !== true)
-        .map(([key]) => key);
+    const getVisibleSectionKeys = () => Object.keys(SECTION_META);
 
     const normalizeSectionKey = (sectionKey, mode = currentMode) => {
         const visible = getVisibleSectionKeys(mode);
@@ -277,7 +315,7 @@
                             <span id="fvHeroScope">Top-level folder</span>
                             <span id="fvHeroMembers">0/0 included</span>
                             <span id="fvHeroDefaults">Checking inherited defaults</span>
-                            <span id="fvHeroMode">Basic editor</span>
+                            <span id="fvHeroMode">All sections</span>
                         </div>
                     </div>
                 </div>
@@ -285,21 +323,6 @@
                     <button type="button" id="fvRestoreSavedValues"><i class="fa fa-history" aria-hidden="true"></i> Restore saved values</button>
                     <button type="button" id="fvApplyPluginDefaults"><i class="fa fa-repeat" aria-hidden="true"></i> Apply plugin defaults</button>
                     <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
-                </div>
-            </div>
-            <div class="fv-editor-nav-row">
-                <div class="fv-section-nav">
-                    ${Object.entries(SECTION_META).map(([key, meta], index) => `
-                        <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
-                            <i class="fa ${meta.icon}" aria-hidden="true"></i>
-                            <span>${meta.title}</span>
-                            <em class="fv-nav-count" style="display:none;"></em>
-                        </button>
-                    `).join('')}
-                </div>
-                <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                    <button type="button" data-mode="basic" class="is-active">Basic</button>
-                    <button type="button" data-mode="advanced">Advanced</button>
                 </div>
             </div>
             <div class="fv-editor-status-row">
@@ -381,6 +404,19 @@
                 </div>
             </div>
         </div>
+        <div id="fvEditorNavDock" class="fv-editor-nav-dock">
+            <div class="fv-editor-nav-row">
+                <div class="fv-section-nav">
+                    ${Object.entries(SECTION_META).map(([key, meta], index) => `
+                        <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
+                            <i class="fa ${meta.icon}" aria-hidden="true"></i>
+                            <span>${meta.title}</span>
+                            <em class="fv-nav-count" style="display:none;"></em>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
     `;
 
     const getModernStage = (form) => {
@@ -419,7 +455,7 @@
         if (!stage) {
             return;
         }
-        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel')) {
+        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel') && stage.querySelector('#fvEditorNavDock')) {
             return;
         }
         stage.insertAdjacentHTML('afterbegin', buildTopChrome());
@@ -464,6 +500,7 @@
             findBasicByFieldName(form, 'folder_webui_url')
         ],
         members: [
+            form.querySelector('#fvFolderMembersSection'),
             form.querySelector('.basic.order-section')
         ],
         preview: [
@@ -472,13 +509,15 @@
             findBasicByFieldName(form, 'preview_text_width'),
             findBasicByFieldName(form, 'preview_rows'),
             findBasicByFieldName(form, 'preview_grayscale'),
+            findBasicByFieldName(form, 'preview_hover_animation'),
             findBasicByFieldName(form, 'preview_hide_nested_items'),
             findBasicByFieldName(form, 'preview_child_folder_depth'),
             findBasicByFieldName(form, 'preview_logs'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
             findBasicByFieldName(form, 'preview_vertical_bars_color'),
             findBasicByFieldName(form, 'preview_border'),
-            findBasicByFieldName(form, 'preview_border_color')
+            findBasicByFieldName(form, 'preview_border_color'),
+            findBasicByFieldName(form, 'preview_border_glow')
         ],
         chevron: [
             findBasicByFieldName(form, 'dropdown_style'),
@@ -486,12 +525,12 @@
         ],
         status: [
             findBasicByFieldName(form, 'folder_accent_enabled'),
-            findBasicByFieldName(form, 'folder_accent_color'),
             findBasicByFieldName(form, 'status_color_started'),
             findBasicByFieldName(form, 'status_warn_stopped_percent')
         ],
         rules: [
-            findBasicByFieldName(form, 'regex')
+            findBasicByFieldName(form, 'regex'),
+            root.document.getElementById('fvFolderAutoRulesPanel')
         ],
         actions: [
             form.querySelector('.basic.custom-action-wrapper-parent')
@@ -530,17 +569,83 @@
         launchHost.appendChild(launchLink);
     };
 
-    const ensureGeneralLeftRail = (body) => {
+    const rowHasAnyField = (row, fields = []) => {
+        if (!(row instanceof root.HTMLElement) || !Array.isArray(fields) || !fields.length) {
+            return false;
+        }
+        return fields.some((fieldName) => row.querySelector(`[name="${fieldName}"]`));
+    };
+
+    const ensureEditorPanel = (body, sectionKey, panelDef) => {
         if (!(body instanceof root.HTMLElement)) {
             return null;
         }
-        let rail = body.querySelector(':scope > .fv-general-left-rail');
-        if (!(rail instanceof root.HTMLElement)) {
-            rail = root.document.createElement('div');
-            rail.className = 'fv-general-left-rail';
-            body.insertBefore(rail, body.firstChild);
+        const panelKey = String(panelDef?.key || '').trim();
+        if (!panelKey) {
+            return null;
         }
-        return rail;
+        const selector = `:scope > .fv-editor-panel[data-editor-panel="${panelKey}"]`;
+        let panel = body.querySelector(selector);
+        if (!(panel instanceof root.HTMLElement)) {
+            panel = root.document.createElement('section');
+            panel.className = 'fv-editor-panel';
+            panel.setAttribute('data-editor-panel', panelKey);
+            panel.setAttribute('data-editor-panel-section', sectionKey);
+            panel.innerHTML = `
+                <div class="fv-editor-panel-head">
+                    <h4>${panelDef.title}</h4>
+                    ${panelDef.description ? `<p>${panelDef.description}</p>` : ''}
+                </div>
+                <div class="fv-editor-panel-body"></div>
+            `;
+            body.appendChild(panel);
+        }
+        return panel;
+    };
+
+    const ensureEditorPanels = (body, sectionKey) => {
+        if (!(body instanceof root.HTMLElement)) {
+            return null;
+        }
+        const panelDefs = SECTION_PANEL_META[sectionKey] || [];
+        if (!panelDefs.length) {
+            return null;
+        }
+        const activePanelKeys = new Set(panelDefs.map((panelDef) => String(panelDef?.key || '').trim()).filter(Boolean));
+        Array.from(body.querySelectorAll(':scope > .fv-editor-panel')).forEach((panel) => {
+            const panelKey = String(panel.getAttribute('data-editor-panel') || '').trim();
+            if (!activePanelKeys.has(panelKey)) {
+                panel.remove();
+            }
+        });
+        const panels = {};
+        panelDefs.forEach((panelDef) => {
+            const panel = ensureEditorPanel(body, sectionKey, panelDef);
+            if (panel) {
+                panels[panelDef.key] = { panel, panelDef };
+            }
+        });
+        return Object.keys(panels).length ? panels : null;
+    };
+
+    const findPanelForRow = (sectionKey, row, panels) => {
+        const entries = panels && typeof panels === 'object' ? Object.values(panels) : [];
+        if (!entries.length) {
+            return null;
+        }
+        const matched = entries.find(({ panelDef }) => {
+            if (typeof panelDef.match === 'function' && panelDef.match(row)) {
+                return true;
+            }
+            return rowHasAnyField(row, panelDef.fields);
+        });
+        if (matched) {
+            return matched.panel.querySelector('.fv-editor-panel-body') || matched.panel;
+        }
+        if (entries.length === 1) {
+            return entries[0].panel.querySelector('.fv-editor-panel-body') || entries[0].panel;
+        }
+        return null;
     };
 
     const ensureSectionShells = (form) => {
@@ -596,26 +701,36 @@
             shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
             shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
-            const generalLeftRail = sectionKey === 'general' ? ensureGeneralLeftRail(body) : null;
+            const editorPanels = ensureEditorPanels(body, sectionKey);
+            body.classList.toggle('fv-section-panel-grid', Boolean(editorPanels));
             rows.forEach((row) => {
                 if (!row) {
                     return;
                 }
-                const targetParent = sectionKey === 'general'
-                    && generalLeftRail
-                    && (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]'))
-                    ? generalLeftRail
-                    : body;
+                let targetParent = body;
+                const panelTarget = findPanelForRow(sectionKey, row, editorPanels);
+                if (panelTarget) {
+                    targetParent = panelTarget;
+                }
                 if (row.parentElement !== targetParent) {
                     targetParent.appendChild(row);
                 }
             });
-            if (sectionKey === 'general' && generalLeftRail && !generalLeftRail.children.length && generalLeftRail.parentElement === body) {
-                generalLeftRail.remove();
+            if (editorPanels) {
+                Object.values(editorPanels).forEach(({ panel, panelDef }) => {
+                    const panelBody = panel.querySelector('.fv-editor-panel-body');
+                    const isEmpty = !(panelBody instanceof root.HTMLElement) || !panelBody.children.length;
+                    const keepEmpty = panelDef?.keepEmpty === true;
+                    if (isEmpty && !keepEmpty && panel.parentElement === body) {
+                        panel.remove();
+                    }
+                });
             }
-            if (sectionKey !== 'general') {
-                body.querySelector(':scope > .fv-general-left-rail')?.remove();
-            }
+            Array.from(body.querySelectorAll(':scope > .fv-editor-panel')).forEach((panel) => {
+                if (panel.getAttribute('data-editor-panel-section') !== sectionKey) {
+                    panel.remove();
+                }
+            });
         });
         syncActionLaunchPlacement(form);
     };
@@ -624,7 +739,7 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
-            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-preview-border-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
             if (row.classList.contains('order-section')) {
                 row.classList.add('fv-modern-order-row', 'is-wide-row', 'is-members-row');
                 return;
@@ -669,6 +784,9 @@
             if (row.querySelector('input[type="color"]')) {
                 row.classList.add('is-color-row');
             }
+            if (row.querySelector('[name="preview_border_color"]')) {
+                row.classList.add('is-preview-border-color-row');
+            }
         });
 
         Array.from(form.querySelectorAll('.fv-section-shell ul')).forEach((list) => {
@@ -686,6 +804,59 @@
             });
         });
     };
+
+    const ensureIconPanelPreviewPlacement = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return;
+        }
+        const iconRow = form.querySelector('.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row');
+        if (!(iconRow instanceof root.HTMLElement)) {
+            return;
+        }
+        let preview = form.querySelector('#fvIconPanelPreview')?.closest('.fv-editor-panel-icon-preview');
+        if (!(preview instanceof root.HTMLElement)) {
+            preview = root.document.createElement('span');
+            preview.className = 'fv-editor-panel-icon-preview';
+            preview.title = 'Selected icon preview';
+            preview.setAttribute('aria-label', 'Selected icon preview');
+            preview.innerHTML = `<img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">`;
+        }
+        if (preview.parentElement !== iconRow) {
+            iconRow.appendChild(preview);
+        }
+    };
+
+    const ensureAccentControlPlacement = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return;
+        }
+        const accentControls = form.querySelector('.fv-section-shell[data-section-shell="status"] .fv-editor-panel[data-editor-panel="accent"] .fv-accent-color-dd .fv-accent-inline-controls');
+        if (!(accentControls instanceof root.HTMLElement)) {
+            return;
+        }
+        const accentHost = accentControls.closest('.fv-accent-control-row') || accentControls.closest('.fv-accent-color-dd');
+        if (!(accentHost instanceof root.HTMLElement)) {
+            return;
+        }
+        let toggleGroup = accentHost.querySelector(':scope > .fv-accent-toggle-group');
+        if (!(toggleGroup instanceof root.HTMLElement)) {
+            toggleGroup = root.document.createElement('span');
+            toggleGroup.className = 'fv-accent-toggle-group';
+            accentHost.insertBefore(toggleGroup, accentControls);
+        }
+        Array.from(accentHost.childNodes).forEach((node) => {
+            if (node === toggleGroup || node === accentControls) {
+                return;
+            }
+            toggleGroup.appendChild(node);
+        });
+        if (accentControls.parentElement !== accentHost) {
+            accentHost.appendChild(accentControls);
+        }
+        accentHost.classList.add('is-fv-accent-grouped');
+    };
+
+    root.FolderViewPlusEnsureAccentControlPlacement = ensureAccentControlPlacement;
 
     const hideOrphanRows = (form) => {
         Array.from(form.children).forEach((child) => {
@@ -711,14 +882,9 @@
 
     const applySectionVisibility = (form) => {
         currentSection = normalizeSectionKey(currentSection, currentMode);
-        const showAdvanced = currentMode === ADVANCED_MODE;
-        const modeButtons = Array.from(form.querySelectorAll('.fv-editor-mode > button[data-mode]'));
-        modeButtons.forEach((button) => {
-            button.classList.toggle('is-active', button.getAttribute('data-mode') === currentMode);
-        });
         const heroMode = form.querySelector('#fvHeroMode');
         if (heroMode) {
-            heroMode.textContent = showAdvanced ? 'Advanced editor' : 'Basic editor';
+            heroMode.textContent = 'All sections';
         }
 
         Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
@@ -727,14 +893,16 @@
             if (!shell || !navButton) {
                 return;
             }
-            if (!showAdvanced && meta.advanced === true) {
-                navButton.style.display = 'none';
-                shell.style.display = 'none';
-                return;
-            }
             const isActive = currentSection === sectionKey;
             navButton.style.display = '';
             navButton.classList.toggle('is-active', isActive);
+            if (isActive) {
+                navButton.setAttribute('data-active', 'true');
+                navButton.setAttribute('aria-current', 'page');
+            } else {
+                navButton.removeAttribute('data-active');
+                navButton.removeAttribute('aria-current');
+            }
             shell.style.display = isActive ? '' : 'none';
         });
     };
@@ -774,13 +942,6 @@
                 applySectionVisibility(form);
             });
         });
-        Array.from(form.querySelectorAll('.fv-editor-mode > button[data-mode]')).forEach((button) => {
-            button.addEventListener('click', () => {
-                currentMode = button.getAttribute('data-mode') === ADVANCED_MODE ? ADVANCED_MODE : BASIC_MODE;
-                currentSection = normalizeSectionKey(currentSection, currentMode);
-                applySectionVisibility(form);
-            });
-        });
     };
 
     const refreshModernEditorChromeLayout = () => {
@@ -792,6 +953,8 @@
         ensureActionBar(form);
         ensureSectionShells(form);
         decorateSectionRows(form);
+        ensureIconPanelPreviewPlacement(form);
+        ensureAccentControlPlacement(form);
         hideOrphanRows(form);
         applySectionVisibility(form);
     };
@@ -810,7 +973,7 @@
         if (!form) {
             return;
         }
-        currentMode = BASIC_MODE;
+        currentMode = ADVANCED_MODE;
         currentSection = 'general';
         refreshModernEditorChromeLayout();
         bindTopButtons(form);

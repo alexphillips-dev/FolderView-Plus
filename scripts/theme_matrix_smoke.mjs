@@ -347,17 +347,15 @@ const runScenarioChecks = async (page, { label, browserName, mobile, zoom }) => 
         }
 
         const errors = [];
-        const contrastTier = String(dialog.getAttribute('data-fv-wizard-contrast-tier') || '').trim();
-        if (!['normal', 'high', 'max'].includes(contrastTier)) {
-            errors.push(`Wizard contrast tier attribute is invalid (${contrastTier || 'missing'}).`);
+        const focusShell = dialog.querySelector('.fv-setup-assistant-shell');
+        if (!focusShell || String(focusShell.getAttribute('data-fv-focus-mode') || '') !== '1') {
+            errors.push('Wizard focus mode is not enabled by default.');
         }
-        const focusModeButton = dialog.querySelector('#fv-setup-focus-mode');
-        if (!focusModeButton) {
-            errors.push('Wizard focus mode toggle is missing.');
+        if (dialog.querySelector('#fv-setup-focus-mode')) {
+            errors.push('Wizard focus mode toggle should not be rendered.');
         }
-        const contrastSelect = dialog.querySelector('#fv-setup-contrast-mode');
-        if (!contrastSelect) {
-            errors.push('Wizard contrast mode selector is missing.');
+        if (dialog.querySelector('#fv-setup-contrast-mode')) {
+            errors.push('Wizard contrast mode selector should not be rendered.');
         }
 
         const fallbackBg = parseColor(window.getComputedStyle(dialog).backgroundColor) || { r: 10, g: 14, b: 20, a: 1 };

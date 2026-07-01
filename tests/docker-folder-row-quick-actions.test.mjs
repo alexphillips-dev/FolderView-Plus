@@ -20,6 +20,23 @@ const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
 );
+const extractConstFunctionBlock = (source, functionName, nextFunctionName) => {
+    const start = source.indexOf(`const ${functionName} =`);
+    assert.notEqual(start, -1, `${functionName} should be defined`);
+    const end = source.indexOf(`const ${nextFunctionName} =`, start + 1);
+    assert.notEqual(end, -1, `${nextFunctionName} should follow ${functionName}`);
+    return source.slice(start, end);
+};
+const dockerFolderHierarchyMoveBlock = extractConstFunctionBlock(
+    dockerScript,
+    'applyDockerFolderHierarchyMoveFromMenu',
+    'moveDockerFolderUnderFromMenu'
+);
+const dockerFolderSameLevelMoveBlock = extractConstFunctionBlock(
+    dockerScript,
+    'moveDockerFolderFromMenu',
+    'ensureDockerFolderUnlocked'
+);
 
 test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
     assert.match(dockerScript, /text:\s*focused[\s\S]*getDockerMenuLabel\('clear-focus-folder',\s*'Clear focus'\)/);
@@ -41,6 +58,47 @@ test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
     assert.doesNotMatch(dockerScript, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
+});
+
+test('docker folder menu can move folders within the current level', () => {
+    assert.match(dockerScript, /const buildDockerFolderRuntimeOrderState = \(\) =>/);
+    assert.match(dockerScript, /const persistDockerFolderManualOrder = async \(nextOrder\) =>/);
+    assert.match(dockerScript, /const applyDockerFolderMenuOrderToDom = \(orderedIds\) =>/);
+    assert.match(dockerScript, /const \$folderRows = \$\('#docker_list > tr\.folder'\);/);
+    assert.match(dockerScript, /fragment\.appendChild\(row\);/);
+    assert.match(dockerScript, /\$dockerList\.sortable\('refresh'\);/);
+    assert.match(dockerScript, /prefs:\s*JSON\.stringify\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*Array\.isArray\(nextOrder\) \? nextOrder : \[\][\s\S]*\}\)/);
+    assert.match(dockerScript, /const moveDockerFolderFromMenu = async \(folderId,\s*direction\) =>/);
+    assert.match(dockerScript, /ensureDockerFolderUnlocked\(id,\s*moveDirection < 0 \? 'Move folder up' : 'Move folder down'\)/);
+    assert.match(dockerScript, /const siblingIds = parentId[\s\S]*childrenById\[parentId\][\s\S]*fullOrder\.filter/);
+    assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
+    assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
+    assert.match(dockerScript, /const previousPrefs = utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\);/);
+    assert.match(dockerScript, /const previousOrder = fullOrder\.slice\(\);/);
+    assert.match(dockerScript, /applyDockerFolderMenuOrderToDom\(nextOrder\);[\s\S]*const response = await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.match(dockerScript, /catch \(error\) \{[\s\S]*folderTypePrefs = previousPrefs;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);[\s\S]*throw error;/);
+    assert.doesNotMatch(dockerFolderSameLevelMoveBlock, /queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerFolderSameLevelMoveBlock, /folderReq = buildDockerFolderReq/);
+    assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);
+    assert.match(dockerScript, /text:\s*'Move down'[\s\S]*moveDockerFolderFromMenu\(id,\s*1\)/);
+});
+
+test('docker folder menu can move folders under another folder or back to root', () => {
+    assert.match(dockerScript, /const persistDockerFolderRecord = async \(folderId,\s*folderPayload\) =>/);
+    assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/update\.php/);
+    assert.match(dockerScript, /const buildDockerFolderMoveTargetOptions = \(sourceId,\s*state\) =>/);
+    assert.match(dockerScript, /const blocked = new Set\(\[safeSourceId,\s*\.\.\.descendants\]\);/);
+    assert.match(dockerScript, /const applyDockerFolderHierarchyMoveFromMenu = async \(folderId,\s*nextParentId\) =>/);
+    assert.match(dockerScript, /descendants\.includes\(parentId\)/);
+    assert.match(dockerScript, /const nextFolder = \{[\s\S]*\.\.\.sourceFolder,[\s\S]*parentId[\s\S]*\};/);
+    assert.match(dockerScript, /await persistDockerFolderRecord\(id,\s*nextFolder\);[\s\S]*await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /folderReq = buildDockerFolderReq/);
+    assert.match(dockerScript, /globalFolders = previousFolders;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);/);
+    assert.match(dockerScript, /const moveDockerFolderUnderFromMenu = \(folderId\) =>/);
+    assert.match(dockerScript, /id="fv-docker-menu-move-target"/);
+    assert.match(dockerScript, /text:\s*'Move under\.\.\.'[\s\S]*moveDockerFolderUnderFromMenu\(id\)/);
+    assert.match(dockerScript, /text:\s*'Move to root'[\s\S]*applyDockerFolderHierarchyMoveFromMenu\(id,\s*''\)/);
 });
 
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
@@ -111,4 +169,21 @@ test('docker runtime exposes and applies focus\/lock state guards', () => {
 test('docker context menu quick-action strip styles remain defined', () => {
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item/);
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item > a/);
+});
+
+test('docker context menus clamp main and nested menus inside the viewport', () => {
+    assert.match(dockerScript, /const DOCKER_CONTEXT_MENU_SELECTORS = \[/);
+    assert.match(dockerScript, /const DOCKER_CONTEXT_VIEWPORT_MARGIN = 10;/);
+    assert.match(dockerScript, /const positionDockerContextElementInsideViewport = \(element\) =>/);
+    assert.match(dockerScript, /rect\.bottom > viewportHeight - margin/);
+    assert.match(dockerScript, /rect\.right > viewportWidth - margin/);
+    assert.match(dockerScript, /element\.style\.top = `\$\{Math\.max\(margin \+ scrollY,\s*nextTop\)\}px`;/);
+    assert.match(dockerScript, /element\.style\.left = `\$\{Math\.max\(margin \+ scrollX,\s*nextLeft\)\}px`;/);
+    assert.match(dockerScript, /const adjustDockerContextSubmenuViewportPlacement = \(listItem\) =>/);
+    assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-up'\);/);
+    assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-left'\);/);
+    assert.match(dockerScript, /document\.addEventListener\('mouseover',\s*handlePotentialSubmenu,\s*true\);/);
+    assert.match(dockerScript, /queueDockerContextViewportGuard\(\);/);
+    assert.match(dockerCss, /\.fvplus-docker-context-menu li\.fvplus-context-submenu-open-up > ul/);
+    assert.match(dockerCss, /\.fvplus-docker-context-menu li\.fvplus-context-submenu-open-left > ul/);
 });

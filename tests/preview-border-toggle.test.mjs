@@ -11,9 +11,13 @@ const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
+const folderEditorPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
+const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
+const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -21,11 +25,14 @@ const serverLibPhp = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 
 test('folder editor persists preview border directly from checkbox state', () => {
     assert.match(folderJs, /preview_border:\s*e\.preview_border\.checked/);
+    assert.match(folderJs, /preview_border_glow:\s*e\.preview_border_glow\.checked/);
+    assert.match(folderJs, /previewBorderGlow:\s*e\.preview_border_glow\.checked/);
     assert.doesNotMatch(folderJs, /preview_border:\s*e\.preview_border\.checked\s*\|\|/);
 });
 
 test('folder editor keeps border and chevron reset controls grouped with their fields', () => {
     assert.match(folderPage, /<div class="fv-inline-control-row">[\s\S]*name="preview_border_color"[\s\S]*name="preview_border_width"[\s\S]*resetPreviewBorderDefaults\(\)/);
+    assert.match(folderPage, /name="preview_border_glow"[\s\S]*Adds a soft glow around the preview border using the selected border color\./);
     assert.match(folderPage, /<div class="fv-inline-control-row">[\s\S]*name="dropdown_color"[\s\S]*name="dropdown_hover_color"[\s\S]*resetDropdownColorDefaults\(\)/);
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
@@ -37,6 +44,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
+    assert.match(folderJs, /getForm\(\)\.preview_border_glow\.checked = false;/);
     assert.match(folderJs, /scheduleEditorRecalculation\(0\);/);
     assert.match(folderJs, /updateLiveSummary\(\);/);
     assert.match(folderJs, /const scheduleEditorPreviewRender = \(\) =>/);
@@ -56,7 +64,9 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderContractJs, /const isPreviewBorderEnabled = \(settings\) =>/);
     assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(folderJs, /setFieldChecked\('preview_border',\s*isLegacyPreviewBorderEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
+    assert.match(folderJs, /setFieldChecked\('preview_border_glow',\s*normalizedFolder\.settings\.preview_border_glow === true \|\| normalizedFolder\.settings\.previewBorderGlow === true\);/);
     assert.match(folderEditorSharedJs, /preview_border_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
+    assert.match(folderEditorSharedJs, /preview_border_glow:\s*settings\.preview_border_glow === true \|\| settings\.previewBorderGlow === true/);
     assert.match(folderEditorSharedJs, /preview_vertical_bars_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
     assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderEditorSharedJs, /dropdown_style:\s*typeof deps\.normalizeDropdownStyle === 'function'/);
@@ -81,6 +91,8 @@ test('docker preview renderer respects preview border toggle', () => {
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-border-width', `\$\{previewBorderWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-divider-width', `\$\{previewBarsWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('border', enabled \? `\$\{previewBorderWidth\}px solid \$\{previewColor\}` : 'none', 'important'\)/);
+    assert.match(sharedRuntimeJs, /const glowEnabled = enabled && \(source\.preview_border_glow === true \|\| source\.previewBorderGlow === true\);/);
+    assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('box-shadow', glowEnabled \? previewBorderGlowShadow\(previewColor\) : 'none', 'important'\)/);
     assert.match(sharedRuntimeJs, /const dropdownStyle = normalizeDropdownStyle\(source\);/);
     assert.match(sharedRuntimeJs, /const applyFolderDropdownStyle = \(\$folderRow, settings\) =>/);
     assert.match(sharedRuntimeJs, /const getDropdownStyleTokens = typeof folderContract\?\.getDropdownStyleTokens === 'function'/);
@@ -91,6 +103,49 @@ test('docker preview renderer respects preview border toggle', () => {
     assert.match(dockerJs, /const applyFolderDropdownStyle = typeof dockerRuntimeShared\.applyFolderDropdownStyle === 'function'/);
     assert.match(dockerJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\)/);
     assert.match(dockerJs, /applyFolderDropdownStyle\(\$folderRow,\s*folder\.settings\)/);
+});
+
+test('folder hover animations are configurable and runtime-safe', () => {
+    assert.match(folderPage, /<select name="preview_hover_animation">[\s\S]*<option value="none" selected>None<\/option>[\s\S]*<option value="lift">Lift<\/option>[\s\S]*<option value="bounce">Bounce<\/option>[\s\S]*<option value="pop">Pop<\/option>[\s\S]*<option value="glow">Glow<\/option>[\s\S]*<option value="flip">Flip<\/option>[\s\S]*<option value="wiggle">Wiggle<\/option>/);
+    assert.match(folderEditorSchemaJs, /'preview_hover_animation'/);
+    assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'none'/);
+    assert.match(folderEditorSchemaJs, /preview_hover_animation:\s*'Hover animation'/);
+    assert.match(folderEditorChromeJs, /findBasicByFieldName\(form, 'preview_hover_animation'\)/);
+    assert.match(folderJs, /const normalizePreviewHoverAnimation = \(value\) =>/);
+    assert.match(folderJs, /const aliases = \{ grow: 'pop', pulse: 'glow', spin: 'flip' \};/);
+    assert.match(folderJs, /'none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'/);
+    assert.match(folderJs, /setFieldValue\('preview_hover_animation', normalizePreviewHoverAnimation\(normalizedFolder\.settings\.preview_hover_animation \|\| normalizedFolder\.settings\.previewHoverAnimation\)\);/);
+    assert.match(folderJs, /preview_hover_animation:\s*normalizePreviewHoverAnimation\(e\.preview_hover_animation\?\.value\)/);
+    assert.match(folderJs, /previewHoverAnimation:\s*normalizePreviewHoverAnimation\(e\.preview_hover_animation\?\.value\)/);
+    assert.match(folderEditorSharedJs, /const normalizePreviewHoverAnimation = \(value\) =>/);
+    assert.match(folderEditorSharedJs, /preview_hover_animation:\s*normalizePreviewHoverAnimation\(settings\.preview_hover_animation \|\| settings\.previewHoverAnimation\)/);
+    assert.match(folderEditorSharedJs, /previewHoverAnimation:\s*normalizePreviewHoverAnimation\(settings\.preview_hover_animation \|\| settings\.previewHoverAnimation\)/);
+    assert.match(folderEditorPreviewJs, /const hoverAnimation = String\(form\.preview_hover_animation\?\.value \|\| 'none'\)/);
+    assert.match(folderEditorPreviewJs, /fv-hover-animation-\$\{safeHoverAnimation\}/);
+    assert.match(sharedRuntimeJs, /const normalizePreviewHoverAnimation = \(settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const getPreviewHoverAnimationClass = \(settings = \{\}\) =>/);
+    assert.match(dockerJs, /const getPreviewHoverAnimationClass = typeof dockerRuntimeShared\.getPreviewHoverAnimationClass === 'function'/);
+    assert.match(dockerJs, /const hoverAnimationClass = getPreviewHoverAnimationClass\(folder\.settings\);/);
+    assert.match(dockerJs, /class="sortable folder-id-\$\{id\} \$\{hoverClass\} \$\{lockedClass\} \$\{pinnedClass\} \$\{focusedClass\} \$\{hoverAnimationClass\} folder"/);
+    assert.match(vmJs, /const getPreviewHoverAnimationClass = typeof runtimeShared\.getPreviewHoverAnimationClass === 'function'/);
+    assert.match(vmJs, /const hoverAnimationClass = getPreviewHoverAnimationClass\(folder\.settings\);/);
+    assert.match(vmJs, /class="sortable folder-id-\$\{id\} \$\{hoverClass\} \$\{lockedClass\} \$\{pinnedClass\} \$\{focusedClass\} \$\{hoverAnimationClass\} folder"/);
+    assert.match(dashboardJs, /const getPreviewHoverAnimationClass = \(settings = \{\}\) =>/);
+    assert.match(dashboardJs, /folder-showcase-outer \$\{hoverAnimationClass\}/);
+    assert.doesNotMatch(dockerJs, /preview_hover_animation:\s*'none'/);
+    assert.doesNotMatch(vmJs, /preview_hover_animation:\s*'none'/);
+    assert.doesNotMatch(dashboardJs, /preview_hover_animation:\s*'none'/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-bounce/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-lift/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-pop/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-glow/);
+    assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-flip/);
+    assert.match(runtimeSharedCss, /tr\.folder\.fv-hover-animation-flip:hover \.folder-outer/);
+    assert.match(runtimeSharedCss, /prefers-reduced-motion: reduce/);
+    assert.match(folderCss, /\.fv-live-preview-row\.fv-hover-animation-bounce:hover \.fv-live-folder-anchor/);
+    assert.match(serverLibPhp, /\$rawPreviewHoverAnimation = \$normalized\['settings'\]\['preview_hover_animation'\]/);
+    assert.match(serverLibPhp, /\$animationAliases = \['grow' => 'pop', 'pulse' => 'glow', 'spin' => 'flip'\];/);
+    assert.match(serverLibPhp, /\$allowedAnimations = \['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'\];/);
 });
 
 test('vm preview renderer honors explicit preview border OFF values', () => {

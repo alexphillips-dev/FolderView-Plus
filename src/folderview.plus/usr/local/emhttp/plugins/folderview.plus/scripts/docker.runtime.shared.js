@@ -165,6 +165,14 @@
         };
     };
 
+    const previewBorderGlowShadow = (hexColor) => {
+        const normalized = normalizeStatusHexColor(hexColor, DEFAULT_PREVIEW_BORDER_COLOR);
+        const r = parseInt(normalized.slice(1, 3), 16);
+        const g = parseInt(normalized.slice(3, 5), 16);
+        const b = parseInt(normalized.slice(5, 7), 16);
+        return `0 0 8px rgba(${r}, ${g}, ${b}, 0.52), 0 0 16px rgba(${r}, ${g}, ${b}, 0.34)`;
+    };
+
     const applyFolderStatusColorOverrides = ($folderRow, settings) => {
         if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
             return;
@@ -210,9 +218,11 @@
         const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
         const previewBorderWidth = normalizePositiveInt(source.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4);
         const previewBarsWidth = normalizePositiveInt(source.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4);
+        const glowEnabled = enabled && (source.preview_border_glow === true || source.previewBorderGlow === true);
         previewNode.style.setProperty('--fvplus-preview-border-width', `${previewBorderWidth}px`);
         previewNode.style.setProperty('--fvplus-preview-divider-width', `${previewBarsWidth}px`);
         previewNode.style.setProperty('border', enabled ? `${previewBorderWidth}px solid ${previewColor}` : 'none', 'important');
+        previewNode.style.setProperty('box-shadow', glowEnabled ? previewBorderGlowShadow(previewColor) : 'none', 'important');
     };
 
     const getPreviewRowLimitValue = (settings = {}) => (
@@ -236,6 +246,19 @@
     const isCompactMultiRowPreview = (settings = {}) => {
         const normalizedRows = normalizeFolderPreviewRowLimit(settings);
         return normalizedRows === 0 || normalizedRows > 1;
+    };
+
+    const normalizePreviewHoverAnimation = (settings = {}) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        const normalized = String(source.preview_hover_animation || source.previewHoverAnimation || '').trim().toLowerCase();
+        const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+        const token = aliases[normalized] || normalized;
+        return ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token) ? token : 'none';
+    };
+
+    const getPreviewHoverAnimationClass = (settings = {}) => {
+        const normalized = normalizePreviewHoverAnimation(settings);
+        return normalized === 'none' ? '' : `fv-hover-animation-${normalized}`;
     };
 
     const applyFolderPreviewLayout = ($preview, settings = {}) => {
@@ -921,6 +944,8 @@
         applyPreviewBorderStyle,
         getPreviewRowLimitValue,
         normalizeFolderPreviewRowLimit,
+        normalizePreviewHoverAnimation,
+        getPreviewHoverAnimationClass,
         isCompactMultiRowPreview,
         applyFolderPreviewLayout,
         flattenPreviewWrappers,

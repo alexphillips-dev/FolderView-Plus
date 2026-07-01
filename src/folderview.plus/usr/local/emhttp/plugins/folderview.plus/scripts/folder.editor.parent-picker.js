@@ -70,12 +70,26 @@
             });
         };
 
+        const formatEntryPath = (entry) => {
+            const name = String(entry?.name || '').trim();
+            const path = String(entry?.path || '').trim();
+            if (!path) {
+                return '';
+            }
+            if (path === 'Keep this folder at the top level.') {
+                return path;
+            }
+            return path === name ? `/${path}` : `/${path}`;
+        };
+
         const buildOptionHtml = (entry, selectedParentId) => {
             const safeSelected = normalizeParentFolderId(selectedParentId);
             const safeId = normalizeParentFolderId(entry?.id || '');
             const isTopLevel = safeId === '';
             const isSelected = safeId === safeSelected;
             const scopeLabel = String(entry?.scope || (isTopLevel ? 'Top level' : entry?.depth > 0 ? `Depth ${entry.depth}` : 'Root folder')).trim();
+            const optionIcon = isTopLevel ? 'fa-level-up' : 'fa-folder-o';
+            const pathLabel = formatEntryPath(entry);
             return `
                 <button
                     type="button"
@@ -83,11 +97,15 @@
                     data-parent-folder-id="${escapeHtml(safeId)}"
                     role="option"
                     aria-selected="${isSelected ? 'true' : 'false'}">
+                    <span class="fv-parent-picker-option-icon" aria-hidden="true"><i class="fa ${optionIcon}"></i></span>
                     <span class="fv-parent-picker-option-main">
                         <span class="fv-parent-picker-option-name">${escapeHtml(String(entry?.name || ''))}</span>
-                        <span class="fv-parent-picker-option-path">${escapeHtml(String(entry?.path || ''))}</span>
+                        ${pathLabel ? `<span class="fv-parent-picker-option-path">${escapeHtml(pathLabel)}</span>` : ''}
                     </span>
-                    <span class="fv-parent-picker-option-scope">${escapeHtml(scopeLabel)}</span>
+                    <span class="fv-parent-picker-option-meta">
+                        ${isSelected ? '<span class="fv-parent-picker-option-check" aria-hidden="true"><i class="fa fa-check"></i></span>' : ''}
+                        <span class="fv-parent-picker-option-scope">${escapeHtml(scopeLabel)}</span>
+                    </span>
                 </button>
             `;
         };
@@ -137,44 +155,55 @@
             state.entries = normalizeEntries(entries);
             const safeSelected = normalizeParentFolderId(selectedParentId || getSelectedParentId());
             const selectedEntry = findSelectedEntry(safeSelected);
+            const selectedIsTopLevel = !safeSelected;
             const filteredEntries = filterEntries();
-            const resultEntries = [buildTopLevelEntry(), ...filteredEntries];
             const resultCount = filteredEntries.length;
             const availableCount = state.entries.length;
+            const selectedPathLabel = formatEntryPath(selectedEntry);
 
             shell.innerHTML = `
                 <div class="fv-parent-picker-current">
+                    <span class="fv-parent-picker-current-icon" aria-hidden="true">
+                        <i class="fa ${selectedIsTopLevel ? 'fa-level-up' : 'fa-folder-open-o'}"></i>
+                    </span>
                     <div class="fv-parent-picker-current-copy">
-                        <span class="fv-parent-picker-kicker">Selected parent</span>
+                        <span class="fv-parent-picker-kicker">Current location</span>
                         <strong>${escapeHtml(selectedEntry.name)}</strong>
-                        <span>${escapeHtml(selectedEntry.path)}</span>
+                        <span>${escapeHtml(selectedPathLabel || 'Keep this folder at the top level.')}</span>
                     </div>
                     <div class="fv-parent-picker-current-stats">
+                        <span class="fv-parent-picker-chip${selectedIsTopLevel ? ' is-accent' : ''}">${selectedIsTopLevel ? 'Top level' : 'Nested'}</span>
                         <span class="fv-parent-picker-chip">${escapeHtml(String(availableCount))} folder${availableCount === 1 ? '' : 's'}</span>
                         ${state.search ? `<span class="fv-parent-picker-chip is-accent">${escapeHtml(String(resultCount))} match${resultCount === 1 ? '' : 'es'}</span>` : ''}
+                        ${selectedIsTopLevel ? '' : '<button type="button" class="fv-parent-picker-current-action" data-parent-folder-id=""><i class="fa fa-level-up" aria-hidden="true"></i> Move to top level</button>'}
                     </div>
                 </div>
                 <div class="fv-parent-picker-toolbar">
                     <label class="fv-parent-picker-search">
-                        <span>Find parent</span>
-                        <input
-                            type="text"
-                            class="fv-parent-picker-search-input"
-                            value="${escapeHtml(state.search)}"
-                            placeholder="Search folders or full path"
-                            autocomplete="off">
+                        <span>Choose parent</span>
+                        <span class="fv-parent-picker-search-control">
+                            <input
+                                type="text"
+                                class="fv-parent-picker-search-input"
+                                value="${escapeHtml(state.search)}"
+                                placeholder="Search folders by name or path"
+                                autocomplete="off">
+                            <button type="button" class="fv-parent-picker-clear"${state.search ? '' : ' disabled'} aria-label="Clear parent search"><i class="fa fa-times" aria-hidden="true"></i><span>Clear</span></button>
+                        </span>
                     </label>
-                    <button type="button" class="fv-parent-picker-clear"${state.search ? '' : ' disabled'}><i class="fa fa-times" aria-hidden="true"></i> Clear</button>
+                </div>
+                <div class="fv-parent-picker-pinned" role="listbox" aria-label="Pinned parent folder option">
+                    ${buildOptionHtml(buildTopLevelEntry(), safeSelected)}
                 </div>
                 <div class="fv-parent-picker-meta">
                     ${state.search
                         ? `Showing ${escapeHtml(String(resultCount))} of ${escapeHtml(String(availableCount))} folders.`
-                        : `Choose a parent folder path or leave this folder at the top level.`}
+                        : `Choose a destination folder or keep this folder at the top level.`}
                 </div>
                 <div class="fv-parent-picker-list" role="listbox" aria-label="Parent folder options">
-                    ${resultEntries.length > 0
-                        ? resultEntries.map((entry) => buildOptionHtml(entry, safeSelected)).join('')
-                        : '<div class="fv-parent-picker-empty">No folders match this search.</div>'}
+                    ${filteredEntries.length > 0
+                        ? filteredEntries.map((entry) => buildOptionHtml(entry, safeSelected)).join('')
+                        : `<div class="fv-parent-picker-empty">${state.search ? 'No folders match this search.' : 'No available parent folders yet.'}</div>`}
                 </div>
             `;
 

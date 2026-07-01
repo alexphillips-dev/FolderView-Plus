@@ -61,6 +61,14 @@ const isCompactMultiRowPreview = typeof dockerRuntimeShared.isCompactMultiRowPre
         const normalizedRows = normalizeFolderPreviewRowLimit(settings);
         return normalizedRows === 0 || normalizedRows > 1;
     });
+const getPreviewHoverAnimationClass = typeof dockerRuntimeShared.getPreviewHoverAnimationClass === 'function'
+    ? dockerRuntimeShared.getPreviewHoverAnimationClass
+    : ((settings = {}) => {
+        const normalized = String(settings?.preview_hover_animation || settings?.previewHoverAnimation || '').trim().toLowerCase();
+        const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+        const token = aliases[normalized] || normalized;
+        return ['lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token) ? `fv-hover-animation-${token}` : '';
+    });
 const applyFolderPreviewLayout = typeof dockerRuntimeShared.applyFolderPreviewLayout === 'function'
     ? dockerRuntimeShared.applyFolderPreviewLayout
     : (($preview, settings = {}) => {
@@ -493,6 +501,7 @@ const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;
 const DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP = 64;
 const DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS = 72;
 const DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY = 'fvplus.runtime.docker.widthDebug.v1';
+const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus.runtime.docker.appWidth.v1';
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
@@ -523,6 +532,53 @@ let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
+
+const readDockerRuntimeCachedAppWidthMap = () => {
+    try {
+        if (!window.localStorage) {
+            return {};
+        }
+        const parsed = JSON.parse(window.localStorage.getItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_error) {
+        return {};
+    }
+};
+
+const readDockerRuntimeCachedAppWidth = (mode = 'standard') => {
+    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
+        ? String(mode || '').toLowerCase()
+        : 'standard';
+    const cached = readDockerRuntimeCachedAppWidthMap()[normalizedMode];
+    return clampDockerRuntimeColumnWidth(cached, 1);
+};
+
+const writeDockerRuntimeCachedAppWidth = (mode = 'standard', width = null) => {
+    const safeWidth = clampDockerRuntimeColumnWidth(width, 1);
+    if (!safeWidth) {
+        return;
+    }
+    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
+        ? String(mode || '').toLowerCase()
+        : 'standard';
+    try {
+        if (!window.localStorage) {
+            return;
+        }
+        const next = {
+            ...readDockerRuntimeCachedAppWidthMap(),
+            [normalizedMode]: safeWidth
+        };
+        const payload = JSON.stringify(next);
+        if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+            dockerStorageWriter.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload, { delayMs: 180, idle: true });
+        } else {
+            window.localStorage.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload);
+        }
+    } catch (_error) {
+        // Ignore localStorage limitations.
+    }
+};
 let dockerRuntimeActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -1825,6 +1881,82 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
 
+const applyDockerRuntimeAppColumnInlineWidth = (desktopWidthPx = null) => {
+    const effectiveWidth = clampDockerRuntimeColumnWidth(desktopWidthPx, 1);
+    if (!effectiveWidth) {
+        return;
+    }
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets) {
+        return;
+    }
+    const applyWidth = (element) => {
+        if (!element || !element.style) {
+            return;
+        }
+        element.style.setProperty('width', `${effectiveWidth}px`);
+        element.style.setProperty('min-width', `${effectiveWidth}px`);
+        element.style.setProperty('max-width', `${effectiveWidth}px`);
+    };
+    applyWidth(targets.headers[0]);
+    const cells = document.querySelectorAll('tbody#docker_list > tr > td:nth-child(1), tbody#docker_view > tr > td:nth-child(1)');
+    cells.forEach((cell) => applyWidth(cell));
+};
+
+const primeDockerRuntimeAppWidthBeforeRender = (folders = null) => {
+    const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    let estimatedWidth = baseline;
+    const folderEntries = folders && typeof folders === 'object'
+        ? Object.values(folders).filter((folder) => folder && typeof folder === 'object')
+        : [];
+    if (folderEntries.length > 0 && document && typeof document.createElement === 'function') {
+        const measureCanvas = document.createElement('canvas');
+        const ctx = measureCanvas && typeof measureCanvas.getContext === 'function'
+            ? measureCanvas.getContext('2d')
+            : null;
+        if (ctx) {
+            const sampleNode = document.querySelector('tbody#docker_list td.ct-name, tbody#docker_view td.ct-name, body');
+            const style = sampleNode ? window.getComputedStyle(sampleNode) : null;
+            ctx.font = style
+                ? `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`
+                : '700 14px Arial, sans-serif';
+            const stoppedText = typeof $ !== 'undefined' && $.i18n ? $.i18n('stopped') : 'stopped';
+            folderEntries.forEach((folder) => {
+                const nameText = String(folder.name || '').trim();
+                const members = Array.isArray(folder.children)
+                    ? folder.children.length
+                    : (Array.isArray(folder.containers) ? folder.containers.length : 0);
+                const statusText = `${Math.max(0, members)}/${Math.max(0, members)} ${stoppedText}`;
+                const textWidth = Math.max(
+                    nameText ? ctx.measureText(nameText).width : 0,
+                    statusText ? ctx.measureText(statusText).width : 0
+                );
+                if (textWidth <= 0) {
+                    return;
+                }
+                const width = Math.ceil(textWidth + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
+                if (width > estimatedWidth) {
+                    estimatedWidth = width;
+                }
+            });
+        }
+    }
+    const mode = getDockerRuntimeAppColumnMode();
+    const cachedWidth = readDockerRuntimeCachedAppWidth(mode);
+    const primedWidth = clampDockerRuntimeColumnWidth(Math.max(
+        estimatedWidth || 0,
+        cachedWidth || 0,
+        Number(dockerRuntimeAutoAppWidthFloor) || 0
+    ), 1);
+    if (!primedWidth) {
+        return null;
+    }
+    dockerRuntimeAutoAppWidthFloor = primedWidth;
+    applyDockerRuntimeAppWidthVariables(primedWidth);
+    applyDockerRuntimeAppColumnInlineWidth(primedWidth);
+    return primedWidth;
+};
+
 const estimateDockerRuntimeAutoAppWidth = () => {
     const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
     const rows = Array.from(document.querySelectorAll('tbody#docker_list tr.folder, tbody#docker_view tr.folder'));
@@ -1906,11 +2038,11 @@ const buildDockerRuntimeWidthDecision = () => {
     let boundedFloor = null;
     let appliedWidth = gapAdjustedWidth;
     if (Number.isFinite(dockerRuntimeAutoAppWidthFloor)) {
-        boundedFloor = Math.min(dockerRuntimeAutoAppWidthFloor, floorLimit);
+        boundedFloor = dockerRuntimeAutoAppWidthFloor;
         appliedWidth = Math.max(appliedWidth, boundedFloor);
     }
     appliedWidth = clampDockerRuntimeColumnWidth(appliedWidth, 1) || estimatedAppWidth;
-    const nextFloor = Math.min(appliedWidth, floorLimit);
+    const nextFloor = appliedWidth;
     return {
         mode,
         estimatedAppWidth,
@@ -1931,36 +2063,20 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     }
     const decision = buildDockerRuntimeWidthDecision();
     dockerRuntimeAutoAppWidthFloor = decision.nextFloor;
+    writeDockerRuntimeCachedAppWidth(decision.mode, decision.appliedWidth);
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
-        const effectiveWidth = index === 1
-            ? (
-                isMobile
-                    ? Math.max(
-                        DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
-                        Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
-                    )
-                    : decision.appliedWidth
+        if (index !== 1) {
+            return;
+        }
+        const effectiveWidth = isMobile
+            ? Math.max(
+                DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
+                Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
             )
-            : null;
-        const applyWidth = (element) => {
-            if (!element || !element.style) {
-                return;
-            }
-            if (!effectiveWidth) {
-                element.style.removeProperty('width');
-                element.style.removeProperty('min-width');
-                element.style.removeProperty('max-width');
-                return;
-            }
-            element.style.setProperty('width', `${effectiveWidth}px`);
-            element.style.setProperty('min-width', `${effectiveWidth}px`);
-            element.style.setProperty('max-width', `${effectiveWidth}px`);
-        };
-        applyWidth(header);
-        const cells = document.querySelectorAll(`tbody#docker_list > tr > td:nth-child(${index}), tbody#docker_view > tr > td:nth-child(${index})`);
-        cells.forEach((cell) => applyWidth(cell));
+            : decision.appliedWidth;
+        applyDockerRuntimeAppColumnInlineWidth(effectiveWidth);
     });
     applyDockerRuntimeAppWidthVariables(decision.appliedWidth || null);
     const gapMetricsAfter = readDockerRuntimeGapMetrics();
@@ -2798,6 +2914,397 @@ const toggleDockerFolderPin = async (folderId) => {
         }
     });
 };
+const buildDockerFolderRuntimeOrderState = () => {
+    const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};
+    const orderedMap = getPrefsOrderedFolderMap(folders, folderTypePrefs || {});
+    const fullOrder = Object.keys(orderedMap || {});
+    for (const id of Object.keys(folders)) {
+        if (!fullOrder.includes(id)) {
+            fullOrder.push(id);
+        }
+    }
+    const validIds = new Set(Object.keys(folders));
+    const parentById = {};
+    const childrenById = {};
+    for (const id of Object.keys(folders)) {
+        childrenById[id] = [];
+    }
+    for (const id of Object.keys(folders)) {
+        const rawParentId = normalizeFolderParentId(folders[id]?.parentId || folders[id]?.parent_id || '');
+        const parentId = rawParentId && rawParentId !== id && validIds.has(rawParentId) ? rawParentId : '';
+        parentById[id] = parentId;
+        if (parentId) {
+            childrenById[parentId].push(id);
+        }
+    }
+    const indexById = new Map(fullOrder.map((id, index) => [id, index]));
+    for (const children of Object.values(childrenById)) {
+        children.sort((left, right) => (indexById.get(left) ?? 0) - (indexById.get(right) ?? 0));
+    }
+    const collectDescendants = (folderId, seen = new Set()) => {
+        const id = String(folderId || '').trim();
+        if (!id || seen.has(id)) {
+            return [];
+        }
+        seen.add(id);
+        const output = [];
+        for (const childId of (childrenById[id] || [])) {
+            output.push(childId);
+            output.push(...collectDescendants(childId, seen));
+        }
+        return output;
+    };
+    return {
+        folders,
+        fullOrder,
+        parentById,
+        childrenById,
+        collectDescendants
+    };
+};
+const persistDockerFolderManualOrder = async (nextOrder) => {
+    const payload = {
+        type: 'docker',
+        prefs: JSON.stringify({
+            sortMode: 'manual',
+            manualOrder: Array.isArray(nextOrder) ? nextOrder : []
+        })
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so Docker menu ordering still
+            // works if the runtime request wrapper is temporarily unavailable.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
+const persistDockerFolderRecord = async (folderId, folderPayload) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        throw new Error('Missing folder ID.');
+    }
+    const payload = {
+        type: 'docker',
+        id,
+        content: JSON.stringify(folderPayload && typeof folderPayload === 'object' ? folderPayload : {})
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/update.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so hierarchy moves still work
+            // if the runtime request wrapper is temporarily unavailable.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/update.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
+const applyDockerFolderMenuOrderToDom = (orderedIds) => {
+    if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
+        return false;
+    }
+    const $folderRows = $('#docker_list > tr.folder');
+    if (!$folderRows.length) {
+        return false;
+    }
+    const rowById = new Map();
+    $folderRows.each((_index, row) => {
+        const id = readFolderIdFromRow(row);
+        if (id) {
+            rowById.set(id, row);
+        }
+    });
+    const orderedRows = [];
+    orderedIds.forEach((id) => {
+        const row = rowById.get(String(id || '').trim());
+        if (row) {
+            orderedRows.push(row);
+            rowById.delete(String(id || '').trim());
+        }
+    });
+    rowById.forEach((row) => orderedRows.push(row));
+    if (orderedRows.length <= 1) {
+        return false;
+    }
+    const currentRows = $folderRows.get();
+    const changed = orderedRows.some((row, index) => row !== currentRows[index]);
+    if (!changed) {
+        return false;
+    }
+    const $firstFolderRow = $folderRows.first();
+    const $previous = $firstFolderRow.prev();
+    const fragment = document.createDocumentFragment();
+    orderedRows.forEach((row) => {
+        fragment.appendChild(row);
+    });
+    if ($previous.length) {
+        $previous.after(fragment);
+    } else {
+        $('#docker_list').prepend(fragment);
+    }
+    orderedRows.forEach((row) => {
+        const id = readFolderIdFromRow(row);
+        if (id) {
+            forceFolderRowVerticalCenter(id);
+        }
+    });
+    const $dockerList = $('#docker_list');
+    if ($dockerList.length && typeof $dockerList.sortable === 'function') {
+        try {
+            $dockerList.sortable('refresh');
+        } catch (_error) {}
+    }
+    return true;
+};
+const buildDockerFolderMoveTargetOptions = (sourceId, state) => {
+    const safeSourceId = String(sourceId || '').trim();
+    const folders = state?.folders && typeof state.folders === 'object' ? state.folders : {};
+    const descendants = state?.collectDescendants ? state.collectDescendants(safeSourceId) : [];
+    const blocked = new Set([safeSourceId, ...descendants]);
+    return (state?.fullOrder || [])
+        .filter((id) => Object.prototype.hasOwnProperty.call(folders, id) && !blocked.has(id))
+        .map((id) => {
+            const folder = folders[id] || {};
+            const depth = Math.max(0, Number(buildFolderDepthById(folders)[id]) || 0);
+            const prefix = depth > 0 ? `${'-- '.repeat(Math.min(depth, 6))}` : '';
+            return `<option value="${escapeHtml(id)}">${escapeHtml(prefix + String(folder.name || id))}</option>`;
+        })
+        .join('');
+};
+const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) => {
+    const id = String(folderId || '').trim();
+    const parentId = normalizeFolderParentId(nextParentId);
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (!ensureDockerFolderUnlocked(id, parentId ? 'Move folder under another folder' : 'Move folder to root')) {
+        return;
+    }
+    return dockerSafeUiActionRunner.run(`docker-folder-menu-hierarchy:${id}:${parentId || 'root'}`, async () => {
+        const state = buildDockerFolderRuntimeOrderState();
+        const { folders, fullOrder, parentById, collectDescendants } = state;
+        const sourceFolder = folders[id];
+        if (!sourceFolder) {
+            return;
+        }
+        const descendants = collectDescendants(id);
+        if (parentId && (!Object.prototype.hasOwnProperty.call(folders, parentId) || parentId === id || descendants.includes(parentId))) {
+            swal({
+                title: 'Folder move blocked',
+                text: 'Choose a different target folder. A folder cannot be moved under itself or one of its children.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const currentParentId = String(parentById[id] || '').trim();
+        if (currentParentId === parentId) {
+            swal({
+                title: 'Folder already there',
+                text: parentId ? 'This folder is already under the selected folder.' : 'This folder is already at the top level.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const sourceSubtreeIds = [id, ...descendants];
+        const sourceSet = new Set(sourceSubtreeIds);
+        const orderWithoutSource = fullOrder.filter((candidateId) => !sourceSet.has(candidateId));
+        let insertIndex = orderWithoutSource.length;
+        if (parentId) {
+            const parentSubtreeIds = [parentId, ...collectDescendants(parentId)].filter((candidateId) => !sourceSet.has(candidateId));
+            let lastParentSubtreeIndex = -1;
+            orderWithoutSource.forEach((candidateId, index) => {
+                if (parentSubtreeIds.includes(candidateId)) {
+                    lastParentSubtreeIndex = index;
+                }
+            });
+            insertIndex = lastParentSubtreeIndex >= 0 ? lastParentSubtreeIndex + 1 : orderWithoutSource.length;
+        }
+        const nextOrder = orderWithoutSource.slice();
+        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const previousFolders = { ...globalFolders };
+        const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+        const previousOrder = fullOrder.slice();
+        const nextFolder = {
+            ...sourceFolder,
+            parentId
+        };
+        globalFolders = {
+            ...globalFolders,
+            [id]: nextFolder
+        };
+        folderTypePrefs = utils.normalizePrefs({
+            ...(folderTypePrefs || {}),
+            sortMode: 'manual',
+            manualOrder: nextOrder
+        });
+        applyRuntimePrefs(folderTypePrefs);
+        applyDockerFolderMenuOrderToDom(nextOrder);
+        const depthById = buildFolderDepthById(globalFolders);
+        sourceSubtreeIds.forEach((movedId) => {
+            const safeDepth = Math.max(0, Math.min(8, Number(depthById[movedId]) || 0));
+            $(`tr.folder-id-${movedId}`)
+                .attr('data-folder-depth', String(safeDepth))
+                .find('.folder-name-sub')
+                .css('padding-left', `${safeDepth * 20}px`);
+            forceFolderRowVerticalCenter(movedId);
+        });
+        try {
+            await persistDockerFolderRecord(id, nextFolder);
+            const response = await persistDockerFolderManualOrder(nextOrder);
+            folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
+            applyRuntimePrefs(folderTypePrefs);
+        } catch (error) {
+            globalFolders = previousFolders;
+            folderTypePrefs = previousPrefs;
+            applyRuntimePrefs(folderTypePrefs);
+            applyDockerFolderMenuOrderToDom(previousOrder);
+            const previousDepthById = buildFolderDepthById(previousFolders);
+            sourceSubtreeIds.forEach((movedId) => {
+                const safeDepth = Math.max(0, Math.min(8, Number(previousDepthById[movedId]) || 0));
+                $(`tr.folder-id-${movedId}`)
+                    .attr('data-folder-depth', String(safeDepth))
+                    .find('.folder-name-sub')
+                    .css('padding-left', `${safeDepth * 20}px`);
+                forceFolderRowVerticalCenter(movedId);
+            });
+            throw error;
+        }
+    });
+};
+const moveDockerFolderUnderFromMenu = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    const state = buildDockerFolderRuntimeOrderState();
+    const targetOptions = buildDockerFolderMoveTargetOptions(id, state);
+    if (!targetOptions) {
+        swal({
+            title: 'No target folders',
+            text: 'There are no valid folders to move this folder under.',
+            type: 'info',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+    const folderName = escapeHtml(String(globalFolders[id]?.name || id));
+    swal({
+        title: 'Move under...',
+        text: `
+            <div class="fv-tree-move-dialog">
+                <div class="fv-tree-move-source">Source: <strong>${folderName}</strong></div>
+                <label class="fv-tree-move-field-label" for="fv-docker-menu-move-target">Move under folder</label>
+                <select id="fv-docker-menu-move-target">${targetOptions}</select>
+            </div>
+        `,
+        html: true,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Move under folder',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: true
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        const targetId = String($('#fv-docker-menu-move-target').val() || '').trim();
+        void applyDockerFolderHierarchyMoveFromMenu(id, targetId);
+    });
+};
+const moveDockerFolderFromMenu = async (folderId, direction) => {
+    const id = String(folderId || '').trim();
+    const moveDirection = direction < 0 ? -1 : 1;
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (!ensureDockerFolderUnlocked(id, moveDirection < 0 ? 'Move folder up' : 'Move folder down')) {
+        return;
+    }
+    return dockerSafeUiActionRunner.run(`docker-folder-menu-move:${id}:${moveDirection}`, async () => {
+        const {
+            folders,
+            fullOrder,
+            parentById,
+            childrenById,
+            collectDescendants
+        } = buildDockerFolderRuntimeOrderState();
+        if (!Object.prototype.hasOwnProperty.call(folders, id)) {
+            return;
+        }
+        const parentId = String(parentById[id] || '').trim();
+        const siblingIds = parentId
+            ? [...(childrenById[parentId] || [])]
+            : fullOrder.filter((candidateId) => !String(parentById[candidateId] || '').trim());
+        const sourceIndex = siblingIds.indexOf(id);
+        const targetIndex = sourceIndex + moveDirection;
+        if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= siblingIds.length) {
+            swal({
+                title: 'Folder order unchanged',
+                text: moveDirection < 0
+                    ? 'This folder is already first in this level.'
+                    : 'This folder is already last in this level.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const targetSiblingId = siblingIds[targetIndex];
+        const sourceSubtreeIds = [id, ...collectDescendants(id)];
+        const targetSubtreeIds = [targetSiblingId, ...collectDescendants(targetSiblingId)];
+        const sourceSet = new Set(sourceSubtreeIds);
+        const orderWithoutSource = fullOrder.filter((candidateId) => !sourceSet.has(candidateId));
+        const insertIndex = moveDirection < 0
+            ? orderWithoutSource.findIndex((candidateId) => targetSubtreeIds.includes(candidateId))
+            : (() => {
+                let lastIndex = -1;
+                orderWithoutSource.forEach((candidateId, index) => {
+                    if (targetSubtreeIds.includes(candidateId)) {
+                        lastIndex = index;
+                    }
+                });
+                return lastIndex >= 0 ? lastIndex + 1 : orderWithoutSource.length;
+            })();
+        const nextOrder = orderWithoutSource.slice();
+        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const changed = nextOrder.length === fullOrder.length
+            && nextOrder.some((candidateId, index) => String(candidateId || '') !== String(fullOrder[index] || ''));
+        if (!changed) {
+            return;
+        }
+        const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+        const previousOrder = fullOrder.slice();
+        folderTypePrefs = utils.normalizePrefs({
+            ...(folderTypePrefs || {}),
+            sortMode: 'manual',
+            manualOrder: nextOrder
+        });
+        applyRuntimePrefs(folderTypePrefs);
+        applyDockerFolderMenuOrderToDom(nextOrder);
+        try {
+            const response = await persistDockerFolderManualOrder(nextOrder);
+            folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
+            applyRuntimePrefs(folderTypePrefs);
+        } catch (error) {
+            folderTypePrefs = previousPrefs;
+            applyRuntimePrefs(folderTypePrefs);
+            applyDockerFolderMenuOrderToDom(previousOrder);
+            throw error;
+        }
+    });
+};
 const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {
     if (!isDockerFolderLocked(id)) {
         return true;
@@ -3169,6 +3676,38 @@ const forceFolderRowVerticalCenter = (id) => rowCenteringTools.forceFolderRowVer
 const queueForceAllFolderRowsVerticalCenter = () => rowCenteringTools.queueForceAllFolderRowsVerticalCenter();
 const startFolderRowCenterObserver = () => rowCenteringTools.startFolderRowCenterObserver();
 
+const readDockerPostRenderPolishSignature = () => Array.from(document.querySelectorAll('#docker_list > tr.folder, #docker_view > tr.folder'))
+    .map((row) => {
+        const id = readFolderIdFromRow(row) || String(row.querySelector?.('.folder-appname')?.textContent || '').trim();
+        const rect = row.getBoundingClientRect ? row.getBoundingClientRect() : null;
+        const preview = row.querySelector ? row.querySelector('.folder-preview') : null;
+        const rowHeight = Math.round(Math.max(Number(rect?.height) || 0, Number(row.offsetHeight) || 0));
+        const previewWidth = Math.round(Math.max(Number(preview?.scrollWidth) || 0, Number(preview?.clientWidth) || 0));
+        const previewHeight = Math.round(Math.max(Number(preview?.scrollHeight) || 0, Number(preview?.clientHeight) || 0));
+        return `${id}:${rowHeight}:${previewWidth}:${previewHeight}`;
+    })
+    .join('|');
+
+const hasUnsettledDockerPostRenderAssets = () => Array.from(document.querySelectorAll('#docker_list > tr.folder img, #docker_view > tr.folder img'))
+    .some((img) => img && img.complete === false);
+
+const queueConditionalDockerPostRenderPolish = ({ delayMs, reason, folderIds = [], signatureRef = null }) => {
+    window.setTimeout(() => {
+        const currentSignature = readDockerPostRenderPolishSignature();
+        const previousSignature = signatureRef && typeof signatureRef === 'object'
+            ? String(signatureRef.value || '')
+            : '';
+        if (currentSignature === previousSignature && !hasUnsettledDockerPostRenderAssets()) {
+            return;
+        }
+        if (signatureRef && typeof signatureRef === 'object') {
+            signatureRef.value = currentSignature;
+        }
+        queueForceAllFolderRowsVerticalCenter();
+        scheduleDockerRuntimeWidthReflow(reason, 18);
+    }, Math.max(0, Number(delayMs) || 0));
+};
+
 dockerDebug.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
 if (FOLDER_VIEW_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
@@ -3229,17 +3768,29 @@ const hideDockerRuntimeLoadingOverlay = () => {
 const scheduleDockerPostRenderPolish = (folderIds = []) => {
     const safeFolderIds = Array.isArray(folderIds) ? folderIds.slice() : [];
     const run = () => {
+        const signatureRef = { value: readDockerPostRenderPolishSignature() };
         startFolderRowCenterObserver();
-        safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
         queueForceAllFolderRowsVerticalCenter();
         bindDockerRuntimeAppColumnResizer();
         scheduleDockerRuntimeWidthReflow('render-complete', 12);
-        setTimeout(() => {
-            safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
-            queueForceAllFolderRowsVerticalCenter();
-        }, 48);
-        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
-        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 48,
+            reason: 'render-post-48ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 80,
+            reason: 'render-post-80ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 260,
+            reason: 'render-post-260ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
     };
     if (typeof window.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(() => run());
@@ -3875,6 +4426,7 @@ const createFolders = async () => {
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
+    primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
     if (order.length <= 0) {
         order = [...unraidOrder];
@@ -4326,7 +4878,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const lockedClass = locked ? 'fv-folder-locked' : '';
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {
@@ -5358,16 +5911,22 @@ const clearFolderEditorPrefill = () => {
         actionsApi.clearFolderEditorPrefill();
     }
 };
-const buildDockerFolderEditorUrl = (id = '') => {
+const buildDockerFolderEditorUrl = (id = '', options = {}) => {
     const actionsApi = getDockerRuntimeActionsApi();
     return actionsApi && typeof actionsApi.buildDockerFolderEditorUrl === 'function'
-        ? actionsApi.buildDockerFolderEditorUrl(id)
+        ? actionsApi.buildDockerFolderEditorUrl(id, options)
         : `/Docker/Folder?type=docker&_=${String(Date.now())}#type=docker`;
 };
 const editFolder = (id) => {
     const actionsApi = getDockerRuntimeActionsApi();
     if (actionsApi && typeof actionsApi.editFolder === 'function') {
         actionsApi.editFolder(id);
+    }
+};
+const createChildFolder = (id) => {
+    const actionsApi = getDockerRuntimeActionsApi();
+    if (actionsApi && typeof actionsApi.createChildFolder === 'function') {
+        actionsApi.createChildFolder(id);
     }
 };
 
@@ -5632,11 +6191,159 @@ const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter(
         'fa-unlock-alt'
     ]
 });
+const DOCKER_CONTEXT_MENU_SELECTORS = [
+    'ul.context-menu-list',
+    'ul.contextMenuPlugin',
+    'ul.context-menu',
+    'ul.dropdown-menu'
+];
+const DOCKER_CONTEXT_VIEWPORT_MARGIN = 10;
 const queueDockerFolderContextQuickIcons = (attempt = 0) => {
     if (!dockerContextQuickStripAdapter || typeof dockerContextQuickStripAdapter.queueEnhance !== 'function') {
         return;
     }
     dockerContextQuickStripAdapter.queueEnhance(attempt);
+};
+const getVisibleDockerContextMenus = () => {
+    const jq = window.jQuery || window.$;
+    if (jq) {
+        const menus = [];
+        for (const selector of DOCKER_CONTEXT_MENU_SELECTORS) {
+            jq(`${selector}:visible`).each((_, menu) => {
+                if (!menus.includes(menu)) {
+                    menus.push(menu);
+                }
+            });
+        }
+        return menus;
+    }
+    return DOCKER_CONTEXT_MENU_SELECTORS
+        .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+        .filter((menu, index, all) => all.indexOf(menu) === index)
+        .filter((menu) => {
+            const rect = menu.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+        });
+};
+const positionDockerContextElementInsideViewport = (element) => {
+    if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return false;
+    }
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+        return false;
+    }
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!viewportWidth || !viewportHeight) {
+        return false;
+    }
+    const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
+    const style = window.getComputedStyle(element);
+    const fixed = style.position === 'fixed';
+    const scrollX = fixed ? 0 : (window.pageXOffset || document.documentElement.scrollLeft || 0);
+    const scrollY = fixed ? 0 : (window.pageYOffset || document.documentElement.scrollTop || 0);
+    let nextTop = rect.top + scrollY;
+    let nextLeft = rect.left + scrollX;
+    let changed = false;
+
+    element.classList.add('fvplus-docker-context-menu');
+    element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+
+    if (rect.bottom > viewportHeight - margin) {
+        nextTop -= rect.bottom - (viewportHeight - margin);
+        changed = true;
+    }
+    if (rect.top < margin) {
+        nextTop += margin - rect.top;
+        changed = true;
+    }
+    if (rect.right > viewportWidth - margin) {
+        nextLeft -= rect.right - (viewportWidth - margin);
+        changed = true;
+    }
+    if (rect.left < margin) {
+        nextLeft += margin - rect.left;
+        changed = true;
+    }
+
+    if (changed) {
+        element.style.top = `${Math.max(margin + scrollY, nextTop)}px`;
+        element.style.left = `${Math.max(margin + scrollX, nextLeft)}px`;
+    }
+    return true;
+};
+const adjustDockerContextSubmenuViewportPlacement = (listItem) => {
+    if (!listItem || !listItem.closest) {
+        return false;
+    }
+    const rootMenu = listItem.closest('.fvplus-docker-context-menu');
+    const submenu = Array.from(listItem.children || []).find((child) => child && child.tagName === 'UL');
+    if (!rootMenu || !submenu || typeof submenu.getBoundingClientRect !== 'function') {
+        return false;
+    }
+    listItem.classList.remove('fvplus-context-submenu-open-up', 'fvplus-context-submenu-open-left');
+    submenu.style.maxHeight = '';
+    const rect = submenu.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+        return false;
+    }
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
+    if (rect.bottom > viewportHeight - margin) {
+        listItem.classList.add('fvplus-context-submenu-open-up');
+    }
+    if (rect.right > viewportWidth - margin) {
+        listItem.classList.add('fvplus-context-submenu-open-left');
+    }
+    submenu.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+    return true;
+};
+const adjustVisibleDockerContextMenusInsideViewport = () => {
+    const menus = getVisibleDockerContextMenus();
+    if (!menus.length) {
+        return false;
+    }
+    menus.forEach((menu) => positionDockerContextElementInsideViewport(menu));
+    return true;
+};
+let dockerContextViewportGuardsBound = false;
+const bindDockerContextMenuViewportGuards = () => {
+    if (dockerContextViewportGuardsBound) {
+        return;
+    }
+    dockerContextViewportGuardsBound = true;
+    const handlePotentialSubmenu = (event) => {
+        const item = event.target && event.target.closest
+            ? event.target.closest('.fvplus-docker-context-menu li')
+            : null;
+        if (!item) {
+            return;
+        }
+        window.requestAnimationFrame(() => {
+            adjustDockerContextSubmenuViewportPlacement(item);
+            adjustVisibleDockerContextMenusInsideViewport();
+        });
+    };
+    document.addEventListener('mouseover', handlePotentialSubmenu, true);
+    document.addEventListener('focusin', handlePotentialSubmenu, true);
+    window.addEventListener('resize', () => {
+        window.requestAnimationFrame(adjustVisibleDockerContextMenusInsideViewport);
+    });
+};
+const queueDockerContextViewportGuard = (attempt = 0) => {
+    bindDockerContextMenuViewportGuards();
+    window.requestAnimationFrame(() => {
+        if (adjustVisibleDockerContextMenusInsideViewport()) {
+            return;
+        }
+        const safeAttempt = Number.isFinite(Number(attempt)) ? Number(attempt) : 0;
+        if (safeAttempt >= 8) {
+            return;
+        }
+        window.setTimeout(() => queueDockerContextViewportGuard(safeAttempt + 1), 18 * (safeAttempt + 1));
+    });
 };
 
 /**
@@ -5741,6 +6448,7 @@ const addDockerFolderContext = (id) => {
     const focused = dockerFocusedFolderId === id;
     const pinned = isDockerFolderPinned(id);
     const locked = isDockerFolderLocked(id);
+    const currentParentId = normalizeFolderParentId(folderData?.parentId || folderData?.parent_id || '');
     const directScopeContainers = getScopedRuntimeContainersForFolder(id, false);
     const branchScopeContainers = getScopedRuntimeContainersForFolder(id, true);
     const directCounts = summarizeFolderActionCounts(directScopeContainers);
@@ -5960,6 +6668,33 @@ const addDockerFolderContext = (id) => {
         icon: 'fa-wrench',
         action: (evt) => { evt.preventDefault(); editFolder(id); }
     });
+    opts.push({
+        text: 'Add child folder',
+        icon: 'fa-folder-open-o',
+        action: (evt) => { evt.preventDefault(); createChildFolder(id); }
+    });
+    opts.push({
+        text: 'Move up',
+        icon: 'fa-chevron-up',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderFromMenu(id, -1); }
+    });
+    opts.push({
+        text: 'Move down',
+        icon: 'fa-chevron-down',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderFromMenu(id, 1); }
+    });
+    opts.push({
+        text: 'Move under...',
+        icon: 'fa-level-down',
+        action: (evt) => { evt.preventDefault(); moveDockerFolderUnderFromMenu(id); }
+    });
+    if (currentParentId) {
+        opts.push({
+            text: 'Move to root',
+            icon: 'fa-level-up',
+            action: (evt) => { evt.preventDefault(); applyDockerFolderHierarchyMoveFromMenu(id, ''); }
+        });
+    }
 
     const cloneSubMenu = [
         {
@@ -6032,6 +6767,7 @@ const addDockerFolderContext = (id) => {
 
     context.attach('#' + id, opts);
     queueDockerFolderContextQuickIcons();
+    queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };
@@ -6357,16 +7093,32 @@ const collectDockerSupportBundlePageSnapshot = (reason = 'runtime-sync') => {
         : null;
 };
 
+let dockerSupportBundlePageSnapshotWriteTimer = null;
+let dockerSupportBundlePageSnapshotPendingReason = '';
 const queueDockerSupportBundlePageSnapshot = (reason = 'runtime-sync', delayMs = 180) => {
     const diagnosticsApi = getDockerRuntimeDiagnosticsApi();
     if (!(diagnosticsApi && typeof diagnosticsApi.queuePageSnapshot === 'function')) {
         return;
     }
-    diagnosticsApi.queuePageSnapshot(reason, delayMs);
-    const snapshot = collectDockerSupportBundlePageSnapshot(reason);
-    if (snapshot) {
-        writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+    const safeReason = String(reason || 'runtime-sync');
+    const safeDelay = Math.max(0, Number(delayMs) || 0);
+    const offCriticalPathDelay = /^(render-complete|runtime-sync)$/.test(safeReason)
+        ? Math.max(safeDelay, 1200)
+        : safeDelay;
+    diagnosticsApi.queuePageSnapshot(safeReason, offCriticalPathDelay);
+    dockerSupportBundlePageSnapshotPendingReason = safeReason;
+    if (dockerSupportBundlePageSnapshotWriteTimer) {
+        clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
     }
+    dockerSupportBundlePageSnapshotWriteTimer = window.setTimeout(() => {
+        dockerSupportBundlePageSnapshotWriteTimer = null;
+        const snapshotReason = dockerSupportBundlePageSnapshotPendingReason || safeReason;
+        dockerSupportBundlePageSnapshotPendingReason = '';
+        const snapshot = collectDockerSupportBundlePageSnapshot(snapshotReason);
+        if (snapshot) {
+            writeDockerSupportBundleStorageRecord(DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY, snapshot);
+        }
+    }, offCriticalPathDelay);
 };
 const bindDockerUpdateActionClickCapture = () => {
     getDockerRuntimeReconcileApi()?.bindUpdateActionClickCapture?.();
@@ -6583,7 +7335,12 @@ const applyRuntimePrefs = (prefs) => {
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
     if (dockerRuntimeAutoAppWidthFloorMode !== appColumnWidth) {
         dockerRuntimeAutoAppWidthFloorMode = appColumnWidth;
-        dockerRuntimeAutoAppWidthFloor = null;
+        dockerRuntimeAutoAppWidthFloor = readDockerRuntimeCachedAppWidth(appColumnWidth);
+    }
+    const cachedAppWidth = readDockerRuntimeCachedAppWidth(appColumnWidth);
+    if (cachedAppWidth) {
+        dockerRuntimeAutoAppWidthFloor = Math.max(Number(dockerRuntimeAutoAppWidthFloor) || 0, cachedAppWidth);
+        applyDockerRuntimeAppWidthVariables(cachedAppWidth);
     }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);

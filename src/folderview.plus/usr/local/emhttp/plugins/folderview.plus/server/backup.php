@@ -10,6 +10,7 @@ fvplus_json_try(function (): array {
         'restore_latest',
         'restore_latest_undo',
         'delete',
+        'delete_all',
         'rollback_checkpoint',
         'rollback_restore_latest',
         'rollback_restore_previous'
@@ -140,6 +141,13 @@ fvplus_json_try(function (): array {
         $name = (string)($_POST['name'] ?? '');
         return [
             'deleted' => deleteBackupSnapshot($type, $name),
+            'backups' => listBackupSnapshots($type)
+        ];
+    }
+
+    if ($action === 'delete_all') {
+        return [
+            'deleted' => deleteAllBackupSnapshots($type),
             'backups' => listBackupSnapshots($type)
         ];
     }

@@ -3491,6 +3491,7 @@ const getSettingsWorkspacesApi = (() => {
             restoreBackupEntry,
             downloadBackupEntry,
             deleteBackupEntry,
+            deleteAllBackupEntries,
             runScheduledBackupNow,
             compareBackupSnapshots,
             changeBackupSchedulePref,
@@ -4325,6 +4326,7 @@ const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi(
 const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
 const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
 const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
+const deleteAllActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().deleteAllActiveRecoveryBackups(...args);
 const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
 const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
 const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
@@ -5304,6 +5306,22 @@ const deleteBackupByName = async (type, name) => {
     return Array.isArray(response.backups) ? response.backups : [];
 };
 
+const deleteAllBackupsForType = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Delete all ${resolvedType === 'docker' ? 'Docker' : 'VM'} backups`);
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
+        type: resolvedType,
+        action: 'delete_all'
+    });
+    if (!response.ok) {
+        throw new Error(response.error || 'Delete all backups failed.');
+    }
+    return {
+        result: response.deleted || {},
+        backups: Array.isArray(response.backups) ? response.backups : []
+    };
+};
+
 const fetchTemplates = async (type) => {
     const response = await apiGetJson('/plugins/folderview.plus/server/templates.php', {
         data: {
@@ -5366,48 +5384,12 @@ const showToastMessage = ({
     actionLabel = '',
     onAction = null
 } = {}) => {
-    const host = $('#fv-toast-host');
-    if (!host.length) {
-        return;
-    }
-    const toastId = `fv-toast-${Date.now()}-${++toastSerial}`;
-    const safeTitle = String(title || '').trim();
-    const safeMessage = String(message || '').trim();
-    const safeActionLabel = String(actionLabel || '').trim();
-    host.append(`
-        <div id="${toastId}" class="fv-toast is-${escapeHtml(level)}" role="status">
-            <div class="fv-toast-main">
-                ${safeTitle ? `<div class="fv-toast-title">${escapeHtml(safeTitle)}</div>` : ''}
-                ${safeMessage ? `<div class="fv-toast-message">${escapeHtml(safeMessage)}</div>` : ''}
-            </div>
-            <div class="fv-toast-actions">
-                ${safeActionLabel ? `<button type="button" class="fv-toast-action">${escapeHtml(safeActionLabel)}</button>` : ''}
-                <button type="button" class="fv-toast-close" aria-label="Dismiss notification"><i class="fa fa-times"></i></button>
-            </div>
-        </div>
-    `);
-    const toast = host.find(`#${toastId}`);
-    const removeToast = () => {
-        toast.fadeOut(120, () => {
-            toast.remove();
-        });
-    };
-
-    toast.find('.fv-toast-close').off('click.fvtoast').on('click.fvtoast', () => {
-        removeToast();
-    });
-    toast.find('.fv-toast-action').off('click.fvtoast').on('click.fvtoast', async () => {
-        if (typeof onAction === 'function') {
-            await onAction();
-        }
-        removeToast();
-    });
-
-    if (Number.isFinite(Number(durationMs)) && Number(durationMs) > 0) {
-        window.setTimeout(() => {
-            removeToast();
-        }, Number(durationMs));
-    }
+    void title;
+    void message;
+    void level;
+    void durationMs;
+    void actionLabel;
+    void onAction;
 };
 
 const formatTimestamp = (isoString) => {
@@ -7962,40 +7944,99 @@ const clearType = (type, id) => {
         const syncStepCount = resolvedType === 'docker' ? 1 : 0;
         const progressTotal = Math.max(3, deleteIds.length + syncStepCount + 2);
         let progressOpen = false;
-        const setProgress = (completed, label) => {
+        const operationTitle = id
+            ? `Deleting ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`
+            : `Clearing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`;
+        const setProgress = (completed, label, detail = {}) => {
+            const safeCompleted = Math.max(0, Math.min(progressTotal, completed));
+            const deletedCount = Number.isFinite(Number(detail.deletedCount))
+                ? Math.max(0, Number(detail.deletedCount))
+                : Math.max(0, Math.min(deleteIds.length, safeCompleted - 1));
+            const remainingFolders = Math.max(0, deleteIds.length - deletedCount);
             updateImportApplyProgressDialog({
-                completed: Math.max(0, Math.min(progressTotal, completed)),
+                completed: safeCompleted,
                 total: progressTotal,
-                label
+                label,
+                title: operationTitle,
+                kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                current: detail.current || label,
+                state: detail.state || 'running',
+                completedLabel: detail.completedLabel ?? deletedCount,
+                remainingLabel: detail.remainingLabel ?? remainingFolders,
+                note: detail.note || (id
+                    ? 'Do not close this page until the folder delete finishes.'
+                    : 'Do not close this page until all folders are cleared.')
             });
         };
         try {
-            openImportApplyProgressDialog(resolvedType, progressTotal);
+            openImportApplyProgressDialog(resolvedType, progressTotal, {
+                title: operationTitle,
+                kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                current: 'Preparing cleanup...',
+                note: id
+                    ? 'Do not close this page until the folder delete finishes.'
+                    : 'Do not close this page until all folders are cleared.'
+            });
             progressOpen = true;
-            setProgress(0, 'Creating safety backup...');
+            setProgress(0, 'Creating safety backup...', {
+                current: 'Creating a rollback point before deleting anything.',
+                deletedCount: 0
+            });
 
             const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
-            setProgress(1, `Safety backup created: ${backup?.name || 'ready'}`);
+            const backupSkipped = backup?.skipped === true;
+            setProgress(1, backupSkipped ? 'Safety backup skipped: no folders to protect.' : `Safety backup created: ${backup?.name || 'ready'}`, {
+                current: backupSkipped
+                    ? 'No backup file was created because the folder map is empty.'
+                    : `Backup ready: ${backup?.name || 'rollback point created'}`,
+                deletedCount: 0
+            });
 
             let completed = 1;
             const foldersBeforeDelete = getFolderMap(resolvedType);
+            let deletedCount = 0;
             for (const currentId of deleteIds) {
                 const currentName = foldersBeforeDelete[currentId]?.name || currentId;
+                setProgress(completed, `Deleting ${currentName}`, {
+                    current: `Removing folder: ${currentName}`,
+                    deletedCount
+                });
                 await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId });
                 completed += 1;
-                setProgress(completed, `Deleted ${currentName}`);
+                deletedCount += 1;
+                setProgress(completed, `Deleted ${currentName}`, {
+                    current: `Removed folder: ${currentName}`,
+                    deletedCount
+                });
             }
 
             if (resolvedType === 'docker') {
+                setProgress(completed, 'Syncing Docker folder order...', {
+                    current: 'Removing deleted folders from Docker order.',
+                    deletedCount
+                });
                 await syncDockerOrder();
                 completed += 1;
-                setProgress(completed, 'Synced Docker folder order');
+                setProgress(completed, 'Synced Docker folder order', {
+                    current: 'Docker folder order synced.',
+                    deletedCount
+                });
             }
 
-            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
+                current: 'Refreshing settings table and backups.',
+                deletedCount
+            });
             await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.');
-            await new Promise((resolve) => setTimeout(resolve, 180));
+            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.', {
+                current: id ? 'Cleanup complete.' : `${deletedCount} folders removed. Settings table refreshed.`,
+                state: 'success',
+                deletedCount,
+                completedLabel: deletedCount,
+                remainingLabel: 0,
+                note: 'Cleanup complete. The settings view has been refreshed.'
+            });
+            await new Promise((resolve) => setTimeout(resolve, 650));
             closeImportApplyProgressDialog();
             progressOpen = false;
 
@@ -8017,6 +8058,17 @@ const clearType = (type, id) => {
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
         } catch (error) {
             if (progressOpen) {
+                updateImportApplyProgressDialog({
+                    completed: progressTotal,
+                    total: progressTotal,
+                    label: 'Cleanup stopped.',
+                    title: operationTitle,
+                    kicker: resolvedType === 'docker' ? 'Docker cleanup' : 'VM cleanup',
+                    current: String(error?.message || 'Folder cleanup failed.'),
+                    state: 'error',
+                    note: 'Review the error message and try again.'
+                });
+                await new Promise((resolve) => setTimeout(resolve, 900));
                 closeImportApplyProgressDialog();
             }
             showError('Delete failed', error);
@@ -8859,9 +8911,17 @@ const createManualBackup = async (type) => {
         try {
             const backup = await createBackup(resolvedType, 'manual');
             await refreshBackups(resolvedType);
+            if (backup?.skipped === true) {
+                swal({
+                    title: 'Backup skipped',
+                    text: 'There are no folders to back up yet.',
+                    type: 'info'
+                });
+                return;
+            }
             swal({
                 title: 'Backup created',
-                text: backup.name,
+                text: backup?.name || 'Backup ready.',
                 type: 'success'
             });
         } catch (error) {
@@ -9055,6 +9115,62 @@ const deleteBackupEntry = (type, name) => {
             } catch (error) {
                 showError('Delete failed', error);
             }
+        });
+    });
+};
+
+const deleteAllBackupEntries = (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Delete all backups failed', error);
+        return;
+    }
+    const label = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const count = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType].length : 0;
+    if (count < 1) {
+        showError('Delete all backups failed', new Error(`No ${label} backups are available to delete.`));
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Delete all ${label} backups`)) {
+        return;
+    }
+    swal({
+        title: `Delete all ${label} backups?`,
+        text: `This will permanently delete ${count} ${label} backup snapshot${count === 1 ? '' : 's'}. This cannot be undone.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Continue',
+        cancelButtonText: 'Cancel'
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        swal({
+            title: 'Confirm delete all',
+            text: `Are you sure you want to delete every ${label} backup snapshot?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete all',
+            cancelButtonText: 'No',
+            showLoaderOnConfirm: true
+        }, async (secondConfirmed) => {
+            if (!secondConfirmed) {
+                return;
+            }
+            await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup delete all`, async () => {
+                try {
+                    const response = await deleteAllBackupsForType(resolvedType);
+                    backupsByType[resolvedType] = response.backups;
+                    const deletedCount = Number(response.result?.deletedCount || 0);
+                    const failedCount = Number(response.result?.failedCount || 0);
+                    addActivityEntry(`Deleted ${deletedCount} ${label} backup snapshot${deletedCount === 1 ? '' : 's'}${failedCount > 0 ? `; ${failedCount} failed` : ''}.`, failedCount > 0 ? 'warning' : 'success');
+                    renderBackupRows(resolvedType);
+                } catch (error) {
+                    showError('Delete all backups failed', error);
+                }
+            });
         });
     });
 };
@@ -9525,11 +9641,13 @@ settingsActionSupportModule.registerWindowActions(window, {
     restoreSelectedActiveRecoveryBackup,
     downloadSelectedActiveRecoveryBackup,
     deleteSelectedActiveRecoveryBackup,
+    deleteAllActiveRecoveryBackups,
     compareBackupSnapshots,
     compareActiveRecoverySnapshots,
     restoreBackupEntry,
     downloadBackupEntry,
     deleteBackupEntry,
+    deleteAllBackupEntries,
     previewFolderRuntimeAction,
     applyFolderRuntimeAction,
     refreshChangeHistory,

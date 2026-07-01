@@ -137,9 +137,39 @@
 
         const buildFolderHierarchy = (folders) => fallbackBuildFolderHierarchy(folders, normalizeFolderParentId);
 
+        const normalizeChildFolderOrder = (value) => {
+            const source = Array.isArray(value) ? value : [];
+            const seen = new Set();
+            const result = [];
+            source.forEach((entry) => {
+                const id = String(entry || '').trim();
+                if (!id || seen.has(id)) {
+                    return;
+                }
+                seen.add(id);
+                result.push(id);
+            });
+            return result;
+        };
+
+        const sortFolderChildren = (parentId, childIds) => {
+            const ids = Array.isArray(childIds) ? childIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+            const sourceIndex = new Map(ids.map((id, index) => [id, index]));
+            const parentSettings = getGlobalFolders()?.[parentId]?.settings || {};
+            const orderIndex = new Map(normalizeChildFolderOrder(parentSettings.child_folder_order || parentSettings.childFolderOrder).map((id, index) => [id, index]));
+            return ids.sort((left, right) => {
+                const leftOrder = orderIndex.has(left) ? orderIndex.get(left) : Number.MAX_SAFE_INTEGER;
+                const rightOrder = orderIndex.has(right) ? orderIndex.get(right) : Number.MAX_SAFE_INTEGER;
+                if (leftOrder !== rightOrder) {
+                    return leftOrder - rightOrder;
+                }
+                return (sourceIndex.get(left) || 0) - (sourceIndex.get(right) || 0);
+            });
+        };
+
         const getFolderChildren = (folderId) => {
             const map = getDockerFolderHierarchy()?.childrenById || {};
-            return Array.isArray(map[folderId]) ? map[folderId] : [];
+            return sortFolderChildren(folderId, Array.isArray(map[folderId]) ? map[folderId] : []);
         };
 
         const getFolderDescendants = (folderId) => {

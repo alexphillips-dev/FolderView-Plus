@@ -73,8 +73,10 @@ test('theme compatibility: setup wizard mirrors resolved theme class and light-s
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="import-docker"\]\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="import-vm"\]\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="review"\]\s*\{/);
-    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="high"\]\s*\{/);
-    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="max"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-welcome-screen\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-welcome-hero\s*\{/);
+    assert.doesNotMatch(settingsCss, /#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier=/);
+    assert.doesNotMatch(settingsCss, /\.fv-setup-contrast-field/);
     assert.doesNotMatch(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child/);
     assert.ok(wizardCardBlock, 'Wizard card block should exist in settings CSS.');
     assert.ok(wizardCardToplineBlock, 'Wizard card top-line block should exist in settings CSS.');

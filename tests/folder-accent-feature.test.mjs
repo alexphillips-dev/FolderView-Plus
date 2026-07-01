@@ -39,8 +39,10 @@ test('accent color contract and editor controls are defined', () => {
     assert.match(folderPage, /<dt>Accent color:<\/dt>[\s\S]*name="folder_accent_enabled"[\s\S]*class="fv-accent-inline-controls" constraint="accent-color"[\s\S]*name="folder_accent_color"/);
     assert.doesNotMatch(folderPage, /<dt>Accent color value:<\/dt>/);
     assert.match(folderPage, /resetFolderAccentDefaults\(\)/);
-    assert.match(folderCss, /\.fv-accent-inline-controls\s*\{/);
-    assert.match(folderCss, /\.fv-accent-inline-label\s*\{/);
+    assert.match(folderCss, /\.fv-accent-color-dd\s*\{[\s\S]*display:\s*flex !important;[\s\S]*align-items:\s*center;[\s\S]*gap:\s*0\.7em;/);
+    assert.match(folderCss, /\.fv-accent-inline-controls\s*\{[\s\S]*margin-top:\s*0;[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
+    assert.match(folderCss, /\.fv-accent-inline-label\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*white-space:\s*nowrap;/);
+    assert.match(folderCss, /\.fv-accent-inline-controls \.fv-inline-control-row\s*\{[\s\S]*padding:\s*0;/);
 });
 
 test('modern folder editor persists accent color settings end to end', () => {

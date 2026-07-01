@@ -144,6 +144,13 @@ const folderId = String(
     || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
+const requestedCreateParentId = String(
+    folderEditorQueryParams.get('parentId')
+    || folderEditorHashParams.get('parentId')
+    || folderEditorQueryParams.get('parent')
+    || folderEditorHashParams.get('parent')
+    || ''
+).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
     || folderEditorBootstrapSeed?.id
@@ -212,7 +219,7 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     ? bindFolderThemeAwareSurface({
         root: '.canvas form.folder-editor-form',
         sampleRoot: 'body',
-        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorActionBar'],
+        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorNavDock', '#fvEditorActionBar'],
         modeInput: 'auto',
         reasonPrefix: 'folder-editor'
     })
@@ -318,7 +325,6 @@ const THIRD_PARTY_PINNED_STORAGE_KEY = 'fv.folder.icon.thirdparty.pinnedFolders.
 const THIRD_PARTY_HIDDEN_STORAGE_KEY = 'fv.folder.icon.thirdparty.hiddenFolders.v1';
 const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1';
 const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
-const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const MEMBER_BULK_SCOPE_OPTIONS = Object.freeze([
     { value: 'shown', label: 'Move shown' },
@@ -410,13 +416,16 @@ let advancedSectionCollapsedState = {};
 let memberBulkMoveInFlight = false;
 let memberBulkMoveUndoState = null;
 let memberBulkMoveUndoInFlight = false;
+let childFolderOrder = [];
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
     'preview_hover',
+    'preview_hover_animation',
     'preview_border',
     'preview_border_color',
     'preview_border_width',
+    'preview_border_glow',
     'preview_vertical_bars',
     'preview_vertical_bars_color',
     'preview_vertical_bars_width',
@@ -618,6 +627,15 @@ const normalizePreviewStatusMode = (value) => {
         return 'none';
     }
     return ['none', 'symbol', 'grayscale'].includes(normalized) ? normalized : 'symbol';
+};
+
+const normalizePreviewHoverAnimation = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    const aliases = { grow: 'pop', pulse: 'glow', spin: 'flip' };
+    const token = aliases[normalized] || normalized;
+    return ['none', 'lift', 'bounce', 'pop', 'glow', 'flip', 'wiggle'].includes(token)
+        ? token
+        : 'none';
 };
 
 const extractDropdownStyleValue = typeof folderContract?.extractDropdownStyleValue === 'function'
@@ -946,9 +964,12 @@ const buildParentSmartDefaults = (parentFolder) => {
         preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
         preview_status: normalizePreviewStatusMode(settings.preview_status),
         preview_hover: settings.preview_hover === true,
+        preview_hover_animation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
+        previewHoverAnimation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
         preview_border: isLegacyPreviewBorderEnabled(settings),
         preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
         preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
+        preview_border_glow: settings.preview_border_glow === true || settings.previewBorderGlow === true,
         preview_vertical_bars: settings.preview_vertical_bars === true,
         preview_vertical_bars_color: normalizeHexColor(
             settings.preview_vertical_bars_color || settings.preview_border_color,
@@ -1249,6 +1270,7 @@ const computeFormSnapshot = () => {
     const state = {
         fields: {},
         members: [],
+        childFolders: [],
         actions: $('input[name*="custom_action"]').map((_, el) => $(el).val()).get()
     };
 
@@ -1276,6 +1298,10 @@ const computeFormSnapshot = () => {
             locked: input.prop('disabled')
         });
     });
+    state.childFolders = $('#fvFolderMembersBody > tr[data-child-folder-id]')
+        .map((_, row) => String($(row).attr('data-child-folder-id') || '').trim())
+        .get()
+        .filter(Boolean);
 
     return JSON.stringify(state);
 };
@@ -1463,39 +1489,100 @@ const getFolderEditorPreviewRuntimeApi = () => {
         return candidateIds;
     };
     const getNestedPreviewSample = () => {
+        const samples = getNestedPreviewSamples();
+        return samples.length ? samples[0] : null;
+    };
+    const getNestedPreviewSamples = () => {
+        const form = getForm();
         const sourceIds = getActiveFolderIdsForNestedPreview();
         if (!sourceIds.length) {
-            return null;
+            return [];
         }
+        const depthLimit = normalizeChildFolderPreviewDepth(form?.preview_child_folder_depth?.value || '0');
+        const folders = allFoldersById || {};
+        const getChildOrderForParent = (parentId) => {
+            if (String(parentId || '').trim() === getActiveFolderIdForChildOrdering()) {
+                return normalizeChildFolderOrder(childFolderOrder);
+            }
+            const folderSettings = folders?.[parentId]?.settings || {};
+            return normalizeChildFolderOrder(folderSettings.child_folder_order || folderSettings.childFolderOrder);
+        };
+        const getChildIds = (parentId) => {
+            const rawIds = Object.entries(folders)
+            .filter(([, candidateFolder]) => (
+                candidateFolder && typeof candidateFolder === 'object'
+                && normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId
+            ))
+            .map(([candidateId]) => String(candidateId || '').trim())
+            .filter(Boolean);
+            const sourceIndex = new Map(rawIds.map((id, index) => [id, index]));
+            const orderIndex = new Map(getChildOrderForParent(parentId).map((id, index) => [id, index]));
+            return rawIds.sort((left, right) => {
+                const leftOrder = orderIndex.has(left) ? orderIndex.get(left) : Number.MAX_SAFE_INTEGER;
+                const rightOrder = orderIndex.has(right) ? orderIndex.get(right) : Number.MAX_SAFE_INTEGER;
+                if (leftOrder !== rightOrder) {
+                    return leftOrder - rightOrder;
+                }
+                return (sourceIndex.get(left) || 0) - (sourceIndex.get(right) || 0);
+            });
+        };
+        const hasChildFolders = (parentId) => getChildIds(parentId).length > 0;
+        const buildBreadcrumb = (sourceId, childId) => {
+            const parts = [];
+            const seen = new Set();
+            let cursor = String(childId || '').trim();
+            while (cursor && !seen.has(cursor)) {
+                seen.add(cursor);
+                const folderRecord = folders?.[cursor];
+                const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+                parts.unshift(String(normalizedFolder?.name || cursor || '').trim());
+                if (cursor === sourceId) {
+                    break;
+                }
+                cursor = normalizeParentFolderId(folderRecord?.parentId || folderRecord?.parent_id || '');
+            }
+            if (!parts.length || parts[0] !== String(folders?.[sourceId]?.name || sourceId || '').trim()) {
+                parts.unshift(String(folders?.[sourceId]?.name || sourceId || '').trim());
+            }
+            return parts.filter(Boolean);
+        };
         for (const sourceId of sourceIds) {
-            for (const [candidateId, candidateFolder] of Object.entries(allFoldersById || {})) {
-                const safeCandidateId = String(candidateId || '').trim();
-                if (!safeCandidateId || safeCandidateId === sourceId || !candidateFolder || typeof candidateFolder !== 'object') {
-                    continue;
+            const result = [];
+            const seen = new Set();
+            const visit = (parentId, depth = 0) => {
+                if (depthLimit > 0 && depth >= depthLimit) {
+                    return;
                 }
-                if (normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') !== sourceId) {
-                    continue;
+                for (const safeCandidateId of getChildIds(parentId)) {
+                    if (!safeCandidateId || safeCandidateId === sourceId || seen.has(safeCandidateId)) {
+                        continue;
+                    }
+                    const candidateFolder = folders?.[safeCandidateId];
+                    if (!candidateFolder || typeof candidateFolder !== 'object') {
+                        continue;
+                    }
+                    seen.add(safeCandidateId);
+                    const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
+                    result.push(folderPreviewModelModule.createChildFolderPreviewModel({
+                        sourceId,
+                        parentId,
+                        rootId: sourceId,
+                        childId: safeCandidateId,
+                        childFolder: normalizedChild,
+                        memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
+                        depth,
+                        breadcrumb: buildBreadcrumb(sourceId, safeCandidateId),
+                        hasChildren: hasChildFolders(safeCandidateId)
+                    }));
+                    visit(safeCandidateId, depth + 1);
                 }
-                const normalizedChild = normalizeFolderRecordForEditor(candidateFolder);
-                return folderPreviewModelModule.createChildFolderPreviewModel({
-                    sourceId,
-                    parentId: sourceId,
-                    rootId: sourceId,
-                    childId: safeCandidateId,
-                    childFolder: normalizedChild,
-                    memberCount: Array.isArray(normalizedChild.containers) ? normalizedChild.containers.length : 0,
-                    breadcrumb: [
-                        String(allFoldersById?.[sourceId]?.name || sourceId || '').trim(),
-                        String(normalizedChild.name || 'Child folder').trim() || 'Child folder'
-                    ].filter(Boolean),
-                    hasChildren: Object.values(allFoldersById || {}).some((folder) => (
-                        folder && typeof folder === 'object'
-                        && normalizeParentFolderId(folder.parentId || folder.parent_id || '') === safeCandidateId
-                    ))
-                });
+            };
+            visit(sourceId, 0);
+            if (result.length) {
+                return result;
             }
         }
-        return null;
+        return [];
     };
     folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule.createApi({
         window,
@@ -1516,6 +1603,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         normalizeParentFolderId,
         getPreviewSignals: (context = {}) => getFolderEditorTypeApi()?.getPreviewSignals?.(context) || null,
         getNestedPreviewSample,
+        getNestedPreviewSamples,
         previewModelModule: folderPreviewModelModule,
         applyTypePreviewConstraints: ({ $, form } = {}) => {
             getFolderEditorTypeApi()?.applyPreviewConstraints?.({ $, form });
@@ -2275,10 +2363,13 @@ const moveMemberRow = (button, direction) => {
     getFolderEditorMembersApi()?.moveMemberRow(button, direction);
 };
 
-const normalizeEditorMode = (value) => (String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'basic');
+const bindMemberDragReorder = () => {
+    getFolderEditorMembersApi()?.bindMemberDragReorder();
+};
 
-const getVisibleEditorSectionKeys = (mode = editorMode) => Object.entries(SECTION_META)
-    .filter(([, section]) => normalizeEditorMode(mode) === 'advanced' || section?.advanced !== true)
+const normalizeEditorMode = () => 'advanced';
+
+const getVisibleEditorSectionKeys = () => Object.entries(SECTION_META)
     .map(([key]) => key);
 
 const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
@@ -2291,15 +2382,7 @@ const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
 };
 
 const loadEditorModePreference = () => {
-    return 'basic';
-};
-
-const saveEditorModePreference = (mode) => {
-    try {
-        localStorage.setItem(EDITOR_MODE_STORAGE_KEY, normalizeEditorMode(mode));
-    } catch (_error) {
-        // Ignore storage failures; runtime mode still works.
-    }
+    return 'advanced';
 };
 
 const loadAdvancedCollapseState = () => {
@@ -2372,13 +2455,6 @@ const ensureInheritedFieldControls = () => {
     });
 };
 
-const setEditorMode = (mode) => {
-    editorMode = normalizeEditorMode(mode);
-    activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
-    saveEditorModePreference(editorMode);
-    applyAdvancedMode();
-};
-
 const setActiveEditorSection = (sectionKey) => {
     activeEditorSection = normalizeActiveEditorSection(sectionKey, editorMode);
     applyAdvancedMode();
@@ -2398,11 +2474,9 @@ const applyAdvancedMode = () => {
         return;
     }
     editorMode = normalizeEditorMode(editorMode);
-    const showAdvanced = editorMode === 'advanced';
+    const showAdvanced = true;
     activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
-    $('.fv-editor-mode > button').removeClass('is-active');
-    $(`.fv-editor-mode > button[data-mode="${showAdvanced ? 'advanced' : 'basic'}"]`).addClass('is-active');
-    $('#fvHeroMode').text(showAdvanced ? 'Advanced editor' : 'Basic editor');
+    $('#fvHeroMode').text('All sections');
 
     Object.entries(SECTION_META).forEach(([key, meta]) => {
         const isAdvancedSection = meta?.advanced === true;
@@ -2412,16 +2486,12 @@ const applyAdvancedMode = () => {
         const collapseButton = heading.find('.fv-section-collapse');
         const shell = $(`.fv-section-shell[data-section-shell="${key}"]`);
 
-        if (!showAdvanced && isAdvancedSection) {
-            shell.hide();
-            navButton.hide();
-            return;
-        }
-
         const isActiveSection = activeEditorSection === key;
         shell.toggle(isActiveSection);
         navButton.show();
         navButton.toggleClass('is-active', isActiveSection);
+        navButton.attr('data-active', isActiveSection ? 'true' : null);
+        navButton.attr('aria-current', isActiveSection ? 'page' : null);
         const collapsed = showAdvanced && isAdvancedSection && advancedSectionCollapsedState[key] === true;
         heading.toggleClass('is-collapsed', collapsed);
         shell.toggleClass('is-collapsed', collapsed);
@@ -2432,7 +2502,7 @@ const applyAdvancedMode = () => {
         rows.toggle(!collapsed);
     });
 
-    $('.fv-advanced-setting').toggleClass('fv-advanced-hidden', !showAdvanced);
+    $('.fv-advanced-setting').removeClass('fv-advanced-hidden');
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
@@ -2459,7 +2529,7 @@ const enforceLeftAlignedSettingsLayout = () => {
 
         const layoutRows = [
             ...Array.from(form.children),
-            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-general-left-rail > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
+            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-editor-panel .fv-editor-panel-body > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
         ];
         layoutRows.forEach((row) => {
             const isBasicRow = row.classList?.contains('basic') || row.classList?.contains('order-section');
@@ -2478,6 +2548,13 @@ const enforceLeftAlignedSettingsLayout = () => {
             if (row.classList.contains('order-section')) {
                 return;
             }
+            setImportant(row, 'width', '100%');
+            setImportant(row, 'max-width', 'none');
+            setImportant(row, 'margin-left', '0');
+            setImportant(row, 'margin-right', '0');
+        });
+
+        form.querySelectorAll('.fv-section-shell .fv-editor-panel-body > .basic').forEach((row) => {
             setImportant(row, 'width', '100%');
             setImportant(row, 'max-width', 'none');
             setImportant(row, 'margin-left', '0');
@@ -2782,6 +2859,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="folder_webui"])', 'general');
     markSection('ul[constraint*="folder-webui"]', 'general');
 
+    markSection('#fvFolderMembersSection', 'members');
     markSection('div.basic.order-section', 'members');
 
     markSection('div.basic:has([name="preview"])', 'preview');
@@ -2789,6 +2867,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="preview_text_width"])', 'preview');
     markSection('div.basic:has([name="preview_rows"])', 'preview');
     markSection('div.basic:has([name="preview_grayscale"])', 'preview');
+    markSection('div.basic:has([name="preview_hover_animation"])', 'preview');
     markSection('div.basic:has([name="preview_logs"])', 'preview');
     markSection('div.basic:has([name="preview_vertical_bars"])', 'preview');
     markSection('ul[constraint*="bars-color"]', 'preview');
@@ -2883,12 +2962,11 @@ const initEditorChrome = () => {
         || !$('#fvApplyPluginDefaults').length
         || !$('#fvSuggestDefaults').length
         || !$('#fvLivePanel').length
-        || !$('#fvHeroDefaults').length
-        || !$('.fv-editor-mode > button[data-mode="basic"]').length
-        || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
+        || !$('#fvEditorNavDock').length
+        || !$('#fvHeroDefaults').length;
 
     if (shouldRebuildChrome) {
-        $('#fvEditorChrome, #fvLivePanel').remove();
+        $('#fvEditorChrome, #fvLivePanel, #fvEditorNavDock').remove();
         const navButtons = Object.entries(SECTION_META)
             .map(([key, section]) => `
                 <button type="button" data-target="${key}">
@@ -2913,7 +2991,7 @@ const initEditorChrome = () => {
                                 <span id="fvHeroScope">Top-level folder</span>
                                 <span id="fvHeroMembers">0/0 included</span>
                                 <span id="fvHeroDefaults">Checking inherited defaults</span>
-                                <span id="fvHeroMode">Basic editor</span>
+                                <span id="fvHeroMode">All sections</span>
                             </div>
                         </div>
                     </div>
@@ -2921,13 +2999,6 @@ const initEditorChrome = () => {
                         <button type="button" id="fvRestoreSavedValues"><i class="fa fa-history" aria-hidden="true"></i> Restore saved values</button>
                         <button type="button" id="fvApplyPluginDefaults"><i class="fa fa-repeat" aria-hidden="true"></i> Apply plugin defaults</button>
                         <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
-                    </div>
-                </div>
-                <div class="fv-editor-nav-row">
-                    <div class="fv-section-nav">${navButtons}</div>
-                    <div class="fv-editor-mode" role="group" aria-label="Editor mode">
-                        <button type="button" data-mode="basic" class="is-active">Basic</button>
-                        <button type="button" data-mode="advanced">Advanced</button>
                     </div>
                 </div>
                 <div class="fv-editor-status-row">
@@ -2965,6 +3036,11 @@ const initEditorChrome = () => {
                             <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div id="fvEditorNavDock" class="fv-editor-nav-dock">
+                <div class="fv-editor-nav-row">
+                    <div class="fv-section-nav">${navButtons}</div>
                 </div>
             </div>
         `);
@@ -3111,9 +3187,6 @@ const initEditorChrome = () => {
         applyEditorPluginDefaults();
     });
 
-    $('.fv-editor-mode > button').off('click').on('click', function onModeClick() {
-        setEditorMode($(this).attr('data-mode'));
-    });
     $('.fv-section-collapse').off('click').on('click', function onCollapseClick() {
         toggleAdvancedSectionCollapse($(this).attr('data-section'));
     });
@@ -3140,8 +3213,10 @@ const initEditorChrome = () => {
 };
 
 getForm().preview_border.checked = true;
+getForm().preview_hover_animation.value = 'none';
 getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
 getForm().preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
+getForm().preview_border_glow.checked = false;
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 getForm().preview_vertical_bars_width.value = String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH);
 getForm().dropdown_style.value = DEFAULT_DROPDOWN_STYLE;
@@ -3154,6 +3229,7 @@ resetStatusColorDefaults();
 const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
     const safeFolderId = String(folderRecordId || '').trim();
     const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+    childFolderOrder = normalizeChildFolderOrder(normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder);
     const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
     if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
         delete folders[safeFolderId];
@@ -3194,6 +3270,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
     setFieldValue('preview_status', normalizePreviewStatusMode(normalizedFolder.settings.preview_status));
     setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
+    setFieldValue('preview_hover_animation', normalizePreviewHoverAnimation(normalizedFolder.settings.preview_hover_animation || normalizedFolder.settings.previewHoverAnimation));
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
@@ -3210,6 +3287,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(normalizedFolder.settings || {}));
     setFieldValue('preview_border_color', normalizeHexColor(normalizedFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
     setFieldValue('preview_border_width', String(normalizePositiveInt(normalizedFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
+    setFieldChecked('preview_border_glow', normalizedFolder.settings.preview_border_glow === true || normalizedFolder.settings.previewBorderGlow === true);
     setFieldValue('preview_vertical_bars_color', normalizeHexColor(
         normalizedFolder.settings.preview_vertical_bars_color || normalizedFolder.settings.preview_border_color,
         DEFAULT_BORDER_COLOR
@@ -3423,25 +3501,33 @@ const startFolderEditorRuntime = async () => {
     } else {
         activeFolderEditorFolderId = '';
         activeFolderEditorResolvedFolderId = '';
+        const hasCreateParentRequest = Boolean(normalizeParentFolderId(requestedCreateParentId));
         setValidationBannerState(
-            'Folder editor opened without a folder target.',
-            'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
-            'warning'
+            hasCreateParentRequest
+                ? 'Creating a child folder.'
+                : 'Folder editor opened without a folder target.',
+            hasCreateParentRequest
+                ? 'The editor opened in new-folder mode with the clicked folder preselected as the parent.'
+                : 'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
+            hasCreateParentRequest ? 'info' : 'warning'
         );
         setBootstrapDiagnostics({
             mode: 'hydrate',
             requestedFolderRefs,
+            requestedCreateParentId: normalizeParentFolderId(requestedCreateParentId),
             navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
             navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
             foldersLoaded: String(folderCount),
-            result: 'no-target',
+            result: hasCreateParentRequest ? 'create-child-target' : 'no-target',
             effectiveFolderId: '',
             routeTargetRecovered: false,
             routeTargetMismatch: false
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
-        if (!applySavedFolderDefaultsToNewFolder(folders)) {
+        const appliedSavedDefaults = applySavedFolderDefaultsToNewFolder(folders);
+        const appliedRequestedParent = await applyRequestedCreateParentToNewFolder(folders);
+        if (!appliedRequestedParent && !appliedSavedDefaults) {
             refreshParentFolderChooser(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         }
@@ -3497,6 +3583,9 @@ const startFolderEditorRuntime = async () => {
 
     // create the *cool* unraid button for the autostart
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
+    if (typeof window.FolderViewPlusEnsureAccentControlPlacement === 'function') {
+        window.FolderViewPlusEnsureAccentControlPlacement(getForm());
+    }
 
     // iterate over the folders
     for (const value of Object.values(folders)) {
@@ -3576,7 +3665,7 @@ const startFolderEditorRuntime = async () => {
             return;
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
-            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width'
+            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width' || fieldName === 'preview_border_glow'
             || fieldName === 'folder_accent_enabled' || fieldName === 'folder_accent_color') {
             if (event.type === 'input' && isLivePreviewColorField) {
                 scheduleEditorPreviewRender();
@@ -4220,6 +4309,24 @@ const applySavedFolderDefaultsToNewFolder = (foldersMap = {}) => {
     setParentDefaultsNote(`Loaded saved defaults from "${sourceLabel}".`, 'info');
     return true;
 };
+const applyRequestedCreateParentToNewFolder = async (foldersMap = {}) => {
+    const parentId = normalizeParentFolderId(requestedCreateParentId);
+    if (!parentId || String(activeFolderEditorFolderId || folderId || '').trim()) {
+        return false;
+    }
+    if (!Object.prototype.hasOwnProperty.call(foldersMap || {}, parentId)) {
+        return false;
+    }
+    refreshParentFolderChooser(foldersMap, parentId, new Set());
+    const form = getForm();
+    if (form?.parent_folder_id) {
+        form.parent_folder_id.value = parentId;
+    }
+    const parentName = String(foldersMap?.[parentId]?.name || parentId).trim();
+    setParentDefaultsNote(`Creating this folder under "${parentName}".`, 'info');
+    await applySmartDefaultsFromParent(parentId, { force: true });
+    return true;
+};
 const getFolderEditorParentPickerApi = (() => {
     let cachedApi = null;
     return () => {
@@ -4255,6 +4362,189 @@ const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedId
     });
 };
 
+const normalizeChildFolderOrder = (value) => {
+    const source = Array.isArray(value) ? value : [];
+    const seen = new Set();
+    const result = [];
+    source.forEach((entry) => {
+        const id = String(entry || '').trim();
+        if (!id || seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        result.push(id);
+    });
+    return result;
+};
+
+const getActiveFolderIdForChildOrdering = () => String(activeFolderEditorResolvedFolderId || activeFolderEditorFolderId || folderId || '').trim();
+
+const getDirectChildFolderEntries = () => {
+    const parentId = getActiveFolderIdForChildOrdering();
+    if (!parentId) {
+        return [];
+    }
+    return Object.entries(allFoldersById || {})
+        .filter(([candidateId, candidateFolder]) => {
+            const childId = String(candidateId || '').trim();
+            if (!childId || childId === parentId || !candidateFolder || typeof candidateFolder !== 'object') {
+                return false;
+            }
+            return normalizeParentFolderId(candidateFolder.parentId || candidateFolder.parent_id || '') === parentId;
+        })
+        .map(([candidateId, candidateFolder], sourceIndex) => {
+            const normalizedFolder = normalizeFolderRecordForEditor(candidateFolder);
+            return {
+                id: String(candidateId || '').trim(),
+                sourceIndex,
+                name: String(normalizedFolder.name || candidateId || '').trim(),
+                icon: String(normalizedFolder.icon || DEFAULT_FOLDER_ICON_PATH || ICON_FALLBACK_PATH || '').trim(),
+                memberCount: Array.isArray(normalizedFolder.containers) ? normalizedFolder.containers.length : 0
+            };
+        });
+};
+
+const sortChildFolderEntries = (entries, order = childFolderOrder) => {
+    const orderIndex = new Map(normalizeChildFolderOrder(order).map((id, index) => [id, index]));
+    return [...entries].sort((left, right) => {
+        const leftOrder = orderIndex.has(left.id) ? orderIndex.get(left.id) : Number.MAX_SAFE_INTEGER;
+        const rightOrder = orderIndex.has(right.id) ? orderIndex.get(right.id) : Number.MAX_SAFE_INTEGER;
+        if (leftOrder !== rightOrder) {
+            return leftOrder - rightOrder;
+        }
+        return left.sourceIndex - right.sourceIndex;
+    });
+};
+
+const syncChildFolderOrderFromTable = () => {
+    childFolderOrder = normalizeChildFolderOrder(
+        $('#fvFolderMembersBody > tr[data-child-folder-id]').map((_, row) => $(row).attr('data-child-folder-id')).get()
+    );
+    return childFolderOrder;
+};
+
+const getChildFolderOrderIds = () => {
+    const directIds = new Set(getDirectChildFolderEntries().map((entry) => entry.id));
+    return sortChildFolderEntries(getDirectChildFolderEntries())
+        .map((entry) => entry.id)
+        .filter((id) => directIds.has(id));
+};
+
+const moveChildFolderRow = (button, direction) => {
+    const row = $(button).closest('tr');
+    if (!row.length) {
+        return;
+    }
+    if (direction === 'up') {
+        const previous = row.prev('tr');
+        if (previous.length) {
+            previous.before(row);
+        }
+    } else if (direction === 'down') {
+        const next = row.next('tr');
+        if (next.length) {
+            next.after(row);
+        }
+    }
+    syncChildFolderOrderFromTable();
+    updateLiveSummary();
+    if (isFormInitialized) {
+        updateUnsavedIndicator();
+    }
+};
+
+const bindChildFolderDragReorder = () => {
+    const tableBody = $('#fvFolderMembersBody');
+    if (!tableBody.length) {
+        return;
+    }
+    tableBody.off('.fvChildFolderDrag');
+    let draggedRow = null;
+
+    tableBody
+        .on('dragstart.fvChildFolderDrag', '.folder-member-drag-handle', function(event) {
+            draggedRow = $(this).closest('tr')[0] || null;
+            if (!draggedRow) {
+                return;
+            }
+            $(draggedRow).addClass('is-dragging');
+            const originalEvent = event.originalEvent || event;
+            if (originalEvent.dataTransfer) {
+                originalEvent.dataTransfer.effectAllowed = 'move';
+                originalEvent.dataTransfer.setData('text/plain', $(draggedRow).attr('data-child-folder-id') || '');
+            }
+        })
+        .on('dragover.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
+            if (!draggedRow || draggedRow === this) {
+                return;
+            }
+            event.preventDefault();
+            const target = this;
+            const targetRect = target.getBoundingClientRect();
+            const originalEvent = event.originalEvent || event;
+            const beforeTarget = originalEvent.clientY < targetRect.top + (targetRect.height / 2);
+            if (beforeTarget) {
+                target.parentNode.insertBefore(draggedRow, target);
+            } else {
+                target.parentNode.insertBefore(draggedRow, target.nextSibling);
+            }
+        })
+        .on('drop.fvChildFolderDrag', 'tr[data-child-folder-id]', function(event) {
+            event.preventDefault();
+        })
+        .on('dragend.fvChildFolderDrag', '.folder-member-drag-handle', function() {
+            if (draggedRow) {
+                $(draggedRow).removeClass('is-dragging');
+            }
+            draggedRow = null;
+            syncChildFolderOrderFromTable();
+            updateLiveSummary();
+            if (isFormInitialized) {
+                updateUnsavedIndicator();
+            }
+        });
+};
+
+const renderFolderMembersSection = () => {
+    const section = $('#fvFolderMembersSection');
+    const body = $('#fvFolderMembersBody');
+    const empty = $('#fvFolderMembersEmpty');
+    const summary = $('#fvFolderMembersSummary');
+    if (!section.length || !body.length) {
+        return;
+    }
+    const entries = sortChildFolderEntries(getDirectChildFolderEntries());
+    const countLabel = `${entries.length} folder${entries.length === 1 ? '' : 's'}`;
+    section.prop('hidden', entries.length === 0);
+    summary.text(countLabel);
+    body.empty();
+    empty.prop('hidden', entries.length !== 0);
+    if (!entries.length) {
+        return;
+    }
+    const rows = entries.map((entry) => `
+        <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
+            <td class="order-col">
+                <div class="order-buttons">
+                    <button type="button" class="folder-member-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button>
+                    <button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
+                    <button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+                </div>
+            </td>
+            <td class="fv-folder-member-name">
+                <img src="${escapeHtml(entry.icon)}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';">
+                <span>${escapeHtml(entry.name)}</span>
+                <small>${entry.memberCount} item${entry.memberCount === 1 ? '' : 's'}</small>
+            </td>
+        </tr>
+    `).join('');
+    body.append($(rows));
+    body.find('.folder-member-move').off('click').on('click', function() {
+        moveChildFolderRow(this, $(this).data('direction'));
+    });
+    bindChildFolderDragReorder();
+};
+
 /**
  * Create the element select table
  */
@@ -4273,9 +4563,9 @@ const updateList = (afterRender = null) => {
         const stateKey = getMemberStateKey(member);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
-            : '<div class="order-buttons"><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
+            : '<div class="order-buttons"><button type="button" class="member-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
-            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}">
+            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
@@ -4299,6 +4589,8 @@ const updateList = (afterRender = null) => {
         $('.member-move').off('click').on('click', function() {
             moveMemberRow(this, $(this).data('direction'));
         });
+        bindMemberDragReorder();
+        renderFolderMembersSection();
 
         $('input.container-switch').off('change').on('change', () => {
             updateMemberStats();
@@ -4396,10 +4688,14 @@ const buildFolderPayloadFromForm = (e) => {
             preview_status: normalizePreviewStatusMode(e.preview_status?.value),
             previewRows: normalizedPreviewRows,
             preview_hover: e.preview_hover.checked,
+            preview_hover_animation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
+            previewHoverAnimation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
             preview_hide_nested_items: e.preview_hide_nested_items.checked,
+            child_folder_order: getChildFolderOrderIds(),
+            childFolderOrder: getChildFolderOrderIds(),
             preview_child_folder_depth: normalizedChildFolderPreviewDepth,
             previewChildFolderDepth: normalizedChildFolderPreviewDepth,
             preview_webui: e.preview_webui.checked,
@@ -4413,6 +4709,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
             preview_border_width: normalizePositiveInt(e.preview_border_width.value.toString(), DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
+            preview_border_glow: e.preview_border_glow.checked,
+            previewBorderGlow: e.preview_border_glow.checked,
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             preview_vertical_bars_width: normalizePositiveInt(e.preview_vertical_bars_width.value.toString(), DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
             dropdown_style: normalizedDropdownStyle,

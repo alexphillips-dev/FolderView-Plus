@@ -8,17 +8,51 @@ const closeImportApplyProgressDialog = () => {
     dialog.hide().attr('aria-hidden', 'true');
 };
 
-const updateImportApplyProgressDialog = ({ completed = 0, total = 1, label = '' }) => {
+const updateImportApplyProgressDialog = ({
+    completed = 0,
+    total = 1,
+    label = '',
+    title = '',
+    kicker = '',
+    current = '',
+    note = '',
+    state = 'running',
+    completedLabel = null,
+    remainingLabel = null
+} = {}) => {
     const safeTotal = Math.max(1, Number(total) || 1);
     const safeCompleted = Math.max(0, Math.min(safeTotal, Number(completed) || 0));
+    const safeRemaining = Math.max(0, safeTotal - safeCompleted);
     const percent = Math.round((safeCompleted / safeTotal) * 100);
-    $('#import-apply-progress-label').text(label || 'Applying import...');
+    const normalizedState = ['running', 'success', 'error'].includes(String(state || '').toLowerCase())
+        ? String(state || '').toLowerCase()
+        : 'running';
+    const safeTitle = String(title || '').trim() || 'Working on FolderView Plus settings';
+    const safeKicker = String(kicker || '').trim() || 'FolderView Plus';
+    const safeLabel = String(label || '').trim() || 'Applying changes...';
+    const safeCurrent = String(current || '').trim() || safeLabel;
+    const safeNote = String(note || '').trim() || (normalizedState === 'success'
+        ? 'Operation complete. The settings view will refresh shortly.'
+        : 'Do not close this page until the operation completes.');
+    const dialog = $('#import-apply-progress-dialog');
+    dialog
+        .removeClass('is-running is-success is-error')
+        .addClass(`is-${normalizedState}`);
+    $('#import-apply-progress-kicker').text(safeKicker);
+    $('#import-apply-progress-title').text(safeTitle);
+    $('#import-apply-progress-state').text(normalizedState === 'success' ? 'Complete' : (normalizedState === 'error' ? 'Stopped' : 'Running'));
+    $('#import-apply-progress-label').text(safeLabel);
+    $('#import-apply-progress-current').text(safeCurrent);
     $('#import-apply-progress-step').text(`Step ${safeCompleted} of ${safeTotal}`);
     $('#import-apply-progress-percent').text(`Progress ${percent}%`);
     $('#import-apply-progress-bar').css('width', `${percent}%`);
+    $('#import-apply-progress-completed').text(completedLabel !== null ? String(completedLabel) : String(safeCompleted));
+    $('#import-apply-progress-remaining').text(remainingLabel !== null ? String(remainingLabel) : String(safeRemaining));
+    $('#import-apply-progress-total').text(String(safeTotal));
+    $('#import-apply-progress-note').text(safeNote);
 };
 
-const openImportApplyProgressDialog = (type, totalSteps) => {
+const openImportApplyProgressDialog = (type, totalSteps, options = {}) => {
     const resolvedType = normalizeManagedType(type);
     const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
@@ -30,7 +64,11 @@ const openImportApplyProgressDialog = (type, totalSteps) => {
     updateImportApplyProgressDialog({
         completed: 0,
         total: totalSteps,
-        label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`
+        label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`,
+        title: options.title || `Applying ${resolvedType === 'docker' ? 'Docker' : 'VM'} changes`,
+        kicker: options.kicker || `${resolvedType === 'docker' ? 'Docker' : 'VM'} operation`,
+        current: options.current || 'Preparing operation...',
+        note: options.note || undefined
     });
     overlay.show();
     dialog.show().attr('aria-hidden', 'false');

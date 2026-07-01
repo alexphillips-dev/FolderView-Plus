@@ -29,6 +29,60 @@
 
         const isRegexMemberSearchEnabled = () => (($ && $('#fvMemberFilter').val()) || 'all') === MEMBER_REGEX_SEARCH_FILTER;
 
+        const isMemberReorderFiltered = () => {
+            if (!$) {
+                return false;
+            }
+            return String($('#fvMemberSearch').val() || '').trim() !== ''
+                || String($('#fvMemberFilter').val() || 'all') !== 'all'
+                || String($('#fvMemberStateFilter').val() || 'all') !== 'all';
+        };
+
+        const isLockedMemberRow = (row) => {
+            if (!$ || !row) {
+                return true;
+            }
+            const $row = $(row);
+            return String($row.attr('data-membership') || '').trim().toLowerCase() === 'regex'
+                || $row.find('input.container-switch:disabled').length > 0;
+        };
+
+        const commitMemberRowOrderChange = () => {
+            syncMemberArraysFromTable();
+            updateLiveSummary();
+            if (isFormInitialized()) {
+                validateForm();
+                updateUnsavedIndicator();
+            }
+        };
+
+        const setMemberDragState = () => {
+            if (!$) {
+                return;
+            }
+            const filtered = isMemberReorderFiltered();
+            const disabledTitle = filtered
+                ? 'Clear member search and filters before drag reordering.'
+                : 'Drag to reorder this member.';
+            $('table.sortable')
+                .toggleClass('fv-member-drag-disabled', filtered)
+                .attr('data-drag-disabled', filtered ? 'true' : null);
+            $('table.sortable > tbody > tr').each((_, row) => {
+                const $row = $(row);
+                const locked = isLockedMemberRow(row);
+                const draggable = !filtered && !locked;
+                $row
+                    .toggleClass('fv-member-row-locked', locked)
+                    .toggleClass('fv-member-row-draggable', draggable)
+                    .attr('draggable', 'false');
+                $row.find('.member-drag-handle')
+                    .toggleClass('is-disabled', !draggable)
+                    .attr('aria-disabled', draggable ? 'false' : 'true')
+                    .attr('draggable', draggable ? 'true' : 'false')
+                    .attr('title', locked ? 'Auto-included members cannot be manually reordered.' : disabledTitle);
+            });
+        };
+
         const setMemberSearchValidationState = (message = '') => {
             if (!$) {
                 return;
@@ -115,6 +169,7 @@
                 $row.toggle(matchesQuery && matchesFilter && matchesState);
             });
 
+            setMemberDragState();
             updateMemberStats();
         };
 
@@ -199,11 +254,71 @@
             if (!moved) {
                 return;
             }
-            syncMemberArraysFromTable();
-            updateLiveSummary();
-            if (isFormInitialized()) {
-                updateUnsavedIndicator();
+            commitMemberRowOrderChange();
+        };
+
+        const bindMemberDragReorder = () => {
+            if (!$) {
+                return;
             }
+            const tableBody = $('table.sortable > tbody');
+            if (!tableBody.length) {
+                return;
+            }
+
+            let draggedRow = null;
+            let moved = false;
+
+            tableBody.off('.fvMemberDrag');
+            tableBody
+                .on('dragstart.fvMemberDrag', '.member-drag-handle', function(event) {
+                    const originalEvent = event.originalEvent || event;
+                    const row = $(this).closest('tr').get(0);
+                    if (!row || isMemberReorderFiltered() || isLockedMemberRow(row)) {
+                        event.preventDefault();
+                        return false;
+                    }
+                    draggedRow = row;
+                    moved = false;
+                    $(row).addClass('is-dragging');
+                    if (originalEvent.dataTransfer) {
+                        originalEvent.dataTransfer.effectAllowed = 'move';
+                        originalEvent.dataTransfer.setData('text/plain', String($(row).attr('data-name') || 'member'));
+                    }
+                    return true;
+                })
+                .on('dragover.fvMemberDrag', 'tr', function(event) {
+                    if (!draggedRow || this === draggedRow || isMemberReorderFiltered() || isLockedMemberRow(this)) {
+                        return;
+                    }
+                    event.preventDefault();
+                    const originalEvent = event.originalEvent || event;
+                    const rect = this.getBoundingClientRect();
+                    const before = originalEvent.clientY < rect.top + (rect.height / 2);
+                    const $target = $(this);
+                    if (before) {
+                        $target.before(draggedRow);
+                    } else {
+                        $target.after(draggedRow);
+                    }
+                    moved = true;
+                })
+                .on('drop.fvMemberDrag', 'tr', function(event) {
+                    if (draggedRow) {
+                        event.preventDefault();
+                    }
+                })
+                .on('dragend.fvMemberDrag', 'tr', function() {
+                    $('table.sortable > tbody > tr').removeClass('is-dragging');
+                    if (draggedRow && moved) {
+                        commitMemberRowOrderChange();
+                    }
+                    draggedRow = null;
+                    moved = false;
+                    setMemberDragState();
+                });
+
+            setMemberDragState();
         };
 
         const collectBulkMoveScope = (scope = 'shown') => {
@@ -265,6 +380,8 @@
             setVisibleMemberSelection,
             syncMemberArraysFromTable,
             moveMemberRow,
+            bindMemberDragReorder,
+            setMemberDragState,
             syncMemberSearchUiState,
             collectBulkMoveScope
         });

@@ -841,6 +841,29 @@ try {
                     </blockquote>
                 </div>
             </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt>Hover animation:</dt>
+                        <dd>
+                            <select name="preview_hover_animation">
+                                <option value="none" selected>None</option>
+                                <option value="lift">Lift</option>
+                                <option value="bounce">Bounce</option>
+                                <option value="pop">Pop</option>
+                                <option value="glow">Glow</option>
+                                <option value="flip">Flip</option>
+                                <option value="wiggle">Wiggle</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Runs a short one-time animation on the folder icon and name when the folder is hovered.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
                 <div class="basic">
                     <dl>
@@ -1023,6 +1046,23 @@ try {
                         </div>
                     </li>
                 </ul>
+                <ul constraint="border-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt>Preview border glow:</dt>
+                                <dd>
+                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" onchange="updateForm()" />
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p>
+                                    Adds a soft glow around the preview border using the selected border color.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
             </li>
             <li constraint="preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">
@@ -1190,14 +1230,18 @@ try {
             <dl>
                 <dt>Accent color:</dt>
                 <dd class="fv-accent-color-dd">
-                    <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
-                    <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
-                        <span class="fv-accent-inline-label">Bar color</span>
-                        <div class="fv-inline-control-row">
-                            <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
-                            <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
-                                <i class="fa fa-repeat" aria-hidden="true"></i>
-                            </button>
+                    <div class="fv-accent-control-row">
+                        <div class="fv-accent-enable-control">
+                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
+                        </div>
+                        <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
+                            <span class="fv-accent-inline-label">Bar color</span>
+                            <div class="fv-inline-control-row">
+                                <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
+                                <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                    <i class="fa fa-repeat" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </dd>
@@ -1457,6 +1501,37 @@ try {
         <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
+        <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
+            <dl>
+                <dt>Folder members:</dt>
+                <dd>
+                    <div class="fv-folder-members-panel">
+                        <div class="fv-folder-members-intro">
+                            <div>
+                                <strong>Nested folders</strong>
+                                <span>Drag child folders to control the order shown in previews and expanded rows.</span>
+                            </div>
+                            <span id="fvFolderMembersSummary" class="fv-folder-members-summary">0 folders</span>
+                        </div>
+                        <div id="fvFolderMembersEmpty" class="fv-folder-members-empty" hidden>No nested folders are currently inside this folder.</div>
+                        <table class="fv-folder-members-table" aria-label="Nested folder order">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Folder</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fvFolderMembersBody"></tbody>
+                        </table>
+                    </div>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    This only changes the order of child folders. Docker containers and VMs stay managed in the member list below.
+                </p>
+            </blockquote>
+        </div>
         <div class="basic order-section">
             <dl>
                 <dt data-i18n="order">Order:</dt>

@@ -132,6 +132,9 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
     })
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
+const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
+let activityFeedAutoClearTimer = null;
+let activityCenterHistoryExpanded = false;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
     refresh: Object.freeze({ docker: 1500, vm: 1500 }),
@@ -743,23 +746,146 @@ const formatActivityTimestamp = (at) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const normalizeActivityLevel = (level) => {
+    const normalized = String(level || 'info').trim().toLowerCase();
+    if (normalized === 'error' || normalized === 'danger') {
+        return 'error';
+    }
+    if (normalized === 'success' || normalized === 'ok') {
+        return 'success';
+    }
+    if (normalized === 'warning' || normalized === 'warn') {
+        return 'warning';
+    }
+    return 'info';
+};
+
+const getActivityLevelMeta = (level) => {
+    switch (normalizeActivityLevel(level)) {
+        case 'success':
+            return { label: 'Complete', icon: 'fa-check-circle' };
+        case 'warning':
+            return { label: 'Attention', icon: 'fa-exclamation-triangle' };
+        case 'error':
+            return { label: 'Issue', icon: 'fa-times-circle' };
+        case 'info':
+        default:
+            return { label: 'Info', icon: 'fa-info-circle' };
+    }
+};
+
+const isActivityEntryFresh = (entry) => {
+    const at = Number(entry?.at || 0);
+    return at > 0 && Date.now() - at < ACTIVITY_FEED_AUTO_CLEAR_MS;
+};
+
+const summarizeActivityFeed = () => {
+    const counts = activityFeedEntries.reduce((acc, entry) => {
+        const level = normalizeActivityLevel(entry?.level);
+        acc[level] = (acc[level] || 0) + 1;
+        return acc;
+    }, {});
+    const total = activityFeedEntries.length;
+    if (!total) {
+        return 'No recent activity.';
+    }
+    if (counts.error > 0) {
+        return `${counts.error} issue${counts.error === 1 ? '' : 's'} need attention.`;
+    }
+    if (counts.warning > 0) {
+        return `${counts.warning} item${counts.warning === 1 ? '' : 's'} need review.`;
+    }
+    if (counts.success > 0) {
+        return `${counts.success} action${counts.success === 1 ? '' : 's'} completed.`;
+    }
+    return `${total} recent update${total === 1 ? '' : 's'}.`;
+};
+
 const renderActivityFeed = () => {
     const panel = $('#fv-activity-feed-panel');
     const list = $('#fv-activity-feed-list');
+    const latest = $('#fv-activity-center-latest');
+    const status = $('#fv-activity-center-status');
+    const summary = $('#fv-activity-center-summary');
+    const toggle = $('#fv-activity-center-toggle');
+    const clear = $('#fv-activity-center-clear');
     if (!panel.length || !list.length) {
         return;
     }
     if (!activityFeedEntries.length) {
-        panel.hide();
+        status.text('Recent activity');
+        summary.text('Actions you run here will appear in this session history.');
         list.empty();
+        list.hide();
+        toggle.attr('aria-expanded', 'false');
+        toggle.toggleClass('is-expanded', false);
+        toggle.prop('disabled', true);
+        clear.prop('disabled', true);
+        latest.html(`
+            <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
+            <div class="fv-activity-latest-copy">
+                <strong>No activity yet</strong>
+                <span>Folder changes, backups, imports, and recovery actions will appear here.</span>
+            </div>
+            <span class="fv-activity-latest-time">Ready</span>
+        `);
+        latest.addClass('is-empty').removeClass('is-fresh is-error is-warning is-success is-info');
+        panel.show();
         return;
     }
+    const first = activityFeedEntries[0];
+    const firstLevel = normalizeActivityLevel(first?.level);
+    const firstMeta = getActivityLevelMeta(firstLevel);
+    const firstFresh = firstLevel !== 'error' && isActivityEntryFresh(first);
+    status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? 'Review recent action' : 'Recent activity');
+    summary.text(summarizeActivityFeed());
+    latest
+        .removeClass('is-empty is-error is-warning is-success is-info is-fresh')
+        .addClass(`is-${firstLevel}`)
+        .toggleClass('is-fresh', firstFresh);
+    latest.html(`
+        <div class="fv-activity-latest-icon is-${diagnosticsEscapeHtml(firstLevel)}"><i class="fa ${diagnosticsEscapeHtml(firstMeta.icon)}" aria-hidden="true"></i></div>
+        <div class="fv-activity-latest-copy">
+            <strong>${diagnosticsEscapeHtml(firstMeta.label)}</strong>
+            <span>${diagnosticsEscapeHtml(String(first?.message || 'Activity recorded.'))}</span>
+        </div>
+        <span class="fv-activity-latest-time">${diagnosticsEscapeHtml(formatActivityTimestamp(first?.at))}</span>
+    `);
     const rows = activityFeedEntries.map((entry) => {
-        const level = String(entry?.level || 'info');
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
+        const level = normalizeActivityLevel(entry?.level);
+        const meta = getActivityLevelMeta(level);
+        const freshClass = level !== 'error' && isActivityEntryFresh(entry) ? ' is-fresh' : '';
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}${freshClass}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
     }).join('');
     list.html(rows);
+    list.toggle(activityCenterHistoryExpanded);
+    toggle.attr('aria-expanded', activityCenterHistoryExpanded ? 'true' : 'false');
+    toggle.toggleClass('is-expanded', activityCenterHistoryExpanded);
+    toggle.prop('disabled', false);
+    clear.prop('disabled', false);
     panel.show();
+};
+
+const cancelActivityFeedAutoClear = () => {
+    if (activityFeedAutoClearTimer) {
+        window.clearTimeout(activityFeedAutoClearTimer);
+        activityFeedAutoClearTimer = null;
+    }
+};
+
+const scheduleActivityFeedAutoClear = () => {
+    cancelActivityFeedAutoClear();
+    const freshEntries = activityFeedEntries.filter((entry) => normalizeActivityLevel(entry?.level) !== 'error' && isActivityEntryFresh(entry));
+    if (!freshEntries.length) {
+        return;
+    }
+    const oldestFreshAt = Math.min(...freshEntries.map((entry) => Number(entry?.at || Date.now())));
+    const delay = Math.max(0, ACTIVITY_FEED_AUTO_CLEAR_MS - (Date.now() - oldestFreshAt) + 50);
+    activityFeedAutoClearTimer = window.setTimeout(() => {
+        activityFeedAutoClearTimer = null;
+        renderActivityFeed();
+        scheduleActivityFeedAutoClear();
+    }, delay);
 };
 
 const addActivityEntry = (message, level = 'info') => {
@@ -776,10 +902,18 @@ const addActivityEntry = (message, level = 'info') => {
         activityFeedEntries = activityFeedEntries.slice(0, ACTIVITY_FEED_MAX_ENTRIES);
     }
     renderActivityFeed();
+    scheduleActivityFeedAutoClear();
 };
 
 const clearActivityFeed = () => {
+    cancelActivityFeedAutoClear();
+    activityCenterHistoryExpanded = false;
     activityFeedEntries = [];
+    renderActivityFeed();
+};
+
+const toggleActivityCenterHistory = () => {
+    activityCenterHistoryExpanded = !activityCenterHistoryExpanded;
     renderActivityFeed();
 };
 
@@ -1852,10 +1986,12 @@ const runThemeSelfHeal = async () => {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        renderActivityFeed();
         runThemeDiagnostics();
         initializeClientDiagnosticsPanels();
     }, { once: true });
 } else {
+    renderActivityFeed();
     runThemeDiagnostics();
     initializeClientDiagnosticsPanels();
 }
@@ -1863,6 +1999,7 @@ if (document.readyState === 'loading') {
 Object.assign(window, {
     lastDiagnostics,
     ACTIVITY_FEED_MAX_ENTRIES,
+    ACTIVITY_FEED_AUTO_CLEAR_MS,
     PERF_DIAGNOSTICS_SAMPLE_LIMIT,
     performanceDiagnosticsState,
     perfNowMs,
@@ -1891,6 +2028,7 @@ Object.assign(window, {
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
+    toggleActivityCenterHistory,
     ADVANCED_MODULE_STATUS_CONFIG,
     ensureAdvancedModuleStatusHost,
     renderAdvancedModuleStatus,
@@ -1930,6 +2068,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     renderActivityFeed,
     addActivityEntry,
     clearActivityFeed,
+    toggleActivityCenterHistory,
     setAdvancedModuleStatus,
     claimAdvancedOperationLock,
     releaseAdvancedOperationLock,

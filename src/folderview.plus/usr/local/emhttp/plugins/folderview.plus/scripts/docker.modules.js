@@ -246,6 +246,21 @@
         let folderRowCenterObserver = null;
         let folderRowCenterRaf = 0;
 
+        const readFolderRowCenterSignature = () => getFolderRows()
+            .map((row) => {
+                const id = getFolderIdFromRow(row) || getFolderNameFromRow(row);
+                const cell = getFolderNameCell(row);
+                const sub = cell && cell.querySelector ? cell.querySelector('.folder-name-sub') : null;
+                const rowHeight = getRenderedRowHeight(row);
+                const cellHeight = cell && Number.isFinite(cell.offsetHeight) ? Math.round(cell.offsetHeight) : 0;
+                const subHeight = sub && Number.isFinite(sub.offsetHeight) ? Math.round(sub.offsetHeight) : 0;
+                return `${id}:${rowHeight}:${cellHeight}:${subHeight}`;
+            })
+            .join('|');
+
+        const hasUnsettledFolderRowAssets = () => Array.from(document.querySelectorAll('tr img'))
+            .some((img) => img && img.complete === false);
+
         const forceAllFolderRowsVerticalCenter = () => {
             const rows = getFolderRows();
             const sourceRows = rows.filter((row) => rowHasFolderPreview(row));
@@ -279,6 +294,21 @@
                     applyFolderCellCentering(cell, 0);
                 }
             });
+        };
+
+        const queueConditionalFolderRowCenterRetry = (delayMs, signatureRef = null) => {
+            window.setTimeout(() => {
+                const currentSignature = readFolderRowCenterSignature();
+                const previousSignature = signatureRef && typeof signatureRef === 'object'
+                    ? String(signatureRef.value || '')
+                    : '';
+                if (currentSignature !== previousSignature || hasUnsettledFolderRowAssets()) {
+                    if (signatureRef && typeof signatureRef === 'object') {
+                        signatureRef.value = currentSignature;
+                    }
+                    queueForceAllFolderRowsVerticalCenter();
+                }
+            }, Math.max(0, Number(delayMs) || 0));
         };
 
         const queueForceAllFolderRowsVerticalCenter = () => {
@@ -325,10 +355,11 @@
             });
 
             folderRowCenterObserver.observe(observerRoot, { childList: true, subtree: true });
+            const signatureRef = { value: readFolderRowCenterSignature() };
             queueForceAllFolderRowsVerticalCenter();
-            setTimeout(queueForceAllFolderRowsVerticalCenter, 50);
-            setTimeout(queueForceAllFolderRowsVerticalCenter, 250);
-            setTimeout(queueForceAllFolderRowsVerticalCenter, 1000);
+            queueConditionalFolderRowCenterRetry(50, signatureRef);
+            queueConditionalFolderRowCenterRetry(250, signatureRef);
+            queueConditionalFolderRowCenterRetry(1000, signatureRef);
         };
 
         const forceFolderRowVerticalCenter = (id) => {

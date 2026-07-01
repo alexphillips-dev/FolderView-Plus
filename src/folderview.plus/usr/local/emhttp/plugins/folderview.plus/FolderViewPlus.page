@@ -179,12 +179,29 @@ if (!empty($fvplusRuntimeConflicts)) {
 ?>
 <div id="fv-runtime-resolved-panel" class="fv-runtime-resolved-panel" style="display:none"></div>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
-<div id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;">
-    <div class="fv-activity-feed-head">
-        <strong>Recent activity</strong>
-        <button type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+<div id="fv-activity-feed-panel" class="fv-activity-feed-panel">
+    <div class="fv-activity-center-head">
+        <div class="fv-activity-center-title">
+            <span class="fv-activity-center-kicker">Activity Center</span>
+            <strong id="fv-activity-center-status">Recent activity</strong>
+            <span id="fv-activity-center-summary" class="fv-activity-center-summary">Actions you run here will appear in this session history.</span>
+        </div>
+        <div class="fv-activity-center-actions">
+            <button id="fv-activity-center-toggle" type="button" onclick="toggleActivityCenterHistory()" aria-expanded="false">
+                <i class="fa fa-history"></i> History
+            </button>
+            <button id="fv-activity-center-clear" type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+        </div>
     </div>
-    <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
+    <div id="fv-activity-center-latest" class="fv-activity-center-latest is-empty">
+        <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
+        <div class="fv-activity-latest-copy">
+            <strong>No activity yet</strong>
+            <span>Folder changes, backups, imports, and recovery actions will appear here.</span>
+        </div>
+        <span class="fv-activity-latest-time">Ready</span>
+    </div>
+    <ul id="fv-activity-feed-list" class="fv-activity-feed-list" style="display:none;"></ul>
 </div>
 
 <div class="fv-customizations-header" data-fv-section-row="1">
@@ -1392,9 +1409,15 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Choose Docker or VMs, confirm you are protected, then create, compare, restore, or review snapshots from one place.</span>
         </div>
         <div class="fv-recovery-section-body">
-            <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
-                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
-                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+            <div class="fv-recovery-intro">
+                <div>
+                    <strong>Recovery protects your FolderView Plus setup.</strong>
+                    <span>Use this page to create restore points, restore a previous folder layout, compare two snapshots, or move your setup to another server.</span>
+                </div>
+                <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+                </div>
             </div>
 
             <div id="fv-recovery-overview" class="fv-recovery-overview">
@@ -1408,7 +1431,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <section class="fv-recovery-stage">
                     <div class="fv-recovery-stage-head">
                         <strong>Restore and safety</strong>
-                        <span class="rules-help">Restore the latest snapshot, create a manual checkpoint, or compare two restore points before applying anything.</span>
+                        <span class="rules-help">Restore the latest safe snapshot or create a manual checkpoint before making changes.</span>
                     </div>
                     <div class="backup-actions fv-recovery-primary-actions">
                         <button type="button" onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
@@ -1417,6 +1440,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                     <div id="fv-recovery-safety-note" class="fv-recovery-callout">
                         Restoring always creates a fresh safety backup first.
+                    </div>
+                </section>
+
+                <section class="fv-recovery-stage fv-recovery-compare-stage">
+                    <div class="fv-recovery-stage-head">
+                        <strong>Compare snapshots</strong>
+                        <span class="rules-help">Preview folder and preference differences before restoring anything.</span>
                     </div>
                     <div class="backup-compare-row fv-recovery-compare-row">
                         <label for="recovery-backup-compare-left">Compare</label>
@@ -1644,7 +1674,15 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <div id="import-apply-progress-overlay" style="display:none;"></div>
 <div id="import-apply-progress-dialog" style="display:none;" role="dialog" aria-modal="true" aria-live="polite">
+    <div class="import-apply-progress-head">
+        <div>
+            <div class="import-apply-progress-kicker" id="import-apply-progress-kicker">FolderView Plus</div>
+            <div class="import-apply-progress-title" id="import-apply-progress-title">Preparing operation</div>
+        </div>
+        <span class="import-apply-progress-state" id="import-apply-progress-state">Running</span>
+    </div>
     <div class="import-apply-progress-label" id="import-apply-progress-label">Preparing import...</div>
+    <div class="import-apply-progress-current" id="import-apply-progress-current">Please keep this page open.</div>
     <div class="import-apply-progress-bar-wrap">
         <div id="import-apply-progress-bar" class="import-apply-progress-bar"></div>
     </div>
@@ -1652,6 +1690,12 @@ if (!empty($fvplusRuntimeConflicts)) {
         <span id="import-apply-progress-step">0 / 0</span>
         <span id="import-apply-progress-percent">0%</span>
     </div>
+    <div class="import-apply-progress-detail-grid">
+        <span><strong id="import-apply-progress-completed">0</strong><small>Completed</small></span>
+        <span><strong id="import-apply-progress-remaining">0</strong><small>Remaining</small></span>
+        <span><strong id="import-apply-progress-total">0</strong><small>Total steps</small></span>
+    </div>
+    <div class="import-apply-progress-note" id="import-apply-progress-note">Do not close this page until the operation completes.</div>
 </div>
 
 <div id="fv-setup-assistant-overlay" style="display:none;"></div>

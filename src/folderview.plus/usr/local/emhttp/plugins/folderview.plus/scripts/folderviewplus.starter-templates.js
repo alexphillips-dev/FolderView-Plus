@@ -547,6 +547,8 @@ const buildStarterFolderPayload = (name, iconPath = DEFAULT_STARTER_FOLDER_ICON)
         folder_webui_url: '',
         preview: 1,
         preview_hover: false,
+        preview_hover_animation: 'none',
+        previewHoverAnimation: 'none',
         preview_update: false,
         preview_text_width: '',
         preview_status: 'symbol',

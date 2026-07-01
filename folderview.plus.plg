@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.18">
-<!ENTITY md5 "e2028bd495e2d31eee1e549e12c05958">
+<!ENTITY version "2026.06.30.19">
+<!ENTITY md5 "b9d48434039ece23ae6f7486bed240fa">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.19
+- UX: Reduce initial Docker tab visual jiggle by running delayed row-centering and width-polish passes only when folder rows are still settling.
+
 
 ###2026.06.30.18
 - UX: Stop Docker folder menu move actions from repainting the Docker folder list after the optimistic row move has already applied.

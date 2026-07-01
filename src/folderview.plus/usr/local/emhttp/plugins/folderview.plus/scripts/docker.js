@@ -3560,6 +3560,39 @@ const forceFolderRowVerticalCenter = (id) => rowCenteringTools.forceFolderRowVer
 const queueForceAllFolderRowsVerticalCenter = () => rowCenteringTools.queueForceAllFolderRowsVerticalCenter();
 const startFolderRowCenterObserver = () => rowCenteringTools.startFolderRowCenterObserver();
 
+const readDockerPostRenderPolishSignature = () => Array.from(document.querySelectorAll('#docker_list > tr.folder, #docker_view > tr.folder'))
+    .map((row) => {
+        const id = readFolderIdFromRow(row) || String(row.querySelector?.('.folder-appname')?.textContent || '').trim();
+        const rect = row.getBoundingClientRect ? row.getBoundingClientRect() : null;
+        const preview = row.querySelector ? row.querySelector('.folder-preview') : null;
+        const rowHeight = Math.round(Math.max(Number(rect?.height) || 0, Number(row.offsetHeight) || 0));
+        const previewWidth = Math.round(Math.max(Number(preview?.scrollWidth) || 0, Number(preview?.clientWidth) || 0));
+        const previewHeight = Math.round(Math.max(Number(preview?.scrollHeight) || 0, Number(preview?.clientHeight) || 0));
+        return `${id}:${rowHeight}:${previewWidth}:${previewHeight}`;
+    })
+    .join('|');
+
+const hasUnsettledDockerPostRenderAssets = () => Array.from(document.querySelectorAll('#docker_list > tr.folder img, #docker_view > tr.folder img'))
+    .some((img) => img && img.complete === false);
+
+const queueConditionalDockerPostRenderPolish = ({ delayMs, reason, folderIds = [], signatureRef = null }) => {
+    window.setTimeout(() => {
+        const currentSignature = readDockerPostRenderPolishSignature();
+        const previousSignature = signatureRef && typeof signatureRef === 'object'
+            ? String(signatureRef.value || '')
+            : '';
+        if (currentSignature === previousSignature && !hasUnsettledDockerPostRenderAssets()) {
+            return;
+        }
+        if (signatureRef && typeof signatureRef === 'object') {
+            signatureRef.value = currentSignature;
+        }
+        folderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+        queueForceAllFolderRowsVerticalCenter();
+        scheduleDockerRuntimeWidthReflow(reason, 18);
+    }, Math.max(0, Number(delayMs) || 0));
+};
+
 dockerDebug.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
 if (FOLDER_VIEW_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
@@ -3620,17 +3653,30 @@ const hideDockerRuntimeLoadingOverlay = () => {
 const scheduleDockerPostRenderPolish = (folderIds = []) => {
     const safeFolderIds = Array.isArray(folderIds) ? folderIds.slice() : [];
     const run = () => {
+        const signatureRef = { value: readDockerPostRenderPolishSignature() };
         startFolderRowCenterObserver();
         safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
         queueForceAllFolderRowsVerticalCenter();
         bindDockerRuntimeAppColumnResizer();
         scheduleDockerRuntimeWidthReflow('render-complete', 12);
-        setTimeout(() => {
-            safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
-            queueForceAllFolderRowsVerticalCenter();
-        }, 48);
-        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
-        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 48,
+            reason: 'render-post-48ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 80,
+            reason: 'render-post-80ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
+        queueConditionalDockerPostRenderPolish({
+            delayMs: 260,
+            reason: 'render-post-260ms',
+            folderIds: safeFolderIds,
+            signatureRef
+        });
     };
     if (typeof window.requestAnimationFrame === 'function') {
         window.requestAnimationFrame(() => run());

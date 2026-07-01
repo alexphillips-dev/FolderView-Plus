@@ -310,6 +310,24 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
 });
 
+test('docker post-render polish retries only when rows are still settling', () => {
+    assert.match(dockerJs, /const readDockerPostRenderPolishSignature = \(\) =>/);
+    assert.match(dockerJs, /const hasUnsettledDockerPostRenderAssets = \(\) =>/);
+    assert.match(dockerJs, /const queueConditionalDockerPostRenderPolish = \(\{ delayMs, reason, folderIds = \[\], signatureRef = null \}\) =>/);
+    assert.match(dockerJs, /if \(currentSignature === previousSignature && !hasUnsettledDockerPostRenderAssets\(\)\) \{\s*return;\s*\}/);
+    assert.match(dockerJs, /const signatureRef = \{ value: readDockerPostRenderPolishSignature\(\) \};/);
+    assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-48ms'[\s\S]*signatureRef/s);
+    assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-80ms'[\s\S]*signatureRef/s);
+    assert.match(dockerJs, /queueConditionalDockerPostRenderPolish\(\{[\s\S]*reason:\s*'render-post-260ms'[\s\S]*signatureRef/s);
+    assert.match(dockerJs, /queueDockerDeferredRuntimeInfoHydration\(renderGeneration,\s*lastLiveRefreshStateSignature,\s*requestBundle\.fullInfo\);/);
+    assert.match(dockerModulesJs, /const readFolderRowCenterSignature = \(\) =>/);
+    assert.match(dockerModulesJs, /const hasUnsettledFolderRowAssets = \(\) =>/);
+    assert.match(dockerModulesJs, /const queueConditionalFolderRowCenterRetry = \(delayMs,\s*signatureRef = null\) =>/);
+    assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*50\)/);
+    assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*250\)/);
+    assert.doesNotMatch(dockerModulesJs, /setTimeout\(queueForceAllFolderRowsVerticalCenter,\s*1000\)/);
+});
+
 test('vm runtime tiny-width overflow guard can still recover clipped folder names', () => {
     assert.match(vmJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
     assert.match(vmJs, /if \(clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);

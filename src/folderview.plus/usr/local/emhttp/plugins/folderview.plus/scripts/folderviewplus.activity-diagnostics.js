@@ -774,6 +774,11 @@ const getActivityLevelMeta = (level) => {
     }
 };
 
+const isActivityEntryFresh = (entry) => {
+    const at = Number(entry?.at || 0);
+    return at > 0 && Date.now() - at < ACTIVITY_FEED_AUTO_CLEAR_MS;
+};
+
 const summarizeActivityFeed = () => {
     const counts = activityFeedEntries.reduce((acc, entry) => {
         const level = normalizeActivityLevel(entry?.level);
@@ -803,21 +808,41 @@ const renderActivityFeed = () => {
     const status = $('#fv-activity-center-status');
     const summary = $('#fv-activity-center-summary');
     const toggle = $('#fv-activity-center-toggle');
+    const clear = $('#fv-activity-center-clear');
     if (!panel.length || !list.length) {
         return;
     }
     if (!activityFeedEntries.length) {
-        panel.hide();
+        status.text('Recent activity');
+        summary.text('Actions you run here will appear in this session history.');
         list.empty();
-        latest.empty();
-        summary.text('No recent activity.');
+        list.hide();
+        toggle.attr('aria-expanded', 'false');
+        toggle.toggleClass('is-expanded', false);
+        toggle.prop('disabled', true);
+        clear.prop('disabled', true);
+        latest.html(`
+            <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
+            <div class="fv-activity-latest-copy">
+                <strong>No activity yet</strong>
+                <span>Folder changes, backups, imports, and recovery actions will appear here.</span>
+            </div>
+            <span class="fv-activity-latest-time">Ready</span>
+        `);
+        latest.addClass('is-empty').removeClass('is-fresh is-error is-warning is-success is-info');
+        panel.show();
         return;
     }
     const first = activityFeedEntries[0];
     const firstLevel = normalizeActivityLevel(first?.level);
     const firstMeta = getActivityLevelMeta(firstLevel);
+    const firstFresh = firstLevel !== 'error' && isActivityEntryFresh(first);
     status.text(firstLevel === 'error' ? 'Needs attention' : firstLevel === 'warning' ? 'Review recent action' : 'Recent activity');
     summary.text(summarizeActivityFeed());
+    latest
+        .removeClass('is-empty is-error is-warning is-success is-info is-fresh')
+        .addClass(`is-${firstLevel}`)
+        .toggleClass('is-fresh', firstFresh);
     latest.html(`
         <div class="fv-activity-latest-icon is-${diagnosticsEscapeHtml(firstLevel)}"><i class="fa ${diagnosticsEscapeHtml(firstMeta.icon)}" aria-hidden="true"></i></div>
         <div class="fv-activity-latest-copy">
@@ -829,12 +854,15 @@ const renderActivityFeed = () => {
     const rows = activityFeedEntries.map((entry) => {
         const level = normalizeActivityLevel(entry?.level);
         const meta = getActivityLevelMeta(level);
-        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
+        const freshClass = level !== 'error' && isActivityEntryFresh(entry) ? ' is-fresh' : '';
+        return `<li class="fv-activity-item is-${diagnosticsEscapeHtml(level)}${freshClass}"><span class="fv-activity-level"><i class="fa ${diagnosticsEscapeHtml(meta.icon)}" aria-hidden="true"></i>${diagnosticsEscapeHtml(meta.label)}</span><span class="fv-activity-time">${diagnosticsEscapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${diagnosticsEscapeHtml(String(entry.message || ''))}</span></li>`;
     }).join('');
     list.html(rows);
     list.toggle(activityCenterHistoryExpanded);
     toggle.attr('aria-expanded', activityCenterHistoryExpanded ? 'true' : 'false');
     toggle.toggleClass('is-expanded', activityCenterHistoryExpanded);
+    toggle.prop('disabled', false);
+    clear.prop('disabled', false);
     panel.show();
 };
 
@@ -847,17 +875,17 @@ const cancelActivityFeedAutoClear = () => {
 
 const scheduleActivityFeedAutoClear = () => {
     cancelActivityFeedAutoClear();
-    if (!activityFeedEntries.length) {
+    const freshEntries = activityFeedEntries.filter((entry) => normalizeActivityLevel(entry?.level) !== 'error' && isActivityEntryFresh(entry));
+    if (!freshEntries.length) {
         return;
     }
-    if (activityFeedEntries.some((entry) => normalizeActivityLevel(entry?.level) === 'error')) {
-        return;
-    }
+    const oldestFreshAt = Math.min(...freshEntries.map((entry) => Number(entry?.at || Date.now())));
+    const delay = Math.max(0, ACTIVITY_FEED_AUTO_CLEAR_MS - (Date.now() - oldestFreshAt) + 50);
     activityFeedAutoClearTimer = window.setTimeout(() => {
         activityFeedAutoClearTimer = null;
-        activityFeedEntries = [];
         renderActivityFeed();
-    }, ACTIVITY_FEED_AUTO_CLEAR_MS);
+        scheduleActivityFeedAutoClear();
+    }, delay);
 };
 
 const addActivityEntry = (message, level = 'info') => {
@@ -1958,10 +1986,12 @@ const runThemeSelfHeal = async () => {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        renderActivityFeed();
         runThemeDiagnostics();
         initializeClientDiagnosticsPanels();
     }, { once: true });
 } else {
+    renderActivityFeed();
     runThemeDiagnostics();
     initializeClientDiagnosticsPanels();
 }

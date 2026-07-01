@@ -8961,6 +8961,10 @@ h2[data-fv-section].fv-search-match {
     padding: 0.18rem 0.58rem;
 }
 
+.fv-activity-center-actions > button:disabled {
+    cursor: default;
+}
+
 .fv-activity-center-actions > button.is-expanded {
     border-color: var(--orange, #ff8c2a);
     color: var(--orange, #ff8c2a);
@@ -8976,6 +8980,15 @@ h2[data-fv-section].fv-search-match {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.62rem;
+}
+
+.fv-activity-center-latest.is-empty {
+    opacity: 0.78;
+}
+
+.fv-activity-center-latest.is-fresh {
+    border-color: color-mix(in srgb, var(--fvplus-settings-success) 38%, var(--fvplus-settings-border-subtle));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
 }
 
 .fv-activity-latest-icon {
@@ -8998,6 +9011,10 @@ h2[data-fv-section].fv-search-match {
 
 .fv-activity-latest-icon.is-error {
     color: var(--fvplus-settings-danger);
+}
+
+.fv-activity-latest-icon.is-info {
+    color: var(--fvplus-settings-accent, #5bbcff);
 }
 
 .fv-activity-latest-copy {
@@ -9039,6 +9056,10 @@ h2[data-fv-section].fv-search-match {
     padding: 0.34rem 0.46rem;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.025);
+}
+
+.fv-activity-item.is-fresh {
+    background: rgba(255, 255, 255, 0.045);
 }
 
 .fv-activity-level {
@@ -9229,7 +9250,7 @@ h2[data-fv-section].fv-search-match {
     .fv-mode-toggle button,
     #fv-run-wizard,
     .rule-presets > button,
-    .fv-activity-feed-head > button,
+    .fv-activity-center-actions > button,
     .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button
@@ -9277,7 +9298,7 @@ h2[data-fv-section].fv-search-match {
     .fv-mode-toggle button,
     #fv-run-wizard,
     .rule-presets > button,
-    .fv-activity-feed-head > button,
+    .fv-activity-center-actions > button,
     .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button
@@ -9314,7 +9335,7 @@ h2[data-fv-section].fv-search-match {
     .fv-mode-toggle button,
     #fv-run-wizard,
     .rule-presets > button,
-    .fv-activity-feed-head > button,
+    .fv-activity-center-actions > button,
     .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button
@@ -9359,7 +9380,7 @@ h2[data-fv-section].fv-search-match {
     .fv-mode-toggle button,
     #fv-run-wizard,
     .rule-presets > button,
-    .fv-activity-feed-head > button,
+    .fv-activity-center-actions > button,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button
 ):active,
@@ -9399,7 +9420,7 @@ h2[data-fv-section].fv-search-match {
     .fv-mode-toggle button,
     #fv-run-wizard,
     .rule-presets > button,
-    .fv-activity-feed-head > button,
+    .fv-activity-center-actions > button,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button
 ):disabled,

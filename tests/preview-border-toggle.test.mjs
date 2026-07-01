@@ -131,8 +131,12 @@ test('folder hover animations are configurable and runtime-safe', () => {
     assert.match(vmJs, /class="sortable folder-id-\$\{id\} \$\{hoverClass\} \$\{lockedClass\} \$\{pinnedClass\} \$\{focusedClass\} \$\{hoverAnimationClass\} folder"/);
     assert.match(dashboardJs, /const getPreviewHoverAnimationClass = \(settings = \{\}\) =>/);
     assert.match(dashboardJs, /folder-showcase-outer \$\{hoverAnimationClass\}/);
+    assert.doesNotMatch(dockerJs, /preview_hover_animation:\s*'none'/);
+    assert.doesNotMatch(vmJs, /preview_hover_animation:\s*'none'/);
+    assert.doesNotMatch(dashboardJs, /preview_hover_animation:\s*'none'/);
     assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-bounce/);
     assert.match(runtimeSharedCss, /@keyframes fv-folder-hover-spin/);
+    assert.match(runtimeSharedCss, /tr\.folder\.fv-hover-animation-spin:hover \.folder-outer/);
     assert.match(runtimeSharedCss, /prefers-reduced-motion: reduce/);
     assert.match(folderCss, /\.fv-live-preview-row\.fv-hover-animation-bounce:hover \.fv-live-folder-anchor/);
     assert.match(serverLibPhp, /\$rawPreviewHoverAnimation = \$normalized\['settings'\]\['preview_hover_animation'\]/);

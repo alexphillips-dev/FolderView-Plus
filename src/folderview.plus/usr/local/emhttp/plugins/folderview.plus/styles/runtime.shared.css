@@ -207,33 +207,35 @@ body ul.dropdown-menu .context-menu-disabled {
     align-items: center;
 }
 
-tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) .folder-name-sub,
+tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) .folder-outer,
 .folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle) > .outer {
+    display: inline-flex;
+    align-items: center;
     transform-origin: center;
     will-change: transform;
 }
 
-tr.folder.fv-hover-animation-bounce:hover .folder-name-sub,
+tr.folder.fv-hover-animation-bounce:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-bounce:hover > .outer {
     animation: fv-folder-hover-bounce 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-tr.folder.fv-hover-animation-grow:hover .folder-name-sub,
+tr.folder.fv-hover-animation-grow:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-grow:hover > .outer {
     animation: fv-folder-hover-grow 420ms ease-out both;
 }
 
-tr.folder.fv-hover-animation-spin:hover .folder-name-sub,
+tr.folder.fv-hover-animation-spin:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-spin:hover > .outer {
     animation: fv-folder-hover-spin 560ms ease-in-out both;
 }
 
-tr.folder.fv-hover-animation-pulse:hover .folder-name-sub,
+tr.folder.fv-hover-animation-pulse:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-pulse:hover > .outer {
     animation: fv-folder-hover-pulse 480ms ease-out both;
 }
 
-tr.folder.fv-hover-animation-wiggle:hover .folder-name-sub,
+tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
 .folder-showcase-outer.fv-hover-animation-wiggle:hover > .outer {
     animation: fv-folder-hover-wiggle 460ms ease-in-out both;
 }
@@ -270,7 +272,7 @@ tr.folder.fv-hover-animation-wiggle:hover .folder-name-sub,
 }
 
 @media (prefers-reduced-motion: reduce) {
-    tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover .folder-name-sub,
+    tr.folder:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover .folder-outer,
     .folder-showcase-outer:is(.fv-hover-animation-bounce, .fv-hover-animation-grow, .fv-hover-animation-spin, .fv-hover-animation-pulse, .fv-hover-animation-wiggle):hover > .outer {
         animation: none !important;
     }

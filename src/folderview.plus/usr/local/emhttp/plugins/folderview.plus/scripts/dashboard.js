@@ -1458,9 +1458,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false,
-            preview_hover_animation: 'none',
-            previewHoverAnimation: 'none'
+            preview_grayscale: false
         };
     }
 
@@ -1552,9 +1550,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false,
-            preview_hover_animation: 'none',
-            previewHoverAnimation: 'none'
+            preview_grayscale: false
         };
     }
 
@@ -1773,9 +1769,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false,
-            preview_hover_animation: 'none',
-            previewHoverAnimation: 'none'
+            preview_grayscale: false
         };
     }
 
@@ -1856,9 +1850,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             preview_webui: false,
             preview_vertical_bars: false,
             preview_update: false,
-            preview_grayscale: false,
-            preview_hover_animation: 'none',
-            previewHoverAnimation: 'none'
+            preview_grayscale: false
         };
     }
 

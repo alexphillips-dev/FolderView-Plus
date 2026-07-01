@@ -6037,11 +6037,159 @@ const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter(
         'fa-unlock-alt'
     ]
 });
+const DOCKER_CONTEXT_MENU_SELECTORS = [
+    'ul.context-menu-list',
+    'ul.contextMenuPlugin',
+    'ul.context-menu',
+    'ul.dropdown-menu'
+];
+const DOCKER_CONTEXT_VIEWPORT_MARGIN = 10;
 const queueDockerFolderContextQuickIcons = (attempt = 0) => {
     if (!dockerContextQuickStripAdapter || typeof dockerContextQuickStripAdapter.queueEnhance !== 'function') {
         return;
     }
     dockerContextQuickStripAdapter.queueEnhance(attempt);
+};
+const getVisibleDockerContextMenus = () => {
+    const jq = window.jQuery || window.$;
+    if (jq) {
+        const menus = [];
+        for (const selector of DOCKER_CONTEXT_MENU_SELECTORS) {
+            jq(`${selector}:visible`).each((_, menu) => {
+                if (!menus.includes(menu)) {
+                    menus.push(menu);
+                }
+            });
+        }
+        return menus;
+    }
+    return DOCKER_CONTEXT_MENU_SELECTORS
+        .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+        .filter((menu, index, all) => all.indexOf(menu) === index)
+        .filter((menu) => {
+            const rect = menu.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+        });
+};
+const positionDockerContextElementInsideViewport = (element) => {
+    if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return false;
+    }
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+        return false;
+    }
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!viewportWidth || !viewportHeight) {
+        return false;
+    }
+    const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
+    const style = window.getComputedStyle(element);
+    const fixed = style.position === 'fixed';
+    const scrollX = fixed ? 0 : (window.pageXOffset || document.documentElement.scrollLeft || 0);
+    const scrollY = fixed ? 0 : (window.pageYOffset || document.documentElement.scrollTop || 0);
+    let nextTop = rect.top + scrollY;
+    let nextLeft = rect.left + scrollX;
+    let changed = false;
+
+    element.classList.add('fvplus-docker-context-menu');
+    element.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+
+    if (rect.bottom > viewportHeight - margin) {
+        nextTop -= rect.bottom - (viewportHeight - margin);
+        changed = true;
+    }
+    if (rect.top < margin) {
+        nextTop += margin - rect.top;
+        changed = true;
+    }
+    if (rect.right > viewportWidth - margin) {
+        nextLeft -= rect.right - (viewportWidth - margin);
+        changed = true;
+    }
+    if (rect.left < margin) {
+        nextLeft += margin - rect.left;
+        changed = true;
+    }
+
+    if (changed) {
+        element.style.top = `${Math.max(margin + scrollY, nextTop)}px`;
+        element.style.left = `${Math.max(margin + scrollX, nextLeft)}px`;
+    }
+    return true;
+};
+const adjustDockerContextSubmenuViewportPlacement = (listItem) => {
+    if (!listItem || !listItem.closest) {
+        return false;
+    }
+    const rootMenu = listItem.closest('.fvplus-docker-context-menu');
+    const submenu = Array.from(listItem.children || []).find((child) => child && child.tagName === 'UL');
+    if (!rootMenu || !submenu || typeof submenu.getBoundingClientRect !== 'function') {
+        return false;
+    }
+    listItem.classList.remove('fvplus-context-submenu-open-up', 'fvplus-context-submenu-open-left');
+    submenu.style.maxHeight = '';
+    const rect = submenu.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+        return false;
+    }
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const margin = DOCKER_CONTEXT_VIEWPORT_MARGIN;
+    if (rect.bottom > viewportHeight - margin) {
+        listItem.classList.add('fvplus-context-submenu-open-up');
+    }
+    if (rect.right > viewportWidth - margin) {
+        listItem.classList.add('fvplus-context-submenu-open-left');
+    }
+    submenu.style.maxHeight = `calc(100vh - ${margin * 2}px)`;
+    return true;
+};
+const adjustVisibleDockerContextMenusInsideViewport = () => {
+    const menus = getVisibleDockerContextMenus();
+    if (!menus.length) {
+        return false;
+    }
+    menus.forEach((menu) => positionDockerContextElementInsideViewport(menu));
+    return true;
+};
+let dockerContextViewportGuardsBound = false;
+const bindDockerContextMenuViewportGuards = () => {
+    if (dockerContextViewportGuardsBound) {
+        return;
+    }
+    dockerContextViewportGuardsBound = true;
+    const handlePotentialSubmenu = (event) => {
+        const item = event.target && event.target.closest
+            ? event.target.closest('.fvplus-docker-context-menu li')
+            : null;
+        if (!item) {
+            return;
+        }
+        window.requestAnimationFrame(() => {
+            adjustDockerContextSubmenuViewportPlacement(item);
+            adjustVisibleDockerContextMenusInsideViewport();
+        });
+    };
+    document.addEventListener('mouseover', handlePotentialSubmenu, true);
+    document.addEventListener('focusin', handlePotentialSubmenu, true);
+    window.addEventListener('resize', () => {
+        window.requestAnimationFrame(adjustVisibleDockerContextMenusInsideViewport);
+    });
+};
+const queueDockerContextViewportGuard = (attempt = 0) => {
+    bindDockerContextMenuViewportGuards();
+    window.requestAnimationFrame(() => {
+        if (adjustVisibleDockerContextMenusInsideViewport()) {
+            return;
+        }
+        const safeAttempt = Number.isFinite(Number(attempt)) ? Number(attempt) : 0;
+        if (safeAttempt >= 8) {
+            return;
+        }
+        window.setTimeout(() => queueDockerContextViewportGuard(safeAttempt + 1), 18 * (safeAttempt + 1));
+    });
 };
 
 /**
@@ -6465,6 +6613,7 @@ const addDockerFolderContext = (id) => {
 
     context.attach('#' + id, opts);
     queueDockerFolderContextQuickIcons();
+    queueDockerContextViewportGuard();
     dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };

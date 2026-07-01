@@ -151,3 +151,20 @@ test('docker context menu quick-action strip styles remain defined', () => {
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item/);
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item > a/);
 });
+
+test('docker context menus clamp main and nested menus inside the viewport', () => {
+    assert.match(dockerScript, /const DOCKER_CONTEXT_MENU_SELECTORS = \[/);
+    assert.match(dockerScript, /const DOCKER_CONTEXT_VIEWPORT_MARGIN = 10;/);
+    assert.match(dockerScript, /const positionDockerContextElementInsideViewport = \(element\) =>/);
+    assert.match(dockerScript, /rect\.bottom > viewportHeight - margin/);
+    assert.match(dockerScript, /rect\.right > viewportWidth - margin/);
+    assert.match(dockerScript, /element\.style\.top = `\$\{Math\.max\(margin \+ scrollY,\s*nextTop\)\}px`;/);
+    assert.match(dockerScript, /element\.style\.left = `\$\{Math\.max\(margin \+ scrollX,\s*nextLeft\)\}px`;/);
+    assert.match(dockerScript, /const adjustDockerContextSubmenuViewportPlacement = \(listItem\) =>/);
+    assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-up'\);/);
+    assert.match(dockerScript, /listItem\.classList\.add\('fvplus-context-submenu-open-left'\);/);
+    assert.match(dockerScript, /document\.addEventListener\('mouseover',\s*handlePotentialSubmenu,\s*true\);/);
+    assert.match(dockerScript, /queueDockerContextViewportGuard\(\);/);
+    assert.match(dockerCss, /\.fvplus-docker-context-menu li\.fvplus-context-submenu-open-up > ul/);
+    assert.match(dockerCss, /\.fvplus-docker-context-menu li\.fvplus-context-submenu-open-left > ul/);
+});

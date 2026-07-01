@@ -5,6 +5,7 @@
     --fvplus-graphite-card-raised: #202630;
     --fvplus-graphite-input: #101318;
     --fvplus-graphite-inset: #11161d;
+    --fvplus-graphite-field: #181d25;
 
     --fvplus-graphite-text-primary: #f2f4f7;
     --fvplus-graphite-text-muted: #a8b0bc;
@@ -35,6 +36,9 @@
     --fvplus-graphite-raised-bg:
         linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.016)),
         var(--fvplus-graphite-card-raised);
+    --fvplus-graphite-field-bg:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
+        var(--fvplus-graphite-field);
     --fvplus-graphite-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
     --fvplus-graphite-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.22);
 
@@ -73,7 +77,7 @@
     --fvplus-editor-control-surface-hover: rgba(255, 255, 255, 0.065);
     --fvplus-editor-control-surface-active: var(--fvplus-graphite-accent-soft);
     --fvplus-editor-input-bg: var(--fvplus-graphite-input);
-    --fvplus-editor-inset-surface: rgba(255, 255, 255, 0.022);
+    --fvplus-editor-inset-surface: var(--fvplus-graphite-field-bg);
     --fvplus-editor-shadow: var(--fvplus-graphite-shadow);
     --fvplus-editor-focus-ring: var(--fvplus-graphite-focus);
     --fvplus-editor-nav-count-bg: rgba(255, 255, 255, 0.06);

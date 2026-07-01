@@ -6,6 +6,8 @@
     --fvplus-settings-safe-border-faint: var(--fvplus-graphite-border-faint, rgba(255, 255, 255, 0.08));
     --fvplus-settings-safe-surface-muted: var(--fvplus-theme-surface-muted, rgba(255, 255, 255, 0.025));
     --fvplus-settings-safe-surface-strong: var(--fvplus-theme-surface-strong, rgba(255, 255, 255, 0.06));
+    --fvplus-settings-safe-surface-card: var(--fvplus-theme-surface-card, var(--fvplus-graphite-card-bg, rgba(26, 31, 39, 0.94)));
+    --fvplus-settings-safe-surface-field: var(--fvplus-graphite-field-bg, rgba(24, 29, 37, 0.94));
     --fvplus-settings-safe-accent: var(--fvplus-graphite-accent, #ff8a1f);
     --fvplus-settings-safe-accent-soft: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
     --fvplus-settings-safe-focus-ring: var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.42));
@@ -30,6 +32,8 @@
     --fvplus-settings-border-faint: var(--fvplus-theme-border-faint, var(--fvplus-settings-safe-border-faint));
     --fvplus-settings-surface-muted: var(--fvplus-theme-surface-muted, var(--fvplus-settings-safe-surface-muted));
     --fvplus-settings-surface-strong: var(--fvplus-theme-surface-strong, var(--fvplus-settings-safe-surface-strong));
+    --fvplus-settings-surface-card: var(--fvplus-theme-surface-card, var(--fvplus-settings-safe-surface-card));
+    --fvplus-settings-surface-field: var(--fvplus-settings-safe-surface-field);
     --fvplus-settings-accent: var(--fvplus-theme-accent, var(--fvplus-settings-safe-accent));
     --fvplus-settings-accent-soft: var(--fvplus-theme-accent-soft, var(--fvplus-settings-safe-accent-soft));
     --fvplus-settings-warning: #ffd26f;
@@ -273,7 +277,9 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     margin: 0.35rem 0 0.55rem;
     border: 1px solid var(--fvplus-settings-accent);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(45, 122, 191, 0.12), rgba(18, 39, 58, 0.18));
+    background:
+        linear-gradient(180deg, rgba(74, 179, 255, 0.12), rgba(74, 179, 255, 0.04)),
+        var(--fvplus-settings-surface-card);
 }
 
 .fv-first-run-title {
@@ -306,7 +312,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     padding: 0.5rem 0.7rem;
-    background: var(--fvplus-settings-surface-muted);
+    background: var(--fvplus-settings-surface-card);
 }
 
 .toolbar-sort-wide {
@@ -407,7 +413,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     padding: 0.26rem 0.42rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 5px;
-    background: var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-field);
     color: var(--fvplus-settings-text-muted);
     font-size: 0.92rem;
     line-height: 1.25;
@@ -494,7 +500,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 6px;
     padding: 0.45rem 0.55rem;
-    background: var(--fvplus-settings-surface-panel);
+    background: var(--fvplus-settings-surface-card);
     display: grid;
     gap: 0.35rem;
     align-content: start;
@@ -629,6 +635,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     overflow-x: hidden;
+    background: var(--fvplus-settings-surface-card);
 }
 
 .folder-table .table-wrap {
@@ -8658,7 +8665,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin: 0.4rem 0 0.8rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fvplus-settings-surface-card);
     padding: 0.5rem 0.65rem;
 }
 
@@ -8911,9 +8918,7 @@ h2[data-fv-section].fv-search-match {
     margin: 0.2rem 0 0.85rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
-        var(--fvplus-settings-surface-muted);
+    background: var(--fvplus-settings-surface-card);
     padding: 0.68rem 0.78rem;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
@@ -8975,7 +8980,7 @@ h2[data-fv-section].fv-search-match {
     padding: 0.58rem 0.66rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--fvplus-settings-surface-field);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -8998,7 +9003,7 @@ h2[data-fv-section].fv-search-match {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(128, 128, 128, 0.16);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-activity-latest-icon.is-success {
@@ -9055,11 +9060,11 @@ h2[data-fv-section].fv-search-match {
     line-height: 1.3;
     padding: 0.34rem 0.46rem;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--fvplus-settings-surface-field);
 }
 
 .fv-activity-item.is-fresh {
-    background: rgba(255, 255, 255, 0.045);
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-activity-level {

@@ -31,23 +31,23 @@
     --fv-editor-button-fg: var(--fv-editor-text-primary);
     --fv-editor-button-bg-top: rgba(255, 255, 255, 0.05);
     --fv-editor-button-bg-bottom: rgba(255, 255, 255, 0.04);
-    --fv-editor-button-hover-top: rgba(255, 191, 123, 0.14);
-    --fv-editor-button-hover-bottom: rgba(255, 191, 123, 0.11);
-    --fv-editor-button-active-top: rgba(255, 165, 74, 0.22);
-    --fv-editor-button-active-bottom: rgba(255, 165, 74, 0.18);
+    --fv-editor-button-hover-top: rgba(255, 255, 255, 0.074);
+    --fv-editor-button-hover-bottom: rgba(255, 255, 255, 0.056);
+    --fv-editor-button-active-top: rgba(255, 138, 31, 0.18);
+    --fv-editor-button-active-bottom: rgba(255, 138, 31, 0.13);
     --fv-editor-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
-    --fv-editor-button-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.12), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fv-editor-button-shadow-active: inset 0 0 0 1px rgba(255, 191, 123, 0.16), 0 1px 3px rgba(0, 0, 0, 0.16);
+    --fv-editor-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.075), 0 2px 5px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
     --fv-editor-button-accent-fg: #fff4e8;
     --fv-editor-button-accent-top: rgba(255, 171, 91, 0.26);
     --fv-editor-button-accent-bottom: rgba(255, 171, 91, 0.22);
     --fv-editor-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fv-editor-button-quiet-top: rgba(255, 255, 255, 0.036);
     --fv-editor-button-quiet-bottom: rgba(255, 255, 255, 0.03);
-    --fv-editor-button-quiet-hover-top: rgba(255, 191, 123, 0.1);
-    --fv-editor-button-quiet-hover-bottom: rgba(255, 191, 123, 0.08);
+    --fv-editor-button-quiet-hover-top: rgba(255, 255, 255, 0.062);
+    --fv-editor-button-quiet-hover-bottom: rgba(255, 255, 255, 0.048);
     --fv-editor-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
-    --fv-editor-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
+    --fv-editor-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
     color: var(--fv-editor-text-primary);
 }
 
@@ -229,9 +229,7 @@
     padding: 0.72em;
     border: 1px solid var(--fv-editor-border);
     border-radius: 14px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.014)),
-        var(--fv-editor-panel);
+    background: var(--fv-editor-panel);
     box-shadow: var(--fv-editor-shadow);
 }
 
@@ -2297,9 +2295,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-self: start;
     border-radius: 14px;
     border: 1px solid var(--fv-editor-block-border);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
-        radial-gradient(circle at top right, rgba(255, 154, 60, 0.09), transparent 48%);
+    background: var(--fv-editor-inset-surface);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     box-sizing: border-box;
 }
@@ -2383,9 +2379,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-width: 0;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.012)),
-        var(--fv-editor-control-surface);
+    background: var(--fv-editor-panel);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
     overflow: hidden;
     box-sizing: border-box;
@@ -2511,7 +2505,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 1rem;
     padding: 0.68rem 0.78rem 0.58rem;
     border-bottom: 1px solid var(--fv-editor-block-border);
-    background: rgba(255, 255, 255, 0.018);
+    background: rgba(255, 255, 255, 0.022);
 }
 
 .fv-editor-panel-head > h4 {
@@ -2541,9 +2535,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     z-index: 2;
     width: 84px;
     height: 84px;
-    border: 1px solid color-mix(in srgb, var(--fv-editor-accent) 34%, transparent);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 6px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(0, 0, 0, 0.13));
+    background: var(--fv-editor-control-surface);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 

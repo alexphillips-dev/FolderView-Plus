@@ -63,8 +63,11 @@ test('dashboard quick action palette is tokenized', () => {
 test('runtime context menus follow resolved dark and light theme tokens', () => {
     assert.match(themeTokensCss, /--fvplus-graphite-page:\s*#0d1015/);
     assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1a1f27/);
+    assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#181d25/);
+    assert.match(themeTokensCss, /--fvplus-graphite-field-bg:/);
     assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-graphite-accent\)/);
     assert.match(themeTokensCss, /--fvplus-editor-bg:[\s\S]*rgba\(21,\s*25,\s*32,\s*0\.98\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-graphite-field-bg\)/);
     assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*22,\s*29,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
@@ -172,6 +175,12 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
 });
 
 test('settings semantic chips and light-mode overrides use exported settings tokens', () => {
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-card:\s*var\(--fvplus-theme-surface-card,\s*var\(--fvplus-graphite-card-bg/);
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-field:\s*var\(--fvplus-graphite-field-bg/);
+    assert.match(settingsCss, /\.fv-advanced-nav\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.fv-activity-feed-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.settings-mini-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-breadcrumb\s*\{[^}]*var\(--fvplus-settings-breadcrumb-text\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-members-meta\s*\{[^}]*var\(--fvplus-settings-members-meta-text\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-nested-meta\s*\{[^}]*var\(--fvplus-settings-nested-meta-text\)/);
@@ -185,4 +194,12 @@ test('settings semantic chips and light-mode overrides use exported settings tok
     assert.match(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*var\(--fvplus-settings-text-primary\);/);
     assert.doesNotMatch(settingsCss, /\.fv-section-badge\s*\{[^}]*border:\s*1px solid rgba\(255,\s*255,\s*255,\s*0\.2\);/);
     assert.doesNotMatch(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*#eaf2ff;/);
+});
+
+test('folder editor surfaces use graphite cards and fields instead of warm ornamental panels', () => {
+    assert.match(folderCss, /\.fv-editor-nav-dock\s*\{[\s\S]*background:\s*var\(--fv-editor-panel\);/);
+    assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-editor-panel\s*\{[\s\S]*background:\s*var\(--fv-editor-panel\);/);
+    assert.match(folderCss, /\.fv-editor-panel-icon-preview\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-control-border\);[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.doesNotMatch(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*radial-gradient\(circle at top right,\s*rgba\(255,\s*154,\s*60,\s*0\.09\)/);
 });

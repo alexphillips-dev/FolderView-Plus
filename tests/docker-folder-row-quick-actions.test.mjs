@@ -20,6 +20,23 @@ const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
 );
+const extractConstFunctionBlock = (source, functionName, nextFunctionName) => {
+    const start = source.indexOf(`const ${functionName} =`);
+    assert.notEqual(start, -1, `${functionName} should be defined`);
+    const end = source.indexOf(`const ${nextFunctionName} =`, start + 1);
+    assert.notEqual(end, -1, `${nextFunctionName} should follow ${functionName}`);
+    return source.slice(start, end);
+};
+const dockerFolderHierarchyMoveBlock = extractConstFunctionBlock(
+    dockerScript,
+    'applyDockerFolderHierarchyMoveFromMenu',
+    'moveDockerFolderUnderFromMenu'
+);
+const dockerFolderSameLevelMoveBlock = extractConstFunctionBlock(
+    dockerScript,
+    'moveDockerFolderFromMenu',
+    'ensureDockerFolderUnlocked'
+);
 
 test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
     assert.match(dockerScript, /text:\s*focused[\s\S]*getDockerMenuLabel\('clear-focus-folder',\s*'Clear focus'\)/);
@@ -60,8 +77,8 @@ test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const previousOrder = fullOrder\.slice\(\);/);
     assert.match(dockerScript, /applyDockerFolderMenuOrderToDom\(nextOrder\);[\s\S]*const response = await persistDockerFolderManualOrder\(nextOrder\);/);
     assert.match(dockerScript, /catch \(error\) \{[\s\S]*folderTypePrefs = previousPrefs;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);[\s\S]*throw error;/);
-    assert.match(dockerScript, /folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus:\s*true[\s\S]*\}\);/);
-    assert.match(dockerScript, /queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerFolderSameLevelMoveBlock, /queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerFolderSameLevelMoveBlock, /folderReq = buildDockerFolderReq/);
     assert.match(dockerScript, /text:\s*'Move up'[\s\S]*moveDockerFolderFromMenu\(id,\s*-1\)/);
     assert.match(dockerScript, /text:\s*'Move down'[\s\S]*moveDockerFolderFromMenu\(id,\s*1\)/);
 });
@@ -75,6 +92,8 @@ test('docker folder menu can move folders under another folder or back to root',
     assert.match(dockerScript, /descendants\.includes\(parentId\)/);
     assert.match(dockerScript, /const nextFolder = \{[\s\S]*\.\.\.sourceFolder,[\s\S]*parentId[\s\S]*\};/);
     assert.match(dockerScript, /await persistDockerFolderRecord\(id,\s*nextFolder\);[\s\S]*await persistDockerFolderManualOrder\(nextOrder\);/);
+    assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /folderReq = buildDockerFolderReq/);
     assert.match(dockerScript, /globalFolders = previousFolders;[\s\S]*applyDockerFolderMenuOrderToDom\(previousOrder\);/);
     assert.match(dockerScript, /const moveDockerFolderUnderFromMenu = \(folderId\) =>/);
     assert.match(dockerScript, /id="fv-docker-menu-move-target"/);

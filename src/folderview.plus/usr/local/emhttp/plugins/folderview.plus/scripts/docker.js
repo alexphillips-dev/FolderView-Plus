@@ -3050,10 +3050,6 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             const response = await persistDockerFolderManualOrder(nextOrder);
             folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
             applyRuntimePrefs(folderTypePrefs);
-            folderReq = buildDockerFolderReq({
-                liveUpdateStatus: true
-            });
-            queueCreateFoldersRender();
         } catch (error) {
             globalFolders = previousFolders;
             folderTypePrefs = previousPrefs;
@@ -3185,10 +3181,6 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
             const response = await persistDockerFolderManualOrder(nextOrder);
             folderTypePrefs = utils.normalizePrefs(response?.prefs || folderTypePrefs);
             applyRuntimePrefs(folderTypePrefs);
-            folderReq = buildDockerFolderReq({
-                liveUpdateStatus: true
-            });
-            queueCreateFoldersRender();
         } catch (error) {
             folderTypePrefs = previousPrefs;
             applyRuntimePrefs(folderTypePrefs);

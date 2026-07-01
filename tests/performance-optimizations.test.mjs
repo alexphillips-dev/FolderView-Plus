@@ -282,6 +282,9 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus\.runtime\.docker\.appWidth\.v1';/);
+    assert.match(dockerJs, /const readDockerRuntimeCachedAppWidth = \(mode = 'standard'\) =>/);
+    assert.match(dockerJs, /const writeDockerRuntimeCachedAppWidth = \(mode = 'standard', width = null\) =>/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
     assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
@@ -298,16 +301,26 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
+    assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
     assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
     assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
     assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
+    assert.match(dockerJs, /if \(index !== 1\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
+    assert.doesNotMatch(dockerJs, /if \(!effectiveWidth\) \{[\s\S]*?removeProperty\('width'\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
     assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 12\)/);
     assert.match(dockerRuntimeHierarchyJs, /scheduleRuntimeWidthReflow\('folder-toggle', 24\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
+});
+
+test('docker runtime applies cached app-column width before first measured reflow', () => {
+    assert.match(dockerJs, /const cachedAppWidth = readDockerRuntimeCachedAppWidth\(appColumnWidth\);/);
+    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = Math\.max\(Number\(dockerRuntimeAutoAppWidthFloor\) \|\| 0,\s*cachedAppWidth\);/);
+    assert.match(dockerJs, /applyDockerRuntimeAppWidthVariables\(cachedAppWidth\);/);
+    assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
 });
 
 test('docker post-render polish retries only when rows are still settling', () => {

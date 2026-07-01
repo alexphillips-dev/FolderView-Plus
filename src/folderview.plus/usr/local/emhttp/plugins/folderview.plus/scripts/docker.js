@@ -493,6 +493,7 @@ const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;
 const DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP = 64;
 const DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS = 72;
 const DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY = 'fvplus.runtime.docker.widthDebug.v1';
+const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus.runtime.docker.appWidth.v1';
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
@@ -523,6 +524,53 @@ let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
+
+const readDockerRuntimeCachedAppWidthMap = () => {
+    try {
+        if (!window.localStorage) {
+            return {};
+        }
+        const parsed = JSON.parse(window.localStorage.getItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_error) {
+        return {};
+    }
+};
+
+const readDockerRuntimeCachedAppWidth = (mode = 'standard') => {
+    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
+        ? String(mode || '').toLowerCase()
+        : 'standard';
+    const cached = readDockerRuntimeCachedAppWidthMap()[normalizedMode];
+    return clampDockerRuntimeColumnWidth(cached, 1);
+};
+
+const writeDockerRuntimeCachedAppWidth = (mode = 'standard', width = null) => {
+    const safeWidth = clampDockerRuntimeColumnWidth(width, 1);
+    if (!safeWidth) {
+        return;
+    }
+    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
+        ? String(mode || '').toLowerCase()
+        : 'standard';
+    try {
+        if (!window.localStorage) {
+            return;
+        }
+        const next = {
+            ...readDockerRuntimeCachedAppWidthMap(),
+            [normalizedMode]: safeWidth
+        };
+        const payload = JSON.stringify(next);
+        if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+            dockerStorageWriter.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload, { delayMs: 180, idle: true });
+        } else {
+            window.localStorage.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload);
+        }
+    } catch (_error) {
+        // Ignore localStorage limitations.
+    }
+};
 let dockerRuntimeActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -1931,27 +1979,21 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     }
     const decision = buildDockerRuntimeWidthDecision();
     dockerRuntimeAutoAppWidthFloor = decision.nextFloor;
+    writeDockerRuntimeCachedAppWidth(decision.mode, decision.appliedWidth);
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
-        const effectiveWidth = index === 1
-            ? (
-                isMobile
-                    ? Math.max(
-                        DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
-                        Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
-                    )
-                    : decision.appliedWidth
+        if (index !== 1) {
+            return;
+        }
+        const effectiveWidth = isMobile
+            ? Math.max(
+                DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
+                Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
             )
-            : null;
+            : decision.appliedWidth;
         const applyWidth = (element) => {
             if (!element || !element.style) {
-                return;
-            }
-            if (!effectiveWidth) {
-                element.style.removeProperty('width');
-                element.style.removeProperty('min-width');
-                element.style.removeProperty('max-width');
                 return;
             }
             element.style.setProperty('width', `${effectiveWidth}px`);
@@ -7217,7 +7259,12 @@ const applyRuntimePrefs = (prefs) => {
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
     if (dockerRuntimeAutoAppWidthFloorMode !== appColumnWidth) {
         dockerRuntimeAutoAppWidthFloorMode = appColumnWidth;
-        dockerRuntimeAutoAppWidthFloor = null;
+        dockerRuntimeAutoAppWidthFloor = readDockerRuntimeCachedAppWidth(appColumnWidth);
+    }
+    const cachedAppWidth = readDockerRuntimeCachedAppWidth(appColumnWidth);
+    if (cachedAppWidth) {
+        dockerRuntimeAutoAppWidthFloor = Math.max(Number(dockerRuntimeAutoAppWidthFloor) || 0, cachedAppWidth);
+        applyDockerRuntimeAppWidthVariables(cachedAppWidth);
     }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.06.30.20">
-<!ENTITY md5 "bb103c67e4d9fbde2a8278b62fa9840f">
+<!ENTITY version "2026.06.30.21">
+<!ENTITY md5 "c71bf3dfb5736527e65a0588d594cc64">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.06.30.21
+- UX: Stabilize Docker tab Application column placement on first load by caching the last-good FolderView width and only applying width changes to the Application column.
+
 
 ###2026.06.30.20
 - Performance: Speed up initial Docker tab load by batching first-paint row centering and deferring support-bundle page snapshots off the critical render path.

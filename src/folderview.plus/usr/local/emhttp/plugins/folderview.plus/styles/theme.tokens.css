@@ -1,11 +1,11 @@
 :root {
-    --fvplus-graphite-page: #0d1015;
-    --fvplus-graphite-panel: #151920;
-    --fvplus-graphite-card: #1a1f27;
-    --fvplus-graphite-card-raised: #202630;
-    --fvplus-graphite-input: #101318;
-    --fvplus-graphite-inset: #11161d;
-    --fvplus-graphite-field: #181d25;
+    --fvplus-graphite-page: #0f0f10;
+    --fvplus-graphite-panel: #171718;
+    --fvplus-graphite-card: #1d1d1f;
+    --fvplus-graphite-card-raised: #242426;
+    --fvplus-graphite-input: #111112;
+    --fvplus-graphite-inset: #141415;
+    --fvplus-graphite-field: #1a1a1b;
 
     --fvplus-graphite-text-primary: #f2f4f7;
     --fvplus-graphite-text-muted: #a8b0bc;
@@ -65,7 +65,7 @@
     --fvplus-editor-block-border: var(--fvplus-graphite-border-subtle);
     --fvplus-editor-block-border-strong: var(--fvplus-graphite-border-strong);
     --fvplus-editor-control-surface: var(--fvplus-graphite-card-raised);
-    --fvplus-editor-control-surface-hover: #252c37;
+    --fvplus-editor-control-surface-hover: #29292b;
     --fvplus-editor-control-surface-active: var(--fvplus-graphite-accent-soft);
     --fvplus-editor-input-bg: var(--fvplus-graphite-input);
     --fvplus-editor-inset-surface: var(--fvplus-graphite-field-bg);
@@ -77,7 +77,7 @@
     --fvplus-editor-hero-icon-border: var(--fvplus-graphite-border-subtle);
     --fvplus-editor-hero-icon-bg: var(--fvplus-graphite-card-raised);
 
-    --fvplus-runtime-menu-bg: rgba(18, 22, 29, 0.985);
+    --fvplus-runtime-menu-bg: rgba(18, 18, 19, 0.985);
     --fvplus-runtime-menu-fg: var(--fvplus-graphite-text-primary);
     --fvplus-runtime-menu-border: var(--fvplus-graphite-border-strong);
     --fvplus-runtime-menu-divider: var(--fvplus-graphite-border-faint);

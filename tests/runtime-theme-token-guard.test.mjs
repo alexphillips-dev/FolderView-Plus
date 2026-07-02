@@ -61,14 +61,14 @@ test('dashboard quick action palette is tokenized', () => {
 });
 
 test('runtime context menus follow resolved dark and light theme tokens', () => {
-    assert.match(themeTokensCss, /--fvplus-graphite-page:\s*#0d1015/);
-    assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1a1f27/);
-    assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#181d25/);
+    assert.match(themeTokensCss, /--fvplus-graphite-page:\s*#0f0f10/);
+    assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1d1d1f/);
+    assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#1a1a1b/);
     assert.match(themeTokensCss, /--fvplus-graphite-field-bg:/);
     assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-graphite-accent\)/);
     assert.match(themeTokensCss, /--fvplus-editor-bg:\s*var\(--fvplus-graphite-page\)/);
     assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-graphite-field-bg\)/);
-    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*22,\s*29,\s*0\.985\)\)/);
+    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*18,\s*19,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-runtime-menu-bg\) !important;/);
@@ -131,9 +131,9 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
     assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
     assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
     assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
-    assert.match(themeResolverJs, /editorBg:\s*isLight[\s\S]*:\s*'#0d1015'/);
-    assert.match(themeResolverJs, /editorPanel:\s*isLight[\s\S]*:\s*'#1a1f27'/);
-    assert.match(themeResolverJs, /editorHeroIconBg:\s*isLight[\s\S]*:\s*'#202630'/);
+    assert.match(themeResolverJs, /editorBg:\s*isLight[\s\S]*:\s*'#0f0f10'/);
+    assert.match(themeResolverJs, /editorPanel:\s*isLight[\s\S]*:\s*'#1d1d1f'/);
+    assert.match(themeResolverJs, /editorHeroIconBg:\s*isLight[\s\S]*:\s*'#242426'/);
 });
 
 test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {
@@ -151,7 +151,7 @@ test('theme resolver exports settings semantic tokens for readable light and dar
 test('theme resolver ignores transparent surfaces and only hard-forces explicit black host themes dark', () => {
     assert.match(themeResolverJs, /const isThemeSurfaceColorUsable = \(color, minAlpha = 0\.08\) =>/);
     assert.match(themeResolverJs, /const resolveThemeSurfaceColor = \(\.\.\.candidates\) =>/);
-    assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f1825'\)\s*\)/);
+    assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f0f10'\)\s*\)/);
     assert.match(themeResolverJs, /if \(normalized\.includes\('black'\)\) \{/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('azure'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('gray'\)/);
@@ -208,10 +208,13 @@ test('folder editor surfaces use graphite cards and fields instead of warm ornam
 });
 
 test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {
-    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-graphite-page,\s*#0d1015\)/);
+    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-graphite-page,\s*#0f0f10\)/);
     assert.match(settingsCss, /--fv-wizard-shell-sidebar-bg:\s*var\(--fv-wizard-surface-panel\)/);
     assert.match(settingsCss, /--fv-wizard-shell-head-bg:\s*var\(--fv-wizard-surface-panel\)/);
-    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-graphite-card,\s*#1a1f27\)/);
+    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-graphite-card,\s*#1d1d1f\)/);
+    assert.match(themeResolverJs, /surfaceCard:\s*parseThemeColorToRgba\('#1d1d1f'\)/);
+    assert.match(themeResolverJs, /'--fvplus-theme-surface-card':\s*tokens\.surfaceCard \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-surface-card':\s*tokens\.settingsSurfaceCard \|\| ''/);
     assert.match(settingsCss, /\.fv-setup-card\s*\{[\s\S]*background:\s*var\(--fv-wizard-card-base-bg\);/);
     assert.match(settingsCss, /\.fv-setup-welcome-hero,\s*[\s\S]*\.fv-setup-welcome-draft,\s*[\s\S]*\.fv-setup-welcome-safety\s*\{[\s\S]*background:\s*var\(--fv-wizard-surface-card\);/);
     assert.match(settingsCss, /\.fv-recovery-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);

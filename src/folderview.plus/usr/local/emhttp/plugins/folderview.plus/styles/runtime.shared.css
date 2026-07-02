@@ -1,5 +1,5 @@
 :root {
-    --fvplus-runtime-menu-bg: var(--fvplus-graphite-menu-bg, rgba(18, 22, 29, 0.985));
+    --fvplus-runtime-menu-bg: var(--fvplus-graphite-menu-bg, rgba(18, 18, 19, 0.985));
     --fvplus-runtime-menu-fg: var(--fvplus-graphite-text-primary, rgba(242, 244, 247, 0.98));
     --fvplus-runtime-menu-border: var(--fvplus-graphite-border-strong, rgba(255, 255, 255, 0.18));
     --fvplus-runtime-menu-divider: var(--fvplus-graphite-border-faint, rgba(255, 255, 255, 0.08));

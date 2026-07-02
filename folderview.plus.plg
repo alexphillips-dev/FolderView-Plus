@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.05">
-<!ENTITY md5 "db5a8e5cb0249cd0215ba296260b4912">
+<!ENTITY version "2026.07.02.06">
+<!ENTITY md5 "f1b9a9ded8d6e009b6a627f832e84ec5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.06
+- UI/UX: Restyle the Start Order advanced tab with a cleaner dark-mode workspace, stronger startup controls, clearer batch actions, and a separated autostart preview panel.
 
 ###2026.07.02.05
 - Quality: Use supported changelog categories for the Settings advanced tab polish release notes so the GitHub guard suite passes.

@@ -7619,16 +7619,19 @@ const renderDockerStartOrderWorkspace = () => {
             </label>
         </div>
         <div class="fv-docker-start-order-help">
-            <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
-            <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
+            <i class="fa fa-info-circle" aria-hidden="true"></i>
+            <div>
+                <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
+                <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
+            </div>
         </div>
         <div class="fv-docker-start-order-batches" ${customVisible ? '' : 'hidden'}>
             <div class="fv-docker-start-order-toolbar">
-                <button type="button" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>
+                <button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>
                 <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
                 <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
             </div>
-            ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty">No custom batches yet. Add a batch to define exact boot groups.</div>'}
+            ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
         </div>
         <div class="fv-docker-start-order-toolbar" ${customVisible ? 'hidden' : ''}>
             <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
@@ -7659,8 +7662,8 @@ const renderDockerStartOrderPreview = (preview) => {
         .join('');
     host.html(`
         <div class="fv-docker-start-order-preview-head">
-            <strong>Preview autostart order</strong>
-            <span>${Number(preview?.autostartCount) || order.length} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span>
+            <strong><i class="fa fa-sort-amount-asc" aria-hidden="true"></i> Preview autostart order</strong>
+            <span class="fv-docker-start-order-count">${Number(preview?.autostartCount) || order.length} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span>
         </div>
         ${warningsHtml}
         <ol class="fv-docker-start-order-list">${list}</ol>

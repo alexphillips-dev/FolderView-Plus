@@ -1403,10 +1403,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <hr>
 
 <h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order</h2>
-<div class="fv-operations-module-wrap">
+<div class="fv-operations-module-wrap fv-docker-start-order-shell">
     <div class="rules-panel fv-operations-panel fv-docker-start-order-panel">
         <div class="rules-header">
-            <h3>Container startup order</h3>
+            <h3><i class="fa fa-cubes" aria-hidden="true"></i> Container startup order</h3>
             <span class="rules-help">Control the order Unraid uses when Docker containers start at boot.</span>
         </div>
         <div class="fv-operations-section-body">

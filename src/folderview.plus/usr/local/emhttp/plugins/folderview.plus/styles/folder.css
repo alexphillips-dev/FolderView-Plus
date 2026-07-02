@@ -2784,12 +2784,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-parent-picker-toolbar {
     display: block;
+    width: 100%;
+    min-width: 0;
 }
 
 .fv-parent-picker-search {
     display: flex;
     flex-direction: column;
     gap: 0.34rem;
+    width: 100%;
     min-width: 0;
 }
 
@@ -2806,6 +2809,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: stretch;
     gap: 0.48rem;
+    width: 100%;
+    min-width: 0;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -2815,6 +2820,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-parent-picker-search-input-wrap {
     position: relative;
     display: block;
+    width: 100%;
+    max-width: none;
     min-width: 0;
 }
 
@@ -2833,7 +2840,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-parent-picker-search-input {
+    display: block !important;
     width: 100% !important;
+    max-width: none !important;
     min-width: 0 !important;
     min-height: 40px !important;
     padding-left: 2.2rem !important;
@@ -2853,8 +2862,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: center;
     justify-content: center;
     gap: 0.32rem;
-    min-height: 40px;
-    padding: 0.34rem 0.62rem;
+    min-width: 74px;
+    min-height: 36px;
+    align-self: center;
+    padding: 0.28rem 0.52rem;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 8px;
     background: var(--fv-editor-control-surface);

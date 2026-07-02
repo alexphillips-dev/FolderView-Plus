@@ -726,9 +726,11 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-parent-picker-option-main\s*\{[\s\S]*display:\s*flex;[\s\S]*justify-content:\s*flex-start;[\s\S]*text-align:\s*left;/);
     assert.match(folderCss, /\.fv-parent-picker-option-scope\s*\{[\s\S]*border-radius:\s*7px;/);
     assert.match(folderParentPickerJs, /fv-parent-picker-search-input-wrap/);
+    assert.match(folderCss, /\.fv-parent-picker-search\s*\{[\s\S]*width:\s*100%;[\s\S]*min-width:\s*0;/);
+    assert.match(folderCss, /\.fv-parent-picker-search-control\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;[\s\S]*width:\s*100%;/);
     assert.match(folderCss, /\.fv-parent-picker-search-input-wrap::before\s*\{[\s\S]*content:\s*"\\f002";/);
-    assert.match(folderCss, /\.fv-parent-picker-search-input\s*\{[\s\S]*padding-left:\s*2\.2rem !important;[\s\S]*background:\s*var\(--fv-editor-input-bg\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-clear\s*\{[\s\S]*padding:\s*0\.34rem 0\.62rem;[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input\s*\{[\s\S]*display:\s*block !important;[\s\S]*max-width:\s*none !important;[\s\S]*padding-left:\s*2\.2rem !important;[\s\S]*background:\s*var\(--fv-editor-input-bg\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-clear\s*\{[\s\S]*min-width:\s*74px;[\s\S]*min-height:\s*36px;[\s\S]*padding:\s*0\.28rem 0\.52rem;[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
     assert.doesNotMatch(folderCss, /\.fv-parent-picker-pinned\s*\{[^}]*linear-gradient/);
     assert.doesNotMatch(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[^}]*linear-gradient/);
 });

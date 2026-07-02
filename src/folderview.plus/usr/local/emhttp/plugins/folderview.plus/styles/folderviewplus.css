@@ -65,12 +65,12 @@
     --fvplus-settings-chip-empty-border: rgba(192, 192, 192, 0.45);
     --fvplus-settings-chip-empty-bg: rgba(255, 255, 255, 0.08);
     --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
-    --fvplus-settings-button-bg-top: rgba(255, 255, 255, 0.05);
-    --fvplus-settings-button-bg-bottom: rgba(255, 255, 255, 0.045);
-    --fvplus-settings-button-hover-top: rgba(255, 255, 255, 0.072);
-    --fvplus-settings-button-hover-bottom: rgba(255, 255, 255, 0.058);
+    --fvplus-settings-button-bg-top: var(--fvplus-graphite-card-raised, #202630);
+    --fvplus-settings-button-bg-bottom: var(--fvplus-graphite-card-raised, #202630);
+    --fvplus-settings-button-hover-top: #252c37;
+    --fvplus-settings-button-hover-bottom: #252c37;
     --fvplus-settings-button-active-top: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
-    --fvplus-settings-button-active-bottom: rgba(255, 138, 31, 0.1);
+    --fvplus-settings-button-active-bottom: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
@@ -78,10 +78,10 @@
     --fvplus-settings-button-accent-top: rgba(255, 171, 91, 0.26);
     --fvplus-settings-button-accent-bottom: rgba(255, 171, 91, 0.22);
     --fvplus-settings-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-quiet-top: rgba(255, 255, 255, 0.036);
-    --fvplus-settings-button-quiet-bottom: rgba(255, 255, 255, 0.032);
-    --fvplus-settings-button-quiet-hover-top: rgba(255, 255, 255, 0.064);
-    --fvplus-settings-button-quiet-hover-bottom: rgba(255, 255, 255, 0.052);
+    --fvplus-settings-button-quiet-top: var(--fvplus-graphite-card, #1a1f27);
+    --fvplus-settings-button-quiet-bottom: var(--fvplus-graphite-card, #1a1f27);
+    --fvplus-settings-button-quiet-hover-top: var(--fvplus-graphite-card-raised, #202630);
+    --fvplus-settings-button-quiet-hover-bottom: var(--fvplus-graphite-card-raised, #202630);
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
@@ -277,9 +277,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     margin: 0.35rem 0 0.55rem;
     border: 1px solid var(--fvplus-settings-accent);
     border-radius: 8px;
-    background:
-        linear-gradient(180deg, rgba(74, 179, 255, 0.12), rgba(74, 179, 255, 0.04)),
-        var(--fvplus-settings-surface-card);
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-first-run-title {
@@ -2095,7 +2093,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 #fv-settings-root .fv-folder-defaults-actions > button {
     border: 0 !important;
     border-radius: 8px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
     text-shadow: none !important;
@@ -2104,12 +2102,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 #fv-settings-root .fv-folder-defaults-actions > button:hover,
 #fv-settings-root .fv-folder-defaults-actions > button:focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
 #fv-settings-root .fv-folder-defaults-actions > button:active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
 }
@@ -9264,7 +9262,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
     border: 0 !important;
     border-radius: 8px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
     text-shadow: none !important;
@@ -9349,7 +9347,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):focus-visible,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:hover,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
@@ -9391,7 +9389,7 @@ h2[data-fv-section].fv-search-match {
 ):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
 }
@@ -9444,7 +9442,7 @@ h2[data-fv-section].fv-search-match {
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
 #fv-settings-root .fv-mode-toggle button.is-active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-accent-top), var(--fvplus-settings-button-accent-bottom)) !important;
+    background: var(--fvplus-settings-button-accent-top) !important;
     color: var(--fvplus-settings-button-accent-fg) !important;
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }
@@ -9455,7 +9453,7 @@ h2[data-fv-section].fv-search-match {
     border: 0;
     border-radius: 10px;
     overflow: visible;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom));
+    background: var(--fvplus-settings-button-quiet-top);
     box-shadow: var(--fvplus-settings-button-quiet-shadow);
 }
 
@@ -9468,7 +9466,7 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root .fv-mode-toggle button:not(.is-active):hover,
 #fv-settings-root .fv-mode-toggle button:not(.is-active):focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
 }
 
@@ -9484,7 +9482,7 @@ h2[data-fv-section].fv-search-match {
 ) {
     border: 0 !important;
     border-radius: 6px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
     transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
@@ -9527,7 +9525,7 @@ h2[data-fv-section].fv-search-match {
     .health-breakdown-btn,
     .updates-chip
 ):focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
     color: var(--fvplus-settings-text-primary) !important;
 }

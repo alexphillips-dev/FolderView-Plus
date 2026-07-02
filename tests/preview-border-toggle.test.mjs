@@ -37,7 +37,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
     assert.match(folderCss, /\.fv-inline-reset-btn/);
-    assert.match(folderCss, /:is\([\s\S]*\.fv-inline-reset-btn,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-quiet-top\),\s*var\(--fv-editor-button-quiet-bottom\)\) !important;/);
+    assert.match(folderCss, /:is\([\s\S]*\.fv-inline-reset-btn,[\s\S]*background:\s*var\(--fv-editor-button-quiet-top\) !important;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-toggle-row > dl > dd \.switch-button\s*\{[\s\S]*display:\s*inline-flex !important;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-toggle-row > dl > dd\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*width:\s*auto;/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);

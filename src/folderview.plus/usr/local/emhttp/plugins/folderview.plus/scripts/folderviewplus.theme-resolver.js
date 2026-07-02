@@ -436,10 +436,10 @@
         return {
             editorBg: isLight
                 ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.99))'
-                : 'linear-gradient(145deg, rgba(30, 30, 30, 0.96), rgba(16, 16, 16, 0.96))',
+                : '#0d1015',
             editorPanel: isLight
                 ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 247, 252, 0.98))'
-                : 'linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015))',
+                : '#1a1f27',
             editorBorder: editorOutline,
             editorBorderStrong: editorOutlineStrong,
             editorTextPrimary: themeRgbaToCss(palette.textPrimary),
@@ -453,13 +453,13 @@
             editorHeroIconBorder: editorOutline,
             editorHeroIconBg: isLight
                 ? `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.72))`
-                : `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.03))`,
+                : '#202630',
             editorControlBorder: editorOutline,
-            editorControlSurface: isLight ? 'rgba(255, 255, 255, 0.74)' : 'rgba(255, 255, 255, 0.03)',
-            editorControlSurfaceHover: themeRgbaToCss(palette.accent, 0.08),
+            editorControlSurface: isLight ? 'rgba(255, 255, 255, 0.74)' : '#202630',
+            editorControlSurfaceHover: isLight ? themeRgbaToCss(palette.accent, 0.08) : '#252c37',
             editorControlSurfaceActive: themeRgbaToCss(palette.accent, 0.14),
-            editorInputBg: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(10, 10, 10, 0.34)',
-            editorInsetSurface: isLight ? 'rgba(18, 26, 38, 0.03)' : 'rgba(255, 255, 255, 0.025)',
+            editorInputBg: isLight ? 'rgba(255, 255, 255, 0.92)' : '#101318',
+            editorInsetSurface: isLight ? 'rgba(18, 26, 38, 0.03)' : '#181d25',
             editorShadow: isLight ? '0 16px 38px rgba(18, 24, 38, 0.14)' : '0 16px 38px rgba(0, 0, 0, 0.26)',
             editorFocusRing: themeRgbaToCss(palette.focusRing),
             editorNavCountBg: themeRgbaToCss(palette.accent, 0.16),

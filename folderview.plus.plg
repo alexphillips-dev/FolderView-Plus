@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.12">
-<!ENTITY md5 "24214f58669ce5eeb3bf36a924db5823">
+<!ENTITY version "2026.07.01.13">
+<!ENTITY md5 "03562a955d34fd080dea8ea0ac1714b3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.13
+- UX: Flatten dark-mode Settings and folder editor chrome by removing decorative gradients from shared graphite tokens, runtime theme resolver outputs, editor modules, and shared button surfaces.
+- Fix: Prevent the theme resolver from re-injecting brown/gray gradients over the new dark-mode stylesheet tokens.
+
 
 ###2026.07.01.12
 - UX: Apply the graphite dark-mode foundation to visible Settings and folder editor surfaces, replacing warm brown panel shading with neutral card and field surfaces while preserving orange as an accent.

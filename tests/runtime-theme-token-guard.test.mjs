@@ -66,7 +66,7 @@ test('runtime context menus follow resolved dark and light theme tokens', () => 
     assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#181d25/);
     assert.match(themeTokensCss, /--fvplus-graphite-field-bg:/);
     assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-graphite-accent\)/);
-    assert.match(themeTokensCss, /--fvplus-editor-bg:[\s\S]*rgba\(21,\s*25,\s*32,\s*0\.98\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-bg:\s*var\(--fvplus-graphite-page\)/);
     assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-graphite-field-bg\)/);
     assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*22,\s*29,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
@@ -131,6 +131,9 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
     assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
     assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
     assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorBg:\s*isLight[\s\S]*:\s*'#0d1015'/);
+    assert.match(themeResolverJs, /editorPanel:\s*isLight[\s\S]*:\s*'#1a1f27'/);
+    assert.match(themeResolverJs, /editorHeroIconBg:\s*isLight[\s\S]*:\s*'#202630'/);
 });
 
 test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {

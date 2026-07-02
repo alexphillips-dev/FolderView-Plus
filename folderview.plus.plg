@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.01">
-<!ENTITY md5 "9894c7a641e17661473dc33f1a70d242">
+<!ENTITY version "2026.07.02.02">
+<!ENTITY md5 "f89cfa5cc9b943c33aac0086f71b8761">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.02
+- Fix: Restore the Settings primary text theme token contract so the GitHub guard suite passes with the refreshed Docker start order UI styles.
 
 ###2026.07.02.01
 - Feature: Add Docker start order controls in Settings > Advanced > Operations, including Docker-page order sync, custom batch ordering, folder/container batch items, remaining-container placement, preview, and manual sync.

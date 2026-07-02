@@ -13,7 +13,7 @@
     --fvplus-settings-safe-focus-ring: var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.34));
     --fvplus-settings-safe-surface-panel: var(--fvplus-theme-surface-panel, #171718);
 
-    --fvplus-theme-text-primary: var(--fvplus-settings-safe-text-primary, var(--text, currentColor));
+    --fvplus-theme-text-primary: var(--text, currentColor);
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
     --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
     --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);

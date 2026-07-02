@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.02">
-<!ENTITY md5 "f89cfa5cc9b943c33aac0086f71b8761">
+<!ENTITY version "2026.07.02.03">
+<!ENTITY md5 "ef5dcad7cb39c10c8cd2d62b7c010407">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.03
+- Quality: Align the theme compatibility node test with the Settings primary text token contract enforced by the GitHub guard suite.
 
 ###2026.07.02.02
 - Fix: Restore the Settings primary text theme token contract so the GitHub guard suite passes with the refreshed Docker start order UI styles.

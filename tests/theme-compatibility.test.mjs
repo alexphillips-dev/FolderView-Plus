@@ -88,8 +88,8 @@ test('theme compatibility: setup wizard mirrors resolved theme class and light-s
     assert.match(wizardRuntime, /applySetupAssistantThemeSurface\('render'\);/);
 });
 
-test('theme compatibility: semantic settings tokens use resolver-first fallback chain', () => {
-    assert.match(settingsCss, /--fvplus-theme-text-primary:\s*var\(--fvplus-settings-safe-text-primary,\s*var\(--text,\s*currentColor\)\)/);
+test('theme compatibility: semantic settings tokens use host primary token with settings fallback chain', () => {
+    assert.match(settingsCss, /--fvplus-theme-text-primary:\s*var\(--text,\s*currentColor\)/);
     assert.match(settingsCss, /--fvplus-settings-text-primary:\s*var\(--fvplus-theme-text-primary,\s*var\(--fvplus-settings-safe-text-primary\)\)/);
     assert.match(settingsCss, /--fvplus-settings-text-muted:\s*var\(--fvplus-theme-text-muted,\s*var\(--fvplus-settings-safe-text-muted\)\)/);
     assert.match(settingsCss, /--fvplus-settings-border-subtle:\s*var\(--fvplus-theme-border-subtle,\s*var\(--fvplus-settings-safe-border-subtle\)\)/);

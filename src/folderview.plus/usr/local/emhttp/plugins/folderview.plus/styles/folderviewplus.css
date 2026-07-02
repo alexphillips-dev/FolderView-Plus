@@ -4053,6 +4053,200 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin-top: 0.08rem;
 }
 
+.fv-docker-start-order-workspace {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.fv-docker-start-order-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fv-docker-start-order-help,
+.fv-docker-start-order-empty,
+.fv-docker-start-order-preview,
+.fv-docker-start-order-batch {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-docker-start-order-help,
+.fv-docker-start-order-empty {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.72rem 0.82rem;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-help > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-toolbar,
+.fv-docker-start-order-add-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-toolbar > button,
+.fv-docker-start-order-add-row > button {
+    min-height: 34px;
+}
+
+.fv-docker-start-order-batches {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.fv-docker-start-order-batch {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.8rem 0.88rem;
+}
+
+.fv-docker-start-order-batch-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-batch-head > input,
+.fv-docker-start-order-add-row > select {
+    min-height: 34px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-input-bg);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-batch-actions,
+.fv-docker-start-order-item-actions {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-batch-actions > button,
+.fv-docker-start-order-item-actions > button {
+    min-width: 32px;
+    min-height: 30px;
+    padding-inline: 0.55rem;
+}
+
+.fv-docker-start-order-batch-settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-batch-settings input[type="number"] {
+    width: 72px;
+    min-height: 30px;
+    margin-left: 0.35rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-input-bg);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-add-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) auto minmax(150px, 1fr) auto;
+}
+
+.fv-docker-start-order-items {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.fv-docker-start-order-item {
+    display: grid;
+    grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+    padding: 0.48rem 0.55rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-docker-start-order-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-docker-start-order-preview {
+    display: grid;
+    gap: 0.58rem;
+    padding: 0.78rem 0.88rem;
+}
+
+.fv-docker-start-order-preview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: baseline;
+}
+
+.fv-docker-start-order-preview-head > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-preview-head > span {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-list {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.fv-docker-start-order-list > li {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: center;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 9px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-docker-start-order-list > li > span {
+    color: var(--fvplus-settings-text-muted);
+    font-weight: 700;
+}
+
+.fv-docker-start-order-warning {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid rgba(255, 179, 71, 0.38);
+    border-radius: 9px;
+    color: #ffd79a;
+    background: rgba(255, 145, 0, 0.08);
+}
+
 @media (max-width: 1100px) {
     .fv-recovery-stage-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4063,6 +4257,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 
     .fv-operations-stage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-docker-start-order-controls,
+    .fv-docker-start-order-add-row {
         grid-template-columns: 1fr;
     }
 }

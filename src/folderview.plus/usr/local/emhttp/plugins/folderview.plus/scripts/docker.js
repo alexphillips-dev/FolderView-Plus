@@ -7467,6 +7467,10 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     if (options.url === "/plugins/dynamix.docker.manager/include/UserPrefs.php") {
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] ajaxPrefilter (UserPrefs.php): Intercepted.', {...options});
         const data = new URLSearchParams(options.data);
+        if (!data.has('names')) {
+            if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] ajaxPrefilter (UserPrefs.php): No names payload, leaving request unchanged.');
+            return;
+        }
         const containers = data.get('names').split(';');
         let num = "";
         for (let index = 0; index < containers.length - 1; index++) {
@@ -7475,6 +7479,33 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
         data.set('index', num);
         options.data = data.toString();
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] ajaxPrefilter (UserPrefs.php): Modified options.data:', options.data);
+    }
+});
+
+let folderViewPlusDockerStartOrderSyncTimer = null;
+const scheduleFolderViewPlusDockerStartOrderSync = () => {
+    clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
+    folderViewPlusDockerStartOrderSyncTimer = setTimeout(() => {
+        const payload = { type: 'docker' };
+        const request = window.FolderViewPlusRequest;
+        if (request && typeof request.postJson === 'function') {
+            request.postJson('/plugins/folderview.plus/server/sync_order.php', payload, {
+                retries: 0,
+                timeoutMs: 8000
+            }).catch(() => {});
+            return;
+        }
+        $.post('/plugins/folderview.plus/server/sync_order.php', payload);
+    }, 250);
+};
+
+$(document).ajaxComplete((event, xhr, settings = {}) => {
+    const url = String(settings.url || '');
+    const data = String(settings.data || '');
+    const isOrderSave = url.endsWith('/plugins/dynamix.docker.manager/include/UserPrefs.php') && data.includes('names=');
+    const isAutostartSave = url.includes('/plugins/dynamix.docker.manager/include/UpdateConfig.php') && /action=(autostart|wait)/.test(data);
+    if (isOrderSave || isAutostartSave) {
+        scheduleFolderViewPlusDockerStartOrderSync();
     }
 });
 

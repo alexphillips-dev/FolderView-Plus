@@ -1324,6 +1324,19 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </div>
                     </section>
 
+                    <section class="fv-operations-stage fv-docker-start-order-stage" id="docker-start-order-stage">
+                        <div class="fv-operations-stage-head">
+                            <strong>Docker start order</strong>
+                            <span class="rules-help">Control the order Unraid uses when it starts Docker containers at boot.</span>
+                        </div>
+                        <div id="docker-start-order-workspace" class="fv-docker-start-order-workspace">
+                            <div class="fv-recovery-empty-state">
+                                <strong>Docker start order will load after Docker folders and preferences finish loading.</strong>
+                                <span>Use this workspace to follow the Docker page order or define custom start batches.</span>
+                            </div>
+                        </div>
+                    </section>
+
                     <section class="fv-operations-stage">
                         <div class="fv-operations-stage-head">
                             <strong>Template library</strong>

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.19">
-<!ENTITY md5 "66f361c705b98369b3937563f289a626">
+<!ENTITY version "2026.07.02.01">
+<!ENTITY md5 "9894c7a641e17661473dc33f1a70d242">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.01
+- Feature: Add Docker start order controls in Settings > Advanced > Operations, including Docker-page order sync, custom batch ordering, folder/container batch items, remaining-container placement, preview, and manual sync.
+- Feature: Sync Unraid's Docker autostart order from the current folder layout without rewriting Docker user preferences, preserving existing autostart delays and skipping containers that are not enabled for autostart.
+- Quality: Add server, settings UI, Docker runtime, and regression coverage for Docker start order planning and sync behavior.
 
 ###2026.07.01.19
 - Fix: Override the folder editor's generic text-input width cap for the Parent Folder search so the search bar and compact Clear button render correctly.

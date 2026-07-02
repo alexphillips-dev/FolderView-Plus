@@ -76,6 +76,11 @@
                 'retention' => 25,
                 'lastRunAt' => ''
             ],
+            'dockerStartOrder' => [
+                'mode' => 'docker-page',
+                'remaining' => 'after',
+                'batches' => []
+            ],
             'folderDefaults' => [
                 'sourceId' => '',
                 'sourceName' => '',
@@ -199,6 +204,81 @@
         return [
             'defaultId' => $defaultId,
             'custom' => $custom
+        ];
+    }
+
+    function normalizeDockerStartOrderPrefs($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $mode = strtolower(trim((string)($incoming['mode'] ?? 'docker-page')));
+        if (!in_array($mode, ['docker-page', 'custom-batches'], true)) {
+            $mode = 'docker-page';
+        }
+        $remaining = strtolower(trim((string)($incoming['remaining'] ?? 'after')));
+        if (!in_array($remaining, ['after', 'before', 'keep'], true)) {
+            $remaining = 'after';
+        }
+
+        $batches = [];
+        $rawBatches = is_array($incoming['batches'] ?? null) ? $incoming['batches'] : [];
+        foreach ($rawBatches as $batch) {
+            if (!is_array($batch)) {
+                continue;
+            }
+            $id = trim((string)($batch['id'] ?? ''));
+            if ($id === '') {
+                $id = generateId(12);
+            }
+            $name = truncateUtf8String(trim((string)($batch['name'] ?? '')), 64);
+            if ($name === '') {
+                $name = 'Start batch ' . (count($batches) + 1);
+            }
+            $items = [];
+            $rawItems = is_array($batch['items'] ?? null) ? $batch['items'] : [];
+            foreach ($rawItems as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $type = strtolower(trim((string)($item['type'] ?? 'container')));
+                if ($type === 'folder') {
+                    $folderId = trim((string)($item['id'] ?? $item['folderId'] ?? ''));
+                    if ($folderId !== '') {
+                        $items[] = [
+                            'type' => 'folder',
+                            'id' => truncateUtf8String($folderId, 64)
+                        ];
+                    }
+                    continue;
+                }
+                $nameValue = trim((string)($item['name'] ?? ''));
+                if ($nameValue !== '') {
+                    $items[] = [
+                        'type' => 'container',
+                        'name' => truncateUtf8String($nameValue, 255)
+                    ];
+                }
+                if (count($items) >= 2000) {
+                    break;
+                }
+            }
+            $batches[] = [
+                'id' => truncateUtf8String($id, 64),
+                'name' => $name,
+                'delay' => normalizeIntInRange($batch['delay'] ?? 0, 0, 3600, 0),
+                'parallel' => normalizeBool($batch['parallel'] ?? false, false),
+                'useFolderOrder' => !array_key_exists('useFolderOrder', $batch)
+                    ? true
+                    : normalizeBool($batch['useFolderOrder'], true),
+                'items' => $items
+            ];
+            if (count($batches) >= 100) {
+                break;
+            }
+        }
+
+        return [
+            'mode' => $mode,
+            'remaining' => $remaining,
+            'batches' => $batches
         ];
     }
 
@@ -454,6 +534,7 @@
             'retention' => normalizeIntInRange($scheduleIncoming['retention'] ?? 25, 1, 200, 25),
             'lastRunAt' => is_string($scheduleIncoming['lastRunAt'] ?? null) ? (string)$scheduleIncoming['lastRunAt'] : ''
         ];
+        $normalized['dockerStartOrder'] = normalizeDockerStartOrderPrefs($prefs['dockerStartOrder'] ?? []);
         $normalized['folderDefaults'] = normalizeTypeFolderDefaultsProfile($prefs['folderDefaults'] ?? []);
         $normalized['importPresets'] = normalizeTypeImportPresets($prefs['importPresets'] ?? []);
         return $normalized;

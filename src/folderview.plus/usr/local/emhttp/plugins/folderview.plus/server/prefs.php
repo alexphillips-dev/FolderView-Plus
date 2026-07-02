@@ -40,6 +40,7 @@ fvplus_json_try(function (): array {
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
         || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
         || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
+        || json_encode(normalizeDockerStartOrderPrefs($current['dockerStartOrder'] ?? []), JSON_UNESCAPED_SLASHES) !== json_encode(normalizeDockerStartOrderPrefs($saved['dockerStartOrder'] ?? []), JSON_UNESCAPED_SLASHES)
     );
     if ($dockerOrderChanged) {
         syncContainerOrder('docker');

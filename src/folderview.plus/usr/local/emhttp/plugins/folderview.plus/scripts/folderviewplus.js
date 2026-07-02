@@ -7681,17 +7681,13 @@ const renderDockerStartOrderWorkspace = () => {
                 <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
             </div>
         </div>
-        <div class="fv-docker-start-order-batches" ${customVisible ? '' : 'hidden'}>
-            <div class="fv-docker-start-order-toolbar">
-                <button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>
-                <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-                <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
-            </div>
-            ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
-        </div>
-        <div class="fv-docker-start-order-toolbar" ${customVisible ? 'hidden' : ''}>
+        <div class="fv-docker-start-order-toolbar">
+            ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
             <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
             <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
+        </div>
+        <div class="fv-docker-start-order-batches" ${customVisible ? '' : 'hidden'}>
+            ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
         </div>
         <div id="docker-start-order-preview" class="fv-docker-start-order-preview">
             <div class="fv-recovery-empty-state">

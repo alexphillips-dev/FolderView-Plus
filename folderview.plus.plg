@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.10">
-<!ENTITY md5 "bad5e3fbc48fdf84ef9270bf366df9a9">
+<!ENTITY version "2026.07.02.11">
+<!ENTITY md5 "88bbe3879c8e9575b1d5ae0eb74ee685">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.11
+- UI/UX: Remove duplicate Start Order action buttons so Preview Order and Sync Now render once in a consistent toolbar.
 
 ###2026.07.02.10
 - Performance: Make Start Order settings respond immediately by batching preference saves and debouncing the expensive autostart preview refresh.

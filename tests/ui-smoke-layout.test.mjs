@@ -721,9 +721,15 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-option:hover,[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-pinned\s*\{[\s\S]*border:\s*1px solid color-mix\(in srgb,\s*var\(--fv-editor-accent\) 28%,\s*var\(--fv-editor-block-border\)\);/);
-    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 42%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-search-input/);
+    assert.match(folderCss, /\.fv-parent-picker-pinned\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option-main\s*\{[\s\S]*grid-template-columns:\s*minmax\(10rem,\s*max-content\) minmax\(0,\s*1fr\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option-scope\s*\{[\s\S]*border-radius:\s*7px;/);
+    assert.match(folderCss, /\.fv-parent-picker-search-control::before\s*\{[\s\S]*content:\s*"\\f002";/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input\s*\{[\s\S]*padding-left:\s*2\.2rem !important;[\s\S]*background:\s*var\(--fv-editor-input-bg\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-clear\s*\{[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.doesNotMatch(folderCss, /\.fv-parent-picker-pinned\s*\{[^}]*linear-gradient/);
+    assert.doesNotMatch(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[^}]*linear-gradient/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.16">
-<!ENTITY md5 "e0ac7436fee5edb89aaeae388b060c85">
+<!ENTITY version "2026.07.01.17">
+<!ENTITY md5 "8d174975d6c4dd373319e55c9fe29ea5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.17
+- UX: Tighten the folder editor Parent Folder picker search row, center the search icon inside the input, shrink the Clear button, and align folder names and paths together on the left.
+- Quality: Update parent picker layout coverage for the refined search control and left-aligned folder rows.
 
 ###2026.07.01.16
 - UX: Restyle the modern folder editor General tab parent folder picker with flat dark surfaces, a cleaner search row, squarer chips, and left-aligned folder names with paths beside them.

@@ -182,12 +182,14 @@
                     <label class="fv-parent-picker-search">
                         <span>Choose parent</span>
                         <span class="fv-parent-picker-search-control">
-                            <input
-                                type="text"
-                                class="fv-parent-picker-search-input"
-                                value="${escapeHtml(state.search)}"
-                                placeholder="Search folders by name or path"
-                                autocomplete="off">
+                            <span class="fv-parent-picker-search-input-wrap">
+                                <input
+                                    type="text"
+                                    class="fv-parent-picker-search-input"
+                                    value="${escapeHtml(state.search)}"
+                                    placeholder="Search folders by name or path"
+                                    autocomplete="off">
+                            </span>
                             <button type="button" class="fv-parent-picker-clear"${state.search ? '' : ' disabled'} aria-label="Clear parent search"><i class="fa fa-times" aria-hidden="true"></i><span>Clear</span></button>
                         </span>
                     </label>

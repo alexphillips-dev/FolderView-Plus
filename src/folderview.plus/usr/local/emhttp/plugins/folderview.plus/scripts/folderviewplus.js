@@ -7364,6 +7364,60 @@ const buildDockerStartOrderContainerSelectOptions = () => {
     return names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
 };
 
+let dockerStartOrderPreviewTimer = null;
+let dockerStartOrderSaveTimer = null;
+let dockerStartOrderQueuedPrefs = null;
+let dockerStartOrderSaveChain = Promise.resolve();
+
+const persistQueuedDockerStartOrderPrefs = () => {
+    if (!dockerStartOrderQueuedPrefs) {
+        return dockerStartOrderSaveChain;
+    }
+    const nextPrefs = dockerStartOrderQueuedPrefs;
+    dockerStartOrderQueuedPrefs = null;
+    dockerStartOrderSaveChain = dockerStartOrderSaveChain
+        .then(async () => {
+            const savedPrefs = await postPrefs('docker', nextPrefs);
+            if (!dockerStartOrderQueuedPrefs) {
+                prefsByType.docker = savedPrefs;
+            }
+        })
+        .catch((error) => {
+            showError('Docker start order save failed', error);
+        });
+    return dockerStartOrderSaveChain;
+};
+
+const flushDockerStartOrderSaveQueue = async () => {
+    if (dockerStartOrderSaveTimer) {
+        window.clearTimeout(dockerStartOrderSaveTimer);
+        dockerStartOrderSaveTimer = null;
+    }
+    persistQueuedDockerStartOrderPrefs();
+    await dockerStartOrderSaveChain;
+};
+
+const queueDockerStartOrderPrefsSave = (nextPrefs) => {
+    dockerStartOrderQueuedPrefs = nextPrefs;
+    if (dockerStartOrderSaveTimer) {
+        window.clearTimeout(dockerStartOrderSaveTimer);
+    }
+    dockerStartOrderSaveTimer = window.setTimeout(() => {
+        dockerStartOrderSaveTimer = null;
+        persistQueuedDockerStartOrderPrefs();
+    }, 350);
+};
+
+const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
+    if (dockerStartOrderPreviewTimer) {
+        window.clearTimeout(dockerStartOrderPreviewTimer);
+    }
+    dockerStartOrderPreviewTimer = window.setTimeout(() => {
+        dockerStartOrderPreviewTimer = null;
+        refreshDockerStartOrderPreview({ passive: true });
+    }, delay);
+};
+
 const saveDockerStartOrderPlan = async (patch = {}) => {
     const current = utils.normalizePrefs(prefsByType.docker || {});
     const currentPlan = normalizeDockerStartOrderPrefsForUi(current);
@@ -7372,12 +7426,14 @@ const saveDockerStartOrderPlan = async (patch = {}) => {
         ...patch,
         batches: Array.isArray(patch.batches) ? patch.batches : currentPlan.batches
     };
-    prefsByType.docker = await postPrefs('docker', {
+    const nextPrefs = utils.normalizePrefs({
         ...current,
         dockerStartOrder: nextPlan
     });
+    prefsByType.docker = nextPrefs;
     renderDockerStartOrderWorkspace();
-    await refreshDockerStartOrderPreview();
+    queueDockerStartOrderPrefsSave(nextPrefs);
+    scheduleDockerStartOrderPreviewRefresh();
 };
 
 const updateDockerStartOrderMode = async (mode) => {
@@ -7670,9 +7726,16 @@ const renderDockerStartOrderPreview = (preview) => {
     `);
 };
 
-const refreshDockerStartOrderPreview = async () => {
+const refreshDockerStartOrderPreview = async (options = {}) => {
+    if (dockerStartOrderPreviewTimer) {
+        window.clearTimeout(dockerStartOrderPreviewTimer);
+        dockerStartOrderPreviewTimer = null;
+    }
+    if (options.flush !== false) {
+        await flushDockerStartOrderSaveQueue();
+    }
     const host = $('#docker-start-order-preview');
-    if (host.length) {
+    if (host.length && !options.passive) {
         host.html('<div class="fv-recovery-empty-state"><strong>Loading Docker start order preview...</strong><span>Reading current folders, Docker autostart, and saved start batches.</span></div>');
     }
     try {
@@ -7687,6 +7750,7 @@ const refreshDockerStartOrderPreview = async () => {
 
 const syncDockerStartOrderNow = async () => {
     try {
+        await flushDockerStartOrderSaveQueue();
         const response = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
             action: 'sync'
         });

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.01.18">
-<!ENTITY md5 "1f916a0ca1ee49ac0f3fb265e097b8dd">
+<!ENTITY version "2026.07.01.19">
+<!ENTITY md5 "66f361c705b98369b3937563f289a626">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.01.19
+- Fix: Override the folder editor's generic text-input width cap for the Parent Folder search so the search bar and compact Clear button render correctly.
+- Quality: Guard the scoped Parent Folder search override so the generic editor field rules cannot shrink it again.
 
 ###2026.07.01.18
 - Fix: Make the folder editor Parent Folder search row fill the module width, keep the search icon centered in the input, and compact the Clear button.

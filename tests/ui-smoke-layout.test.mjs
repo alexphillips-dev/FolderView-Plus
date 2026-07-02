@@ -731,6 +731,8 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-parent-picker-search-input-wrap::before\s*\{[\s\S]*content:\s*"\\f002";/);
     assert.match(folderCss, /\.fv-parent-picker-search-input\s*\{[\s\S]*display:\s*block !important;[\s\S]*max-width:\s*none !important;[\s\S]*padding-left:\s*2\.2rem !important;[\s\S]*background:\s*var\(--fv-editor-input-bg\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-clear\s*\{[\s\S]*min-width:\s*74px;[\s\S]*min-height:\s*36px;[\s\S]*padding:\s*0\.28rem 0\.52rem;[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-search-input\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;[\s\S]*height:\s*40px !important;[\s\S]*padding-left:\s*2\.2rem !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-clear\s*\{[\s\S]*min-width:\s*70px !important;[\s\S]*height:\s*34px !important;[\s\S]*padding:\s*0\.24rem 0\.48rem !important;/);
     assert.doesNotMatch(folderCss, /\.fv-parent-picker-pinned\s*\{[^}]*linear-gradient/);
     assert.doesNotMatch(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[^}]*linear-gradient/);
 });

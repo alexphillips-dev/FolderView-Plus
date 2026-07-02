@@ -3631,6 +3631,40 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-width: 220px !important;
 }
 
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-toolbar,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-search,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-search-control,
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-search-input-wrap {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-search-control {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-search-input {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding-left: 2.2rem !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row .fv-parent-picker-clear {
+    min-width: 70px !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0.24rem 0.48rem !important;
+    border-radius: 7px !important;
+}
+
 .fv-modern-field-row input[type="color"] {
     min-width: 54px;
     width: 54px;

@@ -21,18 +21,20 @@ const ADVANCED_SECTION_KEYS = new Set([
     'auto-assignment',
     'bulk-assignment',
     'runtime-actions',
+    'docker-start-order',
     'backups',
     'change-history',
     'folder-health',
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'];
 const ADVANCED_GROUP_LABELS = {
     automation: 'Automation',
     rules: 'Rules',
     recovery: 'Recovery',
     operations: 'Operations',
+    startup: 'Start Order',
     appearance: 'Appearance',
     diagnostics: 'Diagnostics'
 };
@@ -45,6 +47,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'conflict-inspector': 'instant',
     'bulk-assignment': 'instant',
     'runtime-actions': 'instant',
+    'docker-start-order': 'instant',
     backups: 'instant',
     'change-history': 'instant',
     'folder-health': 'instant',
@@ -58,6 +61,7 @@ const ADVANCED_GROUP_BY_SECTION = {
     'backups': 'recovery',
     'change-history': 'recovery',
     'runtime-actions': 'operations',
+    'docker-start-order': 'startup',
     'folder-health': 'diagnostics',
     'diagnostics': 'diagnostics'
 };
@@ -74,6 +78,7 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     rules: Object.freeze([]),
     recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
+    startup: Object.freeze([]),
     appearance: Object.freeze([]),
     diagnostics: Object.freeze(['change_history'])
 });
@@ -115,6 +120,14 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
         'sync dashboard folders',
         'runtime actions',
         'bulk start stop restart pause resume'
+    ]),
+    'docker-start-order': Object.freeze([
+        'docker start order',
+        'docker startup order',
+        'boot order',
+        'autostart order',
+        'startup batches',
+        'container start sequence'
     ]),
     diagnostics: Object.freeze([
         'native organizer',

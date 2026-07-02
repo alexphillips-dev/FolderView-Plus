@@ -243,7 +243,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'\];/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
@@ -329,6 +329,14 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.match(settingsCss, /\.fv-recovery-empty-state\.is-ok/);
     assert.match(settingsCss, /\.fv-recovery-empty-state\.is-warning/);
     assert.doesNotMatch(settingsSectionsJs, /'folder-templates':\s*'operations'/);
+});
+
+test('Docker start order lives in its own startup advanced tab', () => {
+    assert.match(settingsSectionsJs, /startup:\s*'Start Order'/);
+    assert.match(settingsSectionsJs, /'docker-start-order':\s*'startup'/);
+    assert.match(settingsPage, /<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order<\/h2>/);
+    assert.match(settingsPage, /id="docker-start-order-workspace"/);
+    assert.doesNotMatch(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-start-order-workspace"[\s\S]*data-fv-operations-panel="vm"/);
 });
 
 test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {

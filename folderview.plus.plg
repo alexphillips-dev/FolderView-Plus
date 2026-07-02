@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.03">
-<!ENTITY md5 "ef5dcad7cb39c10c8cd2d62b7c010407">
+<!ENTITY version "2026.07.02.04">
+<!ENTITY md5 "872d0d9a01c98bc326537c0ed6ae1f23">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.04
+- UI: Restyle the Settings advanced tab strip to match the modern folder editor tabs, including clearer active-tab highlighting and larger icon labels.
+- UI: Remove numeric suffixes from the Settings advanced tabs.
+- UI: Move Docker start order controls out of Operations into a dedicated Start Order advanced tab.
 
 ###2026.07.02.03
 - Quality: Align the theme compatibility node test with the Settings primary text token contract enforced by the GitHub guard suite.

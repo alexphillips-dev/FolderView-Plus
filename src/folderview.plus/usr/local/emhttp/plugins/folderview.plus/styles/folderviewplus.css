@@ -8866,24 +8866,33 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-advanced-tabs {
     display: inline-flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.4rem;
+    justify-content: flex-start;
+    gap: 0.65rem;
     flex: 0 1 auto;
     min-width: 0;
 }
 
 .fv-advanced-tab {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
     min-width: 0;
-    min-height: 34px;
-    padding: 0.28rem 0.55rem;
+    min-height: 38px;
+    padding: 0.38rem 0.78rem !important;
     border: 0 !important;
-    font-size: 1.03rem;
+    font-size: 1.08rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
     white-space: nowrap;
+    overflow: hidden;
 }
 
-.fv-advanced-count {
-    opacity: 0.82;
-    font-size: 1.03rem;
+.fv-advanced-tab > i,
+.fv-advanced-tab > span {
+    color: inherit !important;
+    pointer-events: none;
 }
 
 .fv-advanced-compact {
@@ -9614,7 +9623,6 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
-    .fv-advanced-tab.is-active,
     .fv-mini-action-btn.is-active,
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
@@ -9622,6 +9630,30 @@ h2[data-fv-section].fv-search-match {
     background: var(--fvplus-settings-button-accent-top) !important;
     color: var(--fvplus-settings-button-accent-fg) !important;
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
+}
+
+#fv-settings-root .fv-advanced-tab.is-active {
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 88%, white 12%) !important;
+    outline: 2px solid color-mix(in srgb, var(--fvplus-settings-accent) 54%, transparent) !important;
+    outline-offset: 0 !important;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 62%, #1d1d1f 38%) !important;
+    color: #ffffff !important;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-accent) 86%, white 14%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 8px 18px rgba(0, 0, 0, 0.32) !important;
+}
+
+#fv-settings-root .fv-advanced-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0.7em;
+    right: 0.7em;
+    bottom: 0.23em;
+    height: 3px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--fvplus-settings-accent) 70%, transparent);
 }
 
 #fv-settings-root .fv-mode-toggle {

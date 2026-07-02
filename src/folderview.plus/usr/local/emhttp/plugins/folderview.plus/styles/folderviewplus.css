@@ -4221,17 +4221,17 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-docker-start-order-add-row > button {
     min-height: 39px;
     padding-inline: 1rem;
-    border-color: var(--fvplus-settings-accent) !important;
-    color: var(--fvplus-settings-accent) !important;
-    background: #111317 !important;
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 66%, var(--fvplus-settings-border) 34%) !important;
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 78%, var(--fvplus-settings-text-primary) 22%) !important;
+    background: linear-gradient(180deg, #262a31 0%, #1d2127 100%) !important;
     font-size: 0.86rem;
 }
 
 .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: var(--fvplus-settings-accent) !important;
-    color: #fff !important;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-accent) 88%, #fff 12%), var(--fvplus-settings-accent)) !important;
-    box-shadow: 0 8px 18px color-mix(in srgb, var(--fvplus-settings-accent) 24%, transparent);
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 66%, var(--fvplus-settings-border) 34%) !important;
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 78%, var(--fvplus-settings-text-primary) 22%) !important;
+    background: linear-gradient(180deg, #262a31 0%, #1d2127 100%) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow);
 }
 
 .fv-docker-start-order-batches {
@@ -9837,7 +9837,7 @@ h2[data-fv-section].fv-search-match {
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
 }
 
-/* Start Order uses a more app-like action treatment than the shared dense settings buttons. */
+/* Start Order keeps its actions readable without making a normal action look selected. */
 #fv-settings-root .fv-docker-start-order-panel .rules-header h3 > .fa,
 #fv-settings-root .fv-docker-start-order-preview-head > strong > .fa {
     color: var(--fvplus-settings-accent) !important;
@@ -9847,11 +9847,11 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button {
     min-height: 40px !important;
     padding: 0 1.1rem !important;
-    border: 1px solid var(--fvplus-settings-accent) !important;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-border) 42%) !important;
     border-radius: 7px !important;
-    background: rgba(255, 138, 31, 0.045) !important;
-    color: var(--fvplus-settings-accent) !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 138, 31, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+    background: linear-gradient(180deg, #282c33 0%, #20242a 100%) !important;
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 76%, var(--fvplus-settings-text-primary) 24%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 4px 12px rgba(0, 0, 0, 0.18) !important;
     opacity: 1 !important;
 }
 
@@ -9859,22 +9859,33 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button:focus-visible,
 #fv-settings-root .fv-docker-start-order-add-row > button:focus-visible {
-    background: rgba(255, 138, 31, 0.13) !important;
+    border-color: var(--fvplus-settings-accent) !important;
+    background: linear-gradient(180deg, #31353d 0%, #252a31 100%) !important;
     color: #fff1e5 !important;
-    box-shadow: inset 0 0 0 1px rgba(255, 173, 91, 0.48), 0 7px 16px rgba(0, 0, 0, 0.24) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 173, 91, 0.28), 0 7px 16px rgba(0, 0, 0, 0.24) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 86%, white 14%) !important;
-    background: linear-gradient(180deg, #ff9d3a 0%, var(--fvplus-settings-accent) 100%) !important;
-    color: #fff !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 18px rgba(255, 126, 24, 0.22) !important;
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-border) 42%) !important;
+    background: linear-gradient(180deg, #282c33 0%, #20242a 100%) !important;
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 76%, var(--fvplus-settings-text-primary) 24%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 4px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:focus-visible {
-    background: linear-gradient(180deg, #ffad57 0%, #ff8a1f 100%) !important;
-    color: #fff !important;
+    border-color: var(--fvplus-settings-accent) !important;
+    background: linear-gradient(180deg, #31353d 0%, #252a31 100%) !important;
+    color: #fff1e5 !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button:disabled,
+#fv-settings-root .fv-docker-start-order-add-row > button:disabled {
+    border-color: rgba(255, 138, 31, 0.28) !important;
+    background: linear-gradient(180deg, #23272e 0%, #1d2127 100%) !important;
+    color: rgba(255, 184, 112, 0.68) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+    opacity: 0.72 !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button .fa,

@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.07">
-<!ENTITY md5 "1bd101738accab3e68ca3c22283627e9">
+<!ENTITY version "2026.07.02.08">
+<!ENTITY md5 "55515756e94e588b86d48bb4ba74a0c6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.08
+- UI/UX: Make Start Order action buttons use a consistent neutral dark treatment instead of highlighting Add Batch as a filled primary action.
 
 ###2026.07.02.07
 - UI/UX: Brighten the Start Order workspace dark surfaces and force the Start Order action buttons to use the intended orange filled and outlined treatments.

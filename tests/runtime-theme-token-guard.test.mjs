@@ -206,3 +206,16 @@ test('folder editor surfaces use graphite cards and fields instead of warm ornam
     assert.match(folderCss, /\.fv-editor-panel-icon-preview\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-control-border\);[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
     assert.doesNotMatch(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*radial-gradient\(circle at top right,\s*rgba\(255,\s*154,\s*60,\s*0\.09\)/);
 });
+
+test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {
+    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-graphite-page,\s*#0d1015\)/);
+    assert.match(settingsCss, /--fv-wizard-shell-sidebar-bg:\s*var\(--fv-wizard-surface-panel\)/);
+    assert.match(settingsCss, /--fv-wizard-shell-head-bg:\s*var\(--fv-wizard-surface-panel\)/);
+    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-graphite-card,\s*#1a1f27\)/);
+    assert.match(settingsCss, /\.fv-setup-card\s*\{[\s\S]*background:\s*var\(--fv-wizard-card-base-bg\);/);
+    assert.match(settingsCss, /\.fv-setup-welcome-hero,\s*[\s\S]*\.fv-setup-welcome-draft,\s*[\s\S]*\.fv-setup-welcome-safety\s*\{[\s\S]*background:\s*var\(--fv-wizard-surface-card\);/);
+    assert.match(settingsCss, /\.fv-recovery-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
+    assert.match(settingsCss, /\.fv-recovery-stage\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.fv-recovery-history-card,\s*[\s\S]*\.fv-recovery-timeline-card,\s*[\s\S]*\.fv-recovery-undo-summary\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-row-quick-actions-header\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});

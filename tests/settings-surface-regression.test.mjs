@@ -183,7 +183,7 @@ test('wizard apply path records perf telemetry and settings CSS keeps simplified
 });
 
 test('settings headings keep dedicated orange title accents across dark themes', () => {
-    assert.match(settingsCss, /--fvplus-settings-title-accent:\s*#ff9a3c/);
+    assert.match(settingsCss, /--fvplus-settings-title-accent:\s*var\(--fvplus-graphite-accent-strong,\s*#ff9d36\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-title-accent:\s*#be6b18/);
     assert.match(settingsCss, /#fv-settings-root h2\[data-fv-section\],[\s\S]*#fv-settings-root \.settings-mini-title,[\s\S]*#fv-settings-root \.rules-header h3,[\s\S]*color:\s*var\(--fvplus-settings-title-accent\) !important;/);
 });

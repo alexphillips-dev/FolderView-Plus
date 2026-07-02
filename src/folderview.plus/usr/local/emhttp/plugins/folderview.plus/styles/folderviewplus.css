@@ -3225,9 +3225,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-recovery-panel {
     border-color: color-mix(in srgb, var(--fvplus-settings-accent) 16%, var(--fvplus-settings-border-faint));
-    background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--fvplus-settings-accent) 10%, transparent), transparent 34%),
-        var(--fvplus-settings-surface-panel);
+    background: var(--fvplus-settings-surface-panel);
 }
 
 .fv-recovery-section-body {
@@ -3245,9 +3243,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.9rem 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-border-faint));
     border-radius: 12px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 14%, transparent), transparent 62%),
-        color-mix(in srgb, var(--fvplus-settings-surface-strong) 82%, transparent);
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-recovery-intro > div:first-child {
@@ -3302,8 +3298,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 22%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-strong) 86%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 94%, transparent));
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-recovery-hero {
@@ -3313,9 +3308,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1.05rem 1.1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 36%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 22%, transparent), transparent 60%),
-        var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-strong);
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
 }
 
@@ -3457,8 +3450,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 18%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
+    background: var(--fvplus-settings-surface-card);
     align-content: start;
     min-height: 0;
 }
@@ -3555,8 +3547,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-recovery-history-stage,
 .fv-recovery-environment-stage {
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
+    background: var(--fvplus-settings-surface-card);
     clear: both;
 }
 
@@ -3595,8 +3586,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.95rem 1rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-strong) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-muted) 90%, transparent));
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-recovery-history-head,
@@ -5458,7 +5448,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem 1.05rem 1.05rem;
     border: 1px solid rgba(86, 162, 255, 0.34);
     border-radius: 12px;
-    background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(7, 11, 18, 0.98));
+    background: var(--fvplus-graphite-card, #1a1f27);
     box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
     color: #f4f7fb;
 }
@@ -6161,7 +6151,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin: 0 0 0.8rem 0;
     border: 1px solid rgba(126, 214, 161, 0.42);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(33, 102, 69, 0.18), rgba(16, 54, 38, 0.2));
+    background: color-mix(in srgb, var(--fvplus-settings-success) 12%, var(--fvplus-settings-surface-card));
     padding: 0.7rem 0.75rem;
 }
 
@@ -6497,12 +6487,12 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
     --fv-wizard-font-118: 1.18rem;
-    --fv-wizard-surface-page: rgba(8, 12, 18, 0.985);
-    --fv-wizard-surface-panel: rgba(17, 25, 37, 0.74);
-    --fv-wizard-surface-card: rgba(17, 27, 42, 0.72);
-    --fv-wizard-surface-card-strong: rgba(20, 32, 48, 0.84);
-    --fv-wizard-border-subtle: rgba(157, 183, 217, 0.24);
-    --fv-wizard-border-strong: rgba(157, 183, 217, 0.34);
+    --fv-wizard-surface-page: var(--fvplus-graphite-page, #0d1015);
+    --fv-wizard-surface-panel: var(--fvplus-graphite-panel, #151920);
+    --fv-wizard-surface-card: var(--fvplus-graphite-card, #1a1f27);
+    --fv-wizard-surface-card-strong: var(--fvplus-graphite-card-raised, #202630);
+    --fv-wizard-border-subtle: var(--fvplus-graphite-border-subtle, rgba(255, 255, 255, 0.12));
+    --fv-wizard-border-strong: var(--fvplus-graphite-border-strong, rgba(255, 255, 255, 0.18));
     --fv-wizard-accent-blue-rgb: 77, 163, 255;
     --fv-wizard-accent-amber-rgb: 255, 170, 94;
     --fv-wizard-accent-green-rgb: 147, 225, 159;
@@ -6533,32 +6523,32 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-color-warning: rgb(var(--fv-wizard-color-warning-rgb));
     --fv-wizard-color-danger: rgb(var(--fv-wizard-color-danger-rgb));
     --fv-wizard-color-neutral: rgb(var(--fv-wizard-color-neutral-rgb));
-    --fv-wizard-shell-sidebar-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
-    --fv-wizard-shell-head-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
-    --fv-wizard-shell-strip-bg: rgba(10, 16, 25, 0.88);
-    --fv-wizard-row-bg: rgba(11, 17, 27, 0.74);
+    --fv-wizard-shell-sidebar-bg: var(--fv-wizard-surface-panel);
+    --fv-wizard-shell-head-bg: var(--fv-wizard-surface-panel);
+    --fv-wizard-shell-strip-bg: var(--fvplus-graphite-inset, #11161d);
+    --fv-wizard-row-bg: var(--fvplus-graphite-field, #181d25);
     --fv-wizard-card-border-alpha: 0.34;
     --fv-wizard-card-tint-alpha: 0.14;
     --fv-wizard-card-surface-stop: 20%;
-    --fv-wizard-card-base-bg: rgba(10, 16, 25, 0.9);
+    --fv-wizard-card-base-bg: var(--fvplus-graphite-card, #1a1f27);
     --fv-wizard-card-topline-strong-alpha: 0.92;
     --fv-wizard-card-topline-soft-alpha: 0.34;
     --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
     --fv-wizard-shell-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-    --fv-wizard-control-bg: rgba(15, 23, 35, 0.78);
+    --fv-wizard-control-bg: var(--fvplus-graphite-card-raised, #202630);
     --fv-wizard-control-disabled-fg: rgba(231, 238, 249, 0.68);
-    --fv-wizard-input-bg: rgba(14, 23, 35, 0.78);
+    --fv-wizard-input-bg: var(--fvplus-graphite-input, #101318);
     --fv-wizard-pill-border: rgba(255, 255, 255, 0.2);
     --fv-wizard-pill-border-strong: rgba(255, 255, 255, 0.22);
-    --fv-wizard-pill-bg: rgba(255, 255, 255, 0.04);
-    --fv-wizard-chip-bg: rgba(14, 23, 35, 0.7);
-    --fv-wizard-chip-toggle-bg: rgba(13, 21, 32, 0.84);
-    --fv-wizard-mode-toggle-bg: rgba(12, 20, 31, 0.84);
-    --fv-wizard-rule-row-bg: rgba(13, 20, 31, 0.72);
+    --fv-wizard-pill-bg: var(--fvplus-graphite-card, #1a1f27);
+    --fv-wizard-chip-bg: var(--fvplus-graphite-field, #181d25);
+    --fv-wizard-chip-toggle-bg: var(--fvplus-graphite-field, #181d25);
+    --fv-wizard-mode-toggle-bg: var(--fvplus-graphite-card, #1a1f27);
+    --fv-wizard-rule-row-bg: var(--fvplus-graphite-field, #181d25);
     --fv-wizard-kbd-border: rgba(255, 255, 255, 0.24);
     --fv-wizard-kbd-bg: rgba(255, 255, 255, 0.08);
-    --fv-wizard-quick-preset-bg: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
+    --fv-wizard-quick-preset-bg: var(--fvplus-graphite-card, #1a1f27);
     --fv-wizard-active-text: #d8ebff;
     --fv-wizard-selection-active-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
     --fv-wizard-pending-text: rgba(255, 255, 255, 0.82);
@@ -6881,7 +6871,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-setup-step-list li.is-active {
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.65);
-    background: linear-gradient(180deg, rgba(15, 25, 38, 0.98), rgba(9, 18, 30, 0.98));
+    background: var(--fv-wizard-surface-card-strong);
     box-shadow: 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.4);
     opacity: 1;
 }
@@ -7034,12 +7024,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
     border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-border-alpha));
     border-radius: 10px;
-    background: linear-gradient(
-        180deg,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-tint-alpha)) 0%,
-        var(--fv-wizard-surface-card) var(--fv-wizard-card-surface-stop),
-        var(--fv-wizard-card-base-bg) 100%
-    );
+    background: var(--fv-wizard-card-base-bg);
     padding: 0.6rem 0.65rem;
     display: grid;
     gap: 0.5rem;
@@ -7056,12 +7041,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(
-        90deg,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha)) 0%,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-soft-alpha)) 70%,
-        transparent 100%
-    );
+    background: rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha));
     pointer-events: none;
 }
 
@@ -7123,9 +7103,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-setup-welcome-safety {
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.14), transparent 58%),
-        var(--fv-wizard-surface-card);
+    background: var(--fv-wizard-surface-card);
     box-shadow: var(--fv-wizard-card-shadow), var(--fv-wizard-card-inset-highlight);
 }
 
@@ -7192,7 +7170,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 #fv-setup-assistant-dialog .fv-setup-welcome-actions .fv-setup-primary-action {
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.36), rgba(var(--fv-wizard-color-info-rgb), 0.22)) !important;
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.22) !important;
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.68) !important;
     color: var(--fv-wizard-text) !important;
 }
@@ -8231,7 +8209,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-setup-review-hero {
     border: 1px solid rgba(var(--fv-wizard-color-success-rgb), 0.38);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-success-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
     padding: 0.78rem 0.86rem;
     display: flex;
     align-items: center;
@@ -8241,12 +8219,12 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-setup-review-hero.is-warn {
     border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.45);
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-warning-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
 }
 
 .fv-setup-review-hero.is-blocked {
     border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.48);
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-danger-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
 }
 
 .fv-setup-review-eyebrow {
@@ -9698,9 +9676,7 @@ tr.is-long-press-active {
     padding: 0.48rem 0.58rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-border-faint));
     border-radius: 12px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 13%, transparent), transparent 58%),
-        var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-row-quick-actions-title {

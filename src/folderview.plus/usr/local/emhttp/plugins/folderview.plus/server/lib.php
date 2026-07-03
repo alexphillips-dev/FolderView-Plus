@@ -402,8 +402,8 @@
     const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';
     const FVPLUS_VERBOSE_API_ERRORS = false;
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
-    const FVPLUS_INFO_CACHE_TTL_FULL = 2;
-    const FVPLUS_INFO_CACHE_TTL_STATE = 2;
+    const FVPLUS_INFO_CACHE_TTL_FULL = 8;
+    const FVPLUS_INFO_CACHE_TTL_STATE = 12;
     const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
     const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
 

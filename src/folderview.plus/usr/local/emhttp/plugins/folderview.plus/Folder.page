@@ -336,7 +336,6 @@ try {
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
         const scriptQueue = [
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-            '/plugins/folderview.plus/scripts/folder.preview-model.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
@@ -345,7 +344,6 @@ try {
             '/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js',
             '/plugins/folderview.plus/scripts/folder.editor.state.js',
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
-            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-docker.js',
             '/plugins/folderview.plus/scripts/folder.editor.type-vm.js',
             '/plugins/folderview.plus/scripts/folder.js'

@@ -87,12 +87,20 @@
         };
 
         const mapRuntimeMember = (entry = {}) => {
-            const labels = entry?.info?.Config?.Labels || {};
-            const state = entry?.info?.State || entry?.State || {};
-            const memberName = String(entry?.info?.Name || entry?.Name || '').trim();
+            const labels = entry?.info?.Config?.Labels || entry?.Labels || {};
+            const state = entry?.info?.State || entry?.State || {
+                Running: entry?.running === true || String(entry?.state || '').toLowerCase() === 'running',
+                Paused: entry?.paused === true || String(entry?.state || '').toLowerCase() === 'paused',
+                Autostart: entry?.autostart === true,
+                manager: entry?.manager,
+                Updated: entry?.Updated
+            };
+            const memberName = String(entry?.info?.Name || entry?.Name || entry?.name || '').trim();
             if (!memberName) {
                 return null;
             }
+            const manager = state?.manager || entry?.manager || '';
+            const updated = state?.Updated ?? entry?.Updated;
             return {
                 Name: memberName,
                 Icon: labels['net.unraid.docker.icon'],
@@ -100,7 +108,7 @@
                 ComposeProject: getComposeProjectFromLabels(labels),
                 State: state,
                 RawState: state,
-                UpdateAvailable: state?.manager === 'dockerman' && state?.Updated === false
+                UpdateAvailable: manager === 'dockerman' && updated === false
             };
         };
 

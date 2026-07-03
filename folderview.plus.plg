@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.02.11">
-<!ENTITY md5 "88bbe3879c8e9575b1d5ae0eb74ee685">
+<!ENTITY version "2026.07.02.13">
+<!ENTITY md5 "fadc7cbc9c949f0b5668d3e3923fc223">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.02.13
+- Performance: Rebuild the Phase 1 runtime-info optimization with a clean dev package after the interrupted 2026.07.02.12 package attempt.
+
+###2026.07.02.12
+- Performance: Use lightweight cached runtime state for Settings and the modern folder editor, remove duplicate editor boot module loads, and extend non-live runtime info cache windows.
 
 ###2026.07.02.11
 - UI/UX: Remove duplicate Start Order action buttons so Preview Order and Sync Now render once in a consistent toolbar.

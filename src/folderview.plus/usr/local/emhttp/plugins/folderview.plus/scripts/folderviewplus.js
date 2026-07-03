@@ -2162,7 +2162,7 @@ const updateRuleLiveMatch = (type) => {
             for (const name of names) {
                 const row = info[name] || {};
                 const labels = getDockerItemLabels(row);
-                const image = row?.info?.Config?.Image || '';
+                const image = row?.info?.Config?.Image || row?.Image || '';
                 const composeProject = getComposeProjectLabelValue(labels);
                 const value = kind === 'image_regex' ? image : (kind === 'compose_project_regex' ? composeProject : name);
                 regex.lastIndex = 0;
@@ -5256,7 +5256,7 @@ const sanitizeTypeInfoMap = (value) => {
 const fetchFolders = async (type) => (
     utils.normalizeFolderMap(sanitizeTypeMapResponse(await apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`)))
 );
-const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}`));
+const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state`));
 
 const fetchBackups = async (type) => {
     const resolvedType = normalizeManagedType(type);

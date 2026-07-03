@@ -3198,8 +3198,15 @@ const getItemRuntimeStateKind = (type, itemInfo) => {
         return 'stopped';
     }
     const nested = source?.info?.State || source?.State || {};
-    const running = Boolean(nested?.Running ?? source?.state ?? source?.running);
-    const paused = Boolean(nested?.Paused ?? source?.pause ?? source?.paused);
+    const rawState = String(source?.state || source?.State || '').trim().toLowerCase();
+    const running = typeof nested?.Running === 'boolean'
+        ? nested.Running
+        : (typeof source?.running === 'boolean' ? source.running : rawState === 'running');
+    const paused = typeof nested?.Paused === 'boolean'
+        ? nested.Paused
+        : (typeof source?.paused === 'boolean'
+            ? source.paused
+            : (typeof source?.pause === 'boolean' ? source.pause : rawState === 'paused'));
     if (running && paused) {
         return 'paused';
     }

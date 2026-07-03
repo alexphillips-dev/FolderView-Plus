@@ -379,6 +379,18 @@ test('settings/runtime scripts use batched localStorage writes', () => {
     assert.match(settingsJs, /const settingsStorageWriter = utils && typeof utils\.createBatchedStorageWriter === 'function'/);
 });
 
+test('settings health treats lightweight docker state strings as runtime states', () => {
+    const match = settingsJs.match(/const getItemRuntimeStateKind = \(type, itemInfo\) => \{[\s\S]*?\n\};/);
+    assert.ok(match, 'getItemRuntimeStateKind should be present in settings runtime');
+    const getItemRuntimeStateKind = Function(`${match[0]}\nreturn getItemRuntimeStateKind;`)();
+
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'running', running: true, paused: false }), 'started');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'paused', running: true, paused: true }), 'paused');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'stopped', running: false, paused: false }), 'stopped');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'stopped' }), 'stopped');
+    assert.equal(getItemRuntimeStateKind('docker', { info: { State: { Running: false, Paused: false } } }), 'stopped');
+});
+
 test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);

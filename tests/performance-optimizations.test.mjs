@@ -406,6 +406,19 @@ test('settings table filter and preference changes use queued table rendering', 
     assert.doesNotMatch(settingsJs, /queueSettingsTableRender/);
 });
 
+test('settings table render defers secondary workspace surfaces', () => {
+    assert.match(settingsJs, /let pendingSecondarySurfaceFrameByType = \{\s*docker: null,\s*vm: null\s*\};/);
+    assert.match(settingsJs, /const renderSettingsSecondarySurfaces = \(type\) => \{/);
+    assert.match(settingsJs, /const scheduleSettingsSecondarySurfaces = \(type,\s*\{ immediate = false \} = \{\}\) => \{/);
+    assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingSecondarySurfaceFrameByType\[resolvedType\] = null;\s*renderSettingsSecondarySurfaces\(resolvedType\);/);
+    assert.match(settingsJs, /renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);/);
+    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type\);[\s\S]*?\n\};/);
+    const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';
+    assert.doesNotMatch(renderTableBlock, /renderRulesTable\(type\)/);
+    assert.doesNotMatch(renderTableBlock, /renderDockerStartOrderWorkspace\(\)/);
+    assert.doesNotMatch(renderTableBlock, /renderOperationsWorkspace\(\)/);
+});
+
 test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);

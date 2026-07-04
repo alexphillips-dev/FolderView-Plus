@@ -617,6 +617,10 @@ let pendingTableRenderFrameByType = {
     docker: null,
     vm: null
 };
+let pendingSecondarySurfaceFrameByType = {
+    docker: null,
+    vm: null
+};
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -7821,6 +7825,43 @@ const syncDockerStartOrderNow = async () => {
 
 const normalizeSettingsTableRenderType = (type) => type === 'vm' ? 'vm' : 'docker';
 
+const renderSettingsSecondarySurfaces = (type) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    renderRulesTable(resolvedType);
+    syncRulesWorkspaceUi();
+    renderBulkItemOptions(resolvedType);
+    renderOperationsOverview(resolvedType);
+    if (resolvedType === 'docker') {
+        renderDockerStartOrderWorkspace({ preservePreview: true });
+    }
+    renderTemplateRows(resolvedType);
+    renderOperationsWorkspace();
+    renderFolderHealthCards();
+    renderFirstRunQuickPathPanel();
+    updateRuleLiveMatch(resolvedType);
+    refreshSettingsUx();
+    enforceNoHorizontalOverflow();
+};
+
+const scheduleSettingsSecondarySurfaces = (type, { immediate = false } = {}) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    if (immediate) {
+        if (pendingSecondarySurfaceFrameByType[resolvedType] !== null) {
+            window.cancelAnimationFrame(pendingSecondarySurfaceFrameByType[resolvedType]);
+            pendingSecondarySurfaceFrameByType[resolvedType] = null;
+        }
+        renderSettingsSecondarySurfaces(resolvedType);
+        return;
+    }
+    if (pendingSecondarySurfaceFrameByType[resolvedType] !== null) {
+        return;
+    }
+    pendingSecondarySurfaceFrameByType[resolvedType] = window.requestAnimationFrame(() => {
+        pendingSecondarySurfaceFrameByType[resolvedType] = null;
+        renderSettingsSecondarySurfaces(resolvedType);
+    });
+};
+
 const renderTable = (type) => {
     const resolvedType = normalizeSettingsTableRenderType(type);
     if (pendingTableRenderFrameByType[resolvedType] !== null) {
@@ -7876,20 +7917,7 @@ const renderTable = (type) => {
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
     updateMobileTreePathHint(type);
-    renderRulesTable(type);
-    syncRulesWorkspaceUi();
-    renderBulkItemOptions(type);
-    renderOperationsOverview(type);
-    if (type === 'docker') {
-        renderDockerStartOrderWorkspace();
-    }
-    renderTemplateRows(type);
-    renderOperationsWorkspace();
-    renderFolderHealthCards();
-    renderFirstRunQuickPathPanel();
-    updateRuleLiveMatch(type);
-    refreshSettingsUx();
-    enforceNoHorizontalOverflow();
+    scheduleSettingsSecondarySurfaces(type);
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {

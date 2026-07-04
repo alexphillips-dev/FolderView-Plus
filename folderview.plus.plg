@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.04.02">
-<!ENTITY md5 "8ac67a691881a69e784b8e2c225534c6">
+<!ENTITY version "2026.07.04.03">
+<!ENTITY md5 "ea4f740d62d71b7f04cac3a8866f96b1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.04.03
+- Performance: Defer expensive secondary Settings workspaces after table redraws so folder rows update first while rules, templates, health cards, operations, and Start Order refresh in a coalesced next-frame pass.
 
 ###2026.07.04.02
 - Performance: Queue Settings table redraws for folder filters and lightweight preference changes so quick UI interactions collapse into one next-frame rebuild instead of repeated synchronous renders.

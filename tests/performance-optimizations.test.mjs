@@ -408,10 +408,16 @@ test('settings table filter and preference changes use queued table rendering', 
 
 test('settings table render defers secondary workspace surfaces', () => {
     assert.match(settingsJs, /let pendingSecondarySurfaceFrameByType = \{\s*docker: null,\s*vm: null\s*\};/);
+    assert.match(settingsJs, /const shouldRefreshSecondaryAdvancedGroup = \(group\) => \{/);
+    assert.match(settingsJs, /if \(settingsUiState\.query && settingsUiState\.searchAllAdvanced === true\) \{\s*return true;\s*\}/);
     assert.match(settingsJs, /const renderSettingsSecondarySurfaces = \(type\) => \{/);
     assert.match(settingsJs, /const scheduleSettingsSecondarySurfaces = \(type,\s*\{ immediate = false \} = \{\}\) => \{/);
     assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingSecondarySurfaceFrameByType\[resolvedType\] = null;\s*renderSettingsSecondarySurfaces\(resolvedType\);/);
-    assert.match(settingsJs, /renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);/);
+    assert.match(settingsJs, /if \(resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup\('startup'\)\) \{\s*renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);/);
+    assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('operations'\)\) \{[\s\S]*renderTemplateRows\(resolvedType\);[\s\S]*renderOperationsWorkspace\(\);/);
+    assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('rules'\)\) \{[\s\S]*renderRulesTable\(resolvedType\);[\s\S]*syncRulesWorkspaceUi\(\);/);
+    assert.match(settingsJs, /refreshSettingsUx\(\{ renderSecondaryWorkspaces: false \}\);/);
+    assert.match(settingsJs, /const refreshSettingsUx = \(options = \{\}\) => \{[\s\S]*const renderSecondaryWorkspaces = options\.renderSecondaryWorkspaces !== false;/);
     assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type\);[\s\S]*?\n\};/);
     const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';
     assert.doesNotMatch(renderTableBlock, /renderRulesTable\(type\)/);

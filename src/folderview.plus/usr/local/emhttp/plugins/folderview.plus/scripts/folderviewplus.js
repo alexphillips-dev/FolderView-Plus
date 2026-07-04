@@ -2471,7 +2471,8 @@ const initSettingsControls = () => {
     settingsUiState.controlsInitialized = true;
 };
 
-const refreshSettingsUx = () => {
+const refreshSettingsUx = (options = {}) => {
+    const renderSecondaryWorkspaces = options.renderSecondaryWorkspaces !== false;
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
     buildSettingsSections();
@@ -2493,12 +2494,14 @@ const refreshSettingsUx = () => {
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
-    renderOperationsWorkspace();
-    syncRecoveryWorkspaceUi();
-    syncRulesWorkspaceUi();
-    ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
-        renderAdvancedModuleStatus(moduleKey);
-    });
+    if (renderSecondaryWorkspaces) {
+        renderOperationsWorkspace();
+        syncRecoveryWorkspaceUi();
+        syncRulesWorkspaceUi();
+        ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
+            renderAdvancedModuleStatus(moduleKey);
+        });
+    }
 };
 
 const isVisibleSettingsElement = (node) => {
@@ -7825,21 +7828,43 @@ const syncDockerStartOrderNow = async () => {
 
 const normalizeSettingsTableRenderType = (type) => type === 'vm' ? 'vm' : 'docker';
 
+const shouldRefreshSecondaryAdvancedGroup = (group) => {
+    const normalizedGroup = normalizeAdvancedGroup(group);
+    if (settingsUiState.mode !== 'advanced') {
+        return false;
+    }
+    if (settingsUiState.query && settingsUiState.searchAllAdvanced === true) {
+        return true;
+    }
+    return settingsUiState.advancedTab === normalizedGroup;
+};
+
 const renderSettingsSecondarySurfaces = (type) => {
     const resolvedType = normalizeSettingsTableRenderType(type);
-    renderRulesTable(resolvedType);
-    syncRulesWorkspaceUi();
-    renderBulkItemOptions(resolvedType);
-    renderOperationsOverview(resolvedType);
-    if (resolvedType === 'docker') {
+    if (shouldRefreshSecondaryAdvancedGroup('rules')) {
+        renderRulesTable(resolvedType);
+        syncRulesWorkspaceUi();
+        updateRuleLiveMatch(resolvedType);
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('automation')) {
+        renderBulkItemOptions(resolvedType);
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('recovery')) {
+        syncRecoveryWorkspaceUi();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('operations')) {
+        renderOperationsOverview(resolvedType);
+        renderTemplateRows(resolvedType);
+        renderOperationsWorkspace();
+    }
+    if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
     }
-    renderTemplateRows(resolvedType);
-    renderOperationsWorkspace();
-    renderFolderHealthCards();
+    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
+        renderFolderHealthCards();
+    }
     renderFirstRunQuickPathPanel();
-    updateRuleLiveMatch(resolvedType);
-    refreshSettingsUx();
+    refreshSettingsUx({ renderSecondaryWorkspaces: false });
     enforceNoHorizontalOverflow();
 };
 

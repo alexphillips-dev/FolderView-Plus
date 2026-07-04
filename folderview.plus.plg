@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.03.01">
-<!ENTITY md5 "cb167df0b3ee674f273a37d92dde5648">
+<!ENTITY version "2026.07.04.01">
+<!ENTITY md5 "f2d39532b0484508103e4813c238cc98">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.04.01
+- Performance: Make Docker Start Order settings update faster by preserving the preview panel, caching folder/container select options, and re-rendering only the controls and batch list during edits.
 
 ###2026.07.03.01
 - Fix: Correct Settings health/status detection when using lightweight Docker runtime state so stopped containers are no longer counted as started.

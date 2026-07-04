@@ -7355,20 +7355,46 @@ const getDockerStartOrderFolderOptions = () => {
     }));
 };
 
-const buildDockerStartOrderFolderSelectOptions = () => {
-    const folders = getDockerStartOrderFolderOptions();
-    if (!folders.length) {
-        return '<option value="">No folders available</option>';
+let dockerStartOrderFolderOptionsCache = { signature: '', html: '', options: [], byId: new Map() };
+let dockerStartOrderContainerOptionsCache = { signature: '', html: '', names: [] };
+
+const getDockerStartOrderFolderOptionsCached = () => {
+    const options = getDockerStartOrderFolderOptions();
+    const signature = options.map((folder) => `${folder.id}:${folder.name}`).join('|');
+    if (dockerStartOrderFolderOptionsCache.signature !== signature) {
+        dockerStartOrderFolderOptionsCache = {
+            signature,
+            options,
+            byId: new Map(options.map((folder) => [String(folder.id), folder])),
+            html: options.length
+                ? options.map((folder) => `<option value="${escapeHtml(folder.id)}">${escapeHtml(folder.name)}</option>`).join('')
+                : '<option value="">No folders available</option>'
+        };
     }
-    return folders.map((folder) => `<option value="${escapeHtml(folder.id)}">${escapeHtml(folder.name)}</option>`).join('');
+    return dockerStartOrderFolderOptionsCache;
+};
+
+const getDockerStartOrderContainerOptionsCached = () => {
+    const names = getDockerStartOrderContainerNames();
+    const signature = names.join('|');
+    if (dockerStartOrderContainerOptionsCache.signature !== signature) {
+        dockerStartOrderContainerOptionsCache = {
+            signature,
+            names,
+            html: names.length
+                ? names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')
+                : '<option value="">No containers available</option>'
+        };
+    }
+    return dockerStartOrderContainerOptionsCache;
+};
+
+const buildDockerStartOrderFolderSelectOptions = () => {
+    return getDockerStartOrderFolderOptionsCached().html;
 };
 
 const buildDockerStartOrderContainerSelectOptions = () => {
-    const names = getDockerStartOrderContainerNames();
-    if (!names.length) {
-        return '<option value="">No containers available</option>';
-    }
-    return names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+    return getDockerStartOrderContainerOptionsCached().html;
 };
 
 let dockerStartOrderPreviewTimer = null;
@@ -7425,7 +7451,7 @@ const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
     }, delay);
 };
 
-const saveDockerStartOrderPlan = async (patch = {}) => {
+const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
     const current = utils.normalizePrefs(prefsByType.docker || {});
     const currentPlan = normalizeDockerStartOrderPrefsForUi(current);
     const nextPlan = {
@@ -7438,15 +7464,17 @@ const saveDockerStartOrderPlan = async (patch = {}) => {
         dockerStartOrder: nextPlan
     });
     prefsByType.docker = nextPrefs;
-    renderDockerStartOrderWorkspace();
+    renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
     queueDockerStartOrderPrefsSave(nextPrefs);
-    scheduleDockerStartOrderPreviewRefresh();
+    if (options.refreshPreview === true) {
+        scheduleDockerStartOrderPreviewRefresh();
+    }
 };
 
 const updateDockerStartOrderMode = async (mode) => {
     const normalized = String(mode || '').trim() === 'custom-batches' ? 'custom-batches' : 'docker-page';
     try {
-        await saveDockerStartOrderPlan({ mode: normalized });
+        await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
     } catch (error) {
         showError('Docker start order save failed', error);
     }
@@ -7455,7 +7483,7 @@ const updateDockerStartOrderMode = async (mode) => {
 const updateDockerStartOrderRemaining = async (value) => {
     const normalized = ['after', 'before', 'keep'].includes(String(value || '').trim()) ? String(value || '').trim() : 'after';
     try {
-        await saveDockerStartOrderPlan({ remaining: normalized });
+        await saveDockerStartOrderPlan({ remaining: normalized }, { preservePreview: true });
     } catch (error) {
         showError('Docker start order save failed', error);
     }
@@ -7473,7 +7501,7 @@ const addDockerStartOrderBatch = async () => {
         items: []
     });
     try {
-        await saveDockerStartOrderPlan({ mode: 'custom-batches', batches });
+        await saveDockerStartOrderPlan({ mode: 'custom-batches', batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start batch add failed', error);
     }
@@ -7501,7 +7529,7 @@ const updateDockerStartOrderBatch = async (batchId, key, value) => {
         return batch;
     });
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start batch save failed', error);
     }
@@ -7517,7 +7545,7 @@ const moveDockerStartOrderBatch = async (batchId, direction) => {
     }
     [batches[index], batches[nextIndex]] = [batches[nextIndex], batches[index]];
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start batch move failed', error);
     }
@@ -7527,7 +7555,7 @@ const removeDockerStartOrderBatch = async (batchId) => {
     const plan = normalizeDockerStartOrderPrefsForUi();
     const batches = (plan.batches || []).filter((batch) => String(batch.id) !== String(batchId));
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start batch remove failed', error);
     }
@@ -7562,7 +7590,7 @@ const addDockerStartOrderItem = async (batchId, itemType) => {
         return { ...batch, items: nextItems };
     });
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start item add failed', error);
     }
@@ -7584,7 +7612,7 @@ const moveDockerStartOrderItem = async (batchId, itemIndex, direction) => {
         return { ...batch, items };
     });
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start item move failed', error);
     }
@@ -7601,7 +7629,7 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
         return { ...batch, items };
     });
     try {
-        await saveDockerStartOrderPlan({ batches });
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
     } catch (error) {
         showError('Docker start item remove failed', error);
     }
@@ -7610,11 +7638,14 @@ const removeDockerStartOrderItem = async (batchId, itemIndex) => {
 const buildDockerStartOrderBatchHtml = (batch, index) => {
     const safeId = String(batch?.id || '');
     const items = Array.isArray(batch?.items) ? batch.items : [];
+    const folderOptionsCache = getDockerStartOrderFolderOptionsCached();
+    const folderSelectOptions = folderOptionsCache.html;
+    const containerSelectOptions = getDockerStartOrderContainerOptionsCached().html;
     const itemHtml = items.length
         ? items.map((item, itemIndex) => {
             const isFolder = item?.type === 'folder';
             const label = isFolder
-                ? (getDockerStartOrderFolderOptions().find((folder) => folder.id === item.id)?.name || item.id || 'Folder')
+                ? (folderOptionsCache.byId.get(String(item.id))?.name || item.id || 'Folder')
                 : (item?.name || 'Container');
             return `
                 <div class="fv-docker-start-order-item">
@@ -7645,9 +7676,9 @@ const buildDockerStartOrderBatchHtml = (batch, index) => {
                 <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
             </div>
             <div class="fv-docker-start-order-add-row">
-                <select data-fv-start-folder="${escapeHtml(safeId)}">${buildDockerStartOrderFolderSelectOptions()}</select>
+                <select data-fv-start-folder="${escapeHtml(safeId)}">${folderSelectOptions}</select>
                 <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
-                <select data-fv-start-container="${escapeHtml(safeId)}">${buildDockerStartOrderContainerSelectOptions()}</select>
+                <select data-fv-start-container="${escapeHtml(safeId)}">${containerSelectOptions}</select>
                 <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
             </div>
             <div class="fv-docker-start-order-items">${itemHtml}</div>
@@ -7655,7 +7686,57 @@ const buildDockerStartOrderBatchHtml = (batch, index) => {
     `;
 };
 
-const renderDockerStartOrderWorkspace = () => {
+const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
+    <div class="fv-docker-start-order-controls" data-fv-start-order-region="controls">
+        <label class="setting-select">
+            <span>Start order mode</span>
+            <select id="docker-start-order-mode" onchange="updateDockerStartOrderMode(this.value)">
+                <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
+                <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
+            </select>
+        </label>
+        <label class="setting-select">
+            <span>Remaining autostart containers</span>
+            <select id="docker-start-order-remaining" onchange="updateDockerStartOrderRemaining(this.value)">
+                <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
+                <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
+                <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
+            </select>
+        </label>
+    </div>
+    <div class="fv-docker-start-order-help" data-fv-start-order-region="help">
+        <i class="fa fa-info-circle" aria-hidden="true"></i>
+        <div>
+            <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
+            <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
+        </div>
+    </div>
+`;
+
+const buildDockerStartOrderToolbarHtml = (customVisible) => `
+    <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
+        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
+        <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
+        <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
+    </div>
+`;
+
+const buildDockerStartOrderBatchesHtml = (batches, customVisible) => `
+    <div class="fv-docker-start-order-batches" data-fv-start-order-region="batches" ${customVisible ? '' : 'hidden'}>
+        ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
+    </div>
+`;
+
+const buildDockerStartOrderPreviewPlaceholderHtml = () => `
+    <div id="docker-start-order-preview" class="fv-docker-start-order-preview" data-fv-start-order-region="preview">
+        <div class="fv-recovery-empty-state">
+            <strong>Preview has not loaded yet.</strong>
+            <span>Use Preview order to inspect the exact autostart sequence.</span>
+        </div>
+    </div>
+`;
+
+const renderDockerStartOrderWorkspace = (options = {}) => {
     const host = $('#docker-start-order-workspace');
     if (!host.length) {
         return;
@@ -7663,46 +7744,20 @@ const renderDockerStartOrderWorkspace = () => {
     const plan = normalizeDockerStartOrderPrefsForUi();
     const customVisible = plan.mode === 'custom-batches';
     const batches = Array.isArray(plan.batches) ? plan.batches : [];
-    host.html(`
-        <div class="fv-docker-start-order-controls">
-            <label class="setting-select">
-                <span>Start order mode</span>
-                <select id="docker-start-order-mode" onchange="updateDockerStartOrderMode(this.value)">
-                    <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
-                    <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
-                </select>
-            </label>
-            <label class="setting-select">
-                <span>Remaining autostart containers</span>
-                <select id="docker-start-order-remaining" onchange="updateDockerStartOrderRemaining(this.value)">
-                    <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
-                    <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
-                    <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
-                </select>
-            </label>
-        </div>
-        <div class="fv-docker-start-order-help">
-            <i class="fa fa-info-circle" aria-hidden="true"></i>
-            <div>
-                <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
-                <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
-            </div>
-        </div>
-        <div class="fv-docker-start-order-toolbar">
-            ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
-            <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-            <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
-        </div>
-        <div class="fv-docker-start-order-batches" ${customVisible ? '' : 'hidden'}>
-            ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
-        </div>
-        <div id="docker-start-order-preview" class="fv-docker-start-order-preview">
-            <div class="fv-recovery-empty-state">
-                <strong>Preview has not loaded yet.</strong>
-                <span>Use Preview order to inspect the exact autostart sequence.</span>
-            </div>
-        </div>
-    `);
+    const preservePreview = options.preservePreview === true && host.find('#docker-start-order-preview').length > 0;
+    if (!preservePreview) {
+        host.html([
+            buildDockerStartOrderControlsHtml(plan, customVisible),
+            buildDockerStartOrderToolbarHtml(customVisible),
+            buildDockerStartOrderBatchesHtml(batches, customVisible),
+            buildDockerStartOrderPreviewPlaceholderHtml()
+        ].join(''));
+        return;
+    }
+    host.find('[data-fv-start-order-region="controls"], [data-fv-start-order-region="help"]').remove();
+    host.find('[data-fv-start-order-region="toolbar"]').replaceWith(buildDockerStartOrderToolbarHtml(customVisible));
+    host.find('[data-fv-start-order-region="batches"]').replaceWith(buildDockerStartOrderBatchesHtml(batches, customVisible));
+    host.prepend(buildDockerStartOrderControlsHtml(plan, customVisible));
 };
 
 const renderDockerStartOrderPreview = (preview) => {

@@ -45,7 +45,13 @@ test('server builds preview and sync order from Docker page or custom batches', 
 test('settings page exposes a user-friendly Docker start-order workspace', () => {
     assert.match(settingsPage, /id="docker-start-order-stage"/);
     assert.match(settingsPage, /Docker start order/);
-    assert.match(settingsJs, /const renderDockerStartOrderWorkspace = \(\) =>/);
+    assert.match(settingsJs, /const renderDockerStartOrderWorkspace = \(options = \{\}\) =>/);
+    assert.match(settingsJs, /data-fv-start-order-region="preview"/);
+    assert.match(settingsJs, /const preservePreview = options\.preservePreview === true && host\.find\('#docker-start-order-preview'\)\.length > 0;/);
+    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="toolbar"\]'\)\.replaceWith\(buildDockerStartOrderToolbarHtml\(customVisible\)\);/);
+    assert.match(settingsJs, /host\.find\('\[data-fv-start-order-region="batches"\]'\)\.replaceWith\(buildDockerStartOrderBatchesHtml\(batches, customVisible\)\);/);
+    assert.match(settingsJs, /dockerStartOrderFolderOptionsCache/);
+    assert.match(settingsJs, /dockerStartOrderContainerOptionsCache/);
     assert.match(settingsJs, /Follow Docker page order/);
     assert.match(settingsJs, /Custom batch order/);
     assert.match(settingsJs, /Remaining autostart containers/);

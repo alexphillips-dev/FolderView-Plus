@@ -391,6 +391,21 @@ test('settings health treats lightweight docker state strings as runtime states'
     assert.equal(getItemRuntimeStateKind('docker', { info: { State: { Running: false, Paused: false } } }), 'stopped');
 });
 
+test('settings table filter and preference changes use queued table rendering', () => {
+    assert.match(settingsJs, /const scheduleTableRender = \(type,\s*\{ immediate = false \} = \{\}\) => \{/);
+    assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingTableRenderFrameByType\[resolvedType\] = null;\s*renderTable\(resolvedType\);/);
+    assert.match(settingsJs, /const renderTable = \(type\) => \{\s*const resolvedType = normalizeSettingsTableRenderType\(type\);[\s\S]*window\.cancelAnimationFrame\(pendingTableRenderFrameByType\[resolvedType\]\);/);
+    assert.match(settingsJs, /const setQuickFolderFilter = \(type = 'docker', mode = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);[\s\S]*?\n\};/);
+    assert.match(settingsJs, /const setFilterQuery = \(section, type, value\) => \{[\s\S]*if \(section === 'folders'\) \{\s*scheduleTableRender\(type\);/);
+    assert.match(settingsJs, /const toggleDockerUpdatesFilter = \(hasUpdatesInRow = false\) => \{[\s\S]*scheduleTableRender\('docker'\);[\s\S]*scheduleTableRender\('docker'\);/);
+    assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const toggleStatusFilter = \(type = 'docker', statusKey = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const changeVisibilityPref = async \(type, key, value\) => \{[\s\S]*renderVisibilityControls\(type\);\s*scheduleTableRender\(type\);/);
+    assert.match(settingsJs, /const changeStatusPref = async \(type, key, value\) => \{[\s\S]*renderStatusControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const changeHealthPref = async \(type, key, value\) => \{[\s\S]*renderHealthControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
+    assert.doesNotMatch(settingsJs, /queueSettingsTableRender/);
+});
+
 test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);

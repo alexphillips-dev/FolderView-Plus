@@ -3163,7 +3163,7 @@ const setQuickFolderFilter = (type = 'docker', mode = 'all') => {
     quickFolderFilterByType[resolvedType] = current === normalizedMode ? 'all' : normalizedMode;
     persistTableUiState();
     renderQuickFolderFilters(resolvedType);
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const getStatusFilterLabel = (mode) => {
@@ -4234,7 +4234,7 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
         renderSettingsTableLayoutControls(resolvedType);
         renderColumnVisibilityControls(resolvedType);
         if (rerender) {
-            renderTable(resolvedType);
+            scheduleTableRender(resolvedType);
         } else {
             applyColumnVisibility(resolvedType);
             applyColumnWidths(resolvedType);
@@ -4294,7 +4294,7 @@ const setFilterQuery = (section, type, value) => {
     filtersByType[type][section] = normalizedFilter(value);
     persistTableUiState();
     if (section === 'folders') {
-        renderTable(type);
+        scheduleTableRender(type);
         return;
     }
     if (section === 'rules') {
@@ -4685,13 +4685,13 @@ const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
     if (dockerUpdatesOnlyFilter) {
         dockerUpdatesOnlyFilter = false;
         persistTableUiState();
-        renderTable('docker');
+        scheduleTableRender('docker');
         return;
     }
     if (hasUpdatesInRow) {
         dockerUpdatesOnlyFilter = true;
         persistTableUiState();
-        renderTable('docker');
+        scheduleTableRender('docker');
         return;
     }
     swal({
@@ -4707,7 +4707,7 @@ const toggleHealthSeverityFilter = (type = 'docker', severity = 'all') => {
     const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
     healthSeverityFilterByType[resolvedType] = current === target ? 'all' : target;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
@@ -4716,7 +4716,7 @@ const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
     const current = normalizeStatusFilterMode(statusFilterByType[resolvedType]);
     statusFilterByType[resolvedType] = current === target ? 'all' : target;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const clearFolderTableFilters = (type = 'docker') => {
@@ -4734,7 +4734,7 @@ const clearFolderTableFilters = (type = 'docker') => {
     }
     persistTableUiState();
     renderQuickFolderFilters(resolvedType);
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const recordFatalBannerRequestResult = (method, url, source, outcome, error = null) => {
@@ -7819,7 +7819,15 @@ const syncDockerStartOrderNow = async () => {
     }
 };
 
+const normalizeSettingsTableRenderType = (type) => type === 'vm' ? 'vm' : 'docker';
+
 const renderTable = (type) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    if (pendingTableRenderFrameByType[resolvedType] !== null) {
+        window.cancelAnimationFrame(pendingTableRenderFrameByType[resolvedType]);
+        pendingTableRenderFrameByType[resolvedType] = null;
+    }
+    type = resolvedType;
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const hierarchyMeta = buildFolderHierarchyMeta(ordered);
@@ -8632,7 +8640,7 @@ const changeVisibilityPref = async (type, key, value) => {
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderVisibilityControls(type);
-        renderTable(type);
+        scheduleTableRender(type);
     } catch (error) {
         renderVisibilityControls(type);
         showError('Visibility preference save failed', error);
@@ -8672,7 +8680,7 @@ const changeStatusPref = async (type, key, value) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, next);
         renderStatusControls(resolvedType);
-        renderTable(resolvedType);
+        scheduleTableRender(resolvedType);
     } catch (error) {
         renderStatusControls(resolvedType);
         showError('Status preferences save failed', error);
@@ -8685,7 +8693,7 @@ const setHealthFolderFilter = (type, mode) => {
     const healthPrefs = normalizeHealthPrefs(resolvedType);
     healthFilterByType[resolvedType] = healthPrefs.cardsEnabled ? nextMode : 'all';
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const changeColumnVisibility = async (type, key, checked) => {
@@ -8859,7 +8867,7 @@ const changeHealthPref = async (type, key, value) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, next);
         renderHealthControls(resolvedType);
-        renderTable(resolvedType);
+        scheduleTableRender(resolvedType);
     } catch (error) {
         renderHealthControls(resolvedType);
         showError('Health preferences save failed', error);

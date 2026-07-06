@@ -56,7 +56,7 @@ test('theme compatibility: setup wizard mirrors resolved theme class and light-s
     assert.match(wizardTokenBlock, /--fv-wizard-color-success-rgb:\s*147,\s*225,\s*159/);
     assert.match(wizardTokenBlock, /--fv-wizard-color-warning-rgb:\s*255,\s*193,\s*94/);
     assert.match(wizardTokenBlock, /--fv-wizard-color-danger-rgb:\s*255,\s*116,\s*116/);
-    assert.match(wizardTokenBlock, /--fv-wizard-control-bg:\s*var\(--fvplus-graphite-card-raised,\s*#242426\)/);
+    assert.match(wizardTokenBlock, /--fv-wizard-control-bg:\s*var\(--fvplus-ui-control,\s*var\(--fvplus-graphite-card-raised,\s*#242426\)\)/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary,\s*#324253\)/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-wizard-control-bg:\s*rgba\(250,\s*246,\s*240,\s*0\.96\)/);
     assert.match(

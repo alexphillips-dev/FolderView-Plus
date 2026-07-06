@@ -1,9 +1,9 @@
 /* Editor chrome */
 .canvas form.folder-editor-form,
 #fvEditorChrome {
-    --fv-editor-bg: var(--fvplus-editor-bg, #0f0f10);
-    --fv-editor-panel: var(--fvplus-editor-panel, #1d1d1f);
-    --fv-editor-border: var(--fvplus-editor-border, rgba(255, 167, 88, 0.22));
+    --fv-editor-bg: var(--fvplus-editor-bg, var(--fvplus-ui-page, #0f0f10));
+    --fv-editor-panel: var(--fvplus-editor-panel, var(--fvplus-ui-card, #1d1d1f));
+    --fv-editor-border: var(--fvplus-editor-border, var(--fvplus-ui-border-subtle, rgba(255, 167, 88, 0.22)));
     --fv-editor-border-strong: var(--fvplus-editor-border-strong, rgba(255, 167, 88, 0.5));
     --fv-editor-text-primary: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     --fv-editor-muted: var(--fvplus-editor-muted, rgba(255, 255, 255, 0.72));
@@ -17,24 +17,24 @@
     --fv-editor-control-border: var(--fvplus-editor-control-border, var(--fv-editor-border));
     --fv-editor-block-border: var(--fvplus-editor-block-border, var(--fv-editor-border));
     --fv-editor-block-border-strong: var(--fvplus-editor-block-border-strong, var(--fv-editor-border-strong));
-    --fv-editor-control-surface: var(--fvplus-editor-control-surface, #242426);
-    --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover, #29292b);
-    --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active, rgba(255, 140, 42, 0.14));
-    --fv-editor-input-bg: var(--fvplus-editor-input-bg, rgba(10, 10, 10, 0.34));
-    --fv-editor-inset-surface: var(--fvplus-editor-inset-surface, #1a1a1b);
-    --fv-editor-shadow: var(--fvplus-editor-shadow, 0 16px 38px rgba(0, 0, 0, 0.26));
+    --fv-editor-control-surface: var(--fvplus-editor-control-surface, var(--fvplus-ui-control, #242426));
+    --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover, var(--fvplus-ui-control-hover, #29292b));
+    --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active, var(--fvplus-ui-control-active, rgba(255, 140, 42, 0.14)));
+    --fv-editor-input-bg: var(--fvplus-editor-input-bg, var(--fvplus-ui-input, rgba(10, 10, 10, 0.34)));
+    --fv-editor-inset-surface: var(--fvplus-editor-inset-surface, var(--fvplus-ui-field, #1a1a1b));
+    --fv-editor-shadow: var(--fvplus-editor-shadow, var(--fvplus-ui-shadow, 0 16px 38px rgba(0, 0, 0, 0.26)));
     --fv-editor-focus-ring: var(--fvplus-editor-focus-ring, rgba(74, 179, 255, 0.34));
     --fv-editor-nav-count-bg: var(--fvplus-editor-nav-count-bg, rgba(255, 154, 60, 0.16));
     --fv-editor-nav-count-text: var(--fvplus-editor-nav-count-text, #ffd7ab);
     --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
     --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-border));
     --fv-editor-button-fg: var(--fv-editor-text-primary);
-    --fv-editor-button-bg-top: #242426;
-    --fv-editor-button-bg-bottom: #242426;
-    --fv-editor-button-hover-top: #29292b;
-    --fv-editor-button-hover-bottom: #29292b;
-    --fv-editor-button-active-top: rgba(255, 138, 31, 0.16);
-    --fv-editor-button-active-bottom: rgba(255, 138, 31, 0.16);
+    --fv-editor-button-bg-top: var(--fvplus-ui-control, #242426);
+    --fv-editor-button-bg-bottom: var(--fvplus-ui-control, #242426);
+    --fv-editor-button-hover-top: var(--fvplus-ui-control-hover, #29292b);
+    --fv-editor-button-hover-bottom: var(--fvplus-ui-control-hover, #29292b);
+    --fv-editor-button-active-top: var(--fvplus-ui-control-active, rgba(255, 138, 31, 0.16));
+    --fv-editor-button-active-bottom: var(--fvplus-ui-control-active, rgba(255, 138, 31, 0.16));
     --fv-editor-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
     --fv-editor-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.075), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fv-editor-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
@@ -42,10 +42,10 @@
     --fv-editor-button-accent-top: rgba(255, 171, 91, 0.26);
     --fv-editor-button-accent-bottom: rgba(255, 171, 91, 0.22);
     --fv-editor-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fv-editor-button-quiet-top: #1d1d1f;
-    --fv-editor-button-quiet-bottom: #1d1d1f;
-    --fv-editor-button-quiet-hover-top: #242426;
-    --fv-editor-button-quiet-hover-bottom: #242426;
+    --fv-editor-button-quiet-top: var(--fvplus-ui-card, #1d1d1f);
+    --fv-editor-button-quiet-bottom: var(--fvplus-ui-card, #1d1d1f);
+    --fv-editor-button-quiet-hover-top: var(--fvplus-ui-control, #242426);
+    --fv-editor-button-quiet-hover-bottom: var(--fvplus-ui-control, #242426);
     --fv-editor-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
     --fv-editor-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
     color: var(--fv-editor-text-primary);

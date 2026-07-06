@@ -65,9 +65,12 @@ test('runtime context menus follow resolved dark and light theme tokens', () => 
     assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1d1d1f/);
     assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#1a1a1b/);
     assert.match(themeTokensCss, /--fvplus-graphite-field-bg:/);
-    assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-graphite-accent\)/);
-    assert.match(themeTokensCss, /--fvplus-editor-bg:\s*var\(--fvplus-graphite-page\)/);
-    assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-graphite-field-bg\)/);
+    assert.match(themeTokensCss, /--fvplus-ui-page:\s*var\(--fvplus-graphite-page\)/);
+    assert.match(themeTokensCss, /--fvplus-ui-card:\s*var\(--fvplus-graphite-card-bg\)/);
+    assert.match(themeTokensCss, /--fvplus-ui-field:\s*var\(--fvplus-graphite-field-bg\)/);
+    assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-ui-accent\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-bg:\s*var\(--fvplus-ui-page\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-ui-field\)/);
     assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*18,\s*19,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
@@ -178,8 +181,8 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
 });
 
 test('settings semantic chips and light-mode overrides use exported settings tokens', () => {
-    assert.match(settingsCss, /--fvplus-settings-safe-surface-card:\s*var\(--fvplus-theme-surface-card,\s*var\(--fvplus-graphite-card-bg/);
-    assert.match(settingsCss, /--fvplus-settings-safe-surface-field:\s*var\(--fvplus-graphite-field-bg/);
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-card:\s*var\(--fvplus-ui-card,\s*var\(--fvplus-theme-surface-card,\s*var\(--fvplus-graphite-card-bg/);
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-field:\s*var\(--fvplus-ui-field,\s*var\(--fvplus-graphite-field-bg/);
     assert.match(settingsCss, /\.fv-advanced-nav\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
     assert.match(settingsCss, /\.fv-activity-feed-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
     assert.match(settingsCss, /\.settings-mini-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
@@ -208,10 +211,10 @@ test('folder editor surfaces use graphite cards and fields instead of warm ornam
 });
 
 test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {
-    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-graphite-page,\s*#0f0f10\)/);
+    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-ui-page,\s*var\(--fvplus-graphite-page,\s*#0f0f10\)\)/);
     assert.match(settingsCss, /--fv-wizard-shell-sidebar-bg:\s*var\(--fv-wizard-surface-panel\)/);
     assert.match(settingsCss, /--fv-wizard-shell-head-bg:\s*var\(--fv-wizard-surface-panel\)/);
-    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-graphite-card,\s*#1d1d1f\)/);
+    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-ui-card,\s*var\(--fvplus-graphite-card,\s*#1d1d1f\)\)/);
     assert.match(themeResolverJs, /surfaceCard:\s*parseThemeColorToRgba\('#1d1d1f'\)/);
     assert.match(themeResolverJs, /'--fvplus-theme-surface-card':\s*tokens\.surfaceCard \|\| ''/);
     assert.match(themeResolverJs, /'--fvplus-settings-surface-card':\s*tokens\.settingsSurfaceCard \|\| ''/);

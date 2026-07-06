@@ -31,7 +31,7 @@ Quick links: [Install](#install) | [Features](#features) | [Screenshots](#screen
 
 | Setup Assistant | Advanced tools |
 |---|---|
-| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.webp" alt="Advanced settings workspace" /> |
+| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.png" alt="Advanced settings workspace" /> |
 
 Additional screenshot slots to add as the README grows:
 

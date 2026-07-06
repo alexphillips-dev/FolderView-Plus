@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.06">
-<!ENTITY md5 "60082598dbfc8547f72ca9ba79ef1b7a">
+<!ENTITY version "2026.07.06.07">
+<!ENTITY md5 "c79183fb4e42a961a883bd583368f9c3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.07
+- Docs: Refresh README screenshots and wire the new advanced workspace image into the GitHub landing page.
 
 ###2026.07.06.06
 - Docs: Overhaul the GitHub README into a cleaner product-style landing page with polished quick links, two-column screenshots, feature summaries, and streamlined install/support sections.

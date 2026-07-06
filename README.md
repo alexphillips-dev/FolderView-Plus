@@ -7,254 +7,146 @@
 <p align="center">
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml"><img src="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Latest Release"></a>
-  <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Release Date"></a>
   <a href="https://unraid.net/"><img src="https://img.shields.io/badge/Unraid-7.0.0%2B-F15A2C?logo=unraid&logoColor=white&style=flat-square" alt="Unraid 7.0.0+"></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/github/license/alexphillips-dev/FolderView-Plus?style=flat-square" alt="License: MIT"></a>
-  <a href="https://github.com/alexphillips-dev/FolderView-Plus/issues"><img src="https://img.shields.io/github/issues/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Open Issues"></a>
-  <a href="https://github.com/alexphillips-dev/FolderView-Plus/commits/main"><img src="https://img.shields.io/github/last-commit/alexphillips-dev/FolderView-Plus/main?style=flat-square" alt="Last Commit"></a>
+  <a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/"><img src="https://img.shields.io/badge/Support-Unraid%20Forum-F15A2C?style=flat-square" alt="Unraid forum support"></a>
   <a href="https://buymeacoffee.com/alexphillipsdev"><img src="https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000&style=flat-square" alt="Sponsor"></a>
 </p>
 
-FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers, VMs, and Dashboard views.
-It is built for real libraries: easier organization, smarter setup, safer recovery, and clearer runtime diagnostics.
+FolderView Plus is a folder-first organization and management plugin for Unraid. It turns large Docker, VM, and Dashboard pages into clean grouped workspaces with nested folders, live previews, folder-level actions, smart setup tools, automation rules, backups, diagnostics, and recovery options. It is built for servers that keep growing, so your Unraid UI stays readable without constantly rebuilding folder layouts by hand.
 
-Quick links: [Install](#install) | [What It Does](#what-it-does) | [Settings Overview](#settings-overview) | [Getting Started](#getting-started) | [Backups and Recovery](#backups-and-recovery) | [Troubleshooting](#troubleshooting) | [Theme Guide](docs/THEME_GUIDE.md) | [Support Policy](docs/SUPPORT_POLICY.md) | [Docs Index](docs/README.md)
+- Organize Docker containers, VMs, and Dashboard views into folders.
+- Use nested folders, live previews, custom icons, and folder-level actions.
+- Build starter layouts with the beginner-friendly Setup Assistant.
+- Automate organization with rules, bulk assignment, templates, and Docker start order tools.
+- Protect changes with backups, snapshot compare, restore, delete, and undo workflows.
+
+Quick links: [Install](#install) | [Features](#features) | [Screenshots](#screenshots) | [Getting Started](#getting-started) | [Documentation](#documentation) | [Support](#support)
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/images/screenshots/docker-basic.png" alt="Docker basic settings view" width="48%" />
-  <img src="docs/images/screenshots/vm-basic.png" alt="VM basic settings view" width="48%" />
-</p>
-<p align="center">
-  <img src="docs/images/screenshots/wizard.png" alt="Setup wizard view" width="48%" />
-  <img src="docs/images/screenshots/advanced.webp" alt="Advanced settings view" width="48%" />
-</p>
+| Docker folders | VM folders |
+|---|---|
+| <img src="docs/images/screenshots/docker-basic.png" alt="Docker folder settings view" /> | <img src="docs/images/screenshots/vm-basic.png" alt="VM folder settings view" /> |
 
-## Why Install This
+| Setup Assistant | Advanced tools |
+|---|---|
+| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.webp" alt="Advanced settings workspace" /> |
 
-- Keep large Docker and VM libraries readable with folders, nested trees, and Dashboard grouping
-- Use the Setup Assistant to build a starter layout quickly instead of hand-making everything
-- Move from folder creation to automation, recovery, and diagnostics without leaving the plugin
-- Recover safely with manual backups, scheduled backups, snapshot compare, restore, and undo
-- Get real runtime and editor diagnostics when something fails instead of silent breakage
+Additional screenshot slots to add as the README grows:
 
-## Requirements
+| Folder editor | Docker start order |
+|---|---|
+| `docs/images/screenshots/folder-editor-general.png` | `docs/images/screenshots/advanced-start-order.png` |
 
-- Unraid `7.0.0+`
-- A current major Chrome, Edge, Firefox, or Safari browser
+| Recovery workspace | Activity Center |
+|---|---|
+| `docs/images/screenshots/advanced-recovery.png` | `docs/images/screenshots/activity-center.png` |
+
+## Why FolderView Plus
+
+Unraid's Docker and VM pages can become difficult to scan as your server grows. FolderView Plus adds a structured layer on top of those pages so related apps stay together, important groups can be pinned or expanded, and common folder actions are available where you are already working. The plugin also includes setup, automation, recovery, and diagnostics tools so the folder system is easier to create, safer to change, and simpler to support.
+
+## Features
+
+| Folder organization | Modern folder editor |
+|---|---|
+| Group Docker containers, VMs, and Dashboard items into readable folders. Use nested folders, manual ordering, pinned folders, child folder previews, custom icons, and folder actions directly from runtime pages. | Edit folders through a tabbed editor with live preview, icon management, member ordering, preview controls, status colors, rules, actions, hover animations, and advanced behavior controls. |
+| Screenshot: `docs/images/screenshots/docker-folders.png` | Screenshot: `docs/images/screenshots/folder-editor-general.png` |
+
+| Setup Assistant | Automation and rules |
+|---|---|
+| Start from a guided flow that explains what FolderView Plus does, detects your environment, suggests defaults, previews the setup plan, and waits for review before applying changes. | Create ordered assignment rules for Docker and VMs, use regex and Docker metadata matching, run bulk assignment workflows, save folder templates, and review changes before applying them. |
+| Screenshot: `docs/images/screenshots/wizard.png` | Screenshot: `docs/images/screenshots/advanced-rules.png` |
+
+| Docker start order | Backup and recovery |
+|---|---|
+| Control Docker autostart order from FolderView Plus. Follow your Docker page folder order or define custom startup batches with exact folder/container groups, delays, preview, and sync tools. | Create manual backups, enable scheduled backups, compare snapshots, restore the latest backup, restore a selected snapshot, delete old backups, and undo recent destructive actions. |
+| Screenshot: `docs/images/screenshots/advanced-start-order.png` | Screenshot: `docs/images/screenshots/advanced-recovery.png` |
+
+| Diagnostics and activity | Theme and UI integration |
+|---|---|
+| Use the Activity Center, Settings diagnostics, runtime banners, folder editor bootstrap diagnostics, and sanitized support bundles to understand what happened and share useful reports. | Uses shared dark/light theme tokens, modernized Settings and editor surfaces, runtime-safe menu styling, and compatibility guards for Unraid themes and legacy installs. |
+| Screenshot: `docs/images/screenshots/activity-center.png` | Screenshot: `docs/images/screenshots/theme-dark-mode.png` |
 
 ## Install
 
-Unraid UI (`Plugins -> Install Plugin`) or CLI:
+Install from Unraid:
+
+1. Open `Plugins`.
+2. Choose `Install Plugin`.
+3. Paste the stable plugin URL:
 
 ```bash
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
 ```
 
-Dev (testing) install URL:
+Dev testing branch:
 
 ```bash
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg
 ```
 
-## Update
+Requirements:
 
-> [!WARNING]
-> If update detection is cached, use a one-time commit URL install, then return to normal `main` or `dev` updates.
-
-- Preferred: `Plugins -> Check for Updates`
-- Manual: rerun the same `plugin install` command
-
-If update caching delays detection, install once from a commit URL:
-
-```text
-https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/<commit>/folderview.plus.plg
-```
-
-Then return to normal branch tracking.
-
-Version format:
-
-- Stable: `YYYY.MM.DD.UU`
-- `UU` is zero-padded for reliable Unraid ordering
-
-## Uninstall
-
-> [!CAUTION]
-> Removing the plugin deletes its plugin-managed config directory.
-
-```bash
-plugin remove folderview.plus
-```
-
-## What It Does
-
-### Day-to-day organization
-
-- Folder views for Docker, VMs, and Dashboard
-- Nested folders with parent/child tree support
-- Manual ordering, pinned folders, and current table controls
-- Folder runtime actions such as `Start`, `Stop`, `Pause`, and `Resume`
-- Modern folder editor with live preview and shared runtime diagnostics
-
-### Smarter setup and automation
-
-- Setup Assistant with smart-detect starter planning
-- Auto-assignment rules:
-  - Docker: regex, label, image, and compose project matching
-  - VMs: regex-based assignment
-- Source-switched Rules workspace for Docker and VMs
-- 3-step Bulk Assignment workspace for Docker and VMs
-- Reusable folder templates in the Operations workspace
-
-### Safer change management
-
-- Pretty-printed schema exports with metadata
-- Import preview with `Merge`, `Replace`, and `Skip existing`
-- Manual backups, scheduled backups, snapshot compare, restore latest, and one-click undo
-- Safety backup creation before restore
-
-### Diagnostics and compatibility
-
-- Top-of-page runtime diagnostics on Docker and VMs when folder rendering degrades or fails
-- Folder editor bootstrap diagnostics with copyable output
-- Settings Diagnostics with health check, suggested fixes, copyable issue report, and a v2 support bundle export preview
-- Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default, then include a redaction manifest with per-bundle hash metadata
-- Safe-mode conflict handling when legacy Folder View plugins are still installed
-- Legacy import and legacy CSS/JS override compatibility
-
-## Settings Overview
-
-FolderView Plus is split into two working modes:
-
-- `Basic`
-  - Day-to-day folder management for Docker and VMs
-  - Table controls, filters, row actions, import/export, and common edits
-- `Advanced`
-  - `Automation`: Bulk Assignment
-  - `Rules`: rule builder, ordering, testing, and conflict inspection
-  - `Recovery`: backups, restore, compare, history, and undo
-  - `Operations`: runtime folder actions and template library
-  - `Diagnostics`: health check, recommended fixes, and support exports
-
-Current behavior:
-
-- Settings changes save automatically
-- The page remembers whether you last used `Basic` or `Advanced`
-- Rules, Recovery, and Operations remember whether you were working in Docker or VMs
+- Unraid `7.0.0+`
+- A current major Chrome, Edge, Firefox, or Safari browser
 
 ## Getting Started
 
 1. Open `Settings -> FolderView Plus`.
-2. Stay in `Basic` for normal folder setup.
-3. Create Docker and/or VM folders, or run the Setup Assistant if you want a starter layout.
-4. Confirm the folder groups on the Docker, VM, and Dashboard pages.
-5. Switch to `Advanced` only when you need automation, recovery, operations, or diagnostics.
+2. Run the Setup Assistant or stay in Basic mode and create folders manually.
+3. Open the Docker, VM, or Dashboard pages to verify the folder layout.
+4. Use the modern folder editor to tune icons, members, preview behavior, status display, and actions.
+5. Move into Advanced only when you want automation, Docker start order, recovery, operations, appearance, or diagnostics.
 
-Common advanced workflows:
+Recommended first setup:
 
-- Rules: use `Advanced -> Rules` to create ordered include/exclude assignments, then test priority, preview assignments, and scan conflicts before relying on them.
-- Bulk Assignment: use `Advanced -> Automation` to select a target folder, filter members, review the live plan, and apply the move.
-- Templates: use `Advanced -> Operations` to save a folder as a reusable template and reapply it later.
+- Create a few top-level folders for your biggest app groups.
+- Add or move members into those folders.
+- Enable child folder previews if you use nested folders.
+- Create a backup before large reorganizations.
+- Use rules or bulk assignment once the manual layout feels right.
 
-## Backups and Recovery
+## Advanced Tools
 
-Recovery now lives in one source-switched workspace for Docker and VMs.
+| Tool | What it is for |
+|---|---|
+| Automation | Bulk assignment workflows for moving many Docker containers or VMs at once. |
+| Rules | Ordered assignment rules with testing, matching, and conflict review. |
+| Recovery | Backups, scheduled backups, snapshot history, compare, restore, delete, and undo. |
+| Operations | Runtime actions, reusable templates, imports, and exports. |
+| Start Order | Docker autostart order from folder order or custom startup batches. |
+| Appearance | Theme and display controls for the plugin experience. |
+| Diagnostics | Health checks, support reports, runtime diagnostics, and troubleshooting helpers. |
 
-From `Settings -> FolderView Plus -> Advanced -> Recovery` you can:
+## Documentation
 
-- create a manual backup
-- restore the latest backup
-- compare two snapshots before applying a restore
-- run the scheduler immediately
-- set scheduled backup interval and retention
-- choose one snapshot from backup history and:
-  - restore it
-  - download it
-  - delete it
-- review recent changes and undo the latest change
-
-Recommended flow before large changes:
-
-1. Export current config first.
-2. Create a manual backup.
-3. Apply the change.
-4. Use restore or undo if the result is not what you wanted.
-
-## Import, Export, and Templates
-
-Export files:
-
-- Docker: `FolderView Plus Export.json`
-- VM: `FolderView Plus Export VM.json`
-- Single folder: `<FolderName>.json`
-
-Export format:
-
-- Pretty-printed JSON
-- Includes `schemaVersion`, `pluginVersion`, and `exportedAt`
-
-Import flow:
-
-1. Export current config first.
-2. Import the file.
-3. Review the preview diff.
-4. Choose `Merge`, `Replace`, or `Skip existing`.
-5. Apply only when the plan looks right.
-
-Template workflow:
-
-- Save a folder as a reusable template in `Advanced -> Operations`
-- Reapply the template to another folder later from the same workspace
-
-## Troubleshooting
-
-- Settings page appears blank on a fresh install:
-  - Refresh once with `Ctrl+F5`.
-  - Reopen `Settings -> FolderView Plus`.
-  - If it is still blank, open browser console and share the console error or a screenshot of the failure.
-
-- Docker or VMs page shows a runtime banner:
-  - Use the banner `Copy diagnostics` action.
-  - Share that output if you need help.
-
-- Updates do not appear immediately:
-  - Run `Plugins -> Check for Updates`.
-  - If still cached, install once from a commit URL, then return to normal `main` or `dev` tracking.
-
-Full troubleshooting, support bundle guidance, and path references live in [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
-
-## Security and Reliability
-
-- Request token and guarded endpoint protections
-- Safer dynamic rendering to reduce XSS risk
-- Runtime diagnostics instead of silent failure paths
-- Automated regression checks, release guards, and raw-publish validation
-
-## Customization
-
-- Full theme guide: [docs/THEME_GUIDE.md](docs/THEME_GUIDE.md)
-- Versioned theme API contract: [docs/THEME_API_CONTRACT.md](docs/THEME_API_CONTRACT.md)
-- Visual/runtime contract: [docs/visual-runtime-contract.md](docs/visual-runtime-contract.md)
-- Legacy CSS/JS migration and stable selector policy: [docs/SUPPORT_POLICY.md](docs/SUPPORT_POLICY.md)
-- Troubleshooting paths and override directories: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-
-## Included Icon Pack Credits
-
-- https://github.com/sameerasw/folder-icons
-- https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors
+- [Docs Index](docs/README.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Theme Guide](docs/THEME_GUIDE.md)
+- [Theme API Contract](docs/THEME_API_CONTRACT.md)
+- [Support Policy](docs/SUPPORT_POLICY.md)
+- [Visual Runtime Contract](docs/visual-runtime-contract.md)
 
 ## Support
 
 - Forum support thread: https://forums.unraid.net/topic/197631-plugin-folderview-plus/
-- Issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
+- GitHub issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
+
+When reporting a problem, include:
+
+- Unraid version
+- FolderView Plus version
+- Browser and browser version
+- Screenshot or screen recording if the issue is visual
+- Diagnostics/support bundle output if the plugin shows a diagnostic panel
 
 ## Sponsor
 
-> [!TIP]
-> If the plugin helps you, support ongoing development here:
-> https://buymeacoffee.com/alexphillipsdev
+If FolderView Plus helps your Unraid setup, you can support ongoing development here:
+
+https://buymeacoffee.com/alexphillipsdev
 
 ## Credits
 
@@ -262,4 +154,4 @@ Full troubleshooting, support bundle guidance, and path references live in [docs
 
 ## License
 
-See `LICENSE.md`.
+See [LICENSE.md](LICENSE.md).

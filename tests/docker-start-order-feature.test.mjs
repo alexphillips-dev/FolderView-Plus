@@ -13,6 +13,7 @@ const prefsEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/folderv
 const startOrderEndpoint = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/docker_start_order.php');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 
@@ -57,6 +58,23 @@ test('settings page exposes a user-friendly Docker start-order workspace', () =>
     assert.match(settingsJs, /Remaining autostart containers/);
     assert.match(settingsJs, /Preview autostart order/);
     assert.match(settingsJs, /syncDockerStartOrderNow/);
+});
+
+test('Docker start-order workspace uses shared Settings dark-mode tokens', () => {
+    const startOrderCss = settingsCss.slice(
+        settingsCss.indexOf('.fv-docker-start-order-shell'),
+        settingsCss.indexOf('@media (max-width: 1100px)', settingsCss.indexOf('.fv-docker-start-order-shell'))
+    );
+    const startOrderButtonCss = settingsCss.slice(
+        settingsCss.indexOf('/* Start Order keeps its actions readable'),
+        settingsCss.indexOf('#fv-settings-root :is(', settingsCss.indexOf('/* Start Order keeps its actions readable'))
+    );
+    assert.match(startOrderCss, /\.fv-docker-start-order-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\) !important;/);
+    assert.match(startOrderCss, /\.fv-docker-start-order-workspace\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
+    assert.match(startOrderCss, /\.fv-docker-start-order-help,[\s\S]*\.fv-docker-start-order-batch\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(startOrderButtonCss, /background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);
+    assert.doesNotMatch(startOrderCss, /background:\s*#(?:181b20|1a1d22|1c2026|202329|20242a|101216)/);
+    assert.doesNotMatch(startOrderButtonCss, /linear-gradient\(180deg,\s*#31353d/);
 });
 
 test('Docker page sync hook is guarded and triggers autostart sync after relevant saves', () => {

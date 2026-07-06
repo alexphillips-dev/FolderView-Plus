@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.04">
-<!ENTITY md5 "8f8d75f4db10837ad7d3c22924648ecd">
+<!ENTITY version "2026.07.06.05">
+<!ENTITY md5 "73e0af261cfdaf296d35c33f836bbc5c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.05
+- UI: Align the Docker Start Order advanced tab with the shared dark-mode Settings tokens so it matches the rest of the Advanced tabs.
 
 ###2026.07.06.04
 - UI: Consolidate Settings, setup wizard, and folder editor dark-mode surfaces behind shared style tokens so future palette updates apply consistently across the plugin.

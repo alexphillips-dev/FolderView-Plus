@@ -1863,6 +1863,23 @@
         ];
     }
 
+    function fvplusThemeWorkspaceNormalizeColorValue($value): string {
+        $safeValue = truncateUtf8String(trim((string)$value), 128);
+        if ($safeValue === '') {
+            return '';
+        }
+        if (preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $safeValue)) {
+            return $safeValue;
+        }
+        if (preg_match('/^rgba?\(\s*(?:\d{1,3}\s*,\s*){2}\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $safeValue)) {
+            return $safeValue;
+        }
+        if (preg_match('/^hsla?\(\s*\d{1,3}(?:deg)?\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $safeValue)) {
+            return $safeValue;
+        }
+        return '';
+    }
+
     function fvplusThemeWorkspaceNormalizeVariableMap($value): array {
         $incoming = is_array($value) ? $value : [];
         $normalized = [];
@@ -1871,7 +1888,7 @@
             if ($token === '' || !preg_match('/^--[A-Za-z0-9._-]+$/', $token)) {
                 continue;
             }
-            $safeValue = truncateUtf8String(trim((string)$rawValue), 128);
+            $safeValue = fvplusThemeWorkspaceNormalizeColorValue($rawValue);
             if ($safeValue === '') {
                 continue;
             }
@@ -2525,13 +2542,11 @@
         ];
     }
 
-    function importThemeWorkspaceGithub(string $sourceInput): array {
-        $workspace = readThemeWorkspace();
-        $imported = fvplusImportGithubThemeFiles($sourceInput);
+    function fvplusThemeWorkspaceBuildThemeRecordFromImport(array $imported): array {
         $source = is_array($imported['source'] ?? null) ? $imported['source'] : [];
         $identity = strtolower(trim((string)($source['owner'] ?? ''))) . '|' . strtolower(trim((string)($source['repo'] ?? ''))) . '|' . trim((string)($source['branch'] ?? '')) . '|' . trim((string)($source['path'] ?? ''));
         $themeId = substr(hash('sha256', $identity), 0, 16);
-        $themeRecord = fvplusThemeWorkspaceNormalizeThemeRecord([
+        return fvplusThemeWorkspaceNormalizeThemeRecord([
             'id' => $themeId,
             'name' => (string)($imported['name'] ?? $themeId),
             'importedAt' => gmdate('c'),
@@ -2541,6 +2556,33 @@
             'source' => $source,
             'files' => $imported['files'] ?? []
         ]);
+    }
+
+    function scanThemeWorkspaceGithub(string $sourceInput): array {
+        $workspace = readThemeWorkspace();
+        $imported = fvplusImportGithubThemeFiles($sourceInput);
+        $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+        $themeId = trim((string)($themeRecord['id'] ?? ''));
+        $exists = false;
+        foreach ((array)($workspace['themes'] ?? []) as $existingTheme) {
+            if (trim((string)($existingTheme['id'] ?? '')) === $themeId) {
+                $exists = true;
+                break;
+            }
+        }
+        return [
+            'theme' => $themeRecord,
+            'exists' => $exists,
+            'fileCount' => count((array)($themeRecord['files'] ?? [])),
+            'warnings' => (array)($themeRecord['warnings'] ?? [])
+        ];
+    }
+
+    function importThemeWorkspaceGithub(string $sourceInput): array {
+        $workspace = readThemeWorkspace();
+        $imported = fvplusImportGithubThemeFiles($sourceInput);
+        $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+        $themeId = trim((string)($themeRecord['id'] ?? ''));
         $themes = [];
         $replaced = false;
         foreach ((array)($workspace['themes'] ?? []) as $existingTheme) {
@@ -2645,6 +2687,42 @@
             'updateCount' => $updateCount,
             'checkedAt' => $checkedAt
         ];
+    }
+
+    function updateThemeWorkspaceTheme(string $themeId): array {
+        $workspace = readThemeWorkspace();
+        $safeThemeId = truncateUtf8String(trim($themeId), 64);
+        if ($safeThemeId === '') {
+            throw new RuntimeException('Theme is required.');
+        }
+        $themes = [];
+        $updated = false;
+        foreach ((array)($workspace['themes'] ?? []) as $theme) {
+            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
+            if (trim((string)($normalizedTheme['id'] ?? '')) !== $safeThemeId) {
+                $themes[] = $normalizedTheme;
+                continue;
+            }
+            $source = is_array($normalizedTheme['source'] ?? null) ? $normalizedTheme['source'] : [];
+            $sourceInput = trim((string)($source['input'] ?? ''));
+            if ($sourceInput === '') {
+                throw new RuntimeException('Theme does not have a saved GitHub source to update from.');
+            }
+            $imported = fvplusImportGithubThemeFiles($sourceInput);
+            $replacement = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+            $replacement['id'] = $safeThemeId;
+            $replacement['importedAt'] = (string)($normalizedTheme['importedAt'] ?? gmdate('c'));
+            $replacement['lastCheckedAt'] = gmdate('c');
+            $replacement['updateAvailable'] = false;
+            $themes[] = fvplusThemeWorkspaceNormalizeThemeRecord($replacement);
+            $updated = true;
+        }
+        if (!$updated) {
+            throw new RuntimeException('Theme not found.');
+        }
+        $workspace['themes'] = $themes;
+        $workspace['lastCheckedAt'] = gmdate('c');
+        return writeThemeWorkspace($workspace);
     }
 
     function normalizeFolderMapPayload($value): array {

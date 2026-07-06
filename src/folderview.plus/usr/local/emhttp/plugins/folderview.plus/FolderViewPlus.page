@@ -216,35 +216,93 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div id="fv-theme-workspace-panel" class="fv-theme-workspace-panel">
     <div class="rules-panel fv-theme-workspace-shell">
         <div class="rules-header">
-            <span class="rules-help">Import GitHub CSS themes, activate one managed theme at a time, and layer FolderView Plus token overrides and custom CSS on top.</span>
+            <span class="rules-help">Manage imported GitHub themes, color token overrides, and optional custom CSS for FolderView Plus runtime pages.</span>
         </div>
         <div class="fv-theme-workspace-body">
-            <div class="fv-theme-import-row">
-                <input id="fv-theme-github-source" type="text" placeholder="owner/repo, owner/repo/tree/branch, or GitHub raw CSS URL">
-                <button type="button" onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
-                <button type="button" onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
-            </div>
+            <div id="fv-theme-workspace-summary" class="fv-theme-workspace-summary" aria-live="polite"></div>
             <div id="fv-theme-workspace-status" class="fv-theme-workspace-status">Theme workspace idle.</div>
-            <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
-                <div class="fv-theme-empty-state">
-                    <strong>No managed themes imported yet.</strong>
-                    <span>Import a GitHub CSS theme and it will be written into the existing custom asset pipeline.</span>
-                </div>
+            <div class="fv-theme-workspace-grid">
+                <section class="fv-theme-module fv-theme-import-module">
+                    <div class="fv-theme-module-head">
+                        <div>
+                            <span class="settings-mini-title">Import theme</span>
+                            <p>Scan a GitHub repository, branch path, or raw CSS file before adding it to your managed themes.</p>
+                        </div>
+                    </div>
+                    <div class="fv-theme-import-row">
+                        <input id="fv-theme-github-source" type="text" placeholder="owner/repo, owner/repo/tree/branch, or GitHub raw CSS URL">
+                        <button type="button" onclick="scanThemeWorkspaceGithub()"><i class="fa fa-search"></i> Scan theme</button>
+                        <button type="button" onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
+                    </div>
+                    <div id="fv-theme-scan-result" class="fv-theme-scan-result" hidden></div>
+                </section>
+                <section class="fv-theme-module fv-theme-managed-module">
+                    <div class="fv-theme-module-head">
+                        <div>
+                            <span class="settings-mini-title">Managed themes</span>
+                            <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
+                        </div>
+                        <button type="button" onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
+                    </div>
+                    <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
+                        <div class="fv-theme-empty-state">
+                            <strong>No managed themes imported yet.</strong>
+                            <span>Scan a GitHub CSS theme first, then import it after reviewing the detected files.</span>
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="fv-theme-customize-grid">
-                <div class="fv-theme-customize-card">
-                    <div class="settings-mini-title">Token overrides</div>
-                    <div id="fv-theme-variable-grid" class="fv-theme-variable-grid"></div>
+            <section class="fv-theme-module fv-theme-customize-module">
+                <div class="fv-theme-module-head">
+                    <div>
+                        <span class="settings-mini-title">Customization layer</span>
+                        <p>Token overrides are safer for common colors. Custom CSS is appended after the active managed theme when saved.</p>
+                    </div>
                 </div>
-                <div class="fv-theme-customize-card">
-                    <div class="settings-mini-title">Custom CSS</div>
-                    <textarea id="fv-theme-custom-css" class="fv-theme-custom-css" spellcheck="false" placeholder="/* Appended after the active managed theme for Docker, VMs, and Dashboard. */"></textarea>
+                <div class="fv-theme-customize-grid">
+                    <div class="fv-theme-customize-card">
+                        <div class="fv-theme-card-head">
+                            <span class="settings-mini-title">Color tokens</span>
+                            <button type="button" onclick="resetThemeWorkspaceTokens()"><i class="fa fa-undo"></i> Reset all</button>
+                        </div>
+                        <div id="fv-theme-variable-grid" class="fv-theme-variable-grid"></div>
+                    </div>
+                    <div class="fv-theme-customize-card">
+                        <div class="fv-theme-card-head">
+                            <span class="settings-mini-title">Preview sample</span>
+                            <span class="rules-help">Token changes preview here before saving.</span>
+                        </div>
+                        <div id="fv-theme-preview-sample" class="fv-theme-preview-sample">
+                            <div class="fv-theme-preview-card">
+                                <span>Folder preview</span>
+                                <strong>Media Stack</strong>
+                                <div class="fv-theme-preview-row">
+                                    <span class="fv-theme-preview-status is-started">Started</span>
+                                    <span class="fv-theme-preview-status is-paused">Paused</span>
+                                    <span class="fv-theme-preview-status is-stopped">Stopped</span>
+                                </div>
+                            </div>
+                            <div class="fv-theme-preview-bars">
+                                <span style="height:45%"></span>
+                                <span style="height:65%"></span>
+                                <span style="height:38%"></span>
+                                <span style="height:78%"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fv-theme-customize-card fv-theme-custom-css-card">
+                        <div class="fv-theme-card-head">
+                            <span class="settings-mini-title">Custom CSS</span>
+                            <span class="rules-help">Advanced: saved CSS applies to Docker, VMs, and Dashboard generated assets.</span>
+                        </div>
+                        <textarea id="fv-theme-custom-css" class="fv-theme-custom-css" spellcheck="false" placeholder="/* Appended after the active managed theme for Docker, VMs, and Dashboard. */"></textarea>
+                    </div>
                 </div>
-            </div>
-            <div class="fv-theme-customize-actions">
-                <button type="button" onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
-                <button type="button" onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
-            </div>
+                <div class="fv-theme-customize-actions">
+                    <button type="button" onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
+                    <button type="button" onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
+                </div>
+            </section>
         </div>
     </div>
 </div>

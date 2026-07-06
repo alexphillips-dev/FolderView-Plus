@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.08">
-<!ENTITY md5 "091cd693f116ef41048c71303a2daa61">
+<!ENTITY version "2026.07.06.09">
+<!ENTITY md5 "5b7c5760a56a0a5799d1eef43209135e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.09
+- Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained token preview sample.
+- Fix: Restrict Theme Workspace token overrides to safe color values and stop raw custom CSS from being injected into the Settings page during live editing.
+- Test: Add regression coverage for Theme Workspace scan, update, reset, contained preview, and server action wiring.
 
 ###2026.07.06.08
 - Docs: Render the refreshed README screenshot set inline, restore required Settings, recovery, troubleshooting, and customization sections, and keep support policy links in the polished README.

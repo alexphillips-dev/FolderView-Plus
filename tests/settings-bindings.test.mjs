@@ -117,7 +117,11 @@ test('settings page exposes theme workspace and saved folder defaults controls',
     assert.match(script, /const saveFolderDefaultsFromSelection = async \(type\) => \{/);
     assert.match(script, /const applySavedFolderDefaultsToAll = async \(type\) => \{/);
     assert.match(script, /const importThemeWorkspaceGithub = async \(\) => \{/);
+    assert.match(script, /const scanThemeWorkspaceGithub = async \(\) => \{/);
+    assert.match(script, /const updateThemeWorkspaceTheme = async \(themeId\) => getThemeWorkspaceApi\(\)\.updateTheme\(themeId\);/);
+    assert.match(script, /const resetThemeWorkspaceTokens = async \(\) => getThemeWorkspaceApi\(\)\.resetTokens\(\);/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*importThemeWorkspaceGithub[\s\S]*saveFolderDefaultsFromSelection[\s\S]*\}\);/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*scanThemeWorkspaceGithub[\s\S]*updateThemeWorkspaceTheme[\s\S]*resetThemeWorkspaceTokens[\s\S]*\}\);/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {

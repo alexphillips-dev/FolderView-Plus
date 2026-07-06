@@ -3095,11 +3095,27 @@ const importThemeWorkspaceGithub = async () => {
     return true;
 };
 
+const scanThemeWorkspaceGithub = async () => {
+    const source = String($('#fv-theme-github-source').val() || '').trim();
+    if (!source) {
+        showToastMessage({
+            title: 'Enter a GitHub source',
+            message: 'Use owner/repo, owner/repo/tree/branch, or a direct GitHub CSS URL.',
+            level: 'info'
+        });
+        return false;
+    }
+    await getThemeWorkspaceApi().scanGithub(source);
+    return true;
+};
+
 const activateThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().activateTheme(themeId);
 const deactivateThemeWorkspaceTheme = async () => getThemeWorkspaceApi().deactivateTheme();
 const deleteThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().deleteTheme(themeId);
+const updateThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().updateTheme(themeId);
 const saveThemeWorkspaceCustomize = async () => getThemeWorkspaceApi().saveCustomize();
 const checkThemeWorkspaceUpdates = async () => getThemeWorkspaceApi().checkUpdates();
+const resetThemeWorkspaceTokens = async () => getThemeWorkspaceApi().resetTokens();
 
 const isFolderPinned = (type, folderId) => {
     const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
@@ -10357,11 +10373,14 @@ settingsActionSupportModule.registerWindowActions(window, {
     clearActivityFeed,
     refreshPerformanceDiagnostics: renderPerformanceDiagnostics,
     importThemeWorkspaceGithub,
+    scanThemeWorkspaceGithub,
     activateThemeWorkspaceTheme,
     deactivateThemeWorkspaceTheme,
     deleteThemeWorkspaceTheme,
+    updateThemeWorkspaceTheme,
     saveThemeWorkspaceCustomize,
     checkThemeWorkspaceUpdates,
+    resetThemeWorkspaceTokens,
     saveFolderDefaultsFromSelection,
     applySavedFolderDefaultsToAll,
     clearFolderDefaults,

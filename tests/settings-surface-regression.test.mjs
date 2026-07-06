@@ -8,6 +8,8 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
 const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
 const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
@@ -22,6 +24,7 @@ const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
+const themeWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
@@ -258,6 +261,19 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
 
 test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+    assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
+    assert.match(settingsPage, /id="fv-theme-scan-result"/);
+    assert.match(settingsPage, /onclick="scanThemeWorkspaceGithub\(\)"/);
+    assert.match(settingsPage, /id="fv-theme-preview-sample"/);
+    assert.match(themeWorkspaceJs, /scanGithub:\s*\(source\) => safeAction\('Theme scan'/);
+    assert.match(themeWorkspaceJs, /updateTheme:\s*\(themeId\) => safeAction\('Theme update'/);
+    assert.match(themeWorkspaceJs, /resetTokens/);
+    assert.doesNotMatch(themeWorkspaceJs, /fv-theme-workspace-preview-style/);
+    assert.match(themeWorkspacePhp, /scan_github/);
+    assert.match(themeWorkspacePhp, /update_theme/);
+    assert.match(libPhp, /function scanThemeWorkspaceGithub\(string \$sourceInput\): array/);
+    assert.match(libPhp, /function updateThemeWorkspaceTheme\(string \$themeId\): array/);
+    assert.match(libPhp, /function fvplusThemeWorkspaceNormalizeColorValue\(\$value\): string/);
     assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
     assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
     assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);

@@ -622,6 +622,7 @@ let pendingSecondarySurfaceFrameByType = {
     vm: null
 };
 let pendingActiveAdvancedSurfaceFrame = null;
+let settingsSectionRegistrySignature = '';
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -1473,8 +1474,21 @@ const refreshInputInvalidStyles = () => {
     }
 };
 
-const buildSettingsSections = () => {
+const getSettingsSectionRegistrySignature = () => Array.from(document.querySelectorAll('h2[data-fv-section]'))
+    .map((heading) => [
+        String(heading.dataset.fvSection || slugifySectionKey(heading.textContent)),
+        String(heading.dataset.fvAdvanced || ''),
+        String(heading.dataset.fvAdvancedGroup || '')
+    ].join(':'))
+    .join('|');
+
+const buildSettingsSections = (options = {}) => {
+    const force = options.force === true;
     const headings = Array.from(document.querySelectorAll('h2[data-fv-section]'));
+    const signature = getSettingsSectionRegistrySignature();
+    if (!force && settingsUiState.sections.length > 0 && signature === settingsSectionRegistrySignature) {
+        return false;
+    }
     const sections = [];
 
     for (const heading of headings) {
@@ -1560,6 +1574,8 @@ const buildSettingsSections = () => {
     }
 
     settingsUiState.sections = sections;
+    settingsSectionRegistrySignature = signature;
+    return true;
 };
 
 const getSectionApplyMode = (section) => {
@@ -2475,10 +2491,12 @@ const initSettingsControls = () => {
 
 const refreshSettingsUx = (options = {}) => {
     const renderSecondaryWorkspaces = options.renderSecondaryWorkspaces !== false;
+    const sectionsRebuilt = buildSettingsSections({ force: options.rebuildSections === true });
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
-    buildSettingsSections();
-    normalizeExpandedAdvancedSections();
+    if (sectionsRebuilt || options.normalizeSections === true) {
+        normalizeExpandedAdvancedSections();
+    }
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
         const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -2568,7 +2586,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         $('#fv-search-all-advanced').prop('checked', false);
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
-        buildSettingsSections();
+        buildSettingsSections({ force: true });
         normalizeExpandedAdvancedSections();
         applySettingsSectionVisibility();
         syncSectionJumpOptions();

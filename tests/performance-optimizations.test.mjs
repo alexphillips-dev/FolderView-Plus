@@ -410,9 +410,13 @@ test('settings table render defers secondary workspace surfaces', () => {
     assert.match(settingsJs, /let pendingSecondarySurfaceFrameByType = \{\s*docker: null,\s*vm: null\s*\};/);
     assert.match(settingsJs, /let pendingActiveAdvancedSurfaceFrame = null;/);
     assert.match(settingsJs, /let settingsSectionRegistrySignature = '';/);
+    assert.match(settingsJs, /let trackedSettingsInputsCache = null;/);
+    assert.match(settingsJs, /const invalidateTrackedSettingsInputs = \(\) => \{\s*trackedSettingsInputsCache = null;\s*\};/);
+    assert.match(settingsJs, /const getTrackedInputs = \(\) => \{[\s\S]*if \(Array\.isArray\(trackedSettingsInputsCache\)\) \{[\s\S]*return trackedSettingsInputsCache\.filter\(\(input\) => input instanceof HTMLElement && input\.isConnected\);/);
+    assert.match(settingsJs, /trackedSettingsInputsCache = dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /const getSettingsSectionRegistrySignature = \(\) => Array\.from\(document\.querySelectorAll\('h2\[data-fv-section\]'\)\)/);
     assert.match(settingsJs, /const buildSettingsSections = \(options = \{\}\) => \{[\s\S]*if \(!force && settingsUiState\.sections\.length > 0 && signature === settingsSectionRegistrySignature\) \{\s*return false;\s*\}/);
-    assert.match(settingsJs, /settingsSectionRegistrySignature = signature;\s*return true;/);
+    assert.match(settingsJs, /settingsSectionRegistrySignature = signature;\s*invalidateTrackedSettingsInputs\(\);\s*return true;/);
     assert.match(settingsJs, /const shouldRefreshSecondaryAdvancedGroup = \(group\) => \{/);
     assert.match(settingsJs, /if \(settingsUiState\.query && settingsUiState\.searchAllAdvanced === true\) \{\s*return true;\s*\}/);
     assert.match(settingsJs, /const renderSettingsSecondarySurfaces = \(type\) => \{/);

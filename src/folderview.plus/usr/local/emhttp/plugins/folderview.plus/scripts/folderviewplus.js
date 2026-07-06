@@ -623,6 +623,7 @@ let pendingSecondarySurfaceFrameByType = {
 };
 let pendingActiveAdvancedSurfaceFrame = null;
 let settingsSectionRegistrySignature = '';
+let trackedSettingsInputsCache = null;
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -1160,16 +1161,23 @@ const shouldTrackSettingsInput = (input, section = null) => {
     return true;
 };
 
+const invalidateTrackedSettingsInputs = () => {
+    trackedSettingsInputsCache = null;
+};
+
 const getTrackedInputs = () => {
-    if (dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function') {
-        return dirtyTracker.getTrackedInputs(document, {
+    if (Array.isArray(trackedSettingsInputsCache)) {
+        return trackedSettingsInputsCache.filter((input) => input instanceof HTMLElement && input.isConnected);
+    }
+    trackedSettingsInputsCache = dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function'
+        ? dirtyTracker.getTrackedInputs(document, {
             tokens: INSTANT_PERSIST_ONCHANGE_TOKENS,
             shouldTrackInput: shouldTrackSettingsInput
-        });
-    }
-    return Array
+        })
+        : Array
         .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
         .filter((input) => shouldTrackSettingsInput(input));
+    return trackedSettingsInputsCache;
 };
 
 const getChangedTrackedInputs = () => {
@@ -1575,6 +1583,7 @@ const buildSettingsSections = (options = {}) => {
 
     settingsUiState.sections = sections;
     settingsSectionRegistrySignature = signature;
+    invalidateTrackedSettingsInputs();
     return true;
 };
 

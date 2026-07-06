@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.02">
-<!ENTITY md5 "9153b65b847e95163cc9295f3989f5d5">
+<!ENTITY version "2026.07.06.03">
+<!ENTITY md5 "4f954aa0957075e0a1a69ce3548f0ac4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.03
+- Performance: Cache tracked Settings inputs so lightweight refreshes no longer rescan every input/control while updating dirty and validation state.
 
 ###2026.07.06.02
 - Performance: Cache the Settings section registry so lightweight refreshes no longer rescan and rebuild every section heading unless the Settings structure changes.

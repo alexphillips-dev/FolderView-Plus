@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.04.04">
-<!ENTITY md5 "4fdc2c158c644aa7080ea9104051068c">
+<!ENTITY version "2026.07.06.01">
+<!ENTITY md5 "e765012a8a0eba69023ec0b91cfd6e75">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.01
+- Performance: Make advanced Settings tab switches hydrate and refresh only the active workspace, and stop advanced data loads from refreshing hidden Diagnostics health cards.
 
 ###2026.07.04.04
 - Performance: Make deferred Settings workspace refreshes tab-aware so table redraws only update the active advanced workspace instead of rebuilding every hidden advanced tab.

@@ -621,6 +621,7 @@ let pendingSecondarySurfaceFrameByType = {
     docker: null,
     vm: null
 };
+let pendingActiveAdvancedSurfaceFrame = null;
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -2370,6 +2371,7 @@ const initSettingsControls = () => {
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshSectionHealthBadges();
+        scheduleActiveAdvancedSecondarySurfaces();
     });
     $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
         event.preventDefault();
@@ -7868,6 +7870,43 @@ const renderSettingsSecondarySurfaces = (type) => {
     enforceNoHorizontalOverflow();
 };
 
+const renderActiveAdvancedSecondarySurfaces = () => {
+    if (settingsUiState.mode !== 'advanced') {
+        refreshSettingsUx({ renderSecondaryWorkspaces: false });
+        return;
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('rules')) {
+        renderRulesTable('docker');
+        renderRulesTable('vm');
+        syncRulesWorkspaceUi();
+        updateRuleLiveMatch('docker');
+        updateRuleLiveMatch('vm');
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('automation')) {
+        renderBulkItemOptions('docker');
+        renderBulkItemOptions('vm');
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('recovery')) {
+        syncRecoveryWorkspaceUi();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('operations')) {
+        renderOperationsOverview('docker');
+        renderOperationsOverview('vm');
+        renderTemplateRows('docker');
+        renderTemplateRows('vm');
+        renderOperationsWorkspace();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('startup')) {
+        renderDockerStartOrderWorkspace({ preservePreview: true });
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
+        renderFolderHealthCards();
+    }
+    renderFirstRunQuickPathPanel();
+    refreshSettingsUx({ renderSecondaryWorkspaces: false });
+    enforceNoHorizontalOverflow();
+};
+
 const scheduleSettingsSecondarySurfaces = (type, { immediate = false } = {}) => {
     const resolvedType = normalizeSettingsTableRenderType(type);
     if (immediate) {
@@ -7884,6 +7923,24 @@ const scheduleSettingsSecondarySurfaces = (type, { immediate = false } = {}) => 
     pendingSecondarySurfaceFrameByType[resolvedType] = window.requestAnimationFrame(() => {
         pendingSecondarySurfaceFrameByType[resolvedType] = null;
         renderSettingsSecondarySurfaces(resolvedType);
+    });
+};
+
+const scheduleActiveAdvancedSecondarySurfaces = ({ immediate = false } = {}) => {
+    if (immediate) {
+        if (pendingActiveAdvancedSurfaceFrame !== null) {
+            window.cancelAnimationFrame(pendingActiveAdvancedSurfaceFrame);
+            pendingActiveAdvancedSurfaceFrame = null;
+        }
+        renderActiveAdvancedSecondarySurfaces();
+        return;
+    }
+    if (pendingActiveAdvancedSurfaceFrame !== null) {
+        return;
+    }
+    pendingActiveAdvancedSurfaceFrame = window.requestAnimationFrame(() => {
+        pendingActiveAdvancedSurfaceFrame = null;
+        renderActiveAdvancedSecondarySurfaces();
     });
 };
 
@@ -8180,7 +8237,7 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
         }
         advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
     }
-    renderFolderHealthCards();
+    scheduleActiveAdvancedSecondarySurfaces();
     return results.flatMap((result, index) => {
         const moduleKey = requestedModules[index];
         if (result.status === 'rejected') {

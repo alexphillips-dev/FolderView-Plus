@@ -402,8 +402,8 @@
     const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';
     const FVPLUS_VERBOSE_API_ERRORS = false;
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
-    const FVPLUS_INFO_CACHE_TTL_FULL = 2;
-    const FVPLUS_INFO_CACHE_TTL_STATE = 2;
+    const FVPLUS_INFO_CACHE_TTL_FULL = 8;
+    const FVPLUS_INFO_CACHE_TTL_STATE = 12;
     const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
     const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
 
@@ -1863,6 +1863,23 @@
         ];
     }
 
+    function fvplusThemeWorkspaceNormalizeColorValue($value): string {
+        $safeValue = truncateUtf8String(trim((string)$value), 128);
+        if ($safeValue === '') {
+            return '';
+        }
+        if (preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', $safeValue)) {
+            return $safeValue;
+        }
+        if (preg_match('/^rgba?\(\s*(?:\d{1,3}\s*,\s*){2}\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $safeValue)) {
+            return $safeValue;
+        }
+        if (preg_match('/^hsla?\(\s*\d{1,3}(?:deg)?\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $safeValue)) {
+            return $safeValue;
+        }
+        return '';
+    }
+
     function fvplusThemeWorkspaceNormalizeVariableMap($value): array {
         $incoming = is_array($value) ? $value : [];
         $normalized = [];
@@ -1871,7 +1888,7 @@
             if ($token === '' || !preg_match('/^--[A-Za-z0-9._-]+$/', $token)) {
                 continue;
             }
-            $safeValue = truncateUtf8String(trim((string)$rawValue), 128);
+            $safeValue = fvplusThemeWorkspaceNormalizeColorValue($rawValue);
             if ($safeValue === '') {
                 continue;
             }
@@ -2525,13 +2542,11 @@
         ];
     }
 
-    function importThemeWorkspaceGithub(string $sourceInput): array {
-        $workspace = readThemeWorkspace();
-        $imported = fvplusImportGithubThemeFiles($sourceInput);
+    function fvplusThemeWorkspaceBuildThemeRecordFromImport(array $imported): array {
         $source = is_array($imported['source'] ?? null) ? $imported['source'] : [];
         $identity = strtolower(trim((string)($source['owner'] ?? ''))) . '|' . strtolower(trim((string)($source['repo'] ?? ''))) . '|' . trim((string)($source['branch'] ?? '')) . '|' . trim((string)($source['path'] ?? ''));
         $themeId = substr(hash('sha256', $identity), 0, 16);
-        $themeRecord = fvplusThemeWorkspaceNormalizeThemeRecord([
+        return fvplusThemeWorkspaceNormalizeThemeRecord([
             'id' => $themeId,
             'name' => (string)($imported['name'] ?? $themeId),
             'importedAt' => gmdate('c'),
@@ -2541,6 +2556,33 @@
             'source' => $source,
             'files' => $imported['files'] ?? []
         ]);
+    }
+
+    function scanThemeWorkspaceGithub(string $sourceInput): array {
+        $workspace = readThemeWorkspace();
+        $imported = fvplusImportGithubThemeFiles($sourceInput);
+        $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+        $themeId = trim((string)($themeRecord['id'] ?? ''));
+        $exists = false;
+        foreach ((array)($workspace['themes'] ?? []) as $existingTheme) {
+            if (trim((string)($existingTheme['id'] ?? '')) === $themeId) {
+                $exists = true;
+                break;
+            }
+        }
+        return [
+            'theme' => $themeRecord,
+            'exists' => $exists,
+            'fileCount' => count((array)($themeRecord['files'] ?? [])),
+            'warnings' => (array)($themeRecord['warnings'] ?? [])
+        ];
+    }
+
+    function importThemeWorkspaceGithub(string $sourceInput): array {
+        $workspace = readThemeWorkspace();
+        $imported = fvplusImportGithubThemeFiles($sourceInput);
+        $themeRecord = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+        $themeId = trim((string)($themeRecord['id'] ?? ''));
         $themes = [];
         $replaced = false;
         foreach ((array)($workspace['themes'] ?? []) as $existingTheme) {
@@ -2645,6 +2687,42 @@
             'updateCount' => $updateCount,
             'checkedAt' => $checkedAt
         ];
+    }
+
+    function updateThemeWorkspaceTheme(string $themeId): array {
+        $workspace = readThemeWorkspace();
+        $safeThemeId = truncateUtf8String(trim($themeId), 64);
+        if ($safeThemeId === '') {
+            throw new RuntimeException('Theme is required.');
+        }
+        $themes = [];
+        $updated = false;
+        foreach ((array)($workspace['themes'] ?? []) as $theme) {
+            $normalizedTheme = fvplusThemeWorkspaceNormalizeThemeRecord($theme);
+            if (trim((string)($normalizedTheme['id'] ?? '')) !== $safeThemeId) {
+                $themes[] = $normalizedTheme;
+                continue;
+            }
+            $source = is_array($normalizedTheme['source'] ?? null) ? $normalizedTheme['source'] : [];
+            $sourceInput = trim((string)($source['input'] ?? ''));
+            if ($sourceInput === '') {
+                throw new RuntimeException('Theme does not have a saved GitHub source to update from.');
+            }
+            $imported = fvplusImportGithubThemeFiles($sourceInput);
+            $replacement = fvplusThemeWorkspaceBuildThemeRecordFromImport($imported);
+            $replacement['id'] = $safeThemeId;
+            $replacement['importedAt'] = (string)($normalizedTheme['importedAt'] ?? gmdate('c'));
+            $replacement['lastCheckedAt'] = gmdate('c');
+            $replacement['updateAvailable'] = false;
+            $themes[] = fvplusThemeWorkspaceNormalizeThemeRecord($replacement);
+            $updated = true;
+        }
+        if (!$updated) {
+            throw new RuntimeException('Theme not found.');
+        }
+        $workspace['themes'] = $themes;
+        $workspace['lastCheckedAt'] = gmdate('c');
+        return writeThemeWorkspace($workspace);
     }
 
     function normalizeFolderMapPayload($value): array {
@@ -4538,11 +4616,28 @@
         return file_exists(dockerSyncOrderPendingPath());
     }
 
-    function syncContainerOrderUnlocked(): void {
-        // Rewrites the autostart file to match FolderView Plus render order.
-        // Docker userprefs.cfg is owned by Unraid and is only read here.
+    function fvplus_append_unique_name(array &$list, array &$seen, string $name): void {
+        $name = trim($name);
+        if ($name === '' || isset($seen[$name])) {
+            return;
+        }
+        $list[] = $name;
+        $seen[$name] = true;
+    }
+
+    function fvplus_set_autostart_line_delay(string $line, int $delay): string {
+        $parts = preg_split('/\s+/', trim($line), 2);
+        $name = (string)($parts[0] ?? '');
+        if ($name === '') {
+            return trim($line);
+        }
+        return $delay > 0 ? $name . ' ' . $delay : $name;
+    }
+
+    function buildDockerStartOrderContext(): array {
         global $configDir;
 
+        // userprefs.cfg is not written here; Unraid owns drag-order persistence.
         $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
         $currentPrefs = file_exists($prefsFile) ? @parse_ini_file($prefsFile) : false;
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
@@ -4565,6 +4660,7 @@
         if (count($allContainerNames) <= 0) {
             $allContainerNames = array_keys($infoByName);
         }
+
         $ruleTargetByName = [];
         $labelTargetByName = [];
         foreach ($allContainerNames as $name) {
@@ -4577,6 +4673,7 @@
 
         $orderedFolders = reorderFolderMapByPrefs('docker', $folders);
         $folderContainers = [];
+        $folderNames = [];
         $assignedContainers = [];
         foreach ($orderedFolders as $folderId => $folder) {
             $members = normalizeFolderMembers($folder['containers'] ?? []);
@@ -4602,92 +4699,278 @@
                 }
             }
             $members = array_values(array_filter($members, function($m) use ($allContainerNames, $assignedContainers) {
-                return in_array($m, $allContainerNames) && !in_array($m, $assignedContainers);
+                return in_array($m, $allContainerNames, true) && !in_array($m, $assignedContainers, true);
             }));
-            $folderContainers["folder-$folderId"] = $members;
+            $placeholder = "folder-$folderId";
+            $folderContainers[$placeholder] = $members;
+            $folderNames[$placeholder] = $folderName !== '' ? $folderName : $placeholder;
             $assignedContainers = array_merge($assignedContainers, $members);
         }
 
-        $newOrder = [];
-        $seen = [];
+        $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
+        $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
+        $autoStartLines = file_exists($autoStartFile)
+            ? (@file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [])
+            : [];
+        $autoStartMap = [];
+        $staleAutostart = [];
+        foreach ($autoStartLines as $line) {
+            $parts = preg_split('/\s+/', trim((string)$line), 2);
+            $name = (string)($parts[0] ?? '');
+            if ($name === '') {
+                continue;
+            }
+            if (!in_array($name, $allContainerNames, true)) {
+                $staleAutostart[] = $name;
+                continue;
+            }
+            $autoStartMap[$name] = trim((string)$line);
+        }
+
+        return [
+            'prefs' => $prefs,
+            'currentPrefs' => $currentPrefs,
+            'currentOrder' => $currentOrder,
+            'folders' => $folders,
+            'orderedFolders' => $orderedFolders,
+            'folderContainers' => $folderContainers,
+            'folderNames' => $folderNames,
+            'assignedContainers' => array_values(array_unique($assignedContainers)),
+            'allContainerNames' => array_values($allContainerNames),
+            'autoStartFile' => $autoStartFile,
+            'autoStartMap' => $autoStartMap,
+            'staleAutostart' => $staleAutostart
+        ];
+    }
+
+    function buildDockerPageStartOrder(array $context): array {
+        $allContainerNames = (array)($context['allContainerNames'] ?? []);
+        $folderContainers = (array)($context['folderContainers'] ?? []);
         $folderPlaceholders = array_keys($folderContainers);
-        $orderedFolderPlaceholders = $folderPlaceholders;
+        $assignedContainers = (array)($context['assignedContainers'] ?? []);
+        $currentOrder = (array)($context['currentOrder'] ?? []);
+        $currentPrefs = $context['currentPrefs'] ?? false;
+
         if (!$currentPrefs) {
             $currentOrder = array_values($allContainerNames);
             natcasesort($currentOrder);
             $currentOrder = array_values($currentOrder);
-            fv3_debug_log("syncContainerOrder: synthesized container order because userprefs.cfg is unavailable");
-        } else {
-            fv3_debug_log("syncContainerOrder: using userprefs.cfg order with " . count($currentOrder) . " entries");
         }
 
+        $newOrder = [];
+        $seen = [];
         foreach ($currentOrder as $item) {
+            $item = trim((string)$item);
+            if ($item === '') {
+                continue;
+            }
             if (in_array($item, $folderPlaceholders, true)) {
+                foreach ((array)($folderContainers[$item] ?? []) as $ct) {
+                    fvplus_append_unique_name($newOrder, $seen, (string)$ct);
+                }
                 continue;
             }
             if (in_array($item, $assignedContainers, true)) {
                 continue;
             }
-            if (in_array($item, $allContainerNames, true) && !in_array($item, $seen, true)) {
-                $newOrder[] = $item;
-                $seen[] = $item;
+            if (in_array($item, $allContainerNames, true)) {
+                fvplus_append_unique_name($newOrder, $seen, $item);
             }
         }
 
         foreach ($allContainerNames as $name) {
-            if (!in_array($name, $seen, true) && !in_array($name, $assignedContainers, true)) {
-                $newOrder[] = $name;
-                $seen[] = $name;
+            if (!in_array($name, $assignedContainers, true)) {
+                fvplus_append_unique_name($newOrder, $seen, (string)$name);
             }
         }
 
-        // Folder placeholder order should always follow the normalized
-        // FolderView Plus folder map so explicit sort-mode changes can restore
-        // the expected created/manual/alpha sequence deterministically.
-        foreach ($orderedFolderPlaceholders as $placeholder) {
-            foreach ($folderContainers[$placeholder] as $ct) {
-                if (!in_array($ct, $seen, true)) {
-                    $newOrder[] = $ct;
-                    $seen[] = $ct;
+        foreach ($folderPlaceholders as $placeholder) {
+            foreach ((array)($folderContainers[$placeholder] ?? []) as $ct) {
+                fvplus_append_unique_name($newOrder, $seen, (string)$ct);
+            }
+        }
+
+        return $newOrder;
+    }
+
+    function buildDockerCustomStartOrder(array $context, array $plan): array {
+        $allContainerNames = (array)($context['allContainerNames'] ?? []);
+        $folderContainers = (array)($context['folderContainers'] ?? []);
+        $autoStartMap = (array)($context['autoStartMap'] ?? []);
+        $pageOrder = buildDockerPageStartOrder($context);
+        $plannedOrder = [];
+        $seen = [];
+        $batchesOut = [];
+        $warnings = [];
+
+        foreach ((array)($plan['batches'] ?? []) as $batch) {
+            if (!is_array($batch)) {
+                continue;
+            }
+            $batchNames = [];
+            foreach ((array)($batch['items'] ?? []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $type = (string)($item['type'] ?? 'container');
+                if ($type === 'folder') {
+                    $placeholder = 'folder-' . trim((string)($item['id'] ?? ''));
+                    if (!array_key_exists($placeholder, $folderContainers)) {
+                        $warnings[] = 'Folder in start plan no longer exists: ' . $placeholder;
+                        continue;
+                    }
+                    foreach ((array)$folderContainers[$placeholder] as $ct) {
+                        $batchNames[] = (string)$ct;
+                    }
+                    continue;
+                }
+                $name = trim((string)($item['name'] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+                if (!in_array($name, $allContainerNames, true)) {
+                    $warnings[] = 'Container in start plan no longer exists: ' . $name;
+                    continue;
+                }
+                $batchNames[] = $name;
+            }
+
+            $batchAutostartNames = [];
+            $seenBatch = [];
+            foreach ($batchNames as $name) {
+                if (!isset($autoStartMap[$name])) {
+                    $warnings[] = $name . ' is in the start plan but Docker autostart is off.';
+                    continue;
+                }
+                fvplus_append_unique_name($plannedOrder, $seen, $name);
+                fvplus_append_unique_name($batchAutostartNames, $seenBatch, $name);
+            }
+            $batchesOut[] = [
+                'id' => (string)($batch['id'] ?? ''),
+                'name' => (string)($batch['name'] ?? 'Start batch'),
+                'delay' => (int)($batch['delay'] ?? 0),
+                'parallel' => (bool)($batch['parallel'] ?? false),
+                'containers' => $batchAutostartNames
+            ];
+        }
+
+        $remaining = strtolower(trim((string)($plan['remaining'] ?? 'after')));
+        $remainingOrder = [];
+        $remainingSeen = [];
+        if ($remaining === 'keep') {
+            foreach (array_keys($autoStartMap) as $name) {
+                if (!isset($seen[$name])) {
+                    fvplus_append_unique_name($remainingOrder, $remainingSeen, (string)$name);
                 }
             }
-            if (!in_array($placeholder, $seen, true)) {
-                $newOrder[] = $placeholder;
-                $seen[] = $placeholder;
+        } else {
+            foreach ($pageOrder as $name) {
+                if (isset($autoStartMap[$name]) && !isset($seen[$name])) {
+                    fvplus_append_unique_name($remainingOrder, $remainingSeen, (string)$name);
+                }
             }
         }
 
-        // Reorder autostart file to match computed container order.
+        $ordered = $remaining === 'before'
+            ? array_values(array_merge($remainingOrder, $plannedOrder))
+            : array_values(array_merge($plannedOrder, $remainingOrder));
+
+        return [
+            'order' => $ordered,
+            'batches' => $batchesOut,
+            'warnings' => array_values(array_unique($warnings)),
+            'remaining' => $remainingOrder
+        ];
+    }
+
+    function buildDockerStartOrderPlan(array $context = null): array {
+        $context = $context ?? buildDockerStartOrderContext();
+        $prefs = is_array($context['prefs'] ?? null) ? $context['prefs'] : readTypePrefs('docker');
+        $plan = normalizeDockerStartOrderPrefs($prefs['dockerStartOrder'] ?? []);
+        $autoStartMap = (array)($context['autoStartMap'] ?? []);
+        $mode = (string)($plan['mode'] ?? 'docker-page');
+        $warnings = [];
+        $batches = [];
+        $remaining = [];
+
+        if ($mode === 'custom-batches') {
+            $custom = buildDockerCustomStartOrder($context, $plan);
+            $order = (array)($custom['order'] ?? []);
+            $warnings = (array)($custom['warnings'] ?? []);
+            $batches = (array)($custom['batches'] ?? []);
+            $remaining = (array)($custom['remaining'] ?? []);
+        } else {
+            $order = buildDockerPageStartOrder($context);
+        }
+
+        $autoStartOrder = [];
+        foreach ($order as $name) {
+            if (isset($autoStartMap[$name])) {
+                $autoStartOrder[] = $name;
+            }
+        }
+        foreach (array_keys($autoStartMap) as $name) {
+            if (!in_array($name, $autoStartOrder, true)) {
+                $autoStartOrder[] = $name;
+            }
+        }
+
+        return [
+            'mode' => $mode,
+            'remainingMode' => (string)($plan['remaining'] ?? 'after'),
+            'order' => array_values($order),
+            'autostartOrder' => $autoStartOrder,
+            'batches' => $batches,
+            'remaining' => $remaining,
+            'warnings' => array_values(array_unique($warnings)),
+            'autostartCount' => count($autoStartMap),
+            'containerCount' => count((array)($context['allContainerNames'] ?? [])),
+            'staleAutostart' => (array)($context['staleAutostart'] ?? [])
+        ];
+    }
+
+    function dockerStartOrderPreview(): array {
+        $context = buildDockerStartOrderContext();
+        return buildDockerStartOrderPlan($context);
+    }
+
+    function syncContainerOrderUnlocked(): void {
+        // Rewrites the autostart file to match the configured FolderView Plus start order.
+        // Docker userprefs.cfg is owned by Unraid and is only read here.
+        $context = buildDockerStartOrderContext();
+        $plan = buildDockerStartOrderPlan($context);
         // userprefs.cfg is not written here; Unraid owns drag-order persistence.
-        $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
-        $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
+        $autoStartFile = (string)($context['autoStartFile'] ?? "/var/lib/docker/unraid-autostart");
         if (file_exists($autoStartFile)) {
-            $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-            // Build name→line map to preserve delay values (format: "name" or "name delay")
-            $autoStartMap = [];
-            foreach ($autoStartLines as $line) {
-                $parts = explode(' ', $line, 2);
-                $autoStartMap[$parts[0]] = $line;
-            }
-            // Remove stale entries (containers that no longer exist)
-            foreach ($autoStartMap as $name => $line) {
-                if (!in_array($name, $allContainerNames)) {
-                    fv3_debug_log("syncContainerOrder: removing stale autostart entry '$name' (container no longer exists)");
-                    unset($autoStartMap[$name]);
-                }
-            }
-
-            // Rebuild autostart file in $newOrder sequence, only for containers already in autostart
+            $autoStartMap = (array)($context['autoStartMap'] ?? []);
             $newAutoStart = [];
-            foreach ($newOrder as $name) {
+            foreach ((array)($plan['autostartOrder'] ?? []) as $name) {
                 if (isset($autoStartMap[$name])) {
                     $newAutoStart[] = $autoStartMap[$name];
                     unset($autoStartMap[$name]);
                 }
             }
-            // Append any autostart containers not in $newOrder (shouldn't happen, but safety net)
             foreach ($autoStartMap as $line) {
                 $newAutoStart[] = $line;
+            }
+            if (($plan['mode'] ?? '') === 'custom-batches') {
+                $lineIndexByName = [];
+                foreach ($newAutoStart as $index => $line) {
+                    $parts = preg_split('/\s+/', trim((string)$line), 2);
+                    $lineIndexByName[(string)($parts[0] ?? '')] = $index;
+                }
+                foreach ((array)($plan['batches'] ?? []) as $batch) {
+                    $containers = (array)($batch['containers'] ?? []);
+                    $delay = (int)($batch['delay'] ?? 0);
+                    if ($delay <= 0 || count($containers) <= 0) {
+                        continue;
+                    }
+                    $last = (string)end($containers);
+                    if (isset($lineIndexByName[$last])) {
+                        $idx = $lineIndexByName[$last];
+                        $newAutoStart[$idx] = fvplus_set_autostart_line_delay((string)$newAutoStart[$idx], $delay);
+                    }
+                }
             }
             $nextAutoStartContent = count($newAutoStart) > 0
                 ? implode("\n", $newAutoStart) . "\n"
@@ -4695,7 +4978,7 @@
             $currentAutoStartContent = @file_get_contents($autoStartFile);
             if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
                 file_put_contents($autoStartFile, $nextAutoStartContent);
-                fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries");
+                fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries using " . (string)($plan['mode'] ?? 'docker-page') . " mode");
             } else {
                 fv3_debug_log("syncContainerOrder: autostart file already up to date");
             }

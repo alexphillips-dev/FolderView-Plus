@@ -146,7 +146,7 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             fvplus_validation_assert_assoc_map($payload['expandedFolderState'], 'expandedFolderState', 20000);
         }
 
-        $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'importPresets'];
+        $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'dockerStartOrder', 'importPresets'];
         foreach ($objectKeys as $key) {
             if (array_key_exists($key, $payload) && !is_array($payload[$key])) {
                 throw new RuntimeException("Invalid prefs payload: '$key' must be an object.");
@@ -181,6 +181,35 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
                 foreach ($presets['custom'] as $row) {
                     if (!is_array($row)) {
                         throw new RuntimeException("Invalid prefs payload: each custom import preset must be an object.");
+                    }
+                }
+            }
+        }
+
+        if (array_key_exists('dockerStartOrder', $payload) && is_array($payload['dockerStartOrder'])) {
+            $plan = $payload['dockerStartOrder'];
+            if (array_key_exists('batches', $plan)) {
+                if (!is_array($plan['batches'])) {
+                    throw new RuntimeException("Invalid prefs payload: 'dockerStartOrder.batches' must be an array.");
+                }
+                $batchCount = 0;
+                foreach ($plan['batches'] as $batch) {
+                    $batchCount += 1;
+                    if ($batchCount > 100) {
+                        throw new RuntimeException("Invalid prefs payload: 'dockerStartOrder.batches' exceeds maximum item count.");
+                    }
+                    if (!is_array($batch)) {
+                        throw new RuntimeException("Invalid prefs payload: each Docker start-order batch must be an object.");
+                    }
+                    if (array_key_exists('items', $batch)) {
+                        if (!is_array($batch['items'])) {
+                            throw new RuntimeException("Invalid prefs payload: 'dockerStartOrder.batches.items' must be an array.");
+                        }
+                        foreach ($batch['items'] as $item) {
+                            if (!is_array($item)) {
+                                throw new RuntimeException("Invalid prefs payload: each Docker start-order item must be an object.");
+                            }
+                        }
                     }
                 }
             }

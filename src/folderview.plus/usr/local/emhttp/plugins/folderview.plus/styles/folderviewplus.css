@@ -1,15 +1,17 @@
 :root {
-    --fvplus-settings-safe-text-primary: #e7eef9;
-    --fvplus-settings-safe-text-muted: #cfd9e7;
-    --fvplus-settings-safe-text-dim: #b7c5d7;
-    --fvplus-settings-safe-border-subtle: rgba(255, 255, 255, 0.12);
-    --fvplus-settings-safe-border-faint: rgba(255, 255, 255, 0.08);
-    --fvplus-settings-safe-surface-muted: rgba(255, 255, 255, 0.02);
-    --fvplus-settings-safe-surface-strong: rgba(0, 0, 0, 0.2);
-    --fvplus-settings-safe-accent: rgba(77, 163, 255, 0.72);
-    --fvplus-settings-safe-accent-soft: rgba(77, 163, 255, 0.18);
-    --fvplus-settings-safe-focus-ring: rgba(103, 214, 255, 0.35);
-    --fvplus-settings-safe-surface-panel: rgba(0, 0, 0, 0.14);
+    --fvplus-settings-safe-text-primary: var(--fvplus-ui-text-primary, var(--fvplus-graphite-text-primary, #f2f4f7));
+    --fvplus-settings-safe-text-muted: var(--fvplus-ui-text-muted, var(--fvplus-graphite-text-muted, #a8b0bc));
+    --fvplus-settings-safe-text-dim: var(--fvplus-ui-text-dim, var(--fvplus-graphite-text-dim, #7d8794));
+    --fvplus-settings-safe-border-subtle: var(--fvplus-ui-border-subtle, var(--fvplus-graphite-border-subtle, rgba(255, 255, 255, 0.12)));
+    --fvplus-settings-safe-border-faint: var(--fvplus-ui-border-faint, var(--fvplus-graphite-border-faint, rgba(255, 255, 255, 0.08)));
+    --fvplus-settings-safe-surface-muted: var(--fvplus-ui-muted, var(--fvplus-theme-surface-muted, rgba(255, 255, 255, 0.025)));
+    --fvplus-settings-safe-surface-strong: var(--fvplus-ui-strong, var(--fvplus-theme-surface-strong, rgba(255, 255, 255, 0.06)));
+    --fvplus-settings-safe-surface-card: var(--fvplus-ui-card, var(--fvplus-theme-surface-card, var(--fvplus-graphite-card-bg, #1d1d1f)));
+    --fvplus-settings-safe-surface-field: var(--fvplus-ui-field, var(--fvplus-graphite-field-bg, #1a1a1b));
+    --fvplus-settings-safe-accent: var(--fvplus-ui-accent, var(--fvplus-graphite-accent, #ff8a1f));
+    --fvplus-settings-safe-accent-soft: var(--fvplus-ui-accent-soft, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
+    --fvplus-settings-safe-focus-ring: var(--fvplus-ui-focus-ring, var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.34)));
+    --fvplus-settings-safe-surface-panel: var(--fvplus-ui-panel, var(--fvplus-theme-surface-panel, #171718));
 
     --fvplus-theme-text-primary: var(--text, currentColor);
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
@@ -30,6 +32,8 @@
     --fvplus-settings-border-faint: var(--fvplus-theme-border-faint, var(--fvplus-settings-safe-border-faint));
     --fvplus-settings-surface-muted: var(--fvplus-theme-surface-muted, var(--fvplus-settings-safe-surface-muted));
     --fvplus-settings-surface-strong: var(--fvplus-theme-surface-strong, var(--fvplus-settings-safe-surface-strong));
+    --fvplus-settings-surface-card: var(--fvplus-theme-surface-card, var(--fvplus-settings-safe-surface-card));
+    --fvplus-settings-surface-field: var(--fvplus-settings-safe-surface-field);
     --fvplus-settings-accent: var(--fvplus-theme-accent, var(--fvplus-settings-safe-accent));
     --fvplus-settings-accent-soft: var(--fvplus-theme-accent-soft, var(--fvplus-settings-safe-accent-soft));
     --fvplus-settings-warning: #ffd26f;
@@ -40,7 +44,7 @@
     --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
     --fvplus-settings-focus-ring: var(--fvplus-theme-focus-ring, var(--fvplus-settings-safe-focus-ring));
     --fvplus-settings-surface-panel: var(--fvplus-theme-surface-panel, var(--fvplus-settings-safe-surface-panel));
-    --fvplus-settings-title-accent: #ff9a3c;
+    --fvplus-settings-title-accent: var(--fvplus-graphite-accent-strong, #ff9d36);
     --fvplus-settings-tree-guide: rgba(173, 178, 192, 0.55);
     --fvplus-settings-breadcrumb-text: rgba(180, 197, 221, 0.88);
     --fvplus-settings-members-meta-text: rgba(187, 199, 219, 0.82);
@@ -61,25 +65,25 @@
     --fvplus-settings-chip-empty-border: rgba(192, 192, 192, 0.45);
     --fvplus-settings-chip-empty-bg: rgba(255, 255, 255, 0.08);
     --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
-    --fvplus-settings-button-bg-top: rgba(255, 255, 255, 0.05);
-    --fvplus-settings-button-bg-bottom: rgba(255, 255, 255, 0.045);
-    --fvplus-settings-button-hover-top: rgba(255, 191, 123, 0.14);
-    --fvplus-settings-button-hover-bottom: rgba(255, 191, 123, 0.11);
-    --fvplus-settings-button-active-top: rgba(255, 165, 74, 0.22);
-    --fvplus-settings-button-active-bottom: rgba(255, 165, 74, 0.19);
+    --fvplus-settings-button-bg-top: var(--fvplus-ui-control, var(--fvplus-graphite-card-raised, #242426));
+    --fvplus-settings-button-bg-bottom: var(--fvplus-ui-control, var(--fvplus-graphite-card-raised, #242426));
+    --fvplus-settings-button-hover-top: var(--fvplus-ui-control-hover, #29292b);
+    --fvplus-settings-button-hover-bottom: var(--fvplus-ui-control-hover, #29292b);
+    --fvplus-settings-button-active-top: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
+    --fvplus-settings-button-active-bottom: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.12), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 191, 123, 0.16), 0 1px 3px rgba(0, 0, 0, 0.16);
+    --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.18);
+    --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
     --fvplus-settings-button-accent-fg: #fff4e8;
     --fvplus-settings-button-accent-top: rgba(255, 171, 91, 0.26);
     --fvplus-settings-button-accent-bottom: rgba(255, 171, 91, 0.22);
     --fvplus-settings-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
-    --fvplus-settings-button-quiet-top: rgba(255, 255, 255, 0.036);
-    --fvplus-settings-button-quiet-bottom: rgba(255, 255, 255, 0.032);
-    --fvplus-settings-button-quiet-hover-top: rgba(255, 191, 123, 0.1);
-    --fvplus-settings-button-quiet-hover-bottom: rgba(255, 191, 123, 0.08);
+    --fvplus-settings-button-quiet-top: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
+    --fvplus-settings-button-quiet-bottom: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
+    --fvplus-settings-button-quiet-hover-top: var(--fvplus-ui-control, var(--fvplus-graphite-card-raised, #242426));
+    --fvplus-settings-button-quiet-hover-bottom: var(--fvplus-ui-control, var(--fvplus-graphite-card-raised, #242426));
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
-    --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
+    --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root,
@@ -273,7 +277,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     margin: 0.35rem 0 0.55rem;
     border: 1px solid var(--fvplus-settings-accent);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(45, 122, 191, 0.12), rgba(18, 39, 58, 0.18));
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-first-run-title {
@@ -306,7 +310,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     padding: 0.5rem 0.7rem;
-    background: var(--fvplus-settings-surface-muted);
+    background: var(--fvplus-settings-surface-card);
 }
 
 .toolbar-sort-wide {
@@ -407,7 +411,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     padding: 0.26rem 0.42rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 5px;
-    background: var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-field);
     color: var(--fvplus-settings-text-muted);
     font-size: 0.92rem;
     line-height: 1.25;
@@ -494,7 +498,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 6px;
     padding: 0.45rem 0.55rem;
-    background: var(--fvplus-settings-surface-panel);
+    background: var(--fvplus-settings-surface-card);
     display: grid;
     gap: 0.35rem;
     align-content: start;
@@ -629,6 +633,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     overflow-x: hidden;
+    background: var(--fvplus-settings-surface-card);
 }
 
 .folder-table .table-wrap {
@@ -1957,7 +1962,77 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-theme-workspace-body {
     display: grid;
+    gap: 16px;
+}
+
+.fv-theme-workspace-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.fv-theme-summary-card {
+    border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+    background: var(--fvplus-settings-surface-panel, #1b1d20);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-height: 58px;
+    display: grid;
+    align-content: center;
+    gap: 4px;
+}
+
+.fv-theme-summary-card span {
+    color: var(--fvplus-settings-text-muted, #c7c7c7);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+
+.fv-theme-summary-card strong {
+    color: var(--fvplus-settings-text, #f2f2f2);
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-theme-workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
     gap: 14px;
+}
+
+.fv-theme-module {
+    border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+    background: var(--fvplus-settings-surface-muted, rgba(255, 255, 255, 0.04));
+    border-radius: 8px;
+    padding: 12px;
+    display: grid;
+    gap: 12px;
+}
+
+.fv-theme-module-head,
+.fv-theme-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.fv-theme-module-head p {
+    margin: 4px 0 0;
+    color: var(--fvplus-settings-text-muted, #c7c7c7);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.fv-theme-card-head {
+    align-items: center;
+}
+
+.fv-theme-card-head button {
+    flex: 0 0 auto;
 }
 
 .fv-theme-import-row,
@@ -1972,6 +2047,50 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-theme-import-row input[type="text"] {
     flex: 1 1 320px;
     min-width: 240px;
+}
+
+.fv-theme-scan-result {
+    border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+    border-radius: 8px;
+    padding: 10px;
+    background: var(--fvplus-settings-surface-panel, #1b1d20);
+    display: grid;
+    gap: 8px;
+}
+
+.fv-theme-scan-result.is-warning {
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent, #f0a030) 60%, transparent);
+}
+
+.fv-theme-scan-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    color: var(--fvplus-settings-text, #f2f2f2);
+    font-weight: 700;
+}
+
+.fv-theme-scan-meta,
+.fv-theme-file-meta {
+    color: var(--fvplus-settings-text-muted, #c7c7c7);
+    font-size: 12px;
+}
+
+.fv-theme-file-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fv-theme-file-list li {
+    border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+    border-radius: 6px;
+    padding: 8px;
+    display: grid;
+    gap: 4px;
 }
 
 .fv-theme-workspace-status {
@@ -2030,16 +2149,18 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-theme-customize-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: minmax(280px, 0.9fr) minmax(280px, 0.75fr) minmax(360px, 1.35fr);
     gap: 14px;
 }
 
 .fv-theme-customize-card {
     border: 1px solid var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
-    border-radius: 10px;
+    background: var(--fvplus-settings-surface-panel, #1b1d20);
+    border-radius: 8px;
     padding: 12px;
     display: grid;
     gap: 12px;
+    align-content: start;
 }
 
 .fv-theme-variable-grid {
@@ -2049,9 +2170,17 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .fv-theme-variable-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 8px;
     align-items: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.fv-theme-variable-row.has-override {
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent, #f0a030) 35%, transparent);
+    background: color-mix(in srgb, var(--fvplus-settings-accent, #f0a030) 8%, transparent);
 }
 
 .fv-theme-variable-copy {
@@ -2071,11 +2200,93 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     padding: 0;
 }
 
+.fv-theme-token-reset {
+    min-width: 34px !important;
+    width: 34px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
 .fv-theme-custom-css {
     width: 100%;
     min-height: 220px;
     resize: vertical;
     font-family: Consolas, "Courier New", monospace;
+}
+
+.fv-theme-preview-sample {
+    --fvplus-theme-accent: var(--fvplus-settings-accent, #f0a030);
+    --fvplus-theme-surface-panel: var(--fvplus-settings-surface-panel, #1b1d20);
+    --fvplus-theme-border-subtle: var(--fvplus-settings-border-subtle, rgba(255, 255, 255, 0.12));
+    --fvplus-status-started: #ffffff;
+    --fvplus-status-paused: #b8860b;
+    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-graph-cpu: #5aa4ff;
+    --fvplus-graph-mem: #6bd676;
+    border: 1px solid var(--fvplus-theme-border-subtle);
+    background: var(--fvplus-theme-surface-panel);
+    border-radius: 8px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    min-height: 150px;
+    align-items: stretch;
+}
+
+.fv-theme-preview-card {
+    border-left: 3px solid var(--fvplus-theme-accent);
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
+    align-content: center;
+}
+
+.fv-theme-preview-card span {
+    color: var(--fvplus-settings-text-muted, #c7c7c7);
+}
+
+.fv-theme-preview-card strong {
+    color: var(--fvplus-settings-text, #f2f2f2);
+    font-size: 16px;
+}
+
+.fv-theme-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fv-theme-preview-status {
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    font-weight: 700;
+}
+
+.fv-theme-preview-status.is-started {
+    color: var(--fvplus-status-started);
+}
+
+.fv-theme-preview-status.is-paused {
+    color: var(--fvplus-status-paused);
+}
+
+.fv-theme-preview-status.is-stopped {
+    color: var(--fvplus-status-stopped);
+}
+
+.fv-theme-preview-bars {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+    width: 78px;
+}
+
+.fv-theme-preview-bars span {
+    flex: 1 1 0;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(to top, var(--fvplus-graph-cpu), var(--fvplus-graph-mem));
 }
 
 .fv-folder-defaults-actions button,
@@ -2088,21 +2299,50 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 #fv-settings-root .fv-folder-defaults-actions > button {
     border: 0 !important;
     border-radius: 8px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
     text-shadow: none !important;
     transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
+#fv-settings-root .fv-theme-import-row > button,
+#fv-settings-root .fv-theme-module-head > button,
+#fv-settings-root .fv-theme-card-head > button,
+#fv-settings-root .fv-theme-customize-actions > button,
+#fv-settings-root .fv-theme-workspace-entry-actions > button {
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
+    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+#fv-settings-root .fv-theme-import-row > button:hover,
+#fv-settings-root .fv-theme-import-row > button:focus-visible,
+#fv-settings-root .fv-theme-module-head > button:hover,
+#fv-settings-root .fv-theme-module-head > button:focus-visible,
+#fv-settings-root .fv-theme-card-head > button:hover,
+#fv-settings-root .fv-theme-card-head > button:focus-visible,
+#fv-settings-root .fv-theme-customize-actions > button:hover,
+#fv-settings-root .fv-theme-customize-actions > button:focus-visible,
+#fv-settings-root .fv-theme-workspace-entry-actions > button:hover,
+#fv-settings-root .fv-theme-workspace-entry-actions > button:focus-visible {
+    background: var(--fvplus-settings-button-hover-top) !important;
+    color: var(--fvplus-settings-accent, #f0a030) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
+}
+
 #fv-settings-root .fv-folder-defaults-actions > button:hover,
 #fv-settings-root .fv-folder-defaults-actions > button:focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
 #fv-settings-root .fv-folder-defaults-actions > button:active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
 }
@@ -2120,6 +2360,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 @media (max-width: 980px) {
+    .fv-theme-workspace-summary,
+    .fv-theme-workspace-grid,
+    .fv-theme-customize-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .fv-theme-import-row,
     .fv-theme-customize-actions,
     .fv-folder-defaults-actions,
@@ -3220,9 +3466,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-recovery-panel {
     border-color: color-mix(in srgb, var(--fvplus-settings-accent) 16%, var(--fvplus-settings-border-faint));
-    background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--fvplus-settings-accent) 10%, transparent), transparent 34%),
-        var(--fvplus-settings-surface-panel);
+    background: var(--fvplus-settings-surface-panel);
 }
 
 .fv-recovery-section-body {
@@ -3240,9 +3484,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.9rem 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-border-faint));
     border-radius: 12px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 14%, transparent), transparent 62%),
-        color-mix(in srgb, var(--fvplus-settings-surface-strong) 82%, transparent);
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-recovery-intro > div:first-child {
@@ -3297,8 +3539,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 22%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-strong) 86%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 94%, transparent));
+    background: var(--fvplus-settings-surface-card);
 }
 
 .fv-recovery-hero {
@@ -3308,9 +3549,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1.05rem 1.1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 36%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 22%, transparent), transparent 60%),
-        var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-strong);
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
 }
 
@@ -3452,8 +3691,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 18%, var(--fvplus-settings-border-faint));
     border-radius: 14px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
+    background: var(--fvplus-settings-surface-card);
     align-content: start;
     min-height: 0;
 }
@@ -3550,8 +3788,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-recovery-history-stage,
 .fv-recovery-environment-stage {
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-muted) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-panel) 96%, transparent));
+    background: var(--fvplus-settings-surface-card);
     clear: both;
 }
 
@@ -3590,8 +3827,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.95rem 1rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--fvplus-settings-surface-strong) 92%, transparent), color-mix(in srgb, var(--fvplus-settings-surface-muted) 90%, transparent));
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-recovery-history-head,
@@ -4058,6 +4294,358 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin-top: 0.08rem;
 }
 
+.fv-docker-start-order-shell {
+    margin-top: 1rem;
+}
+
+#fv-settings-root h2[data-fv-section="docker-start-order"] {
+    color: var(--fvplus-settings-text-primary) !important;
+    font-size: clamp(1.85rem, 1.2vw + 1rem, 2.35rem) !important;
+    letter-spacing: 0 !important;
+}
+
+.fv-docker-start-order-panel {
+    overflow: hidden;
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    border-radius: 14px !important;
+    background: var(--fvplus-settings-surface-panel) !important;
+    box-shadow: var(--fvplus-theme-shadow, 0 18px 42px rgba(0, 0, 0, 0.34));
+}
+
+.fv-docker-start-order-panel > .rules-header {
+    min-height: 64px;
+    padding: 1rem 1.12rem !important;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-docker-start-order-panel > .rules-header h3 {
+    display: inline-flex;
+    gap: 0.65rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-primary) !important;
+    font-size: 1.28rem !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+.fv-docker-start-order-panel > .rules-header h3 > .fa {
+    color: var(--fvplus-settings-accent);
+    font-size: 1.35rem;
+}
+
+.fv-docker-start-order-panel .fv-operations-section-body,
+.fv-docker-start-order-panel .fv-operations-stage {
+    border: 0 !important;
+    background: transparent !important;
+}
+
+.fv-docker-start-order-stage > .fv-operations-stage-head {
+    display: none !important;
+}
+
+.fv-docker-start-order-workspace {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--fvplus-settings-surface-panel);
+}
+
+.fv-docker-start-order-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 1.25rem;
+    max-width: 1260px;
+}
+
+.fv-docker-start-order-controls .setting-select {
+    display: grid;
+    gap: 0.42rem;
+}
+
+.fv-docker-start-order-controls .setting-select > span {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.92rem;
+    font-weight: 650;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.fv-docker-start-order-controls .setting-select > select {
+    min-height: 44px;
+    padding-inline: 0.85rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.02rem;
+    font-weight: 650;
+}
+
+.fv-docker-start-order-help,
+.fv-docker-start-order-empty,
+.fv-docker-start-order-preview,
+.fv-docker-start-order-batch {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-docker-start-order-help {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.95rem;
+    align-items: center;
+    padding: 1rem 1.05rem;
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 40%, rgba(255, 255, 255, 0.1));
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 7%, var(--fvplus-settings-surface-card) 93%);
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-help > .fa {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 55%, transparent);
+    border-radius: 999px;
+    color: var(--fvplus-settings-accent);
+    font-size: 1rem;
+}
+
+.fv-docker-start-order-help strong,
+.fv-docker-start-order-help span {
+    display: block;
+}
+
+.fv-docker-start-order-help strong {
+    margin-bottom: 0.22rem;
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 35%, var(--fvplus-settings-text-primary));
+    font-size: 1rem;
+}
+
+.fv-docker-start-order-empty {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    min-height: 62px;
+    padding: 0.85rem 1rem;
+    border-style: dashed;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-empty-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px dashed rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1.2rem;
+}
+
+.fv-docker-start-order-toolbar,
+.fv-docker-start-order-add-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-toolbar {
+    padding-top: 0.12rem;
+}
+
+.fv-docker-start-order-toolbar > button,
+.fv-docker-start-order-add-row > button {
+    min-height: 39px;
+    padding-inline: 1rem;
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    font-size: 0.86rem;
+}
+
+.fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow);
+}
+
+.fv-docker-start-order-batches {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.fv-docker-start-order-batch {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.9rem;
+}
+
+.fv-docker-start-order-batch-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-batch-head > input,
+.fv-docker-start-order-add-row > select {
+    min-height: 34px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-input-bg);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-batch-actions,
+.fv-docker-start-order-item-actions {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.fv-docker-start-order-batch-actions > button,
+.fv-docker-start-order-item-actions > button {
+    min-width: 32px;
+    min-height: 30px;
+    padding-inline: 0.55rem;
+}
+
+.fv-docker-start-order-batch-settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-batch-settings input[type="number"] {
+    width: 72px;
+    min-height: 30px;
+    margin-left: 0.35rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-input-bg);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-docker-start-order-add-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) auto minmax(150px, 1fr) auto;
+}
+
+.fv-docker-start-order-items {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.fv-docker-start-order-item {
+    display: grid;
+    grid-template-columns: minmax(92px, auto) minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+    padding: 0.48rem 0.55rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-docker-start-order-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-docker-start-order-preview {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.95rem 1rem 1.05rem;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-docker-start-order-preview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: center;
+    margin-bottom: 0.1rem;
+}
+
+.fv-docker-start-order-preview-head > strong {
+    display: inline-flex;
+    gap: 0.58rem;
+    align-items: center;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.16rem;
+}
+
+.fv-docker-start-order-preview-head > strong > .fa {
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-docker-start-order-count {
+    padding: 0.36rem 0.72rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-muted);
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-docker-start-order-list {
+    display: grid;
+    gap: 0.22rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 330px;
+    overflow: auto;
+}
+
+.fv-docker-start-order-list > li {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: center;
+    min-height: 34px;
+    padding: 0.28rem 0.5rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 7px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-docker-start-order-list > li > span {
+    display: inline-grid;
+    min-width: 44px;
+    height: 24px;
+    place-items: center;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+    font-weight: 700;
+}
+
+.fv-docker-start-order-warning {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid rgba(255, 179, 71, 0.38);
+    border-radius: 9px;
+    color: #ffd79a;
+    background: rgba(255, 145, 0, 0.08);
+}
+
 @media (max-width: 1100px) {
     .fv-recovery-stage-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4068,6 +4656,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 
     .fv-operations-stage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-docker-start-order-controls,
+    .fv-docker-start-order-add-row {
         grid-template-columns: 1fr;
     }
 }
@@ -5453,7 +6046,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 1rem 1.05rem 1.05rem;
     border: 1px solid rgba(86, 162, 255, 0.34);
     border-radius: 12px;
-    background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(7, 11, 18, 0.98));
+    background: var(--fvplus-graphite-card, #1d1d1f);
     box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
     color: #f4f7fb;
 }
@@ -6076,7 +6669,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 #fv-settings-root select:focus-visible,
 #fv-settings-root textarea:focus-visible,
 #fv-settings-root a:focus-visible {
-    outline: 2px solid #4da3ff;
+    outline: 2px solid var(--fvplus-settings-focus-ring, rgba(74, 179, 255, 0.34));
     outline-offset: 2px;
 }
 
@@ -6156,7 +6749,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin: 0 0 0.8rem 0;
     border: 1px solid rgba(126, 214, 161, 0.42);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(33, 102, 69, 0.18), rgba(16, 54, 38, 0.2));
+    background: color-mix(in srgb, var(--fvplus-settings-success) 12%, var(--fvplus-settings-surface-card));
     padding: 0.7rem 0.75rem;
 }
 
@@ -6492,12 +7085,12 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
     --fv-wizard-font-118: 1.18rem;
-    --fv-wizard-surface-page: rgba(8, 12, 18, 0.985);
-    --fv-wizard-surface-panel: rgba(17, 25, 37, 0.74);
-    --fv-wizard-surface-card: rgba(17, 27, 42, 0.72);
-    --fv-wizard-surface-card-strong: rgba(20, 32, 48, 0.84);
-    --fv-wizard-border-subtle: rgba(157, 183, 217, 0.24);
-    --fv-wizard-border-strong: rgba(157, 183, 217, 0.34);
+    --fv-wizard-surface-page: var(--fvplus-ui-page, var(--fvplus-graphite-page, #0f0f10));
+    --fv-wizard-surface-panel: var(--fvplus-ui-panel, var(--fvplus-graphite-panel, #171718));
+    --fv-wizard-surface-card: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
+    --fv-wizard-surface-card-strong: var(--fvplus-ui-card-raised, var(--fvplus-graphite-card-raised, #242426));
+    --fv-wizard-border-subtle: var(--fvplus-ui-border-subtle, var(--fvplus-graphite-border-subtle, rgba(255, 255, 255, 0.12)));
+    --fv-wizard-border-strong: var(--fvplus-ui-border-strong, var(--fvplus-graphite-border-strong, rgba(255, 255, 255, 0.18)));
     --fv-wizard-accent-blue-rgb: 77, 163, 255;
     --fv-wizard-accent-amber-rgb: 255, 170, 94;
     --fv-wizard-accent-green-rgb: 147, 225, 159;
@@ -6528,32 +7121,32 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-color-warning: rgb(var(--fv-wizard-color-warning-rgb));
     --fv-wizard-color-danger: rgb(var(--fv-wizard-color-danger-rgb));
     --fv-wizard-color-neutral: rgb(var(--fv-wizard-color-neutral-rgb));
-    --fv-wizard-shell-sidebar-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
-    --fv-wizard-shell-head-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
-    --fv-wizard-shell-strip-bg: rgba(10, 16, 25, 0.88);
-    --fv-wizard-row-bg: rgba(11, 17, 27, 0.74);
+    --fv-wizard-shell-sidebar-bg: var(--fv-wizard-surface-panel);
+    --fv-wizard-shell-head-bg: var(--fv-wizard-surface-panel);
+    --fv-wizard-shell-strip-bg: var(--fvplus-ui-field, var(--fvplus-graphite-inset, #141415));
+    --fv-wizard-row-bg: var(--fvplus-ui-field, var(--fvplus-graphite-field, #1a1a1b));
     --fv-wizard-card-border-alpha: 0.34;
     --fv-wizard-card-tint-alpha: 0.14;
     --fv-wizard-card-surface-stop: 20%;
-    --fv-wizard-card-base-bg: rgba(10, 16, 25, 0.9);
+    --fv-wizard-card-base-bg: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
     --fv-wizard-card-topline-strong-alpha: 0.92;
     --fv-wizard-card-topline-soft-alpha: 0.34;
     --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
     --fv-wizard-shell-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
-    --fv-wizard-control-bg: rgba(15, 23, 35, 0.78);
+    --fv-wizard-control-bg: var(--fvplus-ui-control, var(--fvplus-graphite-card-raised, #242426));
     --fv-wizard-control-disabled-fg: rgba(231, 238, 249, 0.68);
-    --fv-wizard-input-bg: rgba(14, 23, 35, 0.78);
+    --fv-wizard-input-bg: var(--fvplus-ui-input, var(--fvplus-graphite-input, #111112));
     --fv-wizard-pill-border: rgba(255, 255, 255, 0.2);
     --fv-wizard-pill-border-strong: rgba(255, 255, 255, 0.22);
-    --fv-wizard-pill-bg: rgba(255, 255, 255, 0.04);
-    --fv-wizard-chip-bg: rgba(14, 23, 35, 0.7);
-    --fv-wizard-chip-toggle-bg: rgba(13, 21, 32, 0.84);
-    --fv-wizard-mode-toggle-bg: rgba(12, 20, 31, 0.84);
-    --fv-wizard-rule-row-bg: rgba(13, 20, 31, 0.72);
+    --fv-wizard-pill-bg: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
+    --fv-wizard-chip-bg: var(--fvplus-ui-field, var(--fvplus-graphite-field, #1a1a1b));
+    --fv-wizard-chip-toggle-bg: var(--fvplus-ui-field, var(--fvplus-graphite-field, #1a1a1b));
+    --fv-wizard-mode-toggle-bg: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
+    --fv-wizard-rule-row-bg: var(--fvplus-ui-field, var(--fvplus-graphite-field, #1a1a1b));
     --fv-wizard-kbd-border: rgba(255, 255, 255, 0.24);
     --fv-wizard-kbd-bg: rgba(255, 255, 255, 0.08);
-    --fv-wizard-quick-preset-bg: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
+    --fv-wizard-quick-preset-bg: var(--fvplus-ui-card, var(--fvplus-graphite-card, #1d1d1f));
     --fv-wizard-active-text: #d8ebff;
     --fv-wizard-selection-active-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
     --fv-wizard-pending-text: rgba(255, 255, 255, 0.82);
@@ -6876,7 +7469,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-setup-step-list li.is-active {
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.65);
-    background: linear-gradient(180deg, rgba(15, 25, 38, 0.98), rgba(9, 18, 30, 0.98));
+    background: var(--fv-wizard-surface-card-strong);
     box-shadow: 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.4);
     opacity: 1;
 }
@@ -7029,12 +7622,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
     border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-border-alpha));
     border-radius: 10px;
-    background: linear-gradient(
-        180deg,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-tint-alpha)) 0%,
-        var(--fv-wizard-surface-card) var(--fv-wizard-card-surface-stop),
-        var(--fv-wizard-card-base-bg) 100%
-    );
+    background: var(--fv-wizard-card-base-bg);
     padding: 0.6rem 0.65rem;
     display: grid;
     gap: 0.5rem;
@@ -7051,12 +7639,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(
-        90deg,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha)) 0%,
-        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-soft-alpha)) 70%,
-        transparent 100%
-    );
+    background: rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha));
     pointer-events: none;
 }
 
@@ -7118,9 +7701,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-setup-welcome-safety {
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.14), transparent 58%),
-        var(--fv-wizard-surface-card);
+    background: var(--fv-wizard-surface-card);
     box-shadow: var(--fv-wizard-card-shadow), var(--fv-wizard-card-inset-highlight);
 }
 
@@ -7187,7 +7768,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 #fv-setup-assistant-dialog .fv-setup-welcome-actions .fv-setup-primary-action {
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-info-rgb), 0.36), rgba(var(--fv-wizard-color-info-rgb), 0.22)) !important;
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.22) !important;
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.68) !important;
     color: var(--fv-wizard-text) !important;
 }
@@ -8226,7 +8807,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-setup-review-hero {
     border: 1px solid rgba(var(--fv-wizard-color-success-rgb), 0.38);
     border-radius: 10px;
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-success-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
     padding: 0.78rem 0.86rem;
     display: flex;
     align-items: center;
@@ -8236,12 +8817,12 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-setup-review-hero.is-warn {
     border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.45);
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-warning-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
 }
 
 .fv-setup-review-hero.is-blocked {
     border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.48);
-    background: linear-gradient(180deg, rgba(var(--fv-wizard-color-danger-rgb), 0.14), var(--fv-wizard-surface-card));
+    background: var(--fv-wizard-surface-card);
 }
 
 .fv-setup-review-eyebrow {
@@ -8658,7 +9239,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     margin: 0.4rem 0 0.8rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fvplus-settings-surface-card);
     padding: 0.5rem 0.65rem;
 }
 
@@ -8684,24 +9265,33 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 .fv-advanced-tabs {
     display: inline-flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.4rem;
+    justify-content: flex-start;
+    gap: 0.65rem;
     flex: 0 1 auto;
     min-width: 0;
 }
 
 .fv-advanced-tab {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
     min-width: 0;
-    min-height: 34px;
-    padding: 0.28rem 0.55rem;
+    min-height: 38px;
+    padding: 0.38rem 0.78rem !important;
     border: 0 !important;
-    font-size: 1.03rem;
+    font-size: 1.08rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
     white-space: nowrap;
+    overflow: hidden;
 }
 
-.fv-advanced-count {
-    opacity: 0.82;
-    font-size: 1.03rem;
+.fv-advanced-tab > i,
+.fv-advanced-tab > span {
+    color: inherit !important;
+    pointer-events: none;
 }
 
 .fv-advanced-compact {
@@ -8911,9 +9501,7 @@ h2[data-fv-section].fv-search-match {
     margin: 0.2rem 0 0.85rem 0;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 12px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
-        var(--fvplus-settings-surface-muted);
+    background: var(--fvplus-settings-surface-card);
     padding: 0.68rem 0.78rem;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
@@ -8975,7 +9563,7 @@ h2[data-fv-section].fv-search-match {
     padding: 0.58rem 0.66rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--fvplus-settings-surface-field);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
@@ -8998,7 +9586,7 @@ h2[data-fv-section].fv-search-match {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(128, 128, 128, 0.16);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-activity-latest-icon.is-success {
@@ -9055,11 +9643,11 @@ h2[data-fv-section].fv-search-match {
     line-height: 1.3;
     padding: 0.34rem 0.46rem;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--fvplus-settings-surface-field);
 }
 
 .fv-activity-item.is-fresh {
-    background: rgba(255, 255, 255, 0.045);
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-activity-level {
@@ -9259,7 +9847,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
     border: 0 !important;
     border-radius: 8px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
     text-shadow: none !important;
@@ -9344,7 +9932,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):focus-visible,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:hover,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
@@ -9386,7 +9974,7 @@ h2[data-fv-section].fv-search-match {
 ):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
 }
@@ -9434,14 +10022,37 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
-    .fv-advanced-tab.is-active,
     .fv-mini-action-btn.is-active,
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
 #fv-settings-root .fv-mode-toggle button.is-active {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-accent-top), var(--fvplus-settings-button-accent-bottom)) !important;
+    background: var(--fvplus-settings-button-accent-top) !important;
     color: var(--fvplus-settings-button-accent-fg) !important;
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
+}
+
+#fv-settings-root .fv-advanced-tab.is-active {
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 88%, white 12%) !important;
+    outline: 2px solid color-mix(in srgb, var(--fvplus-settings-accent) 54%, transparent) !important;
+    outline-offset: 0 !important;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 62%, #1d1d1f 38%) !important;
+    color: #ffffff !important;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-accent) 86%, white 14%),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 8px 18px rgba(0, 0, 0, 0.32) !important;
+}
+
+#fv-settings-root .fv-advanced-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0.7em;
+    right: 0.7em;
+    bottom: 0.23em;
+    height: 3px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--fvplus-settings-accent) 70%, transparent);
 }
 
 #fv-settings-root .fv-mode-toggle {
@@ -9450,7 +10061,7 @@ h2[data-fv-section].fv-search-match {
     border: 0;
     border-radius: 10px;
     overflow: visible;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom));
+    background: var(--fvplus-settings-button-quiet-top);
     box-shadow: var(--fvplus-settings-button-quiet-shadow);
 }
 
@@ -9463,8 +10074,64 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root .fv-mode-toggle button:not(.is-active):hover,
 #fv-settings-root .fv-mode-toggle button:not(.is-active):focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
+}
+
+/* Start Order keeps its actions readable without making a normal action look selected. */
+#fv-settings-root .fv-docker-start-order-panel .rules-header h3 > .fa,
+#fv-settings-root .fv-docker-start-order-preview-head > strong > .fa {
+    color: var(--fvplus-settings-accent) !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button,
+#fv-settings-root .fv-docker-start-order-add-row > button {
+    min-height: 40px !important;
+    padding: 0 1.1rem !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    border-radius: 7px !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    opacity: 1 !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button:hover,
+#fv-settings-root .fv-docker-start-order-add-row > button:hover,
+#fv-settings-root .fv-docker-start-order-toolbar > button:focus-visible,
+#fv-settings-root .fv-docker-start-order-add-row > button:focus-visible {
+    border-color: var(--fvplus-settings-accent) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
+    color: var(--fvplus-settings-accent) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:hover,
+#fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:focus-visible {
+    border-color: var(--fvplus-settings-accent) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
+    color: var(--fvplus-settings-accent) !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button:disabled,
+#fv-settings-root .fv-docker-start-order-add-row > button:disabled {
+    border-color: var(--fvplus-settings-border-faint) !important;
+    background: var(--fvplus-settings-button-quiet-top) !important;
+    color: var(--fvplus-settings-text-dim) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
+    opacity: 0.72 !important;
+}
+
+#fv-settings-root .fv-docker-start-order-toolbar > button .fa,
+#fv-settings-root .fv-docker-start-order-add-row > button .fa {
+    color: currentColor !important;
 }
 
 #fv-settings-root :is(
@@ -9479,7 +10146,7 @@ h2[data-fv-section].fv-search-match {
 ) {
     border: 0 !important;
     border-radius: 6px !important;
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
     transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
@@ -9522,7 +10189,7 @@ h2[data-fv-section].fv-search-match {
     .health-breakdown-btn,
     .updates-chip
 ):focus-visible {
-    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
     color: var(--fvplus-settings-text-primary) !important;
 }
@@ -9695,9 +10362,7 @@ tr.is-long-press-active {
     padding: 0.48rem 0.58rem;
     border: 1px solid color-mix(in srgb, var(--fvplus-settings-accent) 24%, var(--fvplus-settings-border-faint));
     border-radius: 12px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--fvplus-settings-accent) 13%, transparent), transparent 58%),
-        var(--fvplus-settings-surface-strong);
+    background: var(--fvplus-settings-surface-strong);
 }
 
 .fv-row-quick-actions-title {

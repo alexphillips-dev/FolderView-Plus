@@ -18,6 +18,7 @@ archive_prune_keep_raw="${FVPLUS_ARCHIVE_PRUNE_KEEP:-24}"
 archive_prune_keep=24
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 validate_after_build=true
+fast_source_snapshot=false
 dry_run=false
 run_install_smoke=false
 tmpdir=""
@@ -77,6 +78,10 @@ detect_git_head_tree_sha() {
 detect_git_source_snapshot_mode() {
     if ! command -v git >/dev/null 2>&1 || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         printf '%s' "unknown"
+        return
+    fi
+    if [ "${fast_source_snapshot:-false}" = true ]; then
+        printf '%s' "fast-worktree"
         return
     fi
     if ! git diff --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
@@ -529,6 +534,10 @@ if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
     exit 1
 fi
 
+if [ "$branch" = "dev" ] && [ "$validate_after_build" = false ]; then
+    fast_source_snapshot=true
+fi
+
 if [ -n "$version_override" ]; then
     if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
@@ -585,6 +594,7 @@ if [ "$dry_run" = true ]; then
     echo "Archive retention keep count: $archive_prune_keep"
     echo "CHANGES helper timeout seconds: $changes_entry_timeout"
     echo "Post-build validation: $validate_after_build"
+    echo "Fast source snapshot: $fast_source_snapshot"
     echo "Install smoke: $run_install_smoke"
     exit 0
 fi

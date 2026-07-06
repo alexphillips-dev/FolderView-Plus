@@ -8,6 +8,8 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
 const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
 const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
@@ -22,6 +24,7 @@ const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
+const themeWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
@@ -183,7 +186,7 @@ test('wizard apply path records perf telemetry and settings CSS keeps simplified
 });
 
 test('settings headings keep dedicated orange title accents across dark themes', () => {
-    assert.match(settingsCss, /--fvplus-settings-title-accent:\s*#ff9a3c/);
+    assert.match(settingsCss, /--fvplus-settings-title-accent:\s*var\(--fvplus-graphite-accent-strong,\s*#ff9d36\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-title-accent:\s*#be6b18/);
     assert.match(settingsCss, /#fv-settings-root h2\[data-fv-section\],[\s\S]*#fv-settings-root \.settings-mini-title,[\s\S]*#fv-settings-root \.rules-header h3,[\s\S]*color:\s*var\(--fvplus-settings-title-accent\) !important;/);
 });
@@ -243,7 +246,7 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
-    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'appearance', 'diagnostics'\];/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'startup', 'appearance', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
@@ -258,6 +261,19 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
 
 test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
+    assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
+    assert.match(settingsPage, /id="fv-theme-scan-result"/);
+    assert.match(settingsPage, /onclick="scanThemeWorkspaceGithub\(\)"/);
+    assert.match(settingsPage, /id="fv-theme-preview-sample"/);
+    assert.match(themeWorkspaceJs, /scanGithub:\s*\(source\) => safeAction\('Theme scan'/);
+    assert.match(themeWorkspaceJs, /updateTheme:\s*\(themeId\) => safeAction\('Theme update'/);
+    assert.match(themeWorkspaceJs, /resetTokens/);
+    assert.doesNotMatch(themeWorkspaceJs, /fv-theme-workspace-preview-style/);
+    assert.match(themeWorkspacePhp, /scan_github/);
+    assert.match(themeWorkspacePhp, /update_theme/);
+    assert.match(libPhp, /function scanThemeWorkspaceGithub\(string \$sourceInput\): array/);
+    assert.match(libPhp, /function updateThemeWorkspaceTheme\(string \$themeId\): array/);
+    assert.match(libPhp, /function fvplusThemeWorkspaceNormalizeColorValue\(\$value\): string/);
     assert.match(settingsSectionsJs, /appearance:\s*'Appearance'/);
     assert.match(settingsSectionsJs, /'theme-workspace':\s*'appearance'/);
     assert.match(settingsSectionsJs, /appearance:\s*Object\.freeze\(\[\]\)/);
@@ -329,6 +345,14 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.match(settingsCss, /\.fv-recovery-empty-state\.is-ok/);
     assert.match(settingsCss, /\.fv-recovery-empty-state\.is-warning/);
     assert.doesNotMatch(settingsSectionsJs, /'folder-templates':\s*'operations'/);
+});
+
+test('Docker start order lives in its own startup advanced tab', () => {
+    assert.match(settingsSectionsJs, /startup:\s*'Start Order'/);
+    assert.match(settingsSectionsJs, /'docker-start-order':\s*'startup'/);
+    assert.match(settingsPage, /<h2 data-fv-section="docker-start-order" data-fv-advanced="1" data-fv-advanced-group="startup">Docker start order<\/h2>/);
+    assert.match(settingsPage, /id="docker-start-order-workspace"/);
+    assert.doesNotMatch(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-start-order-workspace"[\s\S]*data-fv-operations-panel="vm"/);
 });
 
 test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {

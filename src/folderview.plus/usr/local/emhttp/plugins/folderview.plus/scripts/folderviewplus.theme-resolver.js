@@ -273,18 +273,19 @@
     } = {}) => {
         const isDark = classification === 'dark';
         const safeDark = {
-            textPrimary: parseThemeColorToRgba('#e7eef9'),
-            textMuted: parseThemeColorToRgba('#c5d4e8'),
-            textDim: parseThemeColorToRgba('#a7bad1'),
+            textPrimary: parseThemeColorToRgba('#f2f2f3'),
+            textMuted: parseThemeColorToRgba('#b6b6ba'),
+            textDim: parseThemeColorToRgba('#8d8d92'),
             borderSubtle: parseThemeColorToRgba('rgba(255,255,255,0.16)'),
             borderFaint: parseThemeColorToRgba('rgba(255,255,255,0.1)'),
             surfaceMuted: parseThemeColorToRgba('rgba(255,255,255,0.03)'),
-            surfaceStrong: parseThemeColorToRgba('rgba(0,0,0,0.2)'),
-            surfacePanel: parseThemeColorToRgba('rgba(0,0,0,0.14)'),
-            accent: accent || parseThemeColorToRgba('#4da3ff'),
-            accentSoft: parseThemeColorToRgba('rgba(77,163,255,0.2)'),
-            focusRing: parseThemeColorToRgba('rgba(103,214,255,0.42)'),
-            runtimeForeground: parseThemeColorToRgba('#e7eef9'),
+            surfaceStrong: parseThemeColorToRgba('#242426'),
+            surfacePanel: parseThemeColorToRgba('#171718'),
+            surfaceCard: parseThemeColorToRgba('#1d1d1f'),
+            accent: accent || parseThemeColorToRgba('#ff8a1f'),
+            accentSoft: parseThemeColorToRgba('rgba(255,138,31,0.14)'),
+            focusRing: parseThemeColorToRgba('rgba(74,179,255,0.34)'),
+            runtimeForeground: parseThemeColorToRgba('#f2f2f3'),
             statusPaused: parseThemeColorToRgba('#d09a24'),
             statusStopped: parseThemeColorToRgba('#ff7474')
         };
@@ -297,6 +298,7 @@
             surfaceMuted: parseThemeColorToRgba('rgba(16,24,38,0.04)'),
             surfaceStrong: parseThemeColorToRgba('rgba(255,255,255,0.72)'),
             surfacePanel: parseThemeColorToRgba('rgba(255,255,255,0.82)'),
+            surfaceCard: parseThemeColorToRgba('rgba(255,255,255,0.98)'),
             accent: accent || parseThemeColorToRgba('#2f78d8'),
             accentSoft: parseThemeColorToRgba('rgba(47,120,216,0.15)'),
             focusRing: parseThemeColorToRgba('rgba(48,116,214,0.44)'),
@@ -306,7 +308,7 @@
         };
         const baseSafe = isDark ? safeDark : safeLight;
         const hostForeground = hostText || baseSafe.textPrimary;
-        const hostSurface = hostBackground || (isDark ? parseThemeColorToRgba('#0f1825') : parseThemeColorToRgba('#f6f8fc'));
+        const hostSurface = hostBackground || (isDark ? parseThemeColorToRgba('#0f0f10') : parseThemeColorToRgba('#f6f8fc'));
         const hostPalette = {
             textPrimary: hostForeground,
             textMuted: themeBlendColors(hostForeground, hostSurface, 0.72) || baseSafe.textMuted,
@@ -316,6 +318,7 @@
             surfaceMuted: baseSafe.surfaceMuted,
             surfaceStrong: baseSafe.surfaceStrong,
             surfacePanel: baseSafe.surfacePanel,
+            surfaceCard: baseSafe.surfaceCard,
             accent: accent || baseSafe.accent,
             accentSoft: baseSafe.accentSoft,
             focusRing: baseSafe.focusRing,
@@ -352,6 +355,7 @@
         surfaceMuted: themeRgbaToCss(tokens.surfaceMuted),
         surfaceStrong: themeRgbaToCss(tokens.surfaceStrong),
         surfacePanel: themeRgbaToCss(tokens.surfacePanel),
+        surfaceCard: themeRgbaToCss(tokens.surfaceCard),
         accent: themeRgbaToCss(tokens.accent),
         accentSoft: themeRgbaToCss(tokens.accentSoft),
         focusRing: themeRgbaToCss(tokens.focusRing),
@@ -436,10 +440,10 @@
         return {
             editorBg: isLight
                 ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.99))'
-                : 'linear-gradient(145deg, rgba(30, 30, 30, 0.96), rgba(16, 16, 16, 0.96))',
+                : '#0f0f10',
             editorPanel: isLight
                 ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 247, 252, 0.98))'
-                : 'linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015))',
+                : '#1d1d1f',
             editorBorder: editorOutline,
             editorBorderStrong: editorOutlineStrong,
             editorTextPrimary: themeRgbaToCss(palette.textPrimary),
@@ -453,13 +457,13 @@
             editorHeroIconBorder: editorOutline,
             editorHeroIconBg: isLight
                 ? `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.72))`
-                : `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.03))`,
+                : '#242426',
             editorControlBorder: editorOutline,
-            editorControlSurface: isLight ? 'rgba(255, 255, 255, 0.74)' : 'rgba(255, 255, 255, 0.03)',
-            editorControlSurfaceHover: themeRgbaToCss(palette.accent, 0.08),
+            editorControlSurface: isLight ? 'rgba(255, 255, 255, 0.74)' : '#242426',
+            editorControlSurfaceHover: isLight ? themeRgbaToCss(palette.accent, 0.08) : '#29292b',
             editorControlSurfaceActive: themeRgbaToCss(palette.accent, 0.14),
-            editorInputBg: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(10, 10, 10, 0.34)',
-            editorInsetSurface: isLight ? 'rgba(18, 26, 38, 0.03)' : 'rgba(255, 255, 255, 0.025)',
+            editorInputBg: isLight ? 'rgba(255, 255, 255, 0.92)' : '#111112',
+            editorInsetSurface: isLight ? 'rgba(18, 26, 38, 0.03)' : '#1a1a1b',
             editorShadow: isLight ? '0 16px 38px rgba(18, 24, 38, 0.14)' : '0 16px 38px rgba(0, 0, 0, 0.26)',
             editorFocusRing: themeRgbaToCss(palette.focusRing),
             editorNavCountBg: themeRgbaToCss(palette.accent, 0.16),
@@ -506,6 +510,7 @@
             settingsSurfaceMuted: baseTokens.surfaceMuted,
             settingsSurfaceStrong: baseTokens.surfaceStrong,
             settingsSurfacePanel: baseTokens.surfacePanel,
+            settingsSurfaceCard: baseTokens.surfaceCard,
             settingsAccent: baseTokens.accent,
             settingsAccentSoft: baseTokens.accentSoft,
             settingsFocusRing: baseTokens.focusRing,
@@ -536,7 +541,7 @@
             parseThemeColorToRgba(rootStyle?.backgroundColor),
             parseThemeColorToRgba(bodyStyle?.backgroundColor),
             parseThemeColorToRgba(htmlStyle?.backgroundColor),
-            parseThemeColorToRgba('#0f1825')
+            parseThemeColorToRgba('#0f0f10')
         );
         const hostForeground = resolveThemeColorCandidate(
             styleSources,
@@ -546,7 +551,7 @@
         const hostAccent = resolveThemeColorCandidate(
             styleSources,
             ['--orange', '--fvplus-dashboard-accent', '--accent'],
-            parseThemeColorToRgba('#4da3ff')
+            parseThemeColorToRgba('#ff8a1f')
         );
         const backgroundLuminance = themeRgbaLuminance(rootBackground);
         const foregroundLuminance = themeRgbaLuminance(hostForeground);
@@ -686,6 +691,7 @@
             '--fvplus-theme-surface-muted': tokens.surfaceMuted || '',
             '--fvplus-theme-surface-strong': tokens.surfaceStrong || '',
             '--fvplus-theme-surface-panel': tokens.surfacePanel || '',
+            '--fvplus-theme-surface-card': tokens.surfaceCard || '',
             '--fvplus-theme-accent': tokens.accent || '',
             '--fvplus-theme-accent-soft': tokens.accentSoft || '',
             '--fvplus-theme-focus-ring': tokens.focusRing || '',
@@ -707,6 +713,7 @@
             '--fvplus-settings-surface-muted': tokens.settingsSurfaceMuted || '',
             '--fvplus-settings-surface-strong': tokens.settingsSurfaceStrong || '',
             '--fvplus-settings-surface-panel': tokens.settingsSurfacePanel || '',
+            '--fvplus-settings-surface-card': tokens.settingsSurfaceCard || '',
             '--fvplus-settings-accent': tokens.settingsAccent || '',
             '--fvplus-settings-accent-soft': tokens.settingsAccentSoft || '',
             '--fvplus-settings-focus-ring': tokens.settingsFocusRing || '',

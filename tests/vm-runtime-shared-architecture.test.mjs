@@ -17,6 +17,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
+    const themeTokensCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const sharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const vmCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     assert.ok(fatalBannerIndex >= 0, 'vm page should load the shared fatal banner runtime');
@@ -24,6 +25,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
+    assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet missing from VMs page');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet missing from VMs page');
     assert.ok(vmCssIndex >= 0, 'vm stylesheet missing from VMs page');
     assert.match(vmPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
@@ -34,6 +36,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');
+    assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
     assert.ok(sharedCssIndex < vmCssIndex, 'shared runtime stylesheet must load before vm.css');
 });
 

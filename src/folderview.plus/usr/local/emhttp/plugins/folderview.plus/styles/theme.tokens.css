@@ -1,0 +1,180 @@
+:root {
+    --fvplus-graphite-page: #0f0f10;
+    --fvplus-graphite-panel: #171718;
+    --fvplus-graphite-card: #1d1d1f;
+    --fvplus-graphite-card-raised: #242426;
+    --fvplus-graphite-input: #111112;
+    --fvplus-graphite-inset: #141415;
+    --fvplus-graphite-field: #1a1a1b;
+
+    --fvplus-graphite-text-primary: #f2f4f7;
+    --fvplus-graphite-text-muted: #a8b0bc;
+    --fvplus-graphite-text-dim: #7d8794;
+
+    --fvplus-graphite-border-faint: rgba(255, 255, 255, 0.08);
+    --fvplus-graphite-border-subtle: rgba(255, 255, 255, 0.12);
+    --fvplus-graphite-border-strong: rgba(255, 255, 255, 0.18);
+
+    --fvplus-graphite-accent: #ff8a1f;
+    --fvplus-graphite-accent-strong: #ff9d36;
+    --fvplus-graphite-accent-soft: rgba(255, 138, 31, 0.14);
+    --fvplus-graphite-accent-softer: rgba(255, 138, 31, 0.08);
+    --fvplus-graphite-focus: rgba(74, 179, 255, 0.42);
+    --fvplus-graphite-focus-soft: rgba(74, 179, 255, 0.14);
+
+    --fvplus-graphite-success: #45d483;
+    --fvplus-graphite-warning: #e0aa18;
+    --fvplus-graphite-danger: #ff4d5d;
+    --fvplus-graphite-info: #4ab3ff;
+
+    --fvplus-graphite-panel-bg: var(--fvplus-graphite-panel);
+    --fvplus-graphite-card-bg: var(--fvplus-graphite-card);
+    --fvplus-graphite-raised-bg: var(--fvplus-graphite-card-raised);
+    --fvplus-graphite-field-bg: var(--fvplus-graphite-field);
+    --fvplus-graphite-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+    --fvplus-graphite-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.22);
+
+    --fvplus-ui-page: var(--fvplus-graphite-page);
+    --fvplus-ui-panel: var(--fvplus-graphite-panel-bg);
+    --fvplus-ui-card: var(--fvplus-graphite-card-bg);
+    --fvplus-ui-card-raised: var(--fvplus-graphite-card-raised);
+    --fvplus-ui-field: var(--fvplus-graphite-field-bg);
+    --fvplus-ui-input: var(--fvplus-graphite-input);
+    --fvplus-ui-muted: rgba(255, 255, 255, 0.025);
+    --fvplus-ui-strong: var(--fvplus-graphite-raised-bg);
+    --fvplus-ui-control: var(--fvplus-graphite-card-raised);
+    --fvplus-ui-control-hover: #29292b;
+    --fvplus-ui-control-active: var(--fvplus-graphite-accent-soft);
+    --fvplus-ui-text-primary: var(--fvplus-graphite-text-primary);
+    --fvplus-ui-text-muted: var(--fvplus-graphite-text-muted);
+    --fvplus-ui-text-dim: var(--fvplus-graphite-text-dim);
+    --fvplus-ui-border-faint: var(--fvplus-graphite-border-faint);
+    --fvplus-ui-border-subtle: var(--fvplus-graphite-border-subtle);
+    --fvplus-ui-border-strong: var(--fvplus-graphite-border-strong);
+    --fvplus-ui-accent: var(--fvplus-graphite-accent);
+    --fvplus-ui-accent-strong: var(--fvplus-graphite-accent-strong);
+    --fvplus-ui-accent-soft: var(--fvplus-graphite-accent-soft);
+    --fvplus-ui-focus-ring: var(--fvplus-graphite-focus);
+    --fvplus-ui-shadow: var(--fvplus-graphite-shadow);
+
+    --fvplus-theme-text-primary: var(--fvplus-ui-text-primary);
+    --fvplus-theme-text-muted: var(--fvplus-ui-text-muted);
+    --fvplus-theme-text-dim: var(--fvplus-ui-text-dim);
+    --fvplus-theme-border-subtle: var(--fvplus-ui-border-subtle);
+    --fvplus-theme-border-faint: var(--fvplus-ui-border-faint);
+    --fvplus-theme-border-strong: var(--fvplus-ui-border-strong);
+    --fvplus-theme-surface-muted: var(--fvplus-ui-muted);
+    --fvplus-theme-surface-strong: var(--fvplus-ui-strong);
+    --fvplus-theme-surface-panel: var(--fvplus-ui-panel);
+    --fvplus-theme-surface-card: var(--fvplus-ui-card);
+    --fvplus-theme-input-bg: var(--fvplus-ui-input);
+    --fvplus-theme-accent: var(--fvplus-ui-accent);
+    --fvplus-theme-accent-strong: var(--fvplus-ui-accent-strong);
+    --fvplus-theme-accent-soft: var(--fvplus-ui-accent-soft);
+    --fvplus-theme-focus-ring: var(--fvplus-ui-focus-ring);
+    --fvplus-theme-shadow: var(--fvplus-ui-shadow);
+
+    --fvplus-editor-bg: var(--fvplus-ui-page);
+    --fvplus-editor-panel: var(--fvplus-ui-card);
+    --fvplus-editor-border: var(--fvplus-ui-border-subtle);
+    --fvplus-editor-border-strong: color-mix(in srgb, var(--fvplus-ui-accent) 54%, var(--fvplus-ui-border-strong));
+    --fvplus-editor-text-primary: var(--fvplus-ui-text-primary);
+    --fvplus-editor-muted: var(--fvplus-ui-text-muted);
+    --fvplus-editor-dim: var(--fvplus-ui-text-dim);
+    --fvplus-editor-accent: var(--fvplus-ui-accent);
+    --fvplus-editor-title-accent: var(--fvplus-ui-accent-strong);
+    --fvplus-editor-accent-soft: var(--fvplus-ui-accent-soft);
+    --fvplus-editor-control-border: var(--fvplus-ui-border-faint);
+    --fvplus-editor-block-border: var(--fvplus-ui-border-subtle);
+    --fvplus-editor-block-border-strong: var(--fvplus-ui-border-strong);
+    --fvplus-editor-control-surface: var(--fvplus-ui-control);
+    --fvplus-editor-control-surface-hover: var(--fvplus-ui-control-hover);
+    --fvplus-editor-control-surface-active: var(--fvplus-ui-control-active);
+    --fvplus-editor-input-bg: var(--fvplus-ui-input);
+    --fvplus-editor-inset-surface: var(--fvplus-ui-field);
+    --fvplus-editor-shadow: var(--fvplus-ui-shadow);
+    --fvplus-editor-focus-ring: var(--fvplus-ui-focus-ring);
+    --fvplus-editor-nav-count-bg: rgba(255, 255, 255, 0.06);
+    --fvplus-editor-nav-count-text: var(--fvplus-graphite-text-muted);
+    --fvplus-editor-info: var(--fvplus-graphite-info);
+    --fvplus-editor-hero-icon-border: var(--fvplus-graphite-border-subtle);
+    --fvplus-editor-hero-icon-bg: var(--fvplus-ui-card-raised);
+
+    --fvplus-runtime-menu-bg: rgba(18, 18, 19, 0.985);
+    --fvplus-runtime-menu-fg: var(--fvplus-graphite-text-primary);
+    --fvplus-runtime-menu-border: var(--fvplus-graphite-border-strong);
+    --fvplus-runtime-menu-divider: var(--fvplus-graphite-border-faint);
+    --fvplus-runtime-menu-hover-bg: var(--fvplus-graphite-accent-soft);
+    --fvplus-runtime-menu-hover-fg: #fff7ef;
+    --fvplus-runtime-menu-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
+    --fvplus-runtime-menu-header-bg: rgba(255, 255, 255, 0.04);
+    --fvplus-runtime-menu-muted: var(--fvplus-graphite-text-muted);
+}
+
+html[data-fvplus-host-theme="white"],
+body[data-fvplus-host-theme="white"],
+html[data-fv-host-theme="white"],
+body[data-fv-host-theme="white"],
+body[data-fv-theme-class="light"] {
+    --fvplus-ui-page: rgba(248, 249, 251, 0.985);
+    --fvplus-ui-panel: rgba(248, 249, 251, 0.985);
+    --fvplus-ui-card: rgba(255, 255, 255, 0.98);
+    --fvplus-ui-card-raised: rgba(255, 255, 255, 0.7);
+    --fvplus-ui-field: rgba(102, 115, 133, 0.08);
+    --fvplus-ui-input: rgba(255, 255, 255, 0.92);
+    --fvplus-ui-muted: rgba(102, 115, 133, 0.08);
+    --fvplus-ui-strong: rgba(248, 249, 251, 0.96);
+    --fvplus-ui-control: rgba(255, 255, 255, 0.58);
+    --fvplus-ui-control-hover: rgba(190, 107, 24, 0.08);
+    --fvplus-ui-control-active: rgba(190, 107, 24, 0.14);
+    --fvplus-ui-text-primary: var(--text, #2b3441);
+    --fvplus-ui-text-muted: rgba(85, 100, 118, 0.86);
+    --fvplus-ui-text-dim: rgba(105, 117, 133, 0.82);
+    --fvplus-ui-border-subtle: rgba(121, 133, 148, 0.2);
+    --fvplus-ui-border-faint: rgba(121, 133, 148, 0.14);
+    --fvplus-ui-border-strong: rgba(121, 133, 148, 0.3);
+    --fvplus-ui-accent: #be6b18;
+    --fvplus-ui-accent-strong: #9a540f;
+    --fvplus-ui-accent-soft: rgba(190, 107, 24, 0.12);
+    --fvplus-ui-focus-ring: rgba(47, 110, 166, 0.32);
+    --fvplus-ui-shadow: 0 12px 28px rgba(72, 84, 99, 0.14);
+
+    --fvplus-theme-text-primary: var(--fvplus-ui-text-primary);
+    --fvplus-theme-text-muted: var(--fvplus-ui-text-muted);
+    --fvplus-theme-text-dim: var(--fvplus-ui-text-dim);
+    --fvplus-theme-border-subtle: var(--fvplus-ui-border-subtle);
+    --fvplus-theme-border-faint: var(--fvplus-ui-border-faint);
+    --fvplus-theme-border-strong: var(--fvplus-ui-border-strong);
+    --fvplus-theme-surface-muted: var(--fvplus-ui-muted);
+    --fvplus-theme-surface-strong: var(--fvplus-ui-strong);
+    --fvplus-theme-surface-panel: var(--fvplus-ui-panel);
+    --fvplus-theme-surface-card: var(--fvplus-ui-card);
+    --fvplus-theme-input-bg: var(--fvplus-ui-input);
+    --fvplus-theme-accent: var(--fvplus-ui-accent);
+    --fvplus-theme-accent-strong: var(--fvplus-ui-accent-strong);
+    --fvplus-theme-accent-soft: var(--fvplus-ui-accent-soft);
+    --fvplus-theme-focus-ring: var(--fvplus-ui-focus-ring);
+    --fvplus-theme-shadow: var(--fvplus-ui-shadow);
+
+    --fvplus-editor-bg: var(--fvplus-ui-page);
+    --fvplus-editor-panel: var(--fvplus-ui-card);
+    --fvplus-editor-border: var(--fvplus-ui-border-subtle);
+    --fvplus-editor-border-strong: rgba(190, 107, 24, 0.42);
+    --fvplus-editor-text-primary: var(--fvplus-ui-text-primary);
+    --fvplus-editor-muted: var(--fvplus-ui-text-muted);
+    --fvplus-editor-dim: var(--fvplus-ui-text-dim);
+    --fvplus-editor-accent: var(--fvplus-ui-accent);
+    --fvplus-editor-title-accent: var(--fvplus-ui-accent);
+    --fvplus-editor-accent-soft: var(--fvplus-ui-accent-soft);
+    --fvplus-editor-control-border: var(--fvplus-ui-border-subtle);
+    --fvplus-editor-block-border: var(--fvplus-ui-border-faint);
+    --fvplus-editor-block-border-strong: var(--fvplus-ui-border-strong);
+    --fvplus-editor-control-surface: var(--fvplus-ui-control);
+    --fvplus-editor-control-surface-hover: var(--fvplus-ui-control-hover);
+    --fvplus-editor-control-surface-active: var(--fvplus-ui-control-active);
+    --fvplus-editor-input-bg: var(--fvplus-ui-input);
+    --fvplus-editor-inset-surface: var(--fvplus-ui-field);
+    --fvplus-editor-shadow: var(--fvplus-ui-shadow);
+    --fvplus-editor-focus-ring: var(--fvplus-ui-focus-ring);
+    --fvplus-editor-hero-icon-bg: var(--fvplus-ui-card-raised);
+}

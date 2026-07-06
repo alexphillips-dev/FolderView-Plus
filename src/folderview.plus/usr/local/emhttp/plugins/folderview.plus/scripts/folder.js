@@ -3538,7 +3538,7 @@ const startFolderEditorRuntime = async () => {
     const typeMemberMapper = typeof getFolderEditorTypeApi()?.mapRuntimeMember === 'function'
         ? getFolderEditorTypeApi().mapRuntimeMember
         : ((entry) => entry);
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise()))
+    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state&_=${cacheBust}`).promise()))
         .map((entry) => typeMemberMapper(entry))
         .filter((entry) => entry && String(entry.Name || '').trim() !== '');
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';

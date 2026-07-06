@@ -3,7 +3,7 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 fvplus_json_try(function (): array {
     $action = (string)($_REQUEST['action'] ?? 'read');
-    $mutatingActions = ['import_github', 'activate', 'deactivate', 'delete', 'save_customize', 'check_updates'];
+    $mutatingActions = ['import_github', 'activate', 'deactivate', 'delete', 'save_customize', 'check_updates', 'update_theme'];
     if (in_array($action, $mutatingActions, true)) {
         requireMutationRequestGuard();
     }
@@ -17,6 +17,11 @@ fvplus_json_try(function (): array {
     if ($action === 'import_github') {
         $source = (string)($_POST['source'] ?? '');
         return importThemeWorkspaceGithub($source);
+    }
+
+    if ($action === 'scan_github') {
+        $source = (string)($_POST['source'] ?? $_REQUEST['source'] ?? '');
+        return scanThemeWorkspaceGithub($source);
     }
 
     if ($action === 'activate') {
@@ -53,6 +58,13 @@ fvplus_json_try(function (): array {
 
     if ($action === 'check_updates') {
         return checkThemeWorkspaceUpdates();
+    }
+
+    if ($action === 'update_theme') {
+        $themeId = (string)($_POST['themeId'] ?? '');
+        return [
+            'workspace' => updateThemeWorkspaceTheme($themeId)
+        ];
     }
 
     throw new RuntimeException('Unsupported theme workspace action.');

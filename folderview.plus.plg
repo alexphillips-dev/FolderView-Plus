@@ -6,29 +6,166 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.07.01.10">
-<!ENTITY md5 "8bb759c48a9a22f88278fe69faa55c30">
+<!ENTITY version "2026.07.06.10">
+<!ENTITY md5 "c6303a348ea6d731c5beb826861254d4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.07.01.10
-- Feature: Stable rollup of all dev changes since `v2026.06.25.16`, including the redesigned folder editor, child-folder ordering, Docker folder menu hierarchy actions, hover animations, Recovery workspace updates, and Setup Assistant overhaul.
-- UX: Reworked editor tabs, parent/icon/preview/status/advanced sections, settings action modal, Recovery workspace, activity center, and wizard steps for clearer beginner-friendly workflows.
-- Performance: Reduced Docker tab first-load jiggle, improved visual row ordering after folder moves, and refreshed the accepted performance baseline for the larger runtime bundle.
-- Fix: Corrected release validation contracts, setup assistant bootstrap rendering, live nested-folder preview data, empty-backup restore behavior, Recovery layout overlap, menu viewport placement, and hover animation runtime wiring.
-- Docs: Added full curated release notes for this stable release and updated the GitHub banner/readme cleanup.
-- Quality: Added and refreshed regression coverage for editor layout, hover animations, preview border glow, Docker quick actions, folder ordering, settings bindings, theme compatibility, UI smoke layout, and performance checks.
+###2026.07.06.10
+- Feature: Add Docker start order controls with a dedicated Settings > Advanced > Start Order tab, current Docker-page order sync, custom startup batches, folder/container batch items, remaining-container placement, preview, and manual sync without rewriting unrelated Docker preferences.
+- Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained preview sample.
+- UX: Rework the Settings advanced tab strip to match the modern folder editor tabs, remove numeric suffixes, and move Docker start order out of Operations into its own workspace.
+- UX: Refresh the Docker Start Order workspace with cleaner dark-mode panels, brighter neutral action buttons, clearer startup controls, separated autostart preview, and non-duplicated Preview Order and Sync Now actions.
+- UX: Add a shared graphite/true-dark token foundation across Settings, the folder editor, Docker, VM, Dashboard, setup wizard, recovery, activity, and runtime menu surfaces so the plugin uses flatter black/gray panels instead of warm brown or blue-slate gradients.
+- UX: Polish the modern folder editor General tab Parent Folder picker with flat dark surfaces, full-width search controls, centered search icon, compact Clear button, squarer chips, and left-aligned folder names with paths beside them.
+- Docs: Overhaul the GitHub README into a cleaner product-style landing page with the new banner, polished quick links, two-column screenshots, feature summaries, install/support sections, and refreshed screenshots.
+- Performance: Cache tracked Settings inputs and the Settings section registry so lightweight refreshes no longer rescan every input or rebuild every section heading.
+- Performance: Make advanced Settings tab switches hydrate and refresh only the active workspace, defer hidden secondary workspace refreshes, and queue Settings table redraws so repeated UI updates collapse into fewer renders.
+- Performance: Improve Docker Start Order responsiveness by preserving the preview panel, caching folder/container select options, batching preference saves, and debouncing expensive autostart preview refreshes.
+- Performance: Use lightweight cached runtime state for Settings and the modern folder editor, remove duplicate editor boot module loads, extend non-live runtime info cache windows, and keep first-paint Docker tab work lighter.
+- Fix: Correct Settings health/status detection when using lightweight Docker runtime state so stopped containers are no longer counted as started.
+- Fix: Restore and guard the Settings primary text theme-token contract used by the GitHub checks and refreshed Start Order styles.
+- Fix: Restrict Theme Workspace token overrides to safe color values and stop raw custom CSS from being injected into the Settings page during live editing.
+- Quality: Add Docker start order server, settings UI, Docker runtime, and regression coverage for planning and sync behavior.
+- Quality: Add and refresh regression coverage for dark-mode tokens, parent picker layout, Settings performance paths, Theme Workspace scan/update/reset behavior, contained previews, server action wiring, and CI guard contracts.
+
+
+###2026.07.06.09
+- Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained token preview sample.
+- Fix: Restrict Theme Workspace token overrides to safe color values and stop raw custom CSS from being injected into the Settings page during live editing.
+- Test: Add regression coverage for Theme Workspace scan, update, reset, contained preview, and server action wiring.
+
+###2026.07.06.08
+- Docs: Render the refreshed README screenshot set inline, restore required Settings, recovery, troubleshooting, and customization sections, and keep support policy links in the polished README.
+- Fix: Load the shared folder editor icon module before Docker/VM editor type modules during boot-loaded editor startup.
+
+###2026.07.06.07
+- Docs: Refresh README screenshots and wire the new advanced workspace image into the GitHub landing page.
+
+###2026.07.06.06
+- Docs: Overhaul the GitHub README into a cleaner product-style landing page with polished quick links, two-column screenshots, feature summaries, and streamlined install/support sections.
+
+###2026.07.06.05
+- UI: Align the Docker Start Order advanced tab with the shared dark-mode Settings tokens so it matches the rest of the Advanced tabs.
+
+###2026.07.06.04
+- UI: Consolidate Settings, setup wizard, and folder editor dark-mode surfaces behind shared style tokens so future palette updates apply consistently across the plugin.
+
+###2026.07.06.03
+- Performance: Cache tracked Settings inputs so lightweight refreshes no longer rescan every input/control while updating dirty and validation state.
+
+###2026.07.06.02
+- Performance: Cache the Settings section registry so lightweight refreshes no longer rescan and rebuild every section heading unless the Settings structure changes.
+
+###2026.07.06.01
+- Performance: Make advanced Settings tab switches hydrate and refresh only the active workspace, and stop advanced data loads from refreshing hidden Diagnostics health cards.
+
+###2026.07.04.04
+- Performance: Make deferred Settings workspace refreshes tab-aware so table redraws only update the active advanced workspace instead of rebuilding every hidden advanced tab.
+
+###2026.07.04.03
+- Performance: Defer expensive secondary Settings workspaces after table redraws so folder rows update first while rules, templates, health cards, operations, and Start Order refresh in a coalesced next-frame pass.
+
+###2026.07.04.02
+- Performance: Queue Settings table redraws for folder filters and lightweight preference changes so quick UI interactions collapse into one next-frame rebuild instead of repeated synchronous renders.
+
+###2026.07.04.01
+- Performance: Make Docker Start Order settings update faster by preserving the preview panel, caching folder/container select options, and re-rendering only the controls and batch list during edits.
+
+###2026.07.03.01
+- Fix: Correct Settings health/status detection when using lightweight Docker runtime state so stopped containers are no longer counted as started.
+
+###2026.07.02.13
+- Performance: Rebuild the Phase 1 runtime-info optimization with a clean dev package after the interrupted 2026.07.02.12 package attempt.
+
+###2026.07.02.12
+- Performance: Use lightweight cached runtime state for Settings and the modern folder editor, remove duplicate editor boot module loads, and extend non-live runtime info cache windows.
+
+###2026.07.02.11
+- UI/UX: Remove duplicate Start Order action buttons so Preview Order and Sync Now render once in a consistent toolbar.
+
+###2026.07.02.10
+- Performance: Make Start Order settings respond immediately by batching preference saves and debouncing the expensive autostart preview refresh.
+
+###2026.07.02.09
+- UI/UX: Brighten Start Order action buttons by default and reserve orange text/border emphasis for hover and focus states.
+
+###2026.07.02.08
+- UI/UX: Make Start Order action buttons use a consistent neutral dark treatment instead of highlighting Add Batch as a filled primary action.
+
+###2026.07.02.07
+- UI/UX: Brighten the Start Order workspace dark surfaces and force the Start Order action buttons to use the intended orange filled and outlined treatments.
+
+###2026.07.02.06
+- UI/UX: Restyle the Start Order advanced tab with a cleaner dark-mode workspace, stronger startup controls, clearer batch actions, and a separated autostart preview panel.
+
+###2026.07.02.05
+- Quality: Use supported changelog categories for the Settings advanced tab polish release notes so the GitHub guard suite passes.
+
+###2026.07.02.04
+- UI/UX: Restyle the Settings advanced tab strip to match the modern folder editor tabs, including clearer active-tab highlighting and larger icon labels.
+- UI/UX: Remove numeric suffixes from the Settings advanced tabs.
+- UI/UX: Move Docker start order controls out of Operations into a dedicated Start Order advanced tab.
+
+###2026.07.02.03
+- Quality: Align the theme compatibility node test with the Settings primary text token contract enforced by the GitHub guard suite.
+
+###2026.07.02.02
+- Fix: Restore the Settings primary text theme token contract so the GitHub guard suite passes with the refreshed Docker start order UI styles.
+
+###2026.07.02.01
+- Feature: Add Docker start order controls in Settings > Advanced > Operations, including Docker-page order sync, custom batch ordering, folder/container batch items, remaining-container placement, preview, and manual sync.
+- Feature: Sync Unraid's Docker autostart order from the current folder layout without rewriting Docker user preferences, preserving existing autostart delays and skipping containers that are not enabled for autostart.
+- Quality: Add server, settings UI, Docker runtime, and regression coverage for Docker start order planning and sync behavior.
+
+###2026.07.01.19
+- Fix: Override the folder editor's generic text-input width cap for the Parent Folder search so the search bar and compact Clear button render correctly.
+- Quality: Guard the scoped Parent Folder search override so the generic editor field rules cannot shrink it again.
+
+###2026.07.01.18
+- Fix: Make the folder editor Parent Folder search row fill the module width, keep the search icon centered in the input, and compact the Clear button.
+- Quality: Extend parent picker layout coverage for full-width search controls.
+
+###2026.07.01.17
+- UX: Tighten the folder editor Parent Folder picker search row, center the search icon inside the input, shrink the Clear button, and align folder names and paths together on the left.
+- Quality: Update parent picker layout coverage for the refined search control and left-aligned folder rows.
+
+###2026.07.01.16
+- UX: Restyle the modern folder editor General tab parent folder picker with flat dark surfaces, a cleaner search row, squarer chips, and left-aligned folder names with paths beside them.
+- Quality: Update layout regression coverage for the refreshed parent folder picker and guard against the old selected-row gradients returning.
+
+
+###2026.07.01.15
+- UX: Complete the next dark-mode polish phases by moving shared Settings, folder editor, wizard, and runtime menu surfaces to a neutral black/gray palette instead of blue-slate graphite.
+- Fix: Make the runtime theme resolver emit opaque true-dark surface tokens and orange fallback accents so host theme colors no longer bleed through as a blue cast.
+- Quality: Update dark-mode regression coverage for the neutral palette and new shared surface-card resolver token.
+
+
+###2026.07.01.14
+- UX: Extend flat true-dark styling across setup wizard, recovery workspace, import progress, activity, and quick-action Settings chrome so the remaining dark surfaces use solid graphite panels instead of decorative gradients.
+- Quality: Add regression coverage for flat wizard and recovery surfaces and update the dark accent token expectation.
+
+
+###2026.07.01.13
+- UX: Flatten dark-mode Settings and folder editor chrome by removing decorative gradients from shared graphite tokens, runtime theme resolver outputs, editor modules, and shared button surfaces.
+- Fix: Prevent the theme resolver from re-injecting brown/gray gradients over the new dark-mode stylesheet tokens.
+
+
+###2026.07.01.12
+- UX: Apply the graphite dark-mode foundation to visible Settings and folder editor surfaces, replacing warm brown panel shading with neutral card and field surfaces while preserving orange as an accent.
+- Quality: Add regression coverage so editor modules, Settings cards, activity surfaces, and table shells keep using the shared graphite tokens.
+
+
+###2026.07.01.11
+- UX: Add a shared graphite dark-mode token foundation across Settings, the folder editor, Docker, VM, and Dashboard surfaces so the plugin can move away from warm brown chrome while keeping orange as the accent.
+- Maintenance: Load the new shared theme token stylesheet before page-specific styles and extend regression coverage for token and stylesheet order.
 
 
 ###2026.07.01.09
-- Feature: Stable rollup of all dev changes since `v2026.06.25.16`, including the redesigned folder editor, child-folder ordering, Docker folder menu hierarchy actions, hover animations, Recovery workspace updates, and Setup Assistant overhaul.
-- UX: Reworked folder editor tabs, General/Preview/Status/Advanced modules, live preview insights, Settings action modal, Activity Center, Recovery workspace, and wizard screens for clearer beginner-friendly workflows.
-- Performance: Reduced Docker tab first-load jiggle and column bounce with deferred non-critical work, batched row centering, cached Application column widths, and first-paint width priming.
-- Fix: Corrected hover animation runtime wiring, nested folder live preview data, child-folder member ordering, Docker menu reordering, context menu viewport placement, empty-backup restore behavior, setup assistant bootstrap binding, and Recovery layout overlap.
-- Docs: Added full curated release notes for `2026.07.01.09`, refreshed the GitHub banner, removed README clutter, and moved troubleshooting/development details out of the user-facing README.
-- Quality: Added and refreshed regression coverage for preview controls, hover animations, Docker quick actions, folder ordering, editor layout, settings bindings, performance optimizations, theme compatibility, and UI smoke behavior.
+- UX: Add a shared graphite dark-mode token foundation across Settings, the folder editor, Docker, VM, and Dashboard surfaces so the plugin can move away from warm brown chrome while keeping orange as the accent.
+- Maintenance: Load the new shared theme token stylesheet before page-specific styles and extend regression coverage for token and stylesheet order.
 
 
 ###2026.07.01.08

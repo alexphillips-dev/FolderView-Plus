@@ -65,6 +65,11 @@
         previewGraph: 1,
         previewGraphTime: 60
     };
+    const DEFAULT_DOCKER_START_ORDER = {
+        mode: 'docker-page',
+        remaining: 'after',
+        batches: []
+    };
     const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
         classic: 'Classic',
@@ -723,6 +728,51 @@
             defaultId: defaultImportPresetId,
             custom: importPresetCustom
         };
+        const startOrderRaw = isPlainObject(incoming.dockerStartOrder) ? incoming.dockerStartOrder : {};
+        const startOrderMode = String(startOrderRaw.mode || '').trim().toLowerCase();
+        const startOrderRemaining = String(startOrderRaw.remaining || '').trim().toLowerCase();
+        const startOrderBatches = [];
+        const startOrderBatchRaw = Array.isArray(startOrderRaw.batches) ? startOrderRaw.batches : [];
+        startOrderBatchRaw.forEach((batch, index) => {
+            if (!isPlainObject(batch) || startOrderBatches.length >= 100) {
+                return;
+            }
+            const items = [];
+            const rawItems = Array.isArray(batch.items) ? batch.items : [];
+            rawItems.forEach((item) => {
+                if (!isPlainObject(item) || items.length >= 2000) {
+                    return;
+                }
+                const itemType = String(item.type || '').trim().toLowerCase();
+                if (itemType === 'folder') {
+                    const id = typeof item.id === 'string' ? item.id.trim() : '';
+                    if (id) {
+                        items.push({ type: 'folder', id: id.slice(0, 64) });
+                    }
+                    return;
+                }
+                const name = typeof item.name === 'string' ? item.name.trim() : '';
+                if (name) {
+                    items.push({ type: 'container', name: name.slice(0, 255) });
+                }
+            });
+            const name = typeof batch.name === 'string' && batch.name.trim()
+                ? batch.name.trim().slice(0, 64)
+                : `Start batch ${index + 1}`;
+            startOrderBatches.push({
+                id: typeof batch.id === 'string' && batch.id.trim() ? batch.id.trim().slice(0, 64) : `batch-${index + 1}`,
+                name,
+                delay: clampNumber(batch.delay, 0, 3600, 0),
+                parallel: batch.parallel === true,
+                useFolderOrder: !Object.prototype.hasOwnProperty.call(batch, 'useFolderOrder') ? true : batch.useFolderOrder !== false,
+                items
+            });
+        });
+        const dockerStartOrder = {
+            mode: ['docker-page', 'custom-batches'].includes(startOrderMode) ? startOrderMode : DEFAULT_DOCKER_START_ORDER.mode,
+            remaining: ['after', 'before', 'keep'].includes(startOrderRemaining) ? startOrderRemaining : DEFAULT_DOCKER_START_ORDER.remaining,
+            batches: startOrderBatches
+        };
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_TOGGLE_PREFS_SCHEMA;
         const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA;
@@ -892,6 +942,7 @@
             status,
             settingsTable,
             backupSchedule,
+            dockerStartOrder,
             folderDefaults,
             importPresets
         };

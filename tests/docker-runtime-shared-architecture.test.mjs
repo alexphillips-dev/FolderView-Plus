@@ -46,6 +46,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const orbitViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js');
     const nativeOrganizerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
+    const themeTokensCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const commandViewCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.command-view.css');
     const treeExplorerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.tree-explorer.css');
@@ -68,6 +69,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(orbitViewIndex >= 0, 'docker orbit-view script include is missing');
     assert.ok(nativeOrganizerIndex >= 0, 'native organizer script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
+    assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(commandViewCssIndex >= 0, 'docker command-view stylesheet include is missing');
     assert.ok(treeExplorerCssIndex >= 0, 'docker tree-explorer stylesheet include is missing');
@@ -96,6 +98,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(nativeOrganizerIndex < runtimeIndex, 'native organizer helper must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
+    assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
     assert.ok(sharedCssIndex < commandViewCssIndex, 'shared runtime stylesheet must load before docker.command-view.css');
     assert.ok(commandViewCssIndex < treeExplorerCssIndex, 'docker command-view stylesheet must load before docker.tree-explorer.css');
     assert.ok(treeExplorerCssIndex < orbitViewCssIndex, 'docker tree-explorer stylesheet must load before docker.orbit-view.css');

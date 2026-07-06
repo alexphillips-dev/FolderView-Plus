@@ -617,6 +617,13 @@ let pendingTableRenderFrameByType = {
     docker: null,
     vm: null
 };
+let pendingSecondarySurfaceFrameByType = {
+    docker: null,
+    vm: null
+};
+let pendingActiveAdvancedSurfaceFrame = null;
+let settingsSectionRegistrySignature = '';
+let trackedSettingsInputsCache = null;
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -1154,16 +1161,23 @@ const shouldTrackSettingsInput = (input, section = null) => {
     return true;
 };
 
+const invalidateTrackedSettingsInputs = () => {
+    trackedSettingsInputsCache = null;
+};
+
 const getTrackedInputs = () => {
-    if (dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function') {
-        return dirtyTracker.getTrackedInputs(document, {
+    if (Array.isArray(trackedSettingsInputsCache)) {
+        return trackedSettingsInputsCache.filter((input) => input instanceof HTMLElement && input.isConnected);
+    }
+    trackedSettingsInputsCache = dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function'
+        ? dirtyTracker.getTrackedInputs(document, {
             tokens: INSTANT_PERSIST_ONCHANGE_TOKENS,
             shouldTrackInput: shouldTrackSettingsInput
-        });
-    }
-    return Array
+        })
+        : Array
         .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
         .filter((input) => shouldTrackSettingsInput(input));
+    return trackedSettingsInputsCache;
 };
 
 const getChangedTrackedInputs = () => {
@@ -1468,8 +1482,21 @@ const refreshInputInvalidStyles = () => {
     }
 };
 
-const buildSettingsSections = () => {
+const getSettingsSectionRegistrySignature = () => Array.from(document.querySelectorAll('h2[data-fv-section]'))
+    .map((heading) => [
+        String(heading.dataset.fvSection || slugifySectionKey(heading.textContent)),
+        String(heading.dataset.fvAdvanced || ''),
+        String(heading.dataset.fvAdvancedGroup || '')
+    ].join(':'))
+    .join('|');
+
+const buildSettingsSections = (options = {}) => {
+    const force = options.force === true;
     const headings = Array.from(document.querySelectorAll('h2[data-fv-section]'));
+    const signature = getSettingsSectionRegistrySignature();
+    if (!force && settingsUiState.sections.length > 0 && signature === settingsSectionRegistrySignature) {
+        return false;
+    }
     const sections = [];
 
     for (const heading of headings) {
@@ -1555,6 +1582,9 @@ const buildSettingsSections = () => {
     }
 
     settingsUiState.sections = sections;
+    settingsSectionRegistrySignature = signature;
+    invalidateTrackedSettingsInputs();
+    return true;
 };
 
 const getSectionApplyMode = (section) => {
@@ -1707,12 +1737,21 @@ const renderAdvancedNav = () => {
         }))
         .filter((entry) => entry.count > 0);
     const tabsHtml = groups
-        .map((entry, index) => {
+        .map((entry) => {
             const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
             const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
             const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
-            const displayStep = index + 1;
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" data-fv-advanced-step="${displayStep}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${displayStep}</span></button>`;
+            const icons = {
+                automation: 'fa-magic',
+                rules: 'fa-balance-scale',
+                recovery: 'fa-history',
+                operations: 'fa-bolt',
+                startup: 'fa-sort-amount-asc',
+                appearance: 'fa-paint-brush',
+                diagnostics: 'fa-stethoscope'
+            };
+            const icon = icons[entry.group] || 'fa-sliders';
+            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}"><i class="fa ${icon}" aria-hidden="true"></i><span>${escapeHtml(label)}</span></button>`;
         })
         .join('');
     const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -2153,7 +2192,7 @@ const updateRuleLiveMatch = (type) => {
             for (const name of names) {
                 const row = info[name] || {};
                 const labels = getDockerItemLabels(row);
-                const image = row?.info?.Config?.Image || '';
+                const image = row?.info?.Config?.Image || row?.Image || '';
                 const composeProject = getComposeProjectLabelValue(labels);
                 const value = kind === 'image_regex' ? image : (kind === 'compose_project_regex' ? composeProject : name);
                 regex.lastIndex = 0;
@@ -2357,6 +2396,7 @@ const initSettingsControls = () => {
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshSectionHealthBadges();
+        scheduleActiveAdvancedSecondarySurfaces();
     });
     $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
         event.preventDefault();
@@ -2458,11 +2498,14 @@ const initSettingsControls = () => {
     settingsUiState.controlsInitialized = true;
 };
 
-const refreshSettingsUx = () => {
+const refreshSettingsUx = (options = {}) => {
+    const renderSecondaryWorkspaces = options.renderSecondaryWorkspaces !== false;
+    const sectionsRebuilt = buildSettingsSections({ force: options.rebuildSections === true });
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
-    buildSettingsSections();
-    normalizeExpandedAdvancedSections();
+    if (sectionsRebuilt || options.normalizeSections === true) {
+        normalizeExpandedAdvancedSections();
+    }
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
         const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -2480,12 +2523,14 @@ const refreshSettingsUx = () => {
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
-    renderOperationsWorkspace();
-    syncRecoveryWorkspaceUi();
-    syncRulesWorkspaceUi();
-    ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
-        renderAdvancedModuleStatus(moduleKey);
-    });
+    if (renderSecondaryWorkspaces) {
+        renderOperationsWorkspace();
+        syncRecoveryWorkspaceUi();
+        syncRulesWorkspaceUi();
+        ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
+            renderAdvancedModuleStatus(moduleKey);
+        });
+    }
 };
 
 const isVisibleSettingsElement = (node) => {
@@ -2550,7 +2595,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         $('#fv-search-all-advanced').prop('checked', false);
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
-        buildSettingsSections();
+        buildSettingsSections({ force: true });
         normalizeExpandedAdvancedSections();
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
@@ -3050,11 +3095,27 @@ const importThemeWorkspaceGithub = async () => {
     return true;
 };
 
+const scanThemeWorkspaceGithub = async () => {
+    const source = String($('#fv-theme-github-source').val() || '').trim();
+    if (!source) {
+        showToastMessage({
+            title: 'Enter a GitHub source',
+            message: 'Use owner/repo, owner/repo/tree/branch, or a direct GitHub CSS URL.',
+            level: 'info'
+        });
+        return false;
+    }
+    await getThemeWorkspaceApi().scanGithub(source);
+    return true;
+};
+
 const activateThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().activateTheme(themeId);
 const deactivateThemeWorkspaceTheme = async () => getThemeWorkspaceApi().deactivateTheme();
 const deleteThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().deleteTheme(themeId);
+const updateThemeWorkspaceTheme = async (themeId) => getThemeWorkspaceApi().updateTheme(themeId);
 const saveThemeWorkspaceCustomize = async () => getThemeWorkspaceApi().saveCustomize();
 const checkThemeWorkspaceUpdates = async () => getThemeWorkspaceApi().checkUpdates();
+const resetThemeWorkspaceTokens = async () => getThemeWorkspaceApi().resetTokens();
 
 const isFolderPinned = (type, folderId) => {
     const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
@@ -3154,7 +3215,7 @@ const setQuickFolderFilter = (type = 'docker', mode = 'all') => {
     quickFolderFilterByType[resolvedType] = current === normalizedMode ? 'all' : normalizedMode;
     persistTableUiState();
     renderQuickFolderFilters(resolvedType);
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const getStatusFilterLabel = (mode) => {
@@ -3189,8 +3250,15 @@ const getItemRuntimeStateKind = (type, itemInfo) => {
         return 'stopped';
     }
     const nested = source?.info?.State || source?.State || {};
-    const running = Boolean(nested?.Running ?? source?.state ?? source?.running);
-    const paused = Boolean(nested?.Paused ?? source?.pause ?? source?.paused);
+    const rawState = String(source?.state || source?.State || '').trim().toLowerCase();
+    const running = typeof nested?.Running === 'boolean'
+        ? nested.Running
+        : (typeof source?.running === 'boolean' ? source.running : rawState === 'running');
+    const paused = typeof nested?.Paused === 'boolean'
+        ? nested.Paused
+        : (typeof source?.paused === 'boolean'
+            ? source.paused
+            : (typeof source?.pause === 'boolean' ? source.pause : rawState === 'paused'));
     if (running && paused) {
         return 'paused';
     }
@@ -4218,7 +4286,7 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
         renderSettingsTableLayoutControls(resolvedType);
         renderColumnVisibilityControls(resolvedType);
         if (rerender) {
-            renderTable(resolvedType);
+            scheduleTableRender(resolvedType);
         } else {
             applyColumnVisibility(resolvedType);
             applyColumnWidths(resolvedType);
@@ -4278,7 +4346,7 @@ const setFilterQuery = (section, type, value) => {
     filtersByType[type][section] = normalizedFilter(value);
     persistTableUiState();
     if (section === 'folders') {
-        renderTable(type);
+        scheduleTableRender(type);
         return;
     }
     if (section === 'rules') {
@@ -4669,13 +4737,13 @@ const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
     if (dockerUpdatesOnlyFilter) {
         dockerUpdatesOnlyFilter = false;
         persistTableUiState();
-        renderTable('docker');
+        scheduleTableRender('docker');
         return;
     }
     if (hasUpdatesInRow) {
         dockerUpdatesOnlyFilter = true;
         persistTableUiState();
-        renderTable('docker');
+        scheduleTableRender('docker');
         return;
     }
     swal({
@@ -4691,7 +4759,7 @@ const toggleHealthSeverityFilter = (type = 'docker', severity = 'all') => {
     const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
     healthSeverityFilterByType[resolvedType] = current === target ? 'all' : target;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
@@ -4700,7 +4768,7 @@ const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
     const current = normalizeStatusFilterMode(statusFilterByType[resolvedType]);
     statusFilterByType[resolvedType] = current === target ? 'all' : target;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const clearFolderTableFilters = (type = 'docker') => {
@@ -4718,7 +4786,7 @@ const clearFolderTableFilters = (type = 'docker') => {
     }
     persistTableUiState();
     renderQuickFolderFilters(resolvedType);
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const recordFatalBannerRequestResult = (method, url, source, outcome, error = null) => {
@@ -5247,7 +5315,7 @@ const sanitizeTypeInfoMap = (value) => {
 const fetchFolders = async (type) => (
     utils.normalizeFolderMap(sanitizeTypeMapResponse(await apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`)))
 );
-const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}`));
+const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state`));
 
 const fetchBackups = async (type) => {
     const resolvedType = normalizeManagedType(type);
@@ -7318,7 +7386,614 @@ const syncNativeDockerOrganizerFromSettings = async () => {
     }
 };
 
+const createDockerStartOrderId = (prefix = 'batch') => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 8)}`;
+
+const normalizeDockerStartOrderPrefsForUi = (prefs = null) => {
+    const source = utils.normalizePrefs(prefs || prefsByType.docker || {});
+    return source.dockerStartOrder || { mode: 'docker-page', remaining: 'after', batches: [] };
+};
+
+const getDockerStartOrderContainerNames = () => Object.keys(infoByType.docker || {})
+    .map((name) => String(name || '').trim())
+    .filter((name) => name !== '')
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+const getDockerStartOrderFolderOptions = () => {
+    const folders = getFolderMap('docker');
+    const ordered = utils.orderFoldersByPrefs(folders, prefsByType.docker);
+    return Object.entries(ordered).map(([id, folder]) => ({
+        id,
+        name: String(folder?.name || id)
+    }));
+};
+
+let dockerStartOrderFolderOptionsCache = { signature: '', html: '', options: [], byId: new Map() };
+let dockerStartOrderContainerOptionsCache = { signature: '', html: '', names: [] };
+
+const getDockerStartOrderFolderOptionsCached = () => {
+    const options = getDockerStartOrderFolderOptions();
+    const signature = options.map((folder) => `${folder.id}:${folder.name}`).join('|');
+    if (dockerStartOrderFolderOptionsCache.signature !== signature) {
+        dockerStartOrderFolderOptionsCache = {
+            signature,
+            options,
+            byId: new Map(options.map((folder) => [String(folder.id), folder])),
+            html: options.length
+                ? options.map((folder) => `<option value="${escapeHtml(folder.id)}">${escapeHtml(folder.name)}</option>`).join('')
+                : '<option value="">No folders available</option>'
+        };
+    }
+    return dockerStartOrderFolderOptionsCache;
+};
+
+const getDockerStartOrderContainerOptionsCached = () => {
+    const names = getDockerStartOrderContainerNames();
+    const signature = names.join('|');
+    if (dockerStartOrderContainerOptionsCache.signature !== signature) {
+        dockerStartOrderContainerOptionsCache = {
+            signature,
+            names,
+            html: names.length
+                ? names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')
+                : '<option value="">No containers available</option>'
+        };
+    }
+    return dockerStartOrderContainerOptionsCache;
+};
+
+const buildDockerStartOrderFolderSelectOptions = () => {
+    return getDockerStartOrderFolderOptionsCached().html;
+};
+
+const buildDockerStartOrderContainerSelectOptions = () => {
+    return getDockerStartOrderContainerOptionsCached().html;
+};
+
+let dockerStartOrderPreviewTimer = null;
+let dockerStartOrderSaveTimer = null;
+let dockerStartOrderQueuedPrefs = null;
+let dockerStartOrderSaveChain = Promise.resolve();
+
+const persistQueuedDockerStartOrderPrefs = () => {
+    if (!dockerStartOrderQueuedPrefs) {
+        return dockerStartOrderSaveChain;
+    }
+    const nextPrefs = dockerStartOrderQueuedPrefs;
+    dockerStartOrderQueuedPrefs = null;
+    dockerStartOrderSaveChain = dockerStartOrderSaveChain
+        .then(async () => {
+            const savedPrefs = await postPrefs('docker', nextPrefs);
+            if (!dockerStartOrderQueuedPrefs) {
+                prefsByType.docker = savedPrefs;
+            }
+        })
+        .catch((error) => {
+            showError('Docker start order save failed', error);
+        });
+    return dockerStartOrderSaveChain;
+};
+
+const flushDockerStartOrderSaveQueue = async () => {
+    if (dockerStartOrderSaveTimer) {
+        window.clearTimeout(dockerStartOrderSaveTimer);
+        dockerStartOrderSaveTimer = null;
+    }
+    persistQueuedDockerStartOrderPrefs();
+    await dockerStartOrderSaveChain;
+};
+
+const queueDockerStartOrderPrefsSave = (nextPrefs) => {
+    dockerStartOrderQueuedPrefs = nextPrefs;
+    if (dockerStartOrderSaveTimer) {
+        window.clearTimeout(dockerStartOrderSaveTimer);
+    }
+    dockerStartOrderSaveTimer = window.setTimeout(() => {
+        dockerStartOrderSaveTimer = null;
+        persistQueuedDockerStartOrderPrefs();
+    }, 350);
+};
+
+const scheduleDockerStartOrderPreviewRefresh = (delay = 650) => {
+    if (dockerStartOrderPreviewTimer) {
+        window.clearTimeout(dockerStartOrderPreviewTimer);
+    }
+    dockerStartOrderPreviewTimer = window.setTimeout(() => {
+        dockerStartOrderPreviewTimer = null;
+        refreshDockerStartOrderPreview({ passive: true });
+    }, delay);
+};
+
+const saveDockerStartOrderPlan = async (patch = {}, options = {}) => {
+    const current = utils.normalizePrefs(prefsByType.docker || {});
+    const currentPlan = normalizeDockerStartOrderPrefsForUi(current);
+    const nextPlan = {
+        ...currentPlan,
+        ...patch,
+        batches: Array.isArray(patch.batches) ? patch.batches : currentPlan.batches
+    };
+    const nextPrefs = utils.normalizePrefs({
+        ...current,
+        dockerStartOrder: nextPlan
+    });
+    prefsByType.docker = nextPrefs;
+    renderDockerStartOrderWorkspace({ preservePreview: options.preservePreview !== false });
+    queueDockerStartOrderPrefsSave(nextPrefs);
+    if (options.refreshPreview === true) {
+        scheduleDockerStartOrderPreviewRefresh();
+    }
+};
+
+const updateDockerStartOrderMode = async (mode) => {
+    const normalized = String(mode || '').trim() === 'custom-batches' ? 'custom-batches' : 'docker-page';
+    try {
+        await saveDockerStartOrderPlan({ mode: normalized }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start order save failed', error);
+    }
+};
+
+const updateDockerStartOrderRemaining = async (value) => {
+    const normalized = ['after', 'before', 'keep'].includes(String(value || '').trim()) ? String(value || '').trim() : 'after';
+    try {
+        await saveDockerStartOrderPlan({ remaining: normalized }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start order save failed', error);
+    }
+};
+
+const addDockerStartOrderBatch = async () => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = Array.isArray(plan.batches) ? [...plan.batches] : [];
+    batches.push({
+        id: createDockerStartOrderId('batch'),
+        name: `Start batch ${batches.length + 1}`,
+        delay: 0,
+        parallel: false,
+        useFolderOrder: true,
+        items: []
+    });
+    try {
+        await saveDockerStartOrderPlan({ mode: 'custom-batches', batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start batch add failed', error);
+    }
+};
+
+const updateDockerStartOrderBatch = async (batchId, key, value) => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = (plan.batches || []).map((batch) => {
+        if (String(batch.id) !== String(batchId)) {
+            return batch;
+        }
+        if (key === 'name') {
+            return { ...batch, name: String(value || '').trim().slice(0, 64) || batch.name || 'Start batch' };
+        }
+        if (key === 'delay') {
+            const parsed = Number(value);
+            return { ...batch, delay: Number.isFinite(parsed) ? Math.max(0, Math.min(3600, Math.round(parsed))) : 0 };
+        }
+        if (key === 'parallel') {
+            return { ...batch, parallel: value === true };
+        }
+        if (key === 'useFolderOrder') {
+            return { ...batch, useFolderOrder: value !== false };
+        }
+        return batch;
+    });
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start batch save failed', error);
+    }
+};
+
+const moveDockerStartOrderBatch = async (batchId, direction) => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = [...(plan.batches || [])];
+    const index = batches.findIndex((batch) => String(batch.id) === String(batchId));
+    const nextIndex = index + (direction === 'up' ? -1 : 1);
+    if (index < 0 || nextIndex < 0 || nextIndex >= batches.length) {
+        return;
+    }
+    [batches[index], batches[nextIndex]] = [batches[nextIndex], batches[index]];
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start batch move failed', error);
+    }
+};
+
+const removeDockerStartOrderBatch = async (batchId) => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = (plan.batches || []).filter((batch) => String(batch.id) !== String(batchId));
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start batch remove failed', error);
+    }
+};
+
+const addDockerStartOrderItem = async (batchId, itemType) => {
+    const type = itemType === 'folder' ? 'folder' : 'container';
+    const selected = String(
+        (
+            type === 'folder'
+                ? $('[data-fv-start-folder]').filter((_, el) => String(el.dataset.fvStartFolder || '') === String(batchId)).val()
+                : $('[data-fv-start-container]').filter((_, el) => String(el.dataset.fvStartContainer || '') === String(batchId)).val()
+        ) || ''
+    ).trim();
+    if (!selected) {
+        return;
+    }
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = (plan.batches || []).map((batch) => {
+        if (String(batch.id) !== String(batchId)) {
+            return batch;
+        }
+        const nextItems = Array.isArray(batch.items) ? [...batch.items] : [];
+        const exists = nextItems.some((item) => (
+            type === 'folder'
+                ? item?.type === 'folder' && String(item.id) === selected
+                : item?.type !== 'folder' && String(item.name) === selected
+        ));
+        if (!exists) {
+            nextItems.push(type === 'folder' ? { type: 'folder', id: selected } : { type: 'container', name: selected });
+        }
+        return { ...batch, items: nextItems };
+    });
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start item add failed', error);
+    }
+};
+
+const moveDockerStartOrderItem = async (batchId, itemIndex, direction) => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = (plan.batches || []).map((batch) => {
+        if (String(batch.id) !== String(batchId)) {
+            return batch;
+        }
+        const items = [...(batch.items || [])];
+        const index = Number(itemIndex);
+        const nextIndex = index + (direction === 'up' ? -1 : 1);
+        if (index < 0 || nextIndex < 0 || nextIndex >= items.length) {
+            return batch;
+        }
+        [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
+        return { ...batch, items };
+    });
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start item move failed', error);
+    }
+};
+
+const removeDockerStartOrderItem = async (batchId, itemIndex) => {
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const batches = (plan.batches || []).map((batch) => {
+        if (String(batch.id) !== String(batchId)) {
+            return batch;
+        }
+        const items = [...(batch.items || [])];
+        items.splice(Number(itemIndex), 1);
+        return { ...batch, items };
+    });
+    try {
+        await saveDockerStartOrderPlan({ batches }, { preservePreview: true });
+    } catch (error) {
+        showError('Docker start item remove failed', error);
+    }
+};
+
+const buildDockerStartOrderBatchHtml = (batch, index) => {
+    const safeId = String(batch?.id || '');
+    const items = Array.isArray(batch?.items) ? batch.items : [];
+    const folderOptionsCache = getDockerStartOrderFolderOptionsCached();
+    const folderSelectOptions = folderOptionsCache.html;
+    const containerSelectOptions = getDockerStartOrderContainerOptionsCached().html;
+    const itemHtml = items.length
+        ? items.map((item, itemIndex) => {
+            const isFolder = item?.type === 'folder';
+            const label = isFolder
+                ? (folderOptionsCache.byId.get(String(item.id))?.name || item.id || 'Folder')
+                : (item?.name || 'Container');
+            return `
+                <div class="fv-docker-start-order-item">
+                    <span class="fv-docker-start-order-kind"><i class="fa ${isFolder ? 'fa-folder-o' : 'fa-cube'}"></i> ${isFolder ? 'Folder' : 'Container'}</span>
+                    <strong>${escapeHtml(label)}</strong>
+                    <div class="fv-docker-start-order-item-actions">
+                        <button type="button" onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'up')" ${itemIndex === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
+                        <button type="button" onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'down')" ${itemIndex >= items.length - 1 ? 'disabled' : ''}><i class="fa fa-chevron-down"></i></button>
+                        <button type="button" onclick="removeDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex})"><i class="fa fa-times"></i></button>
+                    </div>
+                </div>
+            `;
+        }).join('')
+        : '<div class="fv-docker-start-order-empty">Add folders or containers to this batch.</div>';
+    return `
+        <section class="fv-docker-start-order-batch">
+            <div class="fv-docker-start-order-batch-head">
+                <input type="text" value="${escapeHtml(batch?.name || `Start batch ${index + 1}`)}" onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'name', this.value)" aria-label="Batch name">
+                <div class="fv-docker-start-order-batch-actions">
+                    <button type="button" onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'up')" ${index === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
+                    <button type="button" onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'down')"><i class="fa fa-chevron-down"></i></button>
+                    <button type="button" onclick="removeDockerStartOrderBatch('${escapeHtml(safeId)}')"><i class="fa fa-trash"></i></button>
+                </div>
+            </div>
+            <div class="fv-docker-start-order-batch-settings">
+                <label>Delay after batch <input type="number" min="0" max="3600" step="1" value="${Number(batch?.delay) || 0}" onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'delay', this.value)"></label>
+                <label><input type="checkbox" ${batch?.useFolderOrder === false ? '' : 'checked'} onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'useFolderOrder', this.checked)"> Use folder member order</label>
+                <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
+            </div>
+            <div class="fv-docker-start-order-add-row">
+                <select data-fv-start-folder="${escapeHtml(safeId)}">${folderSelectOptions}</select>
+                <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
+                <select data-fv-start-container="${escapeHtml(safeId)}">${containerSelectOptions}</select>
+                <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
+            </div>
+            <div class="fv-docker-start-order-items">${itemHtml}</div>
+        </section>
+    `;
+};
+
+const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
+    <div class="fv-docker-start-order-controls" data-fv-start-order-region="controls">
+        <label class="setting-select">
+            <span>Start order mode</span>
+            <select id="docker-start-order-mode" onchange="updateDockerStartOrderMode(this.value)">
+                <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
+                <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
+            </select>
+        </label>
+        <label class="setting-select">
+            <span>Remaining autostart containers</span>
+            <select id="docker-start-order-remaining" onchange="updateDockerStartOrderRemaining(this.value)">
+                <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
+                <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
+                <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
+            </select>
+        </label>
+    </div>
+    <div class="fv-docker-start-order-help" data-fv-start-order-region="help">
+        <i class="fa fa-info-circle" aria-hidden="true"></i>
+        <div>
+            <strong>${customVisible ? 'Custom batches are active.' : 'Docker page order is active.'}</strong>
+            <span>${customVisible ? 'Only containers with Docker autostart enabled are written to Unraid boot order. Delays apply to the last autostart container in each batch.' : 'Unraid autostart follows the same visual order you see on the Docker page, including containers inside folders.'}</span>
+        </div>
+    </div>
+`;
+
+const buildDockerStartOrderToolbarHtml = (customVisible) => `
+    <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
+        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
+        <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
+        <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
+    </div>
+`;
+
+const buildDockerStartOrderBatchesHtml = (batches, customVisible) => `
+    <div class="fv-docker-start-order-batches" data-fv-start-order-region="batches" ${customVisible ? '' : 'hidden'}>
+        ${batches.length ? batches.map(buildDockerStartOrderBatchHtml).join('') : '<div class="fv-docker-start-order-empty"><span class="fv-docker-start-order-empty-icon"><i class="fa fa-cube" aria-hidden="true"></i></span><span>No custom batches yet. Add a batch to define exact boot groups.</span></div>'}
+    </div>
+`;
+
+const buildDockerStartOrderPreviewPlaceholderHtml = () => `
+    <div id="docker-start-order-preview" class="fv-docker-start-order-preview" data-fv-start-order-region="preview">
+        <div class="fv-recovery-empty-state">
+            <strong>Preview has not loaded yet.</strong>
+            <span>Use Preview order to inspect the exact autostart sequence.</span>
+        </div>
+    </div>
+`;
+
+const renderDockerStartOrderWorkspace = (options = {}) => {
+    const host = $('#docker-start-order-workspace');
+    if (!host.length) {
+        return;
+    }
+    const plan = normalizeDockerStartOrderPrefsForUi();
+    const customVisible = plan.mode === 'custom-batches';
+    const batches = Array.isArray(plan.batches) ? plan.batches : [];
+    const preservePreview = options.preservePreview === true && host.find('#docker-start-order-preview').length > 0;
+    if (!preservePreview) {
+        host.html([
+            buildDockerStartOrderControlsHtml(plan, customVisible),
+            buildDockerStartOrderToolbarHtml(customVisible),
+            buildDockerStartOrderBatchesHtml(batches, customVisible),
+            buildDockerStartOrderPreviewPlaceholderHtml()
+        ].join(''));
+        return;
+    }
+    host.find('[data-fv-start-order-region="controls"], [data-fv-start-order-region="help"]').remove();
+    host.find('[data-fv-start-order-region="toolbar"]').replaceWith(buildDockerStartOrderToolbarHtml(customVisible));
+    host.find('[data-fv-start-order-region="batches"]').replaceWith(buildDockerStartOrderBatchesHtml(batches, customVisible));
+    host.prepend(buildDockerStartOrderControlsHtml(plan, customVisible));
+};
+
+const renderDockerStartOrderPreview = (preview) => {
+    const host = $('#docker-start-order-preview');
+    if (!host.length) {
+        return;
+    }
+    const order = Array.isArray(preview?.autostartOrder) ? preview.autostartOrder : [];
+    const warnings = Array.isArray(preview?.warnings) ? preview.warnings : [];
+    const stale = Array.isArray(preview?.staleAutostart) ? preview.staleAutostart : [];
+    const list = order.length
+        ? order.map((name, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(name)}</strong></li>`).join('')
+        : '<li><span>0</span><strong>No autostart containers detected.</strong></li>';
+    const warningsHtml = [...warnings, ...stale.map((name) => `Stale autostart entry will be removed: ${name}`)]
+        .map((warning) => `<div class="fv-docker-start-order-warning"><i class="fa fa-exclamation-triangle"></i> ${escapeHtml(warning)}</div>`)
+        .join('');
+    host.html(`
+        <div class="fv-docker-start-order-preview-head">
+            <strong><i class="fa fa-sort-amount-asc" aria-hidden="true"></i> Preview autostart order</strong>
+            <span class="fv-docker-start-order-count">${Number(preview?.autostartCount) || order.length} autostart containers, ${Number(preview?.containerCount) || 0} containers detected</span>
+        </div>
+        ${warningsHtml}
+        <ol class="fv-docker-start-order-list">${list}</ol>
+    `);
+};
+
+const refreshDockerStartOrderPreview = async (options = {}) => {
+    if (dockerStartOrderPreviewTimer) {
+        window.clearTimeout(dockerStartOrderPreviewTimer);
+        dockerStartOrderPreviewTimer = null;
+    }
+    if (options.flush !== false) {
+        await flushDockerStartOrderSaveQueue();
+    }
+    const host = $('#docker-start-order-preview');
+    if (host.length && !options.passive) {
+        host.html('<div class="fv-recovery-empty-state"><strong>Loading Docker start order preview...</strong><span>Reading current folders, Docker autostart, and saved start batches.</span></div>');
+    }
+    try {
+        const response = await apiGetJson(`/plugins/folderview.plus/server/docker_start_order.php?action=preview&_=${Date.now()}`);
+        renderDockerStartOrderPreview(response?.preview || {});
+    } catch (error) {
+        if (host.length) {
+            host.html(`<div class="fv-recovery-empty-state is-warning"><strong>Preview failed.</strong><span>${escapeHtml(error?.message || error || 'Unable to load preview.')}</span></div>`);
+        }
+    }
+};
+
+const syncDockerStartOrderNow = async () => {
+    try {
+        await flushDockerStartOrderSaveQueue();
+        const response = await apiPostJson('/plugins/folderview.plus/server/docker_start_order.php', {
+            action: 'sync'
+        });
+        renderDockerStartOrderPreview(response?.preview || {});
+        setUpdateStatus('Docker start order synced.');
+    } catch (error) {
+        showError('Docker start order sync failed', error);
+    }
+};
+
+const normalizeSettingsTableRenderType = (type) => type === 'vm' ? 'vm' : 'docker';
+
+const shouldRefreshSecondaryAdvancedGroup = (group) => {
+    const normalizedGroup = normalizeAdvancedGroup(group);
+    if (settingsUiState.mode !== 'advanced') {
+        return false;
+    }
+    if (settingsUiState.query && settingsUiState.searchAllAdvanced === true) {
+        return true;
+    }
+    return settingsUiState.advancedTab === normalizedGroup;
+};
+
+const renderSettingsSecondarySurfaces = (type) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    if (shouldRefreshSecondaryAdvancedGroup('rules')) {
+        renderRulesTable(resolvedType);
+        syncRulesWorkspaceUi();
+        updateRuleLiveMatch(resolvedType);
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('automation')) {
+        renderBulkItemOptions(resolvedType);
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('recovery')) {
+        syncRecoveryWorkspaceUi();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('operations')) {
+        renderOperationsOverview(resolvedType);
+        renderTemplateRows(resolvedType);
+        renderOperationsWorkspace();
+    }
+    if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
+        renderDockerStartOrderWorkspace({ preservePreview: true });
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
+        renderFolderHealthCards();
+    }
+    renderFirstRunQuickPathPanel();
+    refreshSettingsUx({ renderSecondaryWorkspaces: false });
+    enforceNoHorizontalOverflow();
+};
+
+const renderActiveAdvancedSecondarySurfaces = () => {
+    if (settingsUiState.mode !== 'advanced') {
+        refreshSettingsUx({ renderSecondaryWorkspaces: false });
+        return;
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('rules')) {
+        renderRulesTable('docker');
+        renderRulesTable('vm');
+        syncRulesWorkspaceUi();
+        updateRuleLiveMatch('docker');
+        updateRuleLiveMatch('vm');
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('automation')) {
+        renderBulkItemOptions('docker');
+        renderBulkItemOptions('vm');
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('recovery')) {
+        syncRecoveryWorkspaceUi();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('operations')) {
+        renderOperationsOverview('docker');
+        renderOperationsOverview('vm');
+        renderTemplateRows('docker');
+        renderTemplateRows('vm');
+        renderOperationsWorkspace();
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('startup')) {
+        renderDockerStartOrderWorkspace({ preservePreview: true });
+    }
+    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
+        renderFolderHealthCards();
+    }
+    renderFirstRunQuickPathPanel();
+    refreshSettingsUx({ renderSecondaryWorkspaces: false });
+    enforceNoHorizontalOverflow();
+};
+
+const scheduleSettingsSecondarySurfaces = (type, { immediate = false } = {}) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    if (immediate) {
+        if (pendingSecondarySurfaceFrameByType[resolvedType] !== null) {
+            window.cancelAnimationFrame(pendingSecondarySurfaceFrameByType[resolvedType]);
+            pendingSecondarySurfaceFrameByType[resolvedType] = null;
+        }
+        renderSettingsSecondarySurfaces(resolvedType);
+        return;
+    }
+    if (pendingSecondarySurfaceFrameByType[resolvedType] !== null) {
+        return;
+    }
+    pendingSecondarySurfaceFrameByType[resolvedType] = window.requestAnimationFrame(() => {
+        pendingSecondarySurfaceFrameByType[resolvedType] = null;
+        renderSettingsSecondarySurfaces(resolvedType);
+    });
+};
+
+const scheduleActiveAdvancedSecondarySurfaces = ({ immediate = false } = {}) => {
+    if (immediate) {
+        if (pendingActiveAdvancedSurfaceFrame !== null) {
+            window.cancelAnimationFrame(pendingActiveAdvancedSurfaceFrame);
+            pendingActiveAdvancedSurfaceFrame = null;
+        }
+        renderActiveAdvancedSecondarySurfaces();
+        return;
+    }
+    if (pendingActiveAdvancedSurfaceFrame !== null) {
+        return;
+    }
+    pendingActiveAdvancedSurfaceFrame = window.requestAnimationFrame(() => {
+        pendingActiveAdvancedSurfaceFrame = null;
+        renderActiveAdvancedSecondarySurfaces();
+    });
+};
+
 const renderTable = (type) => {
+    const resolvedType = normalizeSettingsTableRenderType(type);
+    if (pendingTableRenderFrameByType[resolvedType] !== null) {
+        window.cancelAnimationFrame(pendingTableRenderFrameByType[resolvedType]);
+        pendingTableRenderFrameByType[resolvedType] = null;
+    }
+    type = resolvedType;
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const hierarchyMeta = buildFolderHierarchyMeta(ordered);
@@ -7367,17 +8042,7 @@ const renderTable = (type) => {
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
     updateMobileTreePathHint(type);
-    renderRulesTable(type);
-    syncRulesWorkspaceUi();
-    renderBulkItemOptions(type);
-    renderOperationsOverview(type);
-    renderTemplateRows(type);
-    renderOperationsWorkspace();
-    renderFolderHealthCards();
-    renderFirstRunQuickPathPanel();
-    updateRuleLiveMatch(type);
-    refreshSettingsUx();
-    enforceNoHorizontalOverflow();
+    scheduleSettingsSecondarySurfaces(type);
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {
@@ -7615,7 +8280,7 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
         }
         advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
     }
-    renderFolderHealthCards();
+    scheduleActiveAdvancedSecondarySurfaces();
     return results.flatMap((result, index) => {
         const moduleKey = requestedModules[index];
         if (result.status === 'rejected') {
@@ -8128,7 +8793,7 @@ const changeVisibilityPref = async (type, key, value) => {
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderVisibilityControls(type);
-        renderTable(type);
+        scheduleTableRender(type);
     } catch (error) {
         renderVisibilityControls(type);
         showError('Visibility preference save failed', error);
@@ -8168,7 +8833,7 @@ const changeStatusPref = async (type, key, value) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, next);
         renderStatusControls(resolvedType);
-        renderTable(resolvedType);
+        scheduleTableRender(resolvedType);
     } catch (error) {
         renderStatusControls(resolvedType);
         showError('Status preferences save failed', error);
@@ -8181,7 +8846,7 @@ const setHealthFolderFilter = (type, mode) => {
     const healthPrefs = normalizeHealthPrefs(resolvedType);
     healthFilterByType[resolvedType] = healthPrefs.cardsEnabled ? nextMode : 'all';
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const changeColumnVisibility = async (type, key, checked) => {
@@ -8355,7 +9020,7 @@ const changeHealthPref = async (type, key, value) => {
     try {
         prefsByType[resolvedType] = await postPrefs(resolvedType, next);
         renderHealthControls(resolvedType);
-        renderTable(resolvedType);
+        scheduleTableRender(resolvedType);
     } catch (error) {
         renderHealthControls(resolvedType);
         showError('Health preferences save failed', error);
@@ -9708,16 +10373,30 @@ settingsActionSupportModule.registerWindowActions(window, {
     clearActivityFeed,
     refreshPerformanceDiagnostics: renderPerformanceDiagnostics,
     importThemeWorkspaceGithub,
+    scanThemeWorkspaceGithub,
     activateThemeWorkspaceTheme,
     deactivateThemeWorkspaceTheme,
     deleteThemeWorkspaceTheme,
+    updateThemeWorkspaceTheme,
     saveThemeWorkspaceCustomize,
     checkThemeWorkspaceUpdates,
+    resetThemeWorkspaceTokens,
     saveFolderDefaultsFromSelection,
     applySavedFolderDefaultsToAll,
     clearFolderDefaults,
     refreshNativeDockerOrganizerStatus,
     syncNativeDockerOrganizerFromSettings,
+    updateDockerStartOrderMode,
+    updateDockerStartOrderRemaining,
+    addDockerStartOrderBatch,
+    updateDockerStartOrderBatch,
+    moveDockerStartOrderBatch,
+    removeDockerStartOrderBatch,
+    addDockerStartOrderItem,
+    moveDockerStartOrderItem,
+    removeDockerStartOrderItem,
+    refreshDockerStartOrderPreview,
+    syncDockerStartOrderNow,
     runQuickSetupWizard,
     setSettingsMode,
     exportEnvironmentSnapshot,

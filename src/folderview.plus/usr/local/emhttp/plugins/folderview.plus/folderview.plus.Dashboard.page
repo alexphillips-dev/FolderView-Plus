@@ -34,6 +34,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.advanced-preview.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.js')?>"></script>
+<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/dashboard.css')?>">
 <?php

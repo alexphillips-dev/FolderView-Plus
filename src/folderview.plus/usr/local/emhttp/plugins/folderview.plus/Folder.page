@@ -336,7 +336,6 @@ try {
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
         const scriptQueue = [
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-            '/plugins/folderview.plus/scripts/folder.preview-model.js',
             '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
@@ -483,6 +482,7 @@ try {
 <?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
 <link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
+<link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?php fvplus_asset("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>

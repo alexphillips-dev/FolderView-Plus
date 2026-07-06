@@ -138,9 +138,10 @@ test('docker runtime only backfills missing folder placeholders when sort mode r
 test('docker order sync always rebuilds folder placeholders from prefs-ordered folder map', () => {
     assert.match(
         libPhp,
-        /\$orderedFolderPlaceholders = \$folderPlaceholders;/
+        /function buildDockerPageStartOrder\(array \$context\): array/
     );
-    assert.match(libPhp, /foreach \(\$orderedFolderPlaceholders as \$placeholder\) \{/);
+    assert.match(libPhp, /\$folderPlaceholders = array_keys\(\$folderContainers\);/);
+    assert.match(libPhp, /foreach \(\$folderPlaceholders as \$placeholder\) \{/);
     assert.doesNotMatch(libPhp, /\$preserveCurrentPlaceholderOrder =/);
 });
 
@@ -162,9 +163,9 @@ test('docker read order response replaces stale userprefs folder placeholders wi
 });
 
 test('docker order sync reads but does not write Docker userprefs', () => {
-    const syncMatch = libPhp.match(/function syncContainerOrderUnlocked\(\): void \{([\s\S]*?)\n    \}\n\n    function syncContainerOrder/);
-    assert.ok(syncMatch, 'syncContainerOrderUnlocked body should be present');
-    const body = syncMatch[1];
+    const contextMatch = libPhp.match(/function buildDockerStartOrderContext\(\): array \{([\s\S]*?)\n    \}\n\n    function buildDockerPageStartOrder/);
+    assert.ok(contextMatch, 'buildDockerStartOrderContext body should be present');
+    const body = contextMatch[1];
     assert.match(body, /userprefs\.cfg is not written here; Unraid owns drag-order persistence\./);
     assert.match(body, /\$currentPrefs = file_exists\(\$prefsFile\) \? @parse_ini_file\(\$prefsFile\) : false;/);
     assert.doesNotMatch(body, /file_put_contents\(\$prefsFile/);

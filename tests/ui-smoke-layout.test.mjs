@@ -305,9 +305,9 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-fg:\s*#fff8f1;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-top:\s*#cf7a22;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-bottom:\s*#b76518;/);
-    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit\s*\{[\s\S]*background:\s*var\(--fv-editor-button-bg-top\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorActionBar \.folder-btn-apply-settings,/);
-    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-hover-top\),\s*var\(--fv-editor-button-hover-bottom\)\) !important;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*var\(--fv-editor-button-hover-top\) !important;/);
     assert.doesNotMatch(folderChromeJs, /class="fv-editor-mode"/);
     assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
@@ -618,7 +618,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.custom-action-wrapper > div\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);/);
     assert.match(folderCss, /\.fv-section-state-badge\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row > dl > dt\s*\{[\s\S]*display:\s*none;/);
-    assert.match(folderCss, /:is\([\s\S]*\.fv-inline-reset-btn,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-quiet-top\),\s*var\(--fv-editor-button-quiet-bottom\)\) !important;/);
+    assert.match(folderCss, /:is\([\s\S]*\.fv-inline-reset-btn,[\s\S]*background:\s*var\(--fv-editor-button-quiet-top\) !important;/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);
     assert.match(folderCss, /\.fv-validation-details\.info/);
@@ -721,9 +721,20 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-option:hover,[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-pinned\s*\{[\s\S]*border:\s*1px solid color-mix\(in srgb,\s*var\(--fv-editor-accent\) 28%,\s*var\(--fv-editor-block-border\)\);/);
-    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 42%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
-    assert.match(folderCss, /\.fv-parent-picker-search-input/);
+    assert.match(folderCss, /\.fv-parent-picker-pinned\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option-main\s*\{[\s\S]*display:\s*flex;[\s\S]*justify-content:\s*flex-start;[\s\S]*text-align:\s*left;/);
+    assert.match(folderCss, /\.fv-parent-picker-option-scope\s*\{[\s\S]*border-radius:\s*7px;/);
+    assert.match(folderParentPickerJs, /fv-parent-picker-search-input-wrap/);
+    assert.match(folderCss, /\.fv-parent-picker-search\s*\{[\s\S]*width:\s*100%;[\s\S]*min-width:\s*0;/);
+    assert.match(folderCss, /\.fv-parent-picker-search-control\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto;[\s\S]*width:\s*100%;/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input-wrap::before\s*\{[\s\S]*content:\s*"\\f002";/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input\s*\{[\s\S]*display:\s*block !important;[\s\S]*max-width:\s*none !important;[\s\S]*padding-left:\s*2\.2rem !important;[\s\S]*background:\s*var\(--fv-editor-input-bg\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-clear\s*\{[\s\S]*min-width:\s*74px;[\s\S]*min-height:\s*36px;[\s\S]*padding:\s*0\.28rem 0\.52rem;[\s\S]*border-radius:\s*8px;[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-search-input\s*\{[\s\S]*width:\s*100% !important;[\s\S]*max-width:\s*none !important;[\s\S]*height:\s*40px !important;[\s\S]*padding-left:\s*2\.2rem !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row \.fv-parent-picker-clear\s*\{[\s\S]*min-width:\s*70px !important;[\s\S]*height:\s*34px !important;[\s\S]*padding:\s*0\.24rem 0\.48rem !important;/);
+    assert.doesNotMatch(folderCss, /\.fv-parent-picker-pinned\s*\{[^}]*linear-gradient/);
+    assert.doesNotMatch(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[^}]*linear-gradient/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
@@ -946,21 +957,21 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);[\s\S]*\} else \{[\s\S]*await refreshCoreData\(\);[\s\S]*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.folder-table table td\.actions-cell \.folder-action-btn:not\(\.folder-overflow-btn\),[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.folder-table table td\.actions-cell \.folder-action-btn:not\(\.folder-overflow-btn\),[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.doesNotMatch(settingsCss, /\.fv-col-resizer/);
     assert.doesNotMatch(settingsCss, /body\.fv-column-resize-active/);
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{[\s\S]*border:\s*0 !important/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.updates-chip[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.updates-chip[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\s*\{[\s\S]*border:\s*0 !important/);
     assert.match(settingsCss, /\.health-chip\s*\{[\s\S]*border-radius:\s*7px !important/);
     assert.match(settingsCss, /\.health-chip\.folder-metric-chip\.is-ok\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-maintenance\s*\{/);
     assert.match(settingsCss, /\.health-breakdown-btn\s*\{/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.health-breakdown-btn,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.health-breakdown-btn,[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
     assert.match(settingsCss, /\.autostart-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-stack\s*\{/);
@@ -974,7 +985,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-trusted\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-legacy\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-untrusted\s*\{/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-advanced-tab,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-bg-top\),\s*var\(--fvplus-settings-button-bg-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-advanced-tab,[\s\S]*background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);
     assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
     assert.match(settingsCss, /#fv-setup-assistant-overlay\s*\{/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{/);
@@ -1024,7 +1035,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*font-size:\s*0/);
     assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*width:\s*24px/);
     assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*font-size:\s*0/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-section-toggle,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-section-toggle,[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.folder-table table td\.status-cell\s*\{[\s\S]*text-align:\s*left/);
     assert.match(settingsCss, /\.folder-table table th\.fv-col-hidden,\s*[\s\S]*\.folder-table table td\.fv-col-hidden\s*\{[\s\S]*display:\s*none !important/);
@@ -1035,7 +1046,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.status-breakdown-list\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-chip\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-btn\s*\{[\s\S]*width:\s*22px !important/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.status-breakdown-btn,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.status-breakdown-btn,[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.match(settingsJs, /class="status-cell"><span class="status-cell-content \$\{statusDisplayClass\}"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusBreakdownHtml\}\$\{statusTrendHtml\}/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);

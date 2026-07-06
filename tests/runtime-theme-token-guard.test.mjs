@@ -10,6 +10,7 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
+const themeTokensCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/theme.tokens.css');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
@@ -60,7 +61,17 @@ test('dashboard quick action palette is tokenized', () => {
 });
 
 test('runtime context menus follow resolved dark and light theme tokens', () => {
-    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*rgba\(22,\s*20,\s*18,\s*0\.985\)/);
+    assert.match(themeTokensCss, /--fvplus-graphite-page:\s*#0f0f10/);
+    assert.match(themeTokensCss, /--fvplus-graphite-card:\s*#1d1d1f/);
+    assert.match(themeTokensCss, /--fvplus-graphite-field:\s*#1a1a1b/);
+    assert.match(themeTokensCss, /--fvplus-graphite-field-bg:/);
+    assert.match(themeTokensCss, /--fvplus-ui-page:\s*var\(--fvplus-graphite-page\)/);
+    assert.match(themeTokensCss, /--fvplus-ui-card:\s*var\(--fvplus-graphite-card-bg\)/);
+    assert.match(themeTokensCss, /--fvplus-ui-field:\s*var\(--fvplus-graphite-field-bg\)/);
+    assert.match(themeTokensCss, /--fvplus-theme-accent:\s*var\(--fvplus-ui-accent\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-bg:\s*var\(--fvplus-ui-page\)/);
+    assert.match(themeTokensCss, /--fvplus-editor-inset-surface:\s*var\(--fvplus-ui-field\)/);
+    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*var\(--fvplus-graphite-menu-bg,\s*rgba\(18,\s*18,\s*19,\s*0\.985\)\)/);
     assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-runtime-menu-bg\) !important;/);
@@ -123,6 +134,9 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
     assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
     assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
     assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorBg:\s*isLight[\s\S]*:\s*'#0f0f10'/);
+    assert.match(themeResolverJs, /editorPanel:\s*isLight[\s\S]*:\s*'#1d1d1f'/);
+    assert.match(themeResolverJs, /editorHeroIconBg:\s*isLight[\s\S]*:\s*'#242426'/);
 });
 
 test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {
@@ -140,7 +154,7 @@ test('theme resolver exports settings semantic tokens for readable light and dar
 test('theme resolver ignores transparent surfaces and only hard-forces explicit black host themes dark', () => {
     assert.match(themeResolverJs, /const isThemeSurfaceColorUsable = \(color, minAlpha = 0\.08\) =>/);
     assert.match(themeResolverJs, /const resolveThemeSurfaceColor = \(\.\.\.candidates\) =>/);
-    assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f1825'\)\s*\)/);
+    assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f0f10'\)\s*\)/);
     assert.match(themeResolverJs, /if \(normalized\.includes\('black'\)\) \{/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('azure'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('gray'\)/);
@@ -167,6 +181,12 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
 });
 
 test('settings semantic chips and light-mode overrides use exported settings tokens', () => {
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-card:\s*var\(--fvplus-ui-card,\s*var\(--fvplus-theme-surface-card,\s*var\(--fvplus-graphite-card-bg/);
+    assert.match(settingsCss, /--fvplus-settings-safe-surface-field:\s*var\(--fvplus-ui-field,\s*var\(--fvplus-graphite-field-bg/);
+    assert.match(settingsCss, /\.fv-advanced-nav\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.fv-activity-feed-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.settings-mini-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-breadcrumb\s*\{[^}]*var\(--fvplus-settings-breadcrumb-text\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-members-meta\s*\{[^}]*var\(--fvplus-settings-members-meta-text\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-nested-meta\s*\{[^}]*var\(--fvplus-settings-nested-meta-text\)/);
@@ -180,4 +200,28 @@ test('settings semantic chips and light-mode overrides use exported settings tok
     assert.match(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*var\(--fvplus-settings-text-primary\);/);
     assert.doesNotMatch(settingsCss, /\.fv-section-badge\s*\{[^}]*border:\s*1px solid rgba\(255,\s*255,\s*255,\s*0\.2\);/);
     assert.doesNotMatch(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*#eaf2ff;/);
+});
+
+test('folder editor surfaces use graphite cards and fields instead of warm ornamental panels', () => {
+    assert.match(folderCss, /\.fv-editor-nav-dock\s*\{[\s\S]*background:\s*var\(--fv-editor-panel\);/);
+    assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-editor-panel\s*\{[\s\S]*background:\s*var\(--fv-editor-panel\);/);
+    assert.match(folderCss, /\.fv-editor-panel-icon-preview\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-control-border\);[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.doesNotMatch(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*radial-gradient\(circle at top right,\s*rgba\(255,\s*154,\s*60,\s*0\.09\)/);
+});
+
+test('settings wizard and recovery chrome use flat graphite dark surfaces', () => {
+    assert.match(settingsCss, /--fv-wizard-surface-page:\s*var\(--fvplus-ui-page,\s*var\(--fvplus-graphite-page,\s*#0f0f10\)\)/);
+    assert.match(settingsCss, /--fv-wizard-shell-sidebar-bg:\s*var\(--fv-wizard-surface-panel\)/);
+    assert.match(settingsCss, /--fv-wizard-shell-head-bg:\s*var\(--fv-wizard-surface-panel\)/);
+    assert.match(settingsCss, /--fv-wizard-card-base-bg:\s*var\(--fvplus-ui-card,\s*var\(--fvplus-graphite-card,\s*#1d1d1f\)\)/);
+    assert.match(themeResolverJs, /surfaceCard:\s*parseThemeColorToRgba\('#1d1d1f'\)/);
+    assert.match(themeResolverJs, /'--fvplus-theme-surface-card':\s*tokens\.surfaceCard \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-surface-card':\s*tokens\.settingsSurfaceCard \|\| ''/);
+    assert.match(settingsCss, /\.fv-setup-card\s*\{[\s\S]*background:\s*var\(--fv-wizard-card-base-bg\);/);
+    assert.match(settingsCss, /\.fv-setup-welcome-hero,\s*[\s\S]*\.fv-setup-welcome-draft,\s*[\s\S]*\.fv-setup-welcome-safety\s*\{[\s\S]*background:\s*var\(--fv-wizard-surface-card\);/);
+    assert.match(settingsCss, /\.fv-recovery-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
+    assert.match(settingsCss, /\.fv-recovery-stage\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
+    assert.match(settingsCss, /\.fv-recovery-history-card,\s*[\s\S]*\.fv-recovery-timeline-card,\s*[\s\S]*\.fv-recovery-undo-summary\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-row-quick-actions-header\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
 });

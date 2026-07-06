@@ -1,13 +1,13 @@
 :root {
-    --fvplus-runtime-menu-bg: rgba(22, 20, 18, 0.985);
-    --fvplus-runtime-menu-fg: rgba(238, 240, 245, 0.96);
-    --fvplus-runtime-menu-border: rgba(255, 154, 60, 0.42);
-    --fvplus-runtime-menu-divider: rgba(255, 255, 255, 0.12);
-    --fvplus-runtime-menu-hover-bg: rgba(255, 154, 60, 0.16);
+    --fvplus-runtime-menu-bg: var(--fvplus-graphite-menu-bg, rgba(18, 18, 19, 0.985));
+    --fvplus-runtime-menu-fg: var(--fvplus-graphite-text-primary, rgba(242, 244, 247, 0.98));
+    --fvplus-runtime-menu-border: var(--fvplus-graphite-border-strong, rgba(255, 255, 255, 0.18));
+    --fvplus-runtime-menu-divider: var(--fvplus-graphite-border-faint, rgba(255, 255, 255, 0.08));
+    --fvplus-runtime-menu-hover-bg: var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14));
     --fvplus-runtime-menu-hover-fg: #fff5ea;
     --fvplus-runtime-menu-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
-    --fvplus-runtime-menu-header-bg: rgba(255, 154, 60, 0.12);
-    --fvplus-runtime-menu-muted: rgba(206, 212, 222, 0.82);
+    --fvplus-runtime-menu-header-bg: rgba(255, 255, 255, 0.04);
+    --fvplus-runtime-menu-muted: var(--fvplus-graphite-text-muted, rgba(168, 176, 188, 0.92));
 }
 
 body[data-fv-theme-class="light"] {

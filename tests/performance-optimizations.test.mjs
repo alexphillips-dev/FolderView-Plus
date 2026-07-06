@@ -379,6 +379,70 @@ test('settings/runtime scripts use batched localStorage writes', () => {
     assert.match(settingsJs, /const settingsStorageWriter = utils && typeof utils\.createBatchedStorageWriter === 'function'/);
 });
 
+test('settings health treats lightweight docker state strings as runtime states', () => {
+    const match = settingsJs.match(/const getItemRuntimeStateKind = \(type, itemInfo\) => \{[\s\S]*?\n\};/);
+    assert.ok(match, 'getItemRuntimeStateKind should be present in settings runtime');
+    const getItemRuntimeStateKind = Function(`${match[0]}\nreturn getItemRuntimeStateKind;`)();
+
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'running', running: true, paused: false }), 'started');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'paused', running: true, paused: true }), 'paused');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'stopped', running: false, paused: false }), 'stopped');
+    assert.equal(getItemRuntimeStateKind('docker', { state: 'stopped' }), 'stopped');
+    assert.equal(getItemRuntimeStateKind('docker', { info: { State: { Running: false, Paused: false } } }), 'stopped');
+});
+
+test('settings table filter and preference changes use queued table rendering', () => {
+    assert.match(settingsJs, /const scheduleTableRender = \(type,\s*\{ immediate = false \} = \{\}\) => \{/);
+    assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingTableRenderFrameByType\[resolvedType\] = null;\s*renderTable\(resolvedType\);/);
+    assert.match(settingsJs, /const renderTable = \(type\) => \{\s*const resolvedType = normalizeSettingsTableRenderType\(type\);[\s\S]*window\.cancelAnimationFrame\(pendingTableRenderFrameByType\[resolvedType\]\);/);
+    assert.match(settingsJs, /const setQuickFolderFilter = \(type = 'docker', mode = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);[\s\S]*?\n\};/);
+    assert.match(settingsJs, /const setFilterQuery = \(section, type, value\) => \{[\s\S]*if \(section === 'folders'\) \{\s*scheduleTableRender\(type\);/);
+    assert.match(settingsJs, /const toggleDockerUpdatesFilter = \(hasUpdatesInRow = false\) => \{[\s\S]*scheduleTableRender\('docker'\);[\s\S]*scheduleTableRender\('docker'\);/);
+    assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const toggleStatusFilter = \(type = 'docker', statusKey = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const changeVisibilityPref = async \(type, key, value\) => \{[\s\S]*renderVisibilityControls\(type\);\s*scheduleTableRender\(type\);/);
+    assert.match(settingsJs, /const changeStatusPref = async \(type, key, value\) => \{[\s\S]*renderStatusControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
+    assert.match(settingsJs, /const changeHealthPref = async \(type, key, value\) => \{[\s\S]*renderHealthControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
+    assert.doesNotMatch(settingsJs, /queueSettingsTableRender/);
+});
+
+test('settings table render defers secondary workspace surfaces', () => {
+    assert.match(settingsJs, /let pendingSecondarySurfaceFrameByType = \{\s*docker: null,\s*vm: null\s*\};/);
+    assert.match(settingsJs, /let pendingActiveAdvancedSurfaceFrame = null;/);
+    assert.match(settingsJs, /let settingsSectionRegistrySignature = '';/);
+    assert.match(settingsJs, /let trackedSettingsInputsCache = null;/);
+    assert.match(settingsJs, /const invalidateTrackedSettingsInputs = \(\) => \{\s*trackedSettingsInputsCache = null;\s*\};/);
+    assert.match(settingsJs, /const getTrackedInputs = \(\) => \{[\s\S]*if \(Array\.isArray\(trackedSettingsInputsCache\)\) \{[\s\S]*return trackedSettingsInputsCache\.filter\(\(input\) => input instanceof HTMLElement && input\.isConnected\);/);
+    assert.match(settingsJs, /trackedSettingsInputsCache = dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
+    assert.match(settingsJs, /const getSettingsSectionRegistrySignature = \(\) => Array\.from\(document\.querySelectorAll\('h2\[data-fv-section\]'\)\)/);
+    assert.match(settingsJs, /const buildSettingsSections = \(options = \{\}\) => \{[\s\S]*if \(!force && settingsUiState\.sections\.length > 0 && signature === settingsSectionRegistrySignature\) \{\s*return false;\s*\}/);
+    assert.match(settingsJs, /settingsSectionRegistrySignature = signature;\s*invalidateTrackedSettingsInputs\(\);\s*return true;/);
+    assert.match(settingsJs, /const shouldRefreshSecondaryAdvancedGroup = \(group\) => \{/);
+    assert.match(settingsJs, /if \(settingsUiState\.query && settingsUiState\.searchAllAdvanced === true\) \{\s*return true;\s*\}/);
+    assert.match(settingsJs, /const renderSettingsSecondarySurfaces = \(type\) => \{/);
+    assert.match(settingsJs, /const renderActiveAdvancedSecondarySurfaces = \(\) => \{/);
+    assert.match(settingsJs, /const scheduleSettingsSecondarySurfaces = \(type,\s*\{ immediate = false \} = \{\}\) => \{/);
+    assert.match(settingsJs, /const scheduleActiveAdvancedSecondarySurfaces = \(\{ immediate = false \} = \{\}\) => \{/);
+    assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingSecondarySurfaceFrameByType\[resolvedType\] = null;\s*renderSettingsSecondarySurfaces\(resolvedType\);/);
+    assert.match(settingsJs, /window\.requestAnimationFrame\(\(\) => \{\s*pendingActiveAdvancedSurfaceFrame = null;\s*renderActiveAdvancedSecondarySurfaces\(\);/);
+    assert.match(settingsJs, /if \(resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup\('startup'\)\) \{\s*renderDockerStartOrderWorkspace\(\{ preservePreview: true \}\);/);
+    assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('operations'\)\) \{[\s\S]*renderTemplateRows\(resolvedType\);[\s\S]*renderOperationsWorkspace\(\);/);
+    assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('rules'\)\) \{[\s\S]*renderRulesTable\(resolvedType\);[\s\S]*syncRulesWorkspaceUi\(\);/);
+    assert.match(settingsJs, /setAdvancedTab\(tab\);[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\);/);
+    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\);[\s\S]*return results\.flatMap/);
+    assert.match(settingsJs, /refreshSettingsUx\(\{ renderSecondaryWorkspaces: false \}\);/);
+    assert.match(settingsJs, /const refreshSettingsUx = \(options = \{\}\) => \{[\s\S]*const renderSecondaryWorkspaces = options\.renderSecondaryWorkspaces !== false;[\s\S]*const sectionsRebuilt = buildSettingsSections\(\{ force: options\.rebuildSections === true \}\);/);
+    assert.match(settingsJs, /if \(sectionsRebuilt \|\| options\.normalizeSections === true\) \{\s*normalizeExpandedAdvancedSections\(\);/);
+    assert.match(settingsJs, /buildSettingsSections\(\{ force: true \}\);/);
+    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type\);[\s\S]*?\n\};/);
+    const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';
+    const ensureAdvancedBlock = settingsJs.match(/const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*?\n\};/)?.[0] || '';
+    assert.doesNotMatch(renderTableBlock, /renderRulesTable\(type\)/);
+    assert.doesNotMatch(renderTableBlock, /renderDockerStartOrderWorkspace\(\)/);
+    assert.doesNotMatch(renderTableBlock, /renderOperationsWorkspace\(\)/);
+    assert.doesNotMatch(ensureAdvancedBlock, /renderFolderHealthCards\(\);/);
+});
+
 test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
     assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
     assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);

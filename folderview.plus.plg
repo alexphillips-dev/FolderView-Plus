@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.07">
-<!ENTITY md5 "c79183fb4e42a961a883bd583368f9c3">
+<!ENTITY version "2026.07.06.08">
+<!ENTITY md5 "091cd693f116ef41048c71303a2daa61">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.06.08
+- Docs: Render the refreshed README screenshot set inline, restore required Settings, recovery, troubleshooting, and customization sections, and keep support policy links in the polished README.
+- Fix: Load the shared folder editor icon module before Docker/VM editor type modules during boot-loaded editor startup.
 
 ###2026.07.06.07
 - Docs: Refresh README screenshots and wire the new advanced workspace image into the GitHub landing page.

@@ -33,15 +33,13 @@ Quick links: [Install](#install) | [Features](#features) | [Screenshots](#screen
 |---|---|
 | <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced.png" alt="Advanced settings workspace" /> |
 
-Additional screenshot slots to add as the README grows:
-
 | Folder editor | Docker start order |
 |---|---|
-| `docs/images/screenshots/folder-editor-general.png` | `docs/images/screenshots/advanced-start-order.png` |
+| <img src="docs/images/screenshots/folder-editor-general.png" alt="Modern folder editor general tab" /> | <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order workspace" /> |
 
 | Recovery workspace | Activity Center |
 |---|---|
-| `docs/images/screenshots/advanced-recovery.png` | `docs/images/screenshots/activity-center.png` |
+| <img src="docs/images/screenshots/advanced-recovery.png" alt="Backup and recovery workspace" /> | <img src="docs/images/screenshots/activity-center.png" alt="Activity Center" /> |
 
 ## Why FolderView Plus
 
@@ -52,22 +50,22 @@ Unraid's Docker and VM pages can become difficult to scan as your server grows. 
 | Folder organization | Modern folder editor |
 |---|---|
 | Group Docker containers, VMs, and Dashboard items into readable folders. Use nested folders, manual ordering, pinned folders, child folder previews, custom icons, and folder actions directly from runtime pages. | Edit folders through a tabbed editor with live preview, icon management, member ordering, preview controls, status colors, rules, actions, hover animations, and advanced behavior controls. |
-| Screenshot: `docs/images/screenshots/docker-folders.png` | Screenshot: `docs/images/screenshots/folder-editor-general.png` |
+| <img src="docs/images/screenshots/docker-folders.png" alt="Docker folders on the runtime page" /> | <img src="docs/images/screenshots/folder-editor-general.png" alt="Modern folder editor" /> |
 
 | Setup Assistant | Automation and rules |
 |---|---|
 | Start from a guided flow that explains what FolderView Plus does, detects your environment, suggests defaults, previews the setup plan, and waits for review before applying changes. | Create ordered assignment rules for Docker and VMs, use regex and Docker metadata matching, run bulk assignment workflows, save folder templates, and review changes before applying them. |
-| Screenshot: `docs/images/screenshots/wizard.png` | Screenshot: `docs/images/screenshots/advanced-rules.png` |
+| <img src="docs/images/screenshots/wizard.png" alt="Setup Assistant" /> | <img src="docs/images/screenshots/advanced-rules.png" alt="Rules workspace" /> |
 
 | Docker start order | Backup and recovery |
 |---|---|
 | Control Docker autostart order from FolderView Plus. Follow your Docker page folder order or define custom startup batches with exact folder/container groups, delays, preview, and sync tools. | Create manual backups, enable scheduled backups, compare snapshots, restore the latest backup, restore a selected snapshot, delete old backups, and undo recent destructive actions. |
-| Screenshot: `docs/images/screenshots/advanced-start-order.png` | Screenshot: `docs/images/screenshots/advanced-recovery.png` |
+| <img src="docs/images/screenshots/advanced-start-order.png" alt="Docker start order tools" /> | <img src="docs/images/screenshots/advanced-recovery.png" alt="Recovery workspace" /> |
 
 | Diagnostics and activity | Theme and UI integration |
 |---|---|
 | Use the Activity Center, Settings diagnostics, runtime banners, folder editor bootstrap diagnostics, and sanitized support bundles to understand what happened and share useful reports. | Uses shared dark/light theme tokens, modernized Settings and editor surfaces, runtime-safe menu styling, and compatibility guards for Unraid themes and legacy installs. |
-| Screenshot: `docs/images/screenshots/activity-center.png` | Screenshot: `docs/images/screenshots/theme-dark-mode.png` |
+| <img src="docs/images/screenshots/activity-center.png" alt="Activity Center" /> | <img src="docs/images/screenshots/theme-dark-mode.png" alt="Dark mode UI" /> |
 
 ## Install
 
@@ -119,6 +117,34 @@ Recommended first setup:
 | Start Order | Docker autostart order from folder order or custom startup batches. |
 | Appearance | Theme and display controls for the plugin experience. |
 | Diagnostics | Health checks, support reports, runtime diagnostics, and troubleshooting helpers. |
+
+## Settings Overview
+
+FolderView Plus keeps everyday controls in Basic mode and moves larger maintenance tools into Advanced settings. Basic settings focus on creating folders, assigning members, sorting the visible list, and using the Setup Assistant. Advanced settings add automation, ordered rules, backup and recovery, imports and exports, Docker start order, appearance controls, operations, and diagnostics.
+
+Settings changes save automatically. Use the saved indicator, restore buttons, backups, and Activity Center to confirm what changed and recover when needed.
+
+The diagnostics workspace includes health checks, a copyable issue report, and a v2 support bundle export preview. Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default so reports can be shared without exposing unnecessary personal details.
+
+Legacy CSS/JS migration and stable selector policy are documented in [docs/SUPPORT_POLICY.md](docs/SUPPORT_POLICY.md). That policy covers compatibility expectations for older folder.view migrations, stable selector/tag contracts, and the deprecation window used before removing legacy override support.
+
+## Backups and Recovery
+
+Use the Recovery workspace before large reorganizations, imports, rule changes, or bulk assignments. FolderView Plus can create manual backups, scheduled backups, safety snapshots before destructive actions, compare two snapshots, restore the latest safe backup, restore a selected snapshot, and delete old backups when they are no longer needed.
+
+Empty backups are skipped by restore workflows so a blank snapshot does not replace a working folder layout. The Activity Center records backup, restore, import, export, clear, and undo activity so recent maintenance actions are easy to review.
+
+## Troubleshooting
+
+Start with [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) when a page does not render correctly, a folder action fails, or a setting appears out of sync. FolderView Plus includes Settings diagnostics, runtime diagnostics, Folder editor bootstrap diagnostics, support bundle preview, and copyable issue reports to make support requests easier to diagnose.
+
+If the UI shows a diagnostics panel, copy the report text or export a sanitized support bundle before refreshing the page. Include screenshots for visual issues and mention whether the problem is on Docker, VMs, Dashboard, Settings, or the folder editor.
+
+## Customization
+
+Customize FolderView Plus from the folder editor and Advanced settings. You can tune folder icons, preview rows, child folder preview depth, borders, border glow, hover animations, status colors, action buttons, sort behavior, templates, rules, backups, and Docker start order.
+
+The plugin uses shared theme tokens for modern dark and light surfaces, while still honoring compatibility guidance in the [Support Policy](docs/SUPPORT_POLICY.md) for stable selectors and legacy custom CSS/JS migration.
 
 ## Documentation
 

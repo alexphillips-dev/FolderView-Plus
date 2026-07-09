@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.08.14">
-<!ENTITY md5 "650795b24dab3578304d1710cf98db1c">
+<!ENTITY version "2026.07.09.01">
+<!ENTITY md5 "aa603ad9577aa75df5ae0e8db4375331">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.01
+- UX: Removed sort shortcut buttons from Settings View &amp; Organization so Sort mode is controlled only by the dropdown.
+- UX: Moved the folder search and quick filters out of View &amp; Organization and into the row below it, replacing the old path hint row.
 
 ###2026.07.08.14
 - UX: Reworked Settings sort and view controls into a clearer View &amp; Organization workspace with dedicated Order, Find folders, Display, and Advanced tools sections.

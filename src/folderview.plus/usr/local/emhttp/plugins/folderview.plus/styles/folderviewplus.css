@@ -420,6 +420,35 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     text-overflow: ellipsis;
 }
 
+.fv-folder-filter-strip {
+    display: grid;
+    gap: 0.36rem;
+    margin-top: 0.3rem;
+    margin-bottom: 0.18rem;
+    padding: 0.34rem 0.42rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 5px;
+    background: var(--fvplus-settings-surface-field);
+}
+
+.fv-folder-filter-search > input[type="text"] {
+    width: 100%;
+    min-height: 30px;
+    margin: 0;
+    border-color: transparent;
+    background: transparent;
+}
+
+.fv-folder-filter-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+}
+
+.fv-folder-filter-quick:empty {
+    display: none;
+}
+
 .sort-hint-chip {
     display: inline-flex;
     align-items: center;
@@ -496,7 +525,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 
 .fv-view-org-layout {
     display: grid;
-    grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.35fr);
+    grid-template-columns: 1fr;
     gap: 0.75rem;
 }
 
@@ -547,27 +576,12 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     align-self: start;
 }
 
-.fv-view-org-find {
-    align-self: start;
-}
-
 .fv-view-org-display {
     grid-column: 1 / -1;
 }
 
 .fv-view-org-display .settings-cards-grid {
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-}
-
-.fv-view-org-find-body {
-    display: grid;
-    gap: 0.55rem;
-}
-
-.fv-view-org-find-body > input[type="text"] {
-    width: 100%;
-    min-height: 36px;
-    margin: 0;
 }
 
 .fv-view-org-order-body {
@@ -586,37 +600,6 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     min-height: 32px;
     min-width: 0;
     padding: 0.2rem 0.58rem;
-}
-
-.fv-view-org-sort-tabs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-    gap: 0.4rem;
-    margin-bottom: 0.62rem;
-}
-
-.fv-view-org-sort-tabs > button {
-    min-height: 34px;
-    min-width: 0;
-    padding: 0.28rem 0.5rem;
-    border-radius: 7px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    background: var(--fvplus-settings-surface-button);
-    color: var(--fvplus-settings-text-strong);
-    font-weight: 700;
-    text-align: center;
-}
-
-.fv-view-org-sort-tabs > button:hover {
-    border-color: var(--fvplus-settings-accent);
-    color: var(--fvplus-settings-accent);
-}
-
-.fv-view-org-sort-tabs > button.is-active {
-    border-color: var(--fvplus-settings-accent);
-    box-shadow:
-        0 0 0 1px var(--fvplus-settings-accent) inset,
-        0 0 0 3px var(--fvplus-settings-focus-ring);
 }
 
 .fv-view-org-count-chip {

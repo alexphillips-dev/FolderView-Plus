@@ -6994,17 +6994,40 @@ const updateViewOrganizationGuidance = (type) => {
 
     const tabs = $(`#${resolvedType}-sort-mode-tabs`);
     if (tabs.length) {
-        tabs.find('button[data-sort-mode]').each((_, button) => {
-            const candidate = String($(button).attr('data-sort-mode') || '');
-            $(button)
-                .toggleClass('is-active', candidate === sortMode)
-                .attr('aria-pressed', candidate === sortMode ? 'true' : 'false');
-        });
+        tabs.remove();
     }
 
     const hint = $(`#${resolvedType}-sort-mode-hint`);
     if (hint.length) {
         hint.text(`${folderCount} ${folderCount === 1 ? 'folder' : 'folders'} tracked`);
+    }
+};
+
+const ensureExternalFolderFilterStrip = (type, details, searchInput, quickFilters) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    let strip = $(`#${resolvedType}-folder-filter-strip`);
+    if (!strip.length) {
+        strip = $(`
+            <div id="${resolvedType}-folder-filter-strip" class="fv-folder-filter-strip">
+                <div class="fv-folder-filter-search"></div>
+                <div class="fv-folder-filter-quick"></div>
+            </div>
+        `);
+        const pathHint = $(`#${resolvedType}-tree-path-hint`);
+        if (pathHint.length) {
+            pathHint.replaceWith(strip);
+        } else {
+            details.after(strip);
+        }
+    }
+
+    const searchHost = strip.find('.fv-folder-filter-search');
+    const quickHost = strip.find('.fv-folder-filter-quick');
+    if (searchInput?.length) {
+        searchHost.empty().append(searchInput);
+    }
+    if (quickFilters?.length) {
+        quickHost.empty().append(quickFilters);
     }
 };
 
@@ -7024,13 +7047,14 @@ const enhanceViewOrganizationWorkspace = (type) => {
     const typeLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
     details.find('.toolbar-sort-toggle-main').html('<i class="fa fa-sliders" aria-hidden="true"></i> View & Organization');
     details.find('.toolbar-sort-toggle-note').text(`${typeLabel} folders, sorting, layout, and tools`);
+    const searchInput = $(`#${resolvedType}-folder-filter`).detach();
+    const quickFilters = $(`#${resolvedType}-quick-filters`).detach();
+    ensureExternalFolderFilterStrip(resolvedType, details, searchInput, quickFilters);
 
     if (!body.children('.fv-view-org-layout').length) {
         const sortRow = body.children('.sort-row').first();
         const treeVisibilityControls = sortRow.children('.tree-visibility-controls').not('.tree-management-controls').detach();
         const treeManagementControls = sortRow.children('.tree-management-controls').detach();
-        const searchInput = $(`#${resolvedType}-folder-filter`).detach();
-        const quickFilters = $(`#${resolvedType}-quick-filters`).detach();
         const settingsCards = body.children('.settings-cards-grid').first().detach();
         const sortHint = sortRow.find('.sort-hint-chip').detach();
 
@@ -7044,24 +7068,11 @@ const enhanceViewOrganizationWorkspace = (type) => {
                         </div>
                         <p>Manual and pinned folders control the visible order on Docker, VM, and Dashboard views.</p>
                     </div>
-                    <div id="${resolvedType}-sort-mode-tabs" class="fv-view-org-sort-tabs" role="group" aria-label="${typeLabel} sort mode shortcuts">
-                        ${Object.entries(VIEW_ORGANIZATION_SORT_DETAILS).map(([value, config]) => `<button type="button" data-sort-mode="${value}" onclick="changeSortMode('${resolvedType}', '${value}')">${escapeHtml(config.label)}</button>`).join('')}
-                    </div>
                     <div class="fv-view-org-section-body fv-view-org-order-body"></div>
                     <div class="fv-view-org-order-actions">
                         <button type="button" onclick="saveCurrentFolderOrderAsManual('${resolvedType}')"><i class="fa fa-save" aria-hidden="true"></i> Use current visible order</button>
                     </div>
                     <div id="${resolvedType}-sort-mode-explainer" class="fv-view-org-guidance"></div>
-                </section>
-                <section class="fv-view-org-section fv-view-org-find">
-                    <div class="fv-view-org-section-header">
-                        <div>
-                            <div class="fv-view-org-eyebrow">Find folders</div>
-                            <h3>Search and quick filters</h3>
-                        </div>
-                        <p>Filter the settings table without changing saved folder order.</p>
-                    </div>
-                    <div class="fv-view-org-section-body fv-view-org-find-body"></div>
                 </section>
                 <section class="fv-view-org-section fv-view-org-display">
                     <div class="fv-view-org-section-header">
@@ -7091,7 +7102,6 @@ const enhanceViewOrganizationWorkspace = (type) => {
             sortHint.html('<i class="fa fa-info-circle" aria-hidden="true"></i> Use Manual when you want the Order column to control saved placement.');
             layout.find('.fv-view-org-order-body').append(sortHint);
         }
-        layout.find('.fv-view-org-find-body').append(searchInput, quickFilters);
         layout.find('.fv-view-org-display-body').append(settingsCards);
         layout.find('.fv-view-org-tools-body').append(treeVisibilityControls, treeManagementControls);
     }

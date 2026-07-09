@@ -946,6 +946,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="fv-rule-builder-field">
                     <label for="docker-rule-kind">When this field</label>
                     <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
+                        <option value="name_contains">Name contains</option>
+                        <option value="name_starts_with">Name starts with</option>
+                        <option value="image_contains">Image contains</option>
+                        <option value="compose_project_equals">Compose project equals</option>
                         <option value="name_regex">Name regex</option>
                         <option value="label">Label equals</option>
                         <option value="label_contains">Label contains</option>
@@ -973,7 +977,18 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="fv-rule-stage">
             <div class="fv-rule-stage-head">
-                <strong>2. Review rule order</strong>
+                <strong>2. Smart suggestions</strong>
+                <span>Scan current containers and existing folders for safe rule ideas before saving anything.</span>
+            </div>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="scanSmartRuleSuggestions('docker')"><i class="fa fa-magic"></i> Scan Docker suggestions</button>
+                <button type="button" onclick="saveSelectedSmartRuleSuggestions('docker')"><i class="fa fa-check"></i> Save selected suggestions</button>
+            </div>
+            <div id="docker-rule-suggestions" class="fv-rule-suggestion-list">Scan Docker suggestions to see rule ideas.</div>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>3. Review rule order</strong>
                 <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
             </div>
             <div class="fv-rule-toolbar">
@@ -1042,7 +1057,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="fv-rule-builder-field">
                     <label for="vm-rule-kind">When this field</label>
-                    <select id="vm-rule-kind">
+                    <select id="vm-rule-kind" onchange="toggleRuleKindFields('vm')">
+                        <option value="name_contains">Name contains</option>
+                        <option value="name_starts_with">Name starts with</option>
                         <option value="name_regex">Name regex</option>
                     </select>
                 </div>
@@ -1057,7 +1074,18 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="fv-rule-stage">
             <div class="fv-rule-stage-head">
-                <strong>2. Review rule order</strong>
+                <strong>2. Smart suggestions</strong>
+                <span>Scan current VMs and existing folders for safe rule ideas before saving anything.</span>
+            </div>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="scanSmartRuleSuggestions('vm')"><i class="fa fa-magic"></i> Scan VM suggestions</button>
+                <button type="button" onclick="saveSelectedSmartRuleSuggestions('vm')"><i class="fa fa-check"></i> Save selected suggestions</button>
+            </div>
+            <div id="vm-rule-suggestions" class="fv-rule-suggestion-list">Scan VM suggestions to see rule ideas.</div>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>3. Review rule order</strong>
                 <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
             </div>
             <div class="fv-rule-toolbar">
@@ -1116,10 +1144,11 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div class="fv-rule-test-actions">
                 <button type="button" onclick="testAutoRule('docker')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
                 <button type="button" onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+                <button type="button" onclick="applyRuleSimulatorAssignments('docker')"><i class="fa fa-check"></i> Apply previewed assignments</button>
             </div>
             <div id="docker-rule-validation" class="inline-validation-hint"></div>
             <div id="docker-rule-test-output" class="rule-test-output">Enter a test container name to see which Docker rule wins.</div>
-            <pre id="docker-rule-sim-output" class="diagnostics-output compact-output">Preview all Docker assignments to review the full rule outcome.</pre>
+            <div id="docker-rule-sim-output" class="fv-rule-preview-output diagnostics-output compact-output">Preview all Docker assignments to review the full rule outcome.</div>
         </div>
         <div class="fv-rule-stage">
             <div class="fv-rule-stage-head">
@@ -1153,10 +1182,11 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div class="fv-rule-test-actions">
                 <button type="button" onclick="testAutoRule('vm')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
                 <button type="button" onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+                <button type="button" onclick="applyRuleSimulatorAssignments('vm')"><i class="fa fa-check"></i> Apply previewed assignments</button>
             </div>
             <div id="vm-rule-validation" class="inline-validation-hint"></div>
             <div id="vm-rule-test-output" class="rule-test-output">Enter a test VM name to see which VM rule wins.</div>
-            <pre id="vm-rule-sim-output" class="diagnostics-output compact-output">Preview all VM assignments to review the full rule outcome.</pre>
+            <div id="vm-rule-sim-output" class="fv-rule-preview-output diagnostics-output compact-output">Preview all VM assignments to review the full rule outcome.</div>
         </div>
         <div class="fv-rule-stage">
             <div class="fv-rule-stage-head">

@@ -3180,6 +3180,58 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-text-primary);
 }
 
+.fv-rule-suggestion-list {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.fv-rule-suggestion-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.8rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    cursor: pointer;
+}
+
+.fv-rule-suggestion-card:hover {
+    border-color: var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-rule-suggestion-main {
+    display: grid;
+    gap: 0.22rem;
+    min-width: 0;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-suggestion-main > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-rule-suggestion-main > small {
+    color: var(--fvplus-settings-text-subtle);
+    line-height: 1.4;
+}
+
+.fv-rule-suggestion-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.18rem 0.58rem;
+    border-radius: 8px;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .fv-rule-card {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -3316,6 +3368,99 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     grid-column: span 2;
 }
 
+.fv-rule-preview-output {
+    display: grid;
+    gap: 0.65rem;
+    white-space: normal;
+}
+
+.fv-rule-preview-empty {
+    padding: 0.8rem 0.9rem;
+    border-radius: 10px;
+    border: 1px dashed var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-preview-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.fv-rule-preview-summary > span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0.14rem 0.56rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-primary);
+    font-weight: 700;
+}
+
+.fv-rule-preview-table {
+    display: grid;
+    gap: 0.32rem;
+    max-height: min(420px, 50vh);
+    overflow: auto;
+    padding-right: 0.25rem;
+}
+
+.fv-rule-preview-row {
+    display: grid;
+    grid-template-columns: 92px minmax(140px, 0.8fr) minmax(130px, 0.65fr) minmax(0, 1.35fr);
+    gap: 0.6rem;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.44rem 0.56rem;
+    border-radius: 9px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-rule-preview-row > strong,
+.fv-rule-preview-row > span,
+.fv-rule-preview-row > small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-rule-preview-row > small {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-preview-result {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0.1rem 0.42rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-panel);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-rule-preview-row.is-assigned .fv-rule-preview-result {
+    border-color: var(--fvplus-settings-chip-ok-border);
+    background: var(--fvplus-settings-chip-ok-bg);
+    color: var(--fvplus-settings-chip-ok);
+}
+
+.fv-rule-preview-row.is-blocked .fv-rule-preview-result {
+    border-color: var(--fvplus-settings-warning-border);
+    background: var(--fvplus-settings-warning-soft);
+    color: var(--fvplus-settings-title-accent);
+}
+
 @media (max-width: 1180px) {
     .fv-rules-stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3348,6 +3493,16 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-rule-card-actions {
         flex-direction: row;
         flex-wrap: wrap;
+    }
+
+    .fv-rule-suggestion-card,
+    .fv-rule-preview-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fv-rule-suggestion-count,
+    .fv-rule-preview-result {
+        justify-self: start;
     }
 }
 

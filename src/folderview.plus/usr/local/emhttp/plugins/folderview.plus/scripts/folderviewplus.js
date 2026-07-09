@@ -505,6 +505,14 @@ let selectedRuleIdsByType = {
     docker: new Set(),
     vm: new Set()
 };
+let smartRuleSuggestionCacheByType = {
+    docker: [],
+    vm: []
+};
+let lastRulePreviewRowsByType = {
+    docker: [],
+    vm: []
+};
 let selectedTemplateIdsByType = {
     docker: new Set(),
     vm: new Set()
@@ -7115,6 +7123,51 @@ const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolder
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
+const RULE_SIMPLE_KINDS = Object.freeze(['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals']);
+
+const normalizeRuleBuilderRuleInput = ({ type, folderId, effect, kind, pattern, labelKey, labelValue }) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rawKind = String(kind || 'name_regex').trim().toLowerCase();
+    const safePattern = String(pattern || '').trim();
+    const safeLabelKey = String(labelKey || '').trim();
+    const safeLabelValue = String(labelValue || '').trim();
+    const normalized = {
+        id: '',
+        enabled: true,
+        folderId: String(folderId || '').trim(),
+        effect: effect === 'exclude' ? 'exclude' : 'include',
+        kind: rawKind,
+        pattern: '',
+        labelKey: '',
+        labelValue: ''
+    };
+
+    if (rawKind === 'name_contains') {
+        normalized.kind = 'name_regex';
+        normalized.pattern = escapeRegexLiteral(safePattern);
+    } else if (rawKind === 'name_starts_with') {
+        normalized.kind = 'name_regex';
+        normalized.pattern = `^${escapeRegexLiteral(safePattern)}`;
+    } else if (rawKind === 'image_contains' && resolvedType === 'docker') {
+        normalized.kind = 'image_regex';
+        normalized.pattern = escapeRegexLiteral(safePattern);
+    } else if (rawKind === 'compose_project_equals' && resolvedType === 'docker') {
+        normalized.kind = 'compose_project_regex';
+        normalized.pattern = `^${escapeRegexLiteral(safePattern)}$`;
+    } else if (RULE_LABEL_KINDS.includes(rawKind) && resolvedType === 'docker') {
+        normalized.kind = rawKind;
+        normalized.labelKey = safeLabelKey;
+        normalized.labelValue = safeLabelValue;
+    } else if (RULE_REGEX_KINDS.includes(rawKind) && (resolvedType === 'docker' || rawKind === 'name_regex')) {
+        normalized.kind = rawKind;
+        normalized.pattern = safePattern;
+    } else {
+        normalized.kind = 'name_regex';
+        normalized.pattern = safePattern;
+    }
+
+    return normalized;
+};
 
 const getRuleKindLabel = (rule) => {
     const kind = String(rule?.kind || 'name_regex').trim().toLowerCase();
@@ -7232,6 +7285,347 @@ const buildRuleSummaryCopy = (type, rule, folderName) => {
         summary: `${effect} ${targetLabel} when name matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
         detail: `Target folder: ${folderName}`
     };
+};
+
+const normalizeSmartRuleToken = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const getSmartRuleNameTokens = (value) => {
+    const blocked = new Set(['app', 'apps', 'docker', 'folder', 'folders', 'server', 'service', 'stack', 'test', 'testing', 'the', 'and', 'with']);
+    return Array.from(new Set(
+        normalizeSmartRuleToken(value)
+            .split(/\s+/)
+            .map((token) => token.trim())
+            .filter((token) => token.length >= 3 && !blocked.has(token))
+    ));
+};
+
+const getDockerInfoLabelsForSmartRules = (entry) => {
+    if (!entry || typeof entry !== 'object') {
+        return {};
+    }
+    return entry.Labels
+        || entry.labels
+        || entry.info?.Config?.Labels
+        || entry.info?.Labels
+        || {};
+};
+
+const getDockerInfoImageForSmartRules = (entry) => String(
+    entry?.image
+    || entry?.Image
+    || entry?.info?.Config?.Image
+    || entry?.info?.Image
+    || ''
+).trim();
+
+const getDockerInfoComposeForSmartRules = (entry) => {
+    const labels = getDockerInfoLabelsForSmartRules(entry);
+    if (typeof utils.getComposeProjectFromLabels === 'function') {
+        return String(utils.getComposeProjectFromLabels(labels) || '').trim();
+    }
+    return String(
+        labels?.['com.docker.compose.project']
+        || labels?.['com.docker.compose.project.working_dir']
+        || ''
+    ).trim();
+};
+
+const smartRuleKey = (rule) => [
+    String(rule?.folderId || '').trim(),
+    String(rule?.effect || 'include').trim(),
+    String(rule?.kind || 'name_regex').trim(),
+    String(rule?.pattern || '').trim(),
+    String(rule?.labelKey || '').trim(),
+    String(rule?.labelValue || '').trim()
+].join('|');
+
+const getSmartRuleMatches = (type, rule) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const info = infoByType[resolvedType] || {};
+    return Object.keys(info)
+        .filter((name) => typeof utils.ruleMatchesItem === 'function'
+            ? utils.ruleMatchesItem(rule, name, info, resolvedType)
+            : false)
+        .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true }));
+};
+
+const buildSmartRuleSuggestion = (type, rule, reason, source) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedRule = utils.normalizePrefs({ autoRules: [rule] }).autoRules[0];
+    if (!normalizedRule || getAutoRuleProblems(resolvedType, normalizedRule).length > 0) {
+        return null;
+    }
+    const matches = getSmartRuleMatches(resolvedType, normalizedRule);
+    if (!matches.length) {
+        return null;
+    }
+    const folderName = folderNameForId(resolvedType, normalizedRule.folderId);
+    const summary = buildRuleSummaryCopy(resolvedType, normalizedRule, folderName);
+    const key = smartRuleKey(normalizedRule);
+    return {
+        id: `${resolvedType}-${key}`.replace(/[^a-zA-Z0-9_-]+/g, '-'),
+        key,
+        type: resolvedType,
+        rule: normalizedRule,
+        title: summary.summary,
+        detail: reason || summary.detail,
+        source: source || 'Detected pattern',
+        folderName,
+        matches
+    };
+};
+
+const dedupeSmartRuleSuggestions = (type, suggestions) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const existingKeys = new Set((prefsByType[resolvedType]?.autoRules || []).map((rule) => smartRuleKey(rule)));
+    const seen = new Set();
+    const deduped = [];
+    for (const suggestion of Array.isArray(suggestions) ? suggestions : []) {
+        if (!suggestion || existingKeys.has(suggestion.key) || seen.has(suggestion.key)) {
+            continue;
+        }
+        seen.add(suggestion.key);
+        deduped.push(suggestion);
+    }
+    return deduped
+        .sort((left, right) => right.matches.length - left.matches.length || left.title.localeCompare(right.title))
+        .slice(0, 12);
+};
+
+const generateSmartRuleSuggestions = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const folders = getFolderMap(resolvedType);
+    const info = infoByType[resolvedType] || {};
+    const names = Object.keys(info);
+    const suggestions = [];
+
+    for (const [folderId, folder] of Object.entries(folders || {})) {
+        const folderName = String(folder?.name || folderId || '').trim();
+        const folderTokens = getSmartRuleNameTokens(folderName);
+        const manualMembers = typeof utils.normalizeFolderMembers === 'function'
+            ? utils.normalizeFolderMembers(folder?.containers || [])
+            : (Array.isArray(folder?.containers) ? folder.containers.map((name) => String(name || '').trim()).filter(Boolean) : []);
+
+        for (const token of folderTokens) {
+            suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                enabled: true,
+                folderId,
+                effect: 'include',
+                kind: 'name_regex',
+                pattern: escapeRegexLiteral(token)
+            }, `Matches names containing "${token}" for ${folderName}.`, 'Folder name'));
+
+            if (resolvedType === 'docker') {
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'image_regex',
+                    pattern: escapeRegexLiteral(token)
+                }, `Matches Docker images containing "${token}" for ${folderName}.`, 'Folder name'));
+            }
+        }
+
+        if (manualMembers.length >= 2) {
+            const tokenCounts = new Map();
+            for (const member of manualMembers) {
+                const normalized = normalizeSmartRuleToken(member).replace(/\s+/g, '');
+                const memberTokens = new Set();
+                for (let length = 3; length <= Math.min(8, normalized.length); length += 1) {
+                    for (let start = 0; start <= normalized.length - length; start += 1) {
+                        const token = normalized.slice(start, start + length);
+                        if (/^\d+$/.test(token)) {
+                            continue;
+                        }
+                        memberTokens.add(token);
+                    }
+                }
+                memberTokens.forEach((token) => tokenCounts.set(token, (tokenCounts.get(token) || 0) + 1));
+            }
+            const sharedToken = Array.from(tokenCounts.entries())
+                .filter(([, count]) => count >= 2)
+                .sort((left, right) => right[1] - left[1] || right[0].length - left[0].length)[0]?.[0];
+            if (sharedToken) {
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'name_regex',
+                    pattern: escapeRegexLiteral(sharedToken)
+                }, `Detected "${sharedToken}" in multiple current members of ${folderName}.`, 'Current members'));
+            }
+        }
+
+        if (resolvedType === 'docker') {
+            const composeProjects = new Set();
+            for (const name of names) {
+                const compose = getDockerInfoComposeForSmartRules(info[name]);
+                if (compose) {
+                    composeProjects.add(compose);
+                }
+            }
+            for (const compose of composeProjects) {
+                const composeToken = normalizeSmartRuleToken(compose).replace(/\s+/g, '');
+                if (!composeToken || !folderTokens.some((token) => composeToken.includes(token) || token.includes(composeToken))) {
+                    continue;
+                }
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'compose_project_regex',
+                    pattern: `^${escapeRegexLiteral(compose)}$`
+                }, `Compose project "${compose}" looks related to ${folderName}.`, 'Compose project'));
+            }
+        }
+    }
+
+    return dedupeSmartRuleSuggestions(resolvedType, suggestions.filter(Boolean));
+};
+
+const renderSmartRuleSuggestions = (type, suggestions = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const root = $(`#${resolvedType}-rule-suggestions`);
+    if (!root.length) {
+        return;
+    }
+    const rows = Array.isArray(suggestions) ? suggestions : smartRuleSuggestionCacheByType[resolvedType] || [];
+    if (!rows.length) {
+        root.html(`<div class="fv-rule-list-empty"><strong>No suggestions found.</strong><span>Try creating folders or assigning a few current ${resolvedType === 'docker' ? 'containers' : 'VMs'} first so FolderView Plus has patterns to learn from.</span></div>`);
+        return;
+    }
+    root.html(rows.map((suggestion, index) => `
+        <label class="fv-rule-suggestion-card">
+            <input type="checkbox" data-smart-rule-index="${escapeHtml(String(index))}" checked>
+            <span class="fv-rule-suggestion-main">
+                <strong>${escapeHtml(suggestion.title)}</strong>
+                <span>${escapeHtml(suggestion.detail)}</span>
+                <small>${escapeHtml(suggestion.source)} | ${escapeHtml(suggestion.matches.slice(0, 5).join(', '))}${suggestion.matches.length > 5 ? escapeHtml(` + ${suggestion.matches.length - 5} more`) : ''}</small>
+            </span>
+            <span class="fv-rule-suggestion-count">${escapeHtml(String(suggestion.matches.length))} match${suggestion.matches.length === 1 ? '' : 'es'}</span>
+        </label>
+    `).join(''));
+};
+
+const scanSmartRuleSuggestions = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const suggestions = generateSmartRuleSuggestions(resolvedType);
+    smartRuleSuggestionCacheByType[resolvedType] = suggestions;
+    renderSmartRuleSuggestions(resolvedType, suggestions);
+    addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule scan found ${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'}.`, suggestions.length ? 'info' : 'warning');
+};
+
+const saveSelectedSmartRuleSuggestions = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const suggestions = smartRuleSuggestionCacheByType[resolvedType] || [];
+    const selectedIndexes = new Set(
+        $(`#${resolvedType}-rule-suggestions input[data-smart-rule-index]:checked`)
+            .map((_, node) => Number($(node).attr('data-smart-rule-index')))
+            .get()
+            .filter((index) => Number.isInteger(index) && index >= 0)
+    );
+    const selected = suggestions.filter((_, index) => selectedIndexes.has(index));
+    if (!selected.length) {
+        swal({ title: 'No suggestions selected', text: 'Select one or more smart suggestions first.', type: 'info' });
+        return;
+    }
+    const existingRules = prefsByType[resolvedType]?.autoRules || [];
+    const timestamp = Date.now();
+    const nextRules = selected.map((suggestion, index) => ({
+        ...suggestion.rule,
+        id: `smart-rule-${timestamp}-${index}-${Math.floor(Math.random() * 100000)}`,
+        enabled: true
+    }));
+    try {
+        prefsByType[resolvedType] = await postPrefs(resolvedType, utils.normalizePrefs({
+            ...prefsByType[resolvedType],
+            autoRules: [...existingRules, ...nextRules]
+        }));
+        smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
+        renderSmartRuleSuggestions(resolvedType);
+        renderRulesTable(resolvedType);
+        addActivityEntry(`Saved ${nextRules.length} ${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule suggestion${nextRules.length === 1 ? '' : 's'}.`, 'success');
+    } catch (error) {
+        showError('Smart suggestion save failed', error);
+    }
+};
+
+const buildRulePreviewRows = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rules = prefsByType[resolvedType]?.autoRules || [];
+    const info = infoByType[resolvedType] || {};
+    return Object.keys(info)
+        .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true }))
+        .map((name) => {
+            const decision = utils.getAutoRuleDecision({
+                rules,
+                name,
+                infoByName: info,
+                type: resolvedType
+            });
+            if (decision.blockedBy) {
+                return {
+                    item: name,
+                    result: 'blocked',
+                    folderId: String(decision.blockedBy.folderId || ''),
+                    folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
+                    rule: ruleDescription(decision.blockedBy)
+                };
+            }
+            if (decision.assignedRule) {
+                return {
+                    item: name,
+                    result: 'assigned',
+                    folderId: String(decision.assignedRule.folderId || ''),
+                    folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
+                    rule: ruleDescription(decision.assignedRule)
+                };
+            }
+            return {
+                item: name,
+                result: 'unassigned',
+                folderId: '',
+                folder: '-',
+                rule: '-'
+            };
+        });
+};
+
+const renderRulePreviewRows = (type, rows) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const root = $(`#${resolvedType}-rule-sim-output`);
+    if (!root.length) {
+        return;
+    }
+    const safeRows = Array.isArray(rows) ? rows : [];
+    const assigned = safeRows.filter((row) => row.result === 'assigned').length;
+    const blocked = safeRows.filter((row) => row.result === 'blocked').length;
+    const unassigned = safeRows.filter((row) => row.result === 'unassigned').length;
+    if (!safeRows.length) {
+        root.html(`<div class="fv-rule-preview-empty">No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are available to preview right now.</div>`);
+        return;
+    }
+    root.html(`
+        <div class="fv-rule-preview-summary">
+            <span>${escapeHtml(String(assigned))} assigned</span>
+            <span>${escapeHtml(String(blocked))} blocked</span>
+            <span>${escapeHtml(String(unassigned))} unassigned</span>
+            <span>${escapeHtml(String(safeRows.length))} total</span>
+        </div>
+        <div class="fv-rule-preview-table" role="table" aria-label="${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview">
+            ${safeRows.map((row) => `
+                <div class="fv-rule-preview-row is-${escapeHtml(row.result)}" role="row">
+                    <span class="fv-rule-preview-result">${escapeHtml(row.result)}</span>
+                    <strong>${escapeHtml(row.item)}</strong>
+                    <span>${escapeHtml(row.folder)}</span>
+                    <small>${escapeHtml(row.rule)}</small>
+                </div>
+            `).join('')}
+        </div>
+    `);
 };
 
 const renderRulesOverview = (type, rules, filteredRules) => {
@@ -8495,6 +8889,7 @@ const refreshCoreData = async () => {
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
+    toggleRuleKindFields('vm');
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
@@ -9437,17 +9832,9 @@ const addAutoRule = async (type) => {
         return;
     }
 
-    if (regexKinds.includes(kind)) {
-        if (!pattern) {
-            swal({ title: 'Error', text: 'Regex pattern cannot be empty.', type: 'error' });
-            return;
-        }
-        try {
-            new RegExp(pattern);
-        } catch (error) {
-            swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
-            return;
-        }
+    if ((regexKinds.includes(kind) || RULE_SIMPLE_KINDS.includes(kind)) && !pattern) {
+        swal({ title: 'Error', text: 'Match value cannot be empty.', type: 'error' });
+        return;
     }
 
     if (labelKinds.includes(kind) && !labelKey) {
@@ -9459,15 +9846,32 @@ const addAutoRule = async (type) => {
         return;
     }
 
-    const nextRule = {
-        id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-        enabled: true,
+    const normalizedRule = normalizeRuleBuilderRuleInput({
+        type,
         folderId,
-        effect: effect === 'exclude' ? 'exclude' : 'include',
+        effect,
         kind,
-        pattern: regexKinds.includes(kind) ? pattern : '',
-        labelKey: labelKinds.includes(kind) ? labelKey : '',
-        labelValue: labelKinds.includes(kind) ? labelValue : ''
+        pattern,
+        labelKey,
+        labelValue
+    });
+    if (regexKinds.includes(normalizedRule.kind)) {
+        if (!normalizedRule.pattern) {
+            swal({ title: 'Error', text: 'Regex pattern cannot be empty.', type: 'error' });
+            return;
+        }
+        try {
+            new RegExp(normalizedRule.pattern);
+        } catch (error) {
+            swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
+            return;
+        }
+    }
+
+    const nextRule = {
+        ...normalizedRule,
+        id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        enabled: true
     };
 
     try {
@@ -9550,24 +9954,31 @@ const moveAutoRule = async (type, ruleId, direction) => {
 };
 
 const toggleRuleKindFields = (type) => {
-    if (type !== 'docker') {
-        return;
-    }
-
-    const kind = String($('#docker-rule-kind').val() || 'name_regex');
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const kind = String($(`#${resolvedType}-rule-kind`).val() || 'name_regex');
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-    $('#docker-rule-pattern').attr('placeholder', kind === 'image_regex'
-        ? 'Regex pattern (example: linuxserver/)'
-        : kind === 'compose_project_regex'
-            ? 'Regex pattern (example: ^media$)'
-            : 'Regex pattern (example: ^media-)');
-    $('#docker-rule-pattern').toggle(regexKinds.includes(kind));
-    $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
-    $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
-    $('#docker-rule-presets').toggle(regexKinds.includes(kind));
-    updateRuleLiveMatch('docker');
-    updateRuleValidationHint('docker');
+    const simpleKinds = ['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals'];
+    const placeholderByKind = {
+        name_contains: 'Text in the name (example: arr)',
+        name_starts_with: 'Text at the start of the name (example: prod-)',
+        image_contains: 'Text in the image (example: linuxserver/sonarr)',
+        compose_project_equals: 'Compose project name (example: media)',
+        image_regex: 'Regex pattern (example: linuxserver/)',
+        compose_project_regex: 'Regex pattern (example: ^media$)',
+        name_regex: 'Regex pattern (example: ^media-)'
+    };
+    const showPattern = regexKinds.includes(kind) || simpleKinds.includes(kind);
+    $(`#${resolvedType}-rule-pattern`)
+        .attr('placeholder', placeholderByKind[kind] || placeholderByKind.name_regex)
+        .toggle(showPattern);
+    if (resolvedType === 'docker') {
+        $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
+        $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
+        $('#docker-rule-presets').toggle(regexKinds.includes(kind) || simpleKinds.includes(kind));
+    }
+    updateRuleLiveMatch(resolvedType);
+    updateRuleValidationHint(resolvedType);
 };
 
 const updateRuleValidationHint = (type, strict = false) => {
@@ -10276,66 +10687,126 @@ const bulkRuleAction = async (type, action) => {
 
 const runRuleSimulator = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const rules = prefsByType[resolvedType]?.autoRules || [];
-    const info = infoByType[resolvedType] || {};
-    const names = Object.keys(info).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-    const rows = names.map((name) => {
-        const decision = utils.getAutoRuleDecision({
-            rules,
-            name,
-            infoByName: info,
-            type: resolvedType
-        });
-        if (decision.blockedBy) {
-            return {
-                item: name,
-                result: 'blocked',
-                folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
-                rule: ruleDescription(decision.blockedBy)
-            };
-        }
-        if (decision.assignedRule) {
-            return {
-                item: name,
-                result: 'assigned',
-                folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
-                rule: ruleDescription(decision.assignedRule)
-            };
-        }
-        return {
-            item: name,
-            result: 'unassigned',
-            folder: '-',
-            rule: '-'
-        };
-    });
+    const rows = buildRulePreviewRows(resolvedType);
+    lastRulePreviewRowsByType[resolvedType] = rows;
+    renderRulePreviewRows(resolvedType, rows);
     const summary = {
         total: rows.length,
         assigned: rows.filter((row) => row.result === 'assigned').length,
         blocked: rows.filter((row) => row.result === 'blocked').length,
         unassigned: rows.filter((row) => row.result === 'unassigned').length
     };
-    const lines = [
-        `${resolvedType === 'docker' ? 'Docker' : 'VM'} assignment preview`,
-        `Generated: ${new Date().toLocaleString()}`,
-        `Assigned: ${summary.assigned} | Blocked: ${summary.blocked} | Unassigned: ${summary.unassigned} | Total: ${summary.total}`,
-        ''
-    ];
-    if (!rows.length) {
-        lines.push(`No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are available to simulate right now.`);
-    } else {
-        rows.forEach((row) => {
-            const resultLabel = row.result === 'assigned'
-                ? 'ASSIGNED'
-                : (row.result === 'blocked' ? 'BLOCKED' : 'UNASSIGNED');
-            lines.push(`${resultLabel} | ${row.item} | ${row.folder} | ${row.rule}`);
-        });
-    }
-    $(`#${resolvedType}-rule-sim-output`).text(lines.join('\n'));
     await trackDiagnosticsEvent({
         eventType: 'rule_simulator',
         type: resolvedType,
         details: summary
+    });
+};
+
+const applyRuleSimulatorAssignments = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const cachedRows = lastRulePreviewRowsByType[resolvedType] || [];
+    const rows = cachedRows.length ? cachedRows : buildRulePreviewRows(resolvedType);
+    lastRulePreviewRowsByType[resolvedType] = rows;
+    renderRulePreviewRows(resolvedType, rows);
+
+    const targetRows = rows.filter((row) => row?.result === 'assigned' && String(row?.folderId || '').trim() && String(row?.item || '').trim());
+    if (!targetRows.length) {
+        swal({
+            title: 'Nothing to apply',
+            text: `No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are assigned by the current rule preview.`,
+            type: 'info'
+        });
+        return;
+    }
+
+    const byFolder = new Map();
+    targetRows.forEach((row) => {
+        const folderId = String(row.folderId || '').trim();
+        const item = String(row.item || '').trim();
+        if (!folderId || !item) {
+            return;
+        }
+        if (!byFolder.has(folderId)) {
+            byFolder.set(folderId, []);
+        }
+        byFolder.get(folderId).push(item);
+    });
+
+    swal({
+        title: 'Apply previewed assignments?',
+        text: `This will assign ${targetRows.length} ${resolvedType === 'docker' ? 'container' : 'VM'}${targetRows.length === 1 ? '' : 's'} across ${byFolder.size} folder${byFolder.size === 1 ? '' : 's'}. A backup will be created first.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply assignments',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        if (!ensureRuntimeConflictActionAllowed(`Apply ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignments`)) {
+            return;
+        }
+
+        await withAdvancedOperationLock(resolvedType, 'rule-preview-apply', `${resolvedType.toUpperCase()} rule preview assignment`, async () => {
+            let backup = null;
+            let assignedCount = 0;
+            let skippedInvalidCount = 0;
+            const failed = [];
+
+            try {
+                backup = await createBackup(resolvedType, 'before-rule-preview-assign');
+                for (const [folderId, items] of byFolder.entries()) {
+                    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
+                        type: resolvedType,
+                        folderId,
+                        items: JSON.stringify(items)
+                    });
+                    if (!response?.ok) {
+                        failed.push(...items.map((item) => `${item}: ${response?.error || 'request failed'}`));
+                        continue;
+                    }
+                    const result = response.result || {};
+                    assignedCount += Array.isArray(result.assigned) ? result.assigned.length : 0;
+                    skippedInvalidCount += Array.isArray(result.skippedInvalid) ? result.skippedInvalid.length : 0;
+                    const assignedSet = new Set((Array.isArray(result.assigned) ? result.assigned : []).map((item) => String(item || '').trim()));
+                    const invalidSet = new Set((Array.isArray(result.skippedInvalid) ? result.skippedInvalid : []).map((item) => String(item || '').trim()));
+                    items.forEach((item) => {
+                        if (!assignedSet.has(item) && !invalidSet.has(item)) {
+                            failed.push(`${item}: not applied by server response`);
+                        }
+                    });
+                }
+
+                await Promise.allSettled([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                lastRulePreviewRowsByType[resolvedType] = buildRulePreviewRows(resolvedType);
+                renderRulePreviewRows(resolvedType, lastRulePreviewRowsByType[resolvedType]);
+
+                const failedCount = failed.length;
+                showActionSummaryToast({
+                    title: 'Rule preview assignments complete',
+                    message: `${assignedCount} assigned | ${skippedInvalidCount} invalid | ${failedCount} failed`,
+                    level: failedCount > 0 ? 'warning' : 'success',
+                    type: resolvedType
+                });
+                addActivityEntry(`Applied ${assignedCount} ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignment${assignedCount === 1 ? '' : 's'}.`, failedCount > 0 ? 'warning' : 'success');
+                await trackDiagnosticsEvent({
+                    eventType: 'rule_preview_apply',
+                    type: resolvedType,
+                    details: {
+                        folderCount: byFolder.size,
+                        itemCount: targetRows.length,
+                        assignedCount,
+                        skippedInvalidCount,
+                        failedCount
+                    }
+                });
+                await offerUndoAction(resolvedType, backup, 'Rule preview assignment');
+            } catch (error) {
+                showError('Rule preview assignment failed', error);
+            }
+        });
     });
 };
 
@@ -10499,6 +10970,9 @@ settingsActionSupportModule.registerWindowActions(window, {
     toggleAllRuleSelections,
     bulkRuleAction,
     runRuleSimulator,
+    applyRuleSimulatorAssignments,
+    scanSmartRuleSuggestions,
+    saveSelectedSmartRuleSuggestions,
     toggleRuleKindFields,
     testAutoRule,
     assignSelectedItems,

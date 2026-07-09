@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.01">
-<!ENTITY md5 "aa603ad9577aa75df5ae0e8db4375331">
+<!ENTITY version "2026.07.09.02">
+<!ENTITY md5 "f50fa57f19acacdfd72028785d6e6b45">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.02
+- Feature: Add Smart Rule Assistant suggestions for Docker and VM auto-assignment rules based on folder names, existing members, Docker image names, and Compose projects.
+- UX: Add beginner-friendly rule builder match types like name contains, name starts with, image contains, and Compose project equals while preserving the existing regex-backed rule engine.
+- UX: Replace the raw rule simulator text output with structured assignment preview rows, summary counts, and an Apply previewed assignments action that creates a backup first.
 
 ###2026.07.09.01
 - UX: Removed sort shortcut buttons from Settings View &amp; Organization so Sort mode is controlled only by the dropdown.

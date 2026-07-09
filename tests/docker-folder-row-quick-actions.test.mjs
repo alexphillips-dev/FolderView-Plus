@@ -69,10 +69,11 @@ test('docker context menu keeps focus/pin/lock quick actions at the top', () => 
 test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /const reorderVisibleDockerRootFolderBlocks = \(\) =>/);
     assert.match(dockerScript, /const syncDockerPinnedFolderUi = \(\) =>/);
+    assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);[\s\S]*const current = normalizeDockerPinnedFolderIdList\(currentPrefs\.pinnedFolderIds\);[\s\S]*const nextPinned = current\.includes\(id\)/);
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(nextPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
-    assert.match(dockerScript, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
-    assert.doesNotMatch(dockerScript, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
-    assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
+    assert.match(dockerScript, /const confirmedPinned = normalizeDockerPinnedFolderIdList\(response\?\.prefs\?\.pinnedFolderIds \|\| nextPinned\);[\s\S]*applyDockerPinnedFolderIds\(confirmedPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
+    assert.doesNotMatch(dockerScript, /applyDockerPinnedFolderIds\(confirmedPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
+    assert.match(dockerScript, /applyDockerPinnedFolderIds\(previousPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 
 test('docker pin quick action verifies server persistence before keeping optimistic state', () => {
@@ -84,12 +85,17 @@ test('docker pin quick action verifies server persistence before keeping optimis
     assert.match(dockerScript, /if \(!dockerPinnedFolderIdListsMatch\(confirmedPrefs\.pinnedFolderIds, nextPinnedIds\)\) \{/);
     assert.match(dockerScript, /throw new Error\('Docker pinned folders did not persist\.'\);/);
     assert.match(dockerScript, /rememberDockerPinnedFolderIdsOverride\(nextPinned\);/);
+    assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);/);
+    assert.match(dockerScript, /broadcastDockerPinnedFolderChange\(\{[\s\S]*pinnedFolderIds:\s*confirmedPinned,[\s\S]*changedFolderId:\s*id,[\s\S]*pinned:\s*confirmedPinned\.includes\(id\)[\s\S]*\}\);/);
     assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
 });
 
 test('docker page listens for settings pin changes without a full reload', () => {
     assert.match(dockerScript, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
     assert.match(dockerScript, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
+    assert.match(dockerScript, /const broadcastDockerPinnedFolderChange = \(payload = \{\}\) => \{/);
+    assert.match(dockerScript, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(eventPayload\)\);/);
+    assert.match(dockerScript, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
     assert.match(dockerScript, /const applyDockerSettingsPinSyncPayload = \(payload\) => \{/);
     assert.match(dockerScript, /const bindDockerSettingsPinSyncListener = \(\) => \{/);
     assert.match(dockerScript, /window\.addEventListener\('storage', \(event\) => \{/);

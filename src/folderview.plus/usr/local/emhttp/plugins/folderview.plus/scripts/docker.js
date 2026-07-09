@@ -2965,30 +2965,57 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
         prefs: confirmedPrefs
     };
 };
+const broadcastDockerPinnedFolderChange = (payload = {}) => {
+    const eventPayload = {
+        type: 'docker',
+        pinnedFolderIds: normalizeDockerPinnedFolderIdList(payload.pinnedFolderIds),
+        changedFolderId: String(payload.changedFolderId || ''),
+        pinned: payload.pinned === true,
+        timestamp: Number(payload.timestamp || Date.now())
+    };
+    try {
+        localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify(eventPayload));
+    } catch (_error) {
+        // Cross-page refresh hints are best-effort; persistence already succeeded.
+    }
+    try {
+        window.dispatchEvent(new CustomEvent(PINNED_FOLDER_CHANGE_EVENT, { detail: eventPayload }));
+    } catch (_error) {
+        // Same-window refresh hints are best-effort for older browsers.
+    }
+};
 const toggleDockerFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
         return;
     }
     return dockerSafeUiActionRunner.run(`docker-pin:${id}`, async () => {
-        const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
-        const nextPinned = current.includes(id)
-            ? current.filter((entry) => entry !== id)
-            : [...current, id];
-        rememberDockerPinnedFolderIdsOverride(nextPinned);
-        applyDockerPinnedFolderIds(nextPinned);
-        syncDockerPinnedFolderUi();
+        const previousPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
-            const response = await persistDockerPinnedFolderIds(nextPinned);
-            applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
+            const currentPrefs = await fetchDockerPinnedFolderPrefs();
+            const current = normalizeDockerPinnedFolderIdList(currentPrefs.pinnedFolderIds);
+            const nextPinned = current.includes(id)
+                ? current.filter((entry) => entry !== id)
+                : [...current, id];
+            rememberDockerPinnedFolderIdsOverride(nextPinned);
+            applyDockerPinnedFolderIds(nextPinned);
             syncDockerPinnedFolderUi();
+            const response = await persistDockerPinnedFolderIds(nextPinned);
+            const confirmedPinned = normalizeDockerPinnedFolderIdList(response?.prefs?.pinnedFolderIds || nextPinned);
+            applyDockerPinnedFolderIds(confirmedPinned);
+            syncDockerPinnedFolderUi();
+            broadcastDockerPinnedFolderChange({
+                pinnedFolderIds: confirmedPinned,
+                changedFolderId: id,
+                pinned: confirmedPinned.includes(id)
+            });
         }, {
             userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
-            userVisible: false
+            userVisible: true
         });
         if (!result.ok) {
             clearDockerPinnedFolderIdsOverride();
-            applyDockerPinnedFolderIds(current);
+            applyDockerPinnedFolderIds(previousPinned);
             syncDockerPinnedFolderUi();
         }
     });

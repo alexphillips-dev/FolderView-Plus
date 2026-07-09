@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.10">
-<!ENTITY md5 "258a5e2c60fb4f9724d046ac5015b155">
+<!ENTITY version "2026.07.09.11">
+<!ENTITY md5 "96b0c1cfc287582eebafe465eadb86b2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.11
+## FolderView Plus 2026.07.09.11
+- Fix: Docker runtime renders now reapply pinned-folder ordering after nested hierarchy setup so saved pinned folders get their pinned row state and stay visually promoted.
+- Fix: Docker manual folder moves now normalize through pinned-folder ordering before updating the DOM or saving preferences, preventing unpinned folders from staying above pinned folders after drag or move actions.
+
 
 ###2026.07.09.10
 ## FolderView Plus 2026.07.09.10

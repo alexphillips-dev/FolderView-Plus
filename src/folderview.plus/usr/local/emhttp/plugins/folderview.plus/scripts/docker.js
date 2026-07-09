@@ -3068,12 +3068,23 @@ const buildDockerFolderRuntimeOrderState = () => {
         collectDescendants
     };
 };
+const normalizeDockerManualFolderOrder = (nextOrder, folders = globalFolders, prefs = folderTypePrefs) => {
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const requestedOrder = Array.isArray(nextOrder) ? nextOrder.map((id) => String(id || '').trim()).filter((id) => id !== '') : [];
+    const ordered = getPrefsOrderedFolderMap(folderMap, {
+        ...(prefs || {}),
+        sortMode: 'manual',
+        manualOrder: requestedOrder
+    });
+    return Object.keys(ordered || {});
+};
 const persistDockerFolderManualOrder = async (nextOrder) => {
+    const normalizedOrder = normalizeDockerManualFolderOrder(nextOrder);
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
             sortMode: 'manual',
-            manualOrder: Array.isArray(nextOrder) ? nextOrder : []
+            manualOrder: normalizedOrder
         })
     };
     const request = window.FolderViewPlusRequest;
@@ -3238,8 +3249,8 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             });
             insertIndex = lastParentSubtreeIndex >= 0 ? lastParentSubtreeIndex + 1 : orderWithoutSource.length;
         }
-        const nextOrder = orderWithoutSource.slice();
-        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const requestedOrder = orderWithoutSource.slice();
+        requestedOrder.splice(Math.max(0, Math.min(insertIndex, requestedOrder.length)), 0, ...sourceSubtreeIds);
         const previousFolders = { ...globalFolders };
         const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
         const previousOrder = fullOrder.slice();
@@ -3247,10 +3258,12 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             ...sourceFolder,
             parentId
         };
-        globalFolders = {
+        const nextFolders = {
             ...globalFolders,
             [id]: nextFolder
         };
+        const nextOrder = normalizeDockerManualFolderOrder(requestedOrder, nextFolders, folderTypePrefs);
+        globalFolders = nextFolders;
         folderTypePrefs = utils.normalizePrefs({
             ...(folderTypePrefs || {}),
             sortMode: 'manual',
@@ -3383,8 +3396,9 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
                 });
                 return lastIndex >= 0 ? lastIndex + 1 : orderWithoutSource.length;
             })();
-        const nextOrder = orderWithoutSource.slice();
-        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const requestedOrder = orderWithoutSource.slice();
+        requestedOrder.splice(Math.max(0, Math.min(insertIndex, requestedOrder.length)), 0, ...sourceSubtreeIds);
+        const nextOrder = normalizeDockerManualFolderOrder(requestedOrder, folders, folderTypePrefs);
         const changed = nextOrder.length === fullOrder.length
             && nextOrder.some((candidateId, index) => String(candidateId || '') !== String(fullOrder[index] || ''));
         if (!changed) {
@@ -4716,6 +4730,7 @@ const createFolders = async () => {
         });
     }
     applyNestedFolderHierarchy();
+    syncDockerPinnedFolderUi();
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');

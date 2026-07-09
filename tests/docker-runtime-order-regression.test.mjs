@@ -106,6 +106,40 @@ test('docker runtime reapplies saved created-newest folder order even when host 
     assert.deepEqual(nextOrder, ['folder-b', 'folder-a', 'folder-c']);
 });
 
+test('docker runtime promotes pinned folders before stale manual host placeholders', () => {
+    assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
+    const reorderFolderSlotsInBaseOrder = new Function(
+        'baseOrder',
+        'folders',
+        'prefs',
+        'folderRegex',
+        'getPrefsOrderedFolderMap',
+        `${reorderFolderSlotsMatch[1]}`
+    );
+
+    const folderRegex = /^folder-/;
+    const folders = {
+        a: { name: '07' },
+        b: { name: '08' },
+        c: { name: '09' }
+    };
+    const prefs = {
+        sortMode: 'manual',
+        manualOrder: ['a', 'b', 'c'],
+        pinnedFolderIds: ['c']
+    };
+    const getPrefsOrderedFolderMap = () => ({
+        c: folders.c,
+        a: folders.a,
+        b: folders.b
+    });
+
+    const baseOrder = ['folder-a', 'folder-b', 'folder-c'];
+    const nextOrder = reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, folderRegex, getPrefsOrderedFolderMap);
+
+    assert.deepEqual(nextOrder, ['folder-c', 'folder-a', 'folder-b']);
+});
+
 test('docker runtime only backfills missing folder placeholders when sort mode remains created', () => {
     assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
     const reorderFolderSlotsInBaseOrder = new Function(

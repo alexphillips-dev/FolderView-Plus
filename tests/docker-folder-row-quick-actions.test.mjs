@@ -123,15 +123,17 @@ test('docker pinned folder affordances use a pin icon instead of a star', () => 
 test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const buildDockerFolderRuntimeOrderState = \(\) =>/);
     assert.match(dockerScript, /const persistDockerFolderManualOrder = async \(nextOrder\) =>/);
+    assert.match(dockerScript, /const normalizeDockerManualFolderOrder = \(nextOrder,\s*folders = globalFolders,\s*prefs = folderTypePrefs\) =>/);
     assert.match(dockerScript, /const applyDockerFolderMenuOrderToDom = \(orderedIds\) =>/);
     assert.match(dockerScript, /const \$folderRows = \$\('#docker_list > tr\.folder'\);/);
     assert.match(dockerScript, /fragment\.appendChild\(row\);/);
     assert.match(dockerScript, /\$dockerList\.sortable\('refresh'\);/);
-    assert.match(dockerScript, /prefs:\s*JSON\.stringify\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*Array\.isArray\(nextOrder\) \? nextOrder : \[\][\s\S]*\}\)/);
+    assert.match(dockerScript, /const normalizedOrder = normalizeDockerManualFolderOrder\(nextOrder\);[\s\S]*manualOrder:\s*normalizedOrder/);
     assert.match(dockerScript, /const moveDockerFolderFromMenu = async \(folderId,\s*direction\) =>/);
     assert.match(dockerScript, /ensureDockerFolderUnlocked\(id,\s*moveDirection < 0 \? 'Move folder up' : 'Move folder down'\)/);
     assert.match(dockerScript, /const siblingIds = parentId[\s\S]*childrenById\[parentId\][\s\S]*fullOrder\.filter/);
     assert.match(dockerScript, /const sourceSubtreeIds = \[id,\s*\.\.\.collectDescendants\(id\)\];/);
+    assert.match(dockerScript, /const nextOrder = normalizeDockerManualFolderOrder\(requestedOrder,\s*folders,\s*folderTypePrefs\);/);
     assert.match(dockerScript, /folderTypePrefs = utils\.normalizePrefs\(\{[\s\S]*sortMode:\s*'manual',[\s\S]*manualOrder:\s*nextOrder/);
     assert.match(dockerScript, /const previousPrefs = utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\);/);
     assert.match(dockerScript, /const previousOrder = fullOrder\.slice\(\);/);
@@ -151,6 +153,7 @@ test('docker folder menu can move folders under another folder or back to root',
     assert.match(dockerScript, /const applyDockerFolderHierarchyMoveFromMenu = async \(folderId,\s*nextParentId\) =>/);
     assert.match(dockerScript, /descendants\.includes\(parentId\)/);
     assert.match(dockerScript, /const nextFolder = \{[\s\S]*\.\.\.sourceFolder,[\s\S]*parentId[\s\S]*\};/);
+    assert.match(dockerScript, /const nextOrder = normalizeDockerManualFolderOrder\(requestedOrder,\s*nextFolders,\s*folderTypePrefs\);/);
     assert.match(dockerScript, /await persistDockerFolderRecord\(id,\s*nextFolder\);[\s\S]*await persistDockerFolderManualOrder\(nextOrder\);/);
     assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /queueCreateFoldersRender\(\);/);
     assert.doesNotMatch(dockerFolderHierarchyMoveBlock, /folderReq = buildDockerFolderReq/);

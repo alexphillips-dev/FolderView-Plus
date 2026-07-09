@@ -35,8 +35,11 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
 
 test('vm page reloads when settings changes vm pinned folders', () => {
     assert.match(vmJs, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
+    assert.match(vmJs, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
+    assert.match(vmJs, /const applyVmSettingsPinSyncPayload = \(payload\) => \{/);
     assert.match(vmJs, /const bindVmSettingsPinSyncListener = \(\) => \{/);
     assert.match(vmJs, /window\.addEventListener\('storage', \(event\) => \{/);
+    assert.match(vmJs, /window\.addEventListener\(PINNED_FOLDER_CHANGE_EVENT, \(event\) => \{/);
     assert.match(vmJs, /payload\.type !== 'vm'/);
     assert.match(vmJs, /queueLoadlistRefresh\(\);/);
 });

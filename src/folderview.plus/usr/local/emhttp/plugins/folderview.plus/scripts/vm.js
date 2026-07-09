@@ -3390,6 +3390,13 @@ window.loadlist = (x) => {
 };
 
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
+const applyVmSettingsPinSyncPayload = (payload) => {
+    if (!payload || payload.type !== 'vm') {
+        return;
+    }
+    queueLoadlistRefresh();
+};
 const bindVmSettingsPinSyncListener = () => {
     window.addEventListener('storage', (event) => {
         if (event.key !== PINNED_FOLDER_CHANGE_STORAGE_KEY || !event.newValue) {
@@ -3401,10 +3408,10 @@ const bindVmSettingsPinSyncListener = () => {
         } catch (_error) {
             return;
         }
-        if (!payload || payload.type !== 'vm') {
-            return;
-        }
-        queueLoadlistRefresh();
+        applyVmSettingsPinSyncPayload(payload);
+    });
+    window.addEventListener(PINNED_FOLDER_CHANGE_EVENT, (event) => {
+        applyVmSettingsPinSyncPayload(event.detail || null);
     });
 };
 bindVmSettingsPinSyncListener();

@@ -6873,6 +6873,18 @@ getDockerHostGuardsApi()?.noteHookWrapped?.('window.loadlist', {
 });
 
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
+const applyDockerSettingsPinSyncPayload = (payload) => {
+    if (!payload || payload.type !== 'docker') {
+        return;
+    }
+    if (Array.isArray(payload.pinnedFolderIds)) {
+        applyDockerPinnedFolderIds(payload.pinnedFolderIds);
+        syncDockerPinnedFolderUi();
+        return;
+    }
+    queueLoadlistRefresh({ suppressLoadingUi: true });
+};
 const bindDockerSettingsPinSyncListener = () => {
     window.addEventListener('storage', (event) => {
         if (event.key !== PINNED_FOLDER_CHANGE_STORAGE_KEY || !event.newValue) {
@@ -6884,15 +6896,10 @@ const bindDockerSettingsPinSyncListener = () => {
         } catch (_error) {
             return;
         }
-        if (!payload || payload.type !== 'docker') {
-            return;
-        }
-        if (Array.isArray(payload.pinnedFolderIds)) {
-            applyDockerPinnedFolderIds(payload.pinnedFolderIds);
-            syncDockerPinnedFolderUi();
-            return;
-        }
-        queueLoadlistRefresh({ suppressLoadingUi: true });
+        applyDockerSettingsPinSyncPayload(payload);
+    });
+    window.addEventListener(PINNED_FOLDER_CHANGE_EVENT, (event) => {
+        applyDockerSettingsPinSyncPayload(event.detail || null);
     });
 };
 bindDockerSettingsPinSyncListener();

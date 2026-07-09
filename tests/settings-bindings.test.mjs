@@ -331,11 +331,23 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
 
 test('basic folder pin toggle persists quickly and broadcasts runtime refresh', () => {
     assert.match(script, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
-    assert.match(script, /prefsByType\[resolvedType\] = utils\.normalizePrefs\(next\);\s*renderTable\(resolvedType\);/);
-    assert.match(script, /prefsByType\[resolvedType\] = await postPrefs\(resolvedType, \{ pinnedFolderIds: nextPinned \}\);/);
-    assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(\{/);
+    assert.match(script, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
+    assert.match(script, /const updatePrefsPartial = async \(type, patch, options = \{\}\) => \{/);
+    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial\);/);
+    assert.match(script, /const broadcastPinnedFolderChange = \(payload = \{\}\) => \{/);
+    assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);
+    assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(eventPayload\)\);/);
     assert.match(script, /const backup = latestPrefsBackupByType\[resolvedType\];/);
     assert.doesNotMatch(script, /backup = await createBackup\(resolvedType, exists \? `before-unpin-\$\{id\}` : `before-pin-\$\{id\}`\);/);
+});
+
+test('instant settings controls use partial prefs updates', () => {
+    assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{\s*render: \(\) => renderTable\(resolvedType\)\s*\}\);/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
+    assert.match(script, /const savedPrefs = await postPrefs\(type, \{ \[key\]: next\[key\] \}\);/);
 });
 
 test('settings action buttons are explicitly non-submit buttons', () => {
@@ -468,6 +480,12 @@ test('basic folder drag uses a full-row drag image', () => {
     assert.match(script, /event\.dataTransfer\.setDragImage\(dragImage, offsetX, offsetY\);/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image\s*\{[\s\S]*filter:\s*drop-shadow/);
     assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});
+
+test('basic folder pin switch has compact track geometry', () => {
+    assert.match(settingsCss, /\.folder-pin-switch\s*\{[\s\S]*gap:\s*0;[\s\S]*min-height:\s*22px;/);
+    assert.match(settingsCss, /\.folder-pin-switch-track\s*\{[\s\S]*box-sizing:\s*border-box;[\s\S]*width:\s*38px;[\s\S]*height:\s*20px;/);
+    assert.match(settingsCss, /\.folder-pin-switch\.is-pinned \.folder-pin-switch-knob\s*\{[\s\S]*transform:\s*translateX\(18px\);/);
 });
 
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {

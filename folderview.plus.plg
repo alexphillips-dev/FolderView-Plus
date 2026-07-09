@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.06">
-<!ENTITY md5 "2981ae26e9bb519b825ca21eff8e0bf3">
+<!ENTITY version "2026.07.09.07">
+<!ENTITY md5 "b48dbde92257954d55a41f6aee5e600a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.07
+## FolderView Plus 2026.07.09.07
+- Fix: Settings Basic pin toggles now save through the shared partial preference path and notify Docker/VM pages through both storage and same-window events.
+- UX: Tightened the Basic pin switch track and knob sizing so the knob reaches the pinned side cleanly with less vertical padding.
+- Quality: Added regression coverage for partial Settings saves, pin sync broadcasts, and the compact pin switch geometry.
+
 
 ###2026.07.09.06
 - Fix: Make Basic Settings folder pin toggles save only the pinned-folder list, update the toggle immediately, and roll back on save failure.

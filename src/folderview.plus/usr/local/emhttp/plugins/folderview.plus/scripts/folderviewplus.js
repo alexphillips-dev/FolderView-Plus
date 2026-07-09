@@ -666,6 +666,7 @@ let backupCompareDiffPagingState = {
 const IMPORT_APPLY_CHUNK_SIZE = 20;
 const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 let latestPrefsBackupByType = {
     docker: null,
     vm: null
@@ -9556,20 +9557,75 @@ const clearType = (type, id) => {
     });
 };
 
-const changeSortMode = async (type, mode) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
+const updatePrefsPartial = async (type, patch, options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    const partial = typeof patch === 'function' ? patch(current) : patch;
+    if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
+        return current;
+    }
+    const next = utils.normalizePrefs({
         ...current,
+        ...partial
+    });
+    const render = typeof options.render === 'function' ? options.render : null;
+    const onCommitted = typeof options.onCommitted === 'function' ? options.onCommitted : null;
+    prefsByType[resolvedType] = next;
+    if (render) {
+        render(next, current);
+    }
+    try {
+        const savedPrefs = await postPrefs(resolvedType, partial);
+        prefsByType[resolvedType] = utils.normalizePrefs(savedPrefs);
+        if (render) {
+            render(prefsByType[resolvedType], next);
+        }
+        if (onCommitted) {
+            onCommitted(prefsByType[resolvedType], current);
+        }
+        return prefsByType[resolvedType];
+    } catch (error) {
+        prefsByType[resolvedType] = current;
+        if (render) {
+            render(current, next);
+        }
+        throw error;
+    }
+};
+
+const broadcastPinnedFolderChange = (payload = {}) => {
+    const eventPayload = {
+        type: normalizeManagedType(payload.type),
+        pinnedFolderIds: Array.isArray(payload.pinnedFolderIds) ? [...payload.pinnedFolderIds] : [],
+        changedFolderId: String(payload.changedFolderId || ''),
+        pinned: payload.pinned === true,
+        timestamp: Number(payload.timestamp || Date.now())
+    };
+    try {
+        localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify(eventPayload));
+    } catch (_error) {
+        // Cross-page refresh hints are best-effort; persistence already succeeded.
+    }
+    try {
+        window.dispatchEvent(new CustomEvent(PINNED_FOLDER_CHANGE_EVENT, { detail: eventPayload }));
+    } catch (_error) {
+        // Same-window refresh hints are best-effort for older browsers.
+    }
+};
+
+const changeSortMode = async (type, mode) => {
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const patch = {
         sortMode: mode
     };
-
-    if (mode === 'manual' && (!Array.isArray(next.manualOrder) || next.manualOrder.length === 0)) {
-        next.manualOrder = Object.keys(getFolderMap(type));
+    if (mode === 'manual' && (!Array.isArray(current.manualOrder) || current.manualOrder.length === 0)) {
+        patch.manualOrder = Object.keys(getFolderMap(resolvedType));
     }
-
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        await refreshType(type);
+        await updatePrefsPartial(resolvedType, patch, {
+            render: () => renderTable(resolvedType)
+        });
     } catch (error) {
         showError('Sort mode save failed', error);
     }
@@ -9594,41 +9650,46 @@ const saveCurrentFolderOrderAsManual = async (type) => {
 };
 
 const changeBadgePref = async (type, badgeKey, checked) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
-        ...current,
-        badges: {
-            ...current.badges,
-            [badgeKey]: Boolean(checked)
-        }
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const nextBadges = {
+        ...current.badges,
+        [badgeKey]: Boolean(checked)
     };
-
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderBadgeToggles(type);
+        await updatePrefsPartial(resolvedType, {
+            badges: {
+                ...nextBadges
+            }
+        }, {
+            render: () => renderBadgeToggles(resolvedType)
+        });
     } catch (error) {
         showError('Badge preferences save failed', error);
     }
 };
 
 const changeVisibilityPref = async (type, key, value) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = { ...current };
+    const resolvedType = normalizeManagedType(type);
+    const patch = {};
     if (key === 'hideEmptyFolders') {
-        next.hideEmptyFolders = value === true;
+        patch.hideEmptyFolders = value === true;
     } else if (key === 'appColumnWidth') {
-        next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        patch.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
             ? utils.normalizeAppColumnWidth(value)
             : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
     } else {
         return;
     }
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderVisibilityControls(type);
-        scheduleTableRender(type);
+        await updatePrefsPartial(resolvedType, patch, {
+            render: () => {
+                renderVisibilityControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
-        renderVisibilityControls(type);
+        renderVisibilityControls(resolvedType);
         showError('Visibility preference save failed', error);
     }
 };
@@ -9658,15 +9719,13 @@ const changeStatusPref = async (type, key, value) => {
         return;
     }
 
-    const next = {
-        ...current,
-        status: nextStatus
-    };
-
     try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        renderStatusControls(resolvedType);
-        scheduleTableRender(resolvedType);
+        await updatePrefsPartial(resolvedType, { status: nextStatus }, {
+            render: () => {
+                renderStatusControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
         renderStatusControls(resolvedType);
         showError('Status preferences save failed', error);
@@ -9842,18 +9901,17 @@ const changeHealthPref = async (type, key, value) => {
         nextHealth.vmResourceCriticalGiB = Math.min(1024, nextHealth.vmResourceWarnGiB + 1);
     }
 
-    const next = {
-        ...current,
-        health: nextHealth
-    };
     if (!nextHealth.cardsEnabled) {
         healthFilterByType[resolvedType] = 'all';
     }
 
     try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        renderHealthControls(resolvedType);
-        scheduleTableRender(resolvedType);
+        await updatePrefsPartial(resolvedType, { health: nextHealth }, {
+            render: () => {
+                renderHealthControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
         renderHealthControls(resolvedType);
         showError('Health preferences save failed', error);
@@ -9875,33 +9933,22 @@ const toggleFolderPin = async (type, folderId) => {
     const nextPinned = exists
         ? pinned.filter((item) => item !== id)
         : [...pinned, id];
-    const next = {
-        ...current,
-        pinnedFolderIds: nextPinned
-    };
-    prefsByType[resolvedType] = utils.normalizePrefs(next);
-    renderTable(resolvedType);
     try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, { pinnedFolderIds: nextPinned });
-        renderTable(resolvedType);
-        try {
-            localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify({
+        await updatePrefsPartial(resolvedType, { pinnedFolderIds: nextPinned }, {
+            render: () => renderTable(resolvedType),
+            onCommitted: (savedPrefs) => broadcastPinnedFolderChange({
                 type: resolvedType,
-                pinnedFolderIds: prefsByType[resolvedType].pinnedFolderIds || nextPinned,
+                pinnedFolderIds: savedPrefs.pinnedFolderIds || nextPinned,
                 changedFolderId: id,
                 pinned: !exists,
                 timestamp: Date.now()
-            }));
-        } catch (_error) {
-            // Cross-page refresh hints are best-effort; persistence already succeeded.
-        }
+            })
+        });
         const backup = latestPrefsBackupByType[resolvedType];
         if (backup?.name) {
             await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
         }
     } catch (error) {
-        prefsByType[resolvedType] = current;
-        renderTable(resolvedType);
         showError('Pin update failed', error);
     }
 };
@@ -9957,7 +10004,7 @@ const changeRuntimePref = async (type, key, value) => {
     runtimeSaveState.revision = requestRevision;
 
     try {
-        const savedPrefs = await postPrefs(type, next);
+        const savedPrefs = await postPrefs(type, { [key]: next[key] });
         runtimeSaveState.lastCommittedPrefs = utils.normalizePrefs(savedPrefs);
         if (requestRevision !== runtimeSaveState.revision) {
             return;

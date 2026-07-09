@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.02">
-<!ENTITY md5 "f50fa57f19acacdfd72028785d6e6b45">
+<!ENTITY version "2026.07.09.03">
+<!ENTITY md5 "756d209e0891f02041914dee80f3d89f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.03
+- UX: Refreshed the Basic Settings workspace for Docker and VM folder groups with visible search, filter, sort, and add controls while keeping the existing Docker and VMs section headers.
+- UX: Added summary cards for each Basic Settings section so total groups, health counts, empty groups, and rule totals are visible before scanning the folder list.
+- UX: Updated the folder rows with a cleaner grouped layout, larger folder identity area, compact health badges, pin switches, and simplified row actions.
+- UX: Replaced up and down reorder buttons with a drag handle for same-level manual ordering while keeping the existing Tree move flow for nesting and cross-level moves.
+- Quality: Updated Settings binding coverage for the moved Basic search and sort controls.
+
 
 ###2026.07.09.02
 - Feature: Add Smart Rule Assistant suggestions for Docker and VM auto-assignment rules based on folder names, existing members, Docker image names, and Compose projects.

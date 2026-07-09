@@ -132,7 +132,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
     assert.match(page, /<option value="orbit">Orbit view<\/option>/);
     const dockerSortRowStart = page.indexOf('<div class="sort-row">');
-    const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
+    const dockerSortRowEnd = page.indexOf('<div id="docker-quick-filters"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
     const dockerSortRow = page.slice(dockerSortRowStart, dockerSortRowEnd);
     assert.doesNotMatch(dockerSortRow, /id="docker-page-view-mode"/);

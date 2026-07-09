@@ -311,6 +311,27 @@ if (!empty($fvplusRuntimeConflicts)) {
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">
     <div class="folder-toolbar">
+        <div class="fv-basic-commandbar" aria-label="Docker folder controls">
+            <label class="fv-basic-search" for="docker-folder-filter">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
+            </label>
+            <button type="button" class="fv-basic-control-btn" onclick="toggleBasicSettingsPanel('docker')" aria-controls="docker-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
+            <label class="fv-basic-sort" for="docker-sort-mode">
+                <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
+                <span>Sort</span>
+                <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
+                    <option value="created">Created order</option>
+                    <option value="created_newest">Created newest first</option>
+                    <option value="created_oldest">Created oldest first</option>
+                    <option value="updated_newest">Last updated newest first</option>
+                    <option value="manual">Manual</option>
+                    <option value="alpha">Name (A-Z)</option>
+                    <option value="name_desc">Name (Z-A)</option>
+                </select>
+            </label>
+            <button type="button" class="fv-basic-add-btn" onclick="quickCreateStarterFolder('docker')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+        </div>
         <div class="toolbar-actions">
             <button type="button" data-i18n="[html]export-all" onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
             <button type="button" data-i18n="[html]import-all" onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
@@ -318,24 +339,15 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
-    <details class="toolbar-sort toolbar-sort-wide">
+    <div id="docker-basic-summary" class="fv-basic-summary-grid" aria-label="Docker folder summary"></div>
+    <details id="docker-view-settings" class="toolbar-sort toolbar-sort-wide">
         <summary class="toolbar-sort-toggle">
-            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Sort mode and view settings</span>
+            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Filters and view settings</span>
             <span class="toolbar-sort-toggle-note">Collapsed by default</span>
         </summary>
         <div class="toolbar-sort-body">
             <div class="sort-row">
-                <label class="sort-label" for="docker-sort-mode">Sort mode</label>
-                <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
-                    <option value="created">Created order</option>
-                    <option value="created_newest">Created newest first</option>
-                    <option value="created_oldest">Created oldest first</option>
-                    <option value="updated_newest">Last updated newest first</option>
-                    <option value="manual">Manual (buttons)</option>
-                    <option value="alpha">Name (A-Z)</option>
-                    <option value="name_desc">Name (Z-A)</option>
-                </select>
-                <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="sort-hint-chip" title="Use manual mode with the drag handle for same-level order and Tree move for nesting."><i class="fa fa-info-circle"></i> Manual uses drag handle + tree move in Order column</span>
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
@@ -348,7 +360,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <button type="button" onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
                 </span>
             </div>
-            <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div id="docker-quick-filters" class="folder-quick-filters">
                 <button type="button" data-filter="all" onclick="setQuickFolderFilter('docker','all')">All</button>
                 <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('docker','pinned')">Pinned</button>
@@ -611,6 +622,27 @@ if (!empty($fvplusRuntimeConflicts)) {
 <h2 data-i18n="vms" data-fv-section="vms">VMs</h2>
 <div class="folder-table">
     <div class="folder-toolbar">
+        <div class="fv-basic-commandbar" aria-label="VM folder controls">
+            <label class="fv-basic-search" for="vm-folder-filter">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
+            </label>
+            <button type="button" class="fv-basic-control-btn" onclick="toggleBasicSettingsPanel('vm')" aria-controls="vm-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
+            <label class="fv-basic-sort" for="vm-sort-mode">
+                <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
+                <span>Sort</span>
+                <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
+                    <option value="created">Created order</option>
+                    <option value="created_newest">Created newest first</option>
+                    <option value="created_oldest">Created oldest first</option>
+                    <option value="updated_newest">Last updated newest first</option>
+                    <option value="manual">Manual</option>
+                    <option value="alpha">Name (A-Z)</option>
+                    <option value="name_desc">Name (Z-A)</option>
+                </select>
+            </label>
+            <button type="button" class="fv-basic-add-btn" onclick="quickCreateStarterFolder('vm')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+        </div>
         <div class="toolbar-actions">
             <button type="button" data-i18n="[html]export-all" onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
             <button type="button" data-i18n="[html]import-all" onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
@@ -618,24 +650,15 @@ if (!empty($fvplusRuntimeConflicts)) {
             <button type="button" data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
-    <details class="toolbar-sort toolbar-sort-wide">
+    <div id="vm-basic-summary" class="fv-basic-summary-grid" aria-label="VM folder summary"></div>
+    <details id="vm-view-settings" class="toolbar-sort toolbar-sort-wide">
         <summary class="toolbar-sort-toggle">
-            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Sort mode and view settings</span>
+            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Filters and view settings</span>
             <span class="toolbar-sort-toggle-note">Collapsed by default</span>
         </summary>
         <div class="toolbar-sort-body">
             <div class="sort-row">
-                <label class="sort-label" for="vm-sort-mode">Sort mode</label>
-                <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
-                    <option value="created">Created order</option>
-                    <option value="created_newest">Created newest first</option>
-                    <option value="created_oldest">Created oldest first</option>
-                    <option value="updated_newest">Last updated newest first</option>
-                    <option value="manual">Manual (buttons)</option>
-                    <option value="alpha">Name (A-Z)</option>
-                    <option value="name_desc">Name (Z-A)</option>
-                </select>
-                <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="sort-hint-chip" title="Use manual mode with the drag handle for same-level order and Tree move for nesting."><i class="fa fa-info-circle"></i> Manual uses drag handle + tree move in Order column</span>
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
@@ -648,7 +671,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <button type="button" onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
                 </span>
             </div>
-            <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
             <div id="vm-quick-filters" class="folder-quick-filters">
                 <button type="button" data-filter="all" onclick="setQuickFolderFilter('vm','all')">All</button>
                 <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('vm','pinned')">Pinned</button>

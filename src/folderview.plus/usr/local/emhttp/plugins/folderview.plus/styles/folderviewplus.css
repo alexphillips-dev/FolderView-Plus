@@ -2199,6 +2199,399 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     white-space: nowrap;
 }
 
+/* Modern Basic folder workspace */
+.folder-table {
+    gap: 1rem;
+}
+
+.folder-toolbar {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.fv-basic-commandbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) auto minmax(190px, auto) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-basic-search,
+.fv-basic-sort,
+.fv-basic-control-btn,
+.fv-basic-add-btn {
+    min-height: 44px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.fv-basic-search {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0 0.72rem;
+}
+
+.fv-basic-search > i,
+.fv-basic-sort > i,
+.fv-basic-control-btn > i,
+.fv-basic-add-btn > i {
+    font-size: 1.08rem;
+}
+
+.fv-basic-search > input[type="text"] {
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit;
+    box-shadow: none !important;
+}
+
+.fv-basic-search > input[type="text"]:focus {
+    outline: none;
+}
+
+.fv-basic-control-btn,
+.fv-basic-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.48rem;
+    padding: 0 0.85rem;
+    white-space: nowrap;
+}
+
+.fv-basic-add-btn {
+    border-color: rgba(255, 138, 31, 0.68);
+    background: linear-gradient(180deg, rgba(255, 143, 37, 0.98), rgba(255, 111, 18, 0.96));
+    color: #fffaf4;
+    font-weight: 700;
+}
+
+.fv-basic-sort {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.42rem;
+    padding: 0 0.6rem;
+}
+
+.fv-basic-sort > span {
+    font-weight: 700;
+}
+
+.fv-basic-sort > select {
+    min-width: 128px;
+    min-height: 38px;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit;
+    box-shadow: none !important;
+}
+
+.fv-basic-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fv-basic-summary-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.72rem;
+    min-height: 82px;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-basic-summary-icon {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent-soft);
+    font-size: 1.38rem;
+}
+
+.fv-basic-summary-card.is-healthy .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-success);
+    background: var(--fvplus-settings-chip-success-bg);
+}
+
+.fv-basic-summary-card.is-critical .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-danger);
+    background: var(--fvplus-settings-chip-danger-bg);
+}
+
+.fv-basic-summary-card.is-degraded .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
+}
+
+.fv-basic-summary-card.is-empty .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-empty);
+    background: var(--fvplus-settings-chip-empty-bg);
+}
+
+.fv-basic-summary-card.is-rules .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-info);
+    background: var(--fvplus-settings-chip-info-bg);
+}
+
+.fv-basic-summary-copy {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.fv-basic-summary-copy > span,
+.fv-basic-summary-copy > small {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.2;
+}
+
+.fv-basic-summary-copy > strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.5rem;
+    line-height: 1.05;
+}
+
+.folder-table .table-wrap {
+    border-radius: 8px;
+    padding: 0.45rem;
+    background: var(--fvplus-settings-surface-panel);
+}
+
+.folder-table table {
+    border-collapse: separate;
+    border-spacing: 0 0.38rem;
+}
+
+.folder-table table th {
+    padding: 0.45rem 0.7rem;
+    color: var(--fvplus-settings-text-muted);
+    font-weight: 700;
+}
+
+.folder-table table td {
+    padding: 0.58rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-card);
+}
+
+.folder-table table tbody tr > td:first-child {
+    border-left: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 8px 0 0 8px;
+}
+
+.folder-table table tbody tr > td:last-child {
+    border-right: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 0 8px 8px 0;
+}
+
+.folder-table table tbody tr:hover > td,
+.folder-table table tbody tr.fv-row-focus > td {
+    border-color: var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.name-cell-content {
+    grid-template-columns: 18px 34px minmax(0, 1fr);
+    width: min(100%, 320px);
+}
+
+.name-cell-content > img {
+    width: 34px;
+    height: 34px;
+}
+
+.name-cell-text {
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.name-cell-members-meta {
+    font-size: 0.96rem;
+}
+
+.row-order-actions {
+    gap: 0.22rem;
+    align-items: center;
+}
+
+.folder-drag-handle {
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 34px !important;
+    display: inline-grid !important;
+    grid-template-columns: repeat(2, 4px);
+    grid-auto-rows: 4px;
+    justify-content: center;
+    align-content: center;
+    gap: 4px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-settings-text-muted);
+    cursor: grab;
+}
+
+.folder-drag-handle:active {
+    cursor: grabbing;
+}
+
+.folder-drag-handle > span,
+.folder-drag-handle::before,
+.folder-drag-handle::after {
+    content: "" !important;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.9;
+}
+
+.folder-drag-handle:hover,
+.folder-drag-handle:focus-visible {
+    color: var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-source > td {
+    opacity: 0.58;
+}
+
+.folder-table table tbody tr.fv-row-drag-over-before > td {
+    box-shadow: inset 0 2px 0 var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-after > td {
+    box-shadow: inset 0 -2px 0 var(--fvplus-settings-accent);
+}
+
+.folder-pin-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 0;
+    min-height: 28px;
+    padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.folder-pin-switch-track {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-field);
+}
+
+.folder-pin-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--fvplus-settings-text-primary);
+    transition: transform 120ms ease;
+}
+
+.folder-pin-switch.is-pinned .folder-pin-switch-track {
+    border-color: rgba(255, 138, 31, 0.7);
+    background: rgba(255, 138, 31, 0.72);
+}
+
+.folder-pin-switch.is-pinned .folder-pin-switch-knob {
+    transform: translateX(19px);
+}
+
+.folder-pin-switch-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.folder-table table td.actions-cell {
+    text-align: right;
+}
+
+.folder-table table td.actions-cell .folder-action-btn,
+.folder-table table td.actions-cell .folder-overflow-btn {
+    display: inline-flex !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border: 1px solid var(--fvplus-settings-border-faint) !important;
+    border-radius: 7px !important;
+    background: var(--fvplus-settings-surface-field) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: none !important;
+}
+
+.folder-table table td.actions-cell .folder-action-btn:hover,
+.folder-table table td.actions-cell .folder-action-btn:focus-visible {
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    color: var(--fvplus-settings-accent) !important;
+}
+
+.health-chip {
+    min-width: 92px;
+}
+
+.folder-runtime-status {
+    min-width: 86px;
+    justify-content: center;
+}
+
+@media (max-width: 1280px) {
+    .fv-basic-commandbar,
+    .fv-basic-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fv-basic-search {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 720px) {
+    .fv-basic-commandbar,
+    .fv-basic-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort {
+        width: 100%;
+    }
+}
+
 .fv-theme-workspace-grid {
     display: grid;
     grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);

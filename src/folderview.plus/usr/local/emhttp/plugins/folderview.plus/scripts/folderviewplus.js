@@ -6204,6 +6204,180 @@ const highlightSearchText = (text, query) => {
     return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
 };
 
+const toggleBasicSettingsPanel = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const panel = document.getElementById(`${resolvedType}-view-settings`);
+    if (!panel) {
+        return;
+    }
+    panel.open = !panel.open;
+};
+
+const formatBasicSummaryPercent = (count, total) => {
+    const safeTotal = Math.max(0, Number(total) || 0);
+    if (safeTotal <= 0) {
+        return '0% of total';
+    }
+    return `${Math.round((Math.max(0, Number(count) || 0) / safeTotal) * 100)}% of total`;
+};
+
+const buildBasicSummaryCardHtml = ({ icon, label, value, detail, tone = 'neutral' }) => `
+    <div class="fv-basic-summary-card is-${escapeHtml(tone)}">
+        <span class="fv-basic-summary-icon"><i class="fa ${escapeHtml(icon)}" aria-hidden="true"></i></span>
+        <span class="fv-basic-summary-copy">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(String(value))}</strong>
+            <small>${escapeHtml(detail)}</small>
+        </span>
+    </div>
+`;
+
+const renderBasicSummaryCards = (type, metrics) => {
+    const resolvedType = normalizeManagedType(type);
+    const host = document.getElementById(`${resolvedType}-basic-summary`);
+    if (!host) {
+        return;
+    }
+    const safeMetrics = metrics && typeof metrics === 'object' ? metrics : {};
+    const folderCount = Math.max(0, Number(safeMetrics.folderCount) || 0);
+    const emptyCount = Math.max(0, Number(safeMetrics.folderStatusTotals?.empty) || 0);
+    const criticalCount = Math.max(0, Number(safeMetrics.healthSeverityTotals?.critical) || 0);
+    const degradedCount = Math.max(0, Number(safeMetrics.healthSeverityTotals?.warn) || 0)
+        + Math.max(0, Number(safeMetrics.healthSeverityTotals?.maintenance) || 0);
+    const attentionCount = Math.max(0, Number(safeMetrics.attentionCount) || 0);
+    const healthyCount = Math.max(0, folderCount - Math.max(emptyCount, 0) - Math.max(attentionCount, criticalCount + degradedCount));
+    const ruleCount = Math.max(0, Number(safeMetrics.ruleCount) || 0);
+    const label = resolvedType === 'vm' ? 'VM groups' : 'Folder groups';
+    host.innerHTML = [
+        buildBasicSummaryCardHtml({
+            icon: 'fa-folder-o',
+            label: 'Total Groups',
+            value: folderCount,
+            detail: label,
+            tone: 'groups'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-heartbeat',
+            label: 'Healthy',
+            value: healthyCount,
+            detail: formatBasicSummaryPercent(healthyCount, folderCount),
+            tone: 'healthy'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-exclamation-triangle',
+            label: 'Critical',
+            value: criticalCount,
+            detail: formatBasicSummaryPercent(criticalCount, folderCount),
+            tone: 'critical'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-exclamation-circle',
+            label: 'Degraded',
+            value: degradedCount,
+            detail: formatBasicSummaryPercent(degradedCount, folderCount),
+            tone: 'degraded'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-folder-open-o',
+            label: 'Empty',
+            value: emptyCount,
+            detail: formatBasicSummaryPercent(emptyCount, folderCount),
+            tone: 'empty'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-sliders',
+            label: 'Total Rules',
+            value: ruleCount,
+            detail: 'Across all groups',
+            tone: 'rules'
+        })
+    ].join('');
+};
+
+let basicFolderDragState = null;
+
+const clearBasicFolderDragState = () => {
+    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
+        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after', 'fv-row-drag-source');
+    });
+    basicFolderDragState = null;
+};
+
+const bindBasicFolderDragHandles = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const tbody = document.querySelector(`tbody#${tableIdByType[resolvedType]}`);
+    if (!tbody) {
+        return;
+    }
+    tbody.querySelectorAll('.folder-drag-handle').forEach((handle) => {
+        handle.addEventListener('dragstart', (event) => {
+            const row = handle.closest('tr[data-folder-id]');
+            const folderId = String(handle.getAttribute('data-fv-drag-id') || row?.getAttribute('data-folder-id') || '').trim();
+            if (!row || !folderId) {
+                event.preventDefault();
+                return;
+            }
+            basicFolderDragState = {
+                type: resolvedType,
+                folderId,
+                parentId: String(row.getAttribute('data-folder-parent') || '')
+            };
+            row.classList.add('fv-row-drag-source');
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', folderId);
+            }
+        });
+        handle.addEventListener('dragend', clearBasicFolderDragState);
+    });
+    tbody.querySelectorAll('tr[data-folder-id]').forEach((row) => {
+        row.addEventListener('dragover', (event) => {
+            if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
+                return;
+            }
+            const targetId = String(row.getAttribute('data-folder-id') || '').trim();
+            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
+            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+                return;
+            }
+            event.preventDefault();
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'move';
+            }
+            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after').forEach((activeRow) => {
+                if (activeRow !== row) {
+                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+                }
+            });
+            const rect = row.getBoundingClientRect();
+            const after = event.clientY > rect.top + (rect.height / 2);
+            row.classList.toggle('fv-row-drag-over-before', !after);
+            row.classList.toggle('fv-row-drag-over-after', after);
+        });
+        row.addEventListener('dragleave', () => {
+            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+        });
+        row.addEventListener('drop', (event) => {
+            if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
+                return;
+            }
+            const targetId = String(row.getAttribute('data-folder-id') || '').trim();
+            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
+            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+                clearBasicFolderDragState();
+                return;
+            }
+            event.preventDefault();
+            const placement = row.classList.contains('fv-row-drag-over-after') ? 'after' : 'before';
+            const draggedId = basicFolderDragState.folderId;
+            clearBasicFolderDragState();
+            if (typeof moveFolderRowBesideSibling === 'function') {
+                void moveFolderRowBesideSibling(resolvedType, draggedId, targetId, placement);
+            }
+        });
+    });
+};
+
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
     const TABLE_COLUMN_COUNT = SETTINGS_TABLE_COLUMN_COUNT;
@@ -6491,7 +6665,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
         const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
-        const pinnedText = pinned ? 'Pinned' : 'No';
+        const pinnedText = pinned ? 'Pinned' : 'Not pinned';
         const pinnedClass = pinned ? 'is-pinned' : '';
 
         let typeSpecificColumns = '';
@@ -6602,10 +6776,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
         const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;
-        const rowReorderButtonsHtml = (hideOrderControls || folderDepth > 0)
+        const dragHandleHtml = hideOrderControls
             ? ''
-            : (`<button type="button" title="Move up" aria-label="Move ${safeNameText} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
-                + `<button type="button" title="Move down" aria-label="Move ${safeNameText} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
+            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
@@ -6621,23 +6794,23 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : (''
                 + `<div class="row-order-stack">`
                 + `<span class="row-order-actions">`
-                + rowReorderButtonsHtml
+                + dragHandleHtml
                 + moveToRootButtonHtml
                 + treeMoveButtonHtml
                 + `</span>`
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
                 + `</div>`);
         rows.push(
-            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
-            + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
+            + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button type="button" class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button type="button" class="folder-action-btn" title="Export" aria-label="Export ${safeNameText}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button type="button" class="folder-action-btn" title="Delete" aria-label="Delete ${safeNameText}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button type="button" class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeNameText}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-h"></i></button></td>`
+            + `<td class="actions-cell"><button type="button" class="folder-action-btn" title="Status details" aria-label="Open status details for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-bar-chart"></i></button><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></td>`
             + '</tr>'
         );
     }
@@ -8590,6 +8763,7 @@ const renderTable = (type) => {
     const nextStatusSnapshot = buildStatusSnapshot(type, ordered, memberSnapshot, infoByType[type] || {});
     const healthMetrics = buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type]);
     healthMetricsByType[type] = healthMetrics;
+    renderBasicSummaryCards(type, healthMetrics);
     const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
     const sortMode = prefsByType[type]?.sortMode || 'created';
@@ -8606,6 +8780,7 @@ const renderTable = (type) => {
     }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
+    bindBasicFolderDragHandles(type);
     syncSettingsTableStateFromPrefs(type);
 
     renderFolderSelectOptions(type);
@@ -10943,6 +11118,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     importVm,
     clearDocker,
     clearVm,
+    toggleBasicSettingsPanel,
     fileManager,
     createRollbackCheckpoint,
     rollbackLatestCheckpoint,
@@ -11022,6 +11198,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     checkForUpdatesNow,
     showDevForceRefreshHelper,
     moveFolderRow,
+    moveFolderRowBesideSibling,
     moveFolderToRootQuick,
     moveFolderUnderDialog,
     openFolderTreeMoveDialog,
@@ -11051,6 +11228,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     resetSettingsTableColumns,
     showFolderStatusBreakdown,
     showFolderHealthBreakdown,
+    openSettingsFolderEditor,
     openFolderRowQuickActions,
     quickCreateStarterFolder,
     quickCreateStarterTemplates,

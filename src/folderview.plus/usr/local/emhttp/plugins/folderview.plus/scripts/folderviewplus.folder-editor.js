@@ -172,18 +172,6 @@ const buildFolderActionRegistry = ({
                     run: () => toggleFolderPin(resolvedType, folderId)
                 },
                 {
-                    id: 'up',
-                    label: 'Move up',
-                    icon: 'fa-chevron-up',
-                    run: () => moveFolderRow(resolvedType, folderId, -1)
-                },
-                {
-                    id: 'down',
-                    label: 'Move down',
-                    icon: 'fa-chevron-down',
-                    run: () => moveFolderRow(resolvedType, folderId, 1)
-                },
-                {
                     id: 'branchCollapse',
                     label: 'Collapse branch',
                     icon: 'fa-compress',

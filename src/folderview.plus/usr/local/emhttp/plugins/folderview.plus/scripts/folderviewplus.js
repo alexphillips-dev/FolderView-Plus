@@ -6296,11 +6296,53 @@ const renderBasicSummaryCards = (type, metrics) => {
 
 let basicFolderDragState = null;
 
+const removeBasicFolderDragImage = () => {
+    document.querySelectorAll('.fv-basic-row-drag-image').forEach((ghost) => {
+        ghost.remove();
+    });
+};
+
 const clearBasicFolderDragState = () => {
     document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
         row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after', 'fv-row-drag-source');
     });
+    removeBasicFolderDragImage();
     basicFolderDragState = null;
+};
+
+const createBasicFolderDragImage = (row) => {
+    if (!row || typeof row.getBoundingClientRect !== 'function') {
+        return null;
+    }
+    const rowRect = row.getBoundingClientRect();
+    if (!rowRect.width || !rowRect.height) {
+        return null;
+    }
+    const ghost = document.createElement('div');
+    ghost.className = 'fv-basic-row-drag-image folder-table';
+    ghost.style.width = `${Math.ceil(rowRect.width)}px`;
+    ghost.style.height = `${Math.ceil(rowRect.height)}px`;
+
+    const table = document.createElement('table');
+    table.style.width = `${Math.ceil(rowRect.width)}px`;
+    const tbody = document.createElement('tbody');
+    const clonedRow = row.cloneNode(true);
+    clonedRow.removeAttribute('id');
+    clonedRow.removeAttribute('tabindex');
+    clonedRow.removeAttribute('onkeydown');
+    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-after');
+    const sourceCells = Array.from(row.children || []);
+    Array.from(clonedRow.children || []).forEach((cell, index) => {
+        const sourceCellRect = sourceCells[index]?.getBoundingClientRect?.();
+        if (sourceCellRect?.width) {
+            cell.style.width = `${Math.ceil(sourceCellRect.width)}px`;
+        }
+    });
+    tbody.appendChild(clonedRow);
+    table.appendChild(tbody);
+    ghost.appendChild(table);
+    document.body.appendChild(ghost);
+    return ghost;
 };
 
 const bindBasicFolderDragHandles = (type) => {
@@ -6326,6 +6368,16 @@ const bindBasicFolderDragHandles = (type) => {
             if (event.dataTransfer) {
                 event.dataTransfer.effectAllowed = 'move';
                 event.dataTransfer.setData('text/plain', folderId);
+                if (typeof event.dataTransfer.setDragImage === 'function') {
+                    removeBasicFolderDragImage();
+                    const dragImage = createBasicFolderDragImage(row);
+                    if (dragImage) {
+                        const rect = row.getBoundingClientRect();
+                        const offsetX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+                        const offsetY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+                        event.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
+                    }
+                }
             }
         });
         handle.addEventListener('dragend', clearBasicFolderDragState);

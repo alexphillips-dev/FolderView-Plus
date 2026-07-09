@@ -453,6 +453,14 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /await recordTreeMoveHistoryFromBackup\([\s\S]*'Reorder folders'[\s\S]*focusFolderId/);
 });
 
+test('basic folder drag uses a full-row drag image', () => {
+    assert.match(script, /const createBasicFolderDragImage = \(row\) => \{/);
+    assert.match(script, /ghost\.className = 'fv-basic-row-drag-image folder-table';/);
+    assert.match(script, /event\.dataTransfer\.setDragImage\(dragImage, offsetX, offsetY\);/);
+    assert.match(settingsCss, /\.fv-basic-row-drag-image\s*\{[\s\S]*filter:\s*drop-shadow/);
+    assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});
+
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {
     assert.match(script, /const safeNameText = escapeHtml\(folderNameRaw\);/);
     assert.match(script, /const safeNameDisplayHtml = filter \? highlightSearchText\(folderNameRaw, filter\) : safeNameText;/);

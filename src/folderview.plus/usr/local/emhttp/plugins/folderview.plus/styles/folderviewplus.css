@@ -2474,6 +2474,39 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     opacity: 0.58;
 }
 
+.fv-basic-row-drag-image {
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.95;
+    filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.36));
+}
+
+.fv-basic-row-drag-image table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.fv-basic-row-drag-image td {
+    padding: 0.58rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-subtle);
+    border-bottom: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-basic-row-drag-image tr > td:first-child {
+    border-left: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px 0 0 8px;
+}
+
+.fv-basic-row-drag-image tr > td:last-child {
+    border-right: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 0 8px 8px 0;
+}
+
 .folder-table table tbody tr.fv-row-drag-over-before > td {
     box-shadow: inset 0 2px 0 var(--fvplus-settings-accent);
 }

@@ -987,6 +987,38 @@ test('orderFoldersByPrefs keeps pinned folders at top', () => {
     assert.deepEqual(Object.keys(ordered), ['three', 'one', 'two']);
 });
 
+test('orderFoldersByPrefs applies pinned folders before every supported sort mode', () => {
+    const folders = {
+        alpha: { name: 'Alpha', createdAt: '2026-01-02T00:00:00Z', updatedAt: '2026-01-04T00:00:00Z' },
+        bravo: { name: 'Bravo', createdAt: '2026-01-03T00:00:00Z', updatedAt: '2026-01-02T00:00:00Z' },
+        charlie: { name: 'Charlie', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-03T00:00:00Z' }
+    };
+    const modes = ['created', 'created_newest', 'created_oldest', 'updated_newest', 'manual', 'alpha', 'name_desc'];
+
+    for (const sortMode of modes) {
+        const ordered = utils.orderFoldersByPrefs(folders, {
+            sortMode,
+            manualOrder: ['charlie', 'alpha', 'bravo'],
+            pinnedFolderIds: ['bravo']
+        });
+        assert.equal(Object.keys(ordered)[0], 'bravo', `${sortMode} should keep pinned folders first`);
+    }
+});
+
+test('orderFoldersByPrefs keeps nested manual branches together after ordering', () => {
+    const folders = {
+        rootOne: { name: 'Root One' },
+        childOne: { name: 'Child One', parentId: 'rootOne' },
+        rootTwo: { name: 'Root Two' },
+        childTwo: { name: 'Child Two', parentId: 'rootTwo' }
+    };
+    const ordered = utils.orderFoldersByPrefs(folders, {
+        sortMode: 'manual',
+        manualOrder: ['rootTwo', 'rootOne', 'childOne', 'childTwo']
+    });
+    assert.deepEqual(Object.keys(ordered), ['rootTwo', 'childTwo', 'rootOne', 'childOne']);
+});
+
 test('orderFoldersByPrefs promotes a pinned nested child by moving its root branch', () => {
     const folders = {
         rootB: { name: 'Beta Root' },

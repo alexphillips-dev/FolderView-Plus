@@ -488,6 +488,225 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     margin: 0;
 }
 
+.fv-view-org .toolbar-sort-toggle-main {
+    color: var(--fvplus-settings-text-strong);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.fv-view-org-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.35fr);
+    gap: 0.75rem;
+}
+
+.fv-view-org-section {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-panel);
+    padding: 0.7rem;
+    min-width: 0;
+}
+
+.fv-view-org-section-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 0.85fr);
+    gap: 0.6rem;
+    align-items: start;
+    padding-bottom: 0.55rem;
+    margin-bottom: 0.65rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-view-org-section-header h3 {
+    margin: 0.1rem 0 0;
+    font-size: 1.15rem;
+    line-height: 1.25;
+}
+
+.fv-view-org-section-header p {
+    margin: 0;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.35;
+    text-align: right;
+}
+
+.fv-view-org-eyebrow {
+    color: var(--fvplus-settings-accent);
+    font-size: 0.94rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-view-org-section-body {
+    min-width: 0;
+}
+
+.fv-view-org-order {
+    align-self: start;
+}
+
+.fv-view-org-find {
+    align-self: start;
+}
+
+.fv-view-org-display {
+    grid-column: 1 / -1;
+}
+
+.fv-view-org-display .settings-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.fv-view-org-find-body {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.fv-view-org-find-body > input[type="text"] {
+    width: 100%;
+    min-height: 36px;
+    margin: 0;
+}
+
+.fv-view-org-order-body {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.fv-view-org-order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.58rem;
+}
+
+.fv-view-org-order-actions > button {
+    min-height: 32px;
+    min-width: 0;
+    padding: 0.2rem 0.58rem;
+}
+
+.fv-view-org-sort-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    gap: 0.4rem;
+    margin-bottom: 0.62rem;
+}
+
+.fv-view-org-sort-tabs > button {
+    min-height: 34px;
+    min-width: 0;
+    padding: 0.28rem 0.5rem;
+    border-radius: 7px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-button);
+    color: var(--fvplus-settings-text-strong);
+    font-weight: 700;
+    text-align: center;
+}
+
+.fv-view-org-sort-tabs > button:hover {
+    border-color: var(--fvplus-settings-accent);
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-view-org-sort-tabs > button.is-active {
+    border-color: var(--fvplus-settings-accent);
+    box-shadow:
+        0 0 0 1px var(--fvplus-settings-accent) inset,
+        0 0 0 3px var(--fvplus-settings-focus-ring);
+}
+
+.fv-view-org-count-chip {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 999px;
+    padding: 0.12rem 0.48rem;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.fv-view-org-guidance {
+    display: grid;
+    gap: 0.48rem;
+    margin-top: 0.62rem;
+    padding: 0.58rem 0.66rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 7px;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-view-org-guidance-main {
+    display: grid;
+    gap: 0.18rem;
+}
+
+.fv-view-org-guidance-main > strong {
+    color: var(--fvplus-settings-text-strong);
+}
+
+.fv-view-org-guidance-main > span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.35;
+}
+
+.fv-view-org-guidance-notes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.fv-view-org-guidance-notes > span {
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 999px;
+    padding: 0.12rem 0.46rem;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.25;
+}
+
+.fv-view-org-tools {
+    grid-column: 1 / -1;
+    padding: 0;
+}
+
+.fv-view-org-tools > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.65rem 0.7rem;
+}
+
+.fv-view-org-tools > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fv-view-org-tools > summary > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--fvplus-settings-text-strong);
+    font-weight: 700;
+}
+
+.fv-view-org-tools > summary > small {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.98rem;
+    text-align: right;
+}
+
+.fv-view-org-tools-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    padding: 0 0.7rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+}
+
 .settings-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

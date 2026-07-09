@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.08.13">
-<!ENTITY md5 "cbba79257dc93997dc352c3602f30d3a">
+<!ENTITY version "2026.07.08.14">
+<!ENTITY md5 "650795b24dab3578304d1710cf98db1c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.08.14
+- UX: Reworked Settings sort and view controls into a clearer View &amp; Organization workspace with dedicated Order, Find folders, Display, and Advanced tools sections.
+- UX: Added sort mode shortcut buttons, live sort guidance, pinned-folder notes, nested-folder notes, and folder counts for Docker and VM folder tables.
+- Feature: Added a Use current visible order action to save the current Settings table order as Manual order.
+- Test: Added regression coverage confirming pinned folders stay above every supported sort mode and nested manual branches remain together.
 
 ###2026.07.08.13
 - Fix: Make the modern folder editor live preview use current Docker runtime Running/Paused state for member status labels instead of stale or missing status text.

@@ -6918,6 +6918,187 @@ const renderQuickFolderFilters = (type) => {
     });
 };
 
+const VIEW_ORGANIZATION_SORT_DETAILS = Object.freeze({
+    created: {
+        label: 'Saved order',
+        title: 'Saved order is active',
+        description: 'Folders stay in the order stored in preferences. Use this when you want FolderView Plus to preserve your existing layout.'
+    },
+    created_newest: {
+        label: 'Newest',
+        title: 'Newest created folders first',
+        description: 'Recently created folders move toward the top while older folders move lower.'
+    },
+    created_oldest: {
+        label: 'Oldest',
+        title: 'Oldest created folders first',
+        description: 'Older folders move toward the top while newer folders move lower.'
+    },
+    updated_newest: {
+        label: 'Recently changed',
+        title: 'Recently changed folders first',
+        description: 'Folders with the newest saved changes move toward the top.'
+    },
+    manual: {
+        label: 'Manual',
+        title: 'Manual order is active',
+        description: 'Use the up, down, and tree-move controls in the Order column to place folders exactly where you want them.'
+    },
+    alpha: {
+        label: 'A-Z',
+        title: 'Alphabetical order is active',
+        description: 'Folders are sorted by name from A to Z. Nested folders still remain inside their parent branch.'
+    },
+    name_desc: {
+        label: 'Z-A',
+        title: 'Reverse alphabetical order is active',
+        description: 'Folders are sorted by name from Z to A. Nested folders still remain inside their parent branch.'
+    }
+});
+
+const updateViewOrganizationGuidance = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
+    const sortMode = prefs.sortMode || 'created';
+    const details = VIEW_ORGANIZATION_SORT_DETAILS[sortMode] || VIEW_ORGANIZATION_SORT_DETAILS.created;
+    const folders = getFolderMap(resolvedType);
+    const folderCount = Object.keys(folders).length;
+    const pinnedCount = Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds.length : 0;
+    const manualCount = Array.isArray(prefs.manualOrder) ? prefs.manualOrder.length : 0;
+    const nestedCount = Object.values(folders).filter((folder) => String(folder?.parentId || folder?.parent_id || '').trim()).length;
+
+    const guidance = $(`#${resolvedType}-sort-mode-explainer`);
+    if (guidance.length) {
+        const notes = [];
+        if (pinnedCount > 0) {
+            notes.push(`${pinnedCount} pinned ${pinnedCount === 1 ? 'folder stays' : 'folders stay'} above normal sorted folders.`);
+        } else {
+            notes.push('Pinned folders will stay above normal sorted folders when you pin them.');
+        }
+        if (nestedCount > 0) {
+            notes.push(`${nestedCount} nested ${nestedCount === 1 ? 'folder remains' : 'folders remain'} inside their parent branch.`);
+        }
+        if (sortMode === 'manual') {
+            notes.push(manualCount > 0 ? `${manualCount} saved manual positions are tracked.` : 'Manual order will be captured as you move folders.');
+        }
+        guidance.html(`
+            <div class="fv-view-org-guidance-main">
+                <strong>${escapeHtml(details.title)}</strong>
+                <span>${escapeHtml(details.description)}</span>
+            </div>
+            <div class="fv-view-org-guidance-notes">
+                ${notes.map((note) => `<span>${escapeHtml(note)}</span>`).join('')}
+            </div>
+        `);
+    }
+
+    const tabs = $(`#${resolvedType}-sort-mode-tabs`);
+    if (tabs.length) {
+        tabs.find('button[data-sort-mode]').each((_, button) => {
+            const candidate = String($(button).attr('data-sort-mode') || '');
+            $(button)
+                .toggleClass('is-active', candidate === sortMode)
+                .attr('aria-pressed', candidate === sortMode ? 'true' : 'false');
+        });
+    }
+
+    const hint = $(`#${resolvedType}-sort-mode-hint`);
+    if (hint.length) {
+        hint.text(`${folderCount} ${folderCount === 1 ? 'folder' : 'folders'} tracked`);
+    }
+};
+
+const enhanceViewOrganizationWorkspace = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const sortSelect = $(`#${resolvedType}-sort-mode`);
+    if (!sortSelect.length) {
+        return;
+    }
+    const details = sortSelect.closest('.toolbar-sort');
+    const body = details.find('> .toolbar-sort-body');
+    if (!details.length || !body.length) {
+        return;
+    }
+
+    details.addClass('fv-view-org');
+    const typeLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
+    details.find('.toolbar-sort-toggle-main').html('<i class="fa fa-sliders" aria-hidden="true"></i> View & Organization');
+    details.find('.toolbar-sort-toggle-note').text(`${typeLabel} folders, sorting, layout, and tools`);
+
+    if (!body.children('.fv-view-org-layout').length) {
+        const sortRow = body.children('.sort-row').first();
+        const treeVisibilityControls = sortRow.children('.tree-visibility-controls').not('.tree-management-controls').detach();
+        const treeManagementControls = sortRow.children('.tree-management-controls').detach();
+        const searchInput = $(`#${resolvedType}-folder-filter`).detach();
+        const quickFilters = $(`#${resolvedType}-quick-filters`).detach();
+        const settingsCards = body.children('.settings-cards-grid').first().detach();
+        const sortHint = sortRow.find('.sort-hint-chip').detach();
+
+        const layout = $(`
+            <div class="fv-view-org-layout">
+                <section class="fv-view-org-section fv-view-org-order">
+                    <div class="fv-view-org-section-header">
+                        <div>
+                            <div class="fv-view-org-eyebrow">Order</div>
+                            <h3>Choose how folders are sorted</h3>
+                        </div>
+                        <p>Manual and pinned folders control the visible order on Docker, VM, and Dashboard views.</p>
+                    </div>
+                    <div id="${resolvedType}-sort-mode-tabs" class="fv-view-org-sort-tabs" role="group" aria-label="${typeLabel} sort mode shortcuts">
+                        ${Object.entries(VIEW_ORGANIZATION_SORT_DETAILS).map(([value, config]) => `<button type="button" data-sort-mode="${value}" onclick="changeSortMode('${resolvedType}', '${value}')">${escapeHtml(config.label)}</button>`).join('')}
+                    </div>
+                    <div class="fv-view-org-section-body fv-view-org-order-body"></div>
+                    <div class="fv-view-org-order-actions">
+                        <button type="button" onclick="saveCurrentFolderOrderAsManual('${resolvedType}')"><i class="fa fa-save" aria-hidden="true"></i> Use current visible order</button>
+                    </div>
+                    <div id="${resolvedType}-sort-mode-explainer" class="fv-view-org-guidance"></div>
+                </section>
+                <section class="fv-view-org-section fv-view-org-find">
+                    <div class="fv-view-org-section-header">
+                        <div>
+                            <div class="fv-view-org-eyebrow">Find folders</div>
+                            <h3>Search and quick filters</h3>
+                        </div>
+                        <p>Filter the settings table without changing saved folder order.</p>
+                    </div>
+                    <div class="fv-view-org-section-body fv-view-org-find-body"></div>
+                </section>
+                <section class="fv-view-org-section fv-view-org-display">
+                    <div class="fv-view-org-section-header">
+                        <div>
+                            <div class="fv-view-org-eyebrow">Display</div>
+                            <h3>Table, badges, dashboard, and health</h3>
+                        </div>
+                        <p>Adjust what each folder row shows and how much space the table uses.</p>
+                    </div>
+                    <div class="fv-view-org-section-body fv-view-org-display-body"></div>
+                </section>
+                <details class="fv-view-org-section fv-view-org-tools">
+                    <summary>
+                        <span><i class="fa fa-wrench" aria-hidden="true"></i> Advanced tools</span>
+                        <small>Expansion, undo, mobile reorder, and tree repair</small>
+                    </summary>
+                    <div class="fv-view-org-section-body fv-view-org-tools-body"></div>
+                </details>
+            </div>
+        `);
+
+        body.empty().append(layout);
+        layout.find('.fv-view-org-order-body').append(sortRow);
+        sortRow.find('.sort-label').text('Sort mode');
+        sortRow.append(`<span id="${resolvedType}-sort-mode-hint" class="fv-view-org-count-chip"></span>`);
+        if (sortHint.length) {
+            sortHint.html('<i class="fa fa-info-circle" aria-hidden="true"></i> Use Manual when you want the Order column to control saved placement.');
+            layout.find('.fv-view-org-order-body').append(sortHint);
+        }
+        layout.find('.fv-view-org-find-body').append(searchInput, quickFilters);
+        layout.find('.fv-view-org-display-body').append(settingsCards);
+        layout.find('.fv-view-org-tools-body').append(treeVisibilityControls, treeManagementControls);
+    }
+
+    updateViewOrganizationGuidance(resolvedType);
+};
+
 const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
 const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
 const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
@@ -8036,6 +8217,7 @@ const renderTable = (type) => {
     renderQuickFolderFilters(type);
     renderSettingsTableLayoutControls(type);
     renderColumnVisibilityControls(type);
+    enhanceViewOrganizationWorkspace(type);
     applyColumnVisibility(type);
     applyColumnWidths(type);
     bindTableColumnResizers(type);
@@ -8757,6 +8939,24 @@ const changeSortMode = async (type, mode) => {
         await refreshType(type);
     } catch (error) {
         showError('Sort mode save failed', error);
+    }
+};
+
+const saveCurrentFolderOrderAsManual = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const ordered = utils.orderFoldersByPrefs(folders, prefsByType[resolvedType]);
+    const order = Object.keys(ordered);
+    if (!order.length) {
+        addActivityEntry(`No ${resolvedType === 'vm' ? 'VM' : 'Docker'} folders are available to save as manual order.`, 'warning');
+        return;
+    }
+
+    try {
+        await persistManualOrder(resolvedType, order);
+        addActivityEntry(`Saved current ${resolvedType === 'vm' ? 'VM' : 'Docker'} folder order as Manual.`, 'success');
+    } catch (error) {
+        showError('Manual order save failed', error);
     }
 };
 
@@ -10272,6 +10472,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     changeRuntimePref,
     changeDashboardPref,
     changeHealthPref,
+    saveCurrentFolderOrderAsManual,
     changeBackupSchedulePref,
     changeActiveBackupSchedulePref,
     setFilterQuery,

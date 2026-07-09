@@ -81,6 +81,9 @@ test('docker pin quick action verifies server persistence before keeping optimis
     assert.match(dockerScript, /if \(!response \|\| response\.ok === false\) \{/);
     assert.match(dockerScript, /const fetchDockerPinnedFolderPrefs = async \(\) => \{/);
     assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{Date\.now\(\)\}/);
+    assert.match(dockerScript, /const queueDockerPinnedFolderServerReconcile = \(reason = 'post-render', delayMs = 120\) => \{/);
+    assert.match(dockerScript, /const reconciledPrefs = applyDockerPinnedFolderPrefsOverride\(prefs \|\| \{\}\);[\s\S]*applyDockerPinnedFolderIds\(reconciledPrefs\.pinnedFolderIds\);[\s\S]*syncDockerPinnedFolderUi\(\);/);
+    assert.match(dockerScript, /queueDockerPinnedFolderServerReconcile\('post-render', 160\);/);
     assert.match(dockerScript, /const confirmedPrefs = await fetchDockerPinnedFolderPrefs\(\);/);
     assert.match(dockerScript, /if \(!dockerPinnedFolderIdListsMatch\(confirmedPrefs\.pinnedFolderIds, nextPinnedIds\)\) \{/);
     assert.match(dockerScript, /throw new Error\('Docker pinned folders did not persist\.'\);/);

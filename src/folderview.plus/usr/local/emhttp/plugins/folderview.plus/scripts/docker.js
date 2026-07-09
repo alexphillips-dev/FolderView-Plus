@@ -2956,6 +2956,34 @@ const fetchDockerPinnedFolderPrefs = async () => {
     assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
     return utils.normalizePrefs(response?.prefs || {});
 };
+let dockerPinnedFolderServerReconcileTimer = null;
+let dockerPinnedFolderServerReconcileGeneration = 0;
+const queueDockerPinnedFolderServerReconcile = (reason = 'post-render', delayMs = 120) => {
+    if (dockerPinnedFolderServerReconcileTimer) {
+        clearTimeout(dockerPinnedFolderServerReconcileTimer);
+    }
+    const safeDelay = Math.max(0, Math.min(1000, Number(delayMs) || 0));
+    dockerPinnedFolderServerReconcileTimer = setTimeout(() => {
+        dockerPinnedFolderServerReconcileTimer = null;
+        const generation = ++dockerPinnedFolderServerReconcileGeneration;
+        fetchDockerPinnedFolderPrefs()
+            .then((prefs) => {
+                if (generation !== dockerPinnedFolderServerReconcileGeneration) {
+                    return;
+                }
+                const reconciledPrefs = applyDockerPinnedFolderPrefsOverride(prefs || {});
+                applyDockerPinnedFolderIds(reconciledPrefs.pinnedFolderIds);
+                syncDockerPinnedFolderUi();
+                appendDockerRequestBundleTrace('pinned-folder-reconcile', {
+                    reason,
+                    pinnedFolderCount: normalizeDockerPinnedFolderIdList(reconciledPrefs.pinnedFolderIds).length
+                });
+            })
+            .catch(() => {
+                // The initial render state remains usable; the next Docker render or settings sync will retry.
+            });
+    }, safeDelay);
+};
 const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
     const payload = {
         type: 'docker',
@@ -4753,6 +4781,7 @@ const createFolders = async () => {
     }
     applyNestedFolderHierarchy();
     syncDockerPinnedFolderUi();
+    queueDockerPinnedFolderServerReconcile('post-render', 160);
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');

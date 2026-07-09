@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.08.11">
-<!ENTITY md5 "ec7b52ec618d3b448674809df32158d1">
+<!ENTITY version "2026.07.08.12">
+<!ENTITY md5 "1c2cbfbae2e2f38f57b7e7fae134953f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.08.12
+- Fix: Make the Dashboard compact matrix preserve Docker and VM folder order visually from top to bottom in each column, matching the Docker/VM tab order.
+- Test: Add regression coverage for compact matrix column-flow ordering.
 
 ###2026.07.08.11
 - Fix: Harden Dashboard folder rendering so FolderView Plus only marks Dashboard folders loaded after async folder hydration succeeds.

@@ -301,6 +301,10 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
     assert.match(dashboardQuickRailScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
     assert.match(dashboardQuickRailScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
     assert.match(dashboardQuickRailScript, /return !isDashboardNodeVisible\(updatedNode\);/);
+    assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout\) =>/);
+    assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-rows-desktop/);
+    assert.match(dashboardQuickRailScript, /rowsForColumns\(3\)/);
+    assert.match(dashboardQuickRailScript, /syncDashboardCompactMatrixOrderFlowForType\(meta\.type, layout\);/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('angle-down'\)/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('chevron-down'\)/);
 });
@@ -337,6 +341,10 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
+    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-desktop,\s*1\),\s*max-content\)/);
+    assert.match(dashboardCss, /grid-auto-flow:\s*column/);
+    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-tablet,\s*1\),\s*max-content\)/);
+    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-mobile,\s*1\),\s*max-content\)/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
     assert.doesNotMatch(dashboardCss, /\.folder-hand-docker[\s\S]{0,160}display:\s*none !important/);
     assert.doesNotMatch(dashboardCss, /\.folder-hand-vm[\s\S]{0,160}display:\s*none !important/);

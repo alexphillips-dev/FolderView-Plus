@@ -192,7 +192,8 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
-    assert.match(dashboardScript, /prefsResponse = parseJsonPayloadSafe\(prom\[4\]\);/);
+    assert.match(dashboardScript, /const parseDashboardPayloadOr = \(payload, fallback\) =>/);
+    assert.match(dashboardScript, /let prefsResponse = parseDashboardPayloadOr\(prom\[4\], \{\}\);/);
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = typeof utils\.normalizeDashboardOverflowMode === 'function'/);
     assert.match(dashboardScript, /const createFolders = async \(types = \['docker', 'vm'\]\) =>/);
     assert.match(dashboardScript, /const dockerTreeIndex = buildFolderChildrenIndex\(allDockerFolders\);/);
@@ -363,4 +364,30 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
     assert.doesNotMatch(folderPage, /name="preview_member_display"/);
     assert.doesNotMatch(folderScript, /preview_member_display/);
+});
+
+test('dashboard render waits for successful folder hydration and has request fallbacks', () => {
+    assert.match(dashboardScript, /const dashboardRequestDiagnostics = \{\s*docker: \[\],\s*vm: \[\]\s*\};/);
+    assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => \$\.get\(url\)/);
+    assert.match(dashboardScript, /recordDashboardRequestFallback\(type, label, error\);/);
+    assert.match(dashboardScript, /folderReq\.docker = \[[\s\S]*getDashboardRequestWithFallback\('docker', 'runtime info'/);
+    assert.match(dashboardScript, /folderReq\.vm = \[[\s\S]*getDashboardRequestWithFallback\('vm', 'runtime info'/);
+    assert.match(dashboardScript, /const queueCreateFoldersRender = \(\) => \{/);
+    assert.match(dashboardScript, /let createFoldersPromise = null;/);
+    assert.match(dashboardScript, /return createFoldersPromise \|\| Promise\.resolve\(false\);/);
+    assert.match(dashboardScript, /createFoldersPromise = Promise\.resolve\(\)[\s\S]*\.then\(\(\) => createFolders\(\)\)[\s\S]*\.then\(\(\) => true\)/);
+    assert.match(dashboardScript, /loadedFolder = rendered !== false;/);
+    assert.doesNotMatch(dashboardScript, /loadedFolder = !loadedFolder/);
+});
+
+test('dashboard status and diagnostics include paused state and sanitized render details', () => {
+    assert.match(dashboardScript, /const sanitizeDashboardInfoForDebug = \(type, info\) =>/);
+    assert.match(dashboardScript, /const collectDashboardRenderDiagnosticsForType = \(type\) =>/);
+    assert.match(dashboardScript, /containersInfo: sanitizeDashboardInfoForDebug\('docker', containersInfo\)/);
+    assert.match(dashboardScript, /vmInfo: sanitizeDashboardInfoForDebug\('vm', vmInfo\)/);
+    assert.match(dashboardScript, /let paused = 0;/);
+    assert.match(dashboardScript, /paused \+= newFolder\[container\]\.state && newFolder\[container\]\.pause \? 1 : 0;/);
+    assert.match(dashboardScript, /const isVmPaused = vmState === 'paused' \|\| vmState === 'pmsuspended';/);
+    assert.match(dashboardScript, /folder\.status\.paused = paused;/);
+    assert.match(dashboardScript, /const statusClass = allStartedArePaused \? 'paused' : 'started';/);
 });

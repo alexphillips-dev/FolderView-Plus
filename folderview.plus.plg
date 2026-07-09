@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.06.09">
-<!ENTITY md5 "5b7c5760a56a0a5799d1eef43209135e">
+<!ENTITY version "2026.07.08.11">
+<!ENTITY md5 "ec7b52ec618d3b448674809df32158d1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.08.11
+- Fix: Harden Dashboard folder rendering so FolderView Plus only marks Dashboard folders loaded after async folder hydration succeeds.
+- Fix: Add Dashboard request fallbacks and safer JSON parsing so one failed local API read no longer leaves folders stuck in a default/native state.
+- Fix: Restore paused-state parity for Docker and VM Dashboard folders, including paused status counts, icon color, and folder status metadata.
+- Quality: Expand Dashboard debug bundles with sanitized runtime state, render/icon diagnostics, active plugin assets, and request fallback history.
+- Test: Add regression coverage for Dashboard render gating, request fallbacks, sanitized diagnostics, and paused-state handling.
 
 ###2026.07.06.09
 - Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained token preview sample.

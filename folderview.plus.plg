@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.03">
-<!ENTITY md5 "756d209e0891f02041914dee80f3d89f">
+<!ENTITY version "2026.07.09.04">
+<!ENTITY md5 "99b2360f6d1e2d9679fcfd4b9254c9ed">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.04
+- UX: Removed the remaining VM Basic row drawer Move up and Move down actions so manual ordering is consistently handled by the drag handle and Tree move controls.
+
 
 ###2026.07.09.03
 - UX: Refreshed the Basic Settings workspace for Docker and VM folder groups with visible search, filter, sort, and add controls while keeping the existing Docker and VMs section headers.

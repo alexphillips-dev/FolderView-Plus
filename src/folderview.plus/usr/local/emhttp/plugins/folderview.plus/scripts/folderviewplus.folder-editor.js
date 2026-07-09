@@ -454,8 +454,6 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
     )).join('');
     const actions = [
-        ['up', 'fa-chevron-up', 'Move up', '', true],
-        ['down', 'fa-chevron-down', 'Move down', '', true],
         ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', '', true],
         ['root', 'fa-level-up', 'Move to root', '', hasParent],
         ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],

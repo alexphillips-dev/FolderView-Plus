@@ -18,7 +18,9 @@ test('dashboard docker folder action keeps restart distinct from resume', () => 
 test('dashboard folder action errors do not trigger an immediate second reload', () => {
     assert.match(dashboardJs, /window\.loadlist_original = loadlist;/);
     assert.match(dashboardJs, /\$\.ajaxPrefilter\(\(options,\s*originalOptions,\s*jqXHR\) => \{/);
-    assert.match(dashboardJs, /jqXHR\.promise\(\)\.then\(\(\) => \{\s*queueCreateFoldersRender\(\);\s*\$\('div\.spinner\.fixed'\)\.hide\(\);/s);
+    assert.match(dashboardJs, /jqXHR\.promise\(\)\.then\(\(\) => \{\s*queueCreateFoldersRender\(\)\s*\.then\(\(rendered\) => \{\s*loadedFolder = rendered !== false;/s);
+    assert.match(dashboardJs, /\.catch\(\(\) => \{\s*loadedFolder = false;\s*\}\)\s*\.finally\(\(\) => \{\s*\$\('div\.spinner\.fixed'\)\.hide\(\);/s);
+    assert.doesNotMatch(dashboardJs, /loadedFolder = !loadedFolder/);
     assert.doesNotMatch(dashboardJs, /if\(errors\.length > 0\) \{\s*swal\(\{/);
     assert.doesNotMatch(dashboardJs, /}, loadlist\);\s*}\s*loadlist\(\);\s*\$\('div\.spinner\.fixed'\)\.hide\('slow'\);/s);
 });

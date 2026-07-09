@@ -126,6 +126,16 @@ test('theme compatibility: advanced automation, rules, recovery, and operations 
     assert.match(settingsCss, /\.schedule-hint\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
 });
 
+test('settings shared button system covers basic and advanced workspace actions', () => {
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-basic-control-btn,[\s\S]*\.fv-basic-add-btn,[\s\S]*\.fv-basic-sort,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-theme-token-reset,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-rule-builder-actions > button,[\s\S]*\.fv-rule-selection-actions > button,[\s\S]*\.fv-rule-card-actions > button,[\s\S]*\.fv-rule-test-actions > button,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\[data-fv-rules-source-toggle\],[\s\S]*\[data-fv-operations-source-toggle\],/);
+    assert.doesNotMatch(settingsCss, /\.fv-basic-add-btn\s*\{[^}]*linear-gradient/);
+    assert.match(settingsCss, /\.fv-rules-source-btn\.is-active\s*\{[\s\S]*background:\s*var\(--fvplus-settings-button-accent-top\) !important;[\s\S]*box-shadow:\s*var\(--fvplus-settings-button-accent-shadow\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\[data-fv-rules-source-toggle\]\.is-active,[\s\S]*\[data-fv-operations-source-toggle\]\.is-active,[\s\S]*\.folder-table table td\.actions-cell \.folder-overflow-btn[\s\S]*\)\s*,\s*\n#fv-settings-root \.fv-mode-toggle button\.is-active/);
+});
+
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
     assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
     assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);

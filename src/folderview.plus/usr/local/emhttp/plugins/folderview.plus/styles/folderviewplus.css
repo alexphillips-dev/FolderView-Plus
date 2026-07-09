@@ -2283,9 +2283,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-basic-add-btn {
-    border-color: rgba(255, 138, 31, 0.68);
-    background: linear-gradient(180deg, rgba(255, 143, 37, 0.98), rgba(255, 111, 18, 0.96));
-    color: #fffaf4;
     font-weight: 700;
 }
 
@@ -2849,8 +2846,13 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-theme-token-reset {
     min-width: 34px !important;
     width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .fv-theme-custom-css {
@@ -3395,9 +3397,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-rules-source-btn.is-active {
-    background: var(--fvplus-settings-warning-soft) !important;
-    color: var(--fvplus-settings-title-accent) !important;
-    box-shadow: inset 0 0 0 1px var(--fvplus-settings-warning-border), var(--fvplus-btn-shadow);
+    background: var(--fvplus-settings-button-accent-top) !important;
+    color: var(--fvplus-settings-button-accent-fg) !important;
+    box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }
 
 .fv-rules-overview {
@@ -10614,12 +10616,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -10630,6 +10640,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10662,12 +10674,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -10678,6 +10698,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10699,12 +10721,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -10715,6 +10745,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10744,12 +10776,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -10760,6 +10800,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10784,12 +10826,23 @@ h2[data-fv-section].fv-search-match {
     .custom-css > button,
     .toolbar-actions > button,
     .fv-first-run-actions > button,
+    .fv-theme-import-row > button,
+    .fv-theme-customize-actions > button,
+    .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -10800,6 +10853,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10824,6 +10879,8 @@ h2[data-fv-section].fv-search-match {
     .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
     .fv-mini-action-btn.is-active,
+    [data-fv-rules-source-toggle].is-active,
+    [data-fv-operations-source-toggle].is-active,
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
 #fv-settings-root .fv-mode-toggle button.is-active {

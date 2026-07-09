@@ -499,21 +499,61 @@ const getSectionChangeItems = (sectionKey, baselineSnapshot = parseSnapshotState
 const getAllChangedItems = (baselineSnapshot = parseSnapshotState(initialSnapshot), currentSnapshot = parseSnapshotState(computeFormSnapshot())) => Object.keys(SECTION_META)
     .flatMap((sectionKey) => getSectionChangeItems(sectionKey, baselineSnapshot, currentSnapshot));
 
-const buildSampleMemberState = (member, index = 0) => {
-    const rawState = String(member?.State?.Status || member?.RawState?.Status || member?.status || '').trim().toLowerCase();
+const resolveMemberRuntimeStateKey = (member) => {
+    const stateSources = [
+        member?.State,
+        member?.RawState,
+        member?.info?.State,
+        member
+    ].filter((source) => source && typeof source === 'object');
+
+    for (const source of stateSources) {
+        const hasExplicitPaused = typeof source.Paused === 'boolean' || typeof source.paused === 'boolean' || typeof source.pause === 'boolean';
+        const hasExplicitRunning = typeof source.Running === 'boolean' || typeof source.running === 'boolean' || typeof source.state === 'boolean';
+        const hasPausedFlag = source.Paused === true || source.paused === true || source.pause === true;
+        const hasRunningFlag = source.Running === true || source.running === true || source.state === true;
+        if (hasExplicitPaused || hasExplicitRunning) {
+            if (hasPausedFlag) {
+                return 'paused';
+            }
+            if (hasRunningFlag) {
+                return 'started';
+            }
+            return 'stopped';
+        }
+    }
+
+    const rawState = stateSources
+        .map((source) => String(source.Status || source.status || source.state || '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' ');
     if (rawState.includes('pause')) {
+        return 'paused';
+    }
+    if (rawState.includes('run') || rawState.includes('start')) {
+        return 'started';
+    }
+    if (rawState.includes('stop') || rawState.includes('exit') || rawState.includes('dead')) {
+        return 'stopped';
+    }
+    return '';
+};
+
+const buildSampleMemberState = (member, index = 0) => {
+    const runtimeStateKey = resolveMemberRuntimeStateKey(member);
+    if (runtimeStateKey === 'paused') {
         return {
             label: 'paused',
             color: normalizeHexColor(getForm()?.status_color_paused?.value, DEFAULT_FOLDER_STATUS_COLORS.paused)
         };
     }
-    if (rawState.includes('run') || rawState.includes('start')) {
+    if (runtimeStateKey === 'started') {
         return {
             label: type === 'vm' ? 'running' : 'started',
             color: normalizeHexColor(getForm()?.status_color_started?.value, DEFAULT_FOLDER_STATUS_COLORS.started)
         };
     }
-    if (rawState.includes('stop') || rawState.includes('exit') || rawState.includes('dead')) {
+    if (runtimeStateKey === 'stopped') {
         return {
             label: 'stopped',
             color: normalizeHexColor(getForm()?.status_color_stopped?.value, DEFAULT_FOLDER_STATUS_COLORS.stopped)

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.08.12">
-<!ENTITY md5 "1c2cbfbae2e2f38f57b7e7fae134953f">
+<!ENTITY version "2026.07.08.13">
+<!ENTITY md5 "cbba79257dc93997dc352c3602f30d3a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.08.13
+- Fix: Make the modern folder editor live preview use current Docker runtime Running/Paused state for member status labels instead of stale or missing status text.
+- Fix: Normalize Docker editor member state so started, paused, and stopped previews match the Docker tab.
+- Test: Add regression coverage for stale status text being overridden by current runtime booleans.
 
 ###2026.07.08.12
 - Fix: Make the Dashboard compact matrix preserve Docker and VM folder order visually from top to bottom in each column, matching the Docker/VM tab order.

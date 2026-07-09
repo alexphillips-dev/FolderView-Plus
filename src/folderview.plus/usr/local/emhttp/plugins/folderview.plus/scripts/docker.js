@@ -3988,11 +3988,12 @@ const fetchDockerBootstrapPrefs = async () => {
     return nextPrefs;
 };
 
-const ensureDockerBootstrapPrefs = () => {
-    if (lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object' && Object.keys(lastAppliedRuntimePrefs).length > 0) {
+const ensureDockerBootstrapPrefs = (options = {}) => {
+    const forceRefresh = options?.forceRefresh === true;
+    if (!forceRefresh && lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object' && Object.keys(lastAppliedRuntimePrefs).length > 0) {
         return Promise.resolve(lastAppliedRuntimePrefs);
     }
-    if (dockerBootstrapPrefsPromise) {
+    if (!forceRefresh && dockerBootstrapPrefsPromise) {
         return dockerBootstrapPrefsPromise;
     }
     dockerBootstrapPrefsPromise = Promise.resolve()
@@ -4002,6 +4003,13 @@ const ensureDockerBootstrapPrefs = () => {
             dockerBootstrapPrefsPromise = null;
         });
     return dockerBootstrapPrefsPromise;
+};
+
+const rebuildDockerFolderReqForHostRender = () => {
+    folderReq = buildDockerFolderReq({
+        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+    });
+    return folderReq;
 };
 
 const unmountDockerCommandView = () => {
@@ -4039,7 +4047,7 @@ const unmountDockerIsolatedViews = (exceptMode = '') => {
 
 const queueDockerRuntimeRenderForPageViewMode = () => {
     Promise.resolve()
-        .then(() => ensureDockerBootstrapPrefs())
+        .then(() => ensureDockerBootstrapPrefs({ forceRefresh: true }))
         .then((prefs) => {
             const mode = resolveDockerPageViewMode(prefs);
             if (mode === 'host') {
@@ -4087,21 +4095,13 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 return;
             }
             unmountDockerIsolatedViews();
-            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-                folderReq = buildDockerFolderReq({
-                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-                });
-            }
+            rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
         })
         .catch(() => {
             unmountDockerIsolatedViews();
-            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-                folderReq = buildDockerFolderReq({
-                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-                });
-            }
+            rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
         });

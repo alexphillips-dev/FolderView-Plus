@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.12">
-<!ENTITY md5 "4f057f768a2ee9a568702ae981000e49">
+<!ENTITY version "2026.07.09.13">
+<!ENTITY md5 "4a3faaccc6494eafc664d39072b01380">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.13
+## FolderView Plus 2026.07.09.13
+- Fix: Docker basic view now refreshes preferences and rebuilds its render request bundle when returning to the Docker page, preventing pinned folder state from disappearing after tab changes or page refreshes.
+
 
 ###2026.07.09.12
 ## FolderView Plus 2026.07.09.12

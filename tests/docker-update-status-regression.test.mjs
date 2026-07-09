@@ -222,8 +222,10 @@ test('docker support bundle snapshot reads only visible update-column text in ba
 test('docker runtime can stay in host-list mode without rendering FolderView rows', () => {
     assert.match(dockerJs, /const normalizeDockerPageViewMode = \(value\) =>/);
     assert.match(dockerJs, /const resolveDockerPageViewMode = \(prefs = folderTypePrefs\) =>/);
-    assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(\) => \{/);
-    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(options = \{\}\) => \{/);
+    assert.match(dockerJs, /const rebuildDockerFolderReqForHostRender = \(\) => \{[\s\S]*folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)[\s\S]*\}\);[\s\S]*return folderReq;[\s\S]*\};/);
+    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*rebuildDockerFolderReqForHostRender\(\);[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*if \(!folderReq \|\| !Array\.isArray\(folderReq\.render\) \|\| folderReq\.render\.length === 0\) \{/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);

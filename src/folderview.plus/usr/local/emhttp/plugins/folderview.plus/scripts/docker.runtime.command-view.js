@@ -561,7 +561,7 @@
                                             <div class="fv-docker-command-card-subtitle">${escapeHtml(subtitle)}</div>
                                         </div>
                                         <div class="fv-docker-command-card-flags">
-                                            ${card.pinned ? '<span class="fv-docker-command-flag pinned"><i class="fa fa-star"></i> pinned</span>' : ''}
+                                            ${card.pinned ? '<span class="fv-docker-command-flag pinned"><i class="fa fa-thumb-tack"></i> pinned</span>' : ''}
                                             ${card.locked ? '<span class="fv-docker-command-flag locked"><i class="fa fa-lock"></i> locked</span>' : ''}
                                             ${card.childCount > 0 ? '<span class="fv-docker-command-flag branch"><i class="fa fa-sitemap"></i> branch</span>' : ''}
                                         </div>
@@ -783,4 +783,3 @@
         createApi
     });
 }));
-

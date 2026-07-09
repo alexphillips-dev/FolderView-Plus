@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.08">
-<!ENTITY md5 "e9bd0586079a4ad3ded1b0461a2aab4c">
+<!ENTITY version "2026.07.09.09">
+<!ENTITY md5 "8b5fb21d813d4aa7812e3504dbd254c5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.09
+## FolderView Plus 2026.07.09.09
+- Fix: Docker folder pin state now resolves from normalized saved prefs and the active runtime store, keeping pinned rows marked after Docker tab changes and reloads.
+- UX: Docker folder pin actions and alternate Docker views now use a pin icon instead of a star.
+
 
 ###2026.07.09.08
 ## FolderView Plus 2026.07.09.08

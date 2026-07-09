@@ -680,7 +680,7 @@
                                                 <span class="fv-docker-orbit-pill paused"><i class="fa fa-pause"></i> ${selectedFolder.paused}</span>
                                                 <span class="fv-docker-orbit-pill stopped"><i class="fa fa-stop"></i> ${selectedFolder.stopped}</span>
                                                 <span class="fv-docker-orbit-pill update"><i class="fa fa-cloud-download"></i> ${selectedFolder.updates}</span>
-                                                ${selectedFolder.pinned ? '<span class="fv-docker-orbit-pill pin"><i class="fa fa-star"></i> pinned</span>' : ''}
+                                                ${selectedFolder.pinned ? '<span class="fv-docker-orbit-pill pin"><i class="fa fa-thumb-tack"></i> pinned</span>' : ''}
                                                 ${selectedFolder.locked ? '<span class="fv-docker-orbit-pill lock"><i class="fa fa-lock"></i> locked</span>' : ''}
                                             </div>
                                             <div class="fv-docker-orbit-hub-actions">

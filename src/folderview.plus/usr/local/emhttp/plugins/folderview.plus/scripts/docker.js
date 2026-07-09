@@ -2616,10 +2616,23 @@ dockerRuntimeStateStore.subscribe((nextState, _prevState, patch) => {
     }
 });
 const isDockerFolderLocked = (folderId) => dockerLockedFolderIdSet.has(String(folderId || '').trim());
+const normalizeDockerPinnedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+};
 const isDockerFolderPinned = (folderId) => {
     const id = String(folderId || '').trim();
-    const pinned = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : [];
-    return pinned.includes(id);
+    if (!id) {
+        return false;
+    }
+    const prefsPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
+    if (prefsPinned.includes(id)) {
+        return true;
+    }
+    const runtimePinned = normalizeDockerPinnedFolderIdList(dockerRuntimeStateStore.get('pinnedFolderIds', []));
+    return runtimePinned.includes(id);
 };
 const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {
@@ -2862,19 +2875,14 @@ const toggleDockerFolderLock = (folderId) => {
     refreshDockerFolderQuickActionStates();
 };
 const applyDockerPinnedFolderIds = (nextPinnedIds) => {
+    const normalizedPinnedIds = normalizeDockerPinnedFolderIdList(nextPinnedIds);
     folderTypePrefs = utils.normalizePrefs({
         ...(folderTypePrefs || {}),
-        pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : []
+        pinnedFolderIds: normalizedPinnedIds
     });
-    dockerRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
+    dockerRuntimeStateStore.set({ pinnedFolderIds: normalizedPinnedIds });
 };
 let dockerPinnedFolderIdsOverride = null;
-const normalizeDockerPinnedFolderIdList = (value) => {
-    if (!Array.isArray(value)) {
-        return [];
-    }
-    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter((item) => item !== '')));
-};
 const dockerPinnedFolderIdListsMatch = (left, right) => {
     const normalizedLeft = normalizeDockerPinnedFolderIdList(left);
     const normalizedRight = normalizeDockerPinnedFolderIdList(right);
@@ -6256,8 +6264,7 @@ const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter(
     iconClassCandidates: [
         'fa-bullseye',
         'fa-dot-circle-o',
-        'fa-star',
-        'fa-star-o',
+        'fa-thumb-tack',
         'fa-lock',
         'fa-unlock-alt'
     ]
@@ -6540,7 +6547,7 @@ const addDockerFolderContext = (id) => {
         text: pinned
             ? getDockerMenuLabel('unpin-folder', 'Unpin folder')
             : getDockerMenuLabel('pin-folder', 'Pin folder'),
-        icon: pinned ? 'fa-star' : 'fa-star-o',
+        icon: 'fa-thumb-tack',
         action: (evt) => {
             evt.preventDefault();
             toggleDockerFolderPin(id);

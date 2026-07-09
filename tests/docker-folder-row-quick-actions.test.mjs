@@ -16,6 +16,18 @@ const dockerRuntimeHierarchyScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'),
     'utf8'
 );
+const dockerCommandViewScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js'),
+    'utf8'
+);
+const dockerOrbitViewScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js'),
+    'utf8'
+);
+const dockerTreeExplorerScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js'),
+    'utf8'
+);
 const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
@@ -48,6 +60,9 @@ test('docker context menu keeps focus/pin/lock quick actions at the top', () => 
     assert.match(dockerScript, /queueDockerFolderContextQuickIcons\(/);
     assert.match(dockerScript, /createDockerContextMenuQuickStripAdapter/);
     assert.match(dockerScript, /dockerContextQuickStripAdapter/);
+    assert.match(dockerScript, /iconClassCandidates:\s*\[[\s\S]*'fa-thumb-tack'[\s\S]*\]/);
+    assert.match(dockerScript, /icon:\s*'fa-thumb-tack'/);
+    assert.doesNotMatch(dockerScript, /icon:\s*pinned \? 'fa-star' : 'fa-star-o'/);
     assert.doesNotMatch(dockerScript, /fv-folder-row-actions/);
 });
 
@@ -82,6 +97,21 @@ test('docker page listens for settings pin changes without a full reload', () =>
     assert.match(dockerScript, /payload\.type !== 'docker'/);
     assert.match(dockerScript, /clearDockerPinnedFolderIdsOverride\(\);\s*applyDockerPinnedFolderIds\(payload\.pinnedFolderIds\);/s);
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(payload\.pinnedFolderIds\);\s*syncDockerPinnedFolderUi\(\);/s);
+});
+
+test('docker pin state resolves from normalized prefs and runtime store', () => {
+    assert.match(dockerScript, /const normalizeDockerPinnedFolderIdList = \(value\) => \{/);
+    assert.match(dockerScript, /const isDockerFolderPinned = \(folderId\) => \{[\s\S]*const prefsPinned = normalizeDockerPinnedFolderIdList\(folderTypePrefs\?\.pinnedFolderIds\);[\s\S]*const runtimePinned = normalizeDockerPinnedFolderIdList\(dockerRuntimeStateStore\.get\('pinnedFolderIds', \[\]\)\);[\s\S]*return runtimePinned\.includes\(id\);[\s\S]*\};/);
+    assert.match(dockerScript, /const normalizedPinnedIds = normalizeDockerPinnedFolderIdList\(nextPinnedIds\);[\s\S]*pinnedFolderIds:\s*normalizedPinnedIds[\s\S]*dockerRuntimeStateStore\.set\(\{\s*pinnedFolderIds:\s*normalizedPinnedIds\s*\}\);/);
+});
+
+test('docker pinned folder affordances use a pin icon instead of a star', () => {
+    assert.match(dockerScript, /iconClassCandidates:\s*\[[\s\S]*'fa-thumb-tack'[\s\S]*\]/);
+    assert.match(dockerScript, /text:\s*pinned[\s\S]*icon:\s*'fa-thumb-tack'/);
+    assert.doesNotMatch(dockerScript, /fa-star-o/);
+    assert.match(dockerCommandViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
+    assert.match(dockerOrbitViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
+    assert.match(dockerTreeExplorerScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
 });
 
 test('docker folder menu can move folders within the current level', () => {

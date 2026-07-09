@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.17">
-<!ENTITY md5 "d23904c540580daae31eaa84d9616c57">
+<!ENTITY version "2026.07.09.18">
+<!ENTITY md5 "9cbddec1e5a6cdfe01674d35060f60d6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.18
+## FolderView Plus 2026.07.09.18
+- UI/UX: Dark-mode Settings buttons now use a visible white outline for better contrast, while light mode keeps a muted non-white outline.
+
 
 ###2026.07.09.17
 ## FolderView Plus 2026.07.09.17

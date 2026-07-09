@@ -71,6 +71,9 @@
     --fvplus-settings-button-hover-bottom: var(--fvplus-ui-control-hover, #29292b);
     --fvplus-settings-button-active-top: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
     --fvplus-settings-button-active-bottom: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
+    --fvplus-settings-button-outline: rgba(255, 255, 255, 0.28);
+    --fvplus-settings-button-outline-hover: rgba(255, 255, 255, 0.42);
+    --fvplus-settings-button-outline-active: rgba(255, 255, 255, 0.5);
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
@@ -117,6 +120,9 @@ body[data-fv-host-theme="white"] #fv-settings-root,
     --fvplus-settings-button-hover-bottom: rgba(251, 226, 194, 0.96);
     --fvplus-settings-button-active-top: rgba(248, 218, 180, 0.98);
     --fvplus-settings-button-active-bottom: rgba(244, 207, 160, 0.97);
+    --fvplus-settings-button-outline: rgba(190, 107, 24, 0.12);
+    --fvplus-settings-button-outline-hover: rgba(190, 107, 24, 0.2);
+    --fvplus-settings-button-outline-active: rgba(190, 107, 24, 0.26);
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(190, 107, 24, 0.08), 0 1px 2px rgba(113, 84, 52, 0.08);
     --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(190, 107, 24, 0.12), 0 2px 5px rgba(113, 84, 52, 0.12);
     --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(190, 107, 24, 0.16), 0 1px 3px rgba(113, 84, 52, 0.1);
@@ -7963,6 +7969,9 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 #fv-setup-assistant-dialog[data-fv-theme-class="light"] {
     color-scheme: light;
+    --fvplus-settings-button-outline: rgba(122, 102, 72, 0.18);
+    --fvplus-settings-button-outline-hover: rgba(122, 102, 72, 0.26);
+    --fvplus-settings-button-outline-active: rgba(122, 102, 72, 0.32);
     --fv-wizard-text-primary: var(--fvplus-settings-text-primary, #324253);
     --fv-wizard-text-muted: var(--fvplus-settings-text-muted, #627284);
     --fv-wizard-text-dim: var(--fvplus-settings-text-dim, #73839a);
@@ -10658,7 +10667,8 @@ h2[data-fv-section].fv-search-match {
 ),
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump),
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
-    border: 0 !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 8px !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
@@ -10765,6 +10775,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):focus-visible,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:hover,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:focus-visible {
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
@@ -10817,6 +10828,7 @@ h2[data-fv-section].fv-search-match {
 ):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:active {
+    border-color: var(--fvplus-settings-button-outline-active) !important;
     background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
@@ -10870,6 +10882,7 @@ h2[data-fv-section].fv-search-match {
 ):disabled,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):disabled,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:disabled {
+    border-color: var(--fvplus-settings-button-outline) !important;
     opacity: 0.56;
     box-shadow: none !important;
     transform: none !important;
@@ -10884,6 +10897,7 @@ h2[data-fv-section].fv-search-match {
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
 #fv-settings-root .fv-mode-toggle button.is-active {
+    border-color: var(--fvplus-settings-button-outline-active) !important;
     background: var(--fvplus-settings-button-accent-top) !important;
     color: var(--fvplus-settings-button-accent-fg) !important;
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
@@ -10946,7 +10960,8 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button {
     min-height: 40px !important;
     padding: 0 1.1rem !important;
-    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 7px !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-text-primary) !important;
@@ -10958,14 +10973,14 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button:focus-visible,
 #fv-settings-root .fv-docker-start-order-add-row > button:focus-visible {
-    border-color: var(--fvplus-settings-accent) !important;
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     color: var(--fvplus-settings-accent) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: var(--fvplus-settings-border-subtle) !important;
+    border-color: var(--fvplus-settings-button-outline) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-text-primary) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
@@ -10973,14 +10988,14 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:focus-visible {
-    border-color: var(--fvplus-settings-accent) !important;
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     color: var(--fvplus-settings-accent) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button:disabled,
 #fv-settings-root .fv-docker-start-order-add-row > button:disabled {
-    border-color: var(--fvplus-settings-border-faint) !important;
+    border-color: var(--fvplus-settings-button-outline) !important;
     background: var(--fvplus-settings-button-quiet-top) !important;
     color: var(--fvplus-settings-text-dim) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
@@ -11002,7 +11017,8 @@ h2[data-fv-section].fv-search-match {
     .health-breakdown-btn,
     .updates-chip
 ) {
-    border: 0 !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 6px !important;
     background: var(--fvplus-settings-button-quiet-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
@@ -11047,6 +11063,7 @@ h2[data-fv-section].fv-search-match {
     .health-breakdown-btn,
     .updates-chip
 ):focus-visible {
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
     color: var(--fvplus-settings-text-primary) !important;

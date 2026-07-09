@@ -136,6 +136,17 @@ test('settings shared button system covers basic and advanced workspace actions'
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\[data-fv-rules-source-toggle\]\.is-active,[\s\S]*\[data-fv-operations-source-toggle\]\.is-active,[\s\S]*\.folder-table table td\.actions-cell \.folder-overflow-btn[\s\S]*\)\s*,\s*\n#fv-settings-root \.fv-mode-toggle button\.is-active/);
 });
 
+test('settings dark mode buttons use visible white outline tokens', () => {
+    assert.match(settingsCss, /--fvplus-settings-button-outline:\s*rgba\(255,\s*255,\s*255,\s*0\.28\);/);
+    assert.match(settingsCss, /--fvplus-settings-button-outline-hover:\s*rgba\(255,\s*255,\s*255,\s*0\.42\);/);
+    assert.match(settingsCss, /--fvplus-settings-button-outline-active:\s*rgba\(255,\s*255,\s*255,\s*0\.5\);/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(190,\s*107,\s*24,\s*0\.12\);/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(122,\s*102,\s*72,\s*0\.18\);/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-docker-start-order-toolbar > button,[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.status-breakdown-btn,[\s\S]*\.updates-chip[\s\S]*\)\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+});
+
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
     assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
     assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);

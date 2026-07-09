@@ -60,6 +60,18 @@ test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 
+test('docker pin quick action verifies server persistence before keeping optimistic state', () => {
+    assert.match(dockerScript, /const assertDockerPrefsSaveResponse = \(response, fallbackMessage = 'Failed to save Docker preferences\.'\) => \{/);
+    assert.match(dockerScript, /if \(!response \|\| response\.ok === false\) \{/);
+    assert.match(dockerScript, /const fetchDockerPinnedFolderPrefs = async \(\) => \{/);
+    assert.match(dockerScript, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{Date\.now\(\)\}/);
+    assert.match(dockerScript, /const confirmedPrefs = await fetchDockerPinnedFolderPrefs\(\);/);
+    assert.match(dockerScript, /if \(!dockerPinnedFolderIdListsMatch\(confirmedPrefs\.pinnedFolderIds, nextPinnedIds\)\) \{/);
+    assert.match(dockerScript, /throw new Error\('Docker pinned folders did not persist\.'\);/);
+    assert.match(dockerScript, /rememberDockerPinnedFolderIdsOverride\(nextPinned\);/);
+    assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
+});
+
 test('docker page listens for settings pin changes without a full reload', () => {
     assert.match(dockerScript, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
     assert.match(dockerScript, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
@@ -68,6 +80,7 @@ test('docker page listens for settings pin changes without a full reload', () =>
     assert.match(dockerScript, /window\.addEventListener\('storage', \(event\) => \{/);
     assert.match(dockerScript, /window\.addEventListener\(PINNED_FOLDER_CHANGE_EVENT, \(event\) => \{/);
     assert.match(dockerScript, /payload\.type !== 'docker'/);
+    assert.match(dockerScript, /clearDockerPinnedFolderIdsOverride\(\);\s*applyDockerPinnedFolderIds\(payload\.pinnedFolderIds\);/s);
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(payload\.pinnedFolderIds\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 

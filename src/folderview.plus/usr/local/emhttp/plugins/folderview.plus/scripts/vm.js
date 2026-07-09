@@ -826,15 +826,74 @@ const applyVmPinnedFolderIds = (nextPinnedIds) => {
     });
     vmRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
 };
+let vmPinnedFolderIdsOverride = null;
+const normalizeVmPinnedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+};
+const vmPinnedFolderIdListsMatch = (left, right) => {
+    const normalizedLeft = normalizeVmPinnedFolderIdList(left);
+    const normalizedRight = normalizeVmPinnedFolderIdList(right);
+    return normalizedLeft.length === normalizedRight.length
+        && normalizedLeft.every((entry, index) => entry === normalizedRight[index]);
+};
+const rememberVmPinnedFolderIdsOverride = (nextPinnedIds) => {
+    vmPinnedFolderIdsOverride = {
+        pinnedFolderIds: normalizeVmPinnedFolderIdList(nextPinnedIds),
+        expiresAt: Date.now() + 10000
+    };
+};
+const clearVmPinnedFolderIdsOverride = () => {
+    vmPinnedFolderIdsOverride = null;
+};
+const applyVmPinnedFolderPrefsOverride = (prefs = {}) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    if (!vmPinnedFolderIdsOverride || Date.now() > Number(vmPinnedFolderIdsOverride.expiresAt || 0)) {
+        clearVmPinnedFolderIdsOverride();
+        return normalized;
+    }
+    const overridePinnedIds = normalizeVmPinnedFolderIdList(vmPinnedFolderIdsOverride.pinnedFolderIds);
+    if (vmPinnedFolderIdListsMatch(normalized.pinnedFolderIds, overridePinnedIds)) {
+        return normalized;
+    }
+    return utils.normalizePrefs({
+        ...normalized,
+        pinnedFolderIds: overridePinnedIds
+    });
+};
+const assertVmPrefsSaveResponse = (response, fallbackMessage = 'Failed to save VM preferences.') => {
+    if (!response || response.ok === false) {
+        throw new Error(String(response?.error || fallbackMessage));
+    }
+    return response;
+};
+const fetchVmPinnedFolderPrefs = async () => {
+    const url = `/plugins/folderview.plus/server/prefs.php?type=vm&_=${Date.now()}`;
+    const request = window.FolderViewPlusRequest;
+    let response = null;
+    if (request && typeof request.getJson === 'function') {
+        response = await request.getJson(url, {
+            retries: 1,
+            retryDelayMs: 220
+        });
+    } else {
+        response = parseJsonPayloadSafe(await $.get(url).promise());
+    }
+    assertVmPrefsSaveResponse(response, 'Failed to confirm VM pinned folders.');
+    return utils.normalizePrefs(response?.prefs || {});
+};
 const persistVmPinnedFolderIds = async (nextPinnedIds) => {
     const payload = {
         type: 'vm',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
     };
     const request = window.FolderViewPlusRequest;
+    let response = null;
     if (request && typeof request.postJson === 'function') {
         try {
-            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
                 retries: 1,
                 retryDelayMs: 260
             });
@@ -843,8 +902,18 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
             // runtime request wrapper is late, degraded, or temporarily broken.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    if (!response) {
+        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+    }
+    assertVmPrefsSaveResponse(response, 'Failed to save VM pinned folders.');
+    const confirmedPrefs = await fetchVmPinnedFolderPrefs();
+    if (!vmPinnedFolderIdListsMatch(confirmedPrefs.pinnedFolderIds, nextPinnedIds)) {
+        throw new Error('VM pinned folders did not persist.');
+    }
+    return {
+        ...response,
+        prefs: confirmedPrefs
+    };
 };
 const toggleVmFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
@@ -856,6 +925,7 @@ const toggleVmFolderPin = async (folderId) => {
         const nextPinned = current.includes(id)
             ? current.filter((entry) => entry !== id)
             : [...current, id];
+        rememberVmPinnedFolderIdsOverride(nextPinned);
         applyVmPinnedFolderIds(nextPinned);
         refreshVmFolderQuickActionStates();
         const result = await runVmGuardedAction('toggle-folder-pin', async () => {
@@ -867,6 +937,7 @@ const toggleVmFolderPin = async (folderId) => {
             userVisible: false
         });
         if (!result.ok) {
+            clearVmPinnedFolderIdsOverride();
             applyVmPinnedFolderIds(current);
             refreshVmFolderQuickActionStates();
         }
@@ -1446,7 +1517,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    folderTypePrefs = applyVmPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     const folderDepthById = buildFolderDepthById(folders);
@@ -3395,6 +3466,7 @@ const applyVmSettingsPinSyncPayload = (payload) => {
     if (!payload || payload.type !== 'vm') {
         return;
     }
+    clearVmPinnedFolderIdsOverride();
     queueLoadlistRefresh();
 };
 const bindVmSettingsPinSyncListener = () => {

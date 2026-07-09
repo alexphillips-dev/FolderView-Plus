@@ -795,7 +795,7 @@ const buildDockerIsolatedViewDeps = () => ({
         dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
             ? snapshot.runtimeInfoByName
             : {};
-        folderTypePrefs = utils.normalizePrefs(snapshot?.prefs || {});
+        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(snapshot?.prefs || {});
         lastAppliedRuntimePrefs = folderTypePrefs;
         dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
         lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
@@ -2868,15 +2868,74 @@ const applyDockerPinnedFolderIds = (nextPinnedIds) => {
     });
     dockerRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
 };
+let dockerPinnedFolderIdsOverride = null;
+const normalizeDockerPinnedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+};
+const dockerPinnedFolderIdListsMatch = (left, right) => {
+    const normalizedLeft = normalizeDockerPinnedFolderIdList(left);
+    const normalizedRight = normalizeDockerPinnedFolderIdList(right);
+    return normalizedLeft.length === normalizedRight.length
+        && normalizedLeft.every((entry, index) => entry === normalizedRight[index]);
+};
+const rememberDockerPinnedFolderIdsOverride = (nextPinnedIds) => {
+    dockerPinnedFolderIdsOverride = {
+        pinnedFolderIds: normalizeDockerPinnedFolderIdList(nextPinnedIds),
+        expiresAt: Date.now() + 10000
+    };
+};
+const clearDockerPinnedFolderIdsOverride = () => {
+    dockerPinnedFolderIdsOverride = null;
+};
+const applyDockerPinnedFolderPrefsOverride = (prefs = {}) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    if (!dockerPinnedFolderIdsOverride || Date.now() > Number(dockerPinnedFolderIdsOverride.expiresAt || 0)) {
+        clearDockerPinnedFolderIdsOverride();
+        return normalized;
+    }
+    const overridePinnedIds = normalizeDockerPinnedFolderIdList(dockerPinnedFolderIdsOverride.pinnedFolderIds);
+    if (dockerPinnedFolderIdListsMatch(normalized.pinnedFolderIds, overridePinnedIds)) {
+        return normalized;
+    }
+    return utils.normalizePrefs({
+        ...normalized,
+        pinnedFolderIds: overridePinnedIds
+    });
+};
+const assertDockerPrefsSaveResponse = (response, fallbackMessage = 'Failed to save Docker preferences.') => {
+    if (!response || response.ok === false) {
+        throw new Error(String(response?.error || fallbackMessage));
+    }
+    return response;
+};
+const fetchDockerPinnedFolderPrefs = async () => {
+    const url = `/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`;
+    const request = window.FolderViewPlusRequest;
+    let response = null;
+    if (request && typeof request.getJson === 'function') {
+        response = await request.getJson(url, {
+            retries: 1,
+            retryDelayMs: 220
+        });
+    } else {
+        response = parseJsonPayloadSafe(await $.get(url).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
+    return utils.normalizePrefs(response?.prefs || {});
+};
 const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
     };
     const request = window.FolderViewPlusRequest;
+    let response = null;
     if (request && typeof request.postJson === 'function') {
         try {
-            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
                 retries: 1,
                 retryDelayMs: 260
             });
@@ -2885,8 +2944,18 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
             // runtime request wrapper is late, degraded, or temporarily broken.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    if (!response) {
+        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker pinned folders.');
+    const confirmedPrefs = await fetchDockerPinnedFolderPrefs();
+    if (!dockerPinnedFolderIdListsMatch(confirmedPrefs.pinnedFolderIds, nextPinnedIds)) {
+        throw new Error('Docker pinned folders did not persist.');
+    }
+    return {
+        ...response,
+        prefs: confirmedPrefs
+    };
 };
 const toggleDockerFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
@@ -2898,6 +2967,7 @@ const toggleDockerFolderPin = async (folderId) => {
         const nextPinned = current.includes(id)
             ? current.filter((entry) => entry !== id)
             : [...current, id];
+        rememberDockerPinnedFolderIdsOverride(nextPinned);
         applyDockerPinnedFolderIds(nextPinned);
         syncDockerPinnedFolderUi();
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
@@ -2909,6 +2979,7 @@ const toggleDockerFolderPin = async (folderId) => {
             userVisible: false
         });
         if (!result.ok) {
+            clearDockerPinnedFolderIdsOverride();
             applyDockerPinnedFolderIds(current);
             syncDockerPinnedFolderUi();
         }
@@ -3840,7 +3911,7 @@ const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
 const fetchDockerBootstrapPrefs = async () => {
     const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
     const parsed = parseJsonPayloadSafe(response);
-    const nextPrefs = utils.normalizePrefs(parsed?.prefs || {});
+    const nextPrefs = applyDockerPinnedFolderPrefsOverride(parsed?.prefs || {});
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
     return nextPrefs;
@@ -4418,7 +4489,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
     resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
@@ -6879,6 +6950,7 @@ const applyDockerSettingsPinSyncPayload = (payload) => {
         return;
     }
     if (Array.isArray(payload.pinnedFolderIds)) {
+        clearDockerPinnedFolderIdsOverride();
         applyDockerPinnedFolderIds(payload.pinnedFolderIds);
         syncDockerPinnedFolderUi();
         return;

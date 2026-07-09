@@ -60,6 +60,14 @@ test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 
+test('docker page listens for settings pin changes without a full reload', () => {
+    assert.match(dockerScript, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
+    assert.match(dockerScript, /const bindDockerSettingsPinSyncListener = \(\) => \{/);
+    assert.match(dockerScript, /window\.addEventListener\('storage', \(event\) => \{/);
+    assert.match(dockerScript, /payload\.type !== 'docker'/);
+    assert.match(dockerScript, /applyDockerPinnedFolderIds\(payload\.pinnedFolderIds\);\s*syncDockerPinnedFolderUi\(\);/s);
+});
+
 test('docker folder menu can move folders within the current level', () => {
     assert.match(dockerScript, /const buildDockerFolderRuntimeOrderState = \(\) =>/);
     assert.match(dockerScript, /const persistDockerFolderManualOrder = async \(nextOrder\) =>/);

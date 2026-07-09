@@ -329,6 +329,15 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
 });
 
+test('basic folder pin toggle persists quickly and broadcasts runtime refresh', () => {
+    assert.match(script, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
+    assert.match(script, /prefsByType\[resolvedType\] = utils\.normalizePrefs\(next\);\s*renderTable\(resolvedType\);/);
+    assert.match(script, /prefsByType\[resolvedType\] = await postPrefs\(resolvedType, \{ pinnedFolderIds: nextPinned \}\);/);
+    assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(\{/);
+    assert.match(script, /const backup = latestPrefsBackupByType\[resolvedType\];/);
+    assert.doesNotMatch(script, /backup = await createBackup\(resolvedType, exists \? `before-unpin-\$\{id\}` : `before-pin-\$\{id\}`\);/);
+});
+
 test('settings action buttons are explicitly non-submit buttons', () => {
     const buttonWithoutTypePattern = /<button(?![^>]*\btype=)/;
     assert.doesNotMatch(page, buttonWithoutTypePattern);

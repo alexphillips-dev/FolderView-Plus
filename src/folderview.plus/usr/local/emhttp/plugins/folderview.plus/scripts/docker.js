@@ -6872,6 +6872,31 @@ getDockerHostGuardsApi()?.noteHookWrapped?.('window.loadlist', {
     note: 'wrapped'
 });
 
+const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const bindDockerSettingsPinSyncListener = () => {
+    window.addEventListener('storage', (event) => {
+        if (event.key !== PINNED_FOLDER_CHANGE_STORAGE_KEY || !event.newValue) {
+            return;
+        }
+        let payload = null;
+        try {
+            payload = JSON.parse(event.newValue);
+        } catch (_error) {
+            return;
+        }
+        if (!payload || payload.type !== 'docker') {
+            return;
+        }
+        if (Array.isArray(payload.pinnedFolderIds)) {
+            applyDockerPinnedFolderIds(payload.pinnedFolderIds);
+            syncDockerPinnedFolderUi();
+            return;
+        }
+        queueLoadlistRefresh({ suppressLoadingUi: true });
+    });
+};
+bindDockerSettingsPinSyncListener();
+
 // Get the number of CPU, nneded for a right display of the load
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Requesting CPU count.');
 $.get('/plugins/folderview.plus/server/cpu.php').promise().then((data) => {

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.05">
-<!ENTITY md5 "c798252749463b4b43b3800e69190f0f">
+<!ENTITY version "2026.07.09.06">
+<!ENTITY md5 "2981ae26e9bb519b825ca21eff8e0bf3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.06
+- Fix: Make Basic Settings folder pin toggles save only the pinned-folder list, update the toggle immediately, and roll back on save failure.
+- Fix: Notify already-open Docker and VM runtime pages when Settings changes pinned folders so Docker reflects Settings pin changes without a manual reload.
+- Quality: Added coverage for the fast Settings pin save path and runtime pin-change listeners.
+
 
 ###2026.07.09.05
 - UX: Make Basic folder drag reordering feel row-based by using a full-row drag preview instead of the small handle-only browser preview.

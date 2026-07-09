@@ -665,6 +665,7 @@ let backupCompareDiffPagingState = {
 };
 const IMPORT_APPLY_CHUNK_SIZE = 20;
 const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
+const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 let latestPrefsBackupByType = {
     docker: null,
     vm: null
@@ -9878,15 +9879,29 @@ const toggleFolderPin = async (type, folderId) => {
         ...current,
         pinnedFolderIds: nextPinned
     };
-    let backup = null;
+    prefsByType[resolvedType] = utils.normalizePrefs(next);
+    renderTable(resolvedType);
     try {
-        backup = await createBackup(resolvedType, exists ? `before-unpin-${id}` : `before-pin-${id}`);
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        await refreshType(resolvedType);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, { pinnedFolderIds: nextPinned });
+        renderTable(resolvedType);
+        try {
+            localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify({
+                type: resolvedType,
+                pinnedFolderIds: prefsByType[resolvedType].pinnedFolderIds || nextPinned,
+                changedFolderId: id,
+                pinned: !exists,
+                timestamp: Date.now()
+            }));
+        } catch (_error) {
+            // Cross-page refresh hints are best-effort; persistence already succeeded.
+        }
+        const backup = latestPrefsBackupByType[resolvedType];
         if (backup?.name) {
             await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
         }
     } catch (error) {
+        prefsByType[resolvedType] = current;
+        renderTable(resolvedType);
         showError('Pin update failed', error);
     }
 };

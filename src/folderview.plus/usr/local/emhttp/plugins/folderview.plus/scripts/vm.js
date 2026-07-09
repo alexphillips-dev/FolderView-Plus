@@ -3389,6 +3389,26 @@ window.loadlist = (x) => {
     }
 };
 
+const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const bindVmSettingsPinSyncListener = () => {
+    window.addEventListener('storage', (event) => {
+        if (event.key !== PINNED_FOLDER_CHANGE_STORAGE_KEY || !event.newValue) {
+            return;
+        }
+        let payload = null;
+        try {
+            payload = JSON.parse(event.newValue);
+        } catch (_error) {
+            return;
+        }
+        if (!payload || payload.type !== 'vm') {
+            return;
+        }
+        queueLoadlistRefresh();
+    });
+};
+bindVmSettingsPinSyncListener();
+
 // Add the button for creating a folder
 const createFolderBtn = () => {
     recordVmFatalBannerAction('VM Add Folder clicked');

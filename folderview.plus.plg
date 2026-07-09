@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.11">
-<!ENTITY md5 "96b0c1cfc287582eebafe465eadb86b2">
+<!ENTITY version "2026.07.09.12">
+<!ENTITY md5 "4f057f768a2ee9a568702ae981000e49">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.12
+## FolderView Plus 2026.07.09.12
+- Fix: Docker pinned folders now show an explicit thumb-tack badge beside the folder name on the Docker tab, so persisted pinned state is visible after refresh and tab changes.
+- Fix: Docker folder row pin indicators now update in place when pin state changes without requiring a full Docker list reload.
+
 
 ###2026.07.09.11
 ## FolderView Plus 2026.07.09.11

@@ -115,6 +115,14 @@ test('docker pinned folder affordances use a pin icon instead of a star', () => 
     assert.match(dockerScript, /iconClassCandidates:\s*\[[\s\S]*'fa-thumb-tack'[\s\S]*\]/);
     assert.match(dockerScript, /text:\s*pinned[\s\S]*icon:\s*'fa-thumb-tack'/);
     assert.doesNotMatch(dockerScript, /fa-star-o/);
+    assert.match(dockerScript, /const buildDockerFolderPinnedIndicatorHtml = \(\) => \{/);
+    assert.match(dockerScript, /class="fv-folder-pin-indicator"[\s\S]*fa fa-thumb-tack/);
+    assert.match(dockerScript, /const syncDockerFolderPinnedIndicator = \(\$row,\s*pinned\) => \{/);
+    assert.match(dockerScript, /\$row\.toggleClass\('fv-folder-pinned', pinned\);\s*syncDockerFolderPinnedIndicator\(\$row,\s*pinned\);/);
+    assert.match(dockerScript, /const pinnedIndicator = pinned \? buildDockerFolderPinnedIndicatorHtml\(\) : '';/);
+    assert.match(dockerScript, /class="fv-folder-title-line"[\s\S]*\$\{pinnedIndicator\}/);
+    assert.match(dockerCss, /\.fv-folder-title-line\s*\{/);
+    assert.match(dockerCss, /\.fv-folder-pin-indicator\s*\{[\s\S]*rgba\(255,\s*202,\s*99,\s*0\.16\)/);
     assert.match(dockerCommandViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
     assert.match(dockerOrbitViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
     assert.match(dockerTreeExplorerScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);

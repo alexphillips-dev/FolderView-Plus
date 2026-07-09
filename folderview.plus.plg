@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.14">
-<!ENTITY md5 "c09f56e9563044aef7f545068503f8de">
+<!ENTITY version "2026.07.09.16">
+<!ENTITY md5 "9c3bbe0759ed6761120ef07ad0e9ac28">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.09.16
+## FolderView Plus 2026.07.09.16
+- Fix: Basic settings pin switches now keep the knob vertically centered in both enabled and disabled states.
+- UI/UX: Basic settings nested folder rows now draw a clearer branch connector with a vertical guide and horizontal elbow into each child row.
+
 
 ###2026.07.09.14
 ## FolderView Plus 2026.07.09.14

@@ -161,10 +161,15 @@ body[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
-#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before {
-    border-left-color: var(--fvplus-settings-tree-guide) !important;
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::after {
+    border-color: var(--fvplus-settings-tree-guide) !important;
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
@@ -977,10 +982,20 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 .name-cell-content.is-nested::before {
     content: "";
     position: absolute;
-    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.5rem);
-    top: 0.3rem;
-    bottom: 0.3rem;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.62rem);
+    top: -0.82rem;
+    bottom: -0.82rem;
     border-left: 1px solid var(--fvplus-settings-tree-guide);
+    pointer-events: none;
+}
+
+.name-cell-content.is-nested::after {
+    content: "";
+    position: absolute;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.62rem);
+    top: 50%;
+    width: 1.12rem;
+    border-top: 1px solid var(--fvplus-settings-tree-guide);
     pointer-events: none;
 }
 
@@ -2521,12 +2536,13 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     justify-content: center;
     gap: 0;
     min-width: 0;
-    min-height: 22px;
+    min-height: 20px;
     padding: 0;
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
     color: var(--fvplus-settings-text-muted);
+    line-height: 0;
 }
 
 .folder-pin-switch-track {
@@ -2541,12 +2557,13 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-pin-switch-knob {
     position: absolute;
-    top: 2px;
+    top: 50%;
     left: 2px;
     width: 16px;
     height: 16px;
     border-radius: 999px;
     background: var(--fvplus-settings-text-primary);
+    transform: translateY(-50%);
     transition: transform 120ms ease;
 }
 
@@ -2556,7 +2573,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-pin-switch.is-pinned .folder-pin-switch-knob {
-    transform: translateX(18px);
+    transform: translate(18px, -50%);
 }
 
 .folder-pin-switch-label {

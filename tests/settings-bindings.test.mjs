@@ -483,9 +483,10 @@ test('basic folder drag uses a full-row drag image', () => {
 });
 
 test('basic folder pin switch has compact track geometry', () => {
-    assert.match(settingsCss, /\.folder-pin-switch\s*\{[\s\S]*gap:\s*0;[\s\S]*min-height:\s*22px;/);
+    assert.match(settingsCss, /\.folder-pin-switch\s*\{[\s\S]*gap:\s*0;[\s\S]*min-height:\s*20px;[\s\S]*line-height:\s*0;/);
     assert.match(settingsCss, /\.folder-pin-switch-track\s*\{[\s\S]*box-sizing:\s*border-box;[\s\S]*width:\s*38px;[\s\S]*height:\s*20px;/);
-    assert.match(settingsCss, /\.folder-pin-switch\.is-pinned \.folder-pin-switch-knob\s*\{[\s\S]*transform:\s*translateX\(18px\);/);
+    assert.match(settingsCss, /\.folder-pin-switch-knob\s*\{[\s\S]*top:\s*50%;[\s\S]*transform:\s*translateY\(-50%\);/);
+    assert.match(settingsCss, /\.folder-pin-switch\.is-pinned \.folder-pin-switch-knob\s*\{[\s\S]*transform:\s*translate\(18px,\s*-50%\);/);
 });
 
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {
@@ -494,6 +495,8 @@ test('nested folder rendering keeps highlighted display HTML isolated from aria/
     assert.match(script, /aria-label="Open status breakdown for \$\{safeNameText\}"/);
     assert.match(script, /<span class="name-cell-text">\$\{safeNameDisplayHtml\}<\/span>/);
     assert.match(script, /const showBreadcrumb = folderDepth > 0 \|\| Boolean\(filter\);/);
+    assert.match(settingsCss, /\.name-cell-content\.is-nested::before\s*\{[\s\S]*border-left:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
+    assert.match(settingsCss, /\.name-cell-content\.is-nested::after\s*\{[\s\S]*border-top:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
 });
 
 test('nested folder branch and integrity actions are reachable from quick actions and exported', () => {

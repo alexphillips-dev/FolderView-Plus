@@ -3458,6 +3458,9 @@ const getRowDetailsApi = (() => {
         }
         cachedApi = rowDetailsModule.createApi({
             swal,
+            document,
+            setTimeout: window.setTimeout.bind(window),
+            escapeHtml,
             getFolderMap: (type) => getFolderMap(type),
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -3469,7 +3472,8 @@ const getRowDetailsApi = (() => {
             normalizeHealthPrefs,
             evaluateDockerFolderHealth,
             toggleStatusFilter,
-            toggleHealthSeverityFilter
+            toggleHealthSeverityFilter,
+            refreshType
         });
         return cachedApi;
     };

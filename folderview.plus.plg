@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.13.06">
-<!ENTITY md5 "41679d6bc9d48ed221d964d9e279c0cd">
+<!ENTITY version "2026.07.13.08">
+<!ENTITY md5 "b1b1cadba66c5e0cb8f5d54d66d374ca">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.13.08
+## FolderView Plus 2026.07.13.08
+- UI/UX: The Basic Settings status breakdown now presents a compact folder header, dominant-state badge, member percentages, update totals, and a visual runtime distribution instead of a plain text alert.
+- UI/UX: Started, paused, and stopped members are grouped into expandable lists, with attention states opened automatically and long lists capped to a useful preview.
+- Quality: Status guidance now explains the configured stopped-member warning threshold, including when a mixed folder remains below it.
+- Quality: The breakdown can refresh Docker or VM runtime status in place and rerender the latest snapshot without closing the workflow.
+- UI/UX: The redesigned dialog uses semantic status messaging, escaped runtime values, live refresh feedback, responsive safe-area sizing, and reduced-motion handling.
+- Test: Added regression coverage for breakdown rendering, sanitization, filtering, threshold guidance, refresh/rerender behavior, empty folders, and mobile layout contracts.
+
 
 ###2026.07.13.06
 ## FolderView Plus 2026.07.13.06

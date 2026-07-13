@@ -11572,6 +11572,376 @@ tr.is-long-press-active {
     margin-top: 8px !important;
 }
 
+.sweet-alert.fv-status-breakdown-modal {
+    width: min(760px, calc(100vw - 24px)) !important;
+    max-width: min(760px, calc(100vw - 24px)) !important;
+    max-height: calc(100vh - 24px) !important;
+    padding: 14px 16px 12px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    border-radius: 14px !important;
+    background: var(--fvplus-settings-surface-panel) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+}
+
+.sweet-alert.fv-status-breakdown-modal > .sa-icon,
+.sweet-alert.fv-status-breakdown-modal > h2 {
+    display: none !important;
+}
+
+.sweet-alert.fv-status-breakdown-modal > p,
+.sweet-alert.fv-status-breakdown-modal .sa-html {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    text-align: left !important;
+}
+
+.sweet-alert.fv-status-breakdown-modal .sa-button-container {
+    margin-top: 10px !important;
+}
+
+.fv-status-modal {
+    display: grid;
+    gap: 10px;
+    color: var(--fvplus-settings-text-primary);
+    text-align: left;
+}
+
+.fv-status-modal-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.fv-status-modal-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-size: 18px;
+}
+
+.fv-status-modal-icon.is-healthy {
+    border-color: var(--fvplus-settings-chip-success-border);
+    background: var(--fvplus-settings-chip-success-bg);
+    color: var(--fvplus-settings-chip-success);
+}
+
+.fv-status-modal-icon:is(.is-mixed, .is-warning) {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
+    color: var(--fvplus-settings-chip-warning);
+}
+
+.fv-status-modal-icon.is-critical {
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
+    color: var(--fvplus-settings-chip-danger);
+}
+
+.fv-status-modal-eyebrow,
+.fv-status-modal-context {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.9rem;
+}
+
+.fv-status-modal-heading h2 {
+    display: block !important;
+    margin: 1px 0 2px !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    font-size: 1.35rem !important;
+    line-height: 1.15 !important;
+    text-align: left !important;
+}
+
+.fv-status-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    border-radius: 999px;
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fv-status-modal-badge.is-healthy {
+    border-color: var(--fvplus-settings-chip-success-border);
+    background: var(--fvplus-settings-chip-success-bg);
+    color: var(--fvplus-settings-chip-success);
+}
+
+.fv-status-modal-badge:is(.is-mixed, .is-warning) {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
+    color: var(--fvplus-settings-chip-warning);
+}
+
+.fv-status-modal-badge.is-critical {
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
+    color: var(--fvplus-settings-chip-danger);
+}
+
+.fv-status-modal-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.fv-status-modal-metrics.is-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fv-status-modal-metric {
+    min-width: 0;
+    padding: 8px 9px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 9px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-status-modal-metric.is-zero {
+    opacity: 0.58;
+}
+
+.fv-status-modal-metric-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.fv-status-modal-metric.is-started .fv-status-modal-metric-label {
+    color: var(--fvplus-settings-chip-success);
+}
+
+.fv-status-modal-metric:is(.is-paused, .is-updates) .fv-status-modal-metric-label {
+    color: var(--fvplus-settings-chip-warning);
+}
+
+.fv-status-modal-metric.is-stopped .fv-status-modal-metric-label {
+    color: var(--fvplus-settings-chip-danger);
+}
+
+.fv-status-modal-metric-value {
+    margin-top: 3px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.fv-status-modal-metric-meta {
+    margin-top: 3px;
+    color: var(--fvplus-settings-text-dim);
+    font-size: 0.76rem;
+}
+
+.fv-status-modal-distribution {
+    display: flex;
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-status-modal-distribution > span {
+    min-width: 0;
+    transition: width 160ms ease;
+}
+
+.fv-status-modal-distribution .is-started { background: var(--fvplus-settings-chip-success); }
+.fv-status-modal-distribution .is-paused { background: var(--fvplus-settings-chip-warning); }
+.fv-status-modal-distribution .is-stopped { background: var(--fvplus-settings-chip-danger); }
+
+.fv-status-modal-guidance {
+    padding: 9px 11px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 9px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-status-modal-guidance.is-healthy {
+    border-color: var(--fvplus-settings-chip-success-border);
+    background: var(--fvplus-settings-chip-success-bg);
+}
+
+.fv-status-modal-guidance:is(.is-mixed, .is-warning) {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
+}
+
+.fv-status-modal-guidance.is-critical {
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
+}
+
+.fv-status-modal-guidance-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+}
+
+.fv-status-modal-guidance ul {
+    margin: 5px 0 0;
+    padding-left: 18px;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-status-modal-guidance li + li {
+    margin-top: 2px;
+}
+
+.fv-status-modal-member-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.fv-status-modal-members {
+    min-width: 0;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 9px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-status-modal-members summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 9px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.fv-status-modal-members summary > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fv-status-modal-members.is-started summary i { color: var(--fvplus-settings-chip-success); }
+.fv-status-modal-members.is-paused summary i { color: var(--fvplus-settings-chip-warning); }
+.fv-status-modal-members.is-stopped summary i { color: var(--fvplus-settings-chip-danger); }
+
+.fv-status-modal-members ul {
+    margin: 0;
+    padding: 0 9px 8px 28px;
+    color: var(--fvplus-settings-text-muted);
+    word-break: break-word;
+}
+
+.fv-status-modal-more {
+    padding: 0 9px 8px 28px;
+    color: var(--fvplus-settings-text-dim);
+    font-size: 0.82rem;
+}
+
+.fv-status-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-height: 30px;
+}
+
+.fv-status-modal-refresh-state {
+    margin-right: auto;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.82rem;
+}
+
+.fv-status-modal-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 4px 10px;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
+    border-radius: 5px;
+    background: var(--fvplus-settings-button-quiet-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    cursor: pointer;
+}
+
+.fv-status-modal-refresh:hover:not(:disabled) {
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
+    background: var(--fvplus-settings-button-quiet-hover-top) !important;
+}
+
+.fv-status-modal-refresh:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.fv-status-modal-refresh[aria-busy="true"] i {
+    animation: fv-status-refresh-spin 700ms linear infinite;
+}
+
+@keyframes fv-status-refresh-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+    .sweet-alert.fv-status-breakdown-modal {
+        left: calc(env(safe-area-inset-left) + 0.5rem) !important;
+        right: calc(env(safe-area-inset-right) + 0.5rem) !important;
+        top: calc(env(safe-area-inset-top) + 0.5rem) !important;
+        bottom: calc(env(safe-area-inset-bottom) + 0.5rem) !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin-top: 0 !important;
+        margin-left: 0 !important;
+        padding: 12px !important;
+        transform: none !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .fv-status-modal-header {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .fv-status-modal-badge {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+
+    .fv-status-modal-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fv-status-modal-member-groups {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fv-status-modal-distribution > span {
+        transition: none;
+    }
+
+    .fv-status-modal-refresh[aria-busy="true"] i {
+        animation-duration: 1.4s;
+    }
+}
+
 .fv-setup-swal {
     max-width: 584px;
     margin: 0 auto;

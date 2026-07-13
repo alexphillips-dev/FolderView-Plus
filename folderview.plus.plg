@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.09.18">
-<!ENTITY md5 "9cbddec1e5a6cdfe01674d35060f60d6">
+<!ENTITY version "2026.07.13.01">
+<!ENTITY md5 "b6b2c72add8535218f4f88cfd59d29e4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.13.01
+## FolderView Plus 2026.07.13.01
+- Fix: Newly installed Docker containers that are not yet present in Unraid's saved preferences now render below every FolderView folder instead of above them.
+- Quality: Added Docker order regression coverage for live-only containers and saved folder placeholders.
+
 
 ###2026.07.09.18
 ## FolderView Plus 2026.07.09.18

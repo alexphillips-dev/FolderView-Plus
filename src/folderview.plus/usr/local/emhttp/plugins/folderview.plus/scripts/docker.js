@@ -2539,6 +2539,47 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     });
 };
 
+const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => {
+    const currentOrder = Array.isArray(liveOrder)
+        ? liveOrder.map((item) => String(item || '')).filter(Boolean)
+        : [];
+    const preferredOrder = Array.isArray(savedOrder)
+        ? savedOrder.map((item) => String(item || '')).filter(Boolean)
+        : [];
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const liveSet = new Set(currentOrder);
+    const savedSet = new Set(preferredOrder);
+    const newOnes = currentOrder.filter((entry) => !savedSet.has(entry));
+    const reconciledOrder = [];
+    const seen = new Set();
+    const appendUnique = (entry) => {
+        if (!entry || seen.has(entry)) {
+            return;
+        }
+        seen.add(entry);
+        reconciledOrder.push(entry);
+    };
+
+    preferredOrder.forEach((entry) => {
+        if (folderRegex.test(entry)) {
+            const folderId = entry.replace(folderRegex, '');
+            if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
+                appendUnique(entry);
+            }
+            return;
+        }
+        if (liveSet.has(entry)) {
+            appendUnique(entry);
+        }
+    });
+    newOnes.forEach(appendUnique);
+
+    return {
+        order: reconciledOrder,
+        newOnes
+    };
+};
+
 const buildFolderHierarchy = (folders) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     return hierarchyApi && typeof hierarchyApi.buildFolderHierarchy === 'function'
@@ -4613,20 +4654,13 @@ const createFolders = async () => {
     }
 
 
-    // Filter the order to get the container that aren't in the order, this happen when a new container is created
-    const newOnes = order.filter(x => !unraidOrder.includes(x));
+    // Keep saved containers and folder placeholders in their preferred order, then
+    // place containers that are not yet in Unraid's saved preferences at the bottom.
+    const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
+    order = reconciledOrder.order;
+    const newOnes = reconciledOrder.newOnes;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: newOnes (containers not in unraidOrder)', newOnes);
-
-
-    // Insert the folder in the unraid folder into the order shifted by the unlisted containers
-    for (let index = 0; index < unraidOrder.length; index++) {
-        const element = unraidOrder[index];
-        if((folderRegex.test(element) && folders[element.slice(7)])) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Splicing folder ${element} into order at index ${index + newOnes.length}`);
-            order.splice(index+newOnes.length, 0, element);
-        }
-    }
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Order after inserting Unraid-ordered folders', [...order]);
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Reconciled saved folders before new containers', [...order]);
 
 
     // debug mode, download the debug json file

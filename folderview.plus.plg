@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.13.08">
-<!ENTITY md5 "b1b1cadba66c5e0cb8f5d54d66d374ca">
+<!ENTITY version "2026.07.13.09">
+<!ENTITY md5 "a91b141826cc0c343b17473efd7b81b3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.13.09
+## FolderView Plus 2026.07.13.09
+- Fix: The Basic Settings status breakdown now sizes to its content instead of stretching grid rows across the available modal height.
+- UI/UX: Reduced modal width, padding, gaps, icon size, metric-card height, guidance spacing, member-list spacing, and footer controls for a substantially more compact layout.
+- UI/UX: Simplified the folder header metadata while retaining Docker/VM type, member count, loaded-snapshot context, and the dominant-status badge.
+- Compatibility: Narrow-screen dialogs remain centered, safe-area bounded, and scrollable without being anchored to both viewport edges.
+- Test: Added regression checks for intrinsic modal height, max-content grid rows, and compact mobile positioning.
+
 
 ###2026.07.13.08
 ## FolderView Plus 2026.07.13.08

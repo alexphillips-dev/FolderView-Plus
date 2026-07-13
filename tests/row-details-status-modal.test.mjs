@@ -154,7 +154,10 @@ test('empty folders render a zeroed distribution and responsive modal styles rem
 
     const css = fs.readFileSync(cssPath, 'utf8');
     assert.match(css, /\.sweet-alert\.fv-status-breakdown-modal\s*\{/);
+    assert.match(css, /\.sweet-alert\.fv-status-breakdown-modal\s*\{[\s\S]*?height:\s*auto\s*!important/);
+    assert.match(css, /\.fv-status-modal\s*\{[\s\S]*?grid-auto-rows:\s*max-content[\s\S]*?align-content:\s*start\s*!important/);
     assert.match(css, /\.fv-status-modal-metrics\s*\{[\s\S]*grid-template-columns:\s*repeat\(4/);
     assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-status-breakdown-modal[\s\S]*safe-area-inset-left/);
+    assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-status-breakdown-modal[\s\S]*bottom:\s*auto\s*!important/);
     assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.fv-status-modal-member-groups\s*\{[\s\S]*grid-template-columns:\s*1fr/);
 });

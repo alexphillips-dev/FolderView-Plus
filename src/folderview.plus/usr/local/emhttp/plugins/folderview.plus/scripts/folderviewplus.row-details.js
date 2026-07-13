@@ -178,9 +178,8 @@
                     <header class="fv-status-modal-header">
                         <div class="fv-status-modal-icon is-${escapeHtml(semanticState)}"><i class="fa ${escapeHtml(statusIconForKey(statusKey))}" aria-hidden="true"></i></div>
                         <div class="fv-status-modal-heading">
-                            <div class="fv-status-modal-eyebrow">${escapeHtml(typeLabel)} folder status</div>
                             <h2 id="fv-status-modal-title">${escapeHtml(details.folderName)}</h2>
-                            <div class="fv-status-modal-context">${total} member${total === 1 ? '' : 's'} <span aria-hidden="true">•</span> Current loaded runtime snapshot</div>
+                            <div class="fv-status-modal-context">${escapeHtml(typeLabel)} <span aria-hidden="true">•</span> ${total} member${total === 1 ? '' : 's'} <span aria-hidden="true">•</span> Loaded snapshot</div>
                         </div>
                         <span class="fv-status-modal-badge is-${escapeHtml(semanticState)}"><i class="fa ${escapeHtml(statusIconForKey(statusKey))}" aria-hidden="true"></i>${escapeHtml(statusLabel)}</span>
                     </header>

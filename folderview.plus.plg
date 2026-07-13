@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.13.02">
-<!ENTITY md5 "6f2ff122975b343c23654750ff5e63c5">
+<!ENTITY version "2026.07.13.03">
+<!ENTITY md5 "731652f7b29f2f8a1144979b5bf8c208">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.13.03
+## FolderView Plus 2026.07.13.03
+- UI/UX: Diagnostics now presents Suggested fixes first in a full-width row, followed by the health summary and a full-width Share with support module.
+- Quality: Added Settings layout coverage for the Diagnostics module order and one-column workbench.
+
 
 ###2026.07.13.02
 ## FolderView Plus 2026.07.13.02

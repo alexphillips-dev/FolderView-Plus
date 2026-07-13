@@ -1707,12 +1707,6 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div class="backup-actions fv-diagnostics-primary-actions">
                 <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
             </div>
-            <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
-                <div class="fv-diagnostics-empty-state">
-                    <strong>Run health check to inspect the plugin state.</strong>
-                    <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
-                </div>
-            </div>
             <div class="fv-diagnostics-workbench">
                 <div class="fv-diagnostics-lane">
                     <div class="fv-diagnostics-lane-head">
@@ -1724,6 +1718,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <strong>No recommended fixes yet.</strong>
                             <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
                         </div>
+                    </div>
+                </div>
+                <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
+                    <div class="fv-diagnostics-empty-state">
+                        <strong>Run health check to inspect the plugin state.</strong>
+                        <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
                     </div>
                 </div>
                 <div class="fv-diagnostics-lane">

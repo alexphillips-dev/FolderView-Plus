@@ -8,6 +8,10 @@ const diagnosticsModule = require(path.join(
     process.cwd(),
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js'
 ));
+const hostGuardsModule = require(path.join(
+    process.cwd(),
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js'
+));
 
 const textElement = (value) => ({ textContent: String(value || '') });
 const updateElement = (value) => ({
@@ -143,4 +147,28 @@ test('Docker support snapshot reports a top-level ordering violation', () => {
     assert.equal(snapshot.topLevelRows.foldersBeforeStandalone, false);
     assert.equal(snapshot.topLevelRows.firstStandaloneDomIndex, 0);
     assert.equal(snapshot.topLevelRows.firstOrderingViolationDomIndex, 1);
+});
+
+test('Docker host guard stores invocation arguments as structured diagnostic details', () => {
+    const api = hostGuardsModule.createApi({ window: {}, document: {} });
+    const details = {
+        commandType: 'update_container',
+        containerCount: 2,
+        containerNames: ['CloudBerryBackup', 'radarr']
+    };
+
+    api.noteHookInvocation('window.openDocker', {
+        note: 'update_container invoked',
+        details
+    });
+    details.containerNames[0] = 'mutated-after-recording';
+
+    const state = api.getHookStates()['window.openDocker'];
+    assert.equal(state.callCount, 1);
+    assert.equal(state.notes[0], 'update_container invoked');
+    assert.deepEqual(state.lastInvocation, {
+        commandType: 'update_container',
+        containerCount: 2,
+        containerNames: ['CloudBerryBackup', 'radarr']
+    });
 });

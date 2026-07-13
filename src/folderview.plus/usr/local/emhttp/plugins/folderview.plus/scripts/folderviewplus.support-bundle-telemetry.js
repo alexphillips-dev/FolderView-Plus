@@ -34,7 +34,15 @@
         'folderName',
         'containerName',
         'containerNames',
+        'title',
         'name'
+    ]));
+
+    const SUPPORT_BUNDLE_UI_SAFE_HOOK_NOTES = Object.freeze(new Set([
+        'captured',
+        'wrapped',
+        'invoked',
+        'update_container invoked'
     ]));
 
     const SUPPORT_BUNDLE_UI_URL_KEYS = Object.freeze(new Set([
@@ -155,6 +163,34 @@
                         return `${String(ipValue || '').split('.').slice(0, 2).join('.')}.x.x`;
                     });
             },
+            redactHookNote(fieldPath, value) {
+                const raw = String(value || '');
+                if (mode === 'full' || !raw) {
+                    return raw;
+                }
+                const updateMatch = raw.match(/^\s*(update_container)(?:\s+(.+))?\s*$/i);
+                if (!updateMatch) {
+                    const safeNote = raw.trim().toLowerCase();
+                    if (SUPPORT_BUNDLE_UI_SAFE_HOOK_NOTES.has(safeNote)) {
+                        return safeNote;
+                    }
+                    appendRedactionManifestField(manifest, 'hashedFields', fieldPath);
+                    return `note-${hashValue(raw, saltSeed)}`;
+                }
+                const operation = String(updateMatch[1] || 'update_container').toLowerCase();
+                const containerNames = String(updateMatch[2] || '')
+                    .split('*')
+                    .map((entry) => String(entry || '').trim())
+                    .filter(Boolean);
+                if (containerNames.length === 0) {
+                    return operation;
+                }
+                appendRedactionManifestField(manifest, 'maskedFields', fieldPath);
+                const redactedNames = containerNames.map((containerName, index) => (
+                    this.redactName(`${fieldPath}.containerNames.${index}`, containerName)
+                ));
+                return `${operation} ${redactedNames.join('*')}`;
+            },
             sanitizeValue(fieldPath, key, value) {
                 if (Array.isArray(value)) {
                     return value.map((entry, index) => this.sanitizeValue(`${fieldPath}.${index}`, key, entry));
@@ -183,6 +219,9 @@
                 }
                 if (SUPPORT_BUNDLE_UI_DEBUG_TEXT_KEYS.has(key)) {
                     return this.redactDebugText(fieldPath, value);
+                }
+                if (key === 'notes') {
+                    return this.redactHookNote(fieldPath, value);
                 }
                 return value;
             }

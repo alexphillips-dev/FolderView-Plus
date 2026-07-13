@@ -156,6 +156,18 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     listViewMode: 'basic',
                     correlation: {
                         stateSignature: 'vaultwarden:r:1:dockerman:true:private-label',
+                        hookStates: {
+                            window: {
+                                openDocker: {
+                                    notes: ['captured', 'wrapped', 'update_container CloudBerryBackup*radarr', 'inspect vaultwarden'],
+                                    lastInvocation: {
+                                        commandType: 'update_container',
+                                        containerCount: 2,
+                                        containerNames: ['CloudBerryBackup', 'radarr']
+                                    }
+                                }
+                            }
+                        },
                         orderReconciliation: {
                             liveOrderFingerprint: 'private-live-order',
                             savedOrderFingerprint: 'private-saved-order',
@@ -184,7 +196,18 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                         {
                             at: '2026-04-12T16:00:30+00:00',
                             eventType: 'dialogOpened',
-                            details: { title: 'Updating Networking', containerCount: 1, containerNames: ['vaultwarden'] }
+                            details: {
+                                title: 'Updating Networking',
+                                containerCount: 1,
+                                containerNames: ['vaultwarden'],
+                                hookStates: {
+                                    window: {
+                                        openDocker: {
+                                            notes: ['update_container CloudBerryBackup*radarr']
+                                        }
+                                    }
+                                }
+                            }
                         }
                     ]
                 };
@@ -197,7 +220,18 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                         {
                             at: '2026-04-12T16:00:31+00:00',
                             eventType: 'buildDockerFolderReq',
-                            details: { generation: 9, liveUpdateStatus: true, hostSyncSuspended: true }
+                            details: {
+                                generation: 9,
+                                liveUpdateStatus: true,
+                                hostSyncSuspended: true,
+                                hookStates: {
+                                    window: {
+                                        openDocker: {
+                                            notes: ['update_container CloudBerryBackup*radarr']
+                                        }
+                                    }
+                                }
+                            }
                         }
                     ]
                 };
@@ -250,10 +284,52 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     };
     const redactor = loadTelemetryModule(root).createUiTelemetryRedactor(bundle, 'sanitized');
     const sanitizedPageSnapshot = collectors.collectDockerPageDiagnostics(redactor);
-    const serializedSnapshot = JSON.stringify(sanitizedPageSnapshot);
-    assert.doesNotMatch(serializedSnapshot, /vaultwarden|private-label|private-live-order|private-saved-order|private-reconciled-order|Networking/);
+    const sanitizedBulkUpdateTrace = collectors.collectDockerBulkUpdateTrace(redactor);
+    const sanitizedRequestBundleTrace = collectors.collectDockerRequestBundleTrace(redactor);
+    const serializedDockerTelemetry = JSON.stringify({
+        pageSnapshot: sanitizedPageSnapshot,
+        bulkUpdateTrace: sanitizedBulkUpdateTrace,
+        requestBundleTrace: sanitizedRequestBundleTrace
+    });
+    assert.doesNotMatch(serializedDockerTelemetry, /vaultwarden|CloudBerryBackup|radarr|private-label|private-live-order|private-saved-order|private-reconciled-order|Networking/);
     assert.match(sanitizedPageSnapshot.correlation.stateSignature, /^ui-[0-9a-f]{16}$/);
     assert.match(sanitizedPageSnapshot.correlation.orderReconciliation.liveOrderFingerprint, /^ui-[0-9a-f]{16}$/);
     assert.match(sanitizedPageSnapshot.topLevelRows.entries[0].folderId, /^ui-[0-9a-f]{16}$/);
     assert.match(sanitizedPageSnapshot.topLevelRows.entries[1].containerName, /^ui-[0-9a-f]{16}$/);
+    assert.match(
+        sanitizedPageSnapshot.correlation.hookStates.window.openDocker.notes[2],
+        /^update_container ui-[0-9a-f]{16}\*ui-[0-9a-f]{16}$/
+    );
+    assert.match(
+        sanitizedPageSnapshot.correlation.hookStates.window.openDocker.lastInvocation.containerNames[0],
+        /^ui-[0-9a-f]{16}$/
+    );
+    assert.match(
+        sanitizedPageSnapshot.correlation.hookStates.window.openDocker.notes[3],
+        /^note-[0-9a-f]{16}$/
+    );
+    assert.match(sanitizedBulkUpdateTrace.entries[0].details.title, /^ui-[0-9a-f]{16}$/);
+    assert.match(
+        sanitizedBulkUpdateTrace.entries[0].details.hookStates.window.openDocker.notes[0],
+        /^update_container ui-[0-9a-f]{16}\*ui-[0-9a-f]{16}$/
+    );
+    assert.match(
+        sanitizedRequestBundleTrace.entries[0].details.hookStates.window.openDocker.notes[0],
+        /^update_container ui-[0-9a-f]{16}\*ui-[0-9a-f]{16}$/
+    );
+
+    const fullBundle = {
+        bundleMeta: { privacyMode: 'full' },
+        redactionManifest: {}
+    };
+    const fullRedactor = loadTelemetryModule(root).createUiTelemetryRedactor(fullBundle, 'full');
+    const fullPageSnapshot = collectors.collectDockerPageDiagnostics(fullRedactor);
+    assert.equal(
+        fullPageSnapshot.correlation.hookStates.window.openDocker.notes[2],
+        'update_container CloudBerryBackup*radarr'
+    );
+    assert.deepEqual(
+        fullPageSnapshot.correlation.hookStates.window.openDocker.lastInvocation.containerNames,
+        ['CloudBerryBackup', 'radarr']
+    );
 });

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.13.04">
-<!ENTITY md5 "71fbba012bee74fda9ec40c1424501eb">
+<!ENTITY version "2026.07.13.05">
+<!ENTITY md5 "f2a99752eae09c3df01592c533121636">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.13.05
+- Security: Sanitized support bundles now hash legacy Docker update-command arguments, unknown hook notes, and dynamic trace titles.
+- Quality: Docker openDocker hook telemetry now stores a static operation note with structured invocation details instead of a raw command string.
+- Quality: Added whole-telemetry privacy regressions covering persisted page snapshots, bulk traces, request traces, and full-mode preservation.
+
 
 ###2026.07.13.04
 - Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.

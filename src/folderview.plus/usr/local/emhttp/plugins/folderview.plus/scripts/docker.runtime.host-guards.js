@@ -33,7 +33,7 @@
             ? deps.requiredSelectors
             : DEFAULT_REQUIRED_SELECTORS;
 
-        /** @type {Record<string, { available: boolean, wrapped: boolean, callCount: number, notes: string[], lastSeenAt: string | null, lastInvokedAt: string | null }>} */
+        /** @type {Record<string, { available: boolean, wrapped: boolean, callCount: number, notes: string[], lastSeenAt: string | null, lastInvokedAt: string | null, lastInvocation: Record<string, unknown> | null }>} */
         const hookStates = Object.create(null);
 
         const ensureHookRecord = (name) => {
@@ -45,7 +45,8 @@
                     callCount: 0,
                     notes: [],
                     lastSeenAt: null,
-                    lastInvokedAt: null
+                    lastInvokedAt: null,
+                    lastInvocation: null
                 };
             }
             return hookStates[safeName];
@@ -137,6 +138,16 @@
             record.callCount += 1;
             record.lastInvokedAt = new Date().toISOString();
             const note = String(options.note || '').trim();
+            const details = options.details && typeof options.details === 'object' && !Array.isArray(options.details)
+                ? options.details
+                : null;
+            if (details) {
+                try {
+                    record.lastInvocation = JSON.parse(JSON.stringify(details));
+                } catch (_error) {
+                    record.lastInvocation = null;
+                }
+            }
             if (note) {
                 record.notes.push(note);
                 if (record.notes.length > 12) {

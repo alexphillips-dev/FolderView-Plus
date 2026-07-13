@@ -210,6 +210,9 @@ test('docker post-update reconcile window actively polls live update status unti
     assert.match(dockerRuntimeReconcileJs, /refreshDockerRuntimeStateInPlace\(\{\s*liveUpdateStatus: true\s*\}\)/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePoll'/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePollResult'/);
+    assert.match(dockerRuntimeReconcileJs, /note:\s*isUpdateCommand \? 'update_container invoked' : 'invoked'/);
+    assert.match(dockerRuntimeReconcileJs, /containerNames:\s*containerNames\.slice\(0, 10\)/);
+    assert.doesNotMatch(dockerRuntimeReconcileJs, /note:\s*String\(args\?\.\[0\]/);
     assert.match(dockerRuntimeReconcileJs, /strategy:\s*'event-driven-post-render-and-poll'/);
     assert.match(dockerRuntimeReconcileJs, /schedulePostUpdateRuntimePoll\('reconcile-window-armed', initialDelayMs\);/);
 });

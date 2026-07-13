@@ -107,7 +107,13 @@ test('Docker support snapshot records standalone containers after folders and pa
         getCorrelationContext: () => ({
             stateSignature: 'new-container:r:1:dockerman:true:',
             stateEntityCount: 1,
-            orderReconciliation: { available: true, missingContainerCount: 1 }
+            orderReconciliation: {
+                available: true,
+                missingContainerCount: 1,
+                appendedContainerCount: 1,
+                appendPosition: 'after-folders',
+                orderingInvariantSatisfied: true
+            }
         })
     });
 
@@ -125,6 +131,9 @@ test('Docker support snapshot records standalone containers after folders and pa
     ]);
     assert.equal(snapshot.correlation.stateEntityCount, 1);
     assert.equal(snapshot.correlation.orderReconciliation.missingContainerCount, 1);
+    assert.equal(snapshot.correlation.orderReconciliation.appendedContainerCount, 1);
+    assert.equal(snapshot.correlation.orderReconciliation.appendPosition, 'after-folders');
+    assert.equal(snapshot.correlation.orderReconciliation.orderingInvariantSatisfied, true);
     assert.equal(snapshot.dockerAssets.pluginVersion, '2026.07.13.04');
     assert.deepEqual(snapshot.dockerAssets.entries.map((entry) => entry.versionQuery), [
         '2026.07.13.04',
@@ -165,10 +174,25 @@ test('Docker host guard stores invocation arguments as structured diagnostic det
 
     const state = api.getHookStates()['window.openDocker'];
     assert.equal(state.callCount, 1);
+    assert.equal(state.observationStatus, 'observed');
     assert.equal(state.notes[0], 'update_container invoked');
     assert.deepEqual(state.lastInvocation, {
         commandType: 'update_container',
         containerCount: 2,
         containerNames: ['CloudBerryBackup', 'radarr']
     });
+
+    api.captureHostHook('window.openDocker', () => {}, { note: 'recaptured' });
+    assert.equal(api.getHookStates()['window.openDocker'].observationStatus, 'observed');
+});
+
+test('Docker host guard distinguishes an installed hook with no observed invocation', () => {
+    const api = hostGuardsModule.createApi({ window: {}, document: {} });
+    api.captureHostHook('window.openDocker', () => {}, { note: 'captured' });
+    api.noteHookWrapped('window.openDocker', { note: 'wrapped' });
+
+    const state = api.getHookStates()['window.openDocker'];
+    assert.equal(state.callCount, 0);
+    assert.equal(state.lastInvocation, null);
+    assert.equal(state.observationStatus, 'not-observed-since-hook-installed');
 });

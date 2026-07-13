@@ -83,6 +83,9 @@ test('docker runtime records privacy-safe reconciliation counts and fingerprints
     assert.match(dockerJs, /lastDockerOrderReconciliation = \{/);
     assert.match(dockerJs, /liveOrderCount: liveOrderBeforeReconciliation\.length/);
     assert.match(dockerJs, /missingContainerCount: newOnes\.length/);
+    assert.match(dockerJs, /appendedContainerCount: newOnes\.length/);
+    assert.match(dockerJs, /appendPosition: newOnes\.length > 0 \? 'after-folders' : 'not-needed'/);
+    assert.match(dockerJs, /orderingInvariantSatisfied: reconciledOrder\.order\.every/);
     assert.match(dockerJs, /liveOrderFingerprint: buildDockerOrderFingerprint\(liveOrderBeforeReconciliation\)/);
     assert.match(dockerJs, /savedOrderFingerprint: buildDockerOrderFingerprint\(unraidOrder\)/);
     assert.match(dockerJs, /reconciledOrderFingerprint: buildDockerOrderFingerprint\(reconciledOrder\.order\)/);

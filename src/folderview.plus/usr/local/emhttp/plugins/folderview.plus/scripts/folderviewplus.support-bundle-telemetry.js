@@ -92,6 +92,88 @@
         manifest[safeBucket] = list;
     };
 
+    const buildUiTelemetryPrivacySelfCheck = (uiTelemetry, privacy = 'sanitized') => {
+        const mode = normalizePrivacyMode(privacy);
+        if (mode === 'full') {
+            return {
+                status: 'not-applicable',
+                scope: 'uiTelemetry',
+                privacyMode: mode,
+                checkedFieldCount: 0,
+                violationCount: 0,
+                rawIdentityViolations: 0,
+                rawUrlViolations: 0,
+                rawPrivateNetworkAddressViolations: 0,
+                rawSensitivePathViolations: 0
+            };
+        }
+
+        const counters = {
+            checkedFieldCount: 0,
+            rawIdentityViolations: 0,
+            rawUrlViolations: 0,
+            rawPrivateNetworkAddressViolations: 0,
+            rawSensitivePathViolations: 0
+        };
+        const isRedactedIdentity = (value) => /^(?:ui|note)-[0-9a-f]{16}$/.test(String(value || ''));
+        const isSafeHookNote = (value) => {
+            const note = String(value || '').trim().toLowerCase();
+            return SUPPORT_BUNDLE_UI_SAFE_HOOK_NOTES.has(note)
+                || /^update_container(?: ui-[0-9a-f]{16}(?:\*ui-[0-9a-f]{16})*)?$/.test(note)
+                || /^note-[0-9a-f]{16}$/.test(note);
+        };
+        const inspect = (value, key = '', path = []) => {
+            if (Array.isArray(value)) {
+                value.forEach((entry, index) => inspect(entry, key, [...path, index]));
+                return;
+            }
+            if (value && typeof value === 'object') {
+                Object.entries(value).forEach(([childKey, childValue]) => inspect(childValue, childKey, [...path, childKey]));
+                return;
+            }
+            if (typeof value !== 'string' || value === '') {
+                return;
+            }
+            counters.checkedFieldCount += 1;
+            const isThemeMetadata = path[0] === 'theme';
+            if (!isThemeMetadata && (
+                SUPPORT_BUNDLE_UI_ID_KEYS.has(key)
+                || SUPPORT_BUNDLE_UI_NAME_KEYS.has(key)
+                || /(?:^|[A-Z])(?:Id|Ref)$/.test(key)
+                || /(?:Fingerprint|Signature)$/.test(key)
+                || String(key || '').toLowerCase().endsWith('name')
+            )) {
+                if (!isRedactedIdentity(value)) {
+                    counters.rawIdentityViolations += 1;
+                }
+            }
+            if (key === 'notes' && !isSafeHookNote(value)) {
+                counters.rawIdentityViolations += 1;
+            }
+            if (SUPPORT_BUNDLE_UI_URL_KEYS.has(key) && /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(value)) {
+                counters.rawUrlViolations += 1;
+            }
+            if (/\b(?:10|172\.(?:1[6-9]|2\d|3[0-1])|192\.168)\.\d{1,3}\.\d{1,3}\b/.test(value)) {
+                counters.rawPrivateNetworkAddressViolations += 1;
+            }
+            if (/(?:^|[\s"'(])(?:[A-Za-z]:[\\/]|\/(?:boot|mnt|home|root|Users)\/)/.test(value)) {
+                counters.rawSensitivePathViolations += 1;
+            }
+        };
+        inspect(uiTelemetry);
+        const violationCount = counters.rawIdentityViolations
+            + counters.rawUrlViolations
+            + counters.rawPrivateNetworkAddressViolations
+            + counters.rawSensitivePathViolations;
+        return {
+            status: violationCount === 0 ? 'passed' : 'failed',
+            scope: 'uiTelemetry',
+            privacyMode: mode,
+            ...counters,
+            violationCount
+        };
+    };
+
     const createUiTelemetryRedactor = (bundle, privacy = 'sanitized') => {
         const mode = normalizePrivacyMode(privacy);
         const payload = bundle && typeof bundle === 'object' && !Array.isArray(bundle) ? bundle : {};
@@ -314,7 +396,9 @@
             existingUiTelemetry.browserConsoleErrors = uiRedactor.sanitizeValue(
                 'uiTelemetry.browserConsoleErrors',
                 'browserConsoleErrors',
-                collectBrowserConsoleErrors()
+                collectBrowserConsoleErrors({
+                    pluginVersion: payload.bundleMeta?.pluginVersion || ''
+                })
             );
             existingUiTelemetry.dockerDiagnostics = {
                 pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
@@ -329,6 +413,10 @@
             );
             existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
             payload.uiTelemetry = existingUiTelemetry;
+            payload.redactionManifest.privacySelfCheck = buildUiTelemetryPrivacySelfCheck(
+                existingUiTelemetry,
+                privacyMode
+            );
             return payload;
         };
 
@@ -346,6 +434,7 @@
     return Object.freeze({
         createApi,
         createUiTelemetryRedactor,
+        buildUiTelemetryPrivacySelfCheck,
         normalizePrivacyMode,
         hashValue,
         SUPPORT_BUNDLE_UI_ID_KEYS,

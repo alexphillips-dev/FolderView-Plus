@@ -4688,6 +4688,11 @@ const createFolders = async () => {
         reconciledOrderCount: reconciledOrder.order.length,
         folderCount: Object.keys(folders || {}).length,
         missingContainerCount: newOnes.length,
+        appendedContainerCount: newOnes.length,
+        appendPosition: newOnes.length > 0 ? 'after-folders' : 'not-needed',
+        orderingInvariantSatisfied: reconciledOrder.order.every((entry, index, entries) => (
+            !folderRegex.test(entry) || entries.slice(0, index).every((previous) => folderRegex.test(previous))
+        )),
         liveOrderFingerprint: buildDockerOrderFingerprint(liveOrderBeforeReconciliation),
         savedOrderFingerprint: buildDockerOrderFingerprint(unraidOrder),
         reconciledOrderFingerprint: buildDockerOrderFingerprint(reconciledOrder.order)

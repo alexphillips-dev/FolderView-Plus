@@ -64,7 +64,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleBrowserJs, /const fallbackVersionToken = normalizeAssetVersionToken\(options\?\.pluginVersion \|\| ''\);/);
     assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
     assert.match(supportBundleBrowserJs, /versionSource,/);
-    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
+    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(options = \{\}\) =>/);
     assert.match(supportBundleBrowserJs, /const collectDockerPageDiagnostics = \(uiRedactor\) => \{/);
     assert.match(supportBundleBrowserJs, /const collectDockerBulkUpdateTrace = \(uiRedactor\) => \{/);
     assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);

@@ -15,6 +15,10 @@ const telemetryModulePath = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js'
 );
 const telemetryModuleSource = fs.readFileSync(telemetryModulePath, 'utf8');
+const fatalBannerSource = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'
+), 'utf8');
 
 const loadBrowserModule = (root = {}) => {
     const context = {
@@ -93,6 +97,71 @@ test('support bundle browser telemetry captures the persisted docker list view m
     assert.equal(clientStorage.dockerListViewModeCookie, 'advanced');
 });
 
+test('browser error telemetry separates current-session failures from historical records', () => {
+    const root = {
+        FolderViewPlusFatalBanner: {
+            getBrowserConsoleErrorSnapshot() {
+                return {
+                    storageKey: 'fv.support.bundle.consoleErrors.v1',
+                    maxEntries: 30,
+                    sessionId: 'current-session',
+                    sessionStartedAt: '2026-07-13T18:00:00.000Z',
+                    entries: [
+                        {
+                            at: '2026-05-21T19:09:29.870Z',
+                            sessionId: 'old-session',
+                            observedPluginVersion: '2026.05.21.01',
+                            message: 'Historical failure'
+                        },
+                        {
+                            at: '2026-07-13T18:01:00.000Z',
+                            sessionId: 'current-session',
+                            observedPluginVersion: '2026.07.13.06',
+                            message: 'Current failure'
+                        }
+                    ]
+                };
+            }
+        }
+    };
+    const browserModule = loadBrowserModule(root);
+    const snapshot = browserModule.createCollectors().collectBrowserConsoleErrors({
+        pluginVersion: '2026.07.13.06'
+    });
+
+    assert.equal(snapshot.count, 2);
+    assert.equal(snapshot.collectionPluginVersion, '2026.07.13.06');
+    assert.equal(snapshot.firstSeenAt, '2026-05-21T19:09:29.870Z');
+    assert.equal(snapshot.lastSeenAt, '2026-07-13T18:01:00.000Z');
+    assert.equal(snapshot.currentSessionCount, 1);
+    assert.equal(snapshot.historicalCount, 1);
+    assert.equal(snapshot.entries[0].currentSession, false);
+    assert.equal(snapshot.entries[0].observedPluginVersion, '2026.05.21.01');
+    assert.equal(snapshot.entries[1].currentSession, true);
+    assert.equal(snapshot.entries[1].observedPluginVersion, '2026.07.13.06');
+});
+
+test('browser error telemetry does not misattribute legacy records to the collection plugin version', () => {
+    const browserModule = loadBrowserModule({});
+    const snapshot = browserModule.createCollectors({
+        readClientDiagnosticsStorageRecord() {
+            return [{ at: '2026-05-21T19:09:29.870Z', message: 'Legacy failure' }];
+        }
+    }).collectBrowserConsoleErrors({ pluginVersion: '2026.07.13.06' });
+
+    assert.equal(snapshot.collectionPluginVersion, '2026.07.13.06');
+    assert.equal(snapshot.entries[0].observedPluginVersion, 'unknown');
+    assert.equal(snapshot.entries[0].currentSession, false);
+});
+
+test('fatal banner persists browser session and plugin-version context for future exports', () => {
+    assert.match(fatalBannerSource, /sessionId: browserErrorSessionId/);
+    assert.match(fatalBannerSource, /observedPluginVersion: trimString\(state\.environment\.pluginVersion/);
+    assert.match(fatalBannerSource, /currentSession: trimString\(entry\?\.sessionId\) === browserErrorSessionId/);
+    assert.match(fatalBannerSource, /firstSeenAt: timestamps\[0\] \|\| null/);
+    assert.match(fatalBannerSource, /historicalCount: Math\.max\(0, entries\.length - currentSessionCount\)/);
+});
+
 test('support bundle export telemetry keeps the docker list view mode in uiTelemetry client storage', () => {
     const root = {
         document: {
@@ -126,6 +195,55 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     });
 
     assert.equal(payload.uiTelemetry.clientStorage.dockerListViewModeCookie, 'basic');
+    assert.equal(payload.redactionManifest.privacySelfCheck.status, 'passed');
+    assert.equal(payload.redactionManifest.privacySelfCheck.scope, 'uiTelemetry');
+    assert.equal(payload.redactionManifest.privacySelfCheck.violationCount, 0);
+});
+
+test('support bundle privacy self-check reports aggregate violations without leaking values', () => {
+    const telemetryModule = loadTelemetryModule({});
+    const failed = telemetryModule.buildUiTelemetryPrivacySelfCheck({
+        currentPage: { href: 'https://tower.local/Docker' },
+        dockerDiagnostics: {
+            pageSnapshot: {
+                topLevelRows: {
+                    entries: [{ containerName: 'private-container' }]
+                }
+            }
+        }
+    }, 'sanitized');
+    const full = telemetryModule.buildUiTelemetryPrivacySelfCheck({
+        currentPage: { href: 'https://tower.local/Docker' }
+    }, 'full');
+
+    assert.equal(failed.status, 'failed');
+    assert.equal(failed.rawIdentityViolations, 1);
+    assert.equal(failed.rawUrlViolations, 1);
+    assert.equal(failed.violationCount, 2);
+    assert.deepEqual(Object.keys(failed).sort(), [
+        'checkedFieldCount',
+        'privacyMode',
+        'rawIdentityViolations',
+        'rawPrivateNetworkAddressViolations',
+        'rawSensitivePathViolations',
+        'rawUrlViolations',
+        'scope',
+        'status',
+        'violationCount'
+    ]);
+    assert.equal(full.status, 'not-applicable');
+    assert.equal(full.violationCount, 0);
+
+    const safeThemeMetadata = telemetryModule.buildUiTelemetryPrivacySelfCheck({
+        theme: {
+            resolver: {
+                hostThemeName: 'black',
+                contrastChecks: [{ name: 'body-text' }]
+            }
+        }
+    }, 'sanitized');
+    assert.equal(safeThemeMetadata.status, 'passed');
+    assert.equal(safeThemeMetadata.violationCount, 0);
 });
 
 test('support bundle browser telemetry includes persisted docker page snapshot and bulk-update trace records', () => {

@@ -19,6 +19,8 @@
     const DIAGNOSTIC_STEP_LIMIT = 10;
     const DIAGNOSTIC_ACTION_LIMIT = 10;
     const BROWSER_ERROR_LIMIT = 30;
+    const browserErrorSessionStartedAt = new Date().toISOString();
+    const browserErrorSessionId = `fvplus-browser-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
     const state = {
         environment: {
@@ -100,6 +102,8 @@
             const rows = readStoredBrowserErrors();
             rows.push({
                 at: trimString(entry.at || new Date().toISOString()),
+                sessionId: browserErrorSessionId,
+                observedPluginVersion: trimString(state.environment.pluginVersion || 'unknown') || 'unknown',
                 page: trimString(entry.page || state.environment.page || 'Plugin') || 'Plugin',
                 category: trimString(entry.category || 'runtime-failed') || 'runtime-failed',
                 phase: trimString(entry.phase || state.currentPhase || 'runtime') || 'runtime',
@@ -117,12 +121,31 @@
         }
     };
 
-    const getBrowserConsoleErrorSnapshot = () => ({
-        storageKey: BROWSER_ERROR_STORAGE_KEY,
-        maxEntries: BROWSER_ERROR_LIMIT,
-        count: readStoredBrowserErrors().length,
-        entries: readStoredBrowserErrors().slice(-BROWSER_ERROR_LIMIT)
-    });
+    const getBrowserConsoleErrorSnapshot = () => {
+        const entries = readStoredBrowserErrors().slice(-BROWSER_ERROR_LIMIT).map((entry) => ({
+            ...entry,
+            observedPluginVersion: trimString(entry?.observedPluginVersion || 'unknown') || 'unknown',
+            currentSession: trimString(entry?.sessionId) === browserErrorSessionId
+        }));
+        const timestamps = entries
+            .map((entry) => trimString(entry?.at))
+            .filter(Boolean)
+            .sort();
+        const currentSessionCount = entries.filter((entry) => entry.currentSession === true).length;
+        return {
+            storageKey: BROWSER_ERROR_STORAGE_KEY,
+            maxEntries: BROWSER_ERROR_LIMIT,
+            count: entries.length,
+            collectionPluginVersion: trimString(state.environment.pluginVersion || 'unknown') || 'unknown',
+            firstSeenAt: timestamps[0] || null,
+            lastSeenAt: timestamps[timestamps.length - 1] || null,
+            sessionId: browserErrorSessionId,
+            sessionStartedAt: browserErrorSessionStartedAt,
+            currentSessionCount,
+            historicalCount: Math.max(0, entries.length - currentSessionCount),
+            entries
+        };
+    };
 
     const getRuntimeConfig = () => {
         const value = win.FolderViewPlusFatalRuntimeContext;

@@ -26,11 +26,14 @@
         'effectiveFolderId',
         'navigationPrefillId',
         'bootstrapRouteId',
-        'bootstrapEffectiveId'
+        'bootstrapEffectiveId',
+        'stateSignature'
     ]));
 
     const SUPPORT_BUNDLE_UI_NAME_KEYS = Object.freeze(new Set([
         'folderName',
+        'containerName',
+        'containerNames',
         'name'
     ]));
 
@@ -170,6 +173,9 @@
                     return this.redactUrl(fieldPath, value);
                 }
                 if (SUPPORT_BUNDLE_UI_ID_KEYS.has(key) || /(?:^|[A-Z])(?:Id|Ref)$/.test(key)) {
+                    return this.redactId(fieldPath, value);
+                }
+                if (/(?:Fingerprint|Signature)$/.test(String(key || ''))) {
                     return this.redactId(fieldPath, value);
                 }
                 if (SUPPORT_BUNDLE_UI_NAME_KEYS.has(key) || String(key || '').toLowerCase().endsWith('name')) {

@@ -76,6 +76,19 @@ test('docker runtime keeps folders above a new container already saved first by 
     ]);
 });
 
+test('docker runtime records privacy-safe reconciliation counts and fingerprints for support bundles', () => {
+    const telemetryMatch = dockerJs.match(/lastDockerOrderReconciliation = \{\n([\s\S]*?)\n    \};/);
+    assert.ok(telemetryMatch, 'order reconciliation telemetry assignment should exist');
+    assert.match(dockerJs, /const liveOrderBeforeReconciliation = \[\.\.\.order\];/);
+    assert.match(dockerJs, /lastDockerOrderReconciliation = \{/);
+    assert.match(dockerJs, /liveOrderCount: liveOrderBeforeReconciliation\.length/);
+    assert.match(dockerJs, /missingContainerCount: newOnes\.length/);
+    assert.match(dockerJs, /liveOrderFingerprint: buildDockerOrderFingerprint\(liveOrderBeforeReconciliation\)/);
+    assert.match(dockerJs, /savedOrderFingerprint: buildDockerOrderFingerprint\(unraidOrder\)/);
+    assert.match(dockerJs, /reconciledOrderFingerprint: buildDockerOrderFingerprint\(reconciledOrder\.order\)/);
+    assert.doesNotMatch(telemetryMatch[1], /newOnes\s*[:,]/);
+});
+
 test('docker runtime preserves live folder placeholder order from host order on refresh', () => {
     assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
     const reorderFolderSlotsInBaseOrder = new Function(

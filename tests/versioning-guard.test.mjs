@@ -147,6 +147,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /FVPLUS_ARCHIVE_DIR="\$archive_dir" bash "\$release_guard_script"/);
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
+    assert.match(pkgBuild, /"sourceContentSha256": "\$\{build_source_content_sha256\}"/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);

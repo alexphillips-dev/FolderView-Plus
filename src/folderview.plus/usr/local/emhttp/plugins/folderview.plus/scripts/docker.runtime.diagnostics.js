@@ -23,10 +23,12 @@
     const DOCKER_TRACE_HEALTH_STORAGE_MAX_BYTES = 12288;
     const DOCKER_SUPPORT_BUNDLE_FOLDER_ROW_LIMIT = 32;
     const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
+    const DOCKER_SUPPORT_BUNDLE_TOP_LEVEL_ROW_LIMIT = 160;
     const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const doc = deps.document || win.document || null;
         const $ = deps.$ || fallbackWindow.jQuery || fallbackWindow.$;
         const localStorageRef = deps.localStorage || win.localStorage || null;
         const readDockerListViewMode = typeof deps.readDockerListViewMode === 'function'
@@ -73,6 +75,10 @@
                 requestGeneration: Number.isFinite(Number(safeValue.requestGeneration)) ? Number(safeValue.requestGeneration) : 0,
                 traceSessionId: String(safeValue.traceSessionId || '').trim(),
                 stateSignature: String(safeValue.stateSignature || '').trim(),
+                stateEntityCount: Number.isFinite(Number(safeValue.stateEntityCount)) ? Number(safeValue.stateEntityCount) : 0,
+                orderReconciliation: safeValue.orderReconciliation && typeof safeValue.orderReconciliation === 'object' && !Array.isArray(safeValue.orderReconciliation)
+                    ? cloneValue(safeValue.orderReconciliation)
+                    : { available: false },
                 liveUpdateStatus: safeValue.liveUpdateStatus === true,
                 hostSyncSuspended: safeValue.hostSyncSuspended === true,
                 hookStates: safeValue.hookStates && typeof safeValue.hookStates === 'object' && !Array.isArray(safeValue.hookStates)
@@ -137,6 +143,7 @@
             }
             const folderEntries = Array.isArray(payload?.folderRows?.entries) ? payload.folderRows.entries.slice() : [];
             const memberEntries = Array.isArray(payload?.memberRows?.entries) ? payload.memberRows.entries.slice() : [];
+            const topLevelEntries = Array.isArray(payload?.topLevelRows?.entries) ? payload.topLevelRows.entries.slice() : [];
             const mismatchFolderEntries = Array.isArray(payload?.mismatches?.folderEntries) ? payload.mismatches.folderEntries.slice() : [];
             const mismatchMemberEntries = Array.isArray(payload?.mismatches?.memberEntries) ? payload.mismatches.memberEntries.slice() : [];
             const buildCandidate = () => ({
@@ -152,6 +159,12 @@
                     count: payload?.memberRows?.count ?? memberEntries.length,
                     truncated: (payload?.memberRows?.count ?? memberEntries.length) > memberEntries.length,
                     entries: memberEntries
+                },
+                topLevelRows: {
+                    ...(payload.topLevelRows && typeof payload.topLevelRows === 'object' && !Array.isArray(payload.topLevelRows) ? payload.topLevelRows : {}),
+                    count: payload?.topLevelRows?.count ?? topLevelEntries.length,
+                    truncated: (payload?.topLevelRows?.count ?? topLevelEntries.length) > topLevelEntries.length,
+                    entries: topLevelEntries
                 },
                 mismatches: {
                     ...(payload.mismatches && typeof payload.mismatches === 'object' && !Array.isArray(payload.mismatches) ? payload.mismatches : {}),
@@ -173,7 +186,38 @@
                 mismatchFolderEntries.splice(8);
                 candidate = buildCandidate();
             }
+            while (measureBytes(candidate) > maxBytes && topLevelEntries.length > 24) {
+                topLevelEntries.splice(24);
+                candidate = buildCandidate();
+            }
             return candidate;
+        };
+
+        const collectDockerAssetIdentity = () => {
+            const entries = [];
+            const pluginVersion = String(win?.FolderViewPlusFatalRuntimeContext?.pluginVersion || '').trim();
+            if (!doc || typeof doc.querySelectorAll !== 'function') {
+                return { pluginVersion, count: 0, entries };
+            }
+            doc.querySelectorAll('script[src*="/plugins/folderview.plus/scripts/docker"]').forEach((node) => {
+                const rawUrl = String(node?.src || '').trim();
+                if (!rawUrl) {
+                    return;
+                }
+                let path = rawUrl.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '');
+                let versionQuery = '';
+                let bootQuery = '';
+                try {
+                    const parsed = new URL(rawUrl, win?.location?.origin || 'http://fvplus.local');
+                    path = parsed.pathname || path;
+                    versionQuery = String(parsed.searchParams.get('v') || '');
+                    bootQuery = String(parsed.searchParams.get('boot') || '');
+                } catch (_error) {
+                    // The normalized path still identifies relative script URLs.
+                }
+                entries.push({ path, versionQuery, bootQuery, defer: node?.defer === true });
+            });
+            return { pluginVersion, count: entries.length, entries };
         };
 
         const compactStoragePayload = (storageKey, value) => {
@@ -399,6 +443,7 @@
             const currentListViewMode = readDockerListViewMode();
             const folderEntries = [];
             const memberEntries = [];
+            const topLevelEntries = [];
             const mismatches = { folderActionCount: 0, memberActionCount: 0, folderEntries: [], memberEntries: [] };
             const summary = {
                 visibleFolderRows: 0,
@@ -412,14 +457,32 @@
                 folderActionMismatchCount: 0,
                 memberActionMismatchCount: 0
             };
+            let topLevelRowCount = 0;
+            let topLevelFolderCount = 0;
+            let standaloneContainerCount = 0;
+            let firstStandaloneDomIndex = null;
+            let firstOrderingViolationDomIndex = null;
 
-            $tableRows.each((_, row) => {
+            $tableRows.each((rowIndex, row) => {
                 const $row = $(row);
                 if (!$row.is(':visible')) {
                     return;
                 }
                 const folderId = parseFolderId(row);
                 if (folderId) {
+                    topLevelRowCount += 1;
+                    topLevelFolderCount += 1;
+                    if (firstStandaloneDomIndex !== null && firstOrderingViolationDomIndex === null) {
+                        firstOrderingViolationDomIndex = rowIndex;
+                    }
+                    if (topLevelEntries.length < DOCKER_SUPPORT_BUNDLE_TOP_LEVEL_ROW_LIMIT) {
+                        topLevelEntries.push({
+                            domIndex: rowIndex,
+                            rowType: 'folder',
+                            folderId,
+                            folderName: normalizeText($row.find('td.ct-name .appname').first().text())
+                        });
+                    }
                     const updateCellText = readVisibleUpdateCellText($row.find('td.updatecolumn').first());
                     const actionToken = resolveActionToken(updateCellText);
                     const expectedActionToken = resolveExpectedFolderActionToken(folderId);
@@ -470,6 +533,21 @@
                 const updateCellText = readVisibleUpdateCellText($row.find('td.updatecolumn').first());
                 const actionToken = resolveActionToken(updateCellText);
                 const memberFolderId = parseMemberFolderId(row);
+                if (!memberFolderId) {
+                    topLevelRowCount += 1;
+                    standaloneContainerCount += 1;
+                    if (firstStandaloneDomIndex === null) {
+                        firstStandaloneDomIndex = rowIndex;
+                    }
+                    if (topLevelEntries.length < DOCKER_SUPPORT_BUNDLE_TOP_LEVEL_ROW_LIMIT) {
+                        topLevelEntries.push({
+                            domIndex: rowIndex,
+                            rowType: 'standaloneContainer',
+                            containerName,
+                            folderOwnership: 'none'
+                        });
+                    }
+                }
                 const runtimeEntry = getRuntimeInfoEntry(containerName);
                 const expectedActionToken = resolveExpectedMemberActionToken(runtimeEntry || {});
                 const mismatch = expectedActionToken !== 'unknown' && expectedActionToken !== actionToken;
@@ -515,6 +593,17 @@
                 currentPage: String(win?.location?.pathname || ''),
                 listViewMode: currentListViewMode,
                 correlation: normalizeCorrelationContext(getCorrelationContext()),
+                dockerAssets: collectDockerAssetIdentity(),
+                topLevelRows: {
+                    count: topLevelRowCount,
+                    truncated: topLevelRowCount > topLevelEntries.length,
+                    folderCount: topLevelFolderCount,
+                    standaloneContainerCount,
+                    foldersBeforeStandalone: firstOrderingViolationDomIndex === null,
+                    firstStandaloneDomIndex,
+                    firstOrderingViolationDomIndex,
+                    entries: topLevelEntries
+                },
                 folderRows: {
                     count: summary.visibleFolderRows,
                     truncated: summary.visibleFolderRows > folderEntries.length,

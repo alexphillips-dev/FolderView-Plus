@@ -154,6 +154,21 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     reason: 'runtime-sync',
                     currentPage: '/Docker',
                     listViewMode: 'basic',
+                    correlation: {
+                        stateSignature: 'vaultwarden:r:1:dockerman:true:private-label',
+                        orderReconciliation: {
+                            liveOrderFingerprint: 'private-live-order',
+                            savedOrderFingerprint: 'private-saved-order',
+                            reconciledOrderFingerprint: 'private-reconciled-order'
+                        }
+                    },
+                    topLevelRows: {
+                        count: 2,
+                        entries: [
+                            { domIndex: 0, rowType: 'folder', folderId: 'networking', folderName: 'Networking' },
+                            { domIndex: 1, rowType: 'standaloneContainer', containerName: 'vaultwarden' }
+                        ]
+                    },
                     summary: {
                         visibleFolderRows: 1,
                         visibleMemberRows: 5,
@@ -228,4 +243,17 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     assert.equal(traceHealth.available, true);
     assert.equal(traceHealth.bulkUpdateTrace.lastWriteSucceeded, true);
     assert.equal(traceHealth.requestBundleTrace.lastWriteSucceeded, true);
+
+    const bundle = {
+        bundleMeta: { privacyMode: 'sanitized', bundleSaltHash: 'bundle-salt' },
+        redactionManifest: {}
+    };
+    const redactor = loadTelemetryModule(root).createUiTelemetryRedactor(bundle, 'sanitized');
+    const sanitizedPageSnapshot = collectors.collectDockerPageDiagnostics(redactor);
+    const serializedSnapshot = JSON.stringify(sanitizedPageSnapshot);
+    assert.doesNotMatch(serializedSnapshot, /vaultwarden|private-label|private-live-order|private-saved-order|private-reconciled-order|Networking/);
+    assert.match(sanitizedPageSnapshot.correlation.stateSignature, /^ui-[0-9a-f]{16}$/);
+    assert.match(sanitizedPageSnapshot.correlation.orderReconciliation.liveOrderFingerprint, /^ui-[0-9a-f]{16}$/);
+    assert.match(sanitizedPageSnapshot.topLevelRows.entries[0].folderId, /^ui-[0-9a-f]{16}$/);
+    assert.match(sanitizedPageSnapshot.topLevelRows.entries[1].containerName, /^ui-[0-9a-f]{16}$/);
 });

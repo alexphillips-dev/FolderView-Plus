@@ -799,6 +799,7 @@ const buildDockerIsolatedViewDeps = () => ({
         lastAppliedRuntimePrefs = folderTypePrefs;
         dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
         lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
+        lastLiveRefreshStateEntityCount = Object.keys(dockerRuntimeInfoByName || {}).length;
         resolveDockerStrictPerformanceProfile(folderTypePrefs, globalFolders, dockerRuntimeInfoByName);
         dockerRuntimeStateStore.set({
             pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
@@ -869,6 +870,8 @@ const buildDockerDiagnosticsCorrelationContext = () => ({
     requestGeneration: Number(folderReq?.generation || 0),
     traceSessionId: dockerDiagnosticsTraceSessionId,
     stateSignature: String(lastLiveRefreshStateSignature || ''),
+    stateEntityCount: lastLiveRefreshStateEntityCount,
+    orderReconciliation: lastDockerOrderReconciliation,
     liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
     hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
     hookStates: getDockerHostGuardsApi()?.getHookStates?.() || {}
@@ -2579,6 +2582,20 @@ const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => 
         order: [...reconciledFolderOrder, ...reconciledContainerOrder],
         newOnes
     };
+};
+
+const buildDockerOrderFingerprint = (order) => {
+    const input = (Array.isArray(order) ? order : []).map((entry) => String(entry || '')).join('\u001f');
+    let hashA = 0x811c9dc5;
+    let hashB = 0x9e3779b9;
+    for (let index = 0; index < input.length; index++) {
+        const code = input.charCodeAt(index);
+        hashA ^= code;
+        hashA = Math.imul(hashA, 0x01000193) >>> 0;
+        hashB ^= code + index + 1;
+        hashB = Math.imul(hashB, 0x85ebca6b) >>> 0;
+    }
+    return `${hashA.toString(16).padStart(8, '0')}${hashB.toString(16).padStart(8, '0')}`;
 };
 
 const buildFolderHierarchy = (folders) => {
@@ -4565,6 +4582,7 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
+                lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
@@ -4640,6 +4658,7 @@ const createFolders = async () => {
     applyRuntimePrefs(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
+    lastLiveRefreshStateEntityCount = Object.keys(containersStateInfo || {}).length;
     if (order.length <= 0) {
         order = [...unraidOrder];
     }
@@ -4657,9 +4676,22 @@ const createFolders = async () => {
 
     // Keep FolderView rows above standalone containers even when Unraid has already
     // saved a newly installed container at the beginning of userprefs.cfg.
+    const liveOrderBeforeReconciliation = [...order];
     const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
     order = reconciledOrder.order;
     const newOnes = reconciledOrder.newOnes;
+    lastDockerOrderReconciliation = {
+        available: true,
+        capturedAt: new Date().toISOString(),
+        liveOrderCount: liveOrderBeforeReconciliation.length,
+        savedOrderCount: unraidOrder.length,
+        reconciledOrderCount: reconciledOrder.order.length,
+        folderCount: Object.keys(folders || {}).length,
+        missingContainerCount: newOnes.length,
+        liveOrderFingerprint: buildDockerOrderFingerprint(liveOrderBeforeReconciliation),
+        savedOrderFingerprint: buildDockerOrderFingerprint(unraidOrder),
+        reconciledOrderFingerprint: buildDockerOrderFingerprint(reconciledOrder.order)
+    };
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: newOnes (containers not in unraidOrder)', newOnes);
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Reconciled saved folders before new containers', [...order]);
 
@@ -7263,6 +7295,8 @@ let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+let lastLiveRefreshStateEntityCount = 0;
+let lastDockerOrderReconciliation = { available: false };
 let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
 let nextDockerRenderSuppressLoadingUi = false;
@@ -7438,6 +7472,7 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
         const nextSignature = buildDockerStateSignature(parsed, true);
         if (nextSignature) {
             lastLiveRefreshStateSignature = nextSignature;
+            lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
         }
         syncDockerVisibleFoldersFromRuntimeCache();
         return true;

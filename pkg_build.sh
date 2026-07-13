@@ -614,6 +614,12 @@ done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" 
 apply_branch_channel_messaging "$tmpdir" "$branch"
 
 build_metadata_path="$tmpdir/usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
+build_source_content_sha256="$(
+    cd "$tmpdir"
+    while IFS= read -r -d '' source_file; do
+        sha256sum "$source_file"
+    done < <(find . -type f -print0 | sort -z) | sha256sum | awk '{print $1}'
+)"
 build_git_head_commit_sha="$(detect_git_commit_sha)"
 build_git_snapshot_mode="$(detect_git_source_snapshot_mode)"
 build_git_tree_sha="$(detect_git_source_tree_sha "$build_git_snapshot_mode")"
@@ -630,6 +636,7 @@ cat > "$build_metadata_path" <<EOF
   "sourceCommitSha": "${build_git_source_commit_sha}",
   "headCommitSha": "${build_git_head_commit_sha}",
   "sourceTreeSha": "${build_git_tree_sha}",
+  "sourceContentSha256": "${build_source_content_sha256}",
   "sourceSnapshotMode": "${build_git_snapshot_mode}",
   "sourceCommitExact": ${build_git_commit_exact},
   "sourceBranch": "${branch}",

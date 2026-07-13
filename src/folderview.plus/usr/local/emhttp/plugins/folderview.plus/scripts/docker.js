@@ -2550,32 +2550,33 @@ const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => 
     const liveSet = new Set(currentOrder);
     const savedSet = new Set(preferredOrder);
     const newOnes = currentOrder.filter((entry) => !savedSet.has(entry));
-    const reconciledOrder = [];
+    const reconciledFolderOrder = [];
+    const reconciledContainerOrder = [];
     const seen = new Set();
-    const appendUnique = (entry) => {
+    const appendUnique = (target, entry) => {
         if (!entry || seen.has(entry)) {
             return;
         }
         seen.add(entry);
-        reconciledOrder.push(entry);
+        target.push(entry);
     };
 
     preferredOrder.forEach((entry) => {
         if (folderRegex.test(entry)) {
             const folderId = entry.replace(folderRegex, '');
             if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
-                appendUnique(entry);
+                appendUnique(reconciledFolderOrder, entry);
             }
             return;
         }
         if (liveSet.has(entry)) {
-            appendUnique(entry);
+            appendUnique(reconciledContainerOrder, entry);
         }
     });
-    newOnes.forEach(appendUnique);
+    newOnes.forEach((entry) => appendUnique(reconciledContainerOrder, entry));
 
     return {
-        order: reconciledOrder,
+        order: [...reconciledFolderOrder, ...reconciledContainerOrder],
         newOnes
     };
 };
@@ -4654,8 +4655,8 @@ const createFolders = async () => {
     }
 
 
-    // Keep saved containers and folder placeholders in their preferred order, then
-    // place containers that are not yet in Unraid's saved preferences at the bottom.
+    // Keep FolderView rows above standalone containers even when Unraid has already
+    // saved a newly installed container at the beginning of userprefs.cfg.
     const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
     order = reconciledOrder.order;
     const newOnes = reconciledOrder.newOnes;

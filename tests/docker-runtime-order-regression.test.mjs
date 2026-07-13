@@ -38,11 +38,41 @@ test('docker runtime places containers missing from saved preferences after ever
 
     assert.deepEqual(result.newOnes, ['new-container']);
     assert.deepEqual(result.order, [
-        'existing-one',
-        'existing-two',
         'folder-a',
         'folder-b',
+        'existing-one',
+        'existing-two',
         'new-container'
+    ]);
+});
+
+test('docker runtime keeps folders above a new container already saved first by Unraid', () => {
+    assert.ok(reconcileDockerOrderMatch, 'reconcileDockerOrderWithFolderSlots definition should exist');
+    const reconcileDockerOrderWithFolderSlots = new Function(
+        'liveOrder',
+        'savedOrder',
+        'folders',
+        'folderRegex',
+        `${reconcileDockerOrderMatch[1]}`
+    );
+
+    const result = reconcileDockerOrderWithFolderSlots(
+        ['new-container', 'existing-one', 'existing-two'],
+        ['new-container', 'existing-one', 'existing-two', 'folder-a', 'folder-b'],
+        {
+            a: { name: 'Apps' },
+            b: { name: 'Services' }
+        },
+        /^folder-/
+    );
+
+    assert.deepEqual(result.newOnes, []);
+    assert.deepEqual(result.order, [
+        'folder-a',
+        'folder-b',
+        'new-container',
+        'existing-one',
+        'existing-two'
     ]);
 });
 

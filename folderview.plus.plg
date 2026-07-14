@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.03">
-<!ENTITY md5 "d29f638fd735ee356fc0f656e27f0698">
+<!ENTITY version "2026.07.14.04">
+<!ENTITY md5 "bcaed6dfdf95e2abc8726dc1856ada44">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.04
+## FolderView Plus 2026.07.14.04
+- UI/UX: Removed button outlines and framed backgrounds from the Basic Settings Order column while preserving the icon controls and their interaction colors.
+- Fix: Added a late, Order-cell-scoped style reset so the shared Settings button theme cannot restore borders, rounded corners, backgrounds, outlines, or shadows.
+- Test: Added regression coverage proving the unframed button reset remains scoped to Order-column controls.
+
 
 ###2026.07.14.03
 ## FolderView Plus 2026.07.14.03

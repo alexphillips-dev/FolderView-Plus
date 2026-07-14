@@ -11052,6 +11052,15 @@ h2[data-fv-section].fv-search-match {
     color: var(--fvplus-settings-text-primary) !important;
 }
 
+/* Order-column controls are icon-only affordances, not framed action buttons. */
+#fv-settings-root .folder-table table td.order-cell .row-order-actions button {
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 #fv-settings-root :is(.updates-chip.is-filter-active, .health-chip.is-filter-active) {
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }

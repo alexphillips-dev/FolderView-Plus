@@ -525,7 +525,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-preview-border-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row', 'is-wide-row'\);/);
-    assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('button\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
     assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
     assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
     assert.match(folderTypeDockerJs, /findBasicByFieldName\(form,\s*'context_trigger'\)/);
@@ -570,6 +570,15 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /--fv-live-chevron-min-width/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
     assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
+    assert.match(folderPage, /<button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog"[^>]*onclick="customAction\(\); return false;">/);
+    assert.doesNotMatch(folderPage, /<a class="custom-action"/);
+    assert.match(folderChromeJs, /querySelector\('button\.custom-action'\)/);
+    assert.match(folderJs, /markSection\('div\.basic:has\(button\.custom-action\)', 'actions'\);/);
+    assert.match(folderJs, /markAdvanced\('div\.basic:has\(button\.custom-action\)'\);/);
+    assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{[\s\S]*?appearance:\s*none;[\s\S]*?background:\s*var\(--fv-editor-accent-soft\);[\s\S]*?cursor:\s*pointer;/);
+    assert.match(folderCss, /\.fv-modern-field-row \.custom-action > i\s*\{[\s\S]*?cursor:\s*pointer;/);
+    assert.match(folderCss, /\.fv-modern-field-row \.custom-action:focus-visible\s*\{[\s\S]*?outline:\s*2px solid var\(--fv-editor-focus-ring\);/);
+    assert.doesNotMatch(folderCss, /\.fv-modern-field-row\.is-actions-list-row \.custom-action\s*\{/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body\s*\{[\s\S]*display:\s*flex !important;/);
     assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*flex-direction:\s*column;/);

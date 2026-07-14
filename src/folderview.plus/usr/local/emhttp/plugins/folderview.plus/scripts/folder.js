@@ -2939,7 +2939,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'status');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
-    markSection('div.basic:has(a.custom-action)', 'actions');
+    markSection('div.basic:has(button.custom-action)', 'actions');
 
     markSection('div.basic:has([name="regex"])', 'rules');
 
@@ -2959,7 +2959,7 @@ const applySectionTags = () => {
     markAdvanced('div.basic:has([name="expand_dashboard"])');
     markAdvanced('div.basic:has([name="dashboard_overflow"])');
     markAdvanced('div.basic.custom-action-wrapper-parent');
-    markAdvanced('div.basic:has(a.custom-action)');
+    markAdvanced('div.basic:has(button.custom-action)');
     getFolderEditorTypeApi()?.applySectionTags?.({ markSection, markAdvanced });
 };
 
@@ -2978,7 +2978,7 @@ const pruneEmptyEditorContainers = () => {
         const entry = $(list);
         const hasContent = entry.children().filter((_, child) => {
             const element = $(child);
-            return element.is('.basic, li') || element.find('.basic, :input, a.custom-action').length > 0 || element.text().trim() !== '';
+            return element.is('.basic, li') || element.find('.basic, :input, button.custom-action').length > 0 || element.text().trim() !== '';
         }).length > 0;
         if (!hasContent) {
             entry.remove();

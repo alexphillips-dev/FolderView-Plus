@@ -1486,7 +1486,7 @@ try {
             <dl>
                 <dt>​</dt>
                 <dd>
-                    <a class="custom-action" data-i18n="[html]custom-action" onclick="customAction()"><i class="fa fa-plus" aria-hidden="true"></i> Add a custom action</a>
+                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-i18n="[html]custom-action" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> Add a custom action</button>
                 </dd>
             </dl>
             <blockquote class="inline_help">

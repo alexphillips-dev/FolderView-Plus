@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.14">
-<!ENTITY md5 "5d649a48abb9b6edea1fb9c610c9628e">
+<!ENTITY version "2026.07.14.15">
+<!ENTITY md5 "4575a1d2dedbca922f70028cb9bc1d99">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.15
+## FolderView Plus 2026.07.14.15
+- Fix: Replaced the modern editor's text-like Add a Custom Action anchor with a semantic button that reliably opens the action dialog.
+- UI/UX: Applied the shared editor theme-token button surface, pointer cursor, hover, active, and keyboard-focus treatments to the custom-action launcher and its icon.
+- Test: Added regression coverage for button semantics, editor routing, themed styling, and removal of the transparent text override.
+
 
 ###2026.07.14.14
 ## FolderView Plus 2026.07.14.14

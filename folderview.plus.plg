@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.04">
-<!ENTITY md5 "bcaed6dfdf95e2abc8726dc1856ada44">
+<!ENTITY version "2026.07.14.05">
+<!ENTITY md5 "7936465ae6c5fb653a2385ed3a89cf8c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.05
+## FolderView Plus 2026.07.14.05
+- Fix: Removed Order-column controls from the shared framed-button theme so dark mode can no longer restore white borders around the drag and tree-move buttons.
+- UI/UX: Preserved the Order controls' orange interaction color while keeping their normal, hover, and keyboard-focus surfaces completely unframed.
+- Test: Strengthened regression coverage to reject any shared theme block that applies borders, backgrounds, or shadows to Order-column buttons.
+
 
 ###2026.07.14.04
 ## FolderView Plus 2026.07.14.04

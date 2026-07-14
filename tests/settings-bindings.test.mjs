@@ -491,6 +491,9 @@ test('basic folder drag handle renders a compact six-dot grip', () => {
 
 test('basic order column buttons remain unframed without affecting other settings actions', () => {
     assert.match(settingsCss, /#fv-settings-root \.folder-table table td\.order-cell \.row-order-actions button\s*\{[\s\S]*border:\s*0 !important;[\s\S]*border-radius:\s*0 !important;[\s\S]*outline:\s*none !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
+    const themedOrderBlocks = [...settingsCss.matchAll(/#fv-settings-root :is\(([\s\S]*?)\)(?::(?:hover|focus-visible))?\s*\{([\s\S]*?)\}/g)]
+        .filter(([, selectors, declarations]) => selectors.includes('.row-order-actions button') && /(?:border|background|box-shadow):/.test(declarations));
+    assert.equal(themedOrderBlocks.length, 0);
 });
 
 test('basic folder pin switch has compact track geometry', () => {

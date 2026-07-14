@@ -10994,7 +10994,6 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root :is(
-    .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
     .fv-section-toggle,
@@ -11029,7 +11028,6 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root :is(
-    .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
     .fv-section-toggle,
@@ -11038,7 +11036,6 @@ h2[data-fv-section].fv-search-match {
     .updates-chip
 ):hover,
 #fv-settings-root :is(
-    .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
     .fv-section-toggle,

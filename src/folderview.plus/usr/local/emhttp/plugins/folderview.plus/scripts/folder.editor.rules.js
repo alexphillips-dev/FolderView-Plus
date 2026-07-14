@@ -11,17 +11,106 @@
         label_starts_with: 'Label starts with'
     });
 
+    const buildLegacyRegexMigrationPreview = ({ pattern, folderId, items, folders, rules, utils }) => {
+        const sourcePattern = String(pattern || '');
+        const targetFolderId = String(folderId || '').trim();
+        const sourceItems = Array.isArray(items) ? items : [];
+        const folderMap = folders && typeof folders === 'object' ? folders : {};
+        const ruleList = Array.isArray(rules) ? rules : [];
+        let regex = null;
+        let error = '';
+        try {
+            regex = sourcePattern ? new RegExp(sourcePattern) : null;
+        } catch (regexError) {
+            error = String(regexError?.message || regexError || 'Invalid regex.');
+        }
+        const infoByName = {};
+        const names = [];
+        sourceItems.forEach((item) => {
+            const name = String(item?.Name || item?.name || '').trim();
+            if (!name || Object.prototype.hasOwnProperty.call(infoByName, name)) {
+                return;
+            }
+            names.push(name);
+            infoByName[name] = item;
+        });
+        const matches = regex
+            ? names.filter((name) => {
+                const matched = regex.test(name);
+                regex.lastIndex = 0;
+                return matched;
+            })
+            : [];
+        const advancedConflicts = [];
+        if (utils && typeof utils.getAutoRuleDecision === 'function') {
+            matches.forEach((name) => {
+                const decision = utils.getAutoRuleDecision({
+                    rules: ruleList,
+                    name,
+                    infoByName,
+                    type: String(itemTypeFromItems(sourceItems) || 'docker')
+                });
+                const assignedFolderId = String(decision?.assignedRule?.folderId || '').trim();
+                if (decision?.blockedBy || (assignedFolderId && assignedFolderId !== targetFolderId)) {
+                    advancedConflicts.push(name);
+                }
+            });
+        }
+        const overlappingLegacyFolders = [];
+        Object.entries(folderMap).forEach(([candidateId, folder]) => {
+            if (String(candidateId) === targetFolderId) {
+                return;
+            }
+            const candidatePattern = String(folder?.regex || '').trim();
+            if (!candidatePattern) {
+                return;
+            }
+            let candidateRegex;
+            try {
+                candidateRegex = new RegExp(candidatePattern);
+            } catch (_error) {
+                return;
+            }
+            if (matches.some((name) => {
+                const matched = candidateRegex.test(name);
+                candidateRegex.lastIndex = 0;
+                return matched;
+            })) {
+                overlappingLegacyFolders.push(String(folder?.name || candidateId));
+            }
+        });
+        return {
+            valid: Boolean(regex) && !error,
+            error,
+            matches,
+            advancedConflicts: Array.from(new Set(advancedConflicts)),
+            overlappingLegacyFolders: Array.from(new Set(overlappingLegacyFolders))
+        };
+    };
+
+    const itemTypeFromItems = (items) => {
+        const first = (Array.isArray(items) ? items : []).find((item) => item && typeof item === 'object');
+        const rawType = String(first?.Type || first?.type || '').trim().toLowerCase();
+        return rawType === 'vm' ? 'vm' : 'docker';
+    };
+
     const createApi = (deps = {}) => {
         const rootWindow = deps.window || window;
         const rootDocument = deps.document || rootWindow.document;
         const $ = deps.$ || rootWindow.jQuery || rootWindow.$;
         const requestClient = rootWindow.FolderViewPlusRequest || null;
+        const swal = deps.swal || rootWindow.swal || null;
         const utils = deps.utils || rootWindow.FolderViewPlusUtils || null;
         const type = String(deps.type || rootWindow.FolderViewPlusFolderEditorPageType || 'docker').trim().toLowerCase() === 'vm'
             ? 'vm'
             : 'docker';
         const shouldRender = typeof deps.shouldRender === 'function' ? deps.shouldRender : (() => true);
         const getActiveFolderId = typeof deps.getActiveFolderId === 'function' ? deps.getActiveFolderId : (() => '');
+        const getLegacyRuleContext = typeof deps.getLegacyRuleContext === 'function'
+            ? deps.getLegacyRuleContext
+            : (() => ({ pattern: '', items: [], folders: {} }));
+        const hasUnsavedChanges = typeof deps.hasUnsavedChanges === 'function' ? deps.hasUnsavedChanges : (() => false);
+        const onLegacyRegexConverted = typeof deps.onLegacyRegexConverted === 'function' ? deps.onLegacyRegexConverted : (() => {});
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value ?? ''));
         const extractAjaxErrorMessage = typeof deps.extractAjaxErrorMessage === 'function'
             ? deps.extractAjaxErrorMessage
@@ -78,6 +167,7 @@
             tone: 'info',
             text: ''
         };
+        let legacyRegexRepairRevealed = false;
 
         const setFolderEditorRulesMessage = (text = '', tone = 'info') => {
             folderEditorRulesMessage = {
@@ -248,6 +338,161 @@
             `;
         };
 
+        const showLegacyConversionMessage = (options) => {
+            if (typeof swal === 'function') {
+                swal(options);
+                return;
+            }
+            rootWindow.alert?.(String(options?.text || options?.title || 'Legacy regex conversion'));
+        };
+
+        const getLegacyMigrationPreview = () => {
+            const context = getLegacyRuleContext() || {};
+            return buildLegacyRegexMigrationPreview({
+                pattern: context.pattern,
+                folderId: getActiveFolderId(),
+                items: context.items,
+                folders: context.folders,
+                rules: folderEditorPrefs?.autoRules || [],
+                utils
+            });
+        };
+
+        const convertLegacyRegex = async () => {
+            const context = getLegacyRuleContext() || {};
+            const pattern = String(context.pattern || '');
+            const activeFolderId = String(getActiveFolderId() || '').trim();
+            if (!pattern || !activeFolderId || folderEditorRulesBusy) {
+                return;
+            }
+            if (hasUnsavedChanges()) {
+                showLegacyConversionMessage({
+                    title: 'Save editor changes first',
+                    text: 'Legacy conversion is disabled while this editor has unsaved changes. Save or reset those changes, then convert the rule.',
+                    type: 'warning'
+                });
+                return;
+            }
+            const preview = getLegacyMigrationPreview();
+            if (!preview.valid) {
+                showLegacyConversionMessage({
+                    title: 'Legacy regex is invalid',
+                    text: preview.error || 'Correct the legacy regex before converting it.',
+                    type: 'error'
+                });
+                return;
+            }
+            const warningLines = [
+                `${preview.matches.length} current ${ruleSubjectLabel}${preview.matches.length === 1 ? '' : 's'} match this pattern.`,
+                'The converted include rule will be appended after existing advanced rules so current advanced policy keeps priority.'
+            ];
+            if (preview.advancedConflicts.length > 0) {
+                warningLines.push(`${preview.advancedConflicts.length} match${preview.advancedConflicts.length === 1 ? '' : 'es'} are already controlled or blocked by an advanced rule.`);
+            }
+            if (preview.overlappingLegacyFolders.length > 0) {
+                warningLines.push(`Overlapping legacy folders: ${preview.overlappingLegacyFolders.join(', ')}.`);
+            }
+            const confirmed = await new Promise((resolve) => {
+                if (typeof swal !== 'function') {
+                    resolve(rootWindow.confirm?.(`${warningLines.join('\n')}\n\nConvert this legacy rule?`) === true);
+                    return;
+                }
+                swal({
+                    title: 'Convert legacy regex?',
+                    text: warningLines.join('\n'),
+                    type: preview.advancedConflicts.length > 0 || preview.overlappingLegacyFolders.length > 0 ? 'warning' : 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Convert rule',
+                    cancelButtonText: 'Cancel',
+                    closeOnConfirm: true
+                }, (accepted) => resolve(accepted === true));
+            });
+            if (!confirmed) {
+                return;
+            }
+            folderEditorRulesBusy = true;
+            setFolderEditorRulesMessage('Converting legacy regex...', 'info');
+            render();
+            try {
+                const response = await requestClient.postJson('/plugins/folderview.plus/server/migrate_legacy_regex.php', {
+                    type,
+                    folderId: activeFolderId,
+                    expectedPattern: pattern
+                });
+                if (response?.ok === false) {
+                    throw new Error(String(response.error || 'Legacy regex conversion failed.'));
+                }
+                folderEditorPrefs = normalizePrefs(response?.prefs || folderEditorPrefs);
+                folderEditorPrefsLoaded = true;
+                setFolderEditorRulesMessage('Legacy regex converted. Reloading the editor...', 'success');
+                render();
+                onLegacyRegexConverted(response);
+            } catch (error) {
+                setFolderEditorRulesMessage(extractAjaxErrorMessage(error, 'legacy regex conversion'), 'error');
+                folderEditorRulesBusy = false;
+                render();
+            }
+        };
+
+        const renderLegacyCompatibility = () => {
+            const context = getLegacyRuleContext() || {};
+            const pattern = String(context.pattern || '');
+            const input = rootDocument.querySelector('input[name="regex"]');
+            const row = input?.closest?.('.basic');
+            const panel = input?.closest?.('.fv-editor-panel[data-editor-panel="regex"]');
+            if (row instanceof rootWindow.HTMLElement) {
+                row.hidden = !legacyRegexRepairRevealed;
+                row.classList.add('fv-legacy-regex-source-row');
+            }
+            if (!(panel instanceof rootWindow.HTMLElement)) {
+                return;
+            }
+            panel.hidden = pattern === '';
+            let card = panel.querySelector('#fvLegacyRegexCompatibility');
+            if (!pattern) {
+                card?.remove();
+                return;
+            }
+            if (!(card instanceof rootWindow.HTMLElement)) {
+                card = rootDocument.createElement('div');
+                card.id = 'fvLegacyRegexCompatibility';
+                card.className = 'fv-legacy-regex-compatibility';
+                (panel.querySelector('.fv-editor-panel-body') || panel).appendChild(card);
+            }
+            const preview = getLegacyMigrationPreview();
+            const warningChips = [
+                `<span>${escapeHtml(String(preview.matches.length))} current match${preview.matches.length === 1 ? '' : 'es'}</span>`,
+                preview.advancedConflicts.length > 0 ? `<span class="is-warning">${escapeHtml(String(preview.advancedConflicts.length))} advanced conflict${preview.advancedConflicts.length === 1 ? '' : 's'}</span>` : '',
+                preview.overlappingLegacyFolders.length > 0 ? `<span class="is-warning">${escapeHtml(String(preview.overlappingLegacyFolders.length))} legacy overlap${preview.overlappingLegacyFolders.length === 1 ? '' : 's'}</span>` : '',
+                !preview.valid ? '<span class="is-error">Invalid regex</span>' : ''
+            ].filter(Boolean).join('');
+            card.innerHTML = `
+                <div class="fv-legacy-regex-copy">
+                    <strong>Older folder-level name rule</strong>
+                    <span>This remains active for compatibility. Convert it to one advanced Name Regex include rule to prevent both engines from controlling the same members.</span>
+                </div>
+                <code>${escapeHtml(pattern)}</code>
+                <div class="fv-legacy-regex-summary">${warningChips}</div>
+                ${preview.error ? `<p class="fv-legacy-regex-error">${escapeHtml(preview.error)}</p>` : ''}
+                <div class="fv-legacy-regex-actions">
+                    <button type="button" id="fvConvertLegacyRegex"${folderEditorRulesBusy || !preview.valid ? ' disabled' : ''}><i class="fa fa-exchange" aria-hidden="true"></i> Convert to Auto-Rule</button>
+                    ${!preview.valid ? '<button type="button" id="fvRepairLegacyRegex"><i class="fa fa-pencil" aria-hidden="true"></i> Edit invalid pattern</button>' : ''}
+                </div>
+                <small>Conversion creates a backup, preserves existing advanced-rule priority, and clears the legacy field only after the new rule is safely stored.</small>
+            `;
+            const convertButton = card.querySelector('#fvConvertLegacyRegex');
+            convertButton?.addEventListener('click', () => {
+                void convertLegacyRegex();
+            }, { once: true });
+            card.querySelector('#fvRepairLegacyRegex')?.addEventListener('click', () => {
+                legacyRegexRepairRevealed = true;
+                if (row instanceof rootWindow.HTMLElement) {
+                    row.hidden = false;
+                }
+                input?.focus?.();
+            }, { once: true });
+        };
+
         const ensurePanel = () => {
             if (!shouldRender()) {
                 return null;
@@ -343,12 +588,12 @@
 
             panel.innerHTML = `
                 <dl>
-                    <dt>Advanced auto-rules:</dt>
+                    <dt>Auto-rules:</dt>
                     <dd>
                         <div class="fv-folder-auto-rules-head">
                             <div class="fv-folder-auto-rules-copy">
                                 <strong>Rules targeting this folder</strong>
-                                <span>Create regex-based plugin rules directly from the folder editor without leaving this page.</span>
+                                <span>Create managed include or exclude rules without relying on the legacy folder regex.</span>
                             </div>
                             <a class="fv-folder-auto-rules-link" href="${escapeHtml(fullRulesWorkspaceHref)}">Open full Rules workspace</a>
                         </div>
@@ -360,6 +605,7 @@
                     <span>These advanced rules use the plugin-wide engine and still run in global priority order. Use the full Rules workspace to reorder rules or build label-based matches.</span>
                 </blockquote>
             `;
+            renderLegacyCompatibility();
 
             if (!$ || panel.dataset.bound === '1') {
                 return;
@@ -545,7 +791,8 @@
     };
 
     window.FolderViewPlusFolderEditorRules = Object.freeze({
-        createApi
+        createApi,
+        buildLegacyRegexMigrationPreview
     });
     window.FolderViewPlusFolderEditorRulesModuleLoaded = true;
 })(window);

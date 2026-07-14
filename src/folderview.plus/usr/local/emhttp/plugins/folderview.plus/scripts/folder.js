@@ -1105,12 +1105,27 @@ const getFolderEditorRulesApi = () => {
         window,
         document,
         $,
+        swal,
         type,
         utils,
         escapeHtml,
         extractAjaxErrorMessage,
         shouldRender: () => modernFolderEditorEnabled,
         getActiveFolderId: () => activeFolderEditorFolderId,
+        getLegacyRuleContext: () => ({
+            pattern: String(getForm()?.regex?.value || ''),
+            items: getAllMembers().map((item) => ({ ...item, Type: type })),
+            folders: allFoldersById
+        }),
+        hasUnsavedChanges: () => getAllChangedItems().length > 0,
+        onLegacyRegexConverted: () => {
+            const regexInput = getForm()?.regex;
+            if (regexInput) {
+                regexInput.value = '';
+            }
+            suppressUnloadPrompt = true;
+            location.reload();
+        },
         ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null
     });
     return folderEditorRulesApi;

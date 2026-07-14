@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.09">
-<!ENTITY md5 "67d18aeaaa4a87512bb9375bd8fe2482">
+<!ENTITY version "2026.07.14.11">
+<!ENTITY md5 "d150c3aef6a7780354b31e64cab8a9d0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.11
+## FolderView Plus 2026.07.14.11
+- UI/UX: Made managed Auto-Rules the primary full-width Rules workspace for new and existing folders, while hiding empty legacy regex controls.
+- Compatibility: Added a compact read-only compatibility card for existing legacy regex values with current-match, advanced-conflict, and overlapping-folder previews.
+- Compatibility: Added a guarded one-click conversion that creates a backup, appends an Advanced Include / Name Regex fallback, clears the legacy value only after both stores are written, and restores the original data if either write fails.
+- Fix: Aligned the JavaScript and PHP rule engines with the documented global priority contract so the first matching enabled include or exclude rule decides the result.
+- Compatibility: Kept legacy regex runtime evaluation, imports, backups, templates, diagnostics, and support-bundle data intact; invalid legacy patterns retain a focused repair path.
+- Test: Added regression coverage for migration previews, invalid and whitespace-sensitive expressions, duplicate-rule safety, rollback/backup contracts, advanced-first layout, and matching JS/PHP priority behavior.
+
 
 ###2026.07.14.09
 ## FolderView Plus 2026.07.14.09

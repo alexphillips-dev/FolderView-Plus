@@ -6,6 +6,7 @@ This project follows a compatibility-first policy for migrations from `folder.vi
 
 - Legacy import payloads from `folder.view2`/`folder.view3` remain supported.
 - Legacy Docker label keys remain supported: `folder.view`, `folder.view2`, `folder.view3`, `folderview.plus`.
+- Existing folder-level `regex` values remain readable, importable, backed up, and evaluated at runtime. New automation should use Advanced Auto-Rules; the modern editor offers a guarded conversion that creates a backup before clearing the legacy value.
 - Legacy custom override roots remain supported:
   - `/boot/config/plugins/folder.view/styles`
   - `/boot/config/plugins/folder.view2/styles`
@@ -50,6 +51,16 @@ Selectors listed below are treated as stable customization hooks and protected b
 - Deprecations must be announced in release notes with a migration note.
 - Removal is delayed for at least **2 stable releases** after deprecation notice.
 - Contract tests are updated only after replacement hooks exist and are documented.
+- The legacy folder-level regex editor is deprecated in favor of Advanced Auto-Rules. Runtime/import compatibility will not be removed earlier than two stable releases after a separate removal notice; this conversion release is not a removal notice.
+
+## Legacy Regex Migration
+
+- Empty legacy regex controls are hidden in the modern editor, so new folders use Advanced Auto-Rules.
+- A folder with an existing legacy regex shows a read-only compatibility summary, live match/conflict counts, and a **Convert to Auto-Rule** action.
+- Conversion creates an `Include` / `Name regex` rule at the end of the global rule list. Existing advanced policy therefore keeps priority.
+- The server creates a backup and updates the rule preferences plus folder record as one guarded operation. If either write fails, the original data is restored.
+- Invalid legacy patterns retain a focused repair action because they cannot be represented as a valid advanced rule.
+- Imported or restored legacy values continue to run until explicitly converted.
 
 ## Regression Policy
 

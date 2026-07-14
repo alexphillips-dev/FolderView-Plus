@@ -28,7 +28,7 @@
             preview: Object.freeze({ title: 'Preview', description: 'How the folder row, preview layout, borders, and context surface render.', icon: 'fa-eye', advanced: false, supportsDefaults: true, supportsRevert: true }),
             chevron: Object.freeze({ title: 'Chevron', description: 'Chevron style, normal color, hover color, and interaction styling.', icon: 'fa-chevron-down', advanced: false, supportsDefaults: true, supportsRevert: true }),
             status: Object.freeze({ title: 'Status', description: 'Status palette, accent styling, and optional folder health or status thresholds.', icon: 'fa-heartbeat', advanced: false, supportsDefaults: true, supportsRevert: true }),
-            rules: Object.freeze({ title: 'Rules', description: 'Regex auto-assignment and matching rules that keep the folder populated.', icon: 'fa-code', advanced: true, supportsDefaults: true, supportsRevert: true }),
+            rules: Object.freeze({ title: 'Rules', description: 'Managed auto-assignment rules, with conversion support for older folder regex data.', icon: 'fa-code', advanced: true, supportsDefaults: true, supportsRevert: true }),
             actions: Object.freeze({ title: 'Actions', description: 'Quick actions and custom folder actions available from the folder menu.', icon: 'fa-bolt', advanced: true, supportsDefaults: false, supportsRevert: false }),
             advanced: Object.freeze({ title: 'Advanced', description: 'Override behavior, expansion defaults, dashboard behavior, and niche controls.', icon: 'fa-sliders', advanced: true, supportsDefaults: true, supportsRevert: true })
         });

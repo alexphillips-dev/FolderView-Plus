@@ -558,7 +558,7 @@ test('getAutoRuleMatches supports compose project regex with compose label fallb
     assert.deepEqual(matches, ['sonarr']);
 });
 
-test('getAutoRuleDecision supports exclude precedence and advanced docker kinds', () => {
+test('getAutoRuleDecision uses documented first-match priority for advanced docker kinds', () => {
     const rules = [
         {
             id: 'inc1',
@@ -598,8 +598,17 @@ test('getAutoRuleDecision supports exclude precedence and advanced docker kinds'
         type: 'docker'
     });
 
-    assert.equal(decision.assignedRule, null);
-    assert.equal(decision.blockedBy?.id, 'exc1');
+    assert.equal(decision.assignedRule?.id, 'inc1');
+    assert.equal(decision.blockedBy, null);
+
+    const excludeFirst = utils.getAutoRuleDecision({
+        rules: [rules[1], rules[0]],
+        name: 'sonarr',
+        infoByName: info,
+        type: 'docker'
+    });
+    assert.equal(excludeFirst.assignedRule, null);
+    assert.equal(excludeFirst.blockedBy?.id, 'exc1');
 });
 
 test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {

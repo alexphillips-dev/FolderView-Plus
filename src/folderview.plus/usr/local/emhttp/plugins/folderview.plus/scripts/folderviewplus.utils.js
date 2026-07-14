@@ -1876,7 +1876,6 @@
 
     const getAutoRuleDecision = ({ rules, name, infoByName, type }) => {
         const infos = isPlainObject(infoByName) ? infoByName : {};
-        let firstIncludeRule = null;
         for (const rule of (Array.isArray(rules) ? rules : [])) {
             if (!isPlainObject(rule) || rule.enabled === false) {
                 continue;
@@ -1889,17 +1888,12 @@
                         matchedRule: rule
                     };
                 }
-                if (!firstIncludeRule) {
-                    firstIncludeRule = rule;
-                }
+                return {
+                    assignedRule: rule,
+                    blockedBy: null,
+                    matchedRule: rule
+                };
             }
-        }
-        if (firstIncludeRule) {
-            return {
-                assignedRule: firstIncludeRule,
-                blockedBy: null,
-                matchedRule: firstIncludeRule
-            };
         }
         return {
             assignedRule: null,

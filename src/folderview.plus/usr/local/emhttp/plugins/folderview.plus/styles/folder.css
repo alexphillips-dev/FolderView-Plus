@@ -2365,7 +2365,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body.fv-section-panel-grid {
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .fv-section-shell[data-section-shell="actions"] .fv-section-shell-body.fv-section-panel-grid {
@@ -3063,7 +3063,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body:not(.fv-section-panel-grid) {
     display: grid !important;
-    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.68em;
     align-items: start;
 }
@@ -3088,11 +3088,85 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
-    width: min(100%, 680px) !important;
-    max-width: 680px !important;
+    width: 100% !important;
+    max-width: none !important;
     min-width: 0;
     justify-self: start !important;
     padding-bottom: 0.72em;
+}
+
+.fv-section-shell[data-section-shell="rules"] .fv-editor-panel[data-editor-panel="regex"][hidden],
+.fv-legacy-regex-source-row[hidden] {
+    display: none !important;
+}
+
+.fv-legacy-regex-compatibility {
+    display: grid;
+    gap: 0.72rem;
+    max-width: 680px;
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 181, 71, 0.34);
+    border-radius: 12px;
+    background: rgba(255, 181, 71, 0.07);
+}
+
+.fv-legacy-regex-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.fv-legacy-regex-copy > strong {
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-legacy-regex-copy > span,
+.fv-legacy-regex-compatibility > small {
+    color: var(--fv-editor-muted);
+    line-height: 1.4;
+}
+
+.fv-legacy-regex-compatibility > code {
+    overflow-wrap: anywhere;
+    padding: 0.62rem 0.72rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 8px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-legacy-regex-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+}
+
+.fv-legacy-regex-summary > span {
+    padding: 0.26rem 0.52rem;
+    border-radius: 999px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+.fv-legacy-regex-summary > .is-warning {
+    color: #ffbf59;
+}
+
+.fv-legacy-regex-summary > .is-error,
+.fv-legacy-regex-error {
+    color: #ff7777;
+}
+
+.fv-legacy-regex-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fv-legacy-regex-actions > button {
+    justify-self: start;
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel > dl > dd {
@@ -3244,6 +3318,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-folder-auto-rules-add,
+#fvConvertLegacyRegex,
+#fvRepairLegacyRegex,
 .fv-folder-auto-rule-actions > button {
     display: inline-flex;
     align-items: center;
@@ -3262,6 +3338,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rules-add:hover,
 .fv-folder-auto-rules-add:focus-visible,
+#fvConvertLegacyRegex:hover,
+#fvConvertLegacyRegex:focus-visible,
+#fvRepairLegacyRegex:hover,
+#fvRepairLegacyRegex:focus-visible,
 .fv-folder-auto-rule-actions > button:hover,
 .fv-folder-auto-rule-actions > button:focus-visible {
     border-color: var(--fv-editor-title-accent);
@@ -3269,6 +3349,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-folder-auto-rules-add[disabled],
+#fvConvertLegacyRegex[disabled],
+#fvRepairLegacyRegex[disabled],
 .fv-folder-auto-rule-actions > button[disabled] {
     opacity: 0.58;
     cursor: default;

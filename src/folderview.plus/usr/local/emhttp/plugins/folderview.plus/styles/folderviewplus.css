@@ -1139,8 +1139,31 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     color: var(--fvplus-settings-warning);
 }
 
+.folder-table table th.col-actions,
+.folder-table table td.actions-cell {
+    text-align: center;
+}
+
 .folder-table table td.actions-cell {
     white-space: nowrap;
+}
+
+.folder-actions-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.folder-actions-group > .folder-action-btn {
+    float: none !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.folder-actions-group > .folder-action-btn:first-child {
+    margin-left: 0 !important;
 }
 
 .folder-action-btn {
@@ -1463,7 +1486,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     .folder-table table td.actions-cell {
         position: relative;
         z-index: 2;
-        text-align: right;
+        text-align: center;
         white-space: nowrap;
         overflow: visible;
         text-overflow: clip;
@@ -1673,7 +1696,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell {
     position: relative;
     z-index: 2;
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
     overflow: visible;
     text-overflow: clip;

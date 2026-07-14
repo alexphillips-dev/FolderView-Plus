@@ -375,6 +375,9 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th\.col-status/);
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*td\.status-cell/);
     assert.match(settingsCss, /\.folder-overflow-btn\s*\{[\s\S]*display:\s*none/);
+    assert.match(settingsCss, /\.folder-table table th\.col-actions,\s*\n\.folder-table table td\.actions-cell\s*\{[\s\S]*text-align:\s*center/);
+    assert.match(settingsCss, /\.folder-actions-group\s*\{[\s\S]*display:\s*flex;[\s\S]*justify-content:\s*center;[\s\S]*width:\s*100%/);
+    assert.match(settingsCss, /\.folder-actions-group > \.folder-action-btn\s*\{[\s\S]*float:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(1\)[\s\S]*display:\s*none !important/);
@@ -398,6 +401,7 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-y:\s*auto !important/);
     assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-x:\s*hidden !important/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
+    assert.match(settingsJs, /<td class="actions-cell"><span class="folder-actions-group">/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
     assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);
     assert.match(settingsJs, /const overflowSelector = `\$\{tbodySelector\} \.folder-overflow-btn`;/);

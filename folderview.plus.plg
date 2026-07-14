@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.01">
-<!ENTITY md5 "df4ffd3cbc9f9cbc8f15fc069962ded0">
+<!ENTITY version "2026.07.14.02">
+<!ENTITY md5 "ab178e54b4a9e71f908252c254cfbbf4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.02
+## FolderView Plus 2026.07.14.02
+- UI/UX: Centered the Basic Settings Actions header and its button group within the full column width on desktop and compact layouts.
+- Fix: Isolated row action buttons from host button float rules so the Edit and More controls no longer drift to the right edge.
+- Test: Added regression coverage for centered action-cell markup and styling.
+
 
 ###2026.07.14.01
 ## FolderView Plus 2026.07.14.01

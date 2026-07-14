@@ -155,20 +155,20 @@
                         <img src="${icon}" class="img folder-img" alt="" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
                         <div class="fv-dashboard-advanced-preview-title">
                             <span class="blue-text appname">${name}</span>
-                            <span><i class="fa fa-${statusIcon} ${statusClass}"></i> ${escapeHtml(i18n(statusKey, statusKey))}</span>
+                            <span class="fv-dashboard-advanced-preview-subtitle"><i class="fa fa-${statusIcon} ${statusClass}"></i> ${escapeHtml(i18n(statusKey, statusKey))}</span>
                         </div>
                     </div>
                     <div class="fv-dashboard-advanced-preview-grid">
-                        <div>
-                            <div class="fv-dashboard-advanced-preview-section-title">${escapeHtml(i18n('version', 'Version'))}</div>
-                            <div>${image}</div>
+                        <div class="fv-dashboard-advanced-preview-field">
+                            <div class="fv-dashboard-advanced-preview-label">${escapeHtml(i18n('version', 'Version'))}</div>
+                            <div class="fv-dashboard-advanced-preview-value">${image}</div>
                             <div class="fv-dashboard-advanced-preview-muted">${repository}</div>
                         </div>
-                        <div>
-                            <div class="fv-dashboard-advanced-preview-section-title">CPU/MEM</div>
-                            <span class="cpu-${shortId}">0%</span>
+                        <div class="fv-dashboard-advanced-preview-field">
+                            <div class="fv-dashboard-advanced-preview-label">CPU/MEM</div>
+                            <span class="fv-dashboard-advanced-preview-value cpu-${shortId}">0%</span>
                             <div class="usage-disk mm"><span id="cpu-${shortId}" style="width: 0%;"></span><span></span></div>
-                            <span class="mem-${shortId}">0 / 0</span>
+                            <span class="fv-dashboard-advanced-preview-value mem-${shortId}">0 / 0</span>
                         </div>
                     </div>
                     <div class="fv-dashboard-advanced-preview-actions"></div>
@@ -179,11 +179,11 @@
                     </div>
                     <details class="fv-dashboard-advanced-preview-details">
                         <summary>${escapeHtml(i18n('port-mappings', 'Port mappings'))}</summary>
-                        <div>${buildPortMappingsHtml(info.Ports)}</div>
+                        <div class="fv-dashboard-advanced-preview-list">${buildPortMappingsHtml(info.Ports)}</div>
                     </details>
                     <details class="fv-dashboard-advanced-preview-details">
                         <summary>${escapeHtml(i18n('volume-mappings', 'Volume mappings'))}</summary>
-                        <div>${buildVolumeMappingsHtml(ct?.Mounts)}</div>
+                        <div class="fv-dashboard-advanced-preview-list">${buildVolumeMappingsHtml(ct?.Mounts)}</div>
                     </details>
                 </div>
             `);

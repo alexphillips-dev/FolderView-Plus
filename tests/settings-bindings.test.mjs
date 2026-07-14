@@ -482,6 +482,13 @@ test('basic folder drag uses a full-row drag image', () => {
     assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
 });
 
+test('basic folder drag handle renders a compact six-dot grip', () => {
+    const dragHandleMarkup = script.match(/const dragHandleHtml = hideOrderControls[\s\S]*?;\n/)?.[0] || '';
+    assert.equal([...dragHandleMarkup.matchAll(/<span aria-hidden="true"><\/span>/g)].length, 6);
+    assert.match(settingsCss, /\.folder-drag-handle\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, 4px\);[\s\S]*grid-auto-rows:\s*4px;[\s\S]*gap:\s*3px;/);
+    assert.doesNotMatch(settingsCss, /\.folder-drag-handle::(?:before|after)/);
+});
+
 test('basic folder pin switch has compact track geometry', () => {
     assert.match(settingsCss, /\.folder-pin-switch\s*\{[\s\S]*gap:\s*0;[\s\S]*min-height:\s*20px;[\s\S]*line-height:\s*0;/);
     assert.match(settingsCss, /\.folder-pin-switch-track\s*\{[\s\S]*box-sizing:\s*border-box;[\s\S]*width:\s*38px;[\s\S]*height:\s*20px;/);

@@ -2482,7 +2482,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     grid-auto-rows: 4px;
     justify-content: center;
     align-content: center;
-    gap: 4px;
+    gap: 3px;
     padding: 0 !important;
     border: 0 !important;
     background: transparent !important;
@@ -2495,10 +2495,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     cursor: grabbing;
 }
 
-.folder-drag-handle > span,
-.folder-drag-handle::before,
-.folder-drag-handle::after {
-    content: "" !important;
+.folder-drag-handle > span {
     width: 4px;
     height: 4px;
     border-radius: 999px;

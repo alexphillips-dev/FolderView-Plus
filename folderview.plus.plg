@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.02">
-<!ENTITY md5 "ab178e54b4a9e71f908252c254cfbbf4">
+<!ENTITY version "2026.07.14.03">
+<!ENTITY md5 "d29f638fd735ee356fc0f656e27f0698">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.03
+## FolderView Plus 2026.07.14.03
+- UI/UX: Updated the Basic Settings order drag handle to a tighter two-by-three six-dot grip.
+- Fix: Replaced theme-sensitive pseudo-element dots with six explicit grip dots so every host theme renders the complete handle.
+- Test: Added regression coverage for the six-dot markup, compact spacing, and removal of pseudo-element dots.
+
 
 ###2026.07.14.02
 ## FolderView Plus 2026.07.14.02

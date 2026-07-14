@@ -20,6 +20,10 @@ const folderEditorIconsScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js'
 );
+const folderChromeScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'
+);
 const folderPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
@@ -31,6 +35,7 @@ const folderCssPath = path.join(
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const folderIconApiScript = fs.readFileSync(folderIconApiScriptPath, 'utf8');
 const folderEditorIconsScript = fs.readFileSync(folderEditorIconsScriptPath, 'utf8');
+const folderChromeJs = fs.readFileSync(folderChromeScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 
@@ -197,6 +202,21 @@ test('folder editor icon picker uses theme-aware surfaces and borderless favorit
     assert.match(iconFavBlock, /pointer-events:\s*auto;/);
     assert.doesNotMatch(iconFavBlock, /border:\s*1px solid var\(--fv-editor-block-border\)/);
     assert.match(folderCss, /\.fv-third-party-preview-action:hover,[\s\S]*\.fv-third-party-icon-fav\.is-active \{[\s\S]*color:\s*var\(--fv-editor-accent\) !important;[\s\S]*opacity:\s*1;/);
+});
+
+test('modern icon tabs stay open on outside clicks and reset to built-in on General re-entry', () => {
+    assert.match(folderEditorIconsScript, /const activateBuiltInIconPicker = async \(options = \{\}\) =>/);
+    assert.match(folderEditorIconsScript, /const activateThirdPartyIconPicker = async \(\) =>/);
+    assert.match(folderEditorIconsScript, /const activateCustomIconPicker = async \(\) =>/);
+    assert.match(folderEditorIconsScript, /#fv-icon-picker-toggle[\s\S]*await activateBuiltInIconPicker\(\);/);
+    assert.match(folderEditorIconsScript, /#fv-icon-third-party-toggle[\s\S]*await activateThirdPartyIconPicker\(\);/);
+    assert.match(folderEditorIconsScript, /#fv-icon-custom-manager-toggle[\s\S]*await activateCustomIconPicker\(\);/);
+    const outsideHandler = folderEditorIconsScript.match(/const closeIconPickersFromOutside = \(event\) => \{([\s\S]*?)\n            \};/)?.[1] || '';
+    assert.doesNotMatch(outsideHandler, /set(?:BuiltIn|ThirdParty|Custom)IconPickerOpen\(false\)/);
+    assert.match(outsideHandler, /setThirdPartyPackActionsOpen\(false\)/);
+    assert.match(outsideHandler, /setThirdPartyFilterSheetOpen\(false\)/);
+    assert.match(folderEditorIconsScript, /fvplus:editor-section-change\.fviconpicker[\s\S]*detail\.section[\s\S]*'general'[\s\S]*activateBuiltInIconPicker\(\{ focusSearch: false \}\)/);
+    assert.match(folderChromeJs, /new root\.CustomEvent\('fvplus:editor-section-change',[\s\S]*detail: \{ previousSection, section: currentSection \}/);
 });
 
 test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {

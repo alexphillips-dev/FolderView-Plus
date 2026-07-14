@@ -938,8 +938,15 @@
     const bindSectionControls = (form) => {
         Array.from(form.querySelectorAll('.fv-section-nav > button[data-target]')).forEach((button) => {
             button.addEventListener('click', () => {
+                const previousSection = currentSection;
                 currentSection = normalizeSectionKey(button.getAttribute('data-target'), currentMode);
                 applySectionVisibility(form);
+                if (previousSection !== currentSection && typeof root.CustomEvent === 'function') {
+                    form.dispatchEvent(new root.CustomEvent('fvplus:editor-section-change', {
+                        bubbles: true,
+                        detail: { previousSection, section: currentSection }
+                    }));
+                }
             });
         });
     };

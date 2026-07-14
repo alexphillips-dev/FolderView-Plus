@@ -1733,6 +1733,37 @@
             builtInIconPage = 1;
         };
 
+        const activateBuiltInIconPicker = async (options = {}) => {
+            const focusSearch = options.focusSearch !== false;
+            setThirdPartyIconPickerOpen(false);
+            setCustomIconPickerOpen(false);
+            setBuiltInIconPickerOpen(true);
+            if (!builtInIconManifestLoaded) {
+                await loadBuiltInIcons();
+            }
+            builtInIconPage = 1;
+            renderBuiltInIconPicker();
+            if (focusSearch) {
+                $('#fv-icon-picker-search').trigger('focus');
+            }
+        };
+
+        const activateThirdPartyIconPicker = async () => {
+            setBuiltInIconPickerOpen(false);
+            setCustomIconPickerOpen(false);
+            setThirdPartyIconPickerOpen(true);
+            await refreshThirdPartyIconPicker();
+            $('#fv-third-party-search').trigger('focus');
+        };
+
+        const activateCustomIconPicker = async () => {
+            setBuiltInIconPickerOpen(false);
+            setThirdPartyIconPickerOpen(false);
+            setCustomIconPickerOpen(true);
+            await refreshCustomIconManager();
+            $('#fv-custom-icon-search').trigger('focus');
+        };
+
         const bindIconPickerEvents = async () => {
             if (!$ || !doc) {
                 return;
@@ -1744,44 +1775,17 @@
 
             $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
-                const isOpen = !panel.prop('hidden');
-                setThirdPartyIconPickerOpen(false);
-                setCustomIconPickerOpen(false);
-                setBuiltInIconPickerOpen(!isOpen);
-                if (!isOpen) {
-                    if (!builtInIconManifestLoaded) {
-                        await loadBuiltInIcons();
-                    }
-                    builtInIconPage = 1;
-                    renderBuiltInIconPicker();
-                    $('#fv-icon-picker-search').trigger('focus');
-                }
+                await activateBuiltInIconPicker();
             });
 
             $('#fv-icon-third-party-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
-                const thirdPartyPanel = $('#fv-third-party-icon-panel');
-                const isOpen = !thirdPartyPanel.prop('hidden');
-                setBuiltInIconPickerOpen(false);
-                setCustomIconPickerOpen(false);
-                setThirdPartyIconPickerOpen(!isOpen);
-                if (!isOpen) {
-                    await refreshThirdPartyIconPicker();
-                    $('#fv-third-party-search').trigger('focus');
-                }
+                await activateThirdPartyIconPicker();
             });
 
             $('#fv-icon-custom-manager-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
                 event.preventDefault();
-                const customPanel = $('#fv-custom-icon-panel');
-                const isOpen = !customPanel.prop('hidden');
-                setBuiltInIconPickerOpen(false);
-                setThirdPartyIconPickerOpen(false);
-                setCustomIconPickerOpen(!isOpen);
-                if (!isOpen) {
-                    await refreshCustomIconManager();
-                    $('#fv-custom-icon-search').trigger('focus');
-                }
+                await activateCustomIconPicker();
             });
 
             $('#fv-icon-picker-default').off('click.fviconpicker').on('click.fviconpicker', (event) => {
@@ -2113,19 +2117,11 @@
 
             const closeIconPickersFromOutside = (event) => {
                 const target = $(event.target);
-                const inThirdPartyPanel = target.closest('#fv-third-party-icon-panel').length > 0;
-                if (inThirdPartyPanel && !target.closest('#fv-third-party-pack-actions-panel, #fv-third-party-pack-actions-toggle').length) {
+                if (!target.closest('#fv-third-party-pack-actions-panel, #fv-third-party-pack-actions-toggle').length) {
                     setThirdPartyPackActionsOpen(false);
                 }
-                if (inThirdPartyPanel && !target.closest('#fv-third-party-filter-sheet, #fv-third-party-filter-toggle').length) {
+                if (!target.closest('#fv-third-party-filter-sheet, #fv-third-party-filter-toggle').length) {
                     setThirdPartyFilterSheetOpen(false);
-                }
-                if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-third-party-refresh, #fv-icon-third-party-toggle, #fv-custom-icon-panel, #fv-icon-custom-manager-toggle, #fv-custom-icon-refresh, #fv-icon-upload, #fv-icon-upload-file, #fv-icon-upload-progress').length) {
-                    setBuiltInIconPickerOpen(false);
-                    setThirdPartyIconPickerOpen(false);
-                    setCustomIconPickerOpen(false);
-                    setThirdPartyFilterSheetOpen(false);
-                    setThirdPartyPackActionsOpen(false);
                 }
             };
 
@@ -2133,6 +2129,16 @@
                 .off('mousedown.fviconpicker touchstart.fviconpicker pointerdown.fviconpicker')
                 .on('pointerdown.fviconpicker', closeIconPickersFromOutside)
                 .on('mousedown.fviconpicker touchstart.fviconpicker', closeIconPickersFromOutside);
+
+            $(doc)
+                .off('fvplus:editor-section-change.fviconpicker')
+                .on('fvplus:editor-section-change.fviconpicker', async (event) => {
+                    const detail = event.originalEvent?.detail || event.detail || {};
+                    if (String(detail.section || '') !== 'general' || String(detail.previousSection || '') === 'general') {
+                        return;
+                    }
+                    await activateBuiltInIconPicker({ focusSearch: false });
+                });
 
             const iconInput = getIconInput();
             if (iconInput && iconInput.length) {

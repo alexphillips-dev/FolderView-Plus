@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.07">
-<!ENTITY md5 "3f3649202e046b9b1857ea7705eaa7fc">
+<!ENTITY version "2026.07.14.08">
+<!ENTITY md5 "b86d4d61003c16500649c0766fbce76e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.08
+## FolderView Plus 2026.07.14.08
+- UI/UX: Converted the modern General-tab icon selectors into persistent tabs so Built-in, Third Party, or Custom Icons remains open when clicking elsewhere in the editor.
+- UI/UX: Built-in Icons now opens by default and reopens whenever the user leaves General and later returns, while clicking the already-active icon tab no longer collapses it.
+- Fix: Restricted outside-click dismissal to Third Party's temporary filter and pack-action flyouts instead of closing the main icon workspace.
+- Test: Added regression coverage for persistent main icon tabs, mutually exclusive tab activation, outside-click behavior, and the General-section re-entry reset event.
+
 
 ###2026.07.14.07
 ## FolderView Plus 2026.07.14.07

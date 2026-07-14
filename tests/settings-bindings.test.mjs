@@ -132,7 +132,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
     assert.match(page, /<option value="orbit">Orbit view<\/option>/);
     const dockerSortRowStart = page.indexOf('<div class="sort-row">');
-    const dockerSortRowEnd = page.indexOf('<input id="docker-folder-filter"');
+    const dockerSortRowEnd = page.indexOf('<div id="docker-quick-filters"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
     const dockerSortRow = page.slice(dockerSortRowStart, dockerSortRowEnd);
     assert.doesNotMatch(dockerSortRow, /id="docker-page-view-mode"/);
@@ -329,6 +329,27 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
 });
 
+test('basic folder pin toggle persists quickly and broadcasts runtime refresh', () => {
+    assert.match(script, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
+    assert.match(script, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
+    assert.match(script, /const updatePrefsPartial = async \(type, patch, options = \{\}\) => \{/);
+    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial\);/);
+    assert.match(script, /const broadcastPinnedFolderChange = \(payload = \{\}\) => \{/);
+    assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);
+    assert.match(script, /localStorage\.setItem\(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON\.stringify\(eventPayload\)\);/);
+    assert.match(script, /const backup = latestPrefsBackupByType\[resolvedType\];/);
+    assert.doesNotMatch(script, /backup = await createBackup\(resolvedType, exists \? `before-unpin-\$\{id\}` : `before-pin-\$\{id\}`\);/);
+});
+
+test('instant settings controls use partial prefs updates', () => {
+    assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{\s*render: \(\) => renderTable\(resolvedType\)\s*\}\);/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
+    assert.match(script, /const savedPrefs = await postPrefs\(type, \{ \[key\]: next\[key\] \}\);/);
+});
+
 test('settings action buttons are explicitly non-submit buttons', () => {
     const buttonWithoutTypePattern = /<button(?![^>]*\btype=)/;
     assert.doesNotMatch(page, buttonWithoutTypePattern);
@@ -453,12 +474,43 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /await recordTreeMoveHistoryFromBackup\([\s\S]*'Reorder folders'[\s\S]*focusFolderId/);
 });
 
+test('basic folder drag uses a full-row drag image', () => {
+    assert.match(script, /const createBasicFolderDragImage = \(row\) => \{/);
+    assert.match(script, /ghost\.className = 'fv-basic-row-drag-image folder-table';/);
+    assert.match(script, /event\.dataTransfer\.setDragImage\(dragImage, offsetX, offsetY\);/);
+    assert.match(settingsCss, /\.fv-basic-row-drag-image\s*\{[\s\S]*filter:\s*drop-shadow/);
+    assert.match(settingsCss, /\.fv-basic-row-drag-image td\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+});
+
+test('basic folder drag handle renders a compact six-dot grip', () => {
+    const dragHandleMarkup = script.match(/const dragHandleHtml = hideOrderControls[\s\S]*?;\n/)?.[0] || '';
+    assert.equal([...dragHandleMarkup.matchAll(/<span aria-hidden="true"><\/span>/g)].length, 6);
+    assert.match(settingsCss, /\.folder-drag-handle\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, 4px\);[\s\S]*grid-auto-rows:\s*4px;[\s\S]*gap:\s*3px;/);
+    assert.doesNotMatch(settingsCss, /\.folder-drag-handle::(?:before|after)/);
+});
+
+test('basic order column buttons remain unframed without affecting other settings actions', () => {
+    assert.match(settingsCss, /#fv-settings-root \.folder-table table td\.order-cell \.row-order-actions button\s*\{[\s\S]*border:\s*0 !important;[\s\S]*border-radius:\s*0 !important;[\s\S]*outline:\s*none !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
+    const themedOrderBlocks = [...settingsCss.matchAll(/#fv-settings-root :is\(([\s\S]*?)\)(?::(?:hover|focus-visible))?\s*\{([\s\S]*?)\}/g)]
+        .filter(([, selectors, declarations]) => selectors.includes('.row-order-actions button') && /(?:border|background|box-shadow):/.test(declarations));
+    assert.equal(themedOrderBlocks.length, 0);
+});
+
+test('basic folder pin switch has compact track geometry', () => {
+    assert.match(settingsCss, /\.folder-pin-switch\s*\{[\s\S]*gap:\s*0;[\s\S]*min-height:\s*20px;[\s\S]*line-height:\s*0;/);
+    assert.match(settingsCss, /\.folder-pin-switch-track\s*\{[\s\S]*box-sizing:\s*border-box;[\s\S]*width:\s*38px;[\s\S]*height:\s*20px;/);
+    assert.match(settingsCss, /\.folder-pin-switch-knob\s*\{[\s\S]*top:\s*50%;[\s\S]*transform:\s*translateY\(-50%\);/);
+    assert.match(settingsCss, /\.folder-pin-switch\.is-pinned \.folder-pin-switch-knob\s*\{[\s\S]*transform:\s*translate\(18px,\s*-50%\);/);
+});
+
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {
     assert.match(script, /const safeNameText = escapeHtml\(folderNameRaw\);/);
     assert.match(script, /const safeNameDisplayHtml = filter \? highlightSearchText\(folderNameRaw, filter\) : safeNameText;/);
-    assert.match(script, /aria-label="Open status breakdown for \$\{safeNameText\}"/);
+    assert.doesNotMatch(script, /Open status breakdown|Open status details/);
     assert.match(script, /<span class="name-cell-text">\$\{safeNameDisplayHtml\}<\/span>/);
     assert.match(script, /const showBreadcrumb = folderDepth > 0 \|\| Boolean\(filter\);/);
+    assert.match(settingsCss, /\.name-cell-content\.is-nested::before\s*\{[\s\S]*border-left:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
+    assert.match(settingsCss, /\.name-cell-content\.is-nested::after\s*\{[\s\S]*border-top:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
 });
 
 test('nested folder branch and integrity actions are reachable from quick actions and exported', () => {

@@ -49,8 +49,8 @@
             { key: 'health', title: 'Docker Health', description: 'Tune Docker-specific folder health scoring.', advancedOnly: true, fields: ['health_warn_stopped_percent', 'health_critical_stopped_percent', 'health_profile', 'health_updates_mode', 'health_all_stopped_mode'] }
         ],
         rules: [
-            { key: 'regex', title: 'Legacy Regex', description: 'Keep the folder populated with the saved name-matching regex rule.', fields: ['regex'] },
-            { key: 'auto-rules', title: 'Advanced Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' }
+            { key: 'auto-rules', title: 'Auto-Rules', description: 'Create plugin-wide include or exclude rules that target this folder.', keepEmpty: true, match: (row) => row?.id === 'fvFolderAutoRulesPanel' },
+            { key: 'regex', title: 'Legacy Rule Compatibility', description: 'Review and convert an older folder-level name regex.', fields: ['regex'] }
         ],
         actions: [
             { key: 'folder-actions', title: 'Folder Actions', description: 'Manage the custom actions shown in this folder’s context menu.', match: (row) => row?.classList?.contains('custom-action-wrapper-parent') === true }
@@ -282,7 +282,7 @@
         if (cachedRow) {
             return cachedRow;
         }
-        const sourceRow = Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'));
+        const sourceRow = Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('button.custom-action'));
         if (sourceRow) {
             sourceRow.setAttribute('data-fv-actions-launch-source', '1');
         }
@@ -554,9 +554,9 @@
         const actionsList = actionsRow?.querySelector('.custom-action-wrapper');
         const actionsValueCell = actionsRow?.querySelector('dl > dd');
         const launchRow = findActionLaunchRow(form);
-        const launchLink = launchRow?.querySelector('a.custom-action')
-            || actionsRow?.querySelector('.fv-custom-action-launch > a.custom-action');
-        if (!actionsRow || !actionsList || !actionsValueCell || !launchLink) {
+        const launchButton = launchRow?.querySelector('button.custom-action')
+            || actionsRow?.querySelector('.fv-custom-action-launch > button.custom-action');
+        if (!actionsRow || !actionsList || !actionsValueCell || !launchButton) {
             return;
         }
         let launchHost = actionsRow.querySelector('.fv-custom-action-launch');
@@ -565,8 +565,8 @@
             launchHost.className = 'fv-custom-action-launch';
             actionsValueCell.appendChild(launchHost);
         }
-        launchLink.classList.add('fv-custom-action-link');
-        launchHost.appendChild(launchLink);
+        launchButton.classList.add('fv-custom-action-button');
+        launchHost.appendChild(launchButton);
     };
 
     const rowHasAnyField = (row, fields = []) => {
@@ -750,7 +750,7 @@
             if (row.querySelector('.folder-status-colors-dd')) {
                 row.classList.add('is-status-row');
             }
-            if (row.querySelector('.custom-action-wrapper') || row.querySelector('a.custom-action')) {
+            if (row.querySelector('.custom-action-wrapper') || row.querySelector('button.custom-action')) {
                 row.classList.add('is-actions-row');
             }
             if (row.querySelector('[name="regex"]')) {
@@ -759,7 +759,7 @@
             if (row.querySelector('.custom-action-wrapper')) {
                 row.classList.add('is-actions-list-row', 'is-wide-row');
             }
-            if (row.querySelector('a.custom-action') && !row.querySelector('.custom-action-wrapper')) {
+            if (row.querySelector('button.custom-action') && !row.querySelector('.custom-action-wrapper')) {
                 row.classList.add('is-actions-launch-row');
             }
             if (row.querySelector('[name="name"]')) {
@@ -938,8 +938,15 @@
     const bindSectionControls = (form) => {
         Array.from(form.querySelectorAll('.fv-section-nav > button[data-target]')).forEach((button) => {
             button.addEventListener('click', () => {
+                const previousSection = currentSection;
                 currentSection = normalizeSectionKey(button.getAttribute('data-target'), currentMode);
                 applySectionVisibility(form);
+                if (previousSection !== currentSection && typeof root.CustomEvent === 'function') {
+                    form.dispatchEvent(new root.CustomEvent('fvplus:editor-section-change', {
+                        bubbles: true,
+                        detail: { previousSection, section: currentSection }
+                    }));
+                }
             });
         });
     };

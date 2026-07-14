@@ -88,12 +88,27 @@
 
         const mapRuntimeMember = (entry = {}) => {
             const labels = entry?.info?.Config?.Labels || entry?.Labels || {};
-            const state = entry?.info?.State || entry?.State || {
-                Running: entry?.running === true || String(entry?.state || '').toLowerCase() === 'running',
-                Paused: entry?.paused === true || String(entry?.state || '').toLowerCase() === 'paused',
-                Autostart: entry?.autostart === true,
-                manager: entry?.manager,
-                Updated: entry?.Updated
+            const sourceState = entry?.info?.State || entry?.State || {};
+            const stateKind = String(entry?.state || sourceState?.Status || entry?.status || '').trim().toLowerCase();
+            const hasExplicitPaused = typeof sourceState?.Paused === 'boolean' || typeof entry?.paused === 'boolean';
+            const hasExplicitRunning = typeof sourceState?.Running === 'boolean' || typeof entry?.running === 'boolean';
+            const paused = hasExplicitPaused
+                ? (sourceState?.Paused === true || entry?.paused === true)
+                : (stateKind === 'paused' || stateKind === 'pause');
+            const running = hasExplicitRunning
+                ? (sourceState?.Running === true || entry?.running === true || paused)
+                : (stateKind === 'running' || stateKind === 'started' || stateKind === 'start' || paused);
+            const status = paused
+                ? 'paused'
+                : (running ? 'running' : 'stopped');
+            const state = {
+                ...sourceState,
+                Running: running,
+                Paused: paused,
+                Status: status,
+                Autostart: typeof sourceState?.Autostart === 'boolean' ? sourceState.Autostart : entry?.autostart === true,
+                manager: sourceState?.manager || entry?.manager,
+                Updated: typeof sourceState?.Updated === 'boolean' ? sourceState.Updated : entry?.Updated
             };
             const memberName = String(entry?.info?.Name || entry?.Name || entry?.name || '').trim();
             if (!memberName) {

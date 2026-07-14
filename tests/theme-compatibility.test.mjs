@@ -126,6 +126,30 @@ test('theme compatibility: advanced automation, rules, recovery, and operations 
     assert.match(settingsCss, /\.schedule-hint\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
 });
 
+test('settings shared button system covers basic and advanced workspace actions', () => {
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-basic-control-btn,[\s\S]*\.fv-basic-add-btn,[\s\S]*\.fv-basic-sort,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-theme-token-reset,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\.fv-rule-builder-actions > button,[\s\S]*\.fv-rule-selection-actions > button,[\s\S]*\.fv-rule-card-actions > button,[\s\S]*\.fv-rule-test-actions > button,/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*\[data-fv-rules-source-toggle\],[\s\S]*\[data-fv-operations-source-toggle\],/);
+    assert.doesNotMatch(settingsCss, /\.fv-basic-add-btn\s*\{[^}]*linear-gradient/);
+    assert.match(settingsCss, /\.fv-rules-source-btn\.is-active\s*\{[\s\S]*background:\s*var\(--fvplus-settings-button-accent-top\) !important;[\s\S]*box-shadow:\s*var\(--fvplus-settings-button-accent-shadow\) !important;/);
+    const activeButtonGroup = settingsCss.match(/#fv-settings-root :is\(\s*\n\s*\.folder-health-filter\.is-active,([\s\S]*?)\)\s*,\s*\n#fv-settings-root \.fv-mode-toggle button\.is-active/);
+    assert.ok(activeButtonGroup, 'expected shared active-button selector group');
+    assert.doesNotMatch(activeButtonGroup[1], /\.folder-overflow-btn/, 'idle overflow actions must not use selected/accent styling');
+    assert.match(settingsCss, /#fv-settings-root :is\(\s*\n\s*\.folder-table table td\.actions-cell \.folder-action-btn,[\s\S]*?\)\s*\{[\s\S]*?background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
+});
+
+test('settings dark mode buttons use visible white outline tokens', () => {
+    assert.match(settingsCss, /--fvplus-settings-button-outline:\s*rgba\(255,\s*255,\s*255,\s*0\.28\);/);
+    assert.match(settingsCss, /--fvplus-settings-button-outline-hover:\s*rgba\(255,\s*255,\s*255,\s*0\.42\);/);
+    assert.match(settingsCss, /--fvplus-settings-button-outline-active:\s*rgba\(255,\s*255,\s*255,\s*0\.5\);/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(190,\s*107,\s*24,\s*0\.12\);/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(122,\s*102,\s*72,\s*0\.18\);/);
+    assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-docker-start-order-toolbar > button,[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.health-breakdown-btn,[\s\S]*\.updates-chip[\s\S]*\)\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+});
+
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
     assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
     assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);

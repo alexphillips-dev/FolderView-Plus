@@ -1,4 +1,6 @@
 /* Editor chrome */
+.fv-folder-action-dialog.ui-dialog,
+.ui-multiselect-menu.multiselect-container,
 .canvas form.folder-editor-form,
 #fvEditorChrome {
     --fv-editor-bg: var(--fvplus-editor-bg, var(--fvplus-ui-page, #0f0f10));
@@ -391,6 +393,10 @@ html[data-fvplus-host-theme="white"] #fvLivePanel,
 body[data-fvplus-host-theme="white"] #fvLivePanel,
 html[data-fvplus-host-theme="white"] #fvEditorActionBar,
 body[data-fvplus-host-theme="white"] #fvEditorActionBar,
+html[data-fvplus-host-theme="white"] .fv-folder-action-dialog.ui-dialog,
+body[data-fvplus-host-theme="white"] .fv-folder-action-dialog.ui-dialog,
+html[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
+body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 .canvas form.folder-editor-form[data-fv-theme-class="light"],
 #fvEditorChrome[data-fv-theme-class="light"],
 #fvLivePanel[data-fv-theme-class="light"],
@@ -1899,7 +1905,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-live-stat-value {
     display: block;
-    font-size: 1.08rem;
+    font-size: 1.3rem;
     line-height: 1.28;
     color: var(--fv-editor-text-primary);
 }
@@ -1972,7 +1978,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border-radius: 999px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-control-surface);
-    font-size: 0.98rem;
+    font-size: 1.1rem;
     line-height: 1.2;
 }
 
@@ -1988,7 +1994,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-swatch-item > em {
     font-style: normal;
     opacity: 0.9;
-    font-size: 0.97rem;
+    font-size: 1.1rem;
 }
 
 .fv-swatch-item > i {
@@ -2035,7 +2041,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-live-stat-value {
-        font-size: 1.03rem;
+        font-size: 1.3rem;
         line-height: 1.16;
         overflow-wrap: anywhere;
     }
@@ -2056,7 +2062,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-swatch-item > em {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -2072,7 +2078,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         min-height: 20px;
         max-width: 100%;
         padding: 0.06em 0.32em;
-        font-size: 0.88rem;
+        font-size: 1.1rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2365,7 +2371,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body.fv-section-panel-grid {
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .fv-section-shell[data-section-shell="actions"] .fv-section-shell-body.fv-section-panel-grid {
@@ -3063,7 +3069,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body:not(.fv-section-panel-grid) {
     display: grid !important;
-    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.68em;
     align-items: start;
 }
@@ -3088,11 +3094,85 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
-    width: min(100%, 680px) !important;
-    max-width: 680px !important;
+    width: 100% !important;
+    max-width: none !important;
     min-width: 0;
     justify-self: start !important;
     padding-bottom: 0.72em;
+}
+
+.fv-section-shell[data-section-shell="rules"] .fv-editor-panel[data-editor-panel="regex"][hidden],
+.fv-legacy-regex-source-row[hidden] {
+    display: none !important;
+}
+
+.fv-legacy-regex-compatibility {
+    display: grid;
+    gap: 0.72rem;
+    max-width: 680px;
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 181, 71, 0.34);
+    border-radius: 12px;
+    background: rgba(255, 181, 71, 0.07);
+}
+
+.fv-legacy-regex-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.fv-legacy-regex-copy > strong {
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-legacy-regex-copy > span,
+.fv-legacy-regex-compatibility > small {
+    color: var(--fv-editor-muted);
+    line-height: 1.4;
+}
+
+.fv-legacy-regex-compatibility > code {
+    overflow-wrap: anywhere;
+    padding: 0.62rem 0.72rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 8px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-legacy-regex-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+}
+
+.fv-legacy-regex-summary > span {
+    padding: 0.26rem 0.52rem;
+    border-radius: 999px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+.fv-legacy-regex-summary > .is-warning {
+    color: #ffbf59;
+}
+
+.fv-legacy-regex-summary > .is-error,
+.fv-legacy-regex-error {
+    color: #ff7777;
+}
+
+.fv-legacy-regex-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fv-legacy-regex-actions > button {
+    justify-self: start;
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel > dl > dd {
@@ -3244,6 +3324,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-folder-auto-rules-add,
+#fvConvertLegacyRegex,
+#fvRepairLegacyRegex,
 .fv-folder-auto-rule-actions > button {
     display: inline-flex;
     align-items: center;
@@ -3262,6 +3344,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rules-add:hover,
 .fv-folder-auto-rules-add:focus-visible,
+#fvConvertLegacyRegex:hover,
+#fvConvertLegacyRegex:focus-visible,
+#fvRepairLegacyRegex:hover,
+#fvRepairLegacyRegex:focus-visible,
 .fv-folder-auto-rule-actions > button:hover,
 .fv-folder-auto-rule-actions > button:focus-visible {
     border-color: var(--fv-editor-title-accent);
@@ -3269,6 +3355,8 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-folder-auto-rules-add[disabled],
+#fvConvertLegacyRegex[disabled],
+#fvRepairLegacyRegex[disabled],
 .fv-folder-auto-rule-actions > button[disabled] {
     opacity: 0.58;
     cursor: default;
@@ -3612,6 +3700,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row.is-name-row input[type="text"] {
     width: min(100%, 420px) !important;
     max-width: min(100%, 420px) !important;
+    font-size: 1.3rem;
 }
 
 .fv-modern-field-row.is-icon-row input[type="text"],
@@ -3807,29 +3896,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     justify-content: flex-start;
 }
 
-.fv-modern-field-row.is-actions-list-row .custom-action {
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    color: var(--fv-editor-title-accent);
-    justify-content: flex-start;
-}
-
-.fv-modern-field-row.is-actions-list-row .custom-action:hover,
-.fv-modern-field-row.is-actions-list-row .custom-action:focus {
-    background: transparent;
-    border-color: transparent;
-    color: var(--fv-editor-text-primary);
-    transform: none;
-}
-
-.fv-modern-field-row.is-actions-list-row .custom-action:active {
-    transform: none;
-}
-
 .fv-modern-field-row.is-rules-row > blockquote.inline_help,
 .fv-modern-field-row.is-actions-list-row > blockquote.inline_help,
 .fv-modern-field-row.is-actions-launch-row > blockquote.inline_help {
@@ -3837,6 +3903,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-modern-field-row .custom-action {
+    appearance: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -3848,9 +3915,21 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     background: var(--fv-editor-accent-soft);
     color: var(--fv-editor-accent);
     font-weight: 700;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
     text-decoration: none;
     box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.fv-modern-field-row .custom-action > i {
+    cursor: pointer;
+}
+
+.fv-modern-field-row .custom-action:focus-visible {
+    outline: 2px solid var(--fv-editor-focus-ring);
+    outline-offset: 2px;
 }
 
 .fv-modern-field-row .custom-action:hover,
@@ -4200,64 +4279,258 @@ table.sortable td:nth-child(3) {
     letter-spacing: 0.02em;
 }
 
+.fv-folder-action-dialog .ui-dialog-titlebar-close {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    right: 0.72em;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    border: 1px solid var(--fv-editor-control-border) !important;
+    border-radius: 8px;
+    background: var(--fv-editor-control-surface) !important;
+    color: var(--fv-editor-text-primary) !important;
+    cursor: pointer;
+}
+
+.fv-folder-action-dialog .ui-dialog-titlebar-close:hover,
+.fv-folder-action-dialog .ui-dialog-titlebar-close:focus-visible {
+    border-color: var(--fv-editor-border-strong) !important;
+    background: var(--fv-editor-control-surface-hover) !important;
+}
+
 .fv-folder-action-dialog .ui-dialog-content {
+    width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
     background: transparent;
     color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding: 1em 1.1em 0.35em !important;
+    display: block;
+    max-height: min(76vh, 760px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.9em 1em !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     text-align: left !important;
+}
+
+.fv-folder-action-dialog .ui-dialog-content::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .fv-folder-action-dialog .dialogCustomAction {
-    width: min(100%, 360px);
-    max-width: 360px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
     margin: 0;
+    box-sizing: border-box;
+}
+
+.fv-action-dialog-layout {
+    display: grid;
+    gap: 0.78em;
+}
+
+.fv-action-dialog-intro {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 0.15em 0.15em 0.25em;
+}
+
+.fv-action-dialog-intro-icon,
+.fv-action-dialog-section-head > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-title-accent);
+}
+
+.fv-action-dialog-intro-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+    font-size: 1.2rem;
+}
+
+.fv-action-dialog-intro strong {
+    display: block;
+    color: var(--fv-editor-text-primary);
+    font-size: 1.08rem;
+}
+
+.fv-action-dialog-intro p,
+.fv-action-dialog-section-head p {
+    margin: 0;
+    color: var(--fv-editor-muted);
+    line-height: 1.35;
+}
+
+.fv-action-dialog-intro p {
+    margin-top: 0.16em;
+}
+
+.fv-action-dialog-section {
     display: grid;
     gap: 0.72em;
+    padding: 0.78em;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 12px;
+    background: var(--fv-editor-panel);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
 }
 
-.fv-folder-action-dialog .dialogCustomAction > div,
-.fv-folder-action-dialog .dialogCustomAction > .standard,
-.fv-folder-action-dialog .dialogCustomAction > .custom,
-.fv-folder-action-dialog .dialogCustomAction > .standard > div,
-.fv-folder-action-dialog .dialogCustomAction > .custom > dl,
-.fv-folder-action-dialog .dialogCustomAction > dl {
-    display: grid;
-    gap: 0.52em;
+.fv-action-dialog-section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+}
+
+.fv-action-dialog-section-head > span {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+}
+
+.fv-action-dialog-section-head h3 {
     margin: 0;
-    width: 100% !important;
-    justify-items: start;
+    color: var(--fv-editor-title-accent);
+    font-size: 0.92rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
-.fv-folder-action-dialog .dialogCustomAction dl {
-    display: flex !important;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.32em;
-    margin: 0 !important;
-    width: 100% !important;
-    text-align: left !important;
+.fv-action-dialog-section-head p {
+    margin-top: 0.1em;
+    font-size: 0.9rem;
 }
 
-.fv-folder-action-dialog .dialogCustomAction dl > dt {
-    color: var(--fvplus-editor-title-accent, var(--fvplus-editor-accent, currentColor));
+.fv-action-dialog-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.68em;
+}
+
+.fv-action-dialog-field,
+.fv-action-type-field,
+.fv-action-sync-field {
+    min-width: 0;
+    margin: 0;
+}
+
+.fv-action-dialog-field,
+.fv-action-type-field {
+    display: grid;
+    gap: 0.3em;
+}
+
+.fv-action-dialog-field.is-wide,
+.fv-action-type-field.is-wide,
+.fv-action-sync-field.is-wide {
+    grid-column: 1 / -1;
+}
+
+.fv-action-dialog-field > span:first-child,
+.fv-action-type-field > legend,
+.fv-action-target-label > span {
+    color: var(--fv-editor-title-accent);
+    font-style: normal;
     font-weight: 700;
-    width: auto !important;
-    text-align: left !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    float: none !important;
 }
 
-.fv-folder-action-dialog .dialogCustomAction dl > dd {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: left !important;
-    float: none !important;
-    justify-self: start;
+.fv-action-type-field {
+    padding: 0;
+    border: 0;
+}
+
+.fv-action-type-field > legend {
+    margin-bottom: 0.32em;
+    padding: 0;
+}
+
+.fv-action-type-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+}
+
+.fv-action-type-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55em;
+}
+
+.fv-action-type-option {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 0.55em;
+    align-items: center;
+    min-height: 58px;
+    padding: 0.5em 0.62em;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 10px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary);
+    text-align: left;
+    cursor: pointer;
+}
+
+.fv-action-type-option > i {
+    color: var(--fv-editor-title-accent);
+    font-size: 1.15rem;
+    text-align: center;
+}
+
+.fv-action-type-option > span {
+    display: grid;
+    gap: 0.08em;
+}
+
+.fv-action-type-option small,
+.fv-action-dialog-field > small,
+.fv-action-sync-field small {
+    color: var(--fv-editor-muted);
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.fv-action-type-option.is-selected {
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-active);
+    box-shadow: inset 3px 0 0 var(--fv-editor-title-accent);
+}
+
+.fv-action-type-option:hover,
+.fv-action-type-option:focus-visible {
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-hover);
+}
+
+.fv-action-type-option:focus-visible {
+    outline: none;
+}
+
+.fv-folder-action-dialog button:not(.ui-multiselect) {
+    border: 0 !important;
+    outline: none !important;
+}
+
+.fv-folder-action-dialog button:not(.ui-multiselect):focus-visible {
+    border: 0 !important;
+    outline: none !important;
+    background: var(--fv-editor-control-surface-hover);
 }
 
 .fv-folder-action-dialog .dialogCustomAction input[type="text"],
@@ -4266,19 +4539,147 @@ table.sortable td:nth-child(3) {
 .fv-folder-action-dialog .dialogCustomAction .ui-multiselect {
     width: 100% !important;
     max-width: 100% !important;
+    min-height: 38px;
+    padding: 0.42em 0.66em;
     border-radius: 9px;
     border: 1px solid var(--fv-editor-block-border);
-    background: var(--fvplus-editor-input-bg, transparent);
+    background: var(--fv-editor-input-bg);
     color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    box-sizing: border-box;
 }
 
 .fv-folder-action-dialog .dialogCustomAction .ui-multiselect {
-    min-height: 34px;
+    min-height: 38px;
 }
 
 .fv-folder-action-dialog .action-subject .ui-multiselect {
     width: 100% !important;
+}
+
+.fv-action-target-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6em;
+}
+
+.fv-action-target-label > strong {
+    color: var(--fv-editor-muted);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.fv-action-target-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42em;
+}
+
+.fv-action-target-tools > button {
+    min-height: 30px;
+    padding: 0.28em 0.62em;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 8px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary);
+    cursor: pointer;
+}
+
+.fv-action-target-tools > button:hover,
+.fv-action-target-tools > button:focus-visible {
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-hover);
+}
+
+.fv-action-target-tools > button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.fv-action-target-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35em;
+    min-height: 24px;
+}
+
+.fv-action-target-chips > span:not(.is-empty) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0.08em 0.5em;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 999px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-action-target-chips > .is-empty {
+    color: var(--fv-editor-muted);
+    font-style: italic;
+}
+
+.fv-action-sync-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8em;
+    min-height: 48px;
+    padding: 0.48em 0.62em;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 10px;
+    background: var(--fv-editor-inset-surface);
+}
+
+.fv-action-sync-field > div {
+    display: grid;
+    gap: 0.08em;
+}
+
+.fv-action-icon-control {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 0.5em;
+}
+
+.fv-action-icon-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 9px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-title-accent);
+    font-size: 1.15rem;
+}
+
+.fv-action-dialog-field.is-invalid input,
+.fv-action-dialog-field.is-invalid select,
+.fv-action-dialog-field.is-invalid .ui-multiselect,
+.action-subject.is-invalid .ui-multiselect {
+    border-color: var(--fv-editor-danger) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fv-editor-danger) 24%, transparent) !important;
+}
+
+.fv-action-field-error,
+.fv-action-validation-summary {
+    color: var(--fv-editor-danger);
+    font-style: normal;
+    font-weight: 600;
+}
+
+.fv-action-validation-summary {
+    padding: 0.55em 0.7em;
+    border: 1px solid color-mix(in srgb, var(--fv-editor-danger) 55%, transparent);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--fv-editor-danger) 9%, transparent);
+}
+
+.fv-action-validation-summary[hidden],
+.fv-action-field-error[hidden] {
+    display: none !important;
 }
 
 .fv-folder-action-dialog .ui-dialog-buttonpane {
@@ -4290,14 +4691,48 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-folder-action-dialog .ui-dialog-buttonset {
-    display: inline-flex;
+    display: flex;
+    justify-content: flex-end;
     gap: 0.55em;
+    width: 100%;
+    float: none;
 }
 
 .fv-folder-action-dialog .ui-dialog-buttonpane button {
     min-height: 34px;
     padding: 0.42em 1.1em;
     border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+    .fv-folder-action-dialog .ui-dialog-content {
+        max-height: 72vh;
+        padding: 0.72em !important;
+    }
+
+    .fv-action-dialog-field-grid,
+    .fv-action-type-options {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-action-dialog-field,
+    .fv-action-type-field,
+    .fv-action-sync-field {
+        grid-column: 1 / -1;
+    }
+
+    .fv-action-dialog-intro {
+        align-items: flex-start;
+    }
+
+    .fv-folder-action-dialog .ui-dialog-buttonpane {
+        padding: 0.7em;
+    }
+
+    .fv-folder-action-dialog .ui-dialog-buttonset,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button {
+        width: 100%;
+    }
 }
 
 @media (max-width: 900px) {
@@ -4326,6 +4761,31 @@ table.sortable td:nth-child(3) {
 .multiselect-container {
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.ui-multiselect-menu.multiselect-container {
+    padding: 0.42em;
+    border: 1px solid var(--fv-editor-control-border);
+    border-radius: 10px;
+    background: var(--fv-editor-panel);
+    color: var(--fv-editor-text-primary);
+    box-shadow: var(--fv-editor-shadow);
+}
+
+.ui-multiselect-menu.multiselect-container .ui-multiselect-checkboxes {
+    max-height: min(280px, 42vh);
+    padding: 0.2em;
+}
+
+.ui-multiselect-menu.multiselect-container .ui-multiselect-checkboxes label {
+    border-radius: 7px;
+    color: var(--fv-editor-text-primary);
+}
+
+.ui-multiselect-menu.multiselect-container .ui-multiselect-checkboxes label:hover,
+.ui-multiselect-menu.multiselect-container .ui-multiselect-checkboxes label.ui-state-hover {
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-hover);
 }
 
 /* Fix tooltip bullet points - remove list markers and align with headings */
@@ -4508,6 +4968,7 @@ table.sortable td:nth-child(3) {
 }
 
 #fvEditorActionBar .folder-btn-submit,
+.fv-folder-action-dialog .fv-action-dialog-primary,
 .fv-section-nav > button.is-active,
 .fv-third-party-mode-switch > button.is-active,
 #fv-third-party-filter-toggle.is-active,
@@ -4570,7 +5031,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 }
 
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4594,7 +5055,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 }
 
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4610,7 +5071,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .folder-status-colors-dd > button
 ):hover,
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4642,12 +5103,43 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     color: var(--fv-editor-title-accent) !important;
 }
 
-.fv-modern-field-row.is-actions-list-row .custom-action,
-.fv-modern-field-row.is-actions-list-row .custom-action:hover,
-.fv-modern-field-row.is-actions-list-row .custom-action:focus {
+#fvFolderEditorForm .order-buttons > button.fv-six-dot-drag-handle {
+    min-width: 26px !important;
+    width: 26px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    grid-template-columns: repeat(2, 4px);
+    grid-auto-rows: 4px;
+    justify-content: center;
+    align-content: center;
+    gap: 3px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    transform: none !important;
+    color: var(--fv-editor-title-accent) !important;
+}
+
+#fvFolderEditorForm .fv-six-dot-drag-handle > .fv-six-dot-drag-dot {
+    display: block !important;
+    min-width: 4px !important;
+    width: 4px !important;
+    max-width: 4px !important;
+    min-height: 4px !important;
+    height: 4px !important;
+    max-height: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: 0 !important;
+    border-radius: 999px;
+    background: currentColor !important;
+    box-shadow: none !important;
+    opacity: 0.9 !important;
 }
 
 /* Order section - display label above full-width table */

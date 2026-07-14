@@ -795,10 +795,11 @@ const buildDockerIsolatedViewDeps = () => ({
         dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
             ? snapshot.runtimeInfoByName
             : {};
-        folderTypePrefs = utils.normalizePrefs(snapshot?.prefs || {});
+        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(snapshot?.prefs || {});
         lastAppliedRuntimePrefs = folderTypePrefs;
         dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
         lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
+        lastLiveRefreshStateEntityCount = Object.keys(dockerRuntimeInfoByName || {}).length;
         resolveDockerStrictPerformanceProfile(folderTypePrefs, globalFolders, dockerRuntimeInfoByName);
         dockerRuntimeStateStore.set({
             pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
@@ -869,6 +870,8 @@ const buildDockerDiagnosticsCorrelationContext = () => ({
     requestGeneration: Number(folderReq?.generation || 0),
     traceSessionId: dockerDiagnosticsTraceSessionId,
     stateSignature: String(lastLiveRefreshStateSignature || ''),
+    stateEntityCount: lastLiveRefreshStateEntityCount,
+    orderReconciliation: lastDockerOrderReconciliation,
     liveUpdateStatus: isDockerHostUpdateSyncSuspended(),
     hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
     hookStates: getDockerHostGuardsApi()?.getHookStates?.() || {}
@@ -2539,6 +2542,62 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     });
 };
 
+const reconcileDockerOrderWithFolderSlots = (liveOrder, savedOrder, folders) => {
+    const currentOrder = Array.isArray(liveOrder)
+        ? liveOrder.map((item) => String(item || '')).filter(Boolean)
+        : [];
+    const preferredOrder = Array.isArray(savedOrder)
+        ? savedOrder.map((item) => String(item || '')).filter(Boolean)
+        : [];
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const liveSet = new Set(currentOrder);
+    const savedSet = new Set(preferredOrder);
+    const newOnes = currentOrder.filter((entry) => !savedSet.has(entry));
+    const reconciledFolderOrder = [];
+    const reconciledContainerOrder = [];
+    const seen = new Set();
+    const appendUnique = (target, entry) => {
+        if (!entry || seen.has(entry)) {
+            return;
+        }
+        seen.add(entry);
+        target.push(entry);
+    };
+
+    preferredOrder.forEach((entry) => {
+        if (folderRegex.test(entry)) {
+            const folderId = entry.replace(folderRegex, '');
+            if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
+                appendUnique(reconciledFolderOrder, entry);
+            }
+            return;
+        }
+        if (liveSet.has(entry)) {
+            appendUnique(reconciledContainerOrder, entry);
+        }
+    });
+    newOnes.forEach((entry) => appendUnique(reconciledContainerOrder, entry));
+
+    return {
+        order: [...reconciledFolderOrder, ...reconciledContainerOrder],
+        newOnes
+    };
+};
+
+const buildDockerOrderFingerprint = (order) => {
+    const input = (Array.isArray(order) ? order : []).map((entry) => String(entry || '')).join('\u001f');
+    let hashA = 0x811c9dc5;
+    let hashB = 0x9e3779b9;
+    for (let index = 0; index < input.length; index++) {
+        const code = input.charCodeAt(index);
+        hashA ^= code;
+        hashA = Math.imul(hashA, 0x01000193) >>> 0;
+        hashB ^= code + index + 1;
+        hashB = Math.imul(hashB, 0x85ebca6b) >>> 0;
+    }
+    return `${hashA.toString(16).padStart(8, '0')}${hashB.toString(16).padStart(8, '0')}`;
+};
+
 const buildFolderHierarchy = (folders) => {
     const hierarchyApi = getDockerRuntimeHierarchyApi();
     return hierarchyApi && typeof hierarchyApi.buildFolderHierarchy === 'function'
@@ -2616,10 +2675,23 @@ dockerRuntimeStateStore.subscribe((nextState, _prevState, patch) => {
     }
 });
 const isDockerFolderLocked = (folderId) => dockerLockedFolderIdSet.has(String(folderId || '').trim());
+const normalizeDockerPinnedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+};
 const isDockerFolderPinned = (folderId) => {
     const id = String(folderId || '').trim();
-    const pinned = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : [];
-    return pinned.includes(id);
+    if (!id) {
+        return false;
+    }
+    const prefsPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
+    if (prefsPinned.includes(id)) {
+        return true;
+    }
+    const runtimePinned = normalizeDockerPinnedFolderIdList(dockerRuntimeStateStore.get('pinnedFolderIds', []));
+    return runtimePinned.includes(id);
 };
 const readFolderIdFromRow = (row) => {
     if (!row || !row.className) {
@@ -2641,6 +2713,27 @@ const readFolderOwnerFromRow = (row) => {
     }
     return '';
 };
+const buildDockerFolderPinnedIndicatorHtml = () => {
+    const label = escapeHtml(getDockerMenuLabel('pinned-folder', 'Pinned folder'));
+    return `<span class="fv-folder-pin-indicator" title="${label}" aria-label="${label}"><i class="fa fa-thumb-tack" aria-hidden="true"></i></span>`;
+};
+const syncDockerFolderPinnedIndicator = ($row, pinned) => {
+    if (!$row || !$row.length) {
+        return;
+    }
+    const $indicator = $row.find('.fv-folder-pin-indicator').first();
+    if (!pinned) {
+        $indicator.remove();
+        return;
+    }
+    if ($indicator.length) {
+        return;
+    }
+    const $name = $row.find('.folder-appname').first();
+    if ($name.length) {
+        $name.after(buildDockerFolderPinnedIndicatorHtml());
+    }
+};
 const getFocusedFolderVisibleSet = (folderId) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
@@ -2661,6 +2754,7 @@ const applyDockerFolderQuickActionState = (folderId) => {
     const locked = isDockerFolderLocked(id);
     const focused = dockerFocusedFolderId === id;
     $row.toggleClass('fv-folder-pinned', pinned);
+    syncDockerFolderPinnedIndicator($row, pinned);
     $row.toggleClass('fv-folder-locked', locked);
     $row.toggleClass('fv-folder-focused', focused);
 };
@@ -2862,11 +2956,92 @@ const toggleDockerFolderLock = (folderId) => {
     refreshDockerFolderQuickActionStates();
 };
 const applyDockerPinnedFolderIds = (nextPinnedIds) => {
+    const normalizedPinnedIds = normalizeDockerPinnedFolderIdList(nextPinnedIds);
     folderTypePrefs = utils.normalizePrefs({
         ...(folderTypePrefs || {}),
-        pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : []
+        pinnedFolderIds: normalizedPinnedIds
     });
-    dockerRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
+    dockerRuntimeStateStore.set({ pinnedFolderIds: normalizedPinnedIds });
+};
+let dockerPinnedFolderIdsOverride = null;
+const dockerPinnedFolderIdListsMatch = (left, right) => {
+    const normalizedLeft = normalizeDockerPinnedFolderIdList(left);
+    const normalizedRight = normalizeDockerPinnedFolderIdList(right);
+    return normalizedLeft.length === normalizedRight.length
+        && normalizedLeft.every((entry, index) => entry === normalizedRight[index]);
+};
+const rememberDockerPinnedFolderIdsOverride = (nextPinnedIds) => {
+    dockerPinnedFolderIdsOverride = {
+        pinnedFolderIds: normalizeDockerPinnedFolderIdList(nextPinnedIds),
+        expiresAt: Date.now() + 10000
+    };
+};
+const clearDockerPinnedFolderIdsOverride = () => {
+    dockerPinnedFolderIdsOverride = null;
+};
+const applyDockerPinnedFolderPrefsOverride = (prefs = {}) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    if (!dockerPinnedFolderIdsOverride || Date.now() > Number(dockerPinnedFolderIdsOverride.expiresAt || 0)) {
+        clearDockerPinnedFolderIdsOverride();
+        return normalized;
+    }
+    const overridePinnedIds = normalizeDockerPinnedFolderIdList(dockerPinnedFolderIdsOverride.pinnedFolderIds);
+    if (dockerPinnedFolderIdListsMatch(normalized.pinnedFolderIds, overridePinnedIds)) {
+        return normalized;
+    }
+    return utils.normalizePrefs({
+        ...normalized,
+        pinnedFolderIds: overridePinnedIds
+    });
+};
+const assertDockerPrefsSaveResponse = (response, fallbackMessage = 'Failed to save Docker preferences.') => {
+    if (!response || response.ok === false) {
+        throw new Error(String(response?.error || fallbackMessage));
+    }
+    return response;
+};
+const fetchDockerPinnedFolderPrefs = async () => {
+    const url = `/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`;
+    const request = window.FolderViewPlusRequest;
+    let response = null;
+    if (request && typeof request.getJson === 'function') {
+        response = await request.getJson(url, {
+            retries: 1,
+            retryDelayMs: 220
+        });
+    } else {
+        response = parseJsonPayloadSafe(await $.get(url).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
+    return utils.normalizePrefs(response?.prefs || {});
+};
+let dockerPinnedFolderServerReconcileTimer = null;
+let dockerPinnedFolderServerReconcileGeneration = 0;
+const queueDockerPinnedFolderServerReconcile = (reason = 'post-render', delayMs = 120) => {
+    if (dockerPinnedFolderServerReconcileTimer) {
+        clearTimeout(dockerPinnedFolderServerReconcileTimer);
+    }
+    const safeDelay = Math.max(0, Math.min(1000, Number(delayMs) || 0));
+    dockerPinnedFolderServerReconcileTimer = setTimeout(() => {
+        dockerPinnedFolderServerReconcileTimer = null;
+        const generation = ++dockerPinnedFolderServerReconcileGeneration;
+        fetchDockerPinnedFolderPrefs()
+            .then((prefs) => {
+                if (generation !== dockerPinnedFolderServerReconcileGeneration) {
+                    return;
+                }
+                const reconciledPrefs = applyDockerPinnedFolderPrefsOverride(prefs || {});
+                applyDockerPinnedFolderIds(reconciledPrefs.pinnedFolderIds);
+                syncDockerPinnedFolderUi();
+                appendDockerRequestBundleTrace('pinned-folder-reconcile', {
+                    reason,
+                    pinnedFolderCount: normalizeDockerPinnedFolderIdList(reconciledPrefs.pinnedFolderIds).length
+                });
+            })
+            .catch(() => {
+                // The initial render state remains usable; the next Docker render or settings sync will retry.
+            });
+    }, safeDelay);
 };
 const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
     const payload = {
@@ -2874,9 +3049,10 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
     };
     const request = window.FolderViewPlusRequest;
+    let response = null;
     if (request && typeof request.postJson === 'function') {
         try {
-            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
                 retries: 1,
                 retryDelayMs: 260
             });
@@ -2885,8 +3061,37 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
             // runtime request wrapper is late, degraded, or temporarily broken.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    if (!response) {
+        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker pinned folders.');
+    const confirmedPrefs = await fetchDockerPinnedFolderPrefs();
+    if (!dockerPinnedFolderIdListsMatch(confirmedPrefs.pinnedFolderIds, nextPinnedIds)) {
+        throw new Error('Docker pinned folders did not persist.');
+    }
+    return {
+        ...response,
+        prefs: confirmedPrefs
+    };
+};
+const broadcastDockerPinnedFolderChange = (payload = {}) => {
+    const eventPayload = {
+        type: 'docker',
+        pinnedFolderIds: normalizeDockerPinnedFolderIdList(payload.pinnedFolderIds),
+        changedFolderId: String(payload.changedFolderId || ''),
+        pinned: payload.pinned === true,
+        timestamp: Number(payload.timestamp || Date.now())
+    };
+    try {
+        localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify(eventPayload));
+    } catch (_error) {
+        // Cross-page refresh hints are best-effort; persistence already succeeded.
+    }
+    try {
+        window.dispatchEvent(new CustomEvent(PINNED_FOLDER_CHANGE_EVENT, { detail: eventPayload }));
+    } catch (_error) {
+        // Same-window refresh hints are best-effort for older browsers.
+    }
 };
 const toggleDockerFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
@@ -2894,22 +3099,32 @@ const toggleDockerFolderPin = async (folderId) => {
         return;
     }
     return dockerSafeUiActionRunner.run(`docker-pin:${id}`, async () => {
-        const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
-        const nextPinned = current.includes(id)
-            ? current.filter((entry) => entry !== id)
-            : [...current, id];
-        applyDockerPinnedFolderIds(nextPinned);
-        syncDockerPinnedFolderUi();
+        const previousPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
-            const response = await persistDockerPinnedFolderIds(nextPinned);
-            applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
+            const currentPrefs = await fetchDockerPinnedFolderPrefs();
+            const current = normalizeDockerPinnedFolderIdList(currentPrefs.pinnedFolderIds);
+            const nextPinned = current.includes(id)
+                ? current.filter((entry) => entry !== id)
+                : [...current, id];
+            rememberDockerPinnedFolderIdsOverride(nextPinned);
+            applyDockerPinnedFolderIds(nextPinned);
             syncDockerPinnedFolderUi();
+            const response = await persistDockerPinnedFolderIds(nextPinned);
+            const confirmedPinned = normalizeDockerPinnedFolderIdList(response?.prefs?.pinnedFolderIds || nextPinned);
+            applyDockerPinnedFolderIds(confirmedPinned);
+            syncDockerPinnedFolderUi();
+            broadcastDockerPinnedFolderChange({
+                pinnedFolderIds: confirmedPinned,
+                changedFolderId: id,
+                pinned: confirmedPinned.includes(id)
+            });
         }, {
             userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
-            userVisible: false
+            userVisible: true
         });
         if (!result.ok) {
-            applyDockerPinnedFolderIds(current);
+            clearDockerPinnedFolderIdsOverride();
+            applyDockerPinnedFolderIds(previousPinned);
             syncDockerPinnedFolderUi();
         }
     });
@@ -2962,12 +3177,23 @@ const buildDockerFolderRuntimeOrderState = () => {
         collectDescendants
     };
 };
+const normalizeDockerManualFolderOrder = (nextOrder, folders = globalFolders, prefs = folderTypePrefs) => {
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const requestedOrder = Array.isArray(nextOrder) ? nextOrder.map((id) => String(id || '').trim()).filter((id) => id !== '') : [];
+    const ordered = getPrefsOrderedFolderMap(folderMap, {
+        ...(prefs || {}),
+        sortMode: 'manual',
+        manualOrder: requestedOrder
+    });
+    return Object.keys(ordered || {});
+};
 const persistDockerFolderManualOrder = async (nextOrder) => {
+    const normalizedOrder = normalizeDockerManualFolderOrder(nextOrder);
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
             sortMode: 'manual',
-            manualOrder: Array.isArray(nextOrder) ? nextOrder : []
+            manualOrder: normalizedOrder
         })
     };
     const request = window.FolderViewPlusRequest;
@@ -3132,8 +3358,8 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             });
             insertIndex = lastParentSubtreeIndex >= 0 ? lastParentSubtreeIndex + 1 : orderWithoutSource.length;
         }
-        const nextOrder = orderWithoutSource.slice();
-        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const requestedOrder = orderWithoutSource.slice();
+        requestedOrder.splice(Math.max(0, Math.min(insertIndex, requestedOrder.length)), 0, ...sourceSubtreeIds);
         const previousFolders = { ...globalFolders };
         const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
         const previousOrder = fullOrder.slice();
@@ -3141,10 +3367,12 @@ const applyDockerFolderHierarchyMoveFromMenu = async (folderId, nextParentId) =>
             ...sourceFolder,
             parentId
         };
-        globalFolders = {
+        const nextFolders = {
             ...globalFolders,
             [id]: nextFolder
         };
+        const nextOrder = normalizeDockerManualFolderOrder(requestedOrder, nextFolders, folderTypePrefs);
+        globalFolders = nextFolders;
         folderTypePrefs = utils.normalizePrefs({
             ...(folderTypePrefs || {}),
             sortMode: 'manual',
@@ -3277,8 +3505,9 @@ const moveDockerFolderFromMenu = async (folderId, direction) => {
                 });
                 return lastIndex >= 0 ? lastIndex + 1 : orderWithoutSource.length;
             })();
-        const nextOrder = orderWithoutSource.slice();
-        nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+        const requestedOrder = orderWithoutSource.slice();
+        requestedOrder.splice(Math.max(0, Math.min(insertIndex, requestedOrder.length)), 0, ...sourceSubtreeIds);
+        const nextOrder = normalizeDockerManualFolderOrder(requestedOrder, folders, folderTypePrefs);
         const changed = nextOrder.length === fullOrder.length
             && nextOrder.some((candidateId, index) => String(candidateId || '') !== String(fullOrder[index] || ''));
         if (!changed) {
@@ -3840,17 +4069,18 @@ const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
 const fetchDockerBootstrapPrefs = async () => {
     const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
     const parsed = parseJsonPayloadSafe(response);
-    const nextPrefs = utils.normalizePrefs(parsed?.prefs || {});
+    const nextPrefs = applyDockerPinnedFolderPrefsOverride(parsed?.prefs || {});
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
     return nextPrefs;
 };
 
-const ensureDockerBootstrapPrefs = () => {
-    if (lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object' && Object.keys(lastAppliedRuntimePrefs).length > 0) {
+const ensureDockerBootstrapPrefs = (options = {}) => {
+    const forceRefresh = options?.forceRefresh === true;
+    if (!forceRefresh && lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object' && Object.keys(lastAppliedRuntimePrefs).length > 0) {
         return Promise.resolve(lastAppliedRuntimePrefs);
     }
-    if (dockerBootstrapPrefsPromise) {
+    if (!forceRefresh && dockerBootstrapPrefsPromise) {
         return dockerBootstrapPrefsPromise;
     }
     dockerBootstrapPrefsPromise = Promise.resolve()
@@ -3860,6 +4090,13 @@ const ensureDockerBootstrapPrefs = () => {
             dockerBootstrapPrefsPromise = null;
         });
     return dockerBootstrapPrefsPromise;
+};
+
+const rebuildDockerFolderReqForHostRender = () => {
+    folderReq = buildDockerFolderReq({
+        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+    });
+    return folderReq;
 };
 
 const unmountDockerCommandView = () => {
@@ -3897,7 +4134,7 @@ const unmountDockerIsolatedViews = (exceptMode = '') => {
 
 const queueDockerRuntimeRenderForPageViewMode = () => {
     Promise.resolve()
-        .then(() => ensureDockerBootstrapPrefs())
+        .then(() => ensureDockerBootstrapPrefs({ forceRefresh: true }))
         .then((prefs) => {
             const mode = resolveDockerPageViewMode(prefs);
             if (mode === 'host') {
@@ -3945,21 +4182,13 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 return;
             }
             unmountDockerIsolatedViews();
-            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-                folderReq = buildDockerFolderReq({
-                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-                });
-            }
+            rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
         })
         .catch(() => {
             unmountDockerIsolatedViews();
-            if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
-                folderReq = buildDockerFolderReq({
-                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-                });
-            }
+            rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
         });
@@ -4353,6 +4582,7 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
+                lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
@@ -4418,7 +4648,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
     resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
@@ -4428,6 +4658,7 @@ const createFolders = async () => {
     applyRuntimePrefs(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
+    lastLiveRefreshStateEntityCount = Object.keys(containersStateInfo || {}).length;
     if (order.length <= 0) {
         order = [...unraidOrder];
     }
@@ -4443,20 +4674,31 @@ const createFolders = async () => {
     }
 
 
-    // Filter the order to get the container that aren't in the order, this happen when a new container is created
-    const newOnes = order.filter(x => !unraidOrder.includes(x));
+    // Keep FolderView rows above standalone containers even when Unraid has already
+    // saved a newly installed container at the beginning of userprefs.cfg.
+    const liveOrderBeforeReconciliation = [...order];
+    const reconciledOrder = reconcileDockerOrderWithFolderSlots(order, unraidOrder, folders);
+    order = reconciledOrder.order;
+    const newOnes = reconciledOrder.newOnes;
+    lastDockerOrderReconciliation = {
+        available: true,
+        capturedAt: new Date().toISOString(),
+        liveOrderCount: liveOrderBeforeReconciliation.length,
+        savedOrderCount: unraidOrder.length,
+        reconciledOrderCount: reconciledOrder.order.length,
+        folderCount: Object.keys(folders || {}).length,
+        missingContainerCount: newOnes.length,
+        appendedContainerCount: newOnes.length,
+        appendPosition: newOnes.length > 0 ? 'after-folders' : 'not-needed',
+        orderingInvariantSatisfied: reconciledOrder.order.every((entry, index, entries) => (
+            !folderRegex.test(entry) || entries.slice(0, index).every((previous) => folderRegex.test(previous))
+        )),
+        liveOrderFingerprint: buildDockerOrderFingerprint(liveOrderBeforeReconciliation),
+        savedOrderFingerprint: buildDockerOrderFingerprint(unraidOrder),
+        reconciledOrderFingerprint: buildDockerOrderFingerprint(reconciledOrder.order)
+    };
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: newOnes (containers not in unraidOrder)', newOnes);
-
-
-    // Insert the folder in the unraid folder into the order shifted by the unlisted containers
-    for (let index = 0; index < unraidOrder.length; index++) {
-        const element = unraidOrder[index];
-        if((folderRegex.test(element) && folders[element.slice(7)])) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Splicing folder ${element} into order at index ${index + newOnes.length}`);
-            order.splice(index+newOnes.length, 0, element);
-        }
-    }
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Order after inserting Unraid-ordered folders', [...order]);
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Reconciled saved folders before new containers', [...order]);
 
 
     // debug mode, download the debug json file
@@ -4610,6 +4852,8 @@ const createFolders = async () => {
         });
     }
     applyNestedFolderHierarchy();
+    syncDockerPinnedFolderUi();
+    queueDockerPinnedFolderServerReconcile('post-render', 160);
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');
@@ -4879,7 +5123,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const pinnedIndicator = pinned ? buildDockerFolderPinnedIndicatorHtml() : '';
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {
@@ -6185,8 +6430,7 @@ const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter(
     iconClassCandidates: [
         'fa-bullseye',
         'fa-dot-circle-o',
-        'fa-star',
-        'fa-star-o',
+        'fa-thumb-tack',
         'fa-lock',
         'fa-unlock-alt'
     ]
@@ -6469,7 +6713,7 @@ const addDockerFolderContext = (id) => {
         text: pinned
             ? getDockerMenuLabel('unpin-folder', 'Unpin folder')
             : getDockerMenuLabel('pin-folder', 'Pin folder'),
-        icon: pinned ? 'fa-star' : 'fa-star-o',
+        icon: 'fa-thumb-tack',
         action: (evt) => {
             evt.preventDefault();
             toggleDockerFolderPin(id);
@@ -6872,6 +7116,39 @@ getDockerHostGuardsApi()?.noteHookWrapped?.('window.loadlist', {
     note: 'wrapped'
 });
 
+const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
+const applyDockerSettingsPinSyncPayload = (payload) => {
+    if (!payload || payload.type !== 'docker') {
+        return;
+    }
+    if (Array.isArray(payload.pinnedFolderIds)) {
+        clearDockerPinnedFolderIdsOverride();
+        applyDockerPinnedFolderIds(payload.pinnedFolderIds);
+        syncDockerPinnedFolderUi();
+        return;
+    }
+    queueLoadlistRefresh({ suppressLoadingUi: true });
+};
+const bindDockerSettingsPinSyncListener = () => {
+    window.addEventListener('storage', (event) => {
+        if (event.key !== PINNED_FOLDER_CHANGE_STORAGE_KEY || !event.newValue) {
+            return;
+        }
+        let payload = null;
+        try {
+            payload = JSON.parse(event.newValue);
+        } catch (_error) {
+            return;
+        }
+        applyDockerSettingsPinSyncPayload(payload);
+    });
+    window.addEventListener(PINNED_FOLDER_CHANGE_EVENT, (event) => {
+        applyDockerSettingsPinSyncPayload(event.detail || null);
+    });
+};
+bindDockerSettingsPinSyncListener();
+
 // Get the number of CPU, nneded for a right display of the load
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Requesting CPU count.');
 $.get('/plugins/folderview.plus/server/cpu.php').promise().then((data) => {
@@ -7023,6 +7300,8 @@ let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+let lastLiveRefreshStateEntityCount = 0;
+let lastDockerOrderReconciliation = { available: false };
 let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
 let nextDockerRenderSuppressLoadingUi = false;
@@ -7198,6 +7477,7 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
         const nextSignature = buildDockerStateSignature(parsed, true);
         if (nextSignature) {
             lastLiveRefreshStateSignature = nextSignature;
+            lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
         }
         syncDockerVisibleFoldersFromRuntimeCache();
         return true;

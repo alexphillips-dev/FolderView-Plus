@@ -499,21 +499,61 @@ const getSectionChangeItems = (sectionKey, baselineSnapshot = parseSnapshotState
 const getAllChangedItems = (baselineSnapshot = parseSnapshotState(initialSnapshot), currentSnapshot = parseSnapshotState(computeFormSnapshot())) => Object.keys(SECTION_META)
     .flatMap((sectionKey) => getSectionChangeItems(sectionKey, baselineSnapshot, currentSnapshot));
 
-const buildSampleMemberState = (member, index = 0) => {
-    const rawState = String(member?.State?.Status || member?.RawState?.Status || member?.status || '').trim().toLowerCase();
+const resolveMemberRuntimeStateKey = (member) => {
+    const stateSources = [
+        member?.State,
+        member?.RawState,
+        member?.info?.State,
+        member
+    ].filter((source) => source && typeof source === 'object');
+
+    for (const source of stateSources) {
+        const hasExplicitPaused = typeof source.Paused === 'boolean' || typeof source.paused === 'boolean' || typeof source.pause === 'boolean';
+        const hasExplicitRunning = typeof source.Running === 'boolean' || typeof source.running === 'boolean' || typeof source.state === 'boolean';
+        const hasPausedFlag = source.Paused === true || source.paused === true || source.pause === true;
+        const hasRunningFlag = source.Running === true || source.running === true || source.state === true;
+        if (hasExplicitPaused || hasExplicitRunning) {
+            if (hasPausedFlag) {
+                return 'paused';
+            }
+            if (hasRunningFlag) {
+                return 'started';
+            }
+            return 'stopped';
+        }
+    }
+
+    const rawState = stateSources
+        .map((source) => String(source.Status || source.status || source.state || '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' ');
     if (rawState.includes('pause')) {
+        return 'paused';
+    }
+    if (rawState.includes('run') || rawState.includes('start')) {
+        return 'started';
+    }
+    if (rawState.includes('stop') || rawState.includes('exit') || rawState.includes('dead')) {
+        return 'stopped';
+    }
+    return '';
+};
+
+const buildSampleMemberState = (member, index = 0) => {
+    const runtimeStateKey = resolveMemberRuntimeStateKey(member);
+    if (runtimeStateKey === 'paused') {
         return {
             label: 'paused',
             color: normalizeHexColor(getForm()?.status_color_paused?.value, DEFAULT_FOLDER_STATUS_COLORS.paused)
         };
     }
-    if (rawState.includes('run') || rawState.includes('start')) {
+    if (runtimeStateKey === 'started') {
         return {
             label: type === 'vm' ? 'running' : 'started',
             color: normalizeHexColor(getForm()?.status_color_started?.value, DEFAULT_FOLDER_STATUS_COLORS.started)
         };
     }
-    if (rawState.includes('stop') || rawState.includes('exit') || rawState.includes('dead')) {
+    if (runtimeStateKey === 'stopped') {
         return {
             label: 'stopped',
             color: normalizeHexColor(getForm()?.status_color_stopped?.value, DEFAULT_FOLDER_STATUS_COLORS.stopped)
@@ -1065,12 +1105,27 @@ const getFolderEditorRulesApi = () => {
         window,
         document,
         $,
+        swal,
         type,
         utils,
         escapeHtml,
         extractAjaxErrorMessage,
         shouldRender: () => modernFolderEditorEnabled,
         getActiveFolderId: () => activeFolderEditorFolderId,
+        getLegacyRuleContext: () => ({
+            pattern: String(getForm()?.regex?.value || ''),
+            items: getAllMembers().map((item) => ({ ...item, Type: type })),
+            folders: allFoldersById
+        }),
+        hasUnsavedChanges: () => getAllChangedItems().length > 0,
+        onLegacyRegexConverted: () => {
+            const regexInput = getForm()?.regex;
+            if (regexInput) {
+                regexInput.value = '';
+            }
+            suppressUnloadPrompt = true;
+            location.reload();
+        },
         ruleConfig: getFolderEditorTypeApi()?.getRulesConfig?.() || null
     });
     return folderEditorRulesApi;
@@ -2884,7 +2939,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'status');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
-    markSection('div.basic:has(a.custom-action)', 'actions');
+    markSection('div.basic:has(button.custom-action)', 'actions');
 
     markSection('div.basic:has([name="regex"])', 'rules');
 
@@ -2904,7 +2959,7 @@ const applySectionTags = () => {
     markAdvanced('div.basic:has([name="expand_dashboard"])');
     markAdvanced('div.basic:has([name="dashboard_overflow"])');
     markAdvanced('div.basic.custom-action-wrapper-parent');
-    markAdvanced('div.basic:has(a.custom-action)');
+    markAdvanced('div.basic:has(button.custom-action)');
     getFolderEditorTypeApi()?.applySectionTags?.({ markSection, markAdvanced });
 };
 
@@ -2923,7 +2978,7 @@ const pruneEmptyEditorContainers = () => {
         const entry = $(list);
         const hasContent = entry.children().filter((_, child) => {
             const element = $(child);
-            return element.is('.basic, li') || element.find('.basic, :input, a.custom-action').length > 0 || element.text().trim() !== '';
+            return element.is('.basic, li') || element.find('.basic, :input, button.custom-action').length > 0 || element.text().trim() !== '';
         }).length > 0;
         if (!hasContent) {
             entry.remove();
@@ -4526,7 +4581,7 @@ const renderFolderMembersSection = () => {
         <tr class="fv-folder-member-row" data-child-folder-id="${escapeHtml(entry.id)}" draggable="false">
             <td class="order-col">
                 <div class="order-buttons">
-                    <button type="button" class="folder-member-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button>
+                    <button type="button" class="folder-member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder folder" aria-label="Drag to reorder folder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button>
                     <button type="button" class="folder-member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button>
                     <button type="button" class="folder-member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
                 </div>
@@ -4563,7 +4618,7 @@ const updateList = (afterRender = null) => {
         const stateKey = getMemberStateKey(member);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
-            : '<div class="order-buttons"><button type="button" class="member-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-arrows-v" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
+            : '<div class="order-buttons"><button type="button" class="member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
             <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
@@ -5371,68 +5426,163 @@ const customAction = (action = undefined) => {
     if(action !== undefined) {
         config = JSON.parse(atob($('input[name*="custom_action"]').map((i, e) => $(e).val()).get()[action]));
     }
-    const selectCt = $('.action-subject [name="action_elements"]');
-    selectCt.children().remove();
-    [...$('input[name*="containers"]:checked').map((i, e) => $(e).val()), ...selectedRegex.map(e => e.Name)].forEach((e) => {
-        if(config.conatiners?.includes(e)) {
-            selectCt.append(`<option value="${e}" selected>${e}</option>`);
-        } else {
-            selectCt.append(`<option value="${e}">${e}</option>`);
-        }
-    });
     const dialog = $('.dialogCustomAction');
     const customNumber = $('input[name*="custom_action"]').length;
     dialog.html($('.templateDialogCustomAction').html());
-    dialog.find('[name="action_elements"]').multiselect({
+    const targetSelect = dialog.find('[name="action_elements"]');
+    const eligibleTargets = Array.from(new Set([
+        ...$('input[name*="containers"]:checked').map((i, e) => String($(e).val() || '').trim()).get(),
+        ...selectedRegex.map((entry) => String(entry?.Name || '').trim())
+    ].filter(Boolean)));
+    const configuredTargetsSource = Array.isArray(config.conatiners)
+        ? config.conatiners
+        : (Array.isArray(config.containers) ? config.containers : []);
+    const configuredTargets = configuredTargetsSource.map(String);
+    eligibleTargets.forEach((targetName) => {
+        const option = document.createElement('option');
+        option.value = targetName;
+        option.textContent = targetName;
+        option.selected = configuredTargets.includes(targetName);
+        targetSelect.get(0)?.appendChild(option);
+    });
+
+    const modeSelect = dialog.find('[name="action_type"]');
+    const actionSelect = dialog.find('[name="action_standard"]');
+    const nameInput = dialog.find('[name="action_name"]');
+    const scriptInput = dialog.find('[name="action_script"]');
+    const iconInput = dialog.find('[name="action_script_icon"]');
+    const primaryLabel = (action !== undefined) ? $.i18n('action-edit-btn') : $.i18n('action-add-btn');
+    const targetSubject = type === 'vm' ? 'VMs' : 'Containers';
+    let primaryButton = $();
+    let validationTouched = false;
+
+    dialog.find('[data-fv-action-target-label]').text(`${targetSubject}:`);
+    dialog.find('[data-action-help="targets"]').text(`Only ${targetSubject.toLowerCase()} currently available to this folder are listed.`);
+    targetSelect.multiselect({
         header: false,
         noneSelectedText: "Select options",
         zIndex: 99998,
         appendTo: document.body,
-        selectedText: (numChecked, numTotal, checkedItems) => {
-            return checkedItems.map(e => e.value).join(', ');
-        },
+        selectedText: (numChecked) => `${numChecked} selected`,
+        click: () => window.setTimeout(() => {
+            syncTargetSummary();
+            validateActionDialog(false);
+        }, 0),
         classes: 'multiselect-container'
     });
-    dialog.find('[name="action_name"]').val(config.name);
-    dialog.find('[name="action_type"]').val(config.type);
-    dialog.find('[constraint*=\'action-type-\']').hide();
-    dialog.find(`[constraint*=\'action-type-${config.type}\']`).show();
+    nameInput.val(config.name);
+    modeSelect.val(String(config.type));
     dialog.find('input.basic-switch-sync').prop("checked", config.script_sync || false);
     dialog.find('input.basic-switch-sync').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
-    if(config.type === 0) {
-        dialog.find('[name="action_standard"]').val(config.action);
-        dialog.find('[constraint*=\'action-standard-\']').hide();
-        dialog.find(`[constraint*=\'action-standard-${config.action}\']`).show();
-        if(config.action === 0) {
+    if(Number(config.type) === 0) {
+        actionSelect.val(String(config.action));
+        if(Number(config.action) === 0) {
             dialog.find('[name="action_cycle"]').val(config.modes);
-        } else if(config.action === 1) {
+        } else if(Number(config.action) === 1) {
             dialog.find('[name="action_set"]').val(config.modes);
         }
-    } else if(config.type === 1){
-        dialog.find('[name="action_script"]').val(config.script || '');
+    } else if(Number(config.type) === 1){
+        scriptInput.val(config.script || '');
         dialog.find('[name="action_script_args"]').val(config.script_args || '');
     }
-    dialog.find('[name="action_script_icon"]').val(config.script_icon);
-    let buttons = {};
-    buttons[(action !== undefined) ? $.i18n('action-edit-btn') : $.i18n('action-add-btn')] = function() {
-        const that = $(this);
-        let cfg = {
-            name: that.find('[name="action_name"]').val(),
-            type: parseInt(that.find('[name="action_type"]').val()),
+    iconInput.val(config.script_icon || '');
+
+    const normalizePreviewIconClass = (value, mode = Number(modeSelect.val() || 0)) => {
+        const fallback = mode === 1 ? 'fa-file-text-o' : 'fa-cogs';
+        const iconClass = String(value || '').trim().split(/\s+/).find((entry) => /^fa-[a-z0-9-]+$/i.test(entry));
+        return iconClass || fallback;
+    };
+
+    const syncIconPreview = () => {
+        const iconClass = normalizePreviewIconClass(iconInput.val());
+        dialog.find('.fv-action-icon-preview > i').attr('class', `fa ${iconClass}`);
+    };
+
+    const syncTargetSummary = () => {
+        const selectedTargets = (targetSelect.val() || []).map(String);
+        dialog.find('[data-fv-action-target-count]').text(`${selectedTargets.length} selected`);
+        const chips = dialog.find('[data-fv-action-target-chips]').empty();
+        if (eligibleTargets.length === 0) {
+            chips.append($('<span class="is-empty"></span>').text(`No eligible ${targetSubject.toLowerCase()} are currently available.`));
+        } else if (selectedTargets.length === 0) {
+            chips.append($('<span class="is-empty"></span>').text(`No ${targetSubject.toLowerCase()} selected yet.`));
+        } else {
+            selectedTargets.forEach((targetName) => {
+                chips.append($('<span></span>').text(targetName));
+            });
         }
-        cfg.script_icon = that.find('[name="action_script_icon"]').val() || ((cfg.type === 0) ? 'fa-cogs' : ((cfg.type === 1) ? 'fa-file-text-o' : 'fa-bolt'));
+        dialog.find('[data-action-target-command="all"]').prop('disabled', eligibleTargets.length === 0 || selectedTargets.length === eligibleTargets.length);
+        dialog.find('[data-action-target-command="clear"]').prop('disabled', selectedTargets.length === 0);
+    };
+
+    const syncStandardAction = () => {
+        const actionMode = String(actionSelect.val() || '0');
+        dialog.find('[constraint*="action-standard-"]').hide();
+        dialog.find(`[constraint*="action-standard-${actionMode}"]`).css('display', 'grid');
+    };
+
+    const syncActionType = (nextType = modeSelect.val()) => {
+        const mode = String(nextType) === '1' ? '1' : '0';
+        modeSelect.val(mode);
+        dialog.find('[constraint*="action-type-"]').hide();
+        dialog.find(`[constraint*="action-type-${mode}"]`).css('display', 'grid');
+        dialog.find('[data-action-type]').each((index, element) => {
+            const button = $(element);
+            const selected = String(button.attr('data-action-type')) === mode;
+            button.toggleClass('is-selected', selected)
+                .attr('aria-checked', selected ? 'true' : 'false')
+                .attr('tabindex', selected ? '0' : '-1');
+        });
+        syncStandardAction();
+        syncIconPreview();
+    };
+
+    const setFieldValidity = (input, valid, errorSelector, showErrors) => {
+        const field = input.closest('.fv-action-dialog-field, .action-subject');
+        field.toggleClass('is-invalid', showErrors && !valid);
+        dialog.find(errorSelector).prop('hidden', !(showErrors && !valid));
+    };
+
+    const validateActionDialog = (showErrors = validationTouched) => {
+        const mode = Number(modeSelect.val() || 0);
+        const nameValid = String(nameInput.val() || '').trim() !== '';
+        const targetsValid = mode !== 0 || (targetSelect.val() || []).length > 0;
+        const scriptValid = mode !== 1 || String(scriptInput.val() || '').trim() !== '';
+        setFieldValidity(nameInput, nameValid, '[data-action-error="name"]', showErrors);
+        setFieldValidity(targetSelect, targetsValid, '[data-action-error="targets"]', showErrors);
+        setFieldValidity(scriptInput, scriptValid, '[data-action-error="script"]', showErrors);
+        const valid = nameValid && targetsValid && scriptValid;
+        dialog.find('.fv-action-validation-summary').prop('hidden', !(showErrors && !valid));
+        primaryButton.prop('disabled', !valid).attr('aria-disabled', valid ? 'false' : 'true');
+        return valid;
+    };
+
+    const persistAction = () => {
+        validationTouched = true;
+        if (!validateActionDialog(true)) {
+            dialog.find('.is-invalid').first()
+                .find('.ui-multiselect:visible, input:visible, select:visible, button:visible')
+                .first()
+                .trigger('focus');
+            return;
+        }
+        let cfg = {
+            name: String(nameInput.val() || '').trim(),
+            type: parseInt(modeSelect.val()),
+        };
+        cfg.script_icon = normalizePreviewIconClass(iconInput.val(), cfg.type);
         if(cfg.type === 0) {
-            cfg.conatiners = that.find('[name="action_elements"]').val();
-            cfg.action = parseInt(that.find('[name="action_standard"]').val());
+            cfg.conatiners = (targetSelect.val() || []).map(String);
+            cfg.action = parseInt(actionSelect.val());
             if(cfg.action === 0) {
-                cfg.modes = parseInt(that.find('[name="action_cycle"]').val());
+                cfg.modes = parseInt(dialog.find('[name="action_cycle"]').val());
             } else if(cfg.action === 1) {
-                cfg.modes = parseInt(that.find('[name="action_set"]').val());
+                cfg.modes = parseInt(dialog.find('[name="action_set"]').val());
             }
         } else if(cfg.type === 1) {
-            cfg.script = that.find('[name="action_script"]').val();
-            cfg.script_args = that.find('[name="action_script_args"]').val();
-            cfg.script_sync = that.find('[name="action_script_sync"]').prop("checked");
+            cfg.script = String(scriptInput.val() || '').trim();
+            cfg.script_args = dialog.find('[name="action_script_args"]').val();
+            cfg.script_sync = dialog.find('[name="action_script_sync"]').prop("checked");
         }
         if(action !== undefined) {
             $(`.custom-action-n-${action} > input[type="hidden"]`).val(btoa(JSON.stringify(cfg)));
@@ -5445,32 +5595,72 @@ const customAction = (action = undefined) => {
             validateForm();
             updateUnsavedIndicator();
         }
-        $(this).dialog("close");
+        dialog.dialog("close");
     };
-    buttons[$.i18n('cancel')] = function() {
-        $(this).dialog("close");
-    };
+
+    dialog.find('[data-action-type]').on('click', function() {
+        syncActionType($(this).attr('data-action-type'));
+        validateActionDialog(false);
+    }).on('keydown', function(event) {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+            return;
+        }
+        event.preventDefault();
+        const nextMode = String($(this).attr('data-action-type')) === '0' ? '1' : '0';
+        const nextButton = dialog.find(`[data-action-type="${nextMode}"]`);
+        syncActionType(nextMode);
+        nextButton.trigger('focus');
+        validateActionDialog(false);
+    });
+    actionSelect.on('change', () => {
+        syncStandardAction();
+        validateActionDialog(false);
+    });
+    nameInput.add(scriptInput).on('input', () => validateActionDialog(false));
+    iconInput.on('input', syncIconPreview);
+    targetSelect.on('change', () => {
+        syncTargetSummary();
+        validateActionDialog(false);
+    });
+    dialog.find('[data-action-target-command]').on('click', function() {
+        const selectAll = $(this).attr('data-action-target-command') === 'all';
+        targetSelect.find('option').prop('selected', selectAll);
+        targetSelect.multiselect('refresh').trigger('change');
+    });
+
     dialog.dialog({
         title: (action !== undefined) ? $.i18n('action-edit') : $.i18n('action-add'),
         resizable: false,
-        width: 420,
+        width: Math.max(320, Math.min(640, window.innerWidth - 24)),
         modal: true,
-        position: { my: 'center top+44', at: 'center top', of: window },
+        position: { my: 'center', at: 'center', of: window },
         show: { effect: 'fade', duration: 250 },
         hide: { effect: 'fade', duration: 250 },
-        buttons,
+        buttons: [
+            { text: primaryLabel, class: 'fv-action-dialog-primary', click: persistAction },
+            { text: $.i18n('cancel'), class: 'fv-action-dialog-secondary', click() { $(this).dialog('close'); } }
+        ],
+        open: () => window.setTimeout(() => nameInput.trigger('focus'), 0),
         close: () => {
-            dialog.find('[name="action_elements"]').multiselect("destroy");
+            try {
+                targetSelect.multiselect("destroy");
+            } catch (_error) {
+                // The selector may already be destroyed by the host dialog lifecycle.
+            }
         }
     });
     const dialogWidget = dialog.closest('.ui-dialog');
     dialogWidget.addClass('fv-folder-action-dialog');
-    dialogWidget.css({ width: '420px', maxWidth: 'calc(100vw - 24px)' });
+    dialogWidget.css({ maxWidth: 'calc(100vw - 24px)' });
     dialogWidget.find('.ui-dialog-titlebar').addClass('menu');
-    dialogWidget.find('.ui-dialog-titlebar-close').css({ display: 'none' });
     dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'left', width: '100%' });
-    dialogWidget.find('.ui-dialog-content').css({ 'vertical-align': 'bottom', display: 'flex', 'justify-content': 'flex-start' });
-    dialogWidget.find('.ui-button-text').css({ padding: '0px 5px' });
+    const dialogButtons = dialogWidget.find('.ui-dialog-buttonpane button');
+    primaryButton = dialogButtons.first().addClass('fv-action-dialog-primary');
+    dialogButtons.eq(1).addClass('fv-action-dialog-secondary');
+    dialogWidget.find('.ui-dialog-titlebar-close').attr('aria-label', $.i18n('cancel'));
+    syncActionType(config.type);
+    syncTargetSummary();
+    validateActionDialog(false);
     return false;
 };
 

@@ -172,18 +172,6 @@ const buildFolderActionRegistry = ({
                     run: () => toggleFolderPin(resolvedType, folderId)
                 },
                 {
-                    id: 'up',
-                    label: 'Move up',
-                    icon: 'fa-chevron-up',
-                    run: () => moveFolderRow(resolvedType, folderId, -1)
-                },
-                {
-                    id: 'down',
-                    label: 'Move down',
-                    icon: 'fa-chevron-down',
-                    run: () => moveFolderRow(resolvedType, folderId, 1)
-                },
-                {
                     id: 'branchCollapse',
                     label: 'Collapse branch',
                     icon: 'fa-compress',
@@ -276,13 +264,6 @@ const buildFolderActionRegistry = ({
             title: 'Info and diagnostics',
             description: `Inspect or copy details for this ${typeLabel} folder.`,
             actions: [
-                {
-                    id: 'status',
-                    label: 'Status breakdown',
-                    icon: 'fa-info-circle',
-                    closeBeforeRun: true,
-                    run: () => showFolderStatusBreakdown(resolvedType, folderId)
-                },
                 {
                     id: 'copy',
                     label: 'Copy ID',
@@ -428,10 +409,6 @@ const runVmRowDrawerAction = async (action, folderId) => {
         branchImport: () => importFolderBranch('vm', id),
         treeScan: () => runTreeIntegrityCheck('vm'),
         treeRepair: () => runTreeIntegrityCheck('vm', { repair: true }),
-        status: () => {
-            showFolderStatusBreakdown('vm', id);
-            return Promise.resolve();
-        },
         copy: () => copyFolderId('vm', id),
         export: () => downloadVm(id),
         delete: () => clearVm(id)
@@ -466,8 +443,6 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
     )).join('');
     const actions = [
-        ['up', 'fa-chevron-up', 'Move up', '', true],
-        ['down', 'fa-chevron-down', 'Move down', '', true],
         ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', '', true],
         ['root', 'fa-level-up', 'Move to root', '', hasParent],
         ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],
@@ -480,7 +455,6 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         ['branchImport', 'fa-sign-in', 'Import branch here', '', true],
         ['treeScan', 'fa-stethoscope', 'Scan tree integrity', '', true],
         ['treeRepair', 'fa-wrench', 'Repair tree integrity', '', true],
-        ['status', 'fa-info-circle', 'Status breakdown', '', true],
         ['copy', 'fa-clipboard', 'Copy ID', '', true],
         ['export', 'fa-download', 'Export', '', true],
         ['delete', 'fa-trash', 'Delete', ' is-danger', true]

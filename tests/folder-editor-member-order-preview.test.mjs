@@ -70,3 +70,16 @@ test('modern folder editor exposes separate child-folder ordering above app memb
     assert.match(folderCss, /\.fv-folder-members-table/);
     assert.match(folderCss, /\.folder-member-drag-handle\s*\{[\s\S]*cursor:\s*grab;/);
 });
+
+test('modern members tab uses the Settings six-dot grip for every drag handle', () => {
+    const dragHandles = [...folderJs.matchAll(/<button type="button" class="(?:folder-member-drag-handle|member-drag-handle) fv-six-dot-drag-handle"[\s\S]*?<\/button>/g)]
+        .map((match) => match[0]);
+    assert.equal(dragHandles.length, 2);
+    dragHandles.forEach((markup) => {
+        assert.equal([...markup.matchAll(/<span class="fv-six-dot-drag-dot" aria-hidden="true"><\/span>/g)].length, 6);
+        assert.doesNotMatch(markup, /fa-arrows-v/);
+    });
+    assert.match(folderPage, /<form id="fvFolderEditorForm" class="folder-editor-form/);
+    assert.match(folderCss, /#fvFolderEditorForm \.order-buttons > button\.fv-six-dot-drag-handle\s*\{[\s\S]*width:\s*26px !important;[\s\S]*height:\s*34px !important;[\s\S]*grid-template-columns:\s*repeat\(2, 4px\);[\s\S]*grid-auto-rows:\s*4px;[\s\S]*gap:\s*3px;[\s\S]*border:\s*0 !important;[\s\S]*outline:\s*none !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
+    assert.match(folderCss, /#fvFolderEditorForm \.fv-six-dot-drag-handle > \.fv-six-dot-drag-dot\s*\{[\s\S]*display:\s*block !important;[\s\S]*min-width:\s*4px !important;[\s\S]*max-width:\s*4px !important;[\s\S]*min-height:\s*4px !important;[\s\S]*max-height:\s*4px !important;[\s\S]*background:\s*currentColor !important;/);
+});

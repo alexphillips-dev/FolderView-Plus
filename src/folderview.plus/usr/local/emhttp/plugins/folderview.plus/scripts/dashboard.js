@@ -1011,6 +1011,131 @@ const hideDashboardRuntimeLoadingRow = (type) => {
 
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
+let createFoldersPromise = null;
+const dashboardRequestDiagnostics = {
+    docker: [],
+    vm: []
+};
+const parseDashboardPayloadOr = (payload, fallback) => {
+    try {
+        const parsed = parseJsonPayloadSafe(payload);
+        return parsed === undefined || parsed === null ? fallback : parsed;
+    } catch (_error) {
+        return fallback;
+    }
+};
+const recordDashboardRequestFallback = (type, label, error) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const list = dashboardRequestDiagnostics[resolvedType] || [];
+    const entry = {
+        at: new Date().toISOString(),
+        label: String(label || 'request'),
+        status: Number(error?.status || 0),
+        statusText: String(error?.statusText || error?.message || 'request failed').slice(0, 160)
+    };
+    list.push(entry);
+    if (list.length > 12) {
+        list.shift();
+    }
+    dashboardRequestDiagnostics[resolvedType] = list;
+    if (window.console && typeof window.console.warn === 'function') {
+        console.warn(`[FolderView Plus] Dashboard ${resolvedType} ${entry.label} failed; using fallback.`, error);
+    }
+};
+const getDashboardRequestWithFallback = (type, label, url, fallback) => $.get(url)
+    .then((data) => data, (error) => {
+        recordDashboardRequestFallback(type, label, error);
+        return JSON.stringify(fallback);
+    });
+const ensureDashboardFolderDefaults = (folder) => {
+    const target = folder && typeof folder === 'object' ? folder : {};
+    target.name = String(target.name || 'Folder');
+    target.icon = String(target.icon || DEFAULT_FOLDER_ICON_PATH).trim() || DEFAULT_FOLDER_ICON_PATH;
+    target.containers = Array.isArray(target.containers) ? target.containers : [];
+    target.settings = target.settings && typeof target.settings === 'object' ? target.settings : {};
+    target.actions = Array.isArray(target.actions) ? target.actions : [];
+    target.status = target.status && typeof target.status === 'object' ? target.status : {};
+    return target;
+};
+const normalizeDashboardFolderMap = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    Object.keys(source).forEach((id) => {
+        source[id] = ensureDashboardFolderDefaults(source[id]);
+    });
+    return source;
+};
+const sanitizeDashboardInfoForDebug = (type, info) => {
+    const source = info && typeof info === 'object' ? info : {};
+    const sanitized = {};
+    Object.entries(source).forEach(([name, value]) => {
+        if (type === 'vm') {
+            sanitized[name] = {
+                uuid: String(value?.uuid || '').slice(0, 12),
+                state: String(value?.state || ''),
+                autostart: value?.autostart === true
+            };
+            return;
+        }
+        const state = value?.info?.State || {};
+        sanitized[name] = {
+            shortId: String(value?.shortId || '').slice(0, 12),
+            manager: String(state.manager || ''),
+            running: state.Running === true,
+            paused: state.Paused === true,
+            updated: state.Updated !== false,
+            autostart: state.Autostart !== false
+        };
+    });
+    return sanitized;
+};
+const collectDashboardRenderDiagnosticsForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
+    const nameSelector = resolvedType === 'docker' ? '.folder-appname-docker' : '.folder-appname-vm';
+    return Array.from(document.querySelectorAll(`tbody#${tbodyId} .folder-showcase-outer`)).map((node) => {
+        const img = node.querySelector('img.folder-img-docker, img.folder-img-vm');
+        const rect = node.getBoundingClientRect ? node.getBoundingClientRect() : { width: 0, height: 0 };
+        return {
+            id: String(node.getAttribute('data-fv-folder-id') || ''),
+            name: String(node.querySelector(nameSelector)?.textContent || '').trim(),
+            expanded: node.getAttribute('expanded') === 'true',
+            className: String(node.className || ''),
+            childCount: node.querySelectorAll('.folder-showcase > .folder-showcase-outer, .folder-storage > span.outer').length,
+            rect: {
+                width: Math.round(Number(rect.width) || 0),
+                height: Math.round(Number(rect.height) || 0)
+            },
+            icon: img ? {
+                src: String(img.getAttribute('src') || ''),
+                currentSrc: String(img.currentSrc || ''),
+                complete: img.complete === true,
+                naturalWidth: Number(img.naturalWidth || 0),
+                naturalHeight: Number(img.naturalHeight || 0)
+            } : null
+        };
+    });
+};
+const collectDashboardActivePluginAssets = () => Array.from(document.querySelectorAll('script[src], link[href]'))
+    .map((node) => String(node.getAttribute('src') || node.getAttribute('href') || ''))
+    .filter((url) => url.includes('/plugins/folderview.plus/'))
+    .slice(0, 80);
+const buildDashboardDebugPayload = async (type, details) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const originalOrderUrl = `/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`;
+    const originalOrder = parseDashboardPayloadOr(
+        await getDashboardRequestWithFallback(resolvedType, 'debug original order', originalOrderUrl, {}),
+        {}
+    );
+    return {
+        version: String((await $.get('/plugins/folderview.plus/server/version.php').promise()) || '').trim(),
+        type: resolvedType,
+        requestFallbacks: dashboardRequestDiagnostics[resolvedType] || [],
+        pluginAssets: collectDashboardActivePluginAssets(),
+        render: collectDashboardRenderDiagnosticsForType(resolvedType),
+        originalOrder,
+        ...details
+    };
+};
 
 /**
  * Handles the creation of all folders
@@ -1030,19 +1155,14 @@ const createFolders = async (types = ['docker', 'vm']) => {
         try {
         let prom = await Promise.all(folderReq.docker);
         // Parse the results
-        let folders = JSON.parse(prom[0]);
-        const allDockerFolders = folders && typeof folders === 'object' ? folders : {};
+        let folders = parseDashboardPayloadOr(prom[0], {});
+        const allDockerFolders = normalizeDashboardFolderMap(folders);
         const dockerTreeIndex = buildFolderChildrenIndex(allDockerFolders);
         const dockerChildrenByParent = dockerTreeIndex.childrenByParent || {};
-        let unraidOrder = Object.values(JSON.parse(prom[1]));
-        const containersInfo = JSON.parse(prom[2]);
-        let order = Object.values(JSON.parse(prom[3]));
-        let prefsResponse = {};
-        try {
-            prefsResponse = parseJsonPayloadSafe(prom[4]);
-        } catch (_error) {
-            prefsResponse = {};
-        }
+        let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
+        const containersInfo = parseDashboardPayloadOr(prom[2], {});
+        let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
+        let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
@@ -1067,15 +1187,13 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
         // debug mode, download the debug json file
         if(folderDebugMode) {
-            const debugData = JSON.stringify({
-                version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            const debugData = JSON.stringify(await buildDashboardDebugPayload('docker', {
                 folders,
                 unraidOrder,
-                originalOrder: JSON.parse(await $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise()),
                 newOnes,
                 order,
-                containersInfo
-            });
+                containersInfo: sanitizeDashboardInfoForDebug('docker', containersInfo)
+            }));
             const blob = new Blob([debugData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const element = document.createElement('a');
@@ -1238,19 +1356,14 @@ const createFolders = async (types = ['docker', 'vm']) => {
         try {
         const prom = await Promise.all(folderReq.vm);
         // Parse the results
-        let folders = JSON.parse(prom[0]);
-        const allVmFolders = folders && typeof folders === 'object' ? folders : {};
+        let folders = parseDashboardPayloadOr(prom[0], {});
+        const allVmFolders = normalizeDashboardFolderMap(folders);
         const vmTreeIndex = buildFolderChildrenIndex(allVmFolders);
         const vmChildrenByParent = vmTreeIndex.childrenByParent || {};
-        let unraidOrder = Object.values(JSON.parse(prom[1]));
-        const vmInfo = JSON.parse(prom[2]);
-        let order = Object.values(JSON.parse(prom[3]));
-        let prefsResponse = {};
-        try {
-            prefsResponse = parseJsonPayloadSafe(prom[4]);
-        } catch (_error) {
-            prefsResponse = {};
-        }
+        let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
+        const vmInfo = parseDashboardPayloadOr(prom[2], {});
+        let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
+        let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
         const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
         folders = vmRootFolders;
@@ -1275,15 +1388,13 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
         // debug mode, download the debug json file
         if(folderDebugMode) {
-            const debugData = JSON.stringify({
-                version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            const debugData = JSON.stringify(await buildDashboardDebugPayload('vm', {
                 folders,
                 unraidOrder,
-                originalOrder: JSON.parse(await $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise()),
                 newOnes,
                 order,
-                vmInfo
-            });
+                vmInfo: sanitizeDashboardInfoForDebug('vm', vmInfo)
+            }));
             const blob = new Blob([debugData], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const element = document.createElement('a');
@@ -1476,6 +1587,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     // default varibles
     let upToDate = true;
     let started = 0;
+    let paused = 0;
     let autostart = 0;
     let autostartStarted = 0;
     let managed = 0;
@@ -1653,6 +1765,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             // set the status of the folder
             upToDate = upToDate && !newFolder[container].update;
             started += newFolder[container].state ? 1 : 0;
+            paused += newFolder[container].state && newFolder[container].pause ? 1 : 0;
             const isDockerMan = ct.info.State.manager === 'dockerman';
             autostart += (isDockerMan && !(ct.info.State.Autostart === false)) ? 1 : 0;
             autostartStarted += (isDockerMan && !(ct.info.State.Autostart === false) && newFolder[container].state) ? 1 : 0;
@@ -1673,6 +1786,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
                 states: {
                     upToDate,
                     started,
+                    paused,
                     autostart,
                     autostartStarted,
                     managed
@@ -1703,9 +1817,14 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     }
 
     if (started) {
-        sel.parent().removeClass('stopped').addClass('started');
-        $statusIcon.replaceWith($(`<i class="fa fa-play started folder-load-status-docker" style="color:${statusColors.started}"></i>`));
-        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`).css('color', statusColors.started);
+        const allStartedArePaused = paused > 0 && paused === started;
+        const statusClass = allStartedArePaused ? 'paused' : 'started';
+        const statusIconClass = allStartedArePaused ? 'fa-pause' : 'fa-play';
+        const statusColor = allStartedArePaused ? statusColors.paused : statusColors.started;
+        const statusLabel = allStartedArePaused ? $.i18n('paused') : $.i18n('started');
+        sel.parent().removeClass('stopped paused started').addClass(statusClass);
+        $statusIcon.replaceWith($(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-docker" style="color:${statusColor}"></i>`));
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
     }
 
     if(autostart === 0) {
@@ -1730,6 +1849,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     folder.status = {};
     folder.status.upToDate = upToDate;
     folder.status.started = started;
+    folder.status.paused = paused;
     folder.status.autostart = autostart;
     folder.status.autostartStarted = autostartStarted;
     folder.status.managed = managed;
@@ -1786,6 +1906,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
 
     // default varibles
     let started = 0;
+    let paused = 0;
     let autostart = 0;
     let autostartStarted = 0;
     let remBefore = 0;
@@ -1939,9 +2060,12 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             }
             
             // set the status of the folder
-            started += ct.state!=="shutoff" ? 1 : 0;
+            const vmState = String(ct.state || '');
+            const isVmPaused = vmState === 'paused' || vmState === 'pmsuspended';
+            started += vmState !== "shutoff" ? 1 : 0;
+            paused += isVmPaused ? 1 : 0;
             autostart += ct.autostart ? 1 : 0;
-            autostartStarted += (ct.autostart && ct.state!=="shutoff") ? 1 : 0;
+            autostartStarted += (ct.autostart && vmState !== "shutoff") ? 1 : 0;
 
             folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-preview', {detail: {
                 folder: folder,
@@ -1956,6 +2080,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 offsetIndex: offsetIndex,
                 states: {
                     started,
+                    paused,
                     autostart,
                     autostartStarted
                 }
@@ -1979,9 +2104,14 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     $statusIcon.css('color', statusColors.stopped);
     $statusText.css('color', statusColors.stopped);
     if (started) {
-        sel.parent().removeClass('stopped').addClass('started');
-        $statusIcon.replaceWith($(`<i class="fa fa-play started folder-load-status-vm" style="color:${statusColors.started}"></i>`));
-        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`).css('color', statusColors.started);
+        const allStartedArePaused = paused > 0 && paused === started;
+        const statusClass = allStartedArePaused ? 'paused' : 'started';
+        const statusIconClass = allStartedArePaused ? 'fa-pause' : 'fa-play';
+        const statusColor = allStartedArePaused ? statusColors.paused : statusColors.started;
+        const statusLabel = allStartedArePaused ? $.i18n('paused') : $.i18n('started');
+        sel.parent().removeClass('stopped paused started').addClass(statusClass);
+        $statusIcon.replaceWith($(`<i class="fa ${statusIconClass} ${statusClass} folder-load-status-vm" style="color:${statusColor}"></i>`));
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${statusLabel}`).css('color', statusColor);
     }
 
     if(autostart === 0) {
@@ -1997,6 +2127,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     // set the status
     folder.status = {};
     folder.status.started = started;
+    folder.status.paused = paused;
     folder.status.autostart = autostart;
     folder.status.autostartStarted = autostartStarted;
     folder.status.expanded = false;
@@ -2355,18 +2486,28 @@ refreshDashboardDockerCpuCores();
 const queueCreateFoldersRender = () => {
     if (createFoldersInFlight) {
         createFoldersQueued = true;
-        return;
+        return createFoldersPromise || Promise.resolve(false);
     }
     createFoldersInFlight = true;
-    Promise.resolve()
+    createFoldersPromise = Promise.resolve()
         .then(() => createFolders())
+        .then(() => true)
+        .catch((error) => {
+            loadedFolder = false;
+            if (window.console && typeof window.console.warn === 'function') {
+                console.warn('[FolderView Plus] Dashboard folder render failed.', error);
+            }
+            throw error;
+        })
         .finally(() => {
             createFoldersInFlight = false;
+            createFoldersPromise = null;
             if (createFoldersQueued) {
                 createFoldersQueued = false;
                 queueLoadlistRefresh();
             }
         });
+    return createFoldersPromise;
 };
 const prepareDashboardFolderRequestsForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -2378,25 +2519,21 @@ const prepareDashboardFolderRequestsForType = (type) => {
         return [];
     }
     if (resolvedType === 'docker') {
-        const safeDockerPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')
-            .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
         folderReq.docker = [
-            $.get('/plugins/folderview.plus/server/read.php?type=docker').promise(),
-            $.get('/plugins/folderview.plus/server/read_order.php?type=docker').promise(),
-            $.get('/plugins/folderview.plus/server/read_info.php?type=docker').promise(),
-            $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise(),
-            safeDockerPrefsReq
+            getDashboardRequestWithFallback('docker', 'folders', '/plugins/folderview.plus/server/read.php?type=docker', {}),
+            getDashboardRequestWithFallback('docker', 'folder order', '/plugins/folderview.plus/server/read_order.php?type=docker', {}),
+            getDashboardRequestWithFallback('docker', 'runtime info', '/plugins/folderview.plus/server/read_info.php?type=docker', {}),
+            getDashboardRequestWithFallback('docker', 'unraid order', '/plugins/folderview.plus/server/read_unraid_order.php?type=docker', {}),
+            getDashboardRequestWithFallback('docker', 'preferences', '/plugins/folderview.plus/server/prefs.php?type=docker', { ok: false, prefs: {} })
         ];
         return folderReq.docker;
     }
-    const safeVmPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=vm')
-        .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
     folderReq.vm = [
-        $.get('/plugins/folderview.plus/server/read.php?type=vm').promise(),
-        $.get('/plugins/folderview.plus/server/read_order.php?type=vm').promise(),
-        $.get('/plugins/folderview.plus/server/read_info.php?type=vm').promise(),
-        $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise(),
-        safeVmPrefsReq
+        getDashboardRequestWithFallback('vm', 'folders', '/plugins/folderview.plus/server/read.php?type=vm', {}),
+        getDashboardRequestWithFallback('vm', 'folder order', '/plugins/folderview.plus/server/read_order.php?type=vm', {}),
+        getDashboardRequestWithFallback('vm', 'runtime info', '/plugins/folderview.plus/server/read_info.php?type=vm', {}),
+        getDashboardRequestWithFallback('vm', 'unraid order', '/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {}),
+        getDashboardRequestWithFallback('vm', 'preferences', '/plugins/folderview.plus/server/prefs.php?type=vm', { ok: false, prefs: {} })
     ];
     return folderReq.vm;
 };
@@ -2414,9 +2551,16 @@ window.loadlist = (x) => {
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     if (options.url === "/webGui/include/DashboardApps.php" && !loadedFolder) {
         jqXHR.promise().then(() => {
-            queueCreateFoldersRender();
-            $('div.spinner.fixed').hide();
-            loadedFolder = !loadedFolder
+            queueCreateFoldersRender()
+                .then((rendered) => {
+                    loadedFolder = rendered !== false;
+                })
+                .catch(() => {
+                    loadedFolder = false;
+                })
+                .finally(() => {
+                    $('div.spinner.fixed').hide();
+                });
         });
     }
 });

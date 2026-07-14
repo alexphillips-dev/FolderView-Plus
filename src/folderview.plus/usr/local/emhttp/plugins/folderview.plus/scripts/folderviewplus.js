@@ -505,6 +505,14 @@ let selectedRuleIdsByType = {
     docker: new Set(),
     vm: new Set()
 };
+let smartRuleSuggestionCacheByType = {
+    docker: [],
+    vm: []
+};
+let lastRulePreviewRowsByType = {
+    docker: [],
+    vm: []
+};
 let selectedTemplateIdsByType = {
     docker: new Set(),
     vm: new Set()
@@ -657,6 +665,8 @@ let backupCompareDiffPagingState = {
 };
 const IMPORT_APPLY_CHUNK_SIZE = 20;
 const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
+const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
+const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 let latestPrefsBackupByType = {
     docker: null,
     vm: null
@@ -3452,20 +3462,14 @@ const getRowDetailsApi = (() => {
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
             getItemRuntimeStateKind,
-            deriveFolderStatusKey,
             isDockerUpdateAvailable,
-            statusLabelForKey,
-            normalizeStatusPrefs,
             normalizeHealthPrefs,
             evaluateDockerFolderHealth,
-            toggleStatusFilter,
             toggleHealthSeverityFilter
         });
         return cachedApi;
     };
 })();
-const getFolderStatusBreakdown = (...args) => getRowDetailsApi().getFolderStatusBreakdown(...args);
-const showFolderStatusBreakdown = (...args) => getRowDetailsApi().showFolderStatusBreakdown(...args);
 const showFolderHealthBreakdown = (...args) => getRowDetailsApi().showFolderHealthBreakdown(...args);
 
 const getSettingsHealthApi = (() => {
@@ -4118,10 +4122,6 @@ const buildTableUiStatePayload = () => ({
         docker: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.docker),
         vm: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.vm)
     },
-    status: {
-        docker: normalizeStatusFilterMode(statusFilterByType.docker),
-        vm: normalizeStatusFilterMode(statusFilterByType.vm)
-    },
     dockerUpdatesOnlyFilter: dockerUpdatesOnlyFilter === true,
     treeCollapsed: {
         docker: Array.from(collapsedTreeParentsByType.docker || []),
@@ -4158,7 +4158,6 @@ const restoreTableUiState = () => {
         const sourceQuick = source.quick && typeof source.quick === 'object' ? source.quick : {};
         const sourceHealth = source.health && typeof source.health === 'object' ? source.health : {};
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
-        const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
         const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
@@ -4176,7 +4175,9 @@ const restoreTableUiState = () => {
             quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
             healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
             healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
-            statusFilterByType[resolvedType] = normalizeStatusFilterMode(sourceStatus[resolvedType]);
+            // Status filters are intentionally session-only. Older Status Details
+            // popups persisted this value and could make saved folders appear missing.
+            statusFilterByType[resolvedType] = 'all';
             collapsedTreeParentsByType[resolvedType] = new Set(
                 Array.isArray(sourceTreeCollapsed[resolvedType])
                     ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
@@ -6196,6 +6197,232 @@ const highlightSearchText = (text, query) => {
     return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
 };
 
+const toggleBasicSettingsPanel = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const panel = document.getElementById(`${resolvedType}-view-settings`);
+    if (!panel) {
+        return;
+    }
+    panel.open = !panel.open;
+};
+
+const formatBasicSummaryPercent = (count, total) => {
+    const safeTotal = Math.max(0, Number(total) || 0);
+    if (safeTotal <= 0) {
+        return '0% of total';
+    }
+    return `${Math.round((Math.max(0, Number(count) || 0) / safeTotal) * 100)}% of total`;
+};
+
+const buildBasicSummaryCardHtml = ({ icon, label, value, detail, tone = 'neutral' }) => `
+    <div class="fv-basic-summary-card is-${escapeHtml(tone)}">
+        <span class="fv-basic-summary-icon"><i class="fa ${escapeHtml(icon)}" aria-hidden="true"></i></span>
+        <span class="fv-basic-summary-copy">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(String(value))}</strong>
+            <small>${escapeHtml(detail)}</small>
+        </span>
+    </div>
+`;
+
+const renderBasicSummaryCards = (type, metrics) => {
+    const resolvedType = normalizeManagedType(type);
+    const host = document.getElementById(`${resolvedType}-basic-summary`);
+    if (!host) {
+        return;
+    }
+    const safeMetrics = metrics && typeof metrics === 'object' ? metrics : {};
+    const folderCount = Math.max(0, Number(safeMetrics.folderCount) || 0);
+    const emptyCount = Math.max(0, Number(safeMetrics.folderStatusTotals?.empty) || 0);
+    const criticalCount = Math.max(0, Number(safeMetrics.healthSeverityTotals?.critical) || 0);
+    const degradedCount = Math.max(0, Number(safeMetrics.healthSeverityTotals?.warn) || 0)
+        + Math.max(0, Number(safeMetrics.healthSeverityTotals?.maintenance) || 0);
+    const attentionCount = Math.max(0, Number(safeMetrics.attentionCount) || 0);
+    const healthyCount = Math.max(0, folderCount - Math.max(emptyCount, 0) - Math.max(attentionCount, criticalCount + degradedCount));
+    const ruleCount = Math.max(0, Number(safeMetrics.ruleCount) || 0);
+    const label = resolvedType === 'vm' ? 'VM groups' : 'Folder groups';
+    host.innerHTML = [
+        buildBasicSummaryCardHtml({
+            icon: 'fa-folder-o',
+            label: 'Total Groups',
+            value: folderCount,
+            detail: label,
+            tone: 'groups'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-heartbeat',
+            label: 'Healthy',
+            value: healthyCount,
+            detail: formatBasicSummaryPercent(healthyCount, folderCount),
+            tone: 'healthy'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-exclamation-triangle',
+            label: 'Critical',
+            value: criticalCount,
+            detail: formatBasicSummaryPercent(criticalCount, folderCount),
+            tone: 'critical'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-exclamation-circle',
+            label: 'Degraded',
+            value: degradedCount,
+            detail: formatBasicSummaryPercent(degradedCount, folderCount),
+            tone: 'degraded'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-folder-open-o',
+            label: 'Empty',
+            value: emptyCount,
+            detail: formatBasicSummaryPercent(emptyCount, folderCount),
+            tone: 'empty'
+        }),
+        buildBasicSummaryCardHtml({
+            icon: 'fa-sliders',
+            label: 'Total Rules',
+            value: ruleCount,
+            detail: 'Across all groups',
+            tone: 'rules'
+        })
+    ].join('');
+};
+
+let basicFolderDragState = null;
+
+const removeBasicFolderDragImage = () => {
+    document.querySelectorAll('.fv-basic-row-drag-image').forEach((ghost) => {
+        ghost.remove();
+    });
+};
+
+const clearBasicFolderDragState = () => {
+    document.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after, .fv-row-drag-source').forEach((row) => {
+        row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after', 'fv-row-drag-source');
+    });
+    removeBasicFolderDragImage();
+    basicFolderDragState = null;
+};
+
+const createBasicFolderDragImage = (row) => {
+    if (!row || typeof row.getBoundingClientRect !== 'function') {
+        return null;
+    }
+    const rowRect = row.getBoundingClientRect();
+    if (!rowRect.width || !rowRect.height) {
+        return null;
+    }
+    const ghost = document.createElement('div');
+    ghost.className = 'fv-basic-row-drag-image folder-table';
+    ghost.style.width = `${Math.ceil(rowRect.width)}px`;
+    ghost.style.height = `${Math.ceil(rowRect.height)}px`;
+
+    const table = document.createElement('table');
+    table.style.width = `${Math.ceil(rowRect.width)}px`;
+    const tbody = document.createElement('tbody');
+    const clonedRow = row.cloneNode(true);
+    clonedRow.removeAttribute('id');
+    clonedRow.removeAttribute('tabindex');
+    clonedRow.removeAttribute('onkeydown');
+    clonedRow.classList.remove('fv-row-drag-source', 'fv-row-drag-over-before', 'fv-row-drag-over-after');
+    const sourceCells = Array.from(row.children || []);
+    Array.from(clonedRow.children || []).forEach((cell, index) => {
+        const sourceCellRect = sourceCells[index]?.getBoundingClientRect?.();
+        if (sourceCellRect?.width) {
+            cell.style.width = `${Math.ceil(sourceCellRect.width)}px`;
+        }
+    });
+    tbody.appendChild(clonedRow);
+    table.appendChild(tbody);
+    ghost.appendChild(table);
+    document.body.appendChild(ghost);
+    return ghost;
+};
+
+const bindBasicFolderDragHandles = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const tbody = document.querySelector(`tbody#${tableIdByType[resolvedType]}`);
+    if (!tbody) {
+        return;
+    }
+    tbody.querySelectorAll('.folder-drag-handle').forEach((handle) => {
+        handle.addEventListener('dragstart', (event) => {
+            const row = handle.closest('tr[data-folder-id]');
+            const folderId = String(handle.getAttribute('data-fv-drag-id') || row?.getAttribute('data-folder-id') || '').trim();
+            if (!row || !folderId) {
+                event.preventDefault();
+                return;
+            }
+            basicFolderDragState = {
+                type: resolvedType,
+                folderId,
+                parentId: String(row.getAttribute('data-folder-parent') || '')
+            };
+            row.classList.add('fv-row-drag-source');
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', folderId);
+                if (typeof event.dataTransfer.setDragImage === 'function') {
+                    removeBasicFolderDragImage();
+                    const dragImage = createBasicFolderDragImage(row);
+                    if (dragImage) {
+                        const rect = row.getBoundingClientRect();
+                        const offsetX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+                        const offsetY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+                        event.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
+                    }
+                }
+            }
+        });
+        handle.addEventListener('dragend', clearBasicFolderDragState);
+    });
+    tbody.querySelectorAll('tr[data-folder-id]').forEach((row) => {
+        row.addEventListener('dragover', (event) => {
+            if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
+                return;
+            }
+            const targetId = String(row.getAttribute('data-folder-id') || '').trim();
+            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
+            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+                return;
+            }
+            event.preventDefault();
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'move';
+            }
+            tbody.querySelectorAll('.fv-row-drag-over-before, .fv-row-drag-over-after').forEach((activeRow) => {
+                if (activeRow !== row) {
+                    activeRow.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+                }
+            });
+            const rect = row.getBoundingClientRect();
+            const after = event.clientY > rect.top + (rect.height / 2);
+            row.classList.toggle('fv-row-drag-over-before', !after);
+            row.classList.toggle('fv-row-drag-over-after', after);
+        });
+        row.addEventListener('dragleave', () => {
+            row.classList.remove('fv-row-drag-over-before', 'fv-row-drag-over-after');
+        });
+        row.addEventListener('drop', (event) => {
+            if (!basicFolderDragState || basicFolderDragState.type !== resolvedType) {
+                return;
+            }
+            const targetId = String(row.getAttribute('data-folder-id') || '').trim();
+            const targetParentId = String(row.getAttribute('data-folder-parent') || '');
+            if (!targetId || targetId === basicFolderDragState.folderId || targetParentId !== basicFolderDragState.parentId) {
+                clearBasicFolderDragState();
+                return;
+            }
+            event.preventDefault();
+            const placement = row.classList.contains('fv-row-drag-over-after') ? 'after' : 'before';
+            const draggedId = basicFolderDragState.folderId;
+            clearBasicFolderDragState();
+            if (typeof moveFolderRowBesideSibling === 'function') {
+                void moveFolderRowBesideSibling(resolvedType, draggedId, targetId, placement);
+            }
+        });
+    });
+};
+
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
     const TABLE_COLUMN_COUNT = SETTINGS_TABLE_COLUMN_COUNT;
@@ -6412,7 +6639,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             summarizeStatusMembers('Stopped items', namesByState.stopped),
             `Stopped percentage: ${stoppedPercent}%`,
             statusThresholdLabel,
-            'Open status breakdown from the info button for full details.',
             statusChipHint
         ].filter(Boolean).join('\n');
         const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`;
@@ -6483,7 +6709,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
         const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
-        const pinnedText = pinned ? 'Pinned' : 'No';
+        const pinnedText = pinned ? 'Pinned' : 'Not pinned';
         const pinnedClass = pinned ? 'is-pinned' : '';
 
         let typeSpecificColumns = '';
@@ -6594,10 +6820,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
         const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;
-        const rowReorderButtonsHtml = (hideOrderControls || folderDepth > 0)
+        const dragHandleHtml = hideOrderControls
             ? ''
-            : (`<button type="button" title="Move up" aria-label="Move ${safeNameText} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
-                + `<button type="button" title="Move down" aria-label="Move ${safeNameText} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
+            : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
@@ -6613,23 +6838,23 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : (''
                 + `<div class="row-order-stack">`
                 + `<span class="row-order-actions">`
-                + rowReorderButtonsHtml
+                + dragHandleHtml
                 + moveToRootButtonHtml
                 + treeMoveButtonHtml
                 + `</span>`
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
                 + `</div>`);
         rows.push(
-            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
-            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
+            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}">${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
-            + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
+            + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button type="button" class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button type="button" class="folder-action-btn" title="Export" aria-label="Export ${safeNameText}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button type="button" class="folder-action-btn" title="Delete" aria-label="Delete ${safeNameText}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button type="button" class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeNameText}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-h"></i></button></td>`
+            + `<td class="actions-cell"><span class="folder-actions-group"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></span></td>`
             + '</tr>'
         );
     }
@@ -6918,12 +7143,248 @@ const renderQuickFolderFilters = (type) => {
     });
 };
 
+const VIEW_ORGANIZATION_SORT_DETAILS = Object.freeze({
+    created: {
+        label: 'Saved order',
+        title: 'Saved order is active',
+        description: 'Folders stay in the order stored in preferences. Use this when you want FolderView Plus to preserve your existing layout.'
+    },
+    created_newest: {
+        label: 'Newest',
+        title: 'Newest created folders first',
+        description: 'Recently created folders move toward the top while older folders move lower.'
+    },
+    created_oldest: {
+        label: 'Oldest',
+        title: 'Oldest created folders first',
+        description: 'Older folders move toward the top while newer folders move lower.'
+    },
+    updated_newest: {
+        label: 'Recently changed',
+        title: 'Recently changed folders first',
+        description: 'Folders with the newest saved changes move toward the top.'
+    },
+    manual: {
+        label: 'Manual',
+        title: 'Manual order is active',
+        description: 'Use the up, down, and tree-move controls in the Order column to place folders exactly where you want them.'
+    },
+    alpha: {
+        label: 'A-Z',
+        title: 'Alphabetical order is active',
+        description: 'Folders are sorted by name from A to Z. Nested folders still remain inside their parent branch.'
+    },
+    name_desc: {
+        label: 'Z-A',
+        title: 'Reverse alphabetical order is active',
+        description: 'Folders are sorted by name from Z to A. Nested folders still remain inside their parent branch.'
+    }
+});
+
+const updateViewOrganizationGuidance = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
+    const sortMode = prefs.sortMode || 'created';
+    const details = VIEW_ORGANIZATION_SORT_DETAILS[sortMode] || VIEW_ORGANIZATION_SORT_DETAILS.created;
+    const folders = getFolderMap(resolvedType);
+    const folderCount = Object.keys(folders).length;
+    const pinnedCount = Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds.length : 0;
+    const manualCount = Array.isArray(prefs.manualOrder) ? prefs.manualOrder.length : 0;
+    const nestedCount = Object.values(folders).filter((folder) => String(folder?.parentId || folder?.parent_id || '').trim()).length;
+
+    const guidance = $(`#${resolvedType}-sort-mode-explainer`);
+    if (guidance.length) {
+        const notes = [];
+        if (pinnedCount > 0) {
+            notes.push(`${pinnedCount} pinned ${pinnedCount === 1 ? 'folder stays' : 'folders stay'} above normal sorted folders.`);
+        } else {
+            notes.push('Pinned folders will stay above normal sorted folders when you pin them.');
+        }
+        if (nestedCount > 0) {
+            notes.push(`${nestedCount} nested ${nestedCount === 1 ? 'folder remains' : 'folders remain'} inside their parent branch.`);
+        }
+        if (sortMode === 'manual') {
+            notes.push(manualCount > 0 ? `${manualCount} saved manual positions are tracked.` : 'Manual order will be captured as you move folders.');
+        }
+        guidance.html(`
+            <div class="fv-view-org-guidance-main">
+                <strong>${escapeHtml(details.title)}</strong>
+                <span>${escapeHtml(details.description)}</span>
+            </div>
+            <div class="fv-view-org-guidance-notes">
+                ${notes.map((note) => `<span>${escapeHtml(note)}</span>`).join('')}
+            </div>
+        `);
+    }
+
+    const tabs = $(`#${resolvedType}-sort-mode-tabs`);
+    if (tabs.length) {
+        tabs.remove();
+    }
+
+    const hint = $(`#${resolvedType}-sort-mode-hint`);
+    if (hint.length) {
+        hint.text(`${folderCount} ${folderCount === 1 ? 'folder' : 'folders'} tracked`);
+    }
+};
+
+const ensureExternalFolderFilterStrip = (type, details, searchInput, quickFilters) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    let strip = $(`#${resolvedType}-folder-filter-strip`);
+    if (!strip.length) {
+        strip = $(`
+            <div id="${resolvedType}-folder-filter-strip" class="fv-folder-filter-strip">
+                <div class="fv-folder-filter-search"></div>
+                <div class="fv-folder-filter-quick"></div>
+            </div>
+        `);
+        const pathHint = $(`#${resolvedType}-tree-path-hint`);
+        if (pathHint.length) {
+            pathHint.replaceWith(strip);
+        } else {
+            details.after(strip);
+        }
+    }
+
+    const searchHost = strip.find('.fv-folder-filter-search');
+    const quickHost = strip.find('.fv-folder-filter-quick');
+    if (searchInput?.length) {
+        searchHost.empty().append(searchInput);
+    }
+    if (quickFilters?.length) {
+        quickHost.empty().append(quickFilters);
+    }
+};
+
+const enhanceViewOrganizationWorkspace = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const sortSelect = $(`#${resolvedType}-sort-mode`);
+    if (!sortSelect.length) {
+        return;
+    }
+    const details = sortSelect.closest('.toolbar-sort');
+    const body = details.find('> .toolbar-sort-body');
+    if (!details.length || !body.length) {
+        return;
+    }
+
+    details.addClass('fv-view-org');
+    const typeLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
+    details.find('.toolbar-sort-toggle-main').html('<i class="fa fa-sliders" aria-hidden="true"></i> View & Organization');
+    details.find('.toolbar-sort-toggle-note').text(`${typeLabel} folders, sorting, layout, and tools`);
+    const searchInput = $(`#${resolvedType}-folder-filter`).detach();
+    const quickFilters = $(`#${resolvedType}-quick-filters`).detach();
+    ensureExternalFolderFilterStrip(resolvedType, details, searchInput, quickFilters);
+
+    if (!body.children('.fv-view-org-layout').length) {
+        const sortRow = body.children('.sort-row').first();
+        const treeVisibilityControls = sortRow.children('.tree-visibility-controls').not('.tree-management-controls').detach();
+        const treeManagementControls = sortRow.children('.tree-management-controls').detach();
+        const settingsCards = body.children('.settings-cards-grid').first().detach();
+        const sortHint = sortRow.find('.sort-hint-chip').detach();
+
+        const layout = $(`
+            <div class="fv-view-org-layout">
+                <section class="fv-view-org-section fv-view-org-order">
+                    <div class="fv-view-org-section-header">
+                        <div>
+                            <div class="fv-view-org-eyebrow">Order</div>
+                            <h3>Choose how folders are sorted</h3>
+                        </div>
+                        <p>Manual and pinned folders control the visible order on Docker, VM, and Dashboard views.</p>
+                    </div>
+                    <div class="fv-view-org-section-body fv-view-org-order-body"></div>
+                    <div class="fv-view-org-order-actions">
+                        <button type="button" onclick="saveCurrentFolderOrderAsManual('${resolvedType}')"><i class="fa fa-save" aria-hidden="true"></i> Use current visible order</button>
+                    </div>
+                    <div id="${resolvedType}-sort-mode-explainer" class="fv-view-org-guidance"></div>
+                </section>
+                <section class="fv-view-org-section fv-view-org-display">
+                    <div class="fv-view-org-section-header">
+                        <div>
+                            <div class="fv-view-org-eyebrow">Display</div>
+                            <h3>Table, badges, dashboard, and health</h3>
+                        </div>
+                        <p>Adjust what each folder row shows and how much space the table uses.</p>
+                    </div>
+                    <div class="fv-view-org-section-body fv-view-org-display-body"></div>
+                </section>
+                <details class="fv-view-org-section fv-view-org-tools">
+                    <summary>
+                        <span><i class="fa fa-wrench" aria-hidden="true"></i> Advanced tools</span>
+                        <small>Expansion, undo, mobile reorder, and tree repair</small>
+                    </summary>
+                    <div class="fv-view-org-section-body fv-view-org-tools-body"></div>
+                </details>
+            </div>
+        `);
+
+        body.empty().append(layout);
+        layout.find('.fv-view-org-order-body').append(sortRow);
+        sortRow.find('.sort-label').text('Sort mode');
+        sortRow.append(`<span id="${resolvedType}-sort-mode-hint" class="fv-view-org-count-chip"></span>`);
+        if (sortHint.length) {
+            sortHint.html('<i class="fa fa-info-circle" aria-hidden="true"></i> Use Manual when you want the Order column to control saved placement.');
+            layout.find('.fv-view-org-order-body').append(sortHint);
+        }
+        layout.find('.fv-view-org-display-body').append(settingsCards);
+        layout.find('.fv-view-org-tools-body').append(treeVisibilityControls, treeManagementControls);
+    }
+
+    updateViewOrganizationGuidance(resolvedType);
+};
+
 const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
 const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
 const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
+const RULE_SIMPLE_KINDS = Object.freeze(['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals']);
+
+const normalizeRuleBuilderRuleInput = ({ type, folderId, effect, kind, pattern, labelKey, labelValue }) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rawKind = String(kind || 'name_regex').trim().toLowerCase();
+    const safePattern = String(pattern || '').trim();
+    const safeLabelKey = String(labelKey || '').trim();
+    const safeLabelValue = String(labelValue || '').trim();
+    const normalized = {
+        id: '',
+        enabled: true,
+        folderId: String(folderId || '').trim(),
+        effect: effect === 'exclude' ? 'exclude' : 'include',
+        kind: rawKind,
+        pattern: '',
+        labelKey: '',
+        labelValue: ''
+    };
+
+    if (rawKind === 'name_contains') {
+        normalized.kind = 'name_regex';
+        normalized.pattern = escapeRegexLiteral(safePattern);
+    } else if (rawKind === 'name_starts_with') {
+        normalized.kind = 'name_regex';
+        normalized.pattern = `^${escapeRegexLiteral(safePattern)}`;
+    } else if (rawKind === 'image_contains' && resolvedType === 'docker') {
+        normalized.kind = 'image_regex';
+        normalized.pattern = escapeRegexLiteral(safePattern);
+    } else if (rawKind === 'compose_project_equals' && resolvedType === 'docker') {
+        normalized.kind = 'compose_project_regex';
+        normalized.pattern = `^${escapeRegexLiteral(safePattern)}$`;
+    } else if (RULE_LABEL_KINDS.includes(rawKind) && resolvedType === 'docker') {
+        normalized.kind = rawKind;
+        normalized.labelKey = safeLabelKey;
+        normalized.labelValue = safeLabelValue;
+    } else if (RULE_REGEX_KINDS.includes(rawKind) && (resolvedType === 'docker' || rawKind === 'name_regex')) {
+        normalized.kind = rawKind;
+        normalized.pattern = safePattern;
+    } else {
+        normalized.kind = 'name_regex';
+        normalized.pattern = safePattern;
+    }
+
+    return normalized;
+};
 
 const getRuleKindLabel = (rule) => {
     const kind = String(rule?.kind || 'name_regex').trim().toLowerCase();
@@ -7041,6 +7502,347 @@ const buildRuleSummaryCopy = (type, rule, folderName) => {
         summary: `${effect} ${targetLabel} when name matches ${String(rule?.pattern || '(empty)').trim() || '(empty)'}`,
         detail: `Target folder: ${folderName}`
     };
+};
+
+const normalizeSmartRuleToken = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const getSmartRuleNameTokens = (value) => {
+    const blocked = new Set(['app', 'apps', 'docker', 'folder', 'folders', 'server', 'service', 'stack', 'test', 'testing', 'the', 'and', 'with']);
+    return Array.from(new Set(
+        normalizeSmartRuleToken(value)
+            .split(/\s+/)
+            .map((token) => token.trim())
+            .filter((token) => token.length >= 3 && !blocked.has(token))
+    ));
+};
+
+const getDockerInfoLabelsForSmartRules = (entry) => {
+    if (!entry || typeof entry !== 'object') {
+        return {};
+    }
+    return entry.Labels
+        || entry.labels
+        || entry.info?.Config?.Labels
+        || entry.info?.Labels
+        || {};
+};
+
+const getDockerInfoImageForSmartRules = (entry) => String(
+    entry?.image
+    || entry?.Image
+    || entry?.info?.Config?.Image
+    || entry?.info?.Image
+    || ''
+).trim();
+
+const getDockerInfoComposeForSmartRules = (entry) => {
+    const labels = getDockerInfoLabelsForSmartRules(entry);
+    if (typeof utils.getComposeProjectFromLabels === 'function') {
+        return String(utils.getComposeProjectFromLabels(labels) || '').trim();
+    }
+    return String(
+        labels?.['com.docker.compose.project']
+        || labels?.['com.docker.compose.project.working_dir']
+        || ''
+    ).trim();
+};
+
+const smartRuleKey = (rule) => [
+    String(rule?.folderId || '').trim(),
+    String(rule?.effect || 'include').trim(),
+    String(rule?.kind || 'name_regex').trim(),
+    String(rule?.pattern || '').trim(),
+    String(rule?.labelKey || '').trim(),
+    String(rule?.labelValue || '').trim()
+].join('|');
+
+const getSmartRuleMatches = (type, rule) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const info = infoByType[resolvedType] || {};
+    return Object.keys(info)
+        .filter((name) => typeof utils.ruleMatchesItem === 'function'
+            ? utils.ruleMatchesItem(rule, name, info, resolvedType)
+            : false)
+        .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true }));
+};
+
+const buildSmartRuleSuggestion = (type, rule, reason, source) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedRule = utils.normalizePrefs({ autoRules: [rule] }).autoRules[0];
+    if (!normalizedRule || getAutoRuleProblems(resolvedType, normalizedRule).length > 0) {
+        return null;
+    }
+    const matches = getSmartRuleMatches(resolvedType, normalizedRule);
+    if (!matches.length) {
+        return null;
+    }
+    const folderName = folderNameForId(resolvedType, normalizedRule.folderId);
+    const summary = buildRuleSummaryCopy(resolvedType, normalizedRule, folderName);
+    const key = smartRuleKey(normalizedRule);
+    return {
+        id: `${resolvedType}-${key}`.replace(/[^a-zA-Z0-9_-]+/g, '-'),
+        key,
+        type: resolvedType,
+        rule: normalizedRule,
+        title: summary.summary,
+        detail: reason || summary.detail,
+        source: source || 'Detected pattern',
+        folderName,
+        matches
+    };
+};
+
+const dedupeSmartRuleSuggestions = (type, suggestions) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const existingKeys = new Set((prefsByType[resolvedType]?.autoRules || []).map((rule) => smartRuleKey(rule)));
+    const seen = new Set();
+    const deduped = [];
+    for (const suggestion of Array.isArray(suggestions) ? suggestions : []) {
+        if (!suggestion || existingKeys.has(suggestion.key) || seen.has(suggestion.key)) {
+            continue;
+        }
+        seen.add(suggestion.key);
+        deduped.push(suggestion);
+    }
+    return deduped
+        .sort((left, right) => right.matches.length - left.matches.length || left.title.localeCompare(right.title))
+        .slice(0, 12);
+};
+
+const generateSmartRuleSuggestions = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const folders = getFolderMap(resolvedType);
+    const info = infoByType[resolvedType] || {};
+    const names = Object.keys(info);
+    const suggestions = [];
+
+    for (const [folderId, folder] of Object.entries(folders || {})) {
+        const folderName = String(folder?.name || folderId || '').trim();
+        const folderTokens = getSmartRuleNameTokens(folderName);
+        const manualMembers = typeof utils.normalizeFolderMembers === 'function'
+            ? utils.normalizeFolderMembers(folder?.containers || [])
+            : (Array.isArray(folder?.containers) ? folder.containers.map((name) => String(name || '').trim()).filter(Boolean) : []);
+
+        for (const token of folderTokens) {
+            suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                enabled: true,
+                folderId,
+                effect: 'include',
+                kind: 'name_regex',
+                pattern: escapeRegexLiteral(token)
+            }, `Matches names containing "${token}" for ${folderName}.`, 'Folder name'));
+
+            if (resolvedType === 'docker') {
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'image_regex',
+                    pattern: escapeRegexLiteral(token)
+                }, `Matches Docker images containing "${token}" for ${folderName}.`, 'Folder name'));
+            }
+        }
+
+        if (manualMembers.length >= 2) {
+            const tokenCounts = new Map();
+            for (const member of manualMembers) {
+                const normalized = normalizeSmartRuleToken(member).replace(/\s+/g, '');
+                const memberTokens = new Set();
+                for (let length = 3; length <= Math.min(8, normalized.length); length += 1) {
+                    for (let start = 0; start <= normalized.length - length; start += 1) {
+                        const token = normalized.slice(start, start + length);
+                        if (/^\d+$/.test(token)) {
+                            continue;
+                        }
+                        memberTokens.add(token);
+                    }
+                }
+                memberTokens.forEach((token) => tokenCounts.set(token, (tokenCounts.get(token) || 0) + 1));
+            }
+            const sharedToken = Array.from(tokenCounts.entries())
+                .filter(([, count]) => count >= 2)
+                .sort((left, right) => right[1] - left[1] || right[0].length - left[0].length)[0]?.[0];
+            if (sharedToken) {
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'name_regex',
+                    pattern: escapeRegexLiteral(sharedToken)
+                }, `Detected "${sharedToken}" in multiple current members of ${folderName}.`, 'Current members'));
+            }
+        }
+
+        if (resolvedType === 'docker') {
+            const composeProjects = new Set();
+            for (const name of names) {
+                const compose = getDockerInfoComposeForSmartRules(info[name]);
+                if (compose) {
+                    composeProjects.add(compose);
+                }
+            }
+            for (const compose of composeProjects) {
+                const composeToken = normalizeSmartRuleToken(compose).replace(/\s+/g, '');
+                if (!composeToken || !folderTokens.some((token) => composeToken.includes(token) || token.includes(composeToken))) {
+                    continue;
+                }
+                suggestions.push(buildSmartRuleSuggestion(resolvedType, {
+                    enabled: true,
+                    folderId,
+                    effect: 'include',
+                    kind: 'compose_project_regex',
+                    pattern: `^${escapeRegexLiteral(compose)}$`
+                }, `Compose project "${compose}" looks related to ${folderName}.`, 'Compose project'));
+            }
+        }
+    }
+
+    return dedupeSmartRuleSuggestions(resolvedType, suggestions.filter(Boolean));
+};
+
+const renderSmartRuleSuggestions = (type, suggestions = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const root = $(`#${resolvedType}-rule-suggestions`);
+    if (!root.length) {
+        return;
+    }
+    const rows = Array.isArray(suggestions) ? suggestions : smartRuleSuggestionCacheByType[resolvedType] || [];
+    if (!rows.length) {
+        root.html(`<div class="fv-rule-list-empty"><strong>No suggestions found.</strong><span>Try creating folders or assigning a few current ${resolvedType === 'docker' ? 'containers' : 'VMs'} first so FolderView Plus has patterns to learn from.</span></div>`);
+        return;
+    }
+    root.html(rows.map((suggestion, index) => `
+        <label class="fv-rule-suggestion-card">
+            <input type="checkbox" data-smart-rule-index="${escapeHtml(String(index))}" checked>
+            <span class="fv-rule-suggestion-main">
+                <strong>${escapeHtml(suggestion.title)}</strong>
+                <span>${escapeHtml(suggestion.detail)}</span>
+                <small>${escapeHtml(suggestion.source)} | ${escapeHtml(suggestion.matches.slice(0, 5).join(', '))}${suggestion.matches.length > 5 ? escapeHtml(` + ${suggestion.matches.length - 5} more`) : ''}</small>
+            </span>
+            <span class="fv-rule-suggestion-count">${escapeHtml(String(suggestion.matches.length))} match${suggestion.matches.length === 1 ? '' : 'es'}</span>
+        </label>
+    `).join(''));
+};
+
+const scanSmartRuleSuggestions = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const suggestions = generateSmartRuleSuggestions(resolvedType);
+    smartRuleSuggestionCacheByType[resolvedType] = suggestions;
+    renderSmartRuleSuggestions(resolvedType, suggestions);
+    addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule scan found ${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'}.`, suggestions.length ? 'info' : 'warning');
+};
+
+const saveSelectedSmartRuleSuggestions = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const suggestions = smartRuleSuggestionCacheByType[resolvedType] || [];
+    const selectedIndexes = new Set(
+        $(`#${resolvedType}-rule-suggestions input[data-smart-rule-index]:checked`)
+            .map((_, node) => Number($(node).attr('data-smart-rule-index')))
+            .get()
+            .filter((index) => Number.isInteger(index) && index >= 0)
+    );
+    const selected = suggestions.filter((_, index) => selectedIndexes.has(index));
+    if (!selected.length) {
+        swal({ title: 'No suggestions selected', text: 'Select one or more smart suggestions first.', type: 'info' });
+        return;
+    }
+    const existingRules = prefsByType[resolvedType]?.autoRules || [];
+    const timestamp = Date.now();
+    const nextRules = selected.map((suggestion, index) => ({
+        ...suggestion.rule,
+        id: `smart-rule-${timestamp}-${index}-${Math.floor(Math.random() * 100000)}`,
+        enabled: true
+    }));
+    try {
+        prefsByType[resolvedType] = await postPrefs(resolvedType, utils.normalizePrefs({
+            ...prefsByType[resolvedType],
+            autoRules: [...existingRules, ...nextRules]
+        }));
+        smartRuleSuggestionCacheByType[resolvedType] = generateSmartRuleSuggestions(resolvedType);
+        renderSmartRuleSuggestions(resolvedType);
+        renderRulesTable(resolvedType);
+        addActivityEntry(`Saved ${nextRules.length} ${resolvedType === 'docker' ? 'Docker' : 'VM'} smart rule suggestion${nextRules.length === 1 ? '' : 's'}.`, 'success');
+    } catch (error) {
+        showError('Smart suggestion save failed', error);
+    }
+};
+
+const buildRulePreviewRows = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rules = prefsByType[resolvedType]?.autoRules || [];
+    const info = infoByType[resolvedType] || {};
+    return Object.keys(info)
+        .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true }))
+        .map((name) => {
+            const decision = utils.getAutoRuleDecision({
+                rules,
+                name,
+                infoByName: info,
+                type: resolvedType
+            });
+            if (decision.blockedBy) {
+                return {
+                    item: name,
+                    result: 'blocked',
+                    folderId: String(decision.blockedBy.folderId || ''),
+                    folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
+                    rule: ruleDescription(decision.blockedBy)
+                };
+            }
+            if (decision.assignedRule) {
+                return {
+                    item: name,
+                    result: 'assigned',
+                    folderId: String(decision.assignedRule.folderId || ''),
+                    folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
+                    rule: ruleDescription(decision.assignedRule)
+                };
+            }
+            return {
+                item: name,
+                result: 'unassigned',
+                folderId: '',
+                folder: '-',
+                rule: '-'
+            };
+        });
+};
+
+const renderRulePreviewRows = (type, rows) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const root = $(`#${resolvedType}-rule-sim-output`);
+    if (!root.length) {
+        return;
+    }
+    const safeRows = Array.isArray(rows) ? rows : [];
+    const assigned = safeRows.filter((row) => row.result === 'assigned').length;
+    const blocked = safeRows.filter((row) => row.result === 'blocked').length;
+    const unassigned = safeRows.filter((row) => row.result === 'unassigned').length;
+    if (!safeRows.length) {
+        root.html(`<div class="fv-rule-preview-empty">No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are available to preview right now.</div>`);
+        return;
+    }
+    root.html(`
+        <div class="fv-rule-preview-summary">
+            <span>${escapeHtml(String(assigned))} assigned</span>
+            <span>${escapeHtml(String(blocked))} blocked</span>
+            <span>${escapeHtml(String(unassigned))} unassigned</span>
+            <span>${escapeHtml(String(safeRows.length))} total</span>
+        </div>
+        <div class="fv-rule-preview-table" role="table" aria-label="${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview">
+            ${safeRows.map((row) => `
+                <div class="fv-rule-preview-row is-${escapeHtml(row.result)}" role="row">
+                    <span class="fv-rule-preview-result">${escapeHtml(row.result)}</span>
+                    <strong>${escapeHtml(row.item)}</strong>
+                    <span>${escapeHtml(row.folder)}</span>
+                    <small>${escapeHtml(row.rule)}</small>
+                </div>
+            `).join('')}
+        </div>
+    `);
 };
 
 const renderRulesOverview = (type, rules, filteredRules) => {
@@ -8005,6 +8807,7 @@ const renderTable = (type) => {
     const nextStatusSnapshot = buildStatusSnapshot(type, ordered, memberSnapshot, infoByType[type] || {});
     const healthMetrics = buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type]);
     healthMetricsByType[type] = healthMetrics;
+    renderBasicSummaryCards(type, healthMetrics);
     const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
     const sortMode = prefsByType[type]?.sortMode || 'created';
@@ -8021,6 +8824,7 @@ const renderTable = (type) => {
     }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
+    bindBasicFolderDragHandles(type);
     syncSettingsTableStateFromPrefs(type);
 
     renderFolderSelectOptions(type);
@@ -8036,6 +8840,7 @@ const renderTable = (type) => {
     renderQuickFolderFilters(type);
     renderSettingsTableLayoutControls(type);
     renderColumnVisibilityControls(type);
+    enhanceViewOrganizationWorkspace(type);
     applyColumnVisibility(type);
     applyColumnWidths(type);
     bindTableColumnResizers(type);
@@ -8303,6 +9108,7 @@ const refreshCoreData = async () => {
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
+    toggleRuleKindFields('vm');
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
@@ -8741,61 +9547,139 @@ const clearType = (type, id) => {
     });
 };
 
-const changeSortMode = async (type, mode) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
+const updatePrefsPartial = async (type, patch, options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    const partial = typeof patch === 'function' ? patch(current) : patch;
+    if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
+        return current;
+    }
+    const next = utils.normalizePrefs({
         ...current,
+        ...partial
+    });
+    const render = typeof options.render === 'function' ? options.render : null;
+    const onCommitted = typeof options.onCommitted === 'function' ? options.onCommitted : null;
+    prefsByType[resolvedType] = next;
+    if (render) {
+        render(next, current);
+    }
+    try {
+        const savedPrefs = await postPrefs(resolvedType, partial);
+        prefsByType[resolvedType] = utils.normalizePrefs(savedPrefs);
+        if (render) {
+            render(prefsByType[resolvedType], next);
+        }
+        if (onCommitted) {
+            onCommitted(prefsByType[resolvedType], current);
+        }
+        return prefsByType[resolvedType];
+    } catch (error) {
+        prefsByType[resolvedType] = current;
+        if (render) {
+            render(current, next);
+        }
+        throw error;
+    }
+};
+
+const broadcastPinnedFolderChange = (payload = {}) => {
+    const eventPayload = {
+        type: normalizeManagedType(payload.type),
+        pinnedFolderIds: Array.isArray(payload.pinnedFolderIds) ? [...payload.pinnedFolderIds] : [],
+        changedFolderId: String(payload.changedFolderId || ''),
+        pinned: payload.pinned === true,
+        timestamp: Number(payload.timestamp || Date.now())
+    };
+    try {
+        localStorage.setItem(PINNED_FOLDER_CHANGE_STORAGE_KEY, JSON.stringify(eventPayload));
+    } catch (_error) {
+        // Cross-page refresh hints are best-effort; persistence already succeeded.
+    }
+    try {
+        window.dispatchEvent(new CustomEvent(PINNED_FOLDER_CHANGE_EVENT, { detail: eventPayload }));
+    } catch (_error) {
+        // Same-window refresh hints are best-effort for older browsers.
+    }
+};
+
+const changeSortMode = async (type, mode) => {
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const patch = {
         sortMode: mode
     };
-
-    if (mode === 'manual' && (!Array.isArray(next.manualOrder) || next.manualOrder.length === 0)) {
-        next.manualOrder = Object.keys(getFolderMap(type));
+    if (mode === 'manual' && (!Array.isArray(current.manualOrder) || current.manualOrder.length === 0)) {
+        patch.manualOrder = Object.keys(getFolderMap(resolvedType));
     }
-
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        await refreshType(type);
+        await updatePrefsPartial(resolvedType, patch, {
+            render: () => renderTable(resolvedType)
+        });
     } catch (error) {
         showError('Sort mode save failed', error);
     }
 };
 
-const changeBadgePref = async (type, badgeKey, checked) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
-        ...current,
-        badges: {
-            ...current.badges,
-            [badgeKey]: Boolean(checked)
-        }
-    };
+const saveCurrentFolderOrderAsManual = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const ordered = utils.orderFoldersByPrefs(folders, prefsByType[resolvedType]);
+    const order = Object.keys(ordered);
+    if (!order.length) {
+        addActivityEntry(`No ${resolvedType === 'vm' ? 'VM' : 'Docker'} folders are available to save as manual order.`, 'warning');
+        return;
+    }
 
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderBadgeToggles(type);
+        await persistManualOrder(resolvedType, order);
+        addActivityEntry(`Saved current ${resolvedType === 'vm' ? 'VM' : 'Docker'} folder order as Manual.`, 'success');
+    } catch (error) {
+        showError('Manual order save failed', error);
+    }
+};
+
+const changeBadgePref = async (type, badgeKey, checked) => {
+    const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const nextBadges = {
+        ...current.badges,
+        [badgeKey]: Boolean(checked)
+    };
+    try {
+        await updatePrefsPartial(resolvedType, {
+            badges: {
+                ...nextBadges
+            }
+        }, {
+            render: () => renderBadgeToggles(resolvedType)
+        });
     } catch (error) {
         showError('Badge preferences save failed', error);
     }
 };
 
 const changeVisibilityPref = async (type, key, value) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = { ...current };
+    const resolvedType = normalizeManagedType(type);
+    const patch = {};
     if (key === 'hideEmptyFolders') {
-        next.hideEmptyFolders = value === true;
+        patch.hideEmptyFolders = value === true;
     } else if (key === 'appColumnWidth') {
-        next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        patch.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
             ? utils.normalizeAppColumnWidth(value)
             : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
     } else {
         return;
     }
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderVisibilityControls(type);
-        scheduleTableRender(type);
+        await updatePrefsPartial(resolvedType, patch, {
+            render: () => {
+                renderVisibilityControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
-        renderVisibilityControls(type);
+        renderVisibilityControls(resolvedType);
         showError('Visibility preference save failed', error);
     }
 };
@@ -8825,15 +9709,13 @@ const changeStatusPref = async (type, key, value) => {
         return;
     }
 
-    const next = {
-        ...current,
-        status: nextStatus
-    };
-
     try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        renderStatusControls(resolvedType);
-        scheduleTableRender(resolvedType);
+        await updatePrefsPartial(resolvedType, { status: nextStatus }, {
+            render: () => {
+                renderStatusControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
         renderStatusControls(resolvedType);
         showError('Status preferences save failed', error);
@@ -9009,18 +9891,17 @@ const changeHealthPref = async (type, key, value) => {
         nextHealth.vmResourceCriticalGiB = Math.min(1024, nextHealth.vmResourceWarnGiB + 1);
     }
 
-    const next = {
-        ...current,
-        health: nextHealth
-    };
     if (!nextHealth.cardsEnabled) {
         healthFilterByType[resolvedType] = 'all';
     }
 
     try {
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        renderHealthControls(resolvedType);
-        scheduleTableRender(resolvedType);
+        await updatePrefsPartial(resolvedType, { health: nextHealth }, {
+            render: () => {
+                renderHealthControls(resolvedType);
+                scheduleTableRender(resolvedType);
+            }
+        });
     } catch (error) {
         renderHealthControls(resolvedType);
         showError('Health preferences save failed', error);
@@ -9042,15 +9923,18 @@ const toggleFolderPin = async (type, folderId) => {
     const nextPinned = exists
         ? pinned.filter((item) => item !== id)
         : [...pinned, id];
-    const next = {
-        ...current,
-        pinnedFolderIds: nextPinned
-    };
-    let backup = null;
     try {
-        backup = await createBackup(resolvedType, exists ? `before-unpin-${id}` : `before-pin-${id}`);
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        await refreshType(resolvedType);
+        await updatePrefsPartial(resolvedType, { pinnedFolderIds: nextPinned }, {
+            render: () => renderTable(resolvedType),
+            onCommitted: (savedPrefs) => broadcastPinnedFolderChange({
+                type: resolvedType,
+                pinnedFolderIds: savedPrefs.pinnedFolderIds || nextPinned,
+                changedFolderId: id,
+                pinned: !exists,
+                timestamp: Date.now()
+            })
+        });
+        const backup = latestPrefsBackupByType[resolvedType];
         if (backup?.name) {
             await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
         }
@@ -9110,7 +9994,7 @@ const changeRuntimePref = async (type, key, value) => {
     runtimeSaveState.revision = requestRevision;
 
     try {
-        const savedPrefs = await postPrefs(type, next);
+        const savedPrefs = await postPrefs(type, { [key]: next[key] });
         runtimeSaveState.lastCommittedPrefs = utils.normalizePrefs(savedPrefs);
         if (requestRevision !== runtimeSaveState.revision) {
             return;
@@ -9227,17 +10111,9 @@ const addAutoRule = async (type) => {
         return;
     }
 
-    if (regexKinds.includes(kind)) {
-        if (!pattern) {
-            swal({ title: 'Error', text: 'Regex pattern cannot be empty.', type: 'error' });
-            return;
-        }
-        try {
-            new RegExp(pattern);
-        } catch (error) {
-            swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
-            return;
-        }
+    if ((regexKinds.includes(kind) || RULE_SIMPLE_KINDS.includes(kind)) && !pattern) {
+        swal({ title: 'Error', text: 'Match value cannot be empty.', type: 'error' });
+        return;
     }
 
     if (labelKinds.includes(kind) && !labelKey) {
@@ -9249,15 +10125,32 @@ const addAutoRule = async (type) => {
         return;
     }
 
-    const nextRule = {
-        id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
-        enabled: true,
+    const normalizedRule = normalizeRuleBuilderRuleInput({
+        type,
         folderId,
-        effect: effect === 'exclude' ? 'exclude' : 'include',
+        effect,
         kind,
-        pattern: regexKinds.includes(kind) ? pattern : '',
-        labelKey: labelKinds.includes(kind) ? labelKey : '',
-        labelValue: labelKinds.includes(kind) ? labelValue : ''
+        pattern,
+        labelKey,
+        labelValue
+    });
+    if (regexKinds.includes(normalizedRule.kind)) {
+        if (!normalizedRule.pattern) {
+            swal({ title: 'Error', text: 'Regex pattern cannot be empty.', type: 'error' });
+            return;
+        }
+        try {
+            new RegExp(normalizedRule.pattern);
+        } catch (error) {
+            swal({ title: 'Error', text: `Invalid regex: ${error.message}`, type: 'error' });
+            return;
+        }
+    }
+
+    const nextRule = {
+        ...normalizedRule,
+        id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        enabled: true
     };
 
     try {
@@ -9340,24 +10233,31 @@ const moveAutoRule = async (type, ruleId, direction) => {
 };
 
 const toggleRuleKindFields = (type) => {
-    if (type !== 'docker') {
-        return;
-    }
-
-    const kind = String($('#docker-rule-kind').val() || 'name_regex');
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const kind = String($(`#${resolvedType}-rule-kind`).val() || 'name_regex');
     const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
     const labelKinds = ['label', 'label_contains', 'label_starts_with'];
-    $('#docker-rule-pattern').attr('placeholder', kind === 'image_regex'
-        ? 'Regex pattern (example: linuxserver/)'
-        : kind === 'compose_project_regex'
-            ? 'Regex pattern (example: ^media$)'
-            : 'Regex pattern (example: ^media-)');
-    $('#docker-rule-pattern').toggle(regexKinds.includes(kind));
-    $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
-    $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
-    $('#docker-rule-presets').toggle(regexKinds.includes(kind));
-    updateRuleLiveMatch('docker');
-    updateRuleValidationHint('docker');
+    const simpleKinds = ['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals'];
+    const placeholderByKind = {
+        name_contains: 'Text in the name (example: arr)',
+        name_starts_with: 'Text at the start of the name (example: prod-)',
+        image_contains: 'Text in the image (example: linuxserver/sonarr)',
+        compose_project_equals: 'Compose project name (example: media)',
+        image_regex: 'Regex pattern (example: linuxserver/)',
+        compose_project_regex: 'Regex pattern (example: ^media$)',
+        name_regex: 'Regex pattern (example: ^media-)'
+    };
+    const showPattern = regexKinds.includes(kind) || simpleKinds.includes(kind);
+    $(`#${resolvedType}-rule-pattern`)
+        .attr('placeholder', placeholderByKind[kind] || placeholderByKind.name_regex)
+        .toggle(showPattern);
+    if (resolvedType === 'docker') {
+        $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
+        $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
+        $('#docker-rule-presets').toggle(regexKinds.includes(kind) || simpleKinds.includes(kind));
+    }
+    updateRuleLiveMatch(resolvedType);
+    updateRuleValidationHint(resolvedType);
 };
 
 const updateRuleValidationHint = (type, strict = false) => {
@@ -10066,66 +10966,126 @@ const bulkRuleAction = async (type, action) => {
 
 const runRuleSimulator = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const rules = prefsByType[resolvedType]?.autoRules || [];
-    const info = infoByType[resolvedType] || {};
-    const names = Object.keys(info).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-    const rows = names.map((name) => {
-        const decision = utils.getAutoRuleDecision({
-            rules,
-            name,
-            infoByName: info,
-            type: resolvedType
-        });
-        if (decision.blockedBy) {
-            return {
-                item: name,
-                result: 'blocked',
-                folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
-                rule: ruleDescription(decision.blockedBy)
-            };
-        }
-        if (decision.assignedRule) {
-            return {
-                item: name,
-                result: 'assigned',
-                folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
-                rule: ruleDescription(decision.assignedRule)
-            };
-        }
-        return {
-            item: name,
-            result: 'unassigned',
-            folder: '-',
-            rule: '-'
-        };
-    });
+    const rows = buildRulePreviewRows(resolvedType);
+    lastRulePreviewRowsByType[resolvedType] = rows;
+    renderRulePreviewRows(resolvedType, rows);
     const summary = {
         total: rows.length,
         assigned: rows.filter((row) => row.result === 'assigned').length,
         blocked: rows.filter((row) => row.result === 'blocked').length,
         unassigned: rows.filter((row) => row.result === 'unassigned').length
     };
-    const lines = [
-        `${resolvedType === 'docker' ? 'Docker' : 'VM'} assignment preview`,
-        `Generated: ${new Date().toLocaleString()}`,
-        `Assigned: ${summary.assigned} | Blocked: ${summary.blocked} | Unassigned: ${summary.unassigned} | Total: ${summary.total}`,
-        ''
-    ];
-    if (!rows.length) {
-        lines.push(`No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are available to simulate right now.`);
-    } else {
-        rows.forEach((row) => {
-            const resultLabel = row.result === 'assigned'
-                ? 'ASSIGNED'
-                : (row.result === 'blocked' ? 'BLOCKED' : 'UNASSIGNED');
-            lines.push(`${resultLabel} | ${row.item} | ${row.folder} | ${row.rule}`);
-        });
-    }
-    $(`#${resolvedType}-rule-sim-output`).text(lines.join('\n'));
     await trackDiagnosticsEvent({
         eventType: 'rule_simulator',
         type: resolvedType,
         details: summary
+    });
+};
+
+const applyRuleSimulatorAssignments = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const cachedRows = lastRulePreviewRowsByType[resolvedType] || [];
+    const rows = cachedRows.length ? cachedRows : buildRulePreviewRows(resolvedType);
+    lastRulePreviewRowsByType[resolvedType] = rows;
+    renderRulePreviewRows(resolvedType, rows);
+
+    const targetRows = rows.filter((row) => row?.result === 'assigned' && String(row?.folderId || '').trim() && String(row?.item || '').trim());
+    if (!targetRows.length) {
+        swal({
+            title: 'Nothing to apply',
+            text: `No ${resolvedType === 'docker' ? 'containers' : 'VMs'} are assigned by the current rule preview.`,
+            type: 'info'
+        });
+        return;
+    }
+
+    const byFolder = new Map();
+    targetRows.forEach((row) => {
+        const folderId = String(row.folderId || '').trim();
+        const item = String(row.item || '').trim();
+        if (!folderId || !item) {
+            return;
+        }
+        if (!byFolder.has(folderId)) {
+            byFolder.set(folderId, []);
+        }
+        byFolder.get(folderId).push(item);
+    });
+
+    swal({
+        title: 'Apply previewed assignments?',
+        text: `This will assign ${targetRows.length} ${resolvedType === 'docker' ? 'container' : 'VM'}${targetRows.length === 1 ? '' : 's'} across ${byFolder.size} folder${byFolder.size === 1 ? '' : 's'}. A backup will be created first.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply assignments',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        if (!ensureRuntimeConflictActionAllowed(`Apply ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignments`)) {
+            return;
+        }
+
+        await withAdvancedOperationLock(resolvedType, 'rule-preview-apply', `${resolvedType.toUpperCase()} rule preview assignment`, async () => {
+            let backup = null;
+            let assignedCount = 0;
+            let skippedInvalidCount = 0;
+            const failed = [];
+
+            try {
+                backup = await createBackup(resolvedType, 'before-rule-preview-assign');
+                for (const [folderId, items] of byFolder.entries()) {
+                    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
+                        type: resolvedType,
+                        folderId,
+                        items: JSON.stringify(items)
+                    });
+                    if (!response?.ok) {
+                        failed.push(...items.map((item) => `${item}: ${response?.error || 'request failed'}`));
+                        continue;
+                    }
+                    const result = response.result || {};
+                    assignedCount += Array.isArray(result.assigned) ? result.assigned.length : 0;
+                    skippedInvalidCount += Array.isArray(result.skippedInvalid) ? result.skippedInvalid.length : 0;
+                    const assignedSet = new Set((Array.isArray(result.assigned) ? result.assigned : []).map((item) => String(item || '').trim()));
+                    const invalidSet = new Set((Array.isArray(result.skippedInvalid) ? result.skippedInvalid : []).map((item) => String(item || '').trim()));
+                    items.forEach((item) => {
+                        if (!assignedSet.has(item) && !invalidSet.has(item)) {
+                            failed.push(`${item}: not applied by server response`);
+                        }
+                    });
+                }
+
+                await Promise.allSettled([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                lastRulePreviewRowsByType[resolvedType] = buildRulePreviewRows(resolvedType);
+                renderRulePreviewRows(resolvedType, lastRulePreviewRowsByType[resolvedType]);
+
+                const failedCount = failed.length;
+                showActionSummaryToast({
+                    title: 'Rule preview assignments complete',
+                    message: `${assignedCount} assigned | ${skippedInvalidCount} invalid | ${failedCount} failed`,
+                    level: failedCount > 0 ? 'warning' : 'success',
+                    type: resolvedType
+                });
+                addActivityEntry(`Applied ${assignedCount} ${resolvedType === 'docker' ? 'Docker' : 'VM'} rule preview assignment${assignedCount === 1 ? '' : 's'}.`, failedCount > 0 ? 'warning' : 'success');
+                await trackDiagnosticsEvent({
+                    eventType: 'rule_preview_apply',
+                    type: resolvedType,
+                    details: {
+                        folderCount: byFolder.size,
+                        itemCount: targetRows.length,
+                        assignedCount,
+                        skippedInvalidCount,
+                        failedCount
+                    }
+                });
+                await offerUndoAction(resolvedType, backup, 'Rule preview assignment');
+            } catch (error) {
+                showError('Rule preview assignment failed', error);
+            }
+        });
     });
 };
 
@@ -10262,6 +11222,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     importVm,
     clearDocker,
     clearVm,
+    toggleBasicSettingsPanel,
     fileManager,
     createRollbackCheckpoint,
     rollbackLatestCheckpoint,
@@ -10272,6 +11233,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     changeRuntimePref,
     changeDashboardPref,
     changeHealthPref,
+    saveCurrentFolderOrderAsManual,
     changeBackupSchedulePref,
     changeActiveBackupSchedulePref,
     setFilterQuery,
@@ -10288,6 +11250,9 @@ settingsActionSupportModule.registerWindowActions(window, {
     toggleAllRuleSelections,
     bulkRuleAction,
     runRuleSimulator,
+    applyRuleSimulatorAssignments,
+    scanSmartRuleSuggestions,
+    saveSelectedSmartRuleSuggestions,
     toggleRuleKindFields,
     testAutoRule,
     assignSelectedItems,
@@ -10337,6 +11302,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     checkForUpdatesNow,
     showDevForceRefreshHelper,
     moveFolderRow,
+    moveFolderRowBesideSibling,
     moveFolderToRootQuick,
     moveFolderUnderDialog,
     openFolderTreeMoveDialog,
@@ -10364,8 +11330,8 @@ settingsActionSupportModule.registerWindowActions(window, {
     changeSettingsTableColumnWidthPreset,
     applySettingsTablePreset,
     resetSettingsTableColumns,
-    showFolderStatusBreakdown,
     showFolderHealthBreakdown,
+    openSettingsFolderEditor,
     openFolderRowQuickActions,
     quickCreateStarterFolder,
     quickCreateStarterTemplates,

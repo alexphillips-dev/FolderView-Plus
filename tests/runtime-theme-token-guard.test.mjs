@@ -177,7 +177,7 @@ test('runtime and settings overlays resolve through theme tokens instead of hard
     assert.doesNotMatch(libPhp, /background:linear-gradient\(180deg,\s*rgba\(120,60,0,0\.22\)/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{[^}]*background:\s*var\(--fvplus-editor-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\);/);
     assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content\s*\{[^}]*color:\s*var\(--fvplus-editor-text-primary,\s*var\(--fvplus-theme-text-primary,\s*currentColor\)\);/);
-    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl > dt\s*\{[^}]*color:\s*var\(--fvplus-editor-title-accent,\s*var\(--fvplus-editor-accent,\s*currentColor\)\);/);
+    assert.match(folderCss, /\.fv-action-dialog-field > span:first-child,[\s\S]*?\.fv-action-target-label > span\s*\{[^}]*color:\s*var\(--fv-editor-title-accent\);/);
 });
 
 test('settings semantic chips and light-mode overrides use exported settings tokens', () => {

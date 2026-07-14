@@ -64,7 +64,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleBrowserJs, /const fallbackVersionToken = normalizeAssetVersionToken\(options\?\.pluginVersion \|\| ''\);/);
     assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
     assert.match(supportBundleBrowserJs, /versionSource,/);
-    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
+    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(options = \{\}\) =>/);
     assert.match(supportBundleBrowserJs, /const collectDockerPageDiagnostics = \(uiRedactor\) => \{/);
     assert.match(supportBundleBrowserJs, /const collectDockerBulkUpdateTrace = \(uiRedactor\) => \{/);
     assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
@@ -379,11 +379,17 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
 });
 
 test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
+    const suggestedFixesIndex = settingsPage.indexOf('<strong>Suggested fixes</strong>');
+    const diagnosticsSummaryIndex = settingsPage.indexOf('id="fv-diagnostics-summary"');
+    const shareWithSupportIndex = settingsPage.indexOf('<strong>Share with support</strong>');
     assert.match(settingsPage, /<div class="fv-diagnostics-module-wrap">/);
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
+    assert.ok(suggestedFixesIndex >= 0, 'suggested fixes module is missing');
+    assert.ok(diagnosticsSummaryIndex > suggestedFixesIndex, 'suggested fixes should render above the health summary');
+    assert.ok(shareWithSupportIndex > diagnosticsSummaryIndex, 'share with support should remain below the health summary');
     assert.match(settingsCss, /\.fv-diagnostics-module-wrap\s*>\s*\.rules-panel\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
-    assert.match(settingsCss, /\.fv-diagnostics-workbench\s*\{[\s\S]*align-items:\s*start;/);
+    assert.match(settingsCss, /\.fv-diagnostics-workbench\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);[\s\S]*align-items:\s*start;/);
     assert.match(settingsCss, /\.fv-diagnostics-lane\s*\{[\s\S]*align-content:\s*start;/);
     assert.match(settingsCss, /\.fv-diagnostics-action-list\s*\{[\s\S]*align-content:\s*start;/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);

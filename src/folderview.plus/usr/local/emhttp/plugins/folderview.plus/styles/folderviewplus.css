@@ -71,6 +71,9 @@
     --fvplus-settings-button-hover-bottom: var(--fvplus-ui-control-hover, #29292b);
     --fvplus-settings-button-active-top: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
     --fvplus-settings-button-active-bottom: var(--fvplus-ui-control-active, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
+    --fvplus-settings-button-outline: rgba(255, 255, 255, 0.28);
+    --fvplus-settings-button-outline-hover: rgba(255, 255, 255, 0.42);
+    --fvplus-settings-button-outline-active: rgba(255, 255, 255, 0.5);
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(255, 138, 31, 0.18), 0 1px 3px rgba(0, 0, 0, 0.16);
@@ -117,6 +120,9 @@ body[data-fv-host-theme="white"] #fv-settings-root,
     --fvplus-settings-button-hover-bottom: rgba(251, 226, 194, 0.96);
     --fvplus-settings-button-active-top: rgba(248, 218, 180, 0.98);
     --fvplus-settings-button-active-bottom: rgba(244, 207, 160, 0.97);
+    --fvplus-settings-button-outline: rgba(190, 107, 24, 0.12);
+    --fvplus-settings-button-outline-hover: rgba(190, 107, 24, 0.2);
+    --fvplus-settings-button-outline-active: rgba(190, 107, 24, 0.26);
     --fvplus-settings-button-shadow: inset 0 0 0 1px rgba(190, 107, 24, 0.08), 0 1px 2px rgba(113, 84, 52, 0.08);
     --fvplus-settings-button-shadow-hover: inset 0 0 0 1px rgba(190, 107, 24, 0.12), 0 2px 5px rgba(113, 84, 52, 0.12);
     --fvplus-settings-button-shadow-active: inset 0 0 0 1px rgba(190, 107, 24, 0.16), 0 1px 3px rgba(113, 84, 52, 0.1);
@@ -161,10 +167,15 @@ body[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
-#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before {
-    border-left-color: var(--fvplus-settings-tree-guide) !important;
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::after,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::after {
+    border-color: var(--fvplus-settings-tree-guide) !important;
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
@@ -420,6 +431,35 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     text-overflow: ellipsis;
 }
 
+.fv-folder-filter-strip {
+    display: grid;
+    gap: 0.36rem;
+    margin-top: 0.3rem;
+    margin-bottom: 0.18rem;
+    padding: 0.34rem 0.42rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 5px;
+    background: var(--fvplus-settings-surface-field);
+}
+
+.fv-folder-filter-search > input[type="text"] {
+    width: 100%;
+    min-height: 30px;
+    margin: 0;
+    border-color: transparent;
+    background: transparent;
+}
+
+.fv-folder-filter-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+}
+
+.fv-folder-filter-quick:empty {
+    display: none;
+}
+
 .sort-hint-chip {
     display: inline-flex;
     align-items: center;
@@ -486,6 +526,179 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     width: 100%;
     min-height: 34px;
     margin: 0;
+}
+
+.fv-view-org .toolbar-sort-toggle-main {
+    color: var(--fvplus-settings-text-strong);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.fv-view-org-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.fv-view-org-section {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-panel);
+    padding: 0.7rem;
+    min-width: 0;
+}
+
+.fv-view-org-section-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 0.85fr);
+    gap: 0.6rem;
+    align-items: start;
+    padding-bottom: 0.55rem;
+    margin-bottom: 0.65rem;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-view-org-section-header h3 {
+    margin: 0.1rem 0 0;
+    font-size: 1.15rem;
+    line-height: 1.25;
+}
+
+.fv-view-org-section-header p {
+    margin: 0;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.35;
+    text-align: right;
+}
+
+.fv-view-org-eyebrow {
+    color: var(--fvplus-settings-accent);
+    font-size: 0.94rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-view-org-section-body {
+    min-width: 0;
+}
+
+.fv-view-org-order {
+    align-self: start;
+}
+
+.fv-view-org-display {
+    grid-column: 1 / -1;
+}
+
+.fv-view-org-display .settings-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.fv-view-org-order-body {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.fv-view-org-order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.58rem;
+}
+
+.fv-view-org-order-actions > button {
+    min-height: 32px;
+    min-width: 0;
+    padding: 0.2rem 0.58rem;
+}
+
+.fv-view-org-count-chip {
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 999px;
+    padding: 0.12rem 0.48rem;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.fv-view-org-guidance {
+    display: grid;
+    gap: 0.48rem;
+    margin-top: 0.62rem;
+    padding: 0.58rem 0.66rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 7px;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-view-org-guidance-main {
+    display: grid;
+    gap: 0.18rem;
+}
+
+.fv-view-org-guidance-main > strong {
+    color: var(--fvplus-settings-text-strong);
+}
+
+.fv-view-org-guidance-main > span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.35;
+}
+
+.fv-view-org-guidance-notes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.fv-view-org-guidance-notes > span {
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 999px;
+    padding: 0.12rem 0.46rem;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.25;
+}
+
+.fv-view-org-tools {
+    grid-column: 1 / -1;
+    padding: 0;
+}
+
+.fv-view-org-tools > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.65rem 0.7rem;
+}
+
+.fv-view-org-tools > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fv-view-org-tools > summary > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--fvplus-settings-text-strong);
+    font-weight: 700;
+}
+
+.fv-view-org-tools > summary > small {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.98rem;
+    text-align: right;
+}
+
+.fv-view-org-tools-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    padding: 0 0.7rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
 }
 
 .settings-cards-grid {
@@ -775,10 +988,20 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 .name-cell-content.is-nested::before {
     content: "";
     position: absolute;
-    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.5rem);
-    top: 0.3rem;
-    bottom: 0.3rem;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.62rem);
+    top: -0.82rem;
+    bottom: -0.82rem;
     border-left: 1px solid var(--fvplus-settings-tree-guide);
+    pointer-events: none;
+}
+
+.name-cell-content.is-nested::after {
+    content: "";
+    position: absolute;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.62rem);
+    top: 50%;
+    width: 1.12rem;
+    border-top: 1px solid var(--fvplus-settings-tree-guide);
     pointer-events: none;
 }
 
@@ -916,8 +1139,31 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     color: var(--fvplus-settings-warning);
 }
 
+.folder-table table th.col-actions,
+.folder-table table td.actions-cell {
+    text-align: center;
+}
+
 .folder-table table td.actions-cell {
     white-space: nowrap;
+}
+
+.folder-actions-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.folder-actions-group > .folder-action-btn {
+    float: none !important;
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.folder-actions-group > .folder-action-btn:first-child {
+    margin-left: 0 !important;
 }
 
 .folder-action-btn {
@@ -1240,7 +1486,7 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     .folder-table table td.actions-cell {
         position: relative;
         z-index: 2;
-        text-align: right;
+        text-align: center;
         white-space: nowrap;
         overflow: visible;
         text-overflow: clip;
@@ -1450,7 +1696,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell {
     position: relative;
     z-index: 2;
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
     overflow: visible;
     text-overflow: clip;
@@ -1997,6 +2243,429 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     white-space: nowrap;
 }
 
+/* Modern Basic folder workspace */
+.folder-table {
+    gap: 1rem;
+}
+
+.folder-toolbar {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.fv-basic-commandbar {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) auto minmax(190px, auto) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-basic-search,
+.fv-basic-sort,
+.fv-basic-control-btn,
+.fv-basic-add-btn {
+    min-height: 44px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.fv-basic-search {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0 0.72rem;
+}
+
+.fv-basic-search > i,
+.fv-basic-sort > i,
+.fv-basic-control-btn > i,
+.fv-basic-add-btn > i {
+    font-size: 1.08rem;
+}
+
+.fv-basic-search > input[type="text"] {
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit;
+    box-shadow: none !important;
+}
+
+.fv-basic-search > input[type="text"]:focus {
+    outline: none;
+}
+
+.fv-basic-control-btn,
+.fv-basic-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.48rem;
+    padding: 0 0.85rem;
+    white-space: nowrap;
+}
+
+.fv-basic-add-btn {
+    font-weight: 700;
+}
+
+.fv-basic-sort {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.42rem;
+    padding: 0 0.6rem;
+}
+
+.fv-basic-sort > span {
+    font-weight: 700;
+}
+
+.fv-basic-sort > select {
+    min-width: 128px;
+    min-height: 38px;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit;
+    box-shadow: none !important;
+}
+
+.fv-basic-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fv-basic-summary-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.72rem;
+    min-height: 82px;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-basic-summary-icon {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent-soft);
+    font-size: 1.38rem;
+}
+
+.fv-basic-summary-card.is-healthy .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-success);
+    background: var(--fvplus-settings-chip-success-bg);
+}
+
+.fv-basic-summary-card.is-critical .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-danger);
+    background: var(--fvplus-settings-chip-danger-bg);
+}
+
+.fv-basic-summary-card.is-degraded .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
+}
+
+.fv-basic-summary-card.is-empty .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-empty);
+    background: var(--fvplus-settings-chip-empty-bg);
+}
+
+.fv-basic-summary-card.is-rules .fv-basic-summary-icon {
+    color: var(--fvplus-settings-chip-info);
+    background: var(--fvplus-settings-chip-info-bg);
+}
+
+.fv-basic-summary-copy {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.fv-basic-summary-copy > span,
+.fv-basic-summary-copy > small {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.2;
+}
+
+.fv-basic-summary-copy > strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.5rem;
+    line-height: 1.05;
+}
+
+.folder-table .table-wrap {
+    border-radius: 8px;
+    padding: 0.45rem;
+    background: var(--fvplus-settings-surface-panel);
+}
+
+.folder-table table {
+    border-collapse: separate;
+    border-spacing: 0 0.38rem;
+}
+
+.folder-table table th {
+    padding: 0.45rem 0.7rem;
+    color: var(--fvplus-settings-text-muted);
+    font-weight: 700;
+}
+
+.folder-table table td {
+    padding: 0.58rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-card);
+}
+
+.folder-table table tbody tr > td:first-child {
+    border-left: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 8px 0 0 8px;
+}
+
+.folder-table table tbody tr > td:last-child {
+    border-right: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 0 8px 8px 0;
+}
+
+.folder-table table tbody tr:hover > td,
+.folder-table table tbody tr.fv-row-focus > td {
+    border-color: var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.name-cell-content {
+    grid-template-columns: 18px 34px minmax(0, 1fr);
+    width: min(100%, 320px);
+}
+
+.name-cell-content > img {
+    width: 34px;
+    height: 34px;
+}
+
+.name-cell-text {
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.name-cell-members-meta {
+    font-size: 0.96rem;
+}
+
+.row-order-actions {
+    gap: 0.22rem;
+    align-items: center;
+}
+
+.folder-drag-handle {
+    width: 26px !important;
+    min-width: 26px !important;
+    height: 34px !important;
+    display: inline-grid !important;
+    grid-template-columns: repeat(2, 4px);
+    grid-auto-rows: 4px;
+    justify-content: center;
+    align-content: center;
+    gap: 3px;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-settings-text-muted);
+    cursor: grab;
+}
+
+.folder-drag-handle:active {
+    cursor: grabbing;
+}
+
+.folder-drag-handle > span {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.9;
+}
+
+.folder-drag-handle:hover,
+.folder-drag-handle:focus-visible {
+    color: var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-source > td {
+    opacity: 0.58;
+}
+
+.fv-basic-row-drag-image {
+    position: fixed;
+    top: -10000px;
+    left: -10000px;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.95;
+    filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.36));
+}
+
+.fv-basic-row-drag-image table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.fv-basic-row-drag-image td {
+    padding: 0.58rem 0.7rem;
+    border-top: 1px solid var(--fvplus-settings-border-subtle);
+    border-bottom: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-basic-row-drag-image tr > td:first-child {
+    border-left: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px 0 0 8px;
+}
+
+.fv-basic-row-drag-image tr > td:last-child {
+    border-right: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 0 8px 8px 0;
+}
+
+.folder-table table tbody tr.fv-row-drag-over-before > td {
+    box-shadow: inset 0 2px 0 var(--fvplus-settings-accent);
+}
+
+.folder-table table tbody tr.fv-row-drag-over-after > td {
+    box-shadow: inset 0 -2px 0 var(--fvplus-settings-accent);
+}
+
+.folder-pin-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-width: 0;
+    min-height: 20px;
+    padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 0;
+}
+
+.folder-pin-switch-track {
+    position: relative;
+    box-sizing: border-box;
+    width: 38px;
+    height: 20px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-field);
+}
+
+.folder-pin-switch-knob {
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--fvplus-settings-text-primary);
+    transform: translateY(-50%);
+    transition: transform 120ms ease;
+}
+
+.folder-pin-switch.is-pinned .folder-pin-switch-track {
+    border-color: rgba(255, 138, 31, 0.7);
+    background: rgba(255, 138, 31, 0.72);
+}
+
+.folder-pin-switch.is-pinned .folder-pin-switch-knob {
+    transform: translate(18px, -50%);
+}
+
+.folder-pin-switch-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.folder-table table td.actions-cell {
+    text-align: right;
+}
+
+.folder-table table td.actions-cell .folder-action-btn,
+.folder-table table td.actions-cell .folder-overflow-btn {
+    display: inline-flex !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border: 1px solid var(--fvplus-settings-border-faint) !important;
+    border-radius: 7px !important;
+    background: var(--fvplus-settings-surface-field) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: none !important;
+}
+
+.folder-table table td.actions-cell .folder-action-btn:hover,
+.folder-table table td.actions-cell .folder-action-btn:focus-visible {
+    border-color: var(--fvplus-settings-border-subtle) !important;
+    color: var(--fvplus-settings-accent) !important;
+}
+
+.health-chip {
+    min-width: 92px;
+}
+
+.folder-runtime-status {
+    min-width: 86px;
+    justify-content: center;
+}
+
+@media (max-width: 1280px) {
+    .fv-basic-commandbar,
+    .fv-basic-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fv-basic-search {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 720px) {
+    .fv-basic-commandbar,
+    .fv-basic-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort {
+        width: 100%;
+    }
+}
+
 .fv-theme-workspace-grid {
     display: grid;
     grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
@@ -2203,8 +2872,13 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .fv-theme-token-reset {
     min-width: 34px !important;
     width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .fv-theme-custom-css {
@@ -2749,9 +3423,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-rules-source-btn.is-active {
-    background: var(--fvplus-settings-warning-soft) !important;
-    color: var(--fvplus-settings-title-accent) !important;
-    box-shadow: inset 0 0 0 1px var(--fvplus-settings-warning-border), var(--fvplus-btn-shadow);
+    background: var(--fvplus-settings-button-accent-top) !important;
+    color: var(--fvplus-settings-button-accent-fg) !important;
+    box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }
 
 .fv-rules-overview {
@@ -2978,6 +3652,58 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-text-primary);
 }
 
+.fv-rule-suggestion-list {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.fv-rule-suggestion-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.8rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    cursor: pointer;
+}
+
+.fv-rule-suggestion-card:hover {
+    border-color: var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-card);
+}
+
+.fv-rule-suggestion-main {
+    display: grid;
+    gap: 0.22rem;
+    min-width: 0;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-suggestion-main > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-rule-suggestion-main > small {
+    color: var(--fvplus-settings-text-subtle);
+    line-height: 1.4;
+}
+
+.fv-rule-suggestion-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0.18rem 0.58rem;
+    border-radius: 8px;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .fv-rule-card {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -3114,6 +3840,99 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     grid-column: span 2;
 }
 
+.fv-rule-preview-output {
+    display: grid;
+    gap: 0.65rem;
+    white-space: normal;
+}
+
+.fv-rule-preview-empty {
+    padding: 0.8rem 0.9rem;
+    border-radius: 10px;
+    border: 1px dashed var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-preview-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.fv-rule-preview-summary > span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0.14rem 0.56rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-primary);
+    font-weight: 700;
+}
+
+.fv-rule-preview-table {
+    display: grid;
+    gap: 0.32rem;
+    max-height: min(420px, 50vh);
+    overflow: auto;
+    padding-right: 0.25rem;
+}
+
+.fv-rule-preview-row {
+    display: grid;
+    grid-template-columns: 92px minmax(140px, 0.8fr) minmax(130px, 0.65fr) minmax(0, 1.35fr);
+    gap: 0.6rem;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.44rem 0.56rem;
+    border-radius: 9px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-rule-preview-row > strong,
+.fv-rule-preview-row > span,
+.fv-rule-preview-row > small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-rule-preview-row > small {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-rule-preview-result {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0.1rem 0.42rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-panel);
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-rule-preview-row.is-assigned .fv-rule-preview-result {
+    border-color: var(--fvplus-settings-chip-ok-border);
+    background: var(--fvplus-settings-chip-ok-bg);
+    color: var(--fvplus-settings-chip-ok);
+}
+
+.fv-rule-preview-row.is-blocked .fv-rule-preview-result {
+    border-color: var(--fvplus-settings-warning-border);
+    background: var(--fvplus-settings-warning-soft);
+    color: var(--fvplus-settings-title-accent);
+}
+
 @media (max-width: 1180px) {
     .fv-rules-stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3146,6 +3965,16 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-rule-card-actions {
         flex-direction: row;
         flex-wrap: wrap;
+    }
+
+    .fv-rule-suggestion-card,
+    .fv-rule-preview-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fv-rule-suggestion-count,
+    .fv-rule-preview-result {
+        justify-self: start;
     }
 }
 
@@ -5394,7 +6223,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-workbench {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.85rem;
     align-items: start;
 }
@@ -6693,7 +7522,6 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     #fv-settings-root .folder-tree-toggle,
     #fv-settings-root .fv-section-toggle,
     #fv-settings-root .fv-advanced-compact,
-    #fv-settings-root .status-breakdown-btn,
     #fv-settings-root .health-breakdown-btn {
         -webkit-appearance: none !important;
         appearance: none !important;
@@ -7160,6 +7988,9 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 #fv-setup-assistant-dialog[data-fv-theme-class="light"] {
     color-scheme: light;
+    --fvplus-settings-button-outline: rgba(122, 102, 72, 0.18);
+    --fvplus-settings-button-outline-hover: rgba(122, 102, 72, 0.26);
+    --fvplus-settings-button-outline-active: rgba(122, 102, 72, 0.32);
     --fv-wizard-text-primary: var(--fvplus-settings-text-primary, #324253);
     --fv-wizard-text-muted: var(--fvplus-settings-text-muted, #627284);
     --fv-wizard-text-dim: var(--fvplus-settings-text-dim, #73839a);
@@ -9740,39 +10571,6 @@ h2[data-fv-section].fv-search-match {
     opacity: 1;
 }
 
-.status-breakdown-btn {
-    width: 22px !important;
-    min-width: 22px !important;
-    max-width: 22px;
-    height: 22px !important;
-    min-height: 22px !important;
-    max-height: 22px;
-    flex: 0 0 22px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    box-shadow: none;
-    padding: 0;
-    line-height: 1;
-    vertical-align: middle;
-}
-
-#fv-settings-root .status-breakdown-btn,
-#fv-settings-root .status-breakdown-btn:hover,
-#fv-settings-root .status-breakdown-btn:active,
-#fv-settings-root .status-breakdown-btn:focus {
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-.status-breakdown-btn > i {
-    font-size: 1.03rem;
-}
-
 .fv-starter-empty {
     display: grid;
     justify-items: center;
@@ -9813,12 +10611,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -9829,6 +10635,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -9845,7 +10653,8 @@ h2[data-fv-section].fv-search-match {
 ),
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump),
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
-    border: 0 !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 8px !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-button-fg) !important;
@@ -9861,12 +10670,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -9877,6 +10694,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -9898,12 +10717,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -9914,6 +10741,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -9932,6 +10761,7 @@ h2[data-fv-section].fv-search-match {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):focus-visible,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:hover,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:focus-visible {
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
@@ -9943,12 +10773,20 @@ h2[data-fv-section].fv-search-match {
     .fv-theme-import-row > button,
     .fv-theme-customize-actions > button,
     .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -9959,6 +10797,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -9974,6 +10814,7 @@ h2[data-fv-section].fv-search-match {
 ):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):active,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:active {
+    border-color: var(--fvplus-settings-button-outline-active) !important;
     background: var(--fvplus-settings-button-active-top) !important;
     box-shadow: var(--fvplus-settings-button-shadow-active) !important;
     transform: translateY(0);
@@ -9983,12 +10824,23 @@ h2[data-fv-section].fv-search-match {
     .custom-css > button,
     .toolbar-actions > button,
     .fv-first-run-actions > button,
+    .fv-theme-import-row > button,
+    .fv-theme-customize-actions > button,
+    .fv-theme-workspace-entry-actions > button,
+    .fv-theme-token-reset,
+    .fv-basic-control-btn,
+    .fv-basic-add-btn,
+    .fv-basic-sort,
     .tree-visibility-controls > button,
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
     .folder-health-filter,
     .folder-health-actions > button,
+    .fv-rule-builder-actions > button,
+    .fv-rule-selection-actions > button,
+    .fv-rule-card-actions > button,
+    .fv-rule-test-actions > button,
     .rules-editor > button,
     .rules-table td button,
     .rule-tester > button,
@@ -9999,6 +10851,8 @@ h2[data-fv-section].fv-search-match {
     .bulk-result-actions > button,
     .backup-actions > button,
     .runtime-action-grid > button,
+    [data-fv-rules-source-toggle],
+    [data-fv-operations-source-toggle],
     .template-controls > button,
     .import-preset-actions > button,
     .rule-test-samples > button,
@@ -10014,6 +10868,7 @@ h2[data-fv-section].fv-search-match {
 ):disabled,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):disabled,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:disabled {
+    border-color: var(--fvplus-settings-button-outline) !important;
     opacity: 0.56;
     box-shadow: none !important;
     transform: none !important;
@@ -10023,9 +10878,11 @@ h2[data-fv-section].fv-search-match {
     .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
     .fv-mini-action-btn.is-active,
-    .folder-table table td.actions-cell .folder-overflow-btn
+    [data-fv-rules-source-toggle].is-active,
+    [data-fv-operations-source-toggle].is-active
 ),
 #fv-settings-root .fv-mode-toggle button.is-active {
+    border-color: var(--fvplus-settings-button-outline-active) !important;
     background: var(--fvplus-settings-button-accent-top) !important;
     color: var(--fvplus-settings-button-accent-fg) !important;
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
@@ -10088,7 +10945,8 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button {
     min-height: 40px !important;
     padding: 0 1.1rem !important;
-    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 7px !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-text-primary) !important;
@@ -10100,14 +10958,14 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-docker-start-order-add-row > button:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button:focus-visible,
 #fv-settings-root .fv-docker-start-order-add-row > button:focus-visible {
-    border-color: var(--fvplus-settings-accent) !important;
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     color: var(--fvplus-settings-accent) !important;
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary {
-    border-color: var(--fvplus-settings-border-subtle) !important;
+    border-color: var(--fvplus-settings-button-outline) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
     color: var(--fvplus-settings-text-primary) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
@@ -10115,14 +10973,14 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:hover,
 #fv-settings-root .fv-docker-start-order-toolbar > button.fv-docker-start-order-primary:focus-visible {
-    border-color: var(--fvplus-settings-accent) !important;
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-hover-top) !important;
     color: var(--fvplus-settings-accent) !important;
 }
 
 #fv-settings-root .fv-docker-start-order-toolbar > button:disabled,
 #fv-settings-root .fv-docker-start-order-add-row > button:disabled {
-    border-color: var(--fvplus-settings-border-faint) !important;
+    border-color: var(--fvplus-settings-button-outline) !important;
     background: var(--fvplus-settings-button-quiet-top) !important;
     color: var(--fvplus-settings-text-dim) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
@@ -10135,16 +10993,15 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root :is(
-    .row-order-actions button,
-    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
     .fv-section-toggle,
     .fv-advanced-compact,
-    .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
 ) {
-    border: 0 !important;
+    box-sizing: border-box !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
     border-radius: 6px !important;
     background: var(--fvplus-settings-button-quiet-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
@@ -10153,7 +11010,7 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root :is(
     .row-order-actions button,
-    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-table table td.actions-cell .folder-action-btn,
     .fv-section-toggle,
     .fv-advanced-compact,
     .updates-chip
@@ -10161,7 +11018,7 @@ h2[data-fv-section].fv-search-match {
     color: var(--fvplus-settings-title-accent) !important;
 }
 
-#fv-settings-root :is(.status-breakdown-btn, .health-breakdown-btn) {
+#fv-settings-root .health-breakdown-btn {
     color: var(--fvplus-settings-chip-info) !important;
 }
 
@@ -10170,28 +11027,34 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root :is(
-    .row-order-actions button,
-    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
     .fv-section-toggle,
     .fv-advanced-compact,
-    .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
 ):hover,
 #fv-settings-root :is(
-    .row-order-actions button,
-    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-table table td.actions-cell .folder-action-btn,
     .folder-tree-toggle,
     .fv-section-toggle,
     .fv-advanced-compact,
-    .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
 ):focus-visible {
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
     background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
     color: var(--fvplus-settings-text-primary) !important;
+}
+
+/* Order-column controls are icon-only affordances, not framed action buttons. */
+#fv-settings-root .folder-table table td.order-cell .row-order-actions button {
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 #fv-settings-root :is(.updates-chip.is-filter-active, .health-chip.is-filter-active) {

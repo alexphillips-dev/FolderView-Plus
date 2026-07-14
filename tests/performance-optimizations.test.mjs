@@ -400,7 +400,7 @@ test('settings table filter and preference changes use queued table rendering', 
     assert.match(settingsJs, /const toggleDockerUpdatesFilter = \(hasUpdatesInRow = false\) => \{[\s\S]*scheduleTableRender\('docker'\);[\s\S]*scheduleTableRender\('docker'\);/);
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
     assert.match(settingsJs, /const toggleStatusFilter = \(type = 'docker', statusKey = 'all'\) => \{[\s\S]*scheduleTableRender\(resolvedType\);/);
-    assert.match(settingsJs, /const changeVisibilityPref = async \(type, key, value\) => \{[\s\S]*renderVisibilityControls\(type\);\s*scheduleTableRender\(type\);/);
+    assert.match(settingsJs, /const changeVisibilityPref = async \(type, key, value\) => \{[\s\S]*renderVisibilityControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
     assert.match(settingsJs, /const changeStatusPref = async \(type, key, value\) => \{[\s\S]*renderStatusControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
     assert.match(settingsJs, /const changeHealthPref = async \(type, key, value\) => \{[\s\S]*renderHealthControls\(resolvedType\);\s*scheduleTableRender\(resolvedType\);/);
     assert.doesNotMatch(settingsJs, /queueSettingsTableRender/);

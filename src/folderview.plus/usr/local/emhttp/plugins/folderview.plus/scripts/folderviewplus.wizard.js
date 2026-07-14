@@ -3147,7 +3147,7 @@ const renderSetupAssistantBehaviorStep = () => `
             <div class="fv-setup-import-guide-panels">
                 <span><i class="fa fa-sort" aria-hidden="true"></i> Sorting controls folder order</span>
                 <span><i class="fa fa-eye-slash" aria-hidden="true"></i> Visibility can hide empty folders</span>
-                <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Status details add health and runtime context</span>
+                <span><i class="fa fa-heartbeat" aria-hidden="true"></i> Health indicators add runtime context</span>
             </div>
         </section>
     </div>

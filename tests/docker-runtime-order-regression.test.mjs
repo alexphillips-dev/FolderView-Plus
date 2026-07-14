@@ -14,6 +14,83 @@ const libPhp = fs.readFileSync(
 );
 
 const reorderFolderSlotsMatch = dockerJs.match(/const reorderFolderSlotsInBaseOrder = \(baseOrder, folders, prefs\) => \{([\s\S]*?)\n\};/);
+const reconcileDockerOrderMatch = dockerJs.match(/const reconcileDockerOrderWithFolderSlots = \(liveOrder, savedOrder, folders\) => \{([\s\S]*?)\n\};/);
+
+test('docker runtime places containers missing from saved preferences after every folder', () => {
+    assert.ok(reconcileDockerOrderMatch, 'reconcileDockerOrderWithFolderSlots definition should exist');
+    const reconcileDockerOrderWithFolderSlots = new Function(
+        'liveOrder',
+        'savedOrder',
+        'folders',
+        'folderRegex',
+        `${reconcileDockerOrderMatch[1]}`
+    );
+
+    const result = reconcileDockerOrderWithFolderSlots(
+        ['new-container', 'existing-one', 'existing-two'],
+        ['existing-one', 'existing-two', 'folder-a', 'folder-b'],
+        {
+            a: { name: 'Apps' },
+            b: { name: 'Services' }
+        },
+        /^folder-/
+    );
+
+    assert.deepEqual(result.newOnes, ['new-container']);
+    assert.deepEqual(result.order, [
+        'folder-a',
+        'folder-b',
+        'existing-one',
+        'existing-two',
+        'new-container'
+    ]);
+});
+
+test('docker runtime keeps folders above a new container already saved first by Unraid', () => {
+    assert.ok(reconcileDockerOrderMatch, 'reconcileDockerOrderWithFolderSlots definition should exist');
+    const reconcileDockerOrderWithFolderSlots = new Function(
+        'liveOrder',
+        'savedOrder',
+        'folders',
+        'folderRegex',
+        `${reconcileDockerOrderMatch[1]}`
+    );
+
+    const result = reconcileDockerOrderWithFolderSlots(
+        ['new-container', 'existing-one', 'existing-two'],
+        ['new-container', 'existing-one', 'existing-two', 'folder-a', 'folder-b'],
+        {
+            a: { name: 'Apps' },
+            b: { name: 'Services' }
+        },
+        /^folder-/
+    );
+
+    assert.deepEqual(result.newOnes, []);
+    assert.deepEqual(result.order, [
+        'folder-a',
+        'folder-b',
+        'new-container',
+        'existing-one',
+        'existing-two'
+    ]);
+});
+
+test('docker runtime records privacy-safe reconciliation counts and fingerprints for support bundles', () => {
+    const telemetryMatch = dockerJs.match(/lastDockerOrderReconciliation = \{\n([\s\S]*?)\n    \};/);
+    assert.ok(telemetryMatch, 'order reconciliation telemetry assignment should exist');
+    assert.match(dockerJs, /const liveOrderBeforeReconciliation = \[\.\.\.order\];/);
+    assert.match(dockerJs, /lastDockerOrderReconciliation = \{/);
+    assert.match(dockerJs, /liveOrderCount: liveOrderBeforeReconciliation\.length/);
+    assert.match(dockerJs, /missingContainerCount: newOnes\.length/);
+    assert.match(dockerJs, /appendedContainerCount: newOnes\.length/);
+    assert.match(dockerJs, /appendPosition: newOnes\.length > 0 \? 'after-folders' : 'not-needed'/);
+    assert.match(dockerJs, /orderingInvariantSatisfied: reconciledOrder\.order\.every/);
+    assert.match(dockerJs, /liveOrderFingerprint: buildDockerOrderFingerprint\(liveOrderBeforeReconciliation\)/);
+    assert.match(dockerJs, /savedOrderFingerprint: buildDockerOrderFingerprint\(unraidOrder\)/);
+    assert.match(dockerJs, /reconciledOrderFingerprint: buildDockerOrderFingerprint\(reconciledOrder\.order\)/);
+    assert.doesNotMatch(telemetryMatch[1], /newOnes\s*[:,]/);
+});
 
 test('docker runtime preserves live folder placeholder order from host order on refresh', () => {
     assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
@@ -104,6 +181,40 @@ test('docker runtime reapplies saved created-newest folder order even when host 
     const nextOrder = reorderFolderSlotsInBaseOrder(baseOrder, folders, { sortMode: 'created_newest' }, folderRegex, getPrefsOrderedFolderMap);
 
     assert.deepEqual(nextOrder, ['folder-b', 'folder-a', 'folder-c']);
+});
+
+test('docker runtime promotes pinned folders before stale manual host placeholders', () => {
+    assert.ok(reorderFolderSlotsMatch, 'reorderFolderSlotsInBaseOrder definition should exist');
+    const reorderFolderSlotsInBaseOrder = new Function(
+        'baseOrder',
+        'folders',
+        'prefs',
+        'folderRegex',
+        'getPrefsOrderedFolderMap',
+        `${reorderFolderSlotsMatch[1]}`
+    );
+
+    const folderRegex = /^folder-/;
+    const folders = {
+        a: { name: '07' },
+        b: { name: '08' },
+        c: { name: '09' }
+    };
+    const prefs = {
+        sortMode: 'manual',
+        manualOrder: ['a', 'b', 'c'],
+        pinnedFolderIds: ['c']
+    };
+    const getPrefsOrderedFolderMap = () => ({
+        c: folders.c,
+        a: folders.a,
+        b: folders.b
+    });
+
+    const baseOrder = ['folder-a', 'folder-b', 'folder-c'];
+    const nextOrder = reorderFolderSlotsInBaseOrder(baseOrder, folders, prefs, folderRegex, getPrefsOrderedFolderMap);
+
+    assert.deepEqual(nextOrder, ['folder-c', 'folder-a', 'folder-b']);
 });
 
 test('docker runtime only backfills missing folder placeholders when sort mode remains created', () => {

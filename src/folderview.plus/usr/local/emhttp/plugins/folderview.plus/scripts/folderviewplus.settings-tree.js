@@ -688,6 +688,86 @@ const moveFolderRow = async (type, folderId, direction) => {
     });
 };
 
+const moveFolderRowBesideSibling = async (type, folderId, targetSiblingId, placement = 'before') => {
+    const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed(`Reorder ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
+        return;
+    }
+
+    const safeFolderId = String(folderId || '').trim();
+    const safeTargetSiblingId = String(targetSiblingId || '').trim();
+    const normalizedPlacement = String(placement || '').trim().toLowerCase() === 'after' ? 'after' : 'before';
+    if (!safeFolderId || !safeTargetSiblingId || safeFolderId === safeTargetSiblingId) {
+        return;
+    }
+
+    let sortMode = prefsByType[resolvedType]?.sortMode || 'created';
+    if (sortMode !== 'manual') {
+        await changeSortMode(resolvedType, 'manual');
+        sortMode = 'manual';
+    }
+
+    if (sortMode !== 'manual') {
+        return;
+    }
+
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder no longer exists.');
+        return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(folders, safeTargetSiblingId)) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Drop target no longer exists.');
+        return;
+    }
+
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const parentById = hierarchyMeta.parentById || {};
+    const sourceParentId = String(parentById[safeFolderId] || '').trim();
+    const targetParentId = String(parentById[safeTargetSiblingId] || '').trim();
+    if (sourceParentId !== targetParentId) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Drag reorder only works within the same level. Use Tree move to change parent.');
+        return;
+    }
+
+    const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
+    const sourceSubtreeIds = [safeFolderId, ...(hierarchyMeta.descendantsById[safeFolderId] || [])];
+    const targetSubtreeIds = [safeTargetSiblingId, ...(hierarchyMeta.descendantsById[safeTargetSiblingId] || [])];
+    const sourceSubtreeSet = new Set(sourceSubtreeIds);
+    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(String(id || '')));
+    const insertIndex = normalizedPlacement === 'before'
+        ? orderWithoutSource.findIndex((id) => String(id || '') === safeTargetSiblingId)
+        : findLastMatchingOrderIndex(orderWithoutSource, targetSubtreeIds) + 1;
+    if (insertIndex < 0) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Drop target order could not be resolved.');
+        return;
+    }
+
+    const nextOrder = orderWithoutSource.slice();
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+    const orderChanged = nextOrder.length === fullOrder.length
+        && nextOrder.some((id, index) => String(id || '') !== String(fullOrder[index] || ''));
+    if (!orderChanged) {
+        return;
+    }
+
+    const previousPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
+    applyOptimisticManualOrder(resolvedType, nextOrder);
+    focusFolderRow(resolvedType, safeFolderId);
+    const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
+    const targetName = String(folders[safeTargetSiblingId]?.name || safeTargetSiblingId);
+    queueFolderReorderPersist(resolvedType, {
+        order: nextOrder,
+        previousPrefs,
+        focusFolderId: safeFolderId,
+        errorFolderId: safeFolderId,
+        activityMessage: `Reordered folder: ${sourceName} ${normalizedPlacement} ${targetName}.`,
+        backupReason: `before-reorder-${safeFolderId}`,
+        changedFolderId: safeFolderId
+    });
+};
+
 const handleFolderRowKeydown = (type, folderId, event) => {
     if (!event) {
         return;
@@ -774,6 +854,7 @@ window.FolderViewPlusSettingsTree = Object.freeze({
     setFolderTreeMoveError,
     resolveInheritedFolderIcon,
     moveFolderRow,
+    moveFolderRowBesideSibling,
     handleFolderRowKeydown,
     renderFolderSelectOptions
 });

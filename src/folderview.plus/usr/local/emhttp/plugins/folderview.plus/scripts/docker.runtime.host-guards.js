@@ -33,7 +33,7 @@
             ? deps.requiredSelectors
             : DEFAULT_REQUIRED_SELECTORS;
 
-        /** @type {Record<string, { available: boolean, wrapped: boolean, callCount: number, notes: string[], lastSeenAt: string | null, lastInvokedAt: string | null }>} */
+        /** @type {Record<string, { available: boolean, wrapped: boolean, callCount: number, observationStatus: string, notes: string[], lastSeenAt: string | null, lastInvokedAt: string | null, lastInvocation: Record<string, unknown> | null }>} */
         const hookStates = Object.create(null);
 
         const ensureHookRecord = (name) => {
@@ -43,9 +43,11 @@
                     available: false,
                     wrapped: false,
                     callCount: 0,
+                    observationStatus: 'not-observed',
                     notes: [],
                     lastSeenAt: null,
-                    lastInvokedAt: null
+                    lastInvokedAt: null,
+                    lastInvocation: null
                 };
             }
             return hookStates[safeName];
@@ -91,6 +93,9 @@
             const record = ensureHookRecord(safeName);
             const available = typeof value === 'function';
             record.available = available;
+            record.observationStatus = !available
+                ? 'hook-unavailable'
+                : (record.callCount > 0 ? 'observed' : 'not-observed-since-hook-installed');
             record.lastSeenAt = new Date().toISOString();
             if (available) {
                 record.notes.push(String(options.note || 'captured').trim() || 'captured');
@@ -106,6 +111,7 @@
             const safeName = String(name || '').trim() || 'unknown';
             const record = ensureHookRecord(safeName);
             record.available = false;
+            record.observationStatus = 'hook-unavailable';
             record.notes.push(String(message || 'missing').trim() || 'missing');
             if (record.notes.length > 12) {
                 record.notes = record.notes.slice(-12);
@@ -124,6 +130,9 @@
             const safeName = String(name || '').trim() || 'unknown';
             const record = ensureHookRecord(safeName);
             record.wrapped = true;
+            if (record.callCount === 0) {
+                record.observationStatus = 'not-observed-since-hook-installed';
+            }
             record.notes.push(String(options.note || 'wrapped').trim() || 'wrapped');
             if (record.notes.length > 12) {
                 record.notes = record.notes.slice(-12);
@@ -135,8 +144,19 @@
             const safeName = String(name || '').trim() || 'unknown';
             const record = ensureHookRecord(safeName);
             record.callCount += 1;
+            record.observationStatus = 'observed';
             record.lastInvokedAt = new Date().toISOString();
             const note = String(options.note || '').trim();
+            const details = options.details && typeof options.details === 'object' && !Array.isArray(options.details)
+                ? options.details
+                : null;
+            if (details) {
+                try {
+                    record.lastInvocation = JSON.parse(JSON.stringify(details));
+                } catch (_error) {
+                    record.lastInvocation = null;
+                }
+            }
             if (note) {
                 record.notes.push(note);
                 if (record.notes.length > 12) {

@@ -97,6 +97,25 @@
             return $tbody.children('tr.updated').first();
         };
 
+        const syncDashboardCompactMatrixOrderFlowForType = (type, layout) => {
+            const resolvedType = normalizeDashboardType(type);
+            const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
+            if (!$container.length) {
+                return;
+            }
+            if (layout !== 'compactmatrix') {
+                $container.css('--fv-dashboard-compactmatrix-rows-desktop', '');
+                $container.css('--fv-dashboard-compactmatrix-rows-tablet', '');
+                $container.css('--fv-dashboard-compactmatrix-rows-mobile', '');
+                return;
+            }
+            const directCardCount = $container.children('.folder-showcase-outer').length;
+            const rowsForColumns = (columns) => Math.max(1, Math.ceil(directCardCount / Math.max(1, columns)));
+            $container.css('--fv-dashboard-compactmatrix-rows-desktop', String(rowsForColumns(3)));
+            $container.css('--fv-dashboard-compactmatrix-rows-tablet', String(rowsForColumns(2)));
+            $container.css('--fv-dashboard-compactmatrix-rows-mobile', String(rowsForColumns(1)));
+        };
+
         const isDashboardNodeVisible = (node) => {
             if (!node || !(node instanceof Element)) {
                 return false;
@@ -518,6 +537,7 @@
             $tbody.toggleClass('fv-dashboard-hide-folder-label', folderCardLayout && dashboardPrefs.folderLabel === false);
             $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', typeof deps.readDashboardHealthEmphasisStateForType === 'function' && deps.readDashboardHealthEmphasisStateForType(meta.type));
             $tbody.toggleClass('fv-dashboard-density-compact', typeof deps.readDashboardCompactDensityStateForType === 'function' && deps.readDashboardCompactDensityStateForType(meta.type));
+            syncDashboardCompactMatrixOrderFlowForType(meta.type, layout);
             ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
             $tbody.find('.folder-showcase-outer').each((_, node) => {
                 const $card = jq(node);

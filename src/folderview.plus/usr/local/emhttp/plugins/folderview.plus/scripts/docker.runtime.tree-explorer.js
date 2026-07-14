@@ -644,7 +644,7 @@
                                             <div class="fv-docker-tree-explorer-detail-subtitle">${escapeHtml(selectedSubtitle)}</div>
                                         </div>
                                         <div class="fv-docker-tree-explorer-card-flags">
-                                            ${selectedCard.pinned ? '<span class="fv-docker-tree-explorer-flag pinned"><i class="fa fa-star"></i> pinned</span>' : ''}
+                                            ${selectedCard.pinned ? '<span class="fv-docker-tree-explorer-flag pinned"><i class="fa fa-thumb-tack"></i> pinned</span>' : ''}
                                             ${selectedCard.locked ? '<span class="fv-docker-tree-explorer-flag locked"><i class="fa fa-lock"></i> locked</span>' : ''}
                                             ${selectedCard.childCount > 0 ? '<span class="fv-docker-tree-explorer-flag branch"><i class="fa fa-sitemap"></i> branch</span>' : ''}
                                         </div>
@@ -930,4 +930,3 @@
         createApi
     });
 }));
-

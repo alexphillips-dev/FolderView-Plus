@@ -191,16 +191,24 @@
             return resolvedUntil;
         };
 
+        const parseHostUpdateContainerNames = (command) => {
+            const rawCommand = String(command || '').trim();
+            if (!isDockerHostUpdateCommand(rawCommand)) {
+                return [];
+            }
+            return rawCommand
+                .replace(/^\s*update_container(?:\s|$)/i, '')
+                .split('*')
+                .map((entry) => String(entry || '').trim())
+                .filter(Boolean);
+        };
+
         const armForHostCommand = (command, origin = 'host-openDocker') => {
             const rawCommand = String(command || '').trim();
             if (!isDockerHostUpdateCommand(rawCommand)) {
                 return false;
             }
-            const containerNames = rawCommand
-                .replace(/^\s*update_container(?:\s|$)/i, '')
-                .split('*')
-                .map((entry) => String(entry || '').trim())
-                .filter(Boolean);
+            const containerNames = parseHostUpdateContainerNames(rawCommand);
             appendDockerBulkUpdateTrace('hostUpdateCommand', {
                 origin: String(origin || '').trim() || 'host-openDocker',
                 currentPage: String(win?.location?.pathname || ''),
@@ -240,8 +248,16 @@
             }
             const originalOpenDocker = currentOpenDocker;
             const wrappedOpenDocker = function(...args) {
+                const rawCommand = String(args?.[0] || '').trim();
+                const isUpdateCommand = isDockerHostUpdateCommand(rawCommand);
+                const containerNames = parseHostUpdateContainerNames(rawCommand);
                 getDockerHostGuardsApi()?.noteHookInvocation?.('window.openDocker', {
-                    note: String(args?.[0] || '').trim() || 'invoked'
+                    note: isUpdateCommand ? 'update_container invoked' : 'invoked',
+                    details: {
+                        commandType: isUpdateCommand ? 'update_container' : 'other',
+                        containerCount: containerNames.length,
+                        containerNames: containerNames.slice(0, 10)
+                    }
                 });
                 armForHostCommand(args[0], 'host-openDocker');
                 return originalOpenDocker.apply(this, args);

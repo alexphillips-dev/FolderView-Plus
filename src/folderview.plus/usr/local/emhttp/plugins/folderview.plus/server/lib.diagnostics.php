@@ -2228,6 +2228,7 @@
         $sourceCommitSha = trim((string)($buildMetadata['sourceCommitSha'] ?? ''));
         $headCommitSha = trim((string)($buildMetadata['headCommitSha'] ?? ''));
         $sourceTreeSha = trim((string)($buildMetadata['sourceTreeSha'] ?? ''));
+        $sourceContentSha256 = trim((string)($buildMetadata['sourceContentSha256'] ?? ''));
         $sourceSnapshotMode = trim((string)($buildMetadata['sourceSnapshotMode'] ?? ''));
         $sourceCommitExact = array_key_exists('sourceCommitExact', $buildMetadata)
             ? filter_var($buildMetadata['sourceCommitExact'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
@@ -2243,6 +2244,11 @@
         $archiveUrl = ($resolvedArchiveUrl !== '' && strpos($resolvedArchiveUrl, '&') === false)
             ? $resolvedArchiveUrl
             : $buildArchiveUrl;
+        $sourceCommitIsExact = is_bool($sourceCommitExact) ? $sourceCommitExact : null;
+        $buildBaseCommitSha = $sourceCommitIsExact === false && $headCommitSha !== '' ? $headCommitSha : null;
+        $provenanceStatus = $sourceCommitIsExact === true
+            ? 'exactCommit'
+            : ($sourceSnapshotMode !== '' ? 'sourceSnapshot' : 'unknown');
 
         return [
             'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
@@ -2252,16 +2258,26 @@
             'sourceBranch' => $sourceBranch !== '' ? $sourceBranch : null,
             'sourceCommitSha' => $sourceCommitSha !== '' ? $sourceCommitSha : null,
             'headCommitSha' => $headCommitSha !== '' ? $headCommitSha : null,
+            'headCommitRole' => $sourceCommitIsExact === true
+                ? 'sourceCommit'
+                : ($sourceCommitIsExact === false ? 'buildBaseCommit' : 'unknown'),
+            'buildBaseCommitSha' => $buildBaseCommitSha,
             'sourceTreeSha' => $sourceTreeSha !== '' ? $sourceTreeSha : null,
-            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['head', 'index', 'worktree', 'unknown'], true)
+            'sourceContentSha256' => preg_match('/^[a-f0-9]{64}$/', $sourceContentSha256) ? $sourceContentSha256 : null,
+            'sourceContentFingerprint' => preg_match('/^[a-f0-9]{64}$/', $sourceContentSha256)
+                ? 'sha256:' . $sourceContentSha256
+                : ($sourceTreeSha !== '' ? 'git-tree:' . $sourceTreeSha : null),
+            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
                 ? $sourceSnapshotMode
                 : null,
-            'sourceCommitExact' => is_bool($sourceCommitExact) ? $sourceCommitExact : null,
+            'sourceCommitExact' => $sourceCommitIsExact,
+            'provenanceStatus' => $provenanceStatus,
             'packageVersion' => trim((string)($buildMetadata['packageVersion'] ?? '')) ?: (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'manifestPath' => $manifestMetadata['manifestPath'] ?? null,
             'manifestPathHash' => $manifestMetadata['manifestPathHash'] ?? null,
             'manifestSha256' => $manifestMetadata['manifestSha256'] ?? null,
             'manifestMd5' => $manifestMetadata['manifestMd5'] ?? null,
+            'archiveMd5' => $manifestMetadata['manifestMd5'] ?? null,
             'manifestUrl' => $manifestUrl !== '' ? $manifestUrl : null,
             'archiveUrl' => $archiveUrl !== '' ? $archiveUrl : null
         ];

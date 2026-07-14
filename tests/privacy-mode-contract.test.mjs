@@ -123,13 +123,14 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
 });
 
 test('docker runtime privacy toggle stays in sync with saved dashboard privacy prefs', () => {
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\)\.dashboard\?\.privacyMode === true;/);
     assert.match(dockerJs, /const enabled = readDockerRuntimePrivacyMode\(\);/);
     assert.match(dockerJs, /checked: enabled/);
     assert.match(dockerJs, /basePrefs = await fetchDockerBootstrapPrefs\(\);/);
     assert.match(dockerJs, /buildDockerRuntimePrivacyPrefsPayload\(nextEnabled, basePrefs\)/);
     assert.match(dockerJs, /persistDockerRuntimePrivacyMode\(targetEnabled, folderTypePrefs\)/);
-    assert.match(dockerJs, /folderTypePrefs = utils\.normalizePrefs\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
+    assert.match(dockerJs, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
     assert.match(dockerJs, /folderTypePrefs = nextPrefs;[\s\S]*applyRuntimePrefs\(nextPrefs\);/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);
 });

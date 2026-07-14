@@ -412,6 +412,8 @@ tbody.fv-dashboard-layout-inset .folder-showcase-outer {
 tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-desktop, 1), max-content);
+    grid-auto-flow: column;
     gap: 8px;
     align-items: start;
 }
@@ -668,12 +670,14 @@ body.fvplus-performance-mode .tooltipster-content {
 
     tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-tablet, 1), max-content);
     }
 }
 
 @media (max-width: 520px) {
     tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
         grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-mobile, 1), max-content);
     }
 }
 

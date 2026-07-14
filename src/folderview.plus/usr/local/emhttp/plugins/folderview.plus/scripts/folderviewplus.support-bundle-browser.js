@@ -156,7 +156,7 @@
             };
         };
 
-        const collectBrowserConsoleErrors = () => {
+        const collectBrowserConsoleErrors = (options = {}) => {
             const fallbackStorage = readClientDiagnosticsStorageRecord(CONSOLE_ERROR_STORAGE_KEY);
             const apiSnapshot = (
                 root?.FolderViewPlusFatalBanner
@@ -172,11 +172,37 @@
                     count: Array.isArray(fallbackStorage) ? fallbackStorage.length : 0,
                     entries: Array.isArray(fallbackStorage) ? fallbackStorage : []
                 };
+            const sessionId = String(snapshot.sessionId || '').trim();
+            const entries = (Array.isArray(snapshot.entries) ? snapshot.entries : [])
+                .slice(-CONSOLE_ERROR_LIMIT)
+                .map((entry) => {
+                    const safeEntry = entry && typeof entry === 'object' && !Array.isArray(entry) ? entry : {};
+                    const entrySessionId = String(safeEntry.sessionId || '').trim();
+                    return {
+                        ...safeEntry,
+                        observedPluginVersion: String(safeEntry.observedPluginVersion || 'unknown').trim() || 'unknown',
+                        currentSession: safeEntry.currentSession === true || Boolean(sessionId && entrySessionId === sessionId)
+                    };
+                });
+            const timestamps = entries
+                .map((entry) => String(entry.at || '').trim())
+                .filter(Boolean)
+                .sort();
+            const currentSessionCount = entries.filter((entry) => entry.currentSession === true).length;
             return {
                 storageKey: String(snapshot.storageKey || CONSOLE_ERROR_STORAGE_KEY),
                 maxEntries: Number.isFinite(Number(snapshot.maxEntries)) ? Number(snapshot.maxEntries) : CONSOLE_ERROR_LIMIT,
-                count: Number.isFinite(Number(snapshot.count)) ? Number(snapshot.count) : 0,
-                entries: Array.isArray(snapshot.entries) ? snapshot.entries.slice(-CONSOLE_ERROR_LIMIT) : []
+                count: entries.length,
+                collectionPluginVersion: String(
+                    snapshot.collectionPluginVersion || options.pluginVersion || 'unknown'
+                ).trim() || 'unknown',
+                firstSeenAt: String(snapshot.firstSeenAt || timestamps[0] || '').trim() || null,
+                lastSeenAt: String(snapshot.lastSeenAt || timestamps[timestamps.length - 1] || '').trim() || null,
+                sessionId: sessionId || null,
+                sessionStartedAt: String(snapshot.sessionStartedAt || '').trim() || null,
+                currentSessionCount,
+                historicalCount: Math.max(0, entries.length - currentSessionCount),
+                entries
             };
         };
 

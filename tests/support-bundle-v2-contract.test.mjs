@@ -495,6 +495,7 @@ const loadSupportBundleFixture = () => {
             sourceCommitSha: '',
             headCommitSha: '17429e6caebc02894c461354fcea2ce973adbc72',
             sourceTreeSha: '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e',
+            sourceContentSha256: '6c8a4eb42462b0b86d9c8647849f0c5f48edafa252858f19d91b0d8d59d75c22',
             sourceSnapshotMode: 'index',
             sourceCommitExact: false,
             sourceBranch: 'dev',
@@ -566,14 +567,20 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.bundleMeta.buildIdentity.sourceBranch, 'dev');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitSha, null);
         assert.equal(bundle.bundleMeta.buildIdentity.headCommitSha, '17429e6caebc02894c461354fcea2ce973adbc72');
+        assert.equal(bundle.bundleMeta.buildIdentity.headCommitRole, 'buildBaseCommit');
+        assert.equal(bundle.bundleMeta.buildIdentity.buildBaseCommitSha, '17429e6caebc02894c461354fcea2ce973adbc72');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceTreeSha, '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceContentSha256, '6c8a4eb42462b0b86d9c8647849f0c5f48edafa252858f19d91b0d8d59d75c22');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceContentFingerprint, 'sha256:6c8a4eb42462b0b86d9c8647849f0c5f48edafa252858f19d91b0d8d59d75c22');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceSnapshotMode, 'index');
         assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitExact, false);
+        assert.equal(bundle.bundleMeta.buildIdentity.provenanceStatus, 'sourceSnapshot');
         assert.equal(bundle.bundleMeta.buildIdentity.packageVersion, '2026.04.04.10');
         assert.equal(bundle.bundleMeta.buildIdentity.manifestPath, 'folderview.plus.plg');
         assert.match(bundle.bundleMeta.buildIdentity.manifestPathHash, /^[0-9a-f]{12}$/);
         assert.match(bundle.bundleMeta.buildIdentity.manifestSha256, /^[0-9a-f]{64}$/);
         assert.equal(bundle.bundleMeta.buildIdentity.manifestMd5, 'f9d807ddc1613bd63b665e7f9804c6a0');
+        assert.equal(bundle.bundleMeta.buildIdentity.archiveMd5, 'f9d807ddc1613bd63b665e7f9804c6a0');
         assert.equal(bundle.bundleMeta.buildIdentity.manifestUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg');
         assert.equal(bundle.bundleMeta.buildIdentity.archiveUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz');
         assert.equal(bundle.redactionManifest.mode, mode);

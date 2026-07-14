@@ -173,7 +173,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
 }
 
 .fvplus-docker-runtime-toggle-label {
-    font-size: 0.92rem;
+    font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -281,6 +281,35 @@ td.ct-name.folder-name > .folder-name-sub > .folder-outer {
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: top;
+}
+
+.fv-folder-title-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.fv-folder-title-line .folder-appname {
+    flex: 1 1 auto;
+}
+
+.fv-folder-pin-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 17px;
+    height: 17px;
+    border: 1px solid rgba(255, 202, 99, 0.42);
+    border-radius: 4px;
+    background: rgba(255, 202, 99, 0.16);
+    color: rgba(255, 202, 99, 0.95);
+    font-size: 10px;
+    line-height: 1;
+    vertical-align: middle;
 }
 
 body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name img.img,

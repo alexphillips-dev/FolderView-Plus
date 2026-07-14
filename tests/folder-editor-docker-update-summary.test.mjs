@@ -68,5 +68,44 @@ test('modern folder editor docker mapper accepts lightweight state-mode read_inf
     assert.equal(member.ComposeProject, 'media');
     assert.equal(member.State.Running, true);
     assert.equal(member.State.Autostart, true);
+    assert.equal(member.State.Status, 'running');
     assert.equal(member.UpdateAvailable, true);
+});
+
+test('modern folder editor live preview prefers current runtime booleans over stale status text', () => {
+    assert.match(folderJs, /const resolveMemberRuntimeStateKey = \(member\) => \{/);
+    assert.match(folderJs, /const hasExplicitPaused = typeof source\.Paused === 'boolean' \|\| typeof source\.paused === 'boolean' \|\| typeof source\.pause === 'boolean';/);
+    assert.match(folderJs, /const hasExplicitRunning = typeof source\.Running === 'boolean' \|\| typeof source\.running === 'boolean' \|\| typeof source\.state === 'boolean';/);
+    assert.match(folderJs, /if \(hasExplicitPaused \|\| hasExplicitRunning\) \{[\s\S]*return 'stopped';[\s\S]*\}/);
+    assert.match(folderJs, /const runtimeStateKey = resolveMemberRuntimeStateKey\(member\);/);
+
+    const api = dockerTypeModule.createApi({
+        getFolderLabelValue: () => '',
+        getComposeProjectFromLabels: () => ''
+    });
+    const stalePausedMember = api.mapRuntimeMember({
+        name: 'tautulli',
+        Labels: {},
+        State: {
+            Running: true,
+            Paused: false,
+            Status: 'paused'
+        }
+    });
+    const staleStartedMember = api.mapRuntimeMember({
+        name: 'seekandwatch',
+        Labels: {},
+        State: {
+            Running: false,
+            Paused: false,
+            Status: 'running'
+        }
+    });
+
+    assert.equal(stalePausedMember.State.Running, true);
+    assert.equal(stalePausedMember.State.Paused, false);
+    assert.equal(stalePausedMember.State.Status, 'running');
+    assert.equal(staleStartedMember.State.Running, false);
+    assert.equal(staleStartedMember.State.Paused, false);
+    assert.equal(staleStartedMember.State.Status, 'stopped');
 });

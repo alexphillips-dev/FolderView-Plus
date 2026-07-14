@@ -6,12 +6,367 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.07.06.10">
-<!ENTITY md5 "c6303a348ea6d731c5beb826861254d4">
+<!ENTITY version "2026.07.14.19">
+<!ENTITY md5 "f1c85726899914d8def9540b2cc777aa">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.19
+- Feature: Add the Smart Rule Assistant, managed Advanced Auto-Rules workspace, safe legacy-regex migration, and redesigned Basic Settings organization and ordering workflows.
+- Fix: Correct new-container placement, Docker/VM pin synchronization, Dashboard rendering and paused states, editor runtime previews, obsolete status filters, and cross-page preference consistency.
+- UI/UX: Polish Diagnostics, Settings actions and drag handles, persistent icon tabs, editor typography, Docker Privacy text, and the responsive Add Custom Action workflow.
+- Security: Expand sanitized support-bundle privacy protection and self-checks while preserving actionable full-mode troubleshooting data.
+- Quality: Add extensive regression coverage, stricter release/language/performance guards, richer diagnostic provenance, and resilient runtime/request telemetry.
+- Docs: Remove the README Credits section and publish a complete categorized rollup of all work since `v2026.07.06.10`.
+### Features and workflows
+- Added a Smart Rule Assistant for Docker and VM folders with folder-aware suggestions, beginner-friendly name/image/Compose match builders, structured assignment previews, conflict inspection, and backup-first application of previewed assignments.
+- Made managed Advanced Auto-Rules the primary Rules workspace and added a guarded legacy-regex migration flow with compatibility previews, duplicate protection, automatic backups, transactional writes, rollback, and focused repair guidance for invalid patterns.
+- Overhauled Basic Settings for Docker and VM folders with section summaries, visible search/filter/sort/add controls, clearer folder identity and health information, streamlined actions, manual-order capture, and better explanations for pinned and nested ordering.
+- Replaced same-level Basic Settings reorder arrows with full-row drag reordering while retaining Tree move for nesting and cross-level moves.
+### Docker, VM, and Dashboard fixes
+- Fixed new Docker containers rendering above folders: live-only containers and containers already saved first by Unraid are now reconciled after every folder, preserving the folders-first invariant.
+- Hardened Docker folder pin persistence with partial server-authoritative saves, read-back verification, rollback on failure, stale-render protection, normalized ordering, cross-page broadcasts, and preference refresh/reconciliation after tab changes.
+- Kept pinned Docker folders promoted through nested rendering and manual moves, added an explicit pin badge, updated indicators in place, and aligned alternate views on the pin icon.
+- Fixed Dashboard folder hydration so the loaded state is set only after successful async rendering, added request fallbacks and safe payload parsing, and expanded sanitized render/request diagnostics.
+- Restored Dashboard paused-state parity for Docker and VM folders and fixed compact-matrix visual ordering to match Docker/VM page order from top to bottom.
+- Fixed modern folder-editor live previews to derive started, paused, and stopped states from the current Docker runtime snapshot instead of stale status text.
+- Standardized partial preference updates and runtime pin synchronization so Settings, Docker, and VM pages remain consistent without unnecessary full reloads.
+### Diagnostics, support bundles, privacy, and troubleshooting
+- Reflowed Advanced > Diagnostics so Suggested fixes is the first full-width module, the health summary remains full width, and Share with support spans its own full-width row.
+- Expanded support-bundle build identity with exact-commit versus source-snapshot provenance, build-base role, source-content fingerprints, archive identity, and clearer package/collection version reporting.
+- Added richer Docker troubleshooting data for runtime rows, rendered folder state, container interactions, saved-order reconciliation, missing-container placement, hook installation/observation, trace caps, and snapshot health.
+- Separated current-session browser errors from historical records and added first/last-seen timestamps, truthful observed versions, structured request and bulk trace details, and improved fatal-banner telemetry.
+- Hardened sanitized exports by hashing dynamic names, IDs, signatures, hook notes, legacy update arguments, paths, URLs, and other trace identities while preserving full-mode diagnostic detail.
+- Added an aggregate sanitized-export privacy self-check for raw identities, absolute URLs, private-network addresses, and sensitive filesystem paths without echoing any detected values.
+### Settings UI and interaction polish
+- Centered the Basic Settings Actions column and isolated its controls from Unraid host float rules.
+- Matched the three-dot overflow action to the quiet gear-button treatment so it no longer appears selected or orange-filled while idle.
+- Replaced Basic Settings and modern editor reorder icons with compact, explicit two-by-three six-dot grips that render consistently across host themes.
+- Removed frames, outlines, backgrounds, and shadows from Order-column and member drag controls—including dark mode—while preserving interaction color and keyboard behavior.
+- Added clearer nested-row branch connectors, tightened and vertically centered pin switches, and unified Settings action styling across Basic, Rules, Operations, and Appearance.
+- Removed the Basic Settings Status Details workflow, popup, launchers, filter/sort/refresh controls, and dedicated styles; retained inline status summaries and Docker Health Details.
+- Made status filters session-only and ignored obsolete persisted popup filters so saved folders can no longer disappear from Basic Settings after an update or reload.
+### Modern folder editor UI/UX
+- Converted General-tab icon sources into persistent tabs: Built-in Icons opens by default, the active source remains open when clicking elsewhere, and returning to General resets to Built-in Icons while temporary Third Party flyouts still dismiss normally.
+- Increased the General Name field and live-summary Name, Preview, Context, and Members values to `1.3rem`; increased Status Colors, Docker Signals, and the Docker-page Privacy label to `1.1rem` for clearer visual hierarchy.
+- Rebuilt Add Custom Action as a semantic, theme-token button and redesigned its dialog into a compact responsive editor with action-type cards, grouped settings, target summaries, select/clear controls, live icon preview, and preserved values when switching modes.
+- Added mode-aware custom-action validation, disabled invalid saves, keyboard-navigable type selection, accessible close/focus recovery, and compatibility with existing saved custom actions.
+- Removed custom-action horizontal overflow, hid scrollbar chrome while preserving short-viewport scrolling, and removed host-provided orange button borders/outlines while retaining theme-aware hover and keyboard focus feedback.
+- Corrected global Advanced Auto-Rule priority in both JavaScript and PHP so the first matching enabled include or exclude rule wins, while preserving legacy-regex runtime, import, backup, template, diagnostics, and support-bundle compatibility during migration.
+### Quality, compatibility, and documentation
+- Added and expanded regression coverage for Dashboard hydration/order/paused states, Docker reconciliation and pinning, Basic Settings organization and drag behavior, support-bundle privacy and provenance, legacy-regex migration, icon-tab persistence, action-dialog behavior, status-detail removal, typography, theme compatibility, and responsive layout.
+- Strengthened release and packaging quality with strict language validation, restored localized action text, refreshed the shipped-asset performance ratchet and its 8% growth limit, and maintained release-note, retry, smoke, persistence, API, and server validation guards.
+- Preserved responsive safe-area behavior, reduced-motion support, escaped runtime values, and theme isolation across the updated Settings and editor surfaces.
+- Removed the Credits section from the project README.
+
+
+###2026.07.14.18
+## FolderView Plus 2026.07.14.18
+- Docs: Removed the Credits section from the project README.
+- Fix: Restored the existing localized synchronous-script label in the redesigned custom-action dialog so strict language validation remains clean.
+- Quality: Refreshed the performance ratchet baseline against the current shipped assets so CI continues enforcing an accurate 8% future-growth limit.
+
+
+###2026.07.14.17
+## FolderView Plus 2026.07.14.17
+- Fix: Removed the custom-action dialog's horizontal overflow and visually hidden its scrollbars while retaining wheel, touch, and keyboard scrolling on short viewports.
+- UI/UX: Removed host-provided orange borders and focus outlines from custom-action dialog buttons while keeping theme-aware hover and focus feedback.
+- Test: Added regression coverage for border-box dialog sizing, overflow containment, hidden scrollbar chrome, and borderless modal buttons.
+
+
+###2026.07.14.16
+## FolderView Plus 2026.07.14.16
+- UI/UX: Rebuilt the Add Custom Action dialog as a compact, responsive editor with clear action-type cards, grouped settings, target summaries, selection controls, and a live icon preview.
+- Fix: Added mode-aware inline validation, disabled invalid saves, preserved values while switching action types, and retained compatibility with existing saved custom-action data.
+- UX: Added semantic dialog controls, keyboard-navigable action-type choices, visible focus states, an accessible close control, and focused invalid-field recovery.
+- Test: Added regression coverage for the modal structure, responsive layout, theme tokens, validation, target controls, icon normalization, and keyboard behavior.
+
+
+###2026.07.14.15
+## FolderView Plus 2026.07.14.15
+- Fix: Replaced the modern editor's text-like Add a Custom Action anchor with a semantic button that reliably opens the action dialog.
+- UI/UX: Applied the shared editor theme-token button surface, pointer cursor, hover, active, and keyboard-focus treatments to the custom-action launcher and its icon.
+- Test: Added regression coverage for button semantics, editor routing, themed styling, and removal of the transparent text override.
+
+
+###2026.07.14.14
+## FolderView Plus 2026.07.14.14
+- UI/UX: Increased the modern editor live-summary values for Name, Preview, Context, and Members to `1.3rem` while retaining the existing title size.
+- UI/UX: Increased Status Colors labels and Docker Signals text to `1.1rem` across desktop and responsive layouts.
+- Test: Added regression coverage for the summary value sizes and unchanged title sizing.
+
+
+###2026.07.14.13
+## FolderView Plus 2026.07.14.13
+- UI/UX: Increased the modern folder editor General-tab Name field text to `1.3rem` for improved readability.
+- Test: Added regression coverage that keeps the larger font scoped to the Name field.
+
+
+###2026.07.14.12
+## FolderView Plus 2026.07.14.12
+- UI/UX: Increased the Docker-page Privacy toggle label to `1.1rem` so its text size matches the adjacent Basic View toggle.
+- Test: Added regression coverage for the Docker runtime toggle-label font size.
+
+
+###2026.07.14.11
+## FolderView Plus 2026.07.14.11
+- UI/UX: Made managed Auto-Rules the primary full-width Rules workspace for new and existing folders, while hiding empty legacy regex controls.
+- Compatibility: Added a compact read-only compatibility card for existing legacy regex values with current-match, advanced-conflict, and overlapping-folder previews.
+- Compatibility: Added a guarded one-click conversion that creates a backup, appends an Advanced Include / Name Regex fallback, clears the legacy value only after both stores are written, and restores the original data if either write fails.
+- Fix: Aligned the JavaScript and PHP rule engines with the documented global priority contract so the first matching enabled include or exclude rule decides the result.
+- Compatibility: Kept legacy regex runtime evaluation, imports, backups, templates, diagnostics, and support-bundle data intact; invalid legacy patterns retain a focused repair path.
+- Test: Added regression coverage for migration previews, invalid and whitespace-sensitive expressions, duplicate-rule safety, rollback/backup contracts, advanced-first layout, and matching JS/PHP priority behavior.
+
+
+###2026.07.14.09
+## FolderView Plus 2026.07.14.09
+- UI/UX: Matched the Basic Settings three-dot overflow control to the quiet visual treatment used by the adjacent gear action.
+- Fix: Removed the idle overflow control from the selected/accent button state so it no longer appears orange-filled.
+- UI/UX: Applied the same border, background, icon color, shadow, hover, and keyboard-focus behavior to both action buttons.
+- Test: Added regression coverage that keeps overflow actions out of the active selector group and inside the shared quiet action-button system.
+
+
+###2026.07.14.08
+## FolderView Plus 2026.07.14.08
+- UI/UX: Converted the modern General-tab icon selectors into persistent tabs so Built-in, Third Party, or Custom Icons remains open when clicking elsewhere in the editor.
+- UI/UX: Built-in Icons now opens by default and reopens whenever the user leaves General and later returns, while clicking the already-active icon tab no longer collapses it.
+- Fix: Restricted outside-click dismissal to Third Party's temporary filter and pack-action flyouts instead of closing the main icon workspace.
+- Test: Added regression coverage for persistent main icon tabs, mutually exclusive tab activation, outside-click behavior, and the General-section re-entry reset event.
+
+
+###2026.07.14.07
+## FolderView Plus 2026.07.14.07
+- Fix: Scoped the modern Members-tab six-dot grip through the entire editor form so regular Docker/VM member rows receive the same styling as nested-folder rows.
+- Fix: Added explicit dot classes with forced block display and fixed min/max dimensions, preventing host button-span rules from collapsing the dots into a blank handle.
+- UI/UX: Strengthened the editor-wide drag-handle reset so borders, outlines, backgrounds, and shadows cannot replace the transparent six-dot grip.
+- Test: Expanded regression coverage for the stable editor form anchor, both member-table locations, visible fixed-size dots, and borderless handle chrome.
+
+
+###2026.07.14.06
+## FolderView Plus 2026.07.14.06
+- UI/UX: Replaced the modern folder editor Members-tab arrow drag icons with the same compact two-by-three six-dot grip used by Basic Settings.
+- UI/UX: Applied the six-dot grip to both nested child-folder rows and regular Docker/VM member rows while leaving the adjacent move-up and move-down buttons unchanged.
+- Fix: Excluded the new drag grips from the editor's framed quiet-button theme so their transparent surface, dimensions, dot geometry, and spacing match Settings.
+- Test: Added regression coverage for both Members-tab drag-handle render paths, six-dot counts, legacy icon removal, and matching grip geometry.
+
+
+###2026.07.14.05
+## FolderView Plus 2026.07.14.05
+- Fix: Removed Order-column controls from the shared framed-button theme so dark mode can no longer restore white borders around the drag and tree-move buttons.
+- UI/UX: Preserved the Order controls' orange interaction color while keeping their normal, hover, and keyboard-focus surfaces completely unframed.
+- Test: Strengthened regression coverage to reject any shared theme block that applies borders, backgrounds, or shadows to Order-column buttons.
+
+
+###2026.07.14.04
+## FolderView Plus 2026.07.14.04
+- UI/UX: Removed button outlines and framed backgrounds from the Basic Settings Order column while preserving the icon controls and their interaction colors.
+- Fix: Added a late, Order-cell-scoped style reset so the shared Settings button theme cannot restore borders, rounded corners, backgrounds, outlines, or shadows.
+- Test: Added regression coverage proving the unframed button reset remains scoped to Order-column controls.
+
+
+###2026.07.14.03
+## FolderView Plus 2026.07.14.03
+- UI/UX: Updated the Basic Settings order drag handle to a tighter two-by-three six-dot grip.
+- Fix: Replaced theme-sensitive pseudo-element dots with six explicit grip dots so every host theme renders the complete handle.
+- Test: Added regression coverage for the six-dot markup, compact spacing, and removal of pseudo-element dots.
+
+
+###2026.07.14.02
+## FolderView Plus 2026.07.14.02
+- UI/UX: Centered the Basic Settings Actions header and its button group within the full column width on desktop and compact layouts.
+- Fix: Isolated row action buttons from host button float rules so the Edit and More controls no longer drift to the right edge.
+- Test: Added regression coverage for centered action-cell markup and styling.
+
+
+###2026.07.14.01
+## FolderView Plus 2026.07.14.01
+- Fix: Removed the Status Details feature from Basic Settings, including the Actions-column button, Status-column info button, folder quick actions, VM row drawer, popup renderer, refresh/filter controls, and dedicated styles.
+- Fix: Status filters are now session-only and previously persisted popup filters are ignored on load, preventing saved folders from appearing missing after an update or page reload.
+- Refactor: The extracted row-details module now contains only the Docker Health Details workflow and its required runtime summary helper.
+- UI/UX: Updated setup guidance to describe the remaining health indicators without referencing the removed Status Details workflow.
+- Test: Added regression coverage proving all Status Details launchers, handlers, popup markup, and styles stay removed while inline status summaries and Docker health details remain available.
+
+
+###2026.07.13.09
+## FolderView Plus 2026.07.13.09
+- Fix: The Basic Settings status breakdown now sizes to its content instead of stretching grid rows across the available modal height.
+- UI/UX: Reduced modal width, padding, gaps, icon size, metric-card height, guidance spacing, member-list spacing, and footer controls for a substantially more compact layout.
+- UI/UX: Simplified the folder header metadata while retaining Docker/VM type, member count, loaded-snapshot context, and the dominant-status badge.
+- Compatibility: Narrow-screen dialogs remain centered, safe-area bounded, and scrollable without being anchored to both viewport edges.
+- Test: Added regression checks for intrinsic modal height, max-content grid rows, and compact mobile positioning.
+
+
+###2026.07.13.08
+## FolderView Plus 2026.07.13.08
+- UI/UX: The Basic Settings status breakdown now presents a compact folder header, dominant-state badge, member percentages, update totals, and a visual runtime distribution instead of a plain text alert.
+- UI/UX: Started, paused, and stopped members are grouped into expandable lists, with attention states opened automatically and long lists capped to a useful preview.
+- Quality: Status guidance now explains the configured stopped-member warning threshold, including when a mixed folder remains below it.
+- Quality: The breakdown can refresh Docker or VM runtime status in place and rerender the latest snapshot without closing the workflow.
+- UI/UX: The redesigned dialog uses semantic status messaging, escaped runtime values, live refresh feedback, responsive safe-area sizing, and reduced-motion handling.
+- Test: Added regression coverage for breakdown rendering, sanitization, filtering, threshold guidance, refresh/rerender behavior, empty folders, and mobile layout contracts.
+
+
+###2026.07.13.06
+## FolderView Plus 2026.07.13.06
+- Quality: Support bundles now separate current-session browser errors from historical records and include first/last seen timestamps plus truthful collection and observed plugin versions.
+- Quality: Docker hook diagnostics now distinguish unavailable, installed-but-not-observed, and observed invocation states.
+- Quality: Docker order reconciliation now reports how many missing containers were appended, where they were placed, and whether the folders-first invariant was satisfied.
+- Security: Sanitized exports now include an aggregate UI-telemetry privacy self-check for raw identities, absolute URLs, private network addresses, and sensitive filesystem paths without recording leaked values.
+- Test: Added regression coverage for browser error attribution, hook observation states, reconciliation outcomes, sanitized privacy validation, full-mode behavior, and the real exported telemetry shape.
+
+
+###2026.07.13.05
+- Security: Sanitized support bundles now hash legacy Docker update-command arguments, unknown hook notes, and dynamic trace titles.
+- Quality: Docker openDocker hook telemetry now stores a static operation note with structured invocation details instead of a raw command string.
+- Quality: Added whole-telemetry privacy regressions covering persisted page snapshots, bulk traces, request traces, and full-mode preservation.
+
+
+###2026.07.13.04
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Quality: Release-note generation, retry cleanup, and packaging guards.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.07.13.03
+## FolderView Plus 2026.07.13.03
+- UI/UX: Diagnostics now presents Suggested fixes first in a full-width row, followed by the health summary and a full-width Share with support module.
+- Quality: Added Settings layout coverage for the Diagnostics module order and one-column workbench.
+
+
+###2026.07.13.02
+## FolderView Plus 2026.07.13.02
+- Fix: Docker folder rows now remain above standalone containers even when Unraid has already saved a newly installed container at the top of its preferences.
+- Quality: Added regression coverage for newly installed containers that are already present first in Unraid's saved order.
+
+
+###2026.07.13.01
+## FolderView Plus 2026.07.13.01
+- Fix: Newly installed Docker containers that are not yet present in Unraid's saved preferences now render below every FolderView folder instead of above them.
+- Quality: Added Docker order regression coverage for live-only containers and saved folder placeholders.
+
+
+###2026.07.09.18
+## FolderView Plus 2026.07.09.18
+- UI/UX: Dark-mode Settings buttons now use a visible white outline for better contrast, while light mode keeps a muted non-white outline.
+
+
+###2026.07.09.17
+## FolderView Plus 2026.07.09.17
+- UI/UX: Settings Basic, Rules, Operations, and Appearance action buttons now share the same restrained button styling instead of the older bright orange treatment.
+- Fix: Appearance token reset buttons now keep compact square geometry while matching the shared Settings button states.
+
+
+###2026.07.09.16
+## FolderView Plus 2026.07.09.16
+- Fix: Basic settings pin switches now keep the knob vertically centered in both enabled and disabled states.
+- UI/UX: Basic settings nested folder rows now draw a clearer branch connector with a vertical guide and horizontal elbow into each child row.
+
+
+###2026.07.09.14
+## FolderView Plus 2026.07.09.14
+- Fix: Docker basic view now reconciles pinned folders from the server immediately after rendering rows, so the pin badge and pinned row class recover even when the initial host render used stale or partial preferences.
+
+
+###2026.07.09.13
+## FolderView Plus 2026.07.09.13
+- Fix: Docker basic view now refreshes preferences and rebuilds its render request bundle when returning to the Docker page, preventing pinned folder state from disappearing after tab changes or page refreshes.
+
+
+###2026.07.09.12
+## FolderView Plus 2026.07.09.12
+- Fix: Docker pinned folders now show an explicit thumb-tack badge beside the folder name on the Docker tab, so persisted pinned state is visible after refresh and tab changes.
+- Fix: Docker folder row pin indicators now update in place when pin state changes without requiring a full Docker list reload.
+
+
+###2026.07.09.11
+## FolderView Plus 2026.07.09.11
+- Fix: Docker runtime renders now reapply pinned-folder ordering after nested hierarchy setup so saved pinned folders get their pinned row state and stay visually promoted.
+- Fix: Docker manual folder moves now normalize through pinned-folder ordering before updating the DOM or saving preferences, preventing unpinned folders from staying above pinned folders after drag or move actions.
+
+
+###2026.07.09.10
+## FolderView Plus 2026.07.09.10
+- Fix: Docker folder pinning now reads the current server prefs before computing pin or unpin, preventing stale Docker tab state from saving an empty pinned-folder list.
+- Fix: Docker pin saves now broadcast the confirmed pinned-folder list after verification so Settings and runtime pages stay in sync without waiting for a full refresh.
+
+
+###2026.07.09.09
+## FolderView Plus 2026.07.09.09
+- Fix: Docker folder pin state now resolves from normalized saved prefs and the active runtime store, keeping pinned rows marked after Docker tab changes and reloads.
+- UX: Docker folder pin actions and alternate Docker views now use a pin icon instead of a star.
+
+
+###2026.07.09.08
+## FolderView Plus 2026.07.09.08
+- Fix: Docker and VM runtime pin actions now reject failed preference saves instead of leaving an optimistic pinned state behind.
+- Fix: Runtime pin saves now read preferences back after saving and verify the pinned-folder list persisted before keeping the row pinned.
+- Fix: Recent runtime pin changes are protected from stale in-flight render payloads that can arrive after a pin click.
+
+
+###2026.07.09.07
+## FolderView Plus 2026.07.09.07
+- Fix: Settings Basic pin toggles now save through the shared partial preference path and notify Docker/VM pages through both storage and same-window events.
+- UX: Tightened the Basic pin switch track and knob sizing so the knob reaches the pinned side cleanly with less vertical padding.
+- Quality: Added regression coverage for partial Settings saves, pin sync broadcasts, and the compact pin switch geometry.
+
+
+###2026.07.09.06
+- Fix: Make Basic Settings folder pin toggles save only the pinned-folder list, update the toggle immediately, and roll back on save failure.
+- Fix: Notify already-open Docker and VM runtime pages when Settings changes pinned folders so Docker reflects Settings pin changes without a manual reload.
+- Quality: Added coverage for the fast Settings pin save path and runtime pin-change listeners.
+
+
+###2026.07.09.05
+- UX: Make Basic folder drag reordering feel row-based by using a full-row drag preview instead of the small handle-only browser preview.
+- Quality: Added Settings coverage for the full-row drag image path.
+
+
+###2026.07.09.04
+- UX: Removed the remaining VM Basic row drawer Move up and Move down actions so manual ordering is consistently handled by the drag handle and Tree move controls.
+
+
+###2026.07.09.03
+- UX: Refreshed the Basic Settings workspace for Docker and VM folder groups with visible search, filter, sort, and add controls while keeping the existing Docker and VMs section headers.
+- UX: Added summary cards for each Basic Settings section so total groups, health counts, empty groups, and rule totals are visible before scanning the folder list.
+- UX: Updated the folder rows with a cleaner grouped layout, larger folder identity area, compact health badges, pin switches, and simplified row actions.
+- UX: Replaced up and down reorder buttons with a drag handle for same-level manual ordering while keeping the existing Tree move flow for nesting and cross-level moves.
+- Quality: Updated Settings binding coverage for the moved Basic search and sort controls.
+
+
+###2026.07.09.02
+- Feature: Add Smart Rule Assistant suggestions for Docker and VM auto-assignment rules based on folder names, existing members, Docker image names, and Compose projects.
+- UX: Add beginner-friendly rule builder match types like name contains, name starts with, image contains, and Compose project equals while preserving the existing regex-backed rule engine.
+- UX: Replace the raw rule simulator text output with structured assignment preview rows, summary counts, and an Apply previewed assignments action that creates a backup first.
+
+###2026.07.09.01
+- UX: Removed sort shortcut buttons from Settings View &amp; Organization so Sort mode is controlled only by the dropdown.
+- UX: Moved the folder search and quick filters out of View &amp; Organization and into the row below it, replacing the old path hint row.
+
+###2026.07.08.14
+- UX: Reworked Settings sort and view controls into a clearer View &amp; Organization workspace with dedicated Order, Find folders, Display, and Advanced tools sections.
+- UX: Added sort mode shortcut buttons, live sort guidance, pinned-folder notes, nested-folder notes, and folder counts for Docker and VM folder tables.
+- Feature: Added a Use current visible order action to save the current Settings table order as Manual order.
+- Test: Added regression coverage confirming pinned folders stay above every supported sort mode and nested manual branches remain together.
+
+###2026.07.08.13
+- Fix: Make the modern folder editor live preview use current Docker runtime Running/Paused state for member status labels instead of stale or missing status text.
+- Fix: Normalize Docker editor member state so started, paused, and stopped previews match the Docker tab.
+- Test: Add regression coverage for stale status text being overridden by current runtime booleans.
+
+###2026.07.08.12
+- Fix: Make the Dashboard compact matrix preserve Docker and VM folder order visually from top to bottom in each column, matching the Docker/VM tab order.
+- Test: Add regression coverage for compact matrix column-flow ordering.
+
+###2026.07.08.11
+- Fix: Harden Dashboard folder rendering so FolderView Plus only marks Dashboard folders loaded after async folder hydration succeeds.
+- Fix: Add Dashboard request fallbacks and safer JSON parsing so one failed local API read no longer leaves folders stuck in a default/native state.
+- Fix: Restore paused-state parity for Docker and VM Dashboard folders, including paused status counts, icon color, and folder status metadata.
+- Quality: Expand Dashboard debug bundles with sanitized runtime state, render/icon diagnostics, active plugin assets, and request fallback history.
+- Test: Add regression coverage for Dashboard render gating, request fallbacks, sanitized diagnostics, and paused-state handling.
 
 ###2026.07.06.10
 - Feature: Add Docker start order controls with a dedicated Settings > Advanced > Start Order tab, current Docker-page order sync, custom startup batches, folder/container batch items, remaining-container placement, preview, and manual sync without rewriting unrelated Docker preferences.
@@ -30,7 +385,6 @@
 - Fix: Restrict Theme Workspace token overrides to safe color values and stop raw custom CSS from being injected into the Settings page during live editing.
 - Quality: Add Docker start order server, settings UI, Docker runtime, and regression coverage for planning and sync behavior.
 - Quality: Add and refresh regression coverage for dark-mode tokens, parent picker layout, Settings performance paths, Theme Workspace scan/update/reset behavior, contained previews, server action wiring, and CI guard contracts.
-
 
 ###2026.07.06.09
 - Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained token preview sample.

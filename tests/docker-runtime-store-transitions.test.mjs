@@ -22,5 +22,6 @@ test('docker runtime store transition handlers keep focus/pin/lock paths synchro
     assert.match(dockerJs, /writeDockerLockedFolderIds\(Array\.from\(dockerLockedFolderIdSet\)\)/);
     assert.match(dockerJs, /dockerRuntimeStateStore\.set\(\{\s*lockedFolderIds:\s*Array\.from\(dockerLockedFolderIdSet\)\s*\}\)/);
     assert.match(dockerJs, /const applyDockerPinnedFolderIds = \(nextPinnedIds\) =>/);
-    assert.match(dockerJs, /dockerRuntimeStateStore\.set\(\{\s*pinnedFolderIds:\s*Array\.isArray\(nextPinnedIds\)\s*\?\s*\[\.\.\.nextPinnedIds\]\s*:\s*\[\]\s*\}\)/);
+    assert.match(dockerJs, /const normalizedPinnedIds = normalizeDockerPinnedFolderIdList\(nextPinnedIds\);/);
+    assert.match(dockerJs, /dockerRuntimeStateStore\.set\(\{\s*pinnedFolderIds:\s*normalizedPinnedIds\s*\}\)/);
 });

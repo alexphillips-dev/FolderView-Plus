@@ -174,10 +174,6 @@ If FolderView Plus helps your Unraid setup, you can support ongoing development 
 
 https://buymeacoffee.com/alexphillipsdev
 
-## Credits
-
-- [sameerasw](https://github.com/sameerasw/folder-icons) and [hernandito](https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors) - Thank you for the icon packs that improve local icon workflows.
-
 ## License
 
 See [LICENSE.md](LICENSE.md).

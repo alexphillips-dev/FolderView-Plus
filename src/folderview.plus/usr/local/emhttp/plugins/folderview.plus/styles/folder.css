@@ -4642,7 +4642,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     color: var(--fv-editor-title-accent) !important;
 }
 
-#fvFolderMembersSection .order-buttons > button.fv-six-dot-drag-handle {
+#fvFolderEditorForm .order-buttons > button.fv-six-dot-drag-handle {
     min-width: 26px !important;
     width: 26px !important;
     height: 34px !important;
@@ -4660,14 +4660,25 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     -webkit-appearance: none !important;
     background: transparent !important;
     box-shadow: none !important;
+    color: var(--fv-editor-title-accent) !important;
 }
 
-#fvFolderMembersSection .fv-six-dot-drag-handle > span {
-    width: 4px;
-    height: 4px;
+#fvFolderEditorForm .fv-six-dot-drag-handle > .fv-six-dot-drag-dot {
+    display: block !important;
+    min-width: 4px !important;
+    width: 4px !important;
+    max-width: 4px !important;
+    min-height: 4px !important;
+    height: 4px !important;
+    max-height: 4px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: 0 !important;
     border-radius: 999px;
-    background: currentColor;
-    opacity: 0.9;
+    background: currentColor !important;
+    box-shadow: none !important;
+    opacity: 0.9 !important;
 }
 
 .fv-modern-field-row.is-actions-list-row .custom-action,

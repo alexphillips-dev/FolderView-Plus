@@ -742,7 +742,7 @@ test('folder editor uses searchable parent picker and grouped tab panels', () =>
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
-    assert.match(folderPage, /<form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern"/);
+    assert.match(folderPage, /<form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern"/);
     assert.match(folderPage, /fv-modern-editor-booting/);
     assert.match(folderPage, /id="fvModernEditorStage" class="fv-modern-editor-stage is-pending"/);
     assert.doesNotMatch(folderPage, /id="fvLegacyEditorScaffold"/);

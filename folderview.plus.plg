@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.06">
-<!ENTITY md5 "819a994fd7335c370d8799694488bbaf">
+<!ENTITY version "2026.07.14.07">
+<!ENTITY md5 "3f3649202e046b9b1857ea7705eaa7fc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.07
+## FolderView Plus 2026.07.14.07
+- Fix: Scoped the modern Members-tab six-dot grip through the entire editor form so regular Docker/VM member rows receive the same styling as nested-folder rows.
+- Fix: Added explicit dot classes with forced block display and fixed min/max dimensions, preventing host button-span rules from collapsing the dots into a blank handle.
+- UI/UX: Strengthened the editor-wide drag-handle reset so borders, outlines, backgrounds, and shadows cannot replace the transparent six-dot grip.
+- Test: Expanded regression coverage for the stable editor form anchor, both member-table locations, visible fixed-size dots, and borderless handle chrome.
+
 
 ###2026.07.14.06
 ## FolderView Plus 2026.07.14.06

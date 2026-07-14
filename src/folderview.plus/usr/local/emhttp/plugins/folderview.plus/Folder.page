@@ -1668,7 +1668,7 @@ try {
                     <input type="text" name="action_script_args" autocomplete="off" placeholder="Optional command arguments">
                 </label>
                 <div class="fv-action-sync-field is-wide">
-                    <div><strong>Wait for completion</strong><small>Keep the action in the foreground until the script finishes.</small></div>
+                    <div><strong data-i18n="custom-actions-script-sync">Wait for completion</strong><small>Keep the action in the foreground until the script finishes.</small></div>
                     <input class="basic-switch-sync" name="action_script_sync" type="checkbox" style="display:none;">
                 </div>
             </div>

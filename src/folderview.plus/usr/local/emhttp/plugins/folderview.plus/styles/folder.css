@@ -4570,7 +4570,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 }
 
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4594,7 +4594,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 }
 
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4610,7 +4610,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
     .folder-status-colors-dd > button
 ):hover,
 :is(
-    .order-buttons > button,
+    .order-buttons > button:not(.fv-six-dot-drag-handle),
     .custom-action-wrapper > div > button,
     .fv-inline-reset-btn,
     .fv-icon-picker-pager > button,
@@ -4640,6 +4640,34 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:activ
 .order-buttons > button:hover > i,
 .order-buttons > button:focus-visible > i {
     color: var(--fv-editor-title-accent) !important;
+}
+
+#fvFolderMembersSection .order-buttons > button.fv-six-dot-drag-handle {
+    min-width: 26px !important;
+    width: 26px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    grid-template-columns: repeat(2, 4px);
+    grid-auto-rows: 4px;
+    justify-content: center;
+    align-content: center;
+    gap: 3px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#fvFolderMembersSection .fv-six-dot-drag-handle > span {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.9;
 }
 
 .fv-modern-field-row.is-actions-list-row .custom-action,

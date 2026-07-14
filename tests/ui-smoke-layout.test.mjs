@@ -580,7 +580,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.member-drag-handle\s*\{[\s\S]*cursor:\s*grab;/);
     assert.match(folderCss, /\.item\.is-dragging\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface-active\);/);
     assert.match(folderCss, /\.member-drag-handle\.is-disabled\s*\{[\s\S]*cursor:\s*not-allowed;/);
-    assert.match(folderJs, /class="member-drag-handle"/);
+    assert.match(folderJs, /class="member-drag-handle fv-six-dot-drag-handle"/);
     assert.match(folderJs, /bindMemberDragReorder\(\);/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-switch/);

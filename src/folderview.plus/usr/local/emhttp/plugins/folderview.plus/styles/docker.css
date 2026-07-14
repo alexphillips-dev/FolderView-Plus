@@ -173,7 +173,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
 }
 
 .fvplus-docker-runtime-toggle-label {
-    font-size: 0.92rem;
+    font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;

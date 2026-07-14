@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.11">
-<!ENTITY md5 "d150c3aef6a7780354b31e64cab8a9d0">
+<!ENTITY version "2026.07.14.12">
+<!ENTITY md5 "b1790c9c5b45f65cf10c67d53381935a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.12
+## FolderView Plus 2026.07.14.12
+- UI/UX: Increased the Docker-page Privacy toggle label to `1.1rem` so its text size matches the adjacent Basic View toggle.
+- Test: Added regression coverage for the Docker runtime toggle-label font size.
+
 
 ###2026.07.14.11
 ## FolderView Plus 2026.07.14.11

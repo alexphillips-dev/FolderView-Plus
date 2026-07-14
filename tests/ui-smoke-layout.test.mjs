@@ -594,6 +594,9 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-action-dialog-section\s*\{[\s\S]*?background:\s*var\(--fv-editor-panel\);/);
     assert.match(folderCss, /\.fv-action-type-option\.is-selected\s*\{[\s\S]*?background:\s*var\(--fv-editor-control-surface-active\);/);
     assert.match(folderCss, /\.fv-action-dialog-field\.is-invalid input,[\s\S]*?border-color:\s*var\(--fv-editor-danger\) !important;/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content\s*\{[\s\S]*?box-sizing:\s*border-box;[\s\S]*?overflow-x:\s*hidden;[\s\S]*?scrollbar-width:\s*none;/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content::\-webkit-scrollbar\s*\{[\s\S]*?display:\s*none;/);
+    assert.match(folderCss, /\.fv-folder-action-dialog button:not\(\.ui-multiselect\)\s*\{[\s\S]*?border:\s*0 !important;[\s\S]*?outline:\s*none !important;/);
     assert.match(folderCss, /@media \(max-width: 640px\)[\s\S]*?\.fv-action-dialog-field-grid,[\s\S]*?grid-template-columns:\s*1fr;/);
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderJs, /width:\s*Math\.max\(320, Math\.min\(640, window\.innerWidth - 24\)\),/);

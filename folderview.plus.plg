@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.16">
-<!ENTITY md5 "618433725834b9f76e3a37ba6d999010">
+<!ENTITY version "2026.07.14.17">
+<!ENTITY md5 "e7872f5e52eb6aaff3ba7114fe606ebc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.17
+## FolderView Plus 2026.07.14.17
+- Fix: Removed the custom-action dialog's horizontal overflow and visually hidden its scrollbars while retaining wheel, touch, and keyboard scrolling on short viewports.
+- UI/UX: Removed host-provided orange borders and focus outlines from custom-action dialog buttons while keeping theme-aware hover and focus feedback.
+- Test: Added regression coverage for border-box dialog sizing, overflow containment, hidden scrollbar chrome, and borderless modal buttons.
+
 
 ###2026.07.14.16
 ## FolderView Plus 2026.07.14.16

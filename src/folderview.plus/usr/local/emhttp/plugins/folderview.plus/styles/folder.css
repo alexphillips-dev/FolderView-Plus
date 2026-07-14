@@ -4302,19 +4302,33 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-folder-action-dialog .ui-dialog-content {
+    width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
     background: transparent;
     color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     display: block;
     max-height: min(76vh, 760px);
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 0.9em 1em !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     text-align: left !important;
+}
+
+.fv-folder-action-dialog .ui-dialog-content::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .fv-folder-action-dialog .dialogCustomAction {
     width: 100%;
+    min-width: 0;
     max-width: none;
     margin: 0;
+    box-sizing: border-box;
 }
 
 .fv-action-dialog-layout {
@@ -4505,8 +4519,18 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-action-type-option:focus-visible {
-    outline: 2px solid var(--fv-editor-focus-ring);
-    outline-offset: 2px;
+    outline: none;
+}
+
+.fv-folder-action-dialog button:not(.ui-multiselect) {
+    border: 0 !important;
+    outline: none !important;
+}
+
+.fv-folder-action-dialog button:not(.ui-multiselect):focus-visible {
+    border: 0 !important;
+    outline: none !important;
+    background: var(--fv-editor-control-surface-hover);
 }
 
 .fv-folder-action-dialog .dialogCustomAction input[type="text"],

@@ -1568,95 +1568,124 @@ try {
 <div class="dialogCustomAction" style="display:none"></div>
 
 <div class="templateDialogCustomAction" style="display: none;">
-    <div>
-        <dl>
-            <dt data-i18n="name">Name:</dt>
-            <dd>
-                <input type="text" name="action_name">
-            </dd>
-        </dl>
-    </div>
-    <div>
-        <dl>
-            <dt data-i18n="custom-actions-type">Type:</dt>
-            <dd>
-                <select name="action_type" onchange="((el) => {$('[constraint*=\'action-type-\']').hide(); $(`[constraint*=\'action-type-${el.value}\']`).show();})(this)">
-                    <option value="0" data-i18n="custom-actions-type-0">Standard</option>
-                    <option value="1" data-i18n="custom-actions-type-1">Custom</option>
-                </select>
-            </dd>
-        </dl>
-    </div>
-    <div class="standard" constraint="action-type-0">
-        <div>
-            <dl>
-                <dt data-i18n="custom-actions-action">Action:</dt>
-                <dd>
-                    <select name="action_standard" onchange="((el) => {$('[constraint*=\'action-standard-\']').hide(); $(`[constraint*=\'action-standard-${el.value}\']`).show();})(this)">
+    <div class="fv-action-dialog-layout">
+        <div class="fv-action-dialog-intro">
+            <span class="fv-action-dialog-intro-icon" aria-hidden="true"><i class="fa fa-bolt"></i></span>
+            <div>
+                <strong>Configure folder action</strong>
+                <p>Add an action to this folder's context menu. Choose a built-in state action or run a User Scripts task.</p>
+            </div>
+        </div>
+
+        <section class="fv-action-dialog-section" aria-label="Action details">
+            <div class="fv-action-dialog-section-head">
+                <span aria-hidden="true"><i class="fa fa-sliders"></i></span>
+                <div><h3>Action details</h3><p>Name the action and choose how it runs.</p></div>
+            </div>
+            <div class="fv-action-dialog-field-grid">
+                <label class="fv-action-dialog-field is-wide">
+                    <span data-i18n="name">Name:</span>
+                    <input type="text" name="action_name" autocomplete="off" maxlength="120">
+                    <small>This label appears in the folder context menu.</small>
+                    <em class="fv-action-field-error" data-action-error="name" hidden>Enter an action name.</em>
+                </label>
+                <fieldset class="fv-action-type-field is-wide">
+                    <legend data-i18n="custom-actions-type">Type:</legend>
+                    <select name="action_type" class="fv-action-type-select" tabindex="-1" aria-hidden="true">
+                        <option value="0" data-i18n="custom-actions-type-0">Standard</option>
+                        <option value="1" data-i18n="custom-actions-type-1">Custom</option>
+                    </select>
+                    <div class="fv-action-type-options" role="radiogroup" aria-label="Action type">
+                        <button type="button" class="fv-action-type-option" data-action-type="0" role="radio" aria-checked="true">
+                            <i class="fa fa-cogs" aria-hidden="true"></i><span><strong data-i18n="custom-actions-type-0">Standard</strong><small>Control selected folder members.</small></span>
+                        </button>
+                        <button type="button" class="fv-action-type-option" data-action-type="1" role="radio" aria-checked="false">
+                            <i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong>User Script</strong><small>Run a task from the User Scripts plugin.</small></span>
+                        </button>
+                    </div>
+                </fieldset>
+            </div>
+        </section>
+
+        <section class="fv-action-dialog-section standard" constraint="action-type-0" aria-label="Standard action">
+            <div class="fv-action-dialog-section-head">
+                <span aria-hidden="true"><i class="fa fa-cogs"></i></span>
+                <div><h3>Standard action</h3><p>Choose the state change and which members it controls.</p></div>
+            </div>
+            <div class="fv-action-dialog-field-grid">
+                <label class="fv-action-dialog-field">
+                    <span data-i18n="custom-actions-action">Action:</span>
+                    <select name="action_standard">
                         <option value="0" data-i18n="custom-actions-action-0">Cycle</option>
                         <option value="1" data-i18n="custom-actions-action-1">Set</option>
                         <option value="2" data-i18n="custom-actions-action-2">Restart</option>
                     </select>
-                </dd>
-            </dl>
-        </div>
-        <div class="cycle" constraint="action-standard-0">
-            <dl>
-                <dt data-i18n="custom-actions-states">States:</dt>
-                <dd>
+                </label>
+                <label class="fv-action-dialog-field cycle" constraint="action-standard-0">
+                    <span>Behavior</span>
                     <select name="action_cycle">
                         <option value="0" data-i18n="custom-actions-cycle-0">Start - stop</option>
                         <option value="1" data-i18n="custom-actions-cycle-1">Pause - resume</option>
                     </select>
-                </dd>
-            </dl>
-        </div>
-        <div class="set" style="display: none;" constraint="action-standard-1">
-            <dl>
-                <dt data-i18n="custom-actions-states">States:</dt>
-                <dd>
+                </label>
+                <label class="fv-action-dialog-field set" constraint="action-standard-1" style="display:none;">
+                    <span data-i18n="custom-actions-states">States:</span>
                     <select name="action_set">
                         <option value="0" data-i18n="custom-actions-set-0">Start</option>
                         <option value="1" data-i18n="custom-actions-set-1">Stop</option>
                         <option value="2" data-i18n="custom-actions-set-2">Pause</option>
                         <option value="3" data-i18n="custom-actions-set-3">Resume</option>
                     </select>
-                </dd>
-            </dl>
-        </div>
-        <div class="action-subject">
-            <dl>
-                <dt data-i18n="custom-actions-cts">Containers:</dt>
-                <dd>
+                </label>
+                <div class="fv-action-dialog-field is-wide action-subject">
+                    <div class="fv-action-target-label"><span data-fv-action-target-label data-i18n="custom-actions-cts">Containers:</span><strong data-fv-action-target-count>0 selected</strong></div>
                     <select name="action_elements" multiple></select>
-                </dd>
-            </dl>
-        </div>
+                    <div class="fv-action-target-tools">
+                        <button type="button" data-action-target-command="all"><i class="fa fa-check-square-o" aria-hidden="true"></i> Select all</button>
+                        <button type="button" data-action-target-command="clear"><i class="fa fa-square-o" aria-hidden="true"></i> Clear</button>
+                    </div>
+                    <div class="fv-action-target-chips" data-fv-action-target-chips aria-live="polite"></div>
+                    <small data-action-help="targets">Only members currently available to this folder are listed.</small>
+                    <em class="fv-action-field-error" data-action-error="targets" hidden>Select at least one member.</em>
+                </div>
+            </div>
+        </section>
+
+        <section class="fv-action-dialog-section custom" constraint="action-type-1" style="display:none;" aria-label="User Script action">
+            <div class="fv-action-dialog-section-head">
+                <span aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
+                <div><h3>User Script</h3><p>Run an installed User Scripts task from the folder menu.</p></div>
+            </div>
+            <div class="fv-action-dialog-field-grid">
+                <label class="fv-action-dialog-field is-wide">
+                    <span data-i18n="custom-actions-script">Script:</span>
+                    <input type="text" name="action_script" autocomplete="off">
+                    <small>Enter the script name exactly as it appears in User Scripts.</small>
+                    <em class="fv-action-field-error" data-action-error="script" hidden>Enter a script name.</em>
+                </label>
+                <label class="fv-action-dialog-field is-wide">
+                    <span data-i18n="custom-actions-arguments">Arguments:</span>
+                    <input type="text" name="action_script_args" autocomplete="off" placeholder="Optional command arguments">
+                </label>
+                <div class="fv-action-sync-field is-wide">
+                    <div><strong>Wait for completion</strong><small>Keep the action in the foreground until the script finishes.</small></div>
+                    <input class="basic-switch-sync" name="action_script_sync" type="checkbox" style="display:none;">
+                </div>
+            </div>
+        </section>
+
+        <section class="fv-action-dialog-section is-appearance" aria-label="Appearance">
+            <div class="fv-action-dialog-section-head">
+                <span aria-hidden="true"><i class="fa fa-picture-o"></i></span>
+                <div><h3>Appearance</h3><p>Optionally override the action's Font Awesome icon.</p></div>
+            </div>
+            <label class="fv-action-dialog-field fv-action-icon-field">
+                <span>Icon class</span>
+                <span class="fv-action-icon-control"><span class="fv-action-icon-preview" aria-hidden="true"><i class="fa fa-cogs"></i></span><input type="text" name="action_script_icon" autocomplete="off" placeholder="fa-cogs"></span>
+                <small>Leave blank to use the default icon for the selected action type.</small>
+            </label>
+        </section>
+
+        <div class="fv-action-validation-summary" role="alert" hidden>Review the highlighted fields before saving.</div>
     </div>
-    <div class="custom" style="display: none;" constraint="action-type-1">
-        <dl>
-            <dt data-i18n="custom-actions-script">Script:</dt>
-            <dd>
-                <input type="text" name="action_script">
-            </dd>
-        </dl>
-        <dl>
-            <dt data-i18n="custom-actions-arguments">Arguments:</dt>
-            <dd>
-                <input type="text" name="action_script_args">
-            </dd>
-        </dl>
-        <dl>
-            <dt data-i18n="custom-actions-script-sync">Sync:</dt>
-            <dd>
-            <input class="basic-switch-sync" name="action_script_sync" type="checkbox" style="display: none;" />
-            </dd>
-        </dl>
-    </div>
-    <dl>
-        <dt data-i18n="icon">Icon:</dt>
-        <dd>
-            <input type="text" name="action_script_icon">
-        </dd>
-    </dl>
 </div>

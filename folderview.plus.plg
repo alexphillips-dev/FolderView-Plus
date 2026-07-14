@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.13.09">
-<!ENTITY md5 "a91b141826cc0c343b17473efd7b81b3">
+<!ENTITY version "2026.07.14.01">
+<!ENTITY md5 "df4ffd3cbc9f9cbc8f15fc069962ded0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.01
+## FolderView Plus 2026.07.14.01
+- Fix: Removed the Status Details feature from Basic Settings, including the Actions-column button, Status-column info button, folder quick actions, VM row drawer, popup renderer, refresh/filter controls, and dedicated styles.
+- Fix: Status filters are now session-only and previously persisted popup filters are ignored on load, preventing saved folders from appearing missing after an update or page reload.
+- Refactor: The extracted row-details module now contains only the Docker Health Details workflow and its required runtime summary helper.
+- UI/UX: Updated setup guidance to describe the remaining health indicators without referencing the removed Status Details workflow.
+- Test: Added regression coverage proving all Status Details launchers, handlers, popup markup, and styles stay removed while inline status summaries and Docker health details remain available.
+
 
 ###2026.07.13.09
 ## FolderView Plus 2026.07.13.09

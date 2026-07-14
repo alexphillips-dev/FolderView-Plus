@@ -492,7 +492,7 @@ test('basic folder pin switch has compact track geometry', () => {
 test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {
     assert.match(script, /const safeNameText = escapeHtml\(folderNameRaw\);/);
     assert.match(script, /const safeNameDisplayHtml = filter \? highlightSearchText\(folderNameRaw, filter\) : safeNameText;/);
-    assert.match(script, /aria-label="Open status breakdown for \$\{safeNameText\}"/);
+    assert.doesNotMatch(script, /Open status breakdown|Open status details/);
     assert.match(script, /<span class="name-cell-text">\$\{safeNameDisplayHtml\}<\/span>/);
     assert.match(script, /const showBreadcrumb = folderDepth > 0 \|\| Boolean\(filter\);/);
     assert.match(settingsCss, /\.name-cell-content\.is-nested::before\s*\{[\s\S]*border-left:\s*1px solid var\(--fvplus-settings-tree-guide\)/);

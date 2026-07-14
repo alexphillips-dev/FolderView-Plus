@@ -144,7 +144,7 @@ test('settings dark mode buttons use visible white outline tokens', () => {
     assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-button-outline:\s*rgba\(122,\s*102,\s*72,\s*0\.18\);/);
     assert.match(settingsCss, /\/\* Shared settings button system \*\/[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-docker-start-order-toolbar > button,[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
-    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.status-breakdown-btn,[\s\S]*\.updates-chip[\s\S]*\)\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.health-breakdown-btn,[\s\S]*\.updates-chip[\s\S]*\)\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;/);
 });
 
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {

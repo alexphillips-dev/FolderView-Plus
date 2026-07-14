@@ -265,13 +265,6 @@ const buildFolderActionRegistry = ({
             description: `Inspect or copy details for this ${typeLabel} folder.`,
             actions: [
                 {
-                    id: 'status',
-                    label: 'Status breakdown',
-                    icon: 'fa-info-circle',
-                    closeBeforeRun: true,
-                    run: () => showFolderStatusBreakdown(resolvedType, folderId)
-                },
-                {
                     id: 'copy',
                     label: 'Copy ID',
                     icon: 'fa-clipboard',
@@ -416,10 +409,6 @@ const runVmRowDrawerAction = async (action, folderId) => {
         branchImport: () => importFolderBranch('vm', id),
         treeScan: () => runTreeIntegrityCheck('vm'),
         treeRepair: () => runTreeIntegrityCheck('vm', { repair: true }),
-        status: () => {
-            showFolderStatusBreakdown('vm', id);
-            return Promise.resolve();
-        },
         copy: () => copyFolderId('vm', id),
         export: () => downloadVm(id),
         delete: () => clearVm(id)
@@ -466,7 +455,6 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         ['branchImport', 'fa-sign-in', 'Import branch here', '', true],
         ['treeScan', 'fa-stethoscope', 'Scan tree integrity', '', true],
         ['treeRepair', 'fa-wrench', 'Repair tree integrity', '', true],
-        ['status', 'fa-info-circle', 'Status breakdown', '', true],
         ['copy', 'fa-clipboard', 'Copy ID', '', true],
         ['export', 'fa-download', 'Export', '', true],
         ['delete', 'fa-trash', 'Delete', ' is-danger', true]

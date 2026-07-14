@@ -3458,28 +3458,18 @@ const getRowDetailsApi = (() => {
         }
         cachedApi = rowDetailsModule.createApi({
             swal,
-            document,
-            setTimeout: window.setTimeout.bind(window),
-            escapeHtml,
             getFolderMap: (type) => getFolderMap(type),
             getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
             getItemRuntimeStateKind,
-            deriveFolderStatusKey,
             isDockerUpdateAvailable,
-            statusLabelForKey,
-            normalizeStatusPrefs,
             normalizeHealthPrefs,
             evaluateDockerFolderHealth,
-            toggleStatusFilter,
-            toggleHealthSeverityFilter,
-            refreshType
+            toggleHealthSeverityFilter
         });
         return cachedApi;
     };
 })();
-const getFolderStatusBreakdown = (...args) => getRowDetailsApi().getFolderStatusBreakdown(...args);
-const showFolderStatusBreakdown = (...args) => getRowDetailsApi().showFolderStatusBreakdown(...args);
 const showFolderHealthBreakdown = (...args) => getRowDetailsApi().showFolderHealthBreakdown(...args);
 
 const getSettingsHealthApi = (() => {
@@ -4132,10 +4122,6 @@ const buildTableUiStatePayload = () => ({
         docker: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.docker),
         vm: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.vm)
     },
-    status: {
-        docker: normalizeStatusFilterMode(statusFilterByType.docker),
-        vm: normalizeStatusFilterMode(statusFilterByType.vm)
-    },
     dockerUpdatesOnlyFilter: dockerUpdatesOnlyFilter === true,
     treeCollapsed: {
         docker: Array.from(collapsedTreeParentsByType.docker || []),
@@ -4172,7 +4158,6 @@ const restoreTableUiState = () => {
         const sourceQuick = source.quick && typeof source.quick === 'object' ? source.quick : {};
         const sourceHealth = source.health && typeof source.health === 'object' ? source.health : {};
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
-        const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
         const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
@@ -4190,7 +4175,9 @@ const restoreTableUiState = () => {
             quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
             healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
             healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
-            statusFilterByType[resolvedType] = normalizeStatusFilterMode(sourceStatus[resolvedType]);
+            // Status filters are intentionally session-only. Older Status Details
+            // popups persisted this value and could make saved folders appear missing.
+            statusFilterByType[resolvedType] = 'all';
             collapsedTreeParentsByType[resolvedType] = new Set(
                 Array.isArray(sourceTreeCollapsed[resolvedType])
                     ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
@@ -6652,7 +6639,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             summarizeStatusMembers('Stopped items', namesByState.stopped),
             `Stopped percentage: ${stoppedPercent}%`,
             statusThresholdLabel,
-            'Open status breakdown from the info button for full details.',
             statusChipHint
         ].filter(Boolean).join('\n');
         const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`;
@@ -6863,12 +6849,12 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="order-cell">${orderCellHtml}</td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
-            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
+            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}">${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button type="button" class="folder-action-btn" title="Status details" aria-label="Open status details for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-bar-chart"></i></button><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></td>`
+            + `<td class="actions-cell"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></td>`
             + '</tr>'
         );
     }
@@ -11344,7 +11330,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     changeSettingsTableColumnWidthPreset,
     applySettingsTablePreset,
     resetSettingsTableColumns,
-    showFolderStatusBreakdown,
     showFolderHealthBreakdown,
     openSettingsFolderEditor,
     openFolderRowQuickActions,

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.12">
-<!ENTITY md5 "b1790c9c5b45f65cf10c67d53381935a">
+<!ENTITY version "2026.07.14.13">
+<!ENTITY md5 "0b256c9eab7890dd7cb38fec43039cbf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.13
+## FolderView Plus 2026.07.14.13
+- UI/UX: Increased the modern folder editor General-tab Name field text to `1.3rem` for improved readability.
+- Test: Added regression coverage that keeps the larger font scoped to the Name field.
+
 
 ###2026.07.14.12
 ## FolderView Plus 2026.07.14.12

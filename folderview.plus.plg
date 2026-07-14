@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.08">
-<!ENTITY md5 "b86d4d61003c16500649c0766fbce76e">
+<!ENTITY version "2026.07.14.09">
+<!ENTITY md5 "67d18aeaaa4a87512bb9375bd8fe2482">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.09
+## FolderView Plus 2026.07.14.09
+- UI/UX: Matched the Basic Settings three-dot overflow control to the quiet visual treatment used by the adjacent gear action.
+- Fix: Removed the idle overflow control from the selected/accent button state so it no longer appears orange-filled.
+- UI/UX: Applied the same border, background, icon color, shadow, hover, and keyboard-focus behavior to both action buttons.
+- Test: Added regression coverage that keeps overflow actions out of the active selector group and inside the shared quiet action-button system.
+
 
 ###2026.07.14.08
 ## FolderView Plus 2026.07.14.08

@@ -550,6 +550,11 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-docker-signals/);
     assert.match(folderCss, /\.fv-live-chip-panel/);
     assert.match(folderCss, /\.fv-live-stat-card/);
+    assert.match(folderCss, /\.fv-live-stat-value\s*\{[\s\S]*?font-size:\s*1\.3rem;/);
+    assert.match(folderCss, /\.fv-live-stat-label,\s*[\s\S]*?\.fv-live-chip-panel-head\s*\{[\s\S]*?font-size:\s*0\.9rem;/);
+    assert.match(folderCss, /\.fv-swatch-item > em\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
+    assert.match(folderCss, /\.fv-docker-signal-chip\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
+    assert.match(folderCss, /@media \(min-width: 981px\)\s*\{[\s\S]*?\.fv-live-stat-value\s*\{[\s\S]*?font-size:\s*1\.3rem;[\s\S]*?\.fv-swatch-item > em\s*\{[\s\S]*?font-size:\s*1\.1rem;[\s\S]*?\.fv-docker-signal-chip\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
     assert.match(folderCss, /\.fv-live-folder-head\s*\{/);
     assert.match(folderCss, /\.fv-live-folder-head\s*\{[\s\S]*align-self:\s*center;/);
     assert.match(folderCss, /\.fv-live-preview-row\s*\{[\s\S]*grid-template-columns:\s*max-content minmax\(0, 1fr\);/);

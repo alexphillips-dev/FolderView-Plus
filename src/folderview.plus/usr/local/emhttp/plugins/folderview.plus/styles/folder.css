@@ -1899,7 +1899,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-live-stat-value {
     display: block;
-    font-size: 1.08rem;
+    font-size: 1.3rem;
     line-height: 1.28;
     color: var(--fv-editor-text-primary);
 }
@@ -1972,7 +1972,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border-radius: 999px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-control-surface);
-    font-size: 0.98rem;
+    font-size: 1.1rem;
     line-height: 1.2;
 }
 
@@ -1988,7 +1988,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-swatch-item > em {
     font-style: normal;
     opacity: 0.9;
-    font-size: 0.97rem;
+    font-size: 1.1rem;
 }
 
 .fv-swatch-item > i {
@@ -2035,7 +2035,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-live-stat-value {
-        font-size: 1.03rem;
+        font-size: 1.3rem;
         line-height: 1.16;
         overflow-wrap: anywhere;
     }
@@ -2056,7 +2056,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     }
 
     .fv-swatch-item > em {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -2072,7 +2072,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         min-height: 20px;
         max-width: 100%;
         padding: 0.06em 0.32em;
-        font-size: 0.88rem;
+        font-size: 1.1rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

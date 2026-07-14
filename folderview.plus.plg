@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.14.13">
-<!ENTITY md5 "0b256c9eab7890dd7cb38fec43039cbf">
+<!ENTITY version "2026.07.14.14">
+<!ENTITY md5 "5d649a48abb9b6edea1fb9c610c9628e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.14.14
+## FolderView Plus 2026.07.14.14
+- UI/UX: Increased the modern editor live-summary values for Name, Preview, Context, and Members to `1.3rem` while retaining the existing title size.
+- UI/UX: Increased Status Colors labels and Docker Signals text to `1.1rem` across desktop and responsive layouts.
+- Test: Added regression coverage for the summary value sizes and unchanged title sizing.
+
 
 ###2026.07.14.13
 ## FolderView Plus 2026.07.14.13

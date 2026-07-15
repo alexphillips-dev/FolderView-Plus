@@ -82,16 +82,26 @@
             }
         });
 
-        const collectClientStorageDiagnostics = () => ({
-            localStorageAvailable: clientStorageIsAvailable('localStorage'),
-            sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
-            dockerListViewModeCookie: normalizeDockerListViewMode(readCookieValue('docker_listview_mode')),
-            folderEditorDebug: {
-                launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),
-                bootstrapPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.bootstrap || '')),
-                surfacePresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.surface || ''))
+        const collectClientStorageDiagnostics = () => {
+            let preferenceSaves = null;
+            try {
+                const coordinator = root?.FolderViewPlusPrefsStore?.getDefaultCoordinator?.();
+                preferenceSaves = coordinator?.getDiagnostics?.() || null;
+            } catch (_error) {
+                preferenceSaves = null;
             }
-        });
+            return {
+                localStorageAvailable: clientStorageIsAvailable('localStorage'),
+                sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
+                dockerListViewModeCookie: normalizeDockerListViewMode(readCookieValue('docker_listview_mode')),
+                preferenceSaves,
+                folderEditorDebug: {
+                    launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),
+                    bootstrapPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.bootstrap || '')),
+                    surfacePresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.surface || ''))
+                }
+            };
+        };
 
         const collectCurrentPageTelemetry = (uiRedactor) => {
             const href = String(root?.location?.href || '');

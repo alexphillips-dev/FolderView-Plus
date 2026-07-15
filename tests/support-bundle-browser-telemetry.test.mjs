@@ -97,6 +97,30 @@ test('support bundle browser telemetry captures the persisted docker list view m
     assert.equal(clientStorage.dockerListViewModeCookie, 'advanced');
 });
 
+test('support bundle browser telemetry includes aggregate preference save health without values', () => {
+    const root = {
+        FolderViewPlusPrefsStore: {
+            getDefaultCoordinator() {
+                return {
+                    getDiagnostics() {
+                        return {
+                            schemaVersion: 1,
+                            types: {
+                                docker: { status: 'sync-pending', pendingFieldCount: 2, failures: 1 },
+                                vm: { status: 'saved', pendingFieldCount: 0, failures: 0 }
+                            }
+                        };
+                    }
+                };
+            }
+        }
+    };
+    const clientStorage = loadBrowserModule(root).createCollectors().collectClientStorageDiagnostics();
+    assert.equal(clientStorage.preferenceSaves.types.docker.status, 'sync-pending');
+    assert.equal(clientStorage.preferenceSaves.types.docker.pendingFieldCount, 2);
+    assert.equal(JSON.stringify(clientStorage.preferenceSaves).includes('privacyMode'), false);
+});
+
 test('browser error telemetry separates current-session failures from historical records', () => {
     const root = {
         FolderViewPlusFatalBanner: {

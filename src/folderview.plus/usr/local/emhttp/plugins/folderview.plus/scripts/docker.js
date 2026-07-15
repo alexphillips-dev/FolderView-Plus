@@ -206,6 +206,19 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/'/g, '&#39;');
     }
 };
+const dockerPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
+    normalizePrefs: utils.normalizePrefs,
+    request: window.FolderViewPlusRequest
+}) || null;
+const normalizeDockerPrefsResponse = (response = {}) => {
+    const normalized = utils.normalizePrefs({
+        ...(response?.prefs || {}),
+        _metadata: response?.metadata || response?.prefs?._metadata || {}
+    });
+    return dockerPrefsCoordinator
+        ? dockerPrefsCoordinator.reconcile('docker', normalized)
+        : normalized;
+};
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
@@ -795,7 +808,11 @@ const buildDockerIsolatedViewDeps = () => ({
         dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
             ? snapshot.runtimeInfoByName
             : {};
-        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(snapshot?.prefs || {});
+        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(
+            dockerPrefsCoordinator
+                ? dockerPrefsCoordinator.reconcile('docker', snapshot?.prefs || {})
+                : (snapshot?.prefs || {})
+        );
         lastAppliedRuntimePrefs = folderTypePrefs;
         dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
         lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
@@ -3014,7 +3031,7 @@ const fetchDockerPinnedFolderPrefs = async () => {
         response = parseJsonPayloadSafe(await $.get(url).promise());
     }
     assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
-    return utils.normalizePrefs(response?.prefs || {});
+    return normalizeDockerPrefsResponse(response);
 };
 let dockerPinnedFolderServerReconcileTimer = null;
 let dockerPinnedFolderServerReconcileGeneration = 0;
@@ -3045,6 +3062,15 @@ const queueDockerPinnedFolderServerReconcile = (reason = 'post-render', delayMs 
     }, safeDelay);
 };
 const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            pinnedFolderIds: nextPinnedIds
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
@@ -3190,6 +3216,16 @@ const normalizeDockerManualFolderOrder = (nextOrder, folders = globalFolders, pr
 };
 const persistDockerFolderManualOrder = async (nextOrder) => {
     const normalizedOrder = normalizeDockerManualFolderOrder(nextOrder);
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            sortMode: 'manual',
+            manualOrder: normalizedOrder
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
@@ -3832,6 +3868,8 @@ const dockerExpandedStateController = runtimeStateObserverModule && typeof runti
         type: 'docker',
         storageKey: DOCKER_EXPANDED_STATE_KEY,
         storageWriter: dockerStorageWriter,
+        preferenceCoordinator: dockerPrefsCoordinator,
+        readPrefs: () => folderTypePrefs || {},
         syncDelayMs: DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,
         normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
         readServerMap: () => folderTypePrefs?.expandedFolderState || {},
@@ -4070,7 +4108,7 @@ const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
 const fetchDockerBootstrapPrefs = async () => {
     const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
     const parsed = parseJsonPayloadSafe(response);
-    const nextPrefs = applyDockerPinnedFolderPrefsOverride(parsed?.prefs || {});
+    const nextPrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(parsed));
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
     queueDockerRuntimePrivacyServerReconcile(nextPrefs);
@@ -4285,6 +4323,20 @@ const buildDockerRuntimePrivacyPrefsPayload = (enabled, prefsOverride = null) =>
 
 const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) => {
     const nextPrefs = buildDockerRuntimePrivacyPrefsPayload(enabled, prefsOverride);
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            dashboard: {
+                privacyMode: enabled === true
+            }
+        }, {
+            currentPrefs: nextPrefs,
+            immediate: true
+        });
+        if (prefs.dashboard?.privacyMode !== (enabled === true)) {
+            throw new Error('Docker privacy mode did not persist.');
+        }
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
@@ -4743,7 +4795,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
+    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(prefsResponse));
     resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []

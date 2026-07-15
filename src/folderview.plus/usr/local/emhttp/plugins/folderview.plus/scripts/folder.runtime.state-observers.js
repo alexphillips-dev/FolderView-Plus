@@ -37,6 +37,8 @@
         const storageKey = String(deps.storageKey || '').trim();
         const syncDelayMs = Number.isFinite(Number(deps.syncDelayMs)) ? Math.max(0, Number(deps.syncDelayMs)) : 420;
         const prefsType = String(deps.type || '').trim();
+        const preferenceCoordinator = deps.preferenceCoordinator || null;
+        const readPrefs = typeof deps.readPrefs === 'function' ? deps.readPrefs : (() => ({}));
 
         let syncTimer = null;
         let syncInFlight = false;
@@ -80,7 +82,8 @@
 
         const syncExpandedStateToServer = async () => {
             const request = deps.requestClient || win.FolderViewPlusRequest;
-            if (!request || typeof request.postJson !== 'function' || !prefsType) {
+            const coordinatorAvailable = preferenceCoordinator && typeof preferenceCoordinator.save === 'function';
+            if ((!coordinatorAvailable && (!request || typeof request.postJson !== 'function')) || !prefsType) {
                 return;
             }
             if (syncInFlight) {
@@ -96,16 +99,22 @@
 
             syncInFlight = true;
             try {
-                const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-                    type: prefsType,
-                    prefs: JSON.stringify({
+                const nextPrefs = preferenceCoordinator && typeof preferenceCoordinator.save === 'function'
+                    ? normalizePrefs(await preferenceCoordinator.save(prefsType, {
                         expandedFolderState: payloadMap
-                    })
-                }, {
-                    retries: 1,
-                    retryDelayMs: 260
-                });
-                const nextPrefs = normalizePrefs(response?.prefs || {});
+                    }, {
+                        currentPrefs: readPrefs(),
+                        immediate: true
+                    }))
+                    : normalizePrefs((await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+                        type: prefsType,
+                        prefs: JSON.stringify({
+                            expandedFolderState: payloadMap
+                        })
+                    }, {
+                        retries: 1,
+                        retryDelayMs: 260
+                    }))?.prefs || {});
                 writeServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
                 lastSyncedPayload = JSON.stringify(readServerExpandedStateMap());
             } catch (_error) {

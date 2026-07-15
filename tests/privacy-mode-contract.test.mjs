@@ -149,7 +149,7 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /clearTimeout\(dockerRuntimePrivacyServerReconcileTimer\);/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyServerReconcile\(folderTypePrefs\);/);
     assert.match(dockerJs, /window\.addEventListener\('storage'/);
-    assert.match(dockerJs, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
+    assert.match(dockerJs, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(normalizeDockerPrefsResponse\(prefsResponse\)\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
     assert.match(dockerJs, /folderTypePrefs = nextPrefs;[\s\S]*applyRuntimePrefs\(nextPrefs\);/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);
 });

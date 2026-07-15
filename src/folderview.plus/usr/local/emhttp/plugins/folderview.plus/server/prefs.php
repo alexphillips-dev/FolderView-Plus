@@ -26,14 +26,18 @@ fvplus_json_try(function (): array {
     }
     fvplus_assert_prefs_payload_shape($decoded);
     assertExpectedConfigRevision($type, 'prefs', $_POST['expectedRevision'] ?? '');
+    $clientMutationId = trim((string)($_POST['clientMutationId'] ?? ''));
+    if ($clientMutationId !== '' && !preg_match('/^[a-zA-Z0-9._:-]{1,96}$/', $clientMutationId)) {
+        throw new RuntimeException('Invalid client mutation id.');
+    }
 
     $current = readTypePrefs($type);
-    $next = normalizeTypePrefs(array_merge($current, $decoded));
+    $next = normalizeTypePrefs(mergeTypePrefsPatch($current, $decoded));
     $backup = null;
     $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
     $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
     if ($currentJson !== $nextJson) {
-        $backup = createBackupSnapshot($type, 'before-prefs-update');
+        $backup = createCoalescedPrefsBackupSnapshot($type);
     }
 
     $saved = writeTypePrefs($type, $next);
@@ -52,7 +56,10 @@ fvplus_json_try(function (): array {
     try {
         appendDiagnosticsHistoryEvent('prefs_update', $type, [
             'traceId' => getRequestTraceId(),
-            'backupCreated' => is_array($backup),
+            'clientMutationId' => $clientMutationId,
+            'patchFieldCount' => count($decoded),
+            'backupCreated' => is_array($backup) && !($backup['coalesced'] ?? false),
+            'backupCoalesced' => (bool)($backup['coalesced'] ?? false),
             'sortMode' => (string)($saved['sortMode'] ?? 'created'),
             'ruleCount' => count($saved['autoRules'] ?? []),
             'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? [])
@@ -64,6 +71,8 @@ fvplus_json_try(function (): array {
     return [
         'prefs' => $saved,
         'backup' => $backup,
-        'metadata' => $metadata
+        'metadata' => $metadata,
+        'clientMutationId' => $clientMutationId,
+        'backupCoalesced' => (bool)($backup['coalesced'] ?? false)
     ];
 });

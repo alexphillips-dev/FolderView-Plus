@@ -722,7 +722,10 @@
                 }
             }
             const prefsResponse = parseJsonPayloadSafe(prefsPayload);
-            const prefs = normalizePrefs(prefsResponse?.prefs || {});
+            const prefs = normalizePrefs({
+                ...(prefsResponse?.prefs || {}),
+                _metadata: prefsResponse?.metadata || {}
+            });
             const hierarchy = buildFolderHierarchy(folders);
             const depthById = buildFolderDepthById(folders);
             const hostOrder = readDockerHostOrderFromDom();

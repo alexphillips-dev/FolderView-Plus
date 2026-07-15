@@ -196,7 +196,12 @@
         if (traceId) {
             pieces.push(`(trace: ${traceId})`);
         }
-        return new Error(pieces.join(' '));
+        const formatted = new Error(pieces.join(' '));
+        formatted.status = status;
+        formatted.httpStatus = status;
+        formatted.traceId = traceId;
+        formatted.response = error?.jqXHR?.responseJSON || null;
+        return formatted;
     };
 
     const request = async ({

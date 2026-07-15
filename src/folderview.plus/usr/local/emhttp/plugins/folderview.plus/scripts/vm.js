@@ -205,6 +205,19 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/'/g, '&#39;');
     }
 };
+const vmPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
+    normalizePrefs: utils.normalizePrefs,
+    request: window.FolderViewPlusRequest
+}) || null;
+const normalizeVmPrefsResponse = (response = {}) => {
+    const normalized = utils.normalizePrefs({
+        ...(response?.prefs || {}),
+        _metadata: response?.metadata || response?.prefs?._metadata || {}
+    });
+    return vmPrefsCoordinator
+        ? vmPrefsCoordinator.reconcile('vm', normalized)
+        : normalized;
+};
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const vmFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
@@ -566,6 +579,8 @@ const vmExpandedStateController = runtimeStateObserverModule && typeof runtimeSt
         type: 'vm',
         storageKey: VM_EXPANDED_STATE_KEY,
         storageWriter: vmStorageWriter,
+        preferenceCoordinator: vmPrefsCoordinator,
+        readPrefs: () => folderTypePrefs || {},
         syncDelayMs: VM_EXPANDED_STATE_SYNC_DELAY_MS,
         normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
         readServerMap: () => folderTypePrefs?.expandedFolderState || {},
@@ -882,9 +897,18 @@ const fetchVmPinnedFolderPrefs = async () => {
         response = parseJsonPayloadSafe(await $.get(url).promise());
     }
     assertVmPrefsSaveResponse(response, 'Failed to confirm VM pinned folders.');
-    return utils.normalizePrefs(response?.prefs || {});
+    return normalizeVmPrefsResponse(response);
 };
 const persistVmPinnedFolderIds = async (nextPinnedIds) => {
+    if (vmPrefsCoordinator) {
+        const prefs = await vmPrefsCoordinator.save('vm', {
+            pinnedFolderIds: nextPinnedIds
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'vm',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
@@ -1517,7 +1541,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = applyVmPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
+    folderTypePrefs = applyVmPinnedFolderPrefsOverride(normalizeVmPrefsResponse(prefsResponse));
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     const folderDepthById = buildFolderDepthById(folders);

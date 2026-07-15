@@ -201,6 +201,26 @@ test('request client surfaces backend JSON error details in thrown message', asy
     assert.equal(getCallCount(), 1);
 });
 
+test('request client preserves HTTP status and response details for conflict recovery', async () => {
+    const { api } = loadRequestClient({
+        plan: [{
+            type: 'error',
+            textStatus: 'error',
+            jqXHR: {
+                status: 409,
+                statusText: 'Conflict',
+                responseJSON: { ok: false, error: 'Stale revision.' },
+                responseText: '{"ok":false,"error":"Stale revision."}'
+            }
+        }]
+    });
+
+    await assert.rejects(
+        () => api.postJson('/plugins/folderview.plus/server/prefs.php', { type: 'docker' }, { retries: 0 }),
+        (error) => error.status === 409 && error.httpStatus === 409 && error.response?.error === 'Stale revision.'
+    );
+});
+
 test('request client appends mutation markers to POST payload for guard compatibility', async () => {
     const { api, getAjaxCalls } = loadRequestClient({
         token: 'tok-123',

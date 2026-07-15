@@ -7795,6 +7795,38 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     gap: 0.35rem 0.45rem;
 }
 
+.fv-prefs-save-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    min-height: 28px;
+    padding: 0.16rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fvplus-settings-success) 12%, transparent);
+    color: var(--fvplus-settings-success);
+    font-size: 0.92rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.fv-prefs-save-status.is-saving {
+    color: var(--fvplus-settings-accent);
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 12%, transparent);
+}
+
+.fv-prefs-save-status.is-pending {
+    color: var(--fvplus-settings-warning);
+    background: color-mix(in srgb, var(--fvplus-settings-warning) 12%, transparent);
+}
+
+.fv-prefs-save-status.is-saving > i {
+    animation: fvplus-pref-save-spin 0.85s linear infinite;
+}
+
+@keyframes fvplus-pref-save-spin {
+    to { transform: rotate(360deg); }
+}
+
 .fv-settings-right {
     margin-left: 0;
     flex: 0 0 auto;

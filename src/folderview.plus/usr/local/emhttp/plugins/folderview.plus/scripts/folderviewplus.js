@@ -2,6 +2,7 @@ const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
+const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const resolveThemeCompatibilityMode = (value) => {
     if (themeResolver && typeof themeResolver.normalizeThemeCompatibilityMode === 'function') {
@@ -434,6 +435,16 @@ if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
 } else {
     setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'ok');
 }
+if (
+    !prefsStoreModule
+    || window.FolderViewPlusPrefsStoreModuleLoaded !== true
+    || typeof prefsStoreModule.getDefaultCoordinator !== 'function'
+) {
+    bootstrapMissingModules.push('folderviewplus.prefs-store.js');
+    setFatalBannerModuleStatus('folderviewplus.prefs-store.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.prefs-store.js', 'ok');
+}
 if (window.FolderViewPlusWizardModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.wizard.js');
     setFatalBannerModuleStatus('folderviewplus.wizard.js', 'missing');
@@ -474,16 +485,6 @@ let pluginVersion = '0.0.0';
 let prefsByType = {
     docker: utils.normalizePrefs({}),
     vm: utils.normalizePrefs({})
-};
-const runtimePrefsSaveStateByType = {
-    docker: {
-        revision: 0,
-        lastCommittedPrefs: utils.normalizePrefs({})
-    },
-    vm: {
-        revision: 0,
-        lastCommittedPrefs: utils.normalizePrefs({})
-    }
 };
 let infoByType = {
     docker: {},
@@ -2321,6 +2322,46 @@ const initSettingsControls = () => {
             </div>
         `;
     controls.html(topbarHtml);
+
+    const renderPreferenceSaveStatus = () => {
+        const host = document.getElementById('fv-prefs-save-status');
+        if (!host || !diagnosticsPrefsCoordinator) {
+            return;
+        }
+        const diagnostics = diagnosticsPrefsCoordinator.getDiagnostics();
+        const states = Object.values(diagnostics?.types || {}).map((entry) => String(entry?.status || 'saved'));
+        const state = states.includes('saving')
+            ? 'saving'
+            : (states.includes('sync-pending') ? 'sync-pending' : 'saved');
+        const config = state === 'saving'
+            ? { label: 'Saving', icon: 'fa-refresh', className: 'is-saving' }
+            : (state === 'sync-pending'
+                ? { label: 'Sync pending', icon: 'fa-clock-o', className: 'is-pending' }
+                : { label: 'Saved', icon: 'fa-check', className: 'is-saved' });
+        host.dataset.state = state;
+        host.className = `fv-prefs-save-status ${config.className}`;
+        host.title = state === 'sync-pending'
+            ? 'Your change is applied locally and will retry saving automatically.'
+            : config.label;
+        host.innerHTML = `<i class="fa ${config.icon}" aria-hidden="true"></i><span>${config.label}</span>`;
+    };
+    if (diagnosticsPrefsCoordinator && controls.attr('data-fv-prefs-listener-bound') !== '1') {
+        controls.attr('data-fv-prefs-listener-bound', '1');
+        window.addEventListener('fvplus:prefs-save-state', (event) => {
+            const type = normalizeManagedType(event?.detail?.type);
+            const snapshot = diagnosticsPrefsCoordinator.getSnapshot(type);
+            const previousRevision = Number(prefsByType[type]?._metadata?.prefsRevision || 0);
+            const nextRevision = Number(snapshot?.prefs?._metadata?.prefsRevision || 0);
+            if (snapshot?.prefs) {
+                prefsByType[type] = utils.normalizePrefs(snapshot.prefs);
+            }
+            renderPreferenceSaveStatus();
+            if (settingsUiState.initialized && nextRevision > previousRevision) {
+                scheduleTableRender(type);
+            }
+        });
+        renderPreferenceSaveStatus();
+    }
 
     if (!$('#fv-advanced-nav').length) {
         $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" style="display:none"></div>');
@@ -9554,10 +9595,11 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
     if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
         return current;
     }
-    const next = utils.normalizePrefs({
-        ...current,
-        ...partial
-    });
+    const next = utils.normalizePrefs(
+        prefsStoreModule && typeof prefsStoreModule.mergePatch === 'function'
+            ? prefsStoreModule.mergePatch(current, partial)
+            : { ...current, ...partial }
+    );
     const render = typeof options.render === 'function' ? options.render : null;
     const onCommitted = typeof options.onCommitted === 'function' ? options.onCommitted : null;
     prefsByType[resolvedType] = next;
@@ -9575,9 +9617,11 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
         }
         return prefsByType[resolvedType];
     } catch (error) {
-        prefsByType[resolvedType] = current;
+        prefsByType[resolvedType] = diagnosticsPrefsCoordinator
+            ? utils.normalizePrefs(diagnosticsPrefsCoordinator.getOptimisticPrefs(resolvedType))
+            : next;
         if (render) {
-            render(current, next);
+            render(prefsByType[resolvedType], next);
         }
         throw error;
     }
@@ -9943,23 +9987,8 @@ const toggleFolderPin = async (type, folderId) => {
     }
 };
 
-const getRuntimePrefsSaveState = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    if (!runtimePrefsSaveStateByType[resolvedType] || typeof runtimePrefsSaveStateByType[resolvedType] !== 'object') {
-        runtimePrefsSaveStateByType[resolvedType] = {
-            revision: 0,
-            lastCommittedPrefs: utils.normalizePrefs(prefsByType[resolvedType] || {})
-        };
-    }
-    if (!runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs) {
-        runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
-    }
-    return runtimePrefsSaveStateByType[resolvedType];
-};
-
 const changeRuntimePref = async (type, key, value) => {
     const current = utils.normalizePrefs(prefsByType[type]);
-    const runtimeSaveState = getRuntimePrefsSaveState(type);
     const next = {
         ...current
     };
@@ -9988,30 +10017,18 @@ const changeRuntimePref = async (type, key, value) => {
     if (key === 'liveRefreshEnabled' || key === 'lazyPreviewEnabled') {
         syncRuntimeDependentFields(type);
     }
-    prefsByType[type] = utils.normalizePrefs(next);
-    renderRuntimeControls(type);
-    const requestRevision = runtimeSaveState.revision + 1;
-    runtimeSaveState.revision = requestRevision;
-
     try {
-        const savedPrefs = await postPrefs(type, { [key]: next[key] });
-        runtimeSaveState.lastCommittedPrefs = utils.normalizePrefs(savedPrefs);
-        if (requestRevision !== runtimeSaveState.revision) {
-            return;
-        }
-        prefsByType[type] = runtimeSaveState.lastCommittedPrefs;
-        renderRuntimeControls(type);
-        if (key === 'themeCompatibilityMode') {
-            applySettingsResolvedThemeTokens(`pref-${type}`);
-            queueSettingsThemeAwareReflow(`theme-compat-${type}`);
-        }
+        await updatePrefsPartial(type, { [key]: next[key] }, {
+            render: () => renderRuntimeControls(type),
+            onCommitted: () => {
+                if (key === 'themeCompatibilityMode') {
+                    applySettingsResolvedThemeTokens(`pref-${type}`);
+                    queueSettingsThemeAwareReflow(`theme-compat-${type}`);
+                }
+            }
+        });
     } catch (error) {
-        if (requestRevision !== runtimeSaveState.revision) {
-            return;
-        }
-        prefsByType[type] = utils.normalizePrefs(runtimeSaveState.lastCommittedPrefs || current);
-        renderRuntimeControls(type);
-        showError('Runtime preference save failed', error);
+        showError('Runtime preference sync pending', error);
     }
 };
 

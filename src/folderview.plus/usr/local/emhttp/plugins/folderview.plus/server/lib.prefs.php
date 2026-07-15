@@ -346,6 +346,35 @@
         return 'auto';
     }
 
+    function fvplusPrefsArrayIsList(array $value): bool {
+        if (count($value) === 0) {
+            return true;
+        }
+        return array_keys($value) === range(0, count($value) - 1);
+    }
+
+    function mergeTypePrefsPatch(array $current, array $patch): array {
+        $merged = $current;
+        foreach ($patch as $key => $value) {
+            $safeKey = (string)$key;
+            if ($safeKey === '_metadata') {
+                continue;
+            }
+            $currentValue = $merged[$safeKey] ?? null;
+            $valueRepresentsObject = is_array($value) && (
+                !fvplusPrefsArrayIsList($value)
+                || (count($value) === 0 && is_array($currentValue) && !fvplusPrefsArrayIsList($currentValue))
+            );
+            $shouldMergeObject = $valueRepresentsObject
+                && is_array($currentValue)
+                && !fvplusPrefsArrayIsList($currentValue);
+            $merged[$safeKey] = $shouldMergeObject
+                ? mergeTypePrefsPatch($currentValue, $value)
+                : $value;
+        }
+        return $merged;
+    }
+
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer', 'orbit'], true)) {

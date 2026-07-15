@@ -3795,6 +3795,37 @@
         ];
     }
 
+    function createCoalescedPrefsBackupSnapshot(string $type, int $windowSeconds = 3): array {
+        $type = ensureType($type);
+        $windowSeconds = max(0, min(30, $windowSeconds));
+        if ($windowSeconds > 0) {
+            foreach (listBackupSnapshots($type) as $snapshot) {
+                if ((string)($snapshot['reason'] ?? '') !== 'before-prefs-update') {
+                    continue;
+                }
+                try {
+                    $path = getBackupSnapshotPath($type, (string)($snapshot['name'] ?? ''));
+                    $ageSeconds = max(0, time() - (int)@filemtime($path));
+                    if ($ageSeconds <= $windowSeconds) {
+                        return [
+                            ...$snapshot,
+                            'pruned' => [],
+                            'skipped' => false,
+                            'coalesced' => true
+                        ];
+                    }
+                } catch (Throwable $err) {
+                    // Continue to a new checkpoint when the recent entry is unreadable.
+                }
+                break;
+            }
+        }
+        return [
+            ...createBackupSnapshot($type, 'before-prefs-update'),
+            'coalesced' => false
+        ];
+    }
+
     function listBackupSnapshots(string $type): array {
         $type = ensureType($type);
         $backupDir = getBackupsDirPath();

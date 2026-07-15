@@ -15,6 +15,10 @@
                         Search all advanced
                     </label>
                 </div>
+                <span id="fv-prefs-save-status" class="fv-prefs-save-status is-saved" data-state="saved" role="status" aria-live="polite">
+                    <i class="fa fa-check" aria-hidden="true"></i>
+                    <span>Saved</span>
+                </span>
                 <span class="fv-mode-toggle" title="Settings mode">
                     <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
                     <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>

@@ -159,6 +159,20 @@ const utils = window.FolderViewPlusUtils || {
         return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
     }
 };
+const dashboardPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
+    normalizePrefs: utils.normalizePrefs,
+    request: window.FolderViewPlusRequest
+}) || null;
+const normalizeDashboardPrefsResponse = (type, response = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalized = utils.normalizePrefs({
+        ...(response?.prefs || {}),
+        _metadata: response?.metadata || response?.prefs?._metadata || {}
+    });
+    return dashboardPrefsCoordinator
+        ? dashboardPrefsCoordinator.reconcile(resolvedType, normalized)
+        : normalized;
+};
 const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 84,
@@ -736,6 +750,13 @@ const syncDashboardWidgetLayoutQuickControlForType = (type) => {
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (dashboardPrefsCoordinator) {
+        const prefs = await dashboardPrefsCoordinator.save(resolvedType, prefsPayload || {}, {
+            currentPrefs: folderTypePrefs?.[resolvedType] || {},
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const requestApi = window.FolderViewPlusRequest;
     if (requestApi && typeof requestApi.postJson === 'function') {
         return requestApi.postJson('/plugins/folderview.plus/server/prefs.php', {
@@ -1163,7 +1184,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         const containersInfo = parseDashboardPayloadOr(prom[2], {});
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
-        folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
+        folderTypePrefs.docker = normalizeDashboardPrefsResponse('docker', prefsResponse);
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
@@ -1364,7 +1385,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         const vmInfo = parseDashboardPayloadOr(prom[2], {});
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
-        folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
+        folderTypePrefs.vm = normalizeDashboardPrefsResponse('vm', prefsResponse);
         const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
         folders = vmRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);

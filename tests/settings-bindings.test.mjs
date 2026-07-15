@@ -151,14 +151,13 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
-    assert.match(script, /const runtimePrefsSaveStateByType = \{/);
-    assert.match(script, /const getRuntimePrefsSaveState = \(type\) => \{/);
-    assert.match(script, /const requestRevision = runtimeSaveState\.revision \+ 1;/);
-    assert.match(script, /if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}/);
-    assert.match(script, /runtimeSaveState\.lastCommittedPrefs = utils\.normalizePrefs\(savedPrefs\);/);
+    assert.match(page, /folderviewplus\.prefs-store\.js/);
+    assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
+    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
+    assert.match(script, /showError\('Runtime preference sync pending', error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
-    assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
-    assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
+    assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
+    assert.doesNotMatch(script, /requestRevision !== runtimeSaveState\.revision/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
     assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer', 'orbit'\]/);
 });
@@ -347,7 +346,7 @@ test('instant settings controls use partial prefs updates', () => {
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
-    assert.match(script, /const savedPrefs = await postPrefs\(type, \{ \[key\]: next\[key\] \}\);/);
+    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
 });
 
 test('settings action buttons are explicitly non-submit buttons', () => {

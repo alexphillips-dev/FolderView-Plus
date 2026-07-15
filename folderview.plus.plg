@@ -6,12 +6,29 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.04">
-<!ENTITY md5 "33947734fa8e3bd179dda04172e6d01e">
+<!ENTITY version "2026.07.15.05">
+<!ENTITY md5 "6bba857e3259973ce5ef893bcf1b3ae4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.05
+### Instant preference saving
+- Feature: Added a shared optimistic preference-save coordinator so Docker, VM, Dashboard, Settings, privacy, folder order, pin, expansion, and auto-rule changes update the interface immediately.
+- Performance: Coalesced rapid edits into a single patch per preference type and serialized writes to avoid redundant requests and out-of-order saves.
+- UI/UX: Added clear Saved, Saving, and Sync pending status feedback in Settings without blocking normal interaction.
+### Reliability and recovery
+- Fix: Persisted unsent preference changes in a local outbox so refreshes, navigation, brief network outages, and browser restarts no longer discard pending edits.
+- Fix: Added revision-aware conflict recovery that refreshes the server state, reapplies the pending patch, and retries without rolling back the visible interface.
+- Fix: Synchronized saved preference changes across browser tabs while preventing duplicate server writes.
+- Fix: Restricted automatic retries to transient request failures and retained permanent failures for an intentional later retry.
+- Fix: Recursively merged nested preference patches on the server while continuing to replace ordered arrays atomically.
+- Fix: Coalesced rapid preference backup checkpoints so a burst of saves retains one useful pre-change snapshot without excessive filesystem work.
+### Diagnostics and quality
+- Diagnostics: Added aggregate preference-save health, queue, retry, conflict, and latency details to sanitized support bundles without exporting preference values.
+- Quality: Added regression coverage for optimistic updates, request coalescing, serialized writes, durable reload recovery, conflict rebasing, cross-tab convergence, nested server merges, backup coalescing, retry classification, request status propagation, and sanitized telemetry.
+
 
 ###2026.07.15.04
 - Fix: Keep the Docker privacy toggle enabled across refreshes and Unraid tab navigation with browser-durable state and background server reconciliation.

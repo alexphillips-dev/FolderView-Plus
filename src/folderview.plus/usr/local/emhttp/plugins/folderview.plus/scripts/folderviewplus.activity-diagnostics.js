@@ -1,5 +1,12 @@
 const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
 const diagnosticsUtils = window.FolderViewPlusUtils || null;
+const diagnosticsPrefsStoreModule = window.FolderViewPlusPrefsStore || null;
+const diagnosticsPrefsCoordinator = diagnosticsPrefsStoreModule && typeof diagnosticsPrefsStoreModule.getDefaultCoordinator === 'function'
+    ? diagnosticsPrefsStoreModule.getDefaultCoordinator({
+        normalizePrefs: diagnosticsUtils?.normalizePrefs,
+        request: window.FolderViewPlusRequest
+    })
+    : null;
 const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
 const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
 const diagnosticsSwal = typeof window.swal === 'function'
@@ -619,6 +626,13 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
 };
 
 const fetchPrefs = async (type) => {
+    if (diagnosticsPrefsCoordinator) {
+        try {
+            return await diagnosticsPrefsCoordinator.hydrateFromServer(type);
+        } catch (error) {
+            // Preserve the established defaults fallback when preferences cannot load.
+        }
+    }
     try {
         const response = await apiGetJson(`/plugins/folderview.plus/server/prefs.php?type=${type}`);
         if (response.ok && response.prefs) {
@@ -634,6 +648,13 @@ const fetchPrefs = async (type) => {
 };
 
 const postPrefs = async (type, prefs) => {
+    if (diagnosticsPrefsCoordinator) {
+        const savedPrefs = await diagnosticsPrefsCoordinator.save(type, prefs, {
+            currentPrefs: prefsByType?.[type] || null
+        });
+        latestPrefsBackupByType[type] = diagnosticsPrefsCoordinator.getSnapshot(type)?.lastBackup || null;
+        return utils.normalizePrefs(savedPrefs);
+    }
     const expectedRevision = Math.max(
         0,
         Number.parseInt(String(
@@ -2039,6 +2060,7 @@ Object.assign(window, {
     trackDiagnosticsEvent,
     fetchPrefs,
     postPrefs,
+    diagnosticsPrefsCoordinator,
     createBackup,
     createGlobalRollbackCheckpointApi,
     restorePreviousGlobalRollbackCheckpointApi,

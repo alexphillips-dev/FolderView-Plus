@@ -60,6 +60,13 @@
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -70,14 +77,15 @@
         remaining: 'after',
         batches: []
     };
-    const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
         classic: 'Classic',
         legacy: 'Legacy',
         fullwidth: 'Full Width',
         accordion: 'Accordion',
         inset: 'Inset',
-        compactmatrix: 'Compact Matrix'
+        compactmatrix: 'Compact Matrix',
+        embossed: 'Embossed'
     });
     const DASHBOARD_OVERFLOW_OPTIONS = Object.freeze(['default', 'expand_row', 'scroll']);
     const RUNTIME_ACTIONS_BY_TYPE = {
@@ -816,6 +824,13 @@
             privacyMaskPorts: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskPorts')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskPorts
                 : incomingDashboard.privacyMaskPorts !== false,
+            privacyMaskVolumePaths: incomingDashboard.privacyMaskVolumePaths !== false,
+            privacyMaskImageRegistry: incomingDashboard.privacyMaskImageRegistry !== false,
+            privacyMaskVmDiskPaths: incomingDashboard.privacyMaskVmDiskPaths !== false,
+            privacyMaskMacAddresses: incomingDashboard.privacyMaskMacAddresses !== false,
+            privacyMaskPublicIps: incomingDashboard.privacyMaskPublicIps !== false,
+            privacyMaskInterfaces: incomingDashboard.privacyMaskInterfaces !== false,
+            privacyMaskExternalUrls: incomingDashboard.privacyMaskExternalUrls !== false,
             previewContext: normalizeDashboardPreviewContext(incomingDashboard.previewContext),
             previewTrigger: normalizeDashboardPreviewTrigger(incomingDashboard.previewTrigger),
             previewGraph: clampNumber(incomingDashboard.previewGraph, 0, 4, DEFAULT_DASHBOARD_PREFS.previewGraph),

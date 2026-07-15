@@ -369,6 +369,13 @@ test('normalizePrefs provides dashboard defaults', () => {
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -396,6 +403,13 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -407,6 +421,8 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         }
     });
     assert.equal(matrix.dashboard.layout, 'compactmatrix');
+    const embossed = utils.normalizePrefs({ dashboard: { layout: 'embossed' } });
+    assert.equal(embossed.dashboard.layout, 'embossed');
     const legacy = utils.normalizePrefs({
         dashboard: {
             layout: 'legacy'
@@ -422,7 +438,7 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
 });
 
 test('utils exports shared dashboard metadata and runtime-safe escaping helpers', () => {
-    assert.deepEqual(utils.DASHBOARD_LAYOUT_OPTIONS, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    assert.deepEqual(utils.DASHBOARD_LAYOUT_OPTIONS, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']);
     assert.equal(utils.DASHBOARD_LAYOUT_LABELS.legacy, 'Legacy');
     assert.deepEqual(utils.DASHBOARD_OVERFLOW_OPTIONS, ['default', 'expand_row', 'scroll']);
     assert.equal(utils.normalizeDashboardOverflowMode('expand_row'), 'expand_row');

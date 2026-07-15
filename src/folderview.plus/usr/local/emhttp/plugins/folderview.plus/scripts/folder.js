@@ -7,6 +7,7 @@ let choose = [];
 let selectedRegex = [];
 // element selected manually
 let selected = [];
+let hiddenPreviewMembers = new Set();
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
@@ -238,6 +239,7 @@ const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
 const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const folderEditorIconsModule = window.FolderViewPlusFolderEditorIcons || null;
 const folderEditorTypeDockerModule = window.FolderViewPlusFolderEditorTypeDocker || null;
 const folderEditorTypeVmModule = window.FolderViewPlusFolderEditorTypeVm || null;
@@ -426,6 +428,7 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'preview',
     'preview_hover',
     'preview_hover_animation',
+    'folder_update_highlight',
     'preview_border',
     'preview_border_color',
     'preview_border_width',
@@ -433,6 +436,9 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'preview_vertical_bars',
     'preview_vertical_bars_color',
     'preview_vertical_bars_width',
+    'preview_overflow',
+    'preview_row_separator',
+    'preview_row_separator_color',
     'dropdown_style',
     'dropdown_color',
     'dropdown_hover_color',
@@ -440,7 +446,8 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'folder_accent_color',
     'status_color_started',
     'status_color_paused',
-    'status_color_stopped'
+    'status_color_stopped',
+    'status_color_lock'
 ]);
 
 const parseSnapshotState = (raw) => {
@@ -1020,6 +1027,12 @@ const buildParentSmartDefaults = (parentFolder) => {
             DEFAULT_BORDER_COLOR
         ),
         preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
+        folder_update_highlight: settings.folder_update_highlight === true || settings.folderUpdateHighlight === true,
+        preview_overflow: ['expand_row', 'scroll'].includes(String(settings.preview_overflow || settings.previewOverflow))
+            ? String(settings.preview_overflow || settings.previewOverflow)
+            : 'default',
+        preview_row_separator: settings.preview_row_separator === true || settings.previewRowSeparator === true,
+        preview_row_separator_color: normalizeHexColor(settings.preview_row_separator_color, DEFAULT_BORDER_COLOR),
         dropdown_style: normalizeDropdownStyle(settings),
         dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
         dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
@@ -1027,7 +1040,8 @@ const buildParentSmartDefaults = (parentFolder) => {
         folder_accent_color: normalizeHexColor(settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR),
         status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
+        status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true
     };
 };
 
@@ -2369,7 +2383,10 @@ const updateMemberStats = () => {
     const manual = rows.filter('[data-membership="manual"]').length;
     const regex = rows.filter('[data-membership="regex"]').length;
     const available = rows.filter('[data-membership="available"]').length;
-    const text = `${included}/${total} included` + (visible !== total ? ` (${visible} shown)` : '');
+    const previewShown = rows.find('input.container-switch:checked').filter((_, input) => (
+        $(input).closest('tr').find('input.member-preview-switch').prop('checked') === true
+    )).length;
+    const text = `${included}/${total} included (${previewShown} in preview)` + (visible !== total ? ` · ${visible} filtered` : '');
     $('#fvMemberStats').text(text);
     $('#fvLiveMembers').text(text);
     $('#fvHeroMembers').text(text);
@@ -2923,13 +2940,17 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="preview"])', 'preview');
     markSection('div.basic:has([name="preview_hover"])', 'preview');
+    markSection('div.basic:has([name="folder_update_highlight"])', 'preview');
     markSection('div.basic:has([name="preview_text_width"])', 'preview');
     markSection('div.basic:has([name="preview_rows"])', 'preview');
+    markSection('div.basic:has([name="preview_overflow"])', 'preview');
     markSection('div.basic:has([name="preview_grayscale"])', 'preview');
     markSection('div.basic:has([name="preview_hover_animation"])', 'preview');
     markSection('div.basic:has([name="preview_logs"])', 'preview');
     markSection('div.basic:has([name="preview_vertical_bars"])', 'preview');
     markSection('ul[constraint*="bars-color"]', 'preview');
+    markSection('div.basic:has([name="preview_row_separator"])', 'preview');
+    markSection('ul[constraint*="preview-row-separator-color"]', 'preview');
     markSection('div.basic:has([name="preview_border"])', 'preview');
     markSection('ul[constraint*="border-color"]', 'preview');
 
@@ -2940,6 +2961,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="folder_accent_color"])', 'status');
     markSection('div.fv-accent-inline-controls[constraint*="accent-color"]', 'status');
     markSection('div.basic:has([name="status_color_started"])', 'status');
+    markSection('div.basic:has([name="status_color_lock"])', 'status');
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'status');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
@@ -3278,16 +3300,22 @@ getForm().preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
 getForm().preview_border_glow.checked = false;
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 getForm().preview_vertical_bars_width.value = String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH);
+getForm().preview_overflow.value = 'default';
+getForm().preview_row_separator.checked = false;
+getForm().preview_row_separator_color.value = DEFAULT_BORDER_COLOR;
+getForm().folder_update_highlight.checked = false;
 getForm().dropdown_style.value = DEFAULT_DROPDOWN_STYLE;
 getForm().dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
 getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
 getForm().folder_accent_enabled.checked = false;
 getForm().folder_accent_color.value = DEFAULT_FOLDER_ACCENT_COLOR;
 resetStatusColorDefaults();
+getForm().status_color_lock.checked = false;
 
 const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
     const safeFolderId = String(folderRecordId || '').trim();
     const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+    hiddenPreviewMembers = new Set(normalizedFolder.hiddenPreviewMembers || []);
     childFolderOrder = normalizeChildFolderOrder(normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder);
     const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
     if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
@@ -3327,10 +3355,12 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('folder_webui_url', normalizedFolder.settings.folder_webui_url || '');
     setFieldValue('preview', String(normalizedFolder.settings.preview));
     setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
+    setFieldValue('preview_overflow', normalizedFolder.settings.preview_overflow || normalizedFolder.settings.previewOverflow || 'default');
     setFieldValue('preview_status', normalizePreviewStatusMode(normalizedFolder.settings.preview_status));
     setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
     setFieldValue('preview_hover_animation', normalizePreviewHoverAnimation(normalizedFolder.settings.preview_hover_animation || normalizedFolder.settings.previewHoverAnimation));
     setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
+    setFieldChecked('folder_update_highlight', normalizedFolder.settings.folder_update_highlight === true || normalizedFolder.settings.folderUpdateHighlight === true);
     setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
     setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
     setFieldChecked('preview_hide_nested_items', normalizedFolder.settings.preview_hide_nested_items);
@@ -3351,6 +3381,8 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         normalizedFolder.settings.preview_vertical_bars_color || normalizedFolder.settings.preview_border_color,
         DEFAULT_BORDER_COLOR
     ));
+    setFieldChecked('preview_row_separator', normalizedFolder.settings.preview_row_separator === true || normalizedFolder.settings.previewRowSeparator === true);
+    setFieldValue('preview_row_separator_color', normalizeHexColor(normalizedFolder.settings.preview_row_separator_color, DEFAULT_BORDER_COLOR));
     setFieldValue('preview_vertical_bars_width', String(normalizePositiveInt(normalizedFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4)));
     setFieldValue('dropdown_style', normalizeDropdownStyle(normalizedFolder.settings, normalizedFolder));
     setFieldValue('dropdown_color', normalizeHexColor(normalizedFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
@@ -3360,6 +3392,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
     setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
     setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    setFieldChecked('status_color_lock', normalizedFolder.settings.status_color_lock === true || normalizedFolder.settings.statusColorLock === true);
     setFieldValue('health_warn_stopped_percent', normalizedFolder.settings.health_warn_stopped_percent === undefined
         || normalizedFolder.settings.health_warn_stopped_percent === null
         || normalizedFolder.settings.health_warn_stopped_percent === ''
@@ -3700,6 +3733,7 @@ const startFolderEditorRuntime = async () => {
             || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border_color'
             || fieldName === 'preview_vertical_bars_color'
+            || fieldName === 'preview_row_separator_color'
             || fieldName === 'folder_accent_color';
         markSmartDefaultFieldTouched(fieldName);
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
@@ -4620,6 +4654,7 @@ const updateList = (afterRender = null) => {
         const icon = escapeHtml(member.Icon || ICON_FALLBACK_PATH);
         const name = escapeHtml(member.Name);
         const stateKey = getMemberStateKey(member);
+        const previewVisible = !hiddenPreviewMembers.has(String(member.Name || '').trim());
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
             : '<div class="order-buttons"><button type="button" class="member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
@@ -4628,6 +4663,7 @@ const updateList = (afterRender = null) => {
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
+                <td><label class="fv-member-preview-toggle" title="Keep this member in the folder but hide it from the collapsed preview"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span data-i18n="member-preview-visible">Visible</span></label></td>
             </tr>
         `;
     };
@@ -4651,7 +4687,30 @@ const updateList = (afterRender = null) => {
         bindMemberDragReorder();
         renderFolderMembersSection();
 
-        $('input.container-switch').off('change').on('change', () => {
+        $('input.container-switch').off('change').on('change', function() {
+            const previewInput = $(this).closest('tr').find('input.member-preview-switch').get(0);
+            if (previewInput) {
+                previewInput.disabled = this.checked !== true;
+                if (this.checked !== true) {
+                    previewInput.checked = true;
+                }
+            }
+            updateMemberStats();
+            updateLiveSummary();
+            if (isFormInitialized) {
+                validateForm();
+                updateUnsavedIndicator();
+            }
+        });
+        $('input.member-preview-switch').off('change').on('change', function() {
+            const name = String($(this).closest('tr').attr('data-name') || '').trim();
+            if (name) {
+                if (this.checked === true) {
+                    hiddenPreviewMembers.delete(name);
+                } else {
+                    hiddenPreviewMembers.add(name);
+                }
+            }
             updateMemberStats();
             updateLiveSummary();
             if (isFormInitialized) {
@@ -4729,6 +4788,23 @@ const buildFolderPayloadFromForm = (e) => {
     const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
     const normalizedChildFolderPreviewDepth = normalizeChildFolderPreviewDepth(e.preview_child_folder_depth?.value);
     const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
+    const includedMemberNames = [...$('input[name*="containers"]:checked').map((i, el) => String($(el).val() || '').trim())].filter(Boolean);
+    const includedMemberSet = new Set(includedMemberNames);
+    const nextHiddenPreviewMembers = $('table.sortable > tbody > tr').map((_, row) => {
+        const $row = $(row);
+        const name = String($row.attr('data-name') || '').trim();
+        return name && includedMemberSet.has(name) && $row.find('input.member-preview-switch').prop('checked') !== true ? name : null;
+    }).get().filter(Boolean);
+    const memberIdentities = {};
+    const memberMap = getMemberMapByName();
+    includedMemberNames.forEach((name) => {
+        const identity = memberMap.get(name)?.Identity;
+        if (identity && typeof identity === 'object') {
+            memberIdentities[name] = memberIdentityModule?.normalizeMemberIdentity
+                ? memberIdentityModule.normalizeMemberIdentity(identity, type)
+                : identity;
+        }
+    });
     return {
         name: e.name.value.toString().trim(),
         parentId: normalizeParentFolderId(e.parent_folder_id?.value || ''),
@@ -4744,12 +4820,14 @@ const buildFolderPayloadFromForm = (e) => {
             folder_webui_url: e.folder_webui_url.value.toString(),
             preview: parseInt(e.preview.value.toString()),
             preview_rows: normalizedPreviewRows,
+            preview_overflow: ['expand_row', 'scroll'].includes(String(e.preview_overflow?.value)) ? String(e.preview_overflow.value) : 'default',
             preview_status: normalizePreviewStatusMode(e.preview_status?.value),
             previewRows: normalizedPreviewRows,
             preview_hover: e.preview_hover.checked,
             preview_hover_animation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
             previewHoverAnimation: normalizePreviewHoverAnimation(e.preview_hover_animation?.value),
             preview_update: e.preview_update.checked,
+            folder_update_highlight: e.folder_update_highlight?.checked === true,
             preview_text_width: e.preview_text_width.value,
             preview_grayscale: e.preview_grayscale.checked,
             preview_hide_nested_items: e.preview_hide_nested_items.checked,
@@ -4761,6 +4839,8 @@ const buildFolderPayloadFromForm = (e) => {
             preview_logs: e.preview_logs.checked,
             preview_console: e.preview_console.checked,
             preview_vertical_bars: e.preview_vertical_bars.checked,
+            preview_row_separator: e.preview_row_separator?.checked === true,
+            preview_row_separator_color: normalizeHexColor(e.preview_row_separator_color?.value, DEFAULT_BORDER_COLOR),
             context: parseInt(e.context.value.toString()),
             context_trigger: parseInt(e.context_trigger.value.toString()),
             context_graph: parseInt(e.context_graph.value.toString()),
@@ -4783,6 +4863,7 @@ const buildFolderPayloadFromForm = (e) => {
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
+            status_color_lock: e.status_color_lock?.checked === true,
             health_warn_stopped_percent: healthWarnThreshold,
             health_critical_stopped_percent: healthCriticalThreshold,
             health_profile: healthProfile,
@@ -4797,7 +4878,9 @@ const buildFolderPayloadFromForm = (e) => {
             dashboard_overflow: normalizeDashboardOverflowMode(e.dashboard_overflow?.value),
         },
         regex: e.regex.value.toString(),
-        containers: [...$('input[name*="containers"]:checked').map((i, el) => $(el).val())],
+        containers: includedMemberNames,
+        hiddenPreviewMembers: nextHiddenPreviewMembers,
+        memberIdentities,
         actions
     };
 };

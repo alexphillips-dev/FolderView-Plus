@@ -50,6 +50,7 @@ const expectedOrder = [
   'folderviewplus.fatal-banner.js',
   'folderviewplus.utils.js',
   'folderviewplus.request.js',
+  'folderviewplus.prefs-store.js',
   'folderviewplus.theme-resolver.js',
   'folderviewplus.theme-workspace.js',
   'folderviewplus.chrome.js',

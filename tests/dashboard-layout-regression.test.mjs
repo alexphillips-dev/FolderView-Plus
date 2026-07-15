@@ -150,7 +150,7 @@ test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
     assert.match(libPrefsPhp, /function normalizeDashboardPreviewContext\(\$value\): string/);
     assert.match(libPrefsPhp, /function normalizeDashboardPreviewTrigger\(\$value\): string/);
-    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'\]/);
     assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
     assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
     assert.doesNotMatch(libPrefsPhp, /'viewMode'\s*=>\s*'table'/);
@@ -163,7 +163,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.doesNotMatch(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.doesNotMatch(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
-    assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
+    assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardAdvancedPreviewModule = window\.FolderViewPlusDashboardAdvancedPreview \|\| null;/);
     assert.match(dashboardScript, /const attachDashboardAdvancedPreviewIfEnabled = \(\$containerEl, ct, folder, id\) =>/);

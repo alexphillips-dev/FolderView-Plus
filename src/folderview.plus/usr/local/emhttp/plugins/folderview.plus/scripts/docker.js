@@ -10,6 +10,7 @@ const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
@@ -55,6 +56,9 @@ const normalizeFolderPreviewRowLimit = typeof dockerRuntimeShared.normalizeFolde
         }
         return Math.max(1, Math.min(4, parsed));
     });
+const normalizeFolderPreviewOverflow = typeof dockerRuntimeShared.normalizeFolderPreviewOverflow === 'function'
+    ? dockerRuntimeShared.normalizeFolderPreviewOverflow
+    : ((settings = {}) => ['expand_row', 'scroll'].includes(settings?.preview_overflow) ? settings.preview_overflow : 'default');
 const isCompactMultiRowPreview = typeof dockerRuntimeShared.isCompactMultiRowPreview === 'function'
     ? dockerRuntimeShared.isCompactMultiRowPreview
     : ((settings = {}) => {
@@ -163,7 +167,14 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: true
+            privacyMaskPorts: true,
+            privacyMaskVolumePaths: true,
+            privacyMaskImageRegistry: true,
+            privacyMaskVmDiskPaths: true,
+            privacyMaskMacAddresses: true,
+            privacyMaskPublicIps: true,
+            privacyMaskInterfaces: true,
+            privacyMaskExternalUrls: true
         },
         health: {
             cardsEnabled: true,
@@ -205,6 +216,26 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
     }
+};
+const reconcileDockerMemberIdentities = (folders, runtimeInfo) => {
+    if (!memberIdentityModule || typeof memberIdentityModule.reconcileFolders !== 'function') {
+        return folders;
+    }
+    const result = memberIdentityModule.reconcileFolders('docker', folders, runtimeInfo);
+    const patches = result?.patches && typeof result.patches === 'object' ? result.patches : {};
+    if (Object.keys(patches).length > 0 && typeof window.FolderViewPlusRequest?.postJson === 'function') {
+        window.FolderViewPlusRequest.postJson('/plugins/folderview.plus/server/reconcile_member_identities.php', {
+            type: 'docker',
+            patches: JSON.stringify(patches)
+        }, { retries: 0 }).catch((error) => {
+            console.warn('folderview.plus: Docker member identity reconciliation could not be persisted.', error);
+        });
+    }
+    window.FolderViewPlusMemberIdentityDiagnostics = {
+        ...(window.FolderViewPlusMemberIdentityDiagnostics || {}),
+        docker: result?.diagnostics || {}
+    };
+    return result?.folders || folders;
 };
 const dockerPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
     normalizePrefs: utils.normalizePrefs,
@@ -1408,7 +1439,12 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!wrappers.length) {
         return;
     }
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const overflowMode = normalizeFolderPreviewOverflow(settings);
+    if (overflowMode === 'scroll') {
+        finalizePreviewRows($preview, [wrappers], settings);
+        return;
+    }
+    const rowLimit = overflowMode === 'expand_row' ? 0 : normalizeFolderPreviewRowLimit(settings);
     const maxItemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
@@ -4838,6 +4874,7 @@ const createFolders = async () => {
     if (!isDockerHostUpdateSyncSuspended() && syncDockerHostRowUpdateStatesFromDom()) {
         containersInfo = { ...dockerRuntimeInfoByName };
     }
+    folders = reconcileDockerMemberIdentities(folders, containersInfo);
     let order = readDockerHostOrderFromDom();
     let prefsResponse = {};
     try {
@@ -5489,6 +5526,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Starting loop to process ${combinedContainers.length} combinedContainers.`);
+    const hiddenPreviewSet = new Set(Array.isArray(folder?.hiddenPreviewMembers) ? folder.hiddenPreviewMembers : []);
     for (const container_name_in_folder of combinedContainers) {
 
         const ct = containersInfo[container_name_in_folder];
@@ -5619,6 +5657,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
+            if (!hiddenPreviewSet.has(container_name_in_folder)) {
             const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
@@ -5991,6 +6030,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if ($targetForAppend.length) {
                 appendDockerPreviewActionButtons($targetForAppend, folder.settings, ct.info.Name, ct.info.Shell, previewWebuiUrl);
             }
+            }
 
             upToDate = upToDate && !newFolder[container_name_in_folder].update;
             if (newFolder[container_name_in_folder].state) {
@@ -6054,6 +6094,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting folder status indicators based on aggregate states. managerTypes:`, Array.from(managerTypes));
     renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed);
+    $(`tr.folder-id-${id} .folder-appname`).toggleClass(
+        'orange-text fv-folder-update-ready',
+        folder.settings?.folder_update_highlight === true && upToDate === false
+    );
     const total = Object.entries(folder.containers).length;
     if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
         $(`tr.folder-id-${id}`).remove();
@@ -7833,6 +7877,7 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskLocalIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts !== false);
+    window.FolderViewPlusRuntimePrivacy?.apply('docker', dockerPrivacyMode, normalized?.dashboard || {});
     refreshDockerRuntimePrivacyPortMappings();
     queueDockerRuntimePrivacyToggleMount();
     scheduleLiveRefresh(normalized);

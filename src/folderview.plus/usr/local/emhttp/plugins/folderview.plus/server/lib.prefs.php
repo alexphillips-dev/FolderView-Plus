@@ -40,6 +40,13 @@
                 'privacyMaskContainerIps' => true,
                 'privacyMaskLocalIps' => true,
                 'privacyMaskPorts' => true,
+                'privacyMaskVolumePaths' => true,
+                'privacyMaskImageRegistry' => true,
+                'privacyMaskVmDiskPaths' => true,
+                'privacyMaskMacAddresses' => true,
+                'privacyMaskPublicIps' => true,
+                'privacyMaskInterfaces' => true,
+                'privacyMaskExternalUrls' => true,
                 'previewContext' => 'native',
                 'previewTrigger' => 'click',
                 'previewGraph' => 1,
@@ -316,7 +323,7 @@
 
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
+        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'], true)) {
             return $normalized;
         }
         return 'classic';
@@ -479,6 +486,13 @@
             'privacyMaskPorts' => !array_key_exists('privacyMaskPorts', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['privacyMaskPorts'], true),
+            'privacyMaskVolumePaths' => !array_key_exists('privacyMaskVolumePaths', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskVolumePaths'], true),
+            'privacyMaskImageRegistry' => !array_key_exists('privacyMaskImageRegistry', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskImageRegistry'], true),
+            'privacyMaskVmDiskPaths' => !array_key_exists('privacyMaskVmDiskPaths', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskVmDiskPaths'], true),
+            'privacyMaskMacAddresses' => !array_key_exists('privacyMaskMacAddresses', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskMacAddresses'], true),
+            'privacyMaskPublicIps' => !array_key_exists('privacyMaskPublicIps', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskPublicIps'], true),
+            'privacyMaskInterfaces' => !array_key_exists('privacyMaskInterfaces', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskInterfaces'], true),
+            'privacyMaskExternalUrls' => !array_key_exists('privacyMaskExternalUrls', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskExternalUrls'], true),
             'previewContext' => normalizeDashboardPreviewContext($dashboardIncoming['previewContext'] ?? 'native'),
             'previewTrigger' => normalizeDashboardPreviewTrigger($dashboardIncoming['previewTrigger'] ?? 'click'),
             'previewGraph' => normalizeIntInRange($dashboardIncoming['previewGraph'] ?? 1, 0, 4, 1),

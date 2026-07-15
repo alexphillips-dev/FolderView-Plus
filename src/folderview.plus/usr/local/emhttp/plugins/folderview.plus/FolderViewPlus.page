@@ -469,6 +469,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
                             <option value="compactmatrix">Compact Matrix</option>
+                            <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
@@ -509,6 +510,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask LAN IPs</label>
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
                         <div class="setting-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
                     </div>
@@ -768,6 +774,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
                             <option value="compactmatrix">Compact Matrix</option>
+                            <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
@@ -778,6 +785,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <div class="settings-privacy-title">Privacy mode</div>
                         <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
                             <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
                     </div>
                 </div>
@@ -1868,6 +1880,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>

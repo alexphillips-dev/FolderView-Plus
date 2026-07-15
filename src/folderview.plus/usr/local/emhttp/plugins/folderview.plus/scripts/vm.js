@@ -1,6 +1,7 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
@@ -47,6 +48,9 @@ const normalizeFolderPreviewRowLimit = typeof runtimeShared.normalizeFolderPrevi
         }
         return Math.max(1, Math.min(4, parsed));
     });
+const normalizeFolderPreviewOverflow = typeof runtimeShared.normalizeFolderPreviewOverflow === 'function'
+    ? runtimeShared.normalizeFolderPreviewOverflow
+    : ((settings = {}) => ['expand_row', 'scroll'].includes(settings?.preview_overflow) ? settings.preview_overflow : 'default');
 const isCompactMultiRowPreview = typeof runtimeShared.isCompactMultiRowPreview === 'function'
     ? runtimeShared.isCompactMultiRowPreview
     : ((settings = {}) => {
@@ -162,7 +166,14 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: true
+            privacyMaskPorts: true,
+            privacyMaskVolumePaths: true,
+            privacyMaskImageRegistry: true,
+            privacyMaskVmDiskPaths: true,
+            privacyMaskMacAddresses: true,
+            privacyMaskPublicIps: true,
+            privacyMaskInterfaces: true,
+            privacyMaskExternalUrls: true
         },
         health: {
             cardsEnabled: true,
@@ -204,6 +215,26 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
     }
+};
+const reconcileVmMemberIdentities = (folders, runtimeInfo) => {
+    if (!memberIdentityModule || typeof memberIdentityModule.reconcileFolders !== 'function') {
+        return folders;
+    }
+    const result = memberIdentityModule.reconcileFolders('vm', folders, runtimeInfo);
+    const patches = result?.patches && typeof result.patches === 'object' ? result.patches : {};
+    if (Object.keys(patches).length > 0 && typeof window.FolderViewPlusRequest?.postJson === 'function') {
+        window.FolderViewPlusRequest.postJson('/plugins/folderview.plus/server/reconcile_member_identities.php', {
+            type: 'vm',
+            patches: JSON.stringify(patches)
+        }, { retries: 0 }).catch((error) => {
+            console.warn('folderview.plus: VM member identity reconciliation could not be persisted.', error);
+        });
+    }
+    window.FolderViewPlusMemberIdentityDiagnostics = {
+        ...(window.FolderViewPlusMemberIdentityDiagnostics || {}),
+        vm: result?.diagnostics || {}
+    };
+    return result?.folders || folders;
 };
 const vmPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
     normalizePrefs: utils.normalizePrefs,
@@ -423,7 +454,12 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
         return;
     }
 
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const overflowMode = normalizeFolderPreviewOverflow(settings);
+    if (overflowMode === 'scroll') {
+        finalizePreviewRows($preview, [wrappers], settings);
+        return;
+    }
+    const rowLimit = overflowMode === 'expand_row' ? 0 : normalizeFolderPreviewRowLimit(settings);
     const addDividers = settings?.preview_vertical_bars === true;
     const previewElement = $preview.get(0);
     const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
@@ -1534,6 +1570,7 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const vmInfo = JSON.parse(prom[2]);
+    folders = reconcileVmMemberIdentities(folders, vmInfo);
     let order = Object.values(JSON.parse(prom[3]));
     let prefsResponse = {};
     try {
@@ -1929,6 +1966,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
 
+    const hiddenPreviewSet = new Set(Array.isArray(folder?.hiddenPreviewMembers) ? folder.hiddenPreviewMembers : []);
     // loop over the containers
     for (const container of combinedMembers) {
 
@@ -1992,6 +2030,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                 vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
             
+            if (!hiddenPreviewSet.has(container)) {
             addPreview(id, ct.autostart);
             $(`tr.folder-id-${id} div.folder-preview span.inner > a`).css("width", folder.settings.preview_text_width || '');
 
@@ -2017,6 +2056,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                     sel = element;
                 }
                 sel.append($(`<span class="folder-element-custom-btn folder-element-logs"><a href="#" onclick="openTerminal('log', '${container}', '${ct.logs}')"><i class="fa fa-bars" aria-hidden="true"></i></a></span>`));
+            }
             }
 
             // set the status of the folder
@@ -3409,6 +3449,7 @@ const applyRuntimePrefs = (prefs) => {
     const vmPrivacyMode = normalized?.dashboard?.privacyMode === true;
     $('body').toggleClass('fvplus-privacy-vm-runtime', vmPrivacyMode);
     $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
+    window.FolderViewPlusRuntimePrivacy?.apply('vm', vmPrivacyMode, normalized?.dashboard || {});
     scheduleLiveRefresh(normalized);
 };
 const bindVmRuntimePreferenceSync = () => {

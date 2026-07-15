@@ -4,6 +4,7 @@ if (!window || !$) {
 }
 
 const folderContract = window.FolderViewPlusFolderContract || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const localDefaultFolderStatusColors = {
     started: '#ffffff',
     paused: '#b8860b',
@@ -48,6 +49,9 @@ const resolveDashboardFolderStatusColors = (settings) => {
     const colors = typeof utils.getFolderStatusColors === 'function'
         ? utils.getFolderStatusColors(settings)
         : localDefaultFolderStatusColors;
+    if (settings?.status_color_lock === true || settings?.statusColorLock === true) {
+        return colors;
+    }
     return {
         started: colors.started === localDefaultFolderStatusColors.started
             ? localResolvedFolderStatusColors.started
@@ -95,6 +99,13 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
             privacyMaskPorts: true,
+            privacyMaskVolumePaths: true,
+            privacyMaskImageRegistry: true,
+            privacyMaskVmDiskPaths: true,
+            privacyMaskMacAddresses: true,
+            privacyMaskPublicIps: true,
+            privacyMaskInterfaces: true,
+            privacyMaskExternalUrls: true,
             previewContext: 'native',
             previewTrigger: 'click',
             previewGraph: 1,
@@ -139,18 +150,19 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
     },
-    DASHBOARD_LAYOUT_OPTIONS: Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']),
+    DASHBOARD_LAYOUT_OPTIONS: Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']),
     DASHBOARD_LAYOUT_LABELS: Object.freeze({
         classic: 'Classic',
         legacy: 'Legacy',
         fullwidth: 'Full Width',
         accordion: 'Accordion',
         inset: 'Inset',
-        compactmatrix: 'Compact Matrix'
+        compactmatrix: 'Compact Matrix',
+        embossed: 'Embossed'
     }),
     normalizeDashboardLayout: (value) => {
         const normalized = String(value || '').trim().toLowerCase();
-        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
+        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized)
             ? normalized
             : 'classic';
     },
@@ -158,6 +170,26 @@ const utils = window.FolderViewPlusUtils || {
         const normalized = String(value || '').trim().toLowerCase();
         return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
     }
+};
+const reconcileDashboardMemberIdentities = (type, folders, runtimeInfo) => {
+    if (!memberIdentityModule || typeof memberIdentityModule.reconcileFolders !== 'function') {
+        return folders;
+    }
+    const result = memberIdentityModule.reconcileFolders(type, folders, runtimeInfo);
+    const patches = result?.patches && typeof result.patches === 'object' ? result.patches : {};
+    if (Object.keys(patches).length > 0 && typeof window.FolderViewPlusRequest?.postJson === 'function') {
+        window.FolderViewPlusRequest.postJson('/plugins/folderview.plus/server/reconcile_member_identities.php', {
+            type,
+            patches: JSON.stringify(patches)
+        }, { retries: 0 }).catch((error) => {
+            console.warn(`folderview.plus: ${type} member identity reconciliation could not be persisted from Dashboard.`, error);
+        });
+    }
+    window.FolderViewPlusMemberIdentityDiagnostics = {
+        ...(window.FolderViewPlusMemberIdentityDiagnostics || {}),
+        [type]: result?.diagnostics || {}
+    };
+    return result?.folders || folders;
 };
 const dashboardPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
     normalizePrefs: utils.normalizePrefs,
@@ -412,14 +444,15 @@ const dashboardDebugLog = (...args) => {
 };
 const DASHBOARD_LAYOUT_MODES = Array.isArray(utils.DASHBOARD_LAYOUT_OPTIONS)
     ? utils.DASHBOARD_LAYOUT_OPTIONS
-    : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
+    : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'];
 const DASHBOARD_LAYOUT_LABELS = utils.DASHBOARD_LAYOUT_LABELS || Object.freeze({
     classic: 'Classic',
     legacy: 'Legacy',
     fullwidth: 'Full Width',
     accordion: 'Accordion',
     inset: 'Inset',
-    compactmatrix: 'Compact Matrix'
+    compactmatrix: 'Compact Matrix',
+    embossed: 'Embossed'
 });
 const normalizeDashboardLayoutMode = typeof utils.normalizeDashboardLayout === 'function'
     ? utils.normalizeDashboardLayout
@@ -451,7 +484,14 @@ const normalizeDashboardPrefsForType = (type) => {
         privacyMaskNames: dashboard.privacyMaskNames !== false,
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
-        privacyMaskPorts: dashboard.privacyMaskPorts !== false
+        privacyMaskPorts: dashboard.privacyMaskPorts !== false,
+        privacyMaskVolumePaths: dashboard.privacyMaskVolumePaths !== false,
+        privacyMaskImageRegistry: dashboard.privacyMaskImageRegistry !== false,
+        privacyMaskVmDiskPaths: dashboard.privacyMaskVmDiskPaths !== false,
+        privacyMaskMacAddresses: dashboard.privacyMaskMacAddresses !== false,
+        privacyMaskPublicIps: dashboard.privacyMaskPublicIps !== false,
+        privacyMaskInterfaces: dashboard.privacyMaskInterfaces !== false,
+        privacyMaskExternalUrls: dashboard.privacyMaskExternalUrls !== false
     };
 };
 const dashboardTypeMeta = (type) => {
@@ -1177,11 +1217,12 @@ const createFolders = async (types = ['docker', 'vm']) => {
         let prom = await Promise.all(folderReq.docker);
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
-        const allDockerFolders = normalizeDashboardFolderMap(folders);
+        let allDockerFolders = normalizeDashboardFolderMap(folders);
+        const containersInfo = parseDashboardPayloadOr(prom[2], {});
+        allDockerFolders = reconcileDashboardMemberIdentities('docker', allDockerFolders, containersInfo);
         const dockerTreeIndex = buildFolderChildrenIndex(allDockerFolders);
         const dockerChildrenByParent = dockerTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
-        const containersInfo = parseDashboardPayloadOr(prom[2], {});
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.docker = normalizeDashboardPrefsResponse('docker', prefsResponse);
@@ -1378,11 +1419,12 @@ const createFolders = async (types = ['docker', 'vm']) => {
         const prom = await Promise.all(folderReq.vm);
         // Parse the results
         let folders = parseDashboardPayloadOr(prom[0], {});
-        const allVmFolders = normalizeDashboardFolderMap(folders);
+        let allVmFolders = normalizeDashboardFolderMap(folders);
+        const vmInfo = parseDashboardPayloadOr(prom[2], {});
+        allVmFolders = reconcileDashboardMemberIdentities('vm', allVmFolders, vmInfo);
         const vmTreeIndex = buildFolderChildrenIndex(allVmFolders);
         const vmChildrenByParent = vmTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(parseDashboardPayloadOr(prom[1], {}));
-        const vmInfo = parseDashboardPayloadOr(prom[2], {});
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.vm = normalizeDashboardPrefsResponse('vm', prefsResponse);
@@ -2478,6 +2520,8 @@ const applyDashboardRuntimePrefs = () => {
     $('body').toggleClass('fvplus-privacy-docker-dashboard-mask-names', dockerPrivacyMode && dockerPrefs?.dashboard?.privacyMaskNames !== false);
     $('body').toggleClass('fvplus-privacy-vm-dashboard', vmPrivacyMode);
     $('body').toggleClass('fvplus-privacy-vm-dashboard-mask-names', vmPrivacyMode && vmPrefs?.dashboard?.privacyMaskNames !== false);
+    window.FolderViewPlusRuntimePrivacy?.apply('docker', dockerPrivacyMode, dockerPrefs?.dashboard || {});
+    window.FolderViewPlusRuntimePrivacy?.apply('vm', vmPrivacyMode, vmPrefs?.dashboard || {});
 
     if (!candidates.length) {
         clearLiveRefreshTimer();

@@ -1209,6 +1209,54 @@
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
         $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
         $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
+        $normalized['hiddenPreviewMembers'] = array_values(array_intersect(
+            $normalized['containers'],
+            array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000)
+        ));
+        unset($normalized['hidden_preview']);
+        $rawMemberIdentities = is_array($normalized['memberIdentities'] ?? null)
+            ? $normalized['memberIdentities']
+            : (is_array($normalized['member_identities'] ?? null) ? $normalized['member_identities'] : []);
+        $normalizedMemberIdentities = [];
+        foreach ($normalized['containers'] as $memberName) {
+            if (!is_array($rawMemberIdentities[$memberName] ?? null)) {
+                continue;
+            }
+            $rawIdentity = $rawMemberIdentities[$memberName];
+            $kind = strtolower(trim((string)($rawIdentity['kind'] ?? 'docker'))) === 'vm' ? 'vm' : 'docker';
+            if ($kind === 'vm') {
+                $uuid = truncateUtf8String(trim((string)($rawIdentity['uuid'] ?? ($rawIdentity['id'] ?? ''))), 128);
+                if ($uuid !== '') {
+                    $normalizedMemberIdentities[$memberName] = ['kind' => 'vm', 'uuid' => $uuid];
+                }
+                continue;
+            }
+            $mountDestinations = [];
+            $rawMountDestinations = $rawIdentity['mountDestinations'] ?? ($rawIdentity['mount_destinations'] ?? []);
+            if (is_array($rawMountDestinations)) {
+                foreach ($rawMountDestinations as $rawDestination) {
+                    $destination = truncateUtf8String(trim((string)$rawDestination), 512);
+                    if ($destination !== '' && !in_array($destination, $mountDestinations, true)) {
+                        $mountDestinations[] = $destination;
+                    }
+                }
+                sort($mountDestinations, SORT_NATURAL | SORT_FLAG_CASE);
+            }
+            $identity = [
+                'kind' => 'docker',
+                'containerId' => truncateUtf8String(trim((string)($rawIdentity['containerId'] ?? ($rawIdentity['container_id'] ?? ($rawIdentity['id'] ?? '')))), 64),
+                'image' => truncateUtf8String(trim((string)($rawIdentity['image'] ?? ($rawIdentity['Image'] ?? ''))), 512),
+                'imageId' => truncateUtf8String(trim((string)($rawIdentity['imageId'] ?? ($rawIdentity['image_id'] ?? ($rawIdentity['shortImageId'] ?? '')))), 64),
+                'composeProject' => truncateUtf8String(trim((string)($rawIdentity['composeProject'] ?? ($rawIdentity['compose_project'] ?? ''))), 256),
+                'template' => truncateUtf8String(trim((string)($rawIdentity['template'] ?? '')), 512),
+                'mountDestinations' => $mountDestinations
+            ];
+            if ($identity['containerId'] !== '' || $identity['image'] !== '' || $identity['imageId'] !== '') {
+                $normalizedMemberIdentities[$memberName] = $identity;
+            }
+        }
+        $normalized['memberIdentities'] = $normalizedMemberIdentities;
+        unset($normalized['member_identities']);
         $rawParentId = $normalized['parentId'] ?? ($normalized['parent_id'] ?? ($normalized['parent'] ?? ''));
         $normalized['parentId'] = truncateUtf8String(trim((string)$rawParentId), 64);
         unset($normalized['parent_id'], $normalized['parent']);
@@ -1230,6 +1278,16 @@
             $normalized['preview_rows'],
             $normalized['previewRows']
         );
+        $previewOverflow = strtolower(trim((string)($normalized['settings']['preview_overflow'] ?? ($normalized['settings']['previewOverflow'] ?? 'default'))));
+        $normalized['settings']['preview_overflow'] = in_array($previewOverflow, ['default', 'expand_row', 'scroll'], true) ? $previewOverflow : 'default';
+        $normalized['settings']['previewOverflow'] = $normalized['settings']['preview_overflow'];
+        $normalized['settings']['preview_row_separator'] = filter_var(
+            $normalized['settings']['preview_row_separator'] ?? ($normalized['settings']['previewRowSeparator'] ?? false),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $normalized['settings']['previewRowSeparator'] = $normalized['settings']['preview_row_separator'];
+        $separatorColor = trim((string)($normalized['settings']['preview_row_separator_color'] ?? '#afa89e'));
+        $normalized['settings']['preview_row_separator_color'] = preg_match('/^#[0-9a-f]{6}$/i', $separatorColor) ? strtolower($separatorColor) : '#afa89e';
         $rawPreviewHideNestedItems = $normalized['settings']['preview_hide_nested_items']
             ?? ($normalized['settings']['previewHideNestedItems']
                 ?? ($normalized['preview_hide_nested_items']
@@ -5571,6 +5629,98 @@
             // Keep update flow non-fatal.
         }
         return readConfigMetadata($type, false);
+    }
+
+    function applyFolderMemberIdentityPatches(string $type, array $patches): array {
+        $type = ensureType($type);
+        $fileData = readRawFolderMap($type);
+        $changedFolderIds = [];
+        $renameCount = 0;
+        $identityCount = 0;
+        foreach ($patches as $rawFolderId => $rawPatch) {
+            $folderId = truncateUtf8String(trim((string)$rawFolderId), 64);
+            if ($folderId === '' || !is_array($rawPatch) || !is_array($fileData[$folderId] ?? null)) {
+                continue;
+            }
+            $folder = normalizeFolderContentPayload((array)$fileData[$folderId]);
+            $renames = is_array($rawPatch['renames'] ?? null) ? $rawPatch['renames'] : [];
+            foreach ($renames as $rawOldName => $rawNewName) {
+                $oldName = truncateUtf8String(trim((string)$rawOldName), 512);
+                $newName = truncateUtf8String(trim((string)$rawNewName), 512);
+                if ($oldName === '' || $newName === '' || $oldName === $newName) {
+                    continue;
+                }
+                $oldIndex = array_search($oldName, $folder['containers'], true);
+                if ($oldIndex === false || in_array($newName, $folder['containers'], true)) {
+                    continue;
+                }
+                $folder['containers'][$oldIndex] = $newName;
+                $folder['hiddenPreviewMembers'] = array_map(static function ($name) use ($oldName, $newName) {
+                    return $name === $oldName ? $newName : $name;
+                }, normalizeFolderMembers($folder['hiddenPreviewMembers'] ?? []));
+                foreach ($folder['actions'] as &$action) {
+                    if (!is_array($action)) {
+                        continue;
+                    }
+                    foreach (['containers', 'conatiners'] as $targetKey) {
+                        if (!is_array($action[$targetKey] ?? null)) {
+                            continue;
+                        }
+                        $action[$targetKey] = array_map(static function ($name) use ($oldName, $newName) {
+                            return trim((string)$name) === $oldName ? $newName : trim((string)$name);
+                        }, $action[$targetKey]);
+                    }
+                }
+                unset($action);
+                if (is_array($folder['memberIdentities'][$oldName] ?? null)) {
+                    $folder['memberIdentities'][$newName] = $folder['memberIdentities'][$oldName];
+                    unset($folder['memberIdentities'][$oldName]);
+                }
+                $renameCount++;
+            }
+            $incomingIdentities = is_array($rawPatch['memberIdentities'] ?? null) ? $rawPatch['memberIdentities'] : [];
+            foreach ($folder['containers'] as $memberName) {
+                if (!is_array($incomingIdentities[$memberName] ?? null)) {
+                    continue;
+                }
+                $candidate = normalizeFolderContentPayload([
+                    'containers' => [$memberName],
+                    'memberIdentities' => [$memberName => $incomingIdentities[$memberName]]
+                ]);
+                $identity = $candidate['memberIdentities'][$memberName] ?? null;
+                if (!is_array($identity)) {
+                    continue;
+                }
+                if (($folder['memberIdentities'][$memberName] ?? null) !== $identity) {
+                    $folder['memberIdentities'][$memberName] = $identity;
+                    $identityCount++;
+                }
+            }
+            $nextFolder = normalizeFolderContentPayload($folder);
+            if (jsonObjectsDiffer($fileData[$folderId], $nextFolder)) {
+                $nextFolder['updatedAt'] = gmdate('c');
+                $fileData[$folderId] = $nextFolder;
+                $changedFolderIds[] = $folderId;
+            }
+        }
+        if (count($changedFolderIds) > 0) {
+            writeRawFolderMap($type, $fileData);
+            try {
+                appendDiagnosticsHistoryEvent('member_identity_reconcile', $type, [
+                    'folderIds' => $changedFolderIds,
+                    'renameCount' => $renameCount,
+                    'identityCount' => $identityCount
+                ], 'ok', 'runtime');
+            } catch (Throwable $err) {
+                // Keep automatic reconciliation non-fatal.
+            }
+        }
+        return [
+            'changedFolderIds' => $changedFolderIds,
+            'renameCount' => $renameCount,
+            'identityCount' => $identityCount,
+            'metadata' => readConfigMetadata($type, true)
+        ];
     }
 
     function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {

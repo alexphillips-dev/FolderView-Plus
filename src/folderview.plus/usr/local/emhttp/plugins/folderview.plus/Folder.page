@@ -492,6 +492,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
@@ -795,6 +796,15 @@ try {
                     </blockquote>
                 </div>
             </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="folder-update-highlight">Orange folder name on member update:</dt>
+                        <dd><input class="basic-switch" name="folder_update_highlight" type="checkbox" style="display: none;" /></dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="folder-update-highlight-tooltip">Highlight the folder title separately when at least one Docker member has an update available.</p></blockquote>
+                </div>
+            </li>
             <li constraint="preview-1 preview-3 preview-4">
                 <div class="basic">
                     <dl>
@@ -813,14 +823,14 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">
                     <dl>
-                        <dt>Preview rows:</dt>
+                        <dt data-i18n="preview-rows">Preview rows:</dt>
                         <dd>
                             <select name="preview_rows">
-                                <option value="1" selected>1 row</option>
-                                <option value="2">2 rows</option>
-                                <option value="3">3 rows</option>
-                                <option value="4">4 rows</option>
-                                <option value="0">Unlimited</option>
+                                <option value="1" selected data-i18n="preview-rows-one">1 row</option>
+                                <option value="2" data-i18n="preview-rows-two">2 rows</option>
+                                <option value="3" data-i18n="preview-rows-three">3 rows</option>
+                                <option value="4" data-i18n="preview-rows-four">4 rows</option>
+                                <option value="0" data-i18n="preview-rows-unlimited">Unlimited</option>
                             </select>
                         </dd>
                     </dl>
@@ -829,6 +839,21 @@ try {
                             Controls how many rows of compact preview cards are shown in the main Docker row before the rest stay behind the folder overflow path.
                         </p>
                     </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-overflow">Preview overflow:</dt>
+                        <dd>
+                            <select name="preview_overflow">
+                                <option value="default" selected data-i18n="preview-overflow-limit">Use row limit</option>
+                                <option value="expand_row" data-i18n="preview-overflow-expand">Expand to show all</option>
+                                <option value="scroll" data-i18n="preview-overflow-scroll">Horizontal scroll</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="preview-overflow-tooltip">Choose whether extra preview members follow the row limit, expand the folder row, or remain in a single horizontally scrollable row.</p></blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-2">
@@ -1006,6 +1031,25 @@ try {
                                     The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
                                 </p>
                             </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-row-separators">Preview row separators:</dt>
+                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" onchange="updateForm()" /></dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
+                </div>
+                <ul constraint="preview-row-separator-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="preview-row-separator-color">Row separator color:</dt>
+                                <dd><input type="color" name="preview_row_separator_color" value="#555555" style="height:28px;vertical-align:middle;"></dd>
+                            </dl>
                         </div>
                     </li>
                 </ul>
@@ -1229,6 +1273,14 @@ try {
                     The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
                 </p>
             </blockquote>
+        </div>
+
+        <div class="basic">
+            <dl>
+                <dt data-i18n="status-color-lock">Lock status colors:</dt>
+                <dd><input class="basic-switch" name="status_color_lock" type="checkbox" style="display: none;" /></dd>
+            </dl>
+            <blockquote class="inline_help"><p data-i18n="status-color-lock-tooltip">Keep this folder's selected status colors authoritative when themes or host styles change.</p></blockquote>
         </div>
 
         <div class="basic">
@@ -1552,6 +1604,9 @@ try {
                                 </th>
                                 <th data-i18n="table-included">
                                     Included
+                                </th>
+                                <th data-i18n="table-show-in-preview">
+                                    Show in preview
                                 </th>
                             </tr>
                         </thead>

@@ -35,6 +35,11 @@
     };
 
     const graphQL = async (query, variables = null) => {
+        if (root.FolderViewPlusRuntimeTransport?.query) {
+            return root.FolderViewPlusRuntimeTransport.query(query, variables, {
+                headers: { 'X-CSRF-Token': getCsrfToken() }
+            });
+        }
         const response = await root.fetch('/graphql', {
             method: 'POST',
             headers: {

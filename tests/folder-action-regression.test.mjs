@@ -33,7 +33,7 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
     assert.match(vmJs, /const confirmedPrefs = await fetchVmPinnedFolderPrefs\(\);/);
     assert.match(vmJs, /throw new Error\('VM pinned folders did not persist\.'\);/);
     assert.match(vmJs, /rememberVmPinnedFolderIdsOverride\(nextPinned\);/);
-    assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
+    assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(normalizeVmPrefsResponse\(prefsResponse\)\);/);
     assert.match(vmJs, /const cacheBust = Date\.now\(\);\s*const safePrefsReq = createVmRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=vm&_=\$\{cacheBust\}`/s);
     assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, queueLoadlistRefresh\);\s*\} else \{\s*queueLoadlistRefresh\(\);\s*\}\s*\} finally \{/s);
     assert.doesNotMatch(vmJs, /}, queueLoadlistRefresh\);\s*}\s*queueLoadlistRefresh\(\);\s*} finally \{/s);

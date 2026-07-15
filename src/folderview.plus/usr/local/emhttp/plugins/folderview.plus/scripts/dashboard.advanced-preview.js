@@ -216,14 +216,14 @@
             }
             if (typeof win?.eventControl === 'function' && shortId) {
                 if (state.Running !== true) {
-                    addAction('play', i18n('start', 'Start'), () => win.eventControl({ action: 'start', container: shortId }, 'loadlist'));
+                    addAction('play', i18n('start', 'Start'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'start', container: shortId }) || win.eventControl({ action: 'start', container: shortId }, 'loadlist'));
                 } else if (state.Paused === true) {
-                    addAction('play', i18n('resume', 'Resume'), () => win.eventControl({ action: 'resume', container: shortId }, 'loadlist'));
+                    addAction('play', i18n('resume', 'Resume'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'resume', container: shortId }) || win.eventControl({ action: 'resume', container: shortId }, 'loadlist'));
                 } else {
-                    addAction('stop', i18n('stop', 'Stop'), () => win.eventControl({ action: 'stop', container: shortId }, 'loadlist'));
-                    addAction('pause', i18n('pause', 'Pause'), () => win.eventControl({ action: 'pause', container: shortId }, 'loadlist'));
+                    addAction('stop', i18n('stop', 'Stop'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'stop', container: shortId }) || win.eventControl({ action: 'stop', container: shortId }, 'loadlist'));
+                    addAction('pause', i18n('pause', 'Pause'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'pause', container: shortId }) || win.eventControl({ action: 'pause', container: shortId }, 'loadlist'));
                 }
-                addAction('refresh', i18n('restart', 'Restart'), () => win.eventControl({ action: 'restart', container: shortId }, 'loadlist'));
+                addAction('refresh', i18n('restart', 'Restart'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'restart', container: shortId }) || win.eventControl({ action: 'restart', container: shortId }, 'loadlist'));
             }
         };
 
@@ -346,7 +346,20 @@
                 },
                 functionReady: function(_instance, helper) {
                     const tooltipDom = helper.tooltip && helper.tooltip.length ? helper.tooltip : jq(helper.tooltip);
-                    charts = createCharts(tooltipDom, ct, settings, CPU, MEM);
+                    const mountCharts = () => {
+                        if (tooltipDom.closest('html').length && charts.length === 0) {
+                            charts = createCharts(tooltipDom, ct, settings, CPU, MEM);
+                        }
+                    };
+                    if (typeof win.Chart === 'function') {
+                        mountCharts();
+                    } else if (win.FolderViewPlusAssetLoader?.ensureChartStack) {
+                        win.FolderViewPlusAssetLoader.ensureChartStack().then(mountCharts).catch((error) => {
+                            tooltipDom.find('.folder-graph').empty().append(
+                                jq('<div class="fv-tooltip-lazy-loading"></div>').text(`Graph unavailable: ${String(error?.message || error)}`)
+                            );
+                        });
+                    }
                     const cpuTextElement = tooltipDom.find(`.cpu-${ct.shortId}`).get(0);
                     if (cpuTextElement && typeof win?.MutationObserver === 'function') {
                         tooltipObserver = new win.MutationObserver((mutationList) => {

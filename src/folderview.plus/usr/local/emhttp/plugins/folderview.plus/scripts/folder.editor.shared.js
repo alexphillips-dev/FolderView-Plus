@@ -11,6 +11,10 @@
                     ? normalized
                     : 'default';
             });
+        const normalizePreviewOverflowMode = (value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
+        };
 
         const normalizeOptionalHealthSelect = (value, allowedValues) => {
             const normalized = String(value || '').trim().toLowerCase();
@@ -137,6 +141,16 @@
                             .filter(Boolean)
                     )
                 ),
+                hiddenPreviewMembers: Array.from(new Set(
+                    (typeof deps.asArray === 'function'
+                        ? deps.asArray(source.hiddenPreviewMembers || source.hidden_preview)
+                        : (Array.isArray(source.hiddenPreviewMembers) ? source.hiddenPreviewMembers : []))
+                        .map((entry) => String(entry || '').trim())
+                        .filter((entry) => entry && (Array.isArray(source.containers) ? source.containers : []).includes(entry))
+                )),
+                memberIdentities: source.memberIdentities && typeof source.memberIdentities === 'object'
+                    ? { ...source.memberIdentities }
+                    : {},
                 actions: typeof deps.asArray === 'function' ? deps.asArray(source.actions) : [],
                 settings: {
                     ...settings,
@@ -145,10 +159,13 @@
                     preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
                     preview_rows: normalizePreviewRowLimit(settings, source),
                     previewRows: normalizePreviewRowLimit(settings, source),
+                    preview_overflow: normalizePreviewOverflowMode(settings.preview_overflow || settings.previewOverflow),
+                    previewOverflow: normalizePreviewOverflowMode(settings.preview_overflow || settings.previewOverflow),
                     preview_hover: settings.preview_hover === true,
                     preview_hover_animation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
                     previewHoverAnimation: normalizePreviewHoverAnimation(settings.preview_hover_animation || settings.previewHoverAnimation),
                     preview_update: settings.preview_update === true,
+                    folder_update_highlight: settings.folder_update_highlight === true || settings.folderUpdateHighlight === true,
                     preview_text_width: String(settings.preview_text_width || ''),
                     preview_grayscale: settings.preview_grayscale === true,
                     preview_status: (() => {
@@ -168,6 +185,10 @@
                     preview_logs: settings.preview_logs === true,
                     preview_console: settings.preview_console === true,
                     preview_vertical_bars: settings.preview_vertical_bars === true,
+                    preview_row_separator: settings.preview_row_separator === true || settings.previewRowSeparator === true,
+                    preview_row_separator_color: typeof deps.normalizeHexColor === 'function'
+                        ? deps.normalizeHexColor(settings.preview_row_separator_color, deps.defaultBorderColor || '#afa89e')
+                        : String(settings.preview_row_separator_color || deps.defaultBorderColor || '#afa89e'),
                     context: Number.isFinite(Number(settings.context)) ? toSafeInt(settings.context, 1) : 1,
                     context_trigger: Number.isFinite(Number(settings.context_trigger)) ? toSafeInt(settings.context_trigger, 0) : 0,
                     context_graph: Number.isFinite(Number(settings.context_graph)) ? toSafeInt(settings.context_graph, 1) : 1,
@@ -215,6 +236,7 @@
                     status_color_stopped: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_stopped, deps.defaultFolderStatusColors?.stopped || '#ff4d4d')
                         : String(settings.status_color_stopped || deps.defaultFolderStatusColors?.stopped || '#ff4d4d'),
+                    status_color_lock: settings.status_color_lock === true || settings.statusColorLock === true,
                     health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
                     health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),
                     health_profile: normalizeOptionalHealthSelect(settings.health_profile, deps.healthProfileValues || []),
@@ -235,6 +257,7 @@
             normalizeOptionalHealthSelect,
             parseOptionalThresholdInput,
             normalizeDashboardOverflowMode,
+            normalizePreviewOverflowMode,
             extractPreviewRowLimitValue,
             normalizePreviewRowLimit,
             normalizeChildFolderPreviewDepth,

@@ -90,7 +90,7 @@ test('docker pin quick action verifies server persistence before keeping optimis
     assert.match(dockerScript, /rememberDockerPinnedFolderIdsOverride\(nextPinned\);/);
     assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);/);
     assert.match(dockerScript, /broadcastDockerPinnedFolderChange\(\{[\s\S]*pinnedFolderIds:\s*confirmedPinned,[\s\S]*changedFolderId:\s*id,[\s\S]*pinned:\s*confirmedPinned\.includes\(id\)[\s\S]*\}\);/);
-    assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
+    assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(normalizeDockerPrefsResponse\(prefsResponse\)\);/);
 });
 
 test('docker page listens for settings pin changes without a full reload', () => {

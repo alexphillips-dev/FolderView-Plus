@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.14">
-<!ENTITY md5 "110346830aace888a9ebc3c940de2a22">
+<!ENTITY version "2026.07.15.15">
+<!ENTITY md5 "5a3a3f6dafca3e4e3f1e8b9cb313a27b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.15
+### Folder identity, preview, privacy, and runtime roadmap
+- Feature: Added stable Docker and VM member identities so uniquely identified renamed members retain folder membership, collapsed-preview visibility, and custom-action targets; ambiguous duplicate Docker images remain untouched.
+- Feature: Added a per-member Show in preview control that hides selected members only from collapsed previews without changing membership, status totals, expanded rows, or actions.
+- Feature: Added preview overflow choices for configured row limits, full row expansion, or horizontal scrolling, plus optional colored separators between preview rows.
+- Feature: Added an Embossed Dashboard layout, authoritative per-folder status-color locking, and an independent Docker folder-name highlight when any member has an update.
+- Security: Expanded reversible privacy masking to cover Docker volume paths, image registries, public IPs, interfaces, and external URLs plus VM disk paths and MAC addresses, with private-address-aware classification.
+- Performance: Lazy-loaded the Dashboard chart stack only when an advanced graph preview opens and added complete package and third-party icon-library size budgets.
+- Compatibility: Added a capability-driven runtime transport for GraphQL queries, WebSocket or SSE subscriptions, polling fallback, and Docker actions while retaining host action fallbacks.
+- UI/UX: Added localized labels for all new folder, privacy, preview, and Dashboard controls across every bundled language catalog.
+- Fix: Persisted identity reconciliation through a guarded server endpoint, refreshed folder metadata timestamps, and prevented a claimed duplicate-image member from being treated as a unique rename candidate.
+- Quality: Added regression coverage for identity reconciliation, per-member previews, privacy classification, runtime transport, lazy assets, Dashboard layouts, overflow modes, preference normalization, and package contracts.
+- Quality: Updated the Settings script include-order contract to cover the shared preference store and removed stray CSS patch markers found during the final source audit.
+
 
 ###2026.07.15.14
 ### Settings toolbar finishing touches

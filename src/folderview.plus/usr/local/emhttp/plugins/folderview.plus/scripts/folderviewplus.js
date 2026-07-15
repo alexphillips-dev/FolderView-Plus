@@ -7421,7 +7421,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         ? utils.normalizeDashboardLayout
         : ((value) => {
             const normalized = String(value || '').trim().toLowerCase();
-            return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+            return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized) ? normalized : 'classic';
         });
     return {
         layout: normalizeLayout(dashboard.layout),
@@ -7433,6 +7433,13 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
         privacyMaskPorts: dashboard.privacyMaskPorts !== false,
+        privacyMaskVolumePaths: dashboard.privacyMaskVolumePaths !== false,
+        privacyMaskImageRegistry: dashboard.privacyMaskImageRegistry !== false,
+        privacyMaskVmDiskPaths: dashboard.privacyMaskVmDiskPaths !== false,
+        privacyMaskMacAddresses: dashboard.privacyMaskMacAddresses !== false,
+        privacyMaskPublicIps: dashboard.privacyMaskPublicIps !== false,
+        privacyMaskInterfaces: dashboard.privacyMaskInterfaces !== false,
+        privacyMaskExternalUrls: dashboard.privacyMaskExternalUrls !== false,
         previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
         previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
         previewGraph: Math.max(0, Math.min(4, Number(dashboard.previewGraph) || 1)),
@@ -7471,10 +7478,21 @@ const renderDashboardControls = (type) => {
     if (type === 'docker') {
         $('#docker-dashboard-privacy-mask-lan-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
         $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
+        $('#docker-dashboard-privacy-mask-volume-paths').prop('checked', dashboard.privacyMaskVolumePaths !== false);
+        $('#docker-dashboard-privacy-mask-image-registry').prop('checked', dashboard.privacyMaskImageRegistry !== false);
+        $('#docker-dashboard-privacy-mask-public-ips').prop('checked', dashboard.privacyMaskPublicIps !== false);
+        $('#docker-dashboard-privacy-mask-interfaces').prop('checked', dashboard.privacyMaskInterfaces !== false);
+        $('#docker-dashboard-privacy-mask-external-urls').prop('checked', dashboard.privacyMaskExternalUrls !== false);
         $('#docker-dashboard-preview-context').val(dashboard.previewContext);
         $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);
         $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
         $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
+    } else {
+        $('#vm-dashboard-privacy-mask-disk-paths').prop('checked', dashboard.privacyMaskVmDiskPaths !== false);
+        $('#vm-dashboard-privacy-mask-mac-addresses').prop('checked', dashboard.privacyMaskMacAddresses !== false);
+        $('#vm-dashboard-privacy-mask-public-ips').prop('checked', dashboard.privacyMaskPublicIps !== false);
+        $('#vm-dashboard-privacy-mask-interfaces').prop('checked', dashboard.privacyMaskInterfaces !== false);
+        $('#vm-dashboard-privacy-mask-external-urls').prop('checked', dashboard.privacyMaskExternalUrls !== false);
     }
     syncDashboardDependentFields(type);
 };
@@ -10447,7 +10465,7 @@ const changeDashboardPref = async (type, key, value) => {
             ? utils.normalizeDashboardLayout
             : ((layoutValue) => {
                 const normalized = String(layoutValue || '').trim().toLowerCase();
-                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized) ? normalized : 'classic';
             });
         nextDashboard.layout = normalizeLayout(value);
     } else if (key === 'expandToggle') {
@@ -10466,6 +10484,8 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.privacyMaskLocalIps = value === true;
     } else if (key === 'privacyMaskPorts' && type === 'docker') {
         nextDashboard.privacyMaskPorts = value === true;
+    } else if (key.startsWith('privacyMask')) {
+        nextDashboard[key] = value === true;
     } else {
         return;
     }

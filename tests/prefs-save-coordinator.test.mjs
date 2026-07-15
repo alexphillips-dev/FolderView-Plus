@@ -167,6 +167,43 @@ test('preference coordinator restores a durable outbox after reload', async () =
     assert.equal(storage.getItem('fvplus.prefs.outbox.v1.docker'), null);
 });
 
+test('preference coordinator replays a restored outbox after raw runtime reconciliation', async () => {
+    const api = loadModule();
+    const storage = createStorage({
+        'fvplus.prefs.outbox.v1.docker': JSON.stringify({
+            schemaVersion: 1,
+            type: 'docker',
+            sourceId: 'settings-page',
+            updatedAt: '2026-07-15T12:00:00.000Z',
+            patch: { dashboard: { privacyMaskNames: false } }
+        })
+    });
+    const writes = [];
+    const coordinator = api.createPreferenceSaveCoordinator({
+        normalizePrefs,
+        storage,
+        debounceMs: 0,
+        writePrefs: async (_type, patch) => {
+            writes.push(patch);
+            return {
+                ok: true,
+                prefs: api.mergePatch({ dashboard: { privacyMaskNames: true } }, patch),
+                metadata: { prefsRevision: 10 }
+            };
+        }
+    });
+
+    const reconciled = coordinator.reconcile('docker', {
+        dashboard: { privacyMaskNames: true },
+        _metadata: { prefsRevision: 9 }
+    });
+    assert.equal(reconciled.dashboard.privacyMaskNames, false);
+    await wait(20);
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0].dashboard.privacyMaskNames, false);
+    assert.equal(storage.getItem('fvplus.prefs.outbox.v1.docker'), null);
+});
+
 test('preference coordinator rebases and retries a revision conflict without rolling back UI', async () => {
     const api = loadModule();
     let writeCount = 0;

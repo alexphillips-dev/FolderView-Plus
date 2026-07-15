@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.05">
-<!ENTITY md5 "6bba857e3259973ce5ef893bcf1b3ae4">
+<!ENTITY version "2026.07.15.06">
+<!ENTITY md5 "b01179894dca951ef01b61609bfb1a0a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.06
+### Privacy mask settings
+- Fix: Save each granular privacy checkbox as an immediate leaf-level preference update so unchecked values are preserved without stale dashboard fields overwriting them.
+- Fix: Reapply Docker, VM, and Dashboard privacy classes whenever synchronized preferences change, including updates made from another browser tab.
+- Fix: Automatically replay durable pending preference changes when a runtime page restores them through its normal preference reconciliation path.
+- Test: Added regressions for unchecked privacy masks, runtime preference subscriptions, immediate partial saves, and restored-outbox replay.
+
 
 ###2026.07.15.05
 ### Instant preference saving

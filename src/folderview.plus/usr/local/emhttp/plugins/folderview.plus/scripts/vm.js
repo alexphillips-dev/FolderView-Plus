@@ -3411,6 +3411,19 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     scheduleLiveRefresh(normalized);
 };
+const bindVmRuntimePreferenceSync = () => {
+    if (!vmPrefsCoordinator || typeof vmPrefsCoordinator.subscribe !== 'function') {
+        return;
+    }
+    vmPrefsCoordinator.subscribe((snapshot) => {
+        if (snapshot?.type !== 'vm' || !snapshot?.prefs) {
+            return;
+        }
+        folderTypePrefs = applyVmPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        applyRuntimePrefs(folderTypePrefs);
+    });
+};
+bindVmRuntimePreferenceSync();
 window.getVmRuntimePerfTelemetrySnapshot = () => {
     if (!vmPerfTelemetry || typeof vmPerfTelemetry.snapshot !== 'function') {
         return {};

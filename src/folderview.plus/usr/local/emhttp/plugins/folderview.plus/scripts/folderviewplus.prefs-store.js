@@ -247,18 +247,22 @@
             const normalized = normalizePrefs(prefs || {});
             const incomingRevision = readRevision(normalized);
             const currentRevision = readRevision(state.confirmedPrefs);
+            let restoredPendingChanges = false;
             if (!state.hydrated || incomingRevision >= currentRevision || settings.force === true) {
                 state.confirmedPrefs = normalized;
                 state.hydrated = true;
             }
             if (settings.restoreOutbox !== false && patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
-                restoreOutbox(state);
+                restoredPendingChanges = restoreOutbox(state);
             }
             if (patchIsEmpty(state.pendingPatch) && patchIsEmpty(state.inFlightPatch)) {
                 state.status = 'saved';
                 state.lastError = '';
             }
             emit(state);
+            if (restoredPendingChanges && settings.replay !== false) {
+                scheduleFlush(state, 0);
+            }
             return state.optimisticPrefs;
         };
 

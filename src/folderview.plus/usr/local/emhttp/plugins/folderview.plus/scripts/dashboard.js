@@ -2492,6 +2492,21 @@ const applyDashboardRuntimePrefs = () => {
     liveRefreshTimer = setInterval(runLiveRefreshTick, intervalMs);
 };
 
+const bindDashboardPreferenceSync = () => {
+    if (!dashboardPrefsCoordinator || typeof dashboardPrefsCoordinator.subscribe !== 'function') {
+        return;
+    }
+    dashboardPrefsCoordinator.subscribe((snapshot) => {
+        const type = snapshot?.type === 'vm' ? 'vm' : 'docker';
+        if (!snapshot?.prefs) {
+            return;
+        }
+        folderTypePrefs[type] = utils.normalizePrefs(snapshot.prefs);
+        applyDashboardRuntimePrefs();
+    });
+};
+bindDashboardPreferenceSync();
+
 const refreshDashboardDockerCpuCores = () => $.get('/plugins/folderview.plus/server/cpu.php')
     .then((value) => {
         const numeric = Number.parseInt(String(value || '').trim(), 10);

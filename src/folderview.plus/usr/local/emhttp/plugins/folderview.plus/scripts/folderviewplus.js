@@ -9607,7 +9607,10 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
         render(next, current);
     }
     try {
-        const savedPrefs = await postPrefs(resolvedType, partial);
+        const savedPrefs = await postPrefs(resolvedType, partial, {
+            currentPrefs: next,
+            immediate: options.immediate === true
+        });
         prefsByType[resolvedType] = utils.normalizePrefs(savedPrefs);
         if (render) {
             render(prefsByType[resolvedType], next);
@@ -10069,9 +10072,12 @@ const changeDashboardPref = async (type, key, value) => {
 
     try {
         await updatePrefsPartial(type, {
-            dashboard: nextDashboard
+            dashboard: {
+                [key]: nextDashboard[key]
+            }
         }, {
-            render: () => renderDashboardControls(type)
+            render: () => renderDashboardControls(type),
+            immediate: key.startsWith('privacyMask')
         });
     } catch (error) {
         renderDashboardControls(type);

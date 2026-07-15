@@ -647,10 +647,11 @@ const fetchPrefs = async (type) => {
     return utils.normalizePrefs({});
 };
 
-const postPrefs = async (type, prefs) => {
+const postPrefs = async (type, prefs, options = {}) => {
     if (diagnosticsPrefsCoordinator) {
         const savedPrefs = await diagnosticsPrefsCoordinator.save(type, prefs, {
-            currentPrefs: prefsByType?.[type] || null
+            currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
+            immediate: options.immediate === true
         });
         latestPrefsBackupByType[type] = diagnosticsPrefsCoordinator.getSnapshot(type)?.lastBackup || null;
         return utils.normalizePrefs(savedPrefs);

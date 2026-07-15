@@ -82,7 +82,11 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(settingsJs, /else if \(key === 'privacyMaskContainerIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskLocalIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskPorts' && type === 'docker'\) \{/);
-    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard: nextDashboard\s*\},\s*\{\s*render: \(\) => renderDashboardControls\(type\)/);
+    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}\s*\},\s*\{[\s\S]*immediate: key\.startsWith\('privacyMask'\)/);
+    assert.match(settingsJs, /postPrefs\(resolvedType, partial,\s*\{\s*currentPrefs: next,\s*immediate: options\.immediate === true/);
+    assert.match(dockerJs, /dockerPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'docker'[\s\S]*applyRuntimePrefs\(nextPrefs\)/);
+    assert.match(vmJs, /vmPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'vm'[\s\S]*applyRuntimePrefs\(folderTypePrefs\)/);
+    assert.match(dashboardJs, /dashboardPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*folderTypePrefs\[type\] = utils\.normalizePrefs\(snapshot\.prefs\)[\s\S]*applyDashboardRuntimePrefs\(\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime', dockerPrivacyMode\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskNames !== false\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskContainerIps !== false\)/);

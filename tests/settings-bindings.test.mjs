@@ -332,7 +332,7 @@ test('basic folder pin toggle persists quickly and broadcasts runtime refresh', 
     assert.match(script, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
     assert.match(script, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
     assert.match(script, /const updatePrefsPartial = async \(type, patch, options = \{\}\) => \{/);
-    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial\);/);
+    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial, \{\s*currentPrefs: next,\s*immediate: options\.immediate === true\s*\}\);/);
     assert.match(script, /const broadcastPinnedFolderChange = \(payload = \{\}\) => \{/);
     assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);

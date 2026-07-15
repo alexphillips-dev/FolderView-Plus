@@ -7788,6 +7788,21 @@ const applyRuntimePrefs = (prefs) => {
     scheduleLiveRefresh(normalized);
 };
 
+const bindDockerRuntimePreferenceSync = () => {
+    if (!dockerPrefsCoordinator || typeof dockerPrefsCoordinator.subscribe !== 'function') {
+        return;
+    }
+    dockerPrefsCoordinator.subscribe((snapshot) => {
+        if (snapshot?.type !== 'docker' || !snapshot?.prefs) {
+            return;
+        }
+        const nextPrefs = applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        folderTypePrefs = nextPrefs;
+        applyRuntimePrefs(nextPrefs);
+    });
+};
+bindDockerRuntimePreferenceSync();
+
 window.toggleDockerRuntimeWidthDebug = (enabled = true) => setDockerRuntimeWidthDebugEnabled(enabled);
 window.getDockerRuntimeWidthDebugSnapshot = () => {
     if (!dockerRuntimeWidthState.lastDecision) {

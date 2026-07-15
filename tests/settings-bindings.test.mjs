@@ -10,6 +10,7 @@ const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plu
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const libPrefsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const settingsChromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
@@ -40,6 +41,16 @@ const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const settingsChrome = fs.readFileSync(settingsChromePath, 'utf8');
+
+test('settings topbar keeps search adjacent to mode controls without a save-status badge', () => {
+    assert.doesNotMatch(settingsChrome, /fv-prefs-save-status/);
+    assert.match(settingsChrome, /fv-settings-search-block[\s\S]*fv-mode-toggle/);
+    assert.doesNotMatch(script, /renderPreferenceSaveStatus|fv-prefs-save-status/);
+    assert.doesNotMatch(settingsCss, /\.fv-prefs-save-status|fvplus-pref-save-spin/);
+    assert.match(script, /data-fv-prefs-sync-listener-bound/);
+    assert.match(script, /window\.addEventListener\('fvplus:prefs-save-state'/);
+});
 
 test('settings page onclick handlers are exported on window', () => {
     const handlers = [

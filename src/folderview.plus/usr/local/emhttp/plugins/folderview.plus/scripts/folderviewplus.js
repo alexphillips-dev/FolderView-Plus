@@ -2323,30 +2323,8 @@ const initSettingsControls = () => {
         `;
     controls.html(topbarHtml);
 
-    const renderPreferenceSaveStatus = () => {
-        const host = document.getElementById('fv-prefs-save-status');
-        if (!host || !diagnosticsPrefsCoordinator) {
-            return;
-        }
-        const diagnostics = diagnosticsPrefsCoordinator.getDiagnostics();
-        const states = Object.values(diagnostics?.types || {}).map((entry) => String(entry?.status || 'saved'));
-        const state = states.includes('saving')
-            ? 'saving'
-            : (states.includes('sync-pending') ? 'sync-pending' : 'saved');
-        const config = state === 'saving'
-            ? { label: 'Saving', icon: 'fa-refresh', className: 'is-saving' }
-            : (state === 'sync-pending'
-                ? { label: 'Sync pending', icon: 'fa-clock-o', className: 'is-pending' }
-                : { label: 'Saved', icon: 'fa-check', className: 'is-saved' });
-        host.dataset.state = state;
-        host.className = `fv-prefs-save-status ${config.className}`;
-        host.title = state === 'sync-pending'
-            ? 'Your change is applied locally and will retry saving automatically.'
-            : config.label;
-        host.innerHTML = `<i class="fa ${config.icon}" aria-hidden="true"></i><span>${config.label}</span>`;
-    };
-    if (diagnosticsPrefsCoordinator && controls.attr('data-fv-prefs-listener-bound') !== '1') {
-        controls.attr('data-fv-prefs-listener-bound', '1');
+    if (diagnosticsPrefsCoordinator && controls.attr('data-fv-prefs-sync-listener-bound') !== '1') {
+        controls.attr('data-fv-prefs-sync-listener-bound', '1');
         window.addEventListener('fvplus:prefs-save-state', (event) => {
             const type = normalizeManagedType(event?.detail?.type);
             const snapshot = diagnosticsPrefsCoordinator.getSnapshot(type);
@@ -2355,12 +2333,10 @@ const initSettingsControls = () => {
             if (snapshot?.prefs) {
                 prefsByType[type] = utils.normalizePrefs(snapshot.prefs);
             }
-            renderPreferenceSaveStatus();
             if (settingsUiState.initialized && nextRevision > previousRevision) {
                 scheduleTableRender(type);
             }
         });
-        renderPreferenceSaveStatus();
     }
 
     if (!$('#fv-advanced-nav').length) {

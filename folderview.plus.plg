@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.08">
-<!ENTITY md5 "2a5e65fa022c4e7d65d5325c0bab80d7">
+<!ENTITY version "2026.07.15.09">
+<!ENTITY md5 "423032c43fbf90c2fb6cd82cc63747db">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.09
+### Settings topbar cleanup
+- UI/UX: Removed the Saved/Saving status badge from the Settings topbar so the search field sits directly beside the Basic/Advanced mode control.
+- Quality: Removed the badge's unused renderer, styles, and animation while preserving background preference synchronization and diagnostics.
+- Test: Added a regression enforcing the compact topbar order and continued preference-sync listener binding.
+
 
 ###2026.07.15.08
 ### Independent LAN IP and port masking

@@ -1043,6 +1043,54 @@ const buildDockerPortMappingsHtml = (ports = []) => {
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
 };
+const splitDockerLanEndpoint = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return { ip: '', port: '' };
+    }
+    if (raw.startsWith('[')) {
+        const bracketEnd = raw.indexOf(']');
+        if (bracketEnd > 0) {
+            return {
+                ip: raw.slice(0, bracketEnd + 1),
+                port: raw.slice(bracketEnd + 1).replace(/^:/, '')
+            };
+        }
+    }
+    const separatorIndex = raw.lastIndexOf(':');
+    if (separatorIndex > 0 && /^\d+(?:\/\w+)?$/.test(raw.slice(separatorIndex + 1))) {
+        return {
+            ip: raw.slice(0, separatorIndex),
+            port: raw.slice(separatorIndex + 1)
+        };
+    }
+    return { ip: raw, port: '' };
+};
+const decorateDockerRuntimeLanEndpointValues = () => {
+    document.querySelectorAll('#docker_list tr.folder-element > td:nth-child(6) .docker_readmore, #docker_view tr.folder-element > td:nth-child(6) .docker_readmore').forEach((node) => {
+        const rawLines = String(node.innerHTML || '').split(/<br\s*\/?\s*>/i).map((line) => {
+            const decoder = document.createElement('span');
+            decoder.innerHTML = line;
+            return String(decoder.textContent || '').trim();
+        });
+        const signature = rawLines.join('\n');
+        if (
+            node.dataset.fvplusPrivacyLanSignature === signature
+            && node.querySelector('.fvplus-privacy-lan-ip-value, .fvplus-privacy-lan-port-value')
+        ) {
+            return;
+        }
+        node.dataset.fvplusPrivacyLanSignature = signature;
+        node.innerHTML = rawLines.map((line) => {
+            const endpoint = splitDockerLanEndpoint(line);
+            const ip = `<span class="fvplus-privacy-lan-ip-value">${escapeHtml(endpoint.ip)}</span>`;
+            const port = endpoint.port
+                ? `:<span class="fvplus-privacy-lan-port-value">${escapeHtml(endpoint.port)}</span>`
+                : '';
+            return `${ip}${port}`;
+        }).join('<br>');
+    });
+};
 const buildDockerBindMountMappingLine = (entry = {}) => {
     const destination = escapeHtml(String(entry?.Destination || '').trim() || 'unknown');
     const source = escapeHtml(String(entry?.Source || '').trim() || 'unknown');
@@ -1070,6 +1118,7 @@ const findDockerRuntimeInfoByShortId = (shortId) => {
     }) || null;
 };
 const refreshDockerRuntimePrivacyPortMappings = () => {
+    decorateDockerRuntimeLanEndpointValues();
     document.querySelectorAll('.info-ports[id^="info-ports-"]').forEach((node) => {
         const shortId = String(node.id || '').replace(/^info-ports-/, '').trim();
         const runtimeEntry = findDockerRuntimeInfoByShortId(shortId);
@@ -2210,6 +2259,7 @@ const ensureDockerRuntimeResizerObserver = () => {
         return;
     }
     dockerRuntimeResizerObserver = new MutationObserver(() => {
+        decorateDockerRuntimeLanEndpointValues();
         queueDockerRuntimeResizerBind();
     });
     dockerRuntimeResizerObserver.observe(target, {

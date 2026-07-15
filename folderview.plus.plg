@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.07">
-<!ENTITY md5 "a8afa4521692e6eca58f71a5e39413bf">
+<!ENTITY version "2026.07.15.08">
+<!ENTITY md5 "2a5e65fa022c4e7d65d5325c0bab80d7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.08
+### Independent LAN IP and port masking
+- Fix: Split native Docker LAN IP:PORT values into independently maskable IP and port elements.
+- Fix: Prevent Mask ports from blurring the entire LAN IP:PORT field when Mask LAN IPs is disabled.
+- Compatibility: Handle IPv4, bracketed IPv6, multiple mappings, and host row refreshes while preserving the native displayed values.
+- Test: Added privacy contracts that reject whole-field LAN masking and require separate LAN IP and port targets.
+
 
 ###2026.07.15.07
 ### LAN privacy control

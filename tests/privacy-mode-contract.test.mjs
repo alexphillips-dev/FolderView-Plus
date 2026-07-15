@@ -111,8 +111,16 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(dockerCss, /#docker_view \.folder-preview img\.img/);
     assert.match(dockerCss, /runtime-mask-container-ips #docker_list tr\.folder-element > td:nth-child\(4\) \.docker_readmore/);
     assert.match(dockerCss, /runtime-mask-ports #docker_list tr\.folder-element > td:nth-child\(5\) \.docker_readmore/);
-    assert.match(dockerCss, /runtime-mask-local-ips #docker_list tr\.folder-element > td:nth-child\(6\) \.docker_readmore/);
-    assert.match(dockerCss, /runtime-mask-ports #docker_list tr\.folder-element > td:nth-child\(6\) \.docker_readmore/);
+    assert.doesNotMatch(dockerCss, /runtime-mask-local-ips #docker_list tr\.folder-element > td:nth-child\(6\) \.docker_readmore/);
+    assert.doesNotMatch(dockerCss, /runtime-mask-ports #docker_list tr\.folder-element > td:nth-child\(6\) \.docker_readmore/);
+    assert.match(dockerCss, /runtime-mask-local-ips \.fvplus-privacy-lan-ip-value/);
+    assert.match(dockerCss, /runtime-mask-ports \.fvplus-privacy-lan-port-value/);
+    assert.match(dockerJs, /const splitDockerLanEndpoint = \(value\) =>/);
+    assert.match(dockerJs, /const decorateDockerRuntimeLanEndpointValues = \(\) =>/);
+    assert.match(dockerJs, /fvplus-privacy-lan-ip-value/);
+    assert.match(dockerJs, /fvplus-privacy-lan-port-value/);
+    assert.match(dockerJs, /decorateDockerRuntimeLanEndpointValues\(\);/);
+    assert.match(dockerJs, /dockerRuntimeResizerObserver = new MutationObserver\(\(\) => \{\s*decorateDockerRuntimeLanEndpointValues\(\);/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime-mask-names/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

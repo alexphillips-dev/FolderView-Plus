@@ -805,6 +805,7 @@ const buildDockerIsolatedViewDeps = () => ({
             pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
         });
         applyRuntimePrefs(folderTypePrefs);
+        queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     },
     getScopedRuntimeContainersForFolder: (folderId, includeDescendants = true) =>
         getScopedRuntimeContainersForFolder(folderId, includeDescendants),
@@ -973,7 +974,7 @@ const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.D
 const getDockerRuntimePrivacyOptions = (prefs = null) => {
     const normalized = utils.normalizePrefs(prefs || folderTypePrefs || {});
     const dashboard = normalized?.dashboard && typeof normalized.dashboard === 'object' ? normalized.dashboard : {};
-    const enabled = dashboard.privacyMode === true;
+    const enabled = resolveDockerRuntimePrivacyMode(normalized);
     return {
         enabled,
         maskNames: enabled && dashboard.privacyMaskNames !== false,
@@ -4072,6 +4073,7 @@ const fetchDockerBootstrapPrefs = async () => {
     const nextPrefs = applyDockerPinnedFolderPrefsOverride(parsed?.prefs || {});
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
+    queueDockerRuntimePrivacyServerReconcile(nextPrefs);
     return nextPrefs;
 };
 
@@ -4230,13 +4232,45 @@ const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advan
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_ID = 'fvplus-docker-runtime-privacy-toggle';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID = 'fvplus-docker-runtime-privacy-shell';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_FALLBACK_HOST_ID = 'fvplus-docker-runtime-toolbar-controls';
+const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus.runtime.privacy.docker.v1';
 const DOCKER_LEGACY_HOST_BOOTSTRAP_RENDER_COMPAT = false;
 let dockerRuntimePrivacyToggleMountQueued = false;
 let dockerRuntimePrivacyPersistPromise = null;
 let dockerRuntimePrivacyPendingEnabled = null;
 let dockerRuntimePrivacyPersistedPrefs = null;
+let dockerRuntimePrivacyServerReconcileTimer = null;
+let dockerRuntimePrivacyStorageSyncBound = false;
 
-const readDockerRuntimePrivacyMode = () => utils.normalizePrefs(folderTypePrefs || {}).dashboard?.privacyMode === true;
+const readStoredDockerRuntimePrivacyMode = () => {
+    try {
+        const raw = String(window.localStorage?.getItem(DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY) ?? '').trim().toLowerCase();
+        if (['1', 'true', 'on'].includes(raw)) {
+            return true;
+        }
+        if (['0', 'false', 'off'].includes(raw)) {
+            return false;
+        }
+    } catch (_error) {
+    }
+    return null;
+};
+
+const writeStoredDockerRuntimePrivacyMode = (enabled) => {
+    try {
+        window.localStorage?.setItem(DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY, enabled === true ? '1' : '0');
+    } catch (_error) {
+    }
+};
+
+const resolveDockerRuntimePrivacyMode = (prefs = null) => {
+    const stored = readStoredDockerRuntimePrivacyMode();
+    if (stored !== null) {
+        return stored;
+    }
+    return utils.normalizePrefs(prefs || folderTypePrefs || {}).dashboard?.privacyMode === true;
+};
+
+const readDockerRuntimePrivacyMode = () => resolveDockerRuntimePrivacyMode(folderTypePrefs);
 
 const buildDockerRuntimePrivacyPrefsPayload = (enabled, prefsOverride = null) => {
     const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
@@ -4283,6 +4317,54 @@ const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) =>
         ...response,
         prefs: savedPrefs
     };
+};
+
+const queueDockerRuntimePrivacyServerReconcile = (prefsOverride = null, delayMs = 420) => {
+    const stored = readStoredDockerRuntimePrivacyMode();
+    if (stored === null) {
+        return;
+    }
+    const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
+    if (current.dashboard?.privacyMode === stored) {
+        return;
+    }
+    if (dockerRuntimePrivacyServerReconcileTimer) {
+        clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
+    }
+    dockerRuntimePrivacyServerReconcileTimer = setTimeout(async () => {
+        dockerRuntimePrivacyServerReconcileTimer = null;
+        const targetStored = readStoredDockerRuntimePrivacyMode();
+        if (targetStored === null || current.dashboard?.privacyMode === targetStored) {
+            return;
+        }
+        if (dockerRuntimePrivacyPersistPromise || dockerRuntimePrivacyPendingEnabled !== null) {
+            queueDockerRuntimePrivacyServerReconcile(folderTypePrefs, 700);
+            return;
+        }
+        try {
+            const response = await persistDockerRuntimePrivacyMode(targetStored, current);
+            folderTypePrefs = utils.normalizePrefs(response.prefs);
+            dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+            applyRuntimePrefs(folderTypePrefs);
+        } catch (_error) {
+            // Browser state remains authoritative. The next hydrated Docker
+            // bootstrap retries server reconciliation.
+        }
+    }, Math.max(0, Number(delayMs) || 0));
+};
+
+const bindDockerRuntimePrivacyStorageSync = () => {
+    if (dockerRuntimePrivacyStorageSyncBound || typeof window?.addEventListener !== 'function') {
+        return;
+    }
+    dockerRuntimePrivacyStorageSyncBound = true;
+    window.addEventListener('storage', (event) => {
+        if (String(event?.key || '') !== DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY) {
+            return;
+        }
+        applyRuntimePrefs(folderTypePrefs);
+        queueDockerRuntimePrivacyServerReconcile(folderTypePrefs, 120);
+    });
 };
 
 const findDockerRuntimeListViewToggleAnchor = () => {
@@ -4433,6 +4515,7 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
                 const response = await persistDockerRuntimePrivacyMode(targetEnabled, folderTypePrefs);
                 folderTypePrefs = utils.normalizePrefs(response?.prefs || buildDockerRuntimePrivacyPrefsPayload(targetEnabled));
                 dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+                writeStoredDockerRuntimePrivacyMode(targetEnabled);
                 applyRuntimePrefs(folderTypePrefs);
                 queueDockerRuntimePrivacyToggleMount();
             }
@@ -4448,6 +4531,11 @@ const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
     const previousPrefs = getDockerRuntimePersistedPrefs();
     const basePrefs = previousPrefs;
+    if (dockerRuntimePrivacyServerReconcileTimer) {
+        clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
+        dockerRuntimePrivacyServerReconcileTimer = null;
+    }
+    writeStoredDockerRuntimePrivacyMode(nextEnabled);
     const basePrivacyMode = utils.normalizePrefs(basePrefs || {}).dashboard?.privacyMode === true;
     if (basePrivacyMode === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
         folderTypePrefs = basePrefs;
@@ -4466,14 +4554,14 @@ const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
         await flushDockerRuntimePrivacyModePersistence();
     } catch (error) {
         dockerRuntimePrivacyPendingEnabled = null;
-        folderTypePrefs = previousPrefs;
-        dockerRuntimePrivacyPersistedPrefs = previousPrefs;
+        folderTypePrefs = buildDockerRuntimePrivacyPrefsPayload(nextEnabled, previousPrefs);
         applyRuntimePrefs(folderTypePrefs);
         queueDockerRuntimePrivacyToggleMount();
+        queueDockerRuntimePrivacyServerReconcile(previousPrefs, 1200);
         swal({
-            title: 'Privacy toggle save failed',
-            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not save the Docker privacy toggle.'))}<br>Reverted to the previous state.`,
-            type: 'error',
+            title: 'Privacy sync pending',
+            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not sync the Docker privacy toggle.'))}<br>The setting is saved in this browser and server synchronization will retry.`,
+            type: 'warning',
             html: true,
             confirmButtonText: 'OK'
         });
@@ -4663,6 +4751,7 @@ const createFolders = async () => {
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
+    queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
     lastLiveRefreshStateEntityCount = Object.keys(containersStateInfo || {}).length;
@@ -7636,7 +7725,7 @@ const applyRuntimePrefs = (prefs) => {
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
-    const dockerPrivacyMode = normalized?.dashboard?.privacyMode === true;
+    const dockerPrivacyMode = resolveDockerRuntimePrivacyMode(normalized);
     $('body').toggleClass('fvplus-privacy-docker-runtime', dockerPrivacyMode);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
@@ -7719,6 +7808,7 @@ bindDockerHostOpenDockerPatch();
 bindDockerUpdateActionClickCapture();
 bindDockerPostUpdateRenderReconcile();
 startDockerListViewModeObserver();
+bindDockerRuntimePrivacyStorageSync();
 queueDockerRuntimePrivacyToggleMount();
 
 if (FOLDER_VIEW_DEBUG_MODE) {

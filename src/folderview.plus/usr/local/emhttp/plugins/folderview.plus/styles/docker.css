@@ -351,6 +351,18 @@ body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-inspector-title {
     filter: blur(0.28rem);
 }
 
+body.fvplus-privacy-docker-runtime-mask-container-ips #docker_list tr.folder-element > td:nth-child(4) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-container-ips #docker_view tr.folder-element > td:nth-child(4) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_list tr.folder-element > td:nth-child(5) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_view tr.folder-element > td:nth-child(5) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-local-ips #docker_list tr.folder-element > td:nth-child(6) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-local-ips #docker_view tr.folder-element > td:nth-child(6) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_list tr.folder-element > td:nth-child(6) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_view tr.folder-element > td:nth-child(6) .docker_readmore {
+    filter: blur(0.28rem);
+    user-select: none;
+}
+
 td.ct-name.folder-name {
     position: relative;
     overflow: hidden;

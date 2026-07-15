@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.03">
-<!ENTITY md5 "00b41562af5818721ac0ee91139574e1">
+<!ENTITY version "2026.07.15.04">
+<!ENTITY md5 "33947734fa8e3bd179dda04172e6d01e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.04
+- Fix: Keep the Docker privacy toggle enabled across refreshes and Unraid tab navigation with browser-durable state and background server reconciliation.
+- Privacy: Mask native Container IP, Container Port, and LAN IP:Port values according to the granular Docker privacy settings.
+- Privacy: Synchronize the Docker privacy toggle between open browser tabs without exposing container details.
+- Quality: Add regression coverage for durable privacy state and native Docker column masking.
+
 
 ###2026.07.15.03
 - Fix: Persist the Docker-page privacy toggle immediately so its enabled state survives refreshes and navigation.

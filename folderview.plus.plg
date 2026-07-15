@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.09">
-<!ENTITY md5 "423032c43fbf90c2fb6cd82cc63747db">
+<!ENTITY version "2026.07.15.10">
+<!ENTITY md5 "ba4a29d2e6792cd4b0d3329f2fbef014">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.10
+### Version-specific update summaries
+- Fix: Corrected the release-note parser so descriptive section headings no longer terminate the current version block.
+- UI/UX: Replaced canned update headlines with the descriptive heading and exact change bullets recorded for the installed version.
+- Quality: Removed generic category headlines from the server endpoint and browser fallback so missing notes are reported honestly instead of implying unspecified fixes.
+- Test: Added a functional regression proving that only the requested version is rendered and generic release summaries cannot return.
+
 
 ###2026.07.15.09
 ### Settings topbar cleanup

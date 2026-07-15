@@ -1524,7 +1524,7 @@
         if ($version === '') {
             return [];
         }
-        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###|\z)/ms';
+        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms';
         if (!preg_match($pattern, $content, $match)) {
             return [];
         }
@@ -1536,7 +1536,7 @@
     }
 
     function extractLatestChangesBlock(string $content): array {
-        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $match)) {
+        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $match)) {
             return [];
         }
         $version = trim((string)($match[1] ?? ''));
@@ -1551,7 +1551,7 @@
     }
 
     function extractChangesEntries(string $content): array {
-        if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
+        if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
             return [];
         }
         $entries = [];
@@ -1687,8 +1687,7 @@
         if (trim($text) === '') {
             return [
                 'id' => 'bugfix',
-                'label' => 'Bug Fix Update',
-                'headline' => 'This update includes bug fixes and quality improvements.'
+                'label' => 'Bug Fix Update'
             ];
         }
 
@@ -1729,8 +1728,7 @@
         if ($topScore > 0 && $secondScore > 0 && abs($topScore - $secondScore) <= 1) {
             return [
                 'id' => 'mixed',
-                'label' => 'Mixed Update',
-                'headline' => 'This update includes features, fixes, and quality improvements.'
+                'label' => 'Mixed Update'
             ];
         }
 
@@ -1747,29 +1745,76 @@
             'maintenance' => 'Maintenance Update',
             'mixed' => 'Mixed Update'
         ];
-        $headlines = [
-            'feature' => 'This update includes new features and enhancements.',
-            'bugfix' => 'This update includes bug fixes and quality improvements.',
-            'security' => 'This update includes security hardening and safety improvements.',
-            'performance' => 'This update includes performance and reliability improvements.',
-            'ui' => 'This update includes UI and usability improvements.',
-            'maintenance' => 'This update includes maintenance and quality improvements.',
-            'mixed' => 'This update includes features, fixes, and quality improvements.'
-        ];
-
         return [
             'id' => $topCategory,
-            'label' => (string)$labels[$topCategory],
-            'headline' => (string)$headlines[$topCategory]
+            'label' => (string)$labels[$topCategory]
         ];
+    }
+
+    function stripChangesLineDecoration(string $line): string {
+        $cleaned = trim($line);
+        $cleaned = preg_replace('/^#{1,6}\s+/', '', $cleaned);
+        $cleaned = preg_replace('/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i', '', (string)$cleaned);
+        return trim((string)$cleaned);
+    }
+
+    function buildChangesHeadline(array $lines, string $version = ''): string {
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if (preg_match('/^#{1,6}\s+\S/', $trimmed)) {
+                $heading = stripChangesLineDecoration($trimmed);
+                if ($heading !== '') {
+                    return $heading;
+                }
+            }
+        }
+
+        $fallbackLines = [];
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '' || $trimmed === '...') {
+                continue;
+            }
+            $cleaned = stripChangesLineDecoration($trimmed);
+            if ($cleaned === '') {
+                continue;
+            }
+            $fallbackLines[] = $cleaned;
+            if (!preg_match('/^(?:Quality|Test|Maintenance):\s*/i', $trimmed)) {
+                return $cleaned;
+            }
+        }
+
+        if (count($fallbackLines) > 0) {
+            return (string)$fallbackLines[0];
+        }
+
+        $safeVersion = trim($version);
+        return $safeVersion !== ''
+            ? "Release notes are unavailable for FolderView Plus {$safeVersion}."
+            : 'Release notes are unavailable for this installed version.';
+    }
+
+    function filterChangesDetailLines(array $lines): array {
+        $details = [];
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '' || preg_match('/^#{1,6}\s+\S/', $trimmed)) {
+                continue;
+            }
+            $details[] = $trimmed;
+        }
+        return $details;
     }
 
     function readCurrentVersionChangeSummary(int $maxLines = 14): array {
         $summary = readChangesSummaryForVersion(readInstalledVersion(), $maxLines, false);
-        $category = classifyChangesCategory((array)($summary['lines'] ?? []));
+        $releaseLines = (array)($summary['lines'] ?? []);
+        $category = classifyChangesCategory($releaseLines);
         $summary['category'] = (string)($category['id'] ?? 'bugfix');
         $summary['categoryLabel'] = (string)($category['label'] ?? 'Bug Fix Update');
-        $summary['headline'] = (string)($category['headline'] ?? 'This update includes bug fixes and quality improvements.');
+        $summary['headline'] = buildChangesHeadline($releaseLines, (string)($summary['version'] ?? ''));
+        $summary['lines'] = filterChangesDetailLines($releaseLines);
         return $summary;
     }
 

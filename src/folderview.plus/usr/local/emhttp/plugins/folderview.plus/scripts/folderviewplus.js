@@ -4982,37 +4982,30 @@ const fetchCurrentUpdateNotes = async () => apiGetJson('/plugins/folderview.plus
 const UPDATE_NOTES_CATEGORY_META = {
     feature: {
         label: 'Feature Update',
-        headline: 'This update includes new features and enhancements.',
         className: 'is-feature'
     },
     bugfix: {
         label: 'Bug Fix Update',
-        headline: 'This update includes bug fixes and quality improvements.',
         className: 'is-bugfix'
     },
     security: {
         label: 'Security Update',
-        headline: 'This update includes security hardening and safety improvements.',
         className: 'is-security'
     },
     performance: {
         label: 'Performance Update',
-        headline: 'This update includes performance and reliability improvements.',
         className: 'is-performance'
     },
     ui: {
         label: 'UI/UX Update',
-        headline: 'This update includes UI and usability improvements.',
         className: 'is-ui'
     },
     maintenance: {
         label: 'Maintenance Update',
-        headline: 'This update includes maintenance and quality improvements.',
         className: 'is-maintenance'
     },
     mixed: {
         label: 'Mixed Update',
-        headline: 'This update includes features, fixes, and quality improvements.',
         className: 'is-mixed'
     }
 };
@@ -5022,6 +5015,31 @@ const normalizeUpdateNotesCategoryId = (value) => {
     return Object.prototype.hasOwnProperty.call(UPDATE_NOTES_CATEGORY_META, normalized)
         ? normalized
         : 'bugfix';
+};
+
+const stripUpdateNotesLineDecoration = (line) => String(line || '')
+    .trim()
+    .replace(/^#{1,6}\s+/, '')
+    .replace(/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i, '')
+    .trim();
+
+const buildUpdateNotesHeadline = (lines, version = '') => {
+    const normalizedLines = Array.isArray(lines)
+        ? lines.map((line) => String(line || '').trim()).filter((line) => line !== '' && line !== '...')
+        : [];
+    const heading = normalizedLines.find((line) => /^#{1,6}\s+\S/.test(line));
+    if (heading) {
+        return stripUpdateNotesLineDecoration(heading);
+    }
+    const preferredLine = normalizedLines.find((line) => !/^(?:Quality|Test|Maintenance):\s*/i.test(line));
+    const actualLine = stripUpdateNotesLineDecoration(preferredLine || normalizedLines[0] || '');
+    if (actualLine) {
+        return actualLine;
+    }
+    const safeVersion = String(version || '').trim();
+    return safeVersion
+        ? `Release notes are unavailable for FolderView Plus ${safeVersion}.`
+        : 'Release notes are unavailable for this installed version.';
 };
 
 const getUpdateNotesSeenVersion = () => {
@@ -5200,7 +5218,6 @@ const showUpdateNotesPanel = ({
     const categoryId = normalizeUpdateNotesCategoryId(category);
     const categoryMeta = UPDATE_NOTES_CATEGORY_META[categoryId] || UPDATE_NOTES_CATEGORY_META.bugfix;
     const resolvedCategoryLabel = String(categoryLabel || '').trim() || categoryMeta.label;
-    const resolvedHeadline = String(headline || '').trim() || categoryMeta.headline;
     const normalizedSourceVersion = String(sourceVersion || '').trim();
     const fallbackNote = (
         usedFallback === true
@@ -5216,6 +5233,7 @@ const showUpdateNotesPanel = ({
             .filter((line) => line !== '' && line !== '...')
             .map((line) => line.replace(/^[-*]\s*/, ''))
         : [];
+    const resolvedHeadline = String(headline || '').trim() || buildUpdateNotesHeadline(normalizedLines, version);
     const listHtml = normalizedLines.length
         ? normalizedLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')
         : `<li>${escapeHtml(resolvedHeadline)}</li>`;

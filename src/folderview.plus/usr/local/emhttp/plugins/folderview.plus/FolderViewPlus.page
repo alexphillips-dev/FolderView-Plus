@@ -507,10 +507,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <div class="settings-privacy-title">Privacy mode</div>
                         <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-container-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskContainerIps', this.checked)"> Mask container IPs</label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-local-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask local IPs</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask LAN IPs</label>
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
                         </div>
+                        <div class="setting-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
                     </div>
                 </div>
                 <div class="settings-mini-card">

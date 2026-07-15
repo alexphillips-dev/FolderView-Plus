@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.06">
-<!ENTITY md5 "b01179894dca951ef01b61609bfb1a0a">
+<!ENTITY version "2026.07.15.07">
+<!ENTITY md5 "a8afa4521692e6eca58f71a5e39413bf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.07
+### LAN privacy control
+- Fix: Replaced the ineffective Mask container IPs setting with a single Mask LAN IPs control wired to the IP portion of the Docker page's LAN IP:PORT column.
+- UI/UX: Removed the redundant Mask local IPs checkbox and clarified that Mask ports controls the port portion independently.
+- Test: Updated privacy regressions to enforce the LAN-facing label, preference binding, and removal of the duplicate controls.
+
 
 ###2026.07.15.06
 ### Privacy mask settings

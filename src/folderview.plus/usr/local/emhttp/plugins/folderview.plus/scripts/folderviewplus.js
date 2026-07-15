@@ -7068,8 +7068,7 @@ const renderDashboardControls = (type) => {
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
     $(`#${type}-dashboard-privacy-mask-names`).prop('checked', dashboard.privacyMaskNames !== false);
     if (type === 'docker') {
-        $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
-        $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
+        $('#docker-dashboard-privacy-mask-lan-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
         $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
         $('#docker-dashboard-preview-context').val(dashboard.previewContext);
         $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);

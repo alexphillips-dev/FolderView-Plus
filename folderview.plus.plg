@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.11">
-<!ENTITY md5 "ab53e5067f9fa35e0cbb611b4108b333">
+<!ENTITY version "2026.07.15.12">
+<!ENTITY md5 "196ff7467591f9ef4151d11b4d9b7642">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.12
+### Settings search alignment
+- UI/UX: Aligned the Settings search field with the Basic, Advanced, and Wizard controls while keeping its scope controls compact beneath the field.
+- Fix: Contained the search field's padding and border within its declared width so it no longer overlaps or clips the Basic button.
+- Responsive: Preserved the centered, full-width search layout on smaller screens.
+- Test: Added focused regression coverage for desktop alignment, width containment, and the mobile alignment override.
+
 
 ###2026.07.15.11
 ### Smarter Settings search

@@ -7790,7 +7790,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 
 .fv-settings-right {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: nowrap;
     gap: 0.35rem 0.45rem;
 }
@@ -7845,6 +7845,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.35rem;
+    box-sizing: border-box;
     width: 100%;
     min-height: 34px;
     padding: 0 0.35rem 0 0.55rem;

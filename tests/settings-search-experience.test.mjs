@@ -54,3 +54,10 @@ test('settings search keeps Basic and per-tab Advanced queries and hides irrelev
     assert.match(settingsJs, /settingsUiState\.mode === 'advanced' && settingsUiState\.searchAllAdvanced !== true/);
     assert.match(settingsCss, /#fv-settings-topbar\[data-fv-mode="basic"\] \.fv-search-scope\s*\{[\s\S]*display:\s*none/);
 });
+
+test('settings search aligns with desktop mode controls without overlapping them', () => {
+    assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*align-items:\s*flex-start[\s\S]*flex-wrap:\s*nowrap/);
+    assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*display:\s*inline-grid[\s\S]*width:\s*clamp\(240px,\s*20vw,\s*320px\)/);
+    assert.match(settingsCss, /\.fv-settings-search-wrap\s*\{[\s\S]*box-sizing:\s*border-box[\s\S]*width:\s*100%/);
+    assert.match(settingsCss, /@media \(max-width:\s*760px\)[\s\S]*\.fv-settings-right\s*\{[\s\S]*align-items:\s*center/);
+});

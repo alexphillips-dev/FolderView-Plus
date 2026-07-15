@@ -1103,9 +1103,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.doesNotMatch(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*border-right:\s*1px solid rgba\(255,\s*255,\s*255,\s*0\.08\)/);
     assert.match(settingsCss, /#fv-settings-topbar\s*\{[\s\S]*justify-content:\s*flex-start/);
     assert.match(settingsCss, /\.fv-settings-left\s*\{[\s\S]*margin-right:\s*auto/);
-    assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*align-items:\s*flex-start[\s\S]*flex-wrap:\s*nowrap/);
     assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*flex:\s*0 0 auto/);
     assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*width:\s*clamp\(240px,\s*20vw,\s*320px\)/);
+    assert.match(settingsCss, /\.fv-settings-search-wrap\s*\{[\s\S]*box-sizing:\s*border-box[\s\S]*width:\s*100%/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*justify-self:\s*end/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*justify-content:\s*flex-end/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*width:\s*auto/);

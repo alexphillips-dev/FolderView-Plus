@@ -63,7 +63,13 @@ test('settings search aligns with desktop mode controls without overlapping them
 });
 
 test('settings Wizard control aligns with the toolbar and uses theme-aware blue text', () => {
-    assert.match(settingsCss, /#fv-run-wizard\s*\{[\s\S]*align-self:\s*flex-start[\s\S]*margin:\s*0/);
+    assert.match(settingsCss, /#fv-run-wizard\s*\{[\s\S]*align-self:\s*flex-start[\s\S]*margin:\s*0\.18rem 0 0/);
     assert.match(settingsCss, /#fv-run-wizard\s*\{[\s\S]*min-height:\s*34px/);
     assert.match(settingsCss, /#fv-settings-root #fv-run-wizard\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-info\) !important/);
+});
+
+test('settings search clear control resists host button inflation', () => {
+    assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search\s*\{[\s\S]*width:\s*24px !important[\s\S]*min-width:\s*24px !important/);
+    assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search\s*\{[\s\S]*padding:\s*0 !important[\s\S]*border:\s*0 !important[\s\S]*box-shadow:\s*none !important/);
+    assert.match(settingsCss, /#fv-settings-root #fv-settings-clear-search \.fa\s*\{[\s\S]*font-size:\s*0\.8rem/);
 });

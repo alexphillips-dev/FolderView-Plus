@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.10">
-<!ENTITY md5 "ba4a29d2e6792cd4b0d3329f2fbef014">
+<!ENTITY version "2026.07.15.11">
+<!ENTITY md5 "ab53e5067f9fa35e0cbb611b4108b333">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.11
+### Smarter Settings search
+- Feature: Added setting-level word-token search with privacy-safe indexing of labels, descriptions, aliases, and control metadata.
+- UI/UX: Added live result counts, highlighted matches, Enter-to-jump navigation, a clear button, Escape-to-reset behavior, and a dedicated no-results panel.
+- UI/UX: Replaced the Advanced search checkbox with a compact Current tab/All advanced scope selector and hid it in Basic mode.
+- Performance: Added a cached search index and short input debounce so large Settings pages remain responsive while typing.
+- Accessibility: Added native search semantics, accessible scope and clear controls, and polite live-result announcements.
+- Quality: Preserved independent Basic and per-tab Advanced queries while excluding folder names, runtime tables, dynamic lists, outputs, and entered values from the index.
+- Test: Added focused regressions for search structure, matching, privacy exclusions, persistence, keyboard behavior, responsive styling, and scope handling.
+
 
 ###2026.07.15.10
 ### Version-specific update summaries

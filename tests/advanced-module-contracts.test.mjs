@@ -60,7 +60,10 @@ test('settings search includes user-facing aliases for recent support terms', ()
     assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
     assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'native organizer'[\s\S]*'support bundle'/);
     assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
-    assert.match(script, /getSectionSearchAliases\(section\),[\s\S]*section\.nodes\.map\(\(node\) => node\.textContent \|\| ''\)/);
+    assert.match(script, /const buildSettingsSearchIndex = \(\) => \{/);
+    assert.match(script, /getPrivacySafeSettingsSearchText\(target\)/);
+    assert.match(script, /matchesSettingsSearchTokens\(entry\.text, tokens\)/);
+    assert.doesNotMatch(script, /getSectionSearchHaystack/);
 });
 
 test('advanced backup and template mutations are lock-guarded', () => {

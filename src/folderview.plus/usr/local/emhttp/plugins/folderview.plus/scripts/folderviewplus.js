@@ -741,6 +741,7 @@ const settingsUiState = {
     controlsInitialized: false,
     mode: 'basic',
     query: '',
+    basicSearchQuery: '',
     sections: [],
     baselineByInputId: new Map(),
     activeSectionKey: '',
@@ -753,6 +754,11 @@ const settingsUiState = {
         diagnostics: ''
     },
     searchAllAdvanced: false,
+    searchIndex: [],
+    searchIndexRevision: 0,
+    searchResultCache: null,
+    searchDebounceTimer: null,
+    activeSearchMatches: [],
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
@@ -1406,7 +1412,7 @@ const persistActiveAdvancedSection = (sectionKey) => {
 
 const setAdvancedTab = (tab, persist = true) => {
     settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
-    if (settingsUiState.mode === 'advanced') {
+    if (settingsUiState.mode === 'advanced' && settingsUiState.searchAllAdvanced !== true) {
         const nextQuery = readActiveAdvancedSearchQuery();
         settingsUiState.query = nextQuery;
         const searchInput = $('#fv-settings-search');
@@ -1595,6 +1601,7 @@ const buildSettingsSections = (options = {}) => {
     settingsUiState.sections = sections;
     settingsSectionRegistrySignature = signature;
     invalidateTrackedSettingsInputs();
+    invalidateSettingsSearchIndex();
     return true;
 };
 
@@ -1667,14 +1674,348 @@ const getSectionSearchAliases = (section) => {
     return Array.isArray(aliases) ? aliases.join(' ') : '';
 };
 
-const getSectionSearchHaystack = (section) => [
-    section?.key || '',
-    section?.title || '',
-    getSectionSearchAliases(section),
-    ...(Array.isArray(section?.nodes) ? section.nodes.map((node) => node.textContent || '') : [])
-]
-    .join(' ')
-    .toLowerCase();
+const SETTINGS_SEARCH_DEBOUNCE_MS = 90;
+const SETTINGS_SEARCH_FIELD_SELECTOR = [
+    '[data-fv-search-item]',
+    '.setting-toggle',
+    '.setting-select',
+    '.setting-inline-number',
+    '.setting-button-row',
+    '.fv-rule-builder-field',
+    '.bulk-row',
+    '.backup-compare-row',
+    '.schedule-row',
+    '.fv-theme-import-row',
+    'label'
+].join(',');
+const SETTINGS_SEARCH_CONTEXT_SELECTOR = [
+    '.settings-mini-card',
+    '.settings-privacy-section',
+    '.fv-rule-stage',
+    '.fv-recovery-stage',
+    '.fv-operations-stage',
+    '.bulk-stage-heading',
+    '.rules-header',
+    'summary'
+].join(',');
+const SETTINGS_SEARCH_PRIVATE_SELECTOR = [
+    'tbody',
+    'option',
+    'pre',
+    '[role="listbox"]',
+    '[data-fv-search-private]',
+    '[id$="-list"]',
+    '[id$="-output"]',
+    '[id$="-suggestions"]',
+    '[id$="-preview"]',
+    '[id$="-result"]',
+    '[id$="-summary"]',
+    '[id$="-status"]',
+    '[id$="-detail"]',
+    '.fv-rule-list',
+    '.bulk-items-list',
+    '.fv-activity-feed-list',
+    '.diagnostics-output',
+    '.status-line'
+].join(',');
+
+const normalizeSettingsSearchText = (value) => String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const tokenizeSettingsSearchQuery = (query) => Array.from(new Set(
+    normalizeSettingsSearchText(query).split(' ').filter(Boolean)
+));
+
+const matchesSettingsSearchTokens = (text, tokens) => (
+    tokens.length > 0 && tokens.every((token) => text.includes(token))
+);
+
+const invalidateSettingsSearchIndex = () => {
+    settingsUiState.searchIndex = [];
+    settingsUiState.searchIndexRevision += 1;
+    settingsUiState.searchResultCache = null;
+};
+
+const getPrivacySafeSettingsSearchText = (element) => {
+    if (!(element instanceof Element)) {
+        return '';
+    }
+    const clone = element.cloneNode(true);
+    if (clone instanceof Element) {
+        clone.querySelectorAll([
+            SETTINGS_SEARCH_PRIVATE_SELECTOR,
+            'input',
+            'select',
+            'textarea',
+            'script',
+            'style'
+        ].join(',')).forEach((node) => node.remove());
+    }
+    const parts = [clone.textContent || ''];
+    const attributeNodes = [element, ...Array.from(element.querySelectorAll('[aria-label], [title], [placeholder], [data-fv-search]'))];
+    for (const node of attributeNodes) {
+        if (node !== element && node.closest?.(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
+            continue;
+        }
+        for (const attribute of ['aria-label', 'title', 'placeholder', 'data-fv-search']) {
+            const value = String(node.getAttribute?.(attribute) || '').trim();
+            if (value) {
+                parts.push(value);
+            }
+        }
+    }
+    return normalizeSettingsSearchText(parts.join(' '));
+};
+
+const getSettingsSearchFieldTarget = (control) => {
+    if (!(control instanceof Element)) {
+        return null;
+    }
+    const field = control.closest(SETTINGS_SEARCH_FIELD_SELECTOR);
+    return field instanceof Element ? field : control;
+};
+
+const addSettingsSearchIndexEntry = (entries, seenTargets, section, target, kind = 'field') => {
+    if (!(target instanceof Element) || seenTargets.has(target)) {
+        return;
+    }
+    if (target.closest(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
+        return;
+    }
+    const text = normalizeSettingsSearchText([
+        section.key,
+        section.title,
+        getPrivacySafeSettingsSearchText(target)
+    ].join(' '));
+    if (!text) {
+        return;
+    }
+    seenTargets.add(target);
+    entries.push({
+        sectionKey: section.key,
+        section,
+        target,
+        kind,
+        text
+    });
+};
+
+const buildSettingsSearchIndex = () => {
+    if (settingsUiState.searchIndex.length > 0) {
+        return settingsUiState.searchIndex;
+    }
+    const entries = [];
+    for (const section of settingsUiState.sections) {
+        const seenTargets = new Set();
+        for (const sectionNode of section.nodes || []) {
+            if (!(sectionNode instanceof Element)) {
+                continue;
+            }
+            const controls = [];
+            if (sectionNode.matches?.('input, select, textarea, button')) {
+                controls.push(sectionNode);
+            }
+            controls.push(...Array.from(sectionNode.querySelectorAll('input, select, textarea, button')));
+            for (const control of controls) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, getSettingsSearchFieldTarget(control), 'field');
+            }
+
+            const fields = [];
+            if (sectionNode.matches?.(SETTINGS_SEARCH_FIELD_SELECTOR)) {
+                fields.push(sectionNode);
+            }
+            fields.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_FIELD_SELECTOR)));
+            for (const field of fields) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, field, 'field');
+            }
+
+            const contexts = [];
+            if (sectionNode.matches?.(SETTINGS_SEARCH_CONTEXT_SELECTOR)) {
+                contexts.push(sectionNode);
+            }
+            contexts.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_CONTEXT_SELECTOR)));
+            for (const context of contexts) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, context, 'context');
+            }
+        }
+        const sectionText = normalizeSettingsSearchText([
+            section.key,
+            section.title,
+            getSectionSearchAliases(section)
+        ].join(' '));
+        if (sectionText) {
+            entries.push({
+                sectionKey: section.key,
+                section,
+                target: section.heading,
+                kind: 'section',
+                text: sectionText
+            });
+        }
+    }
+    settingsUiState.searchIndex = entries;
+    return entries;
+};
+
+const getScopedSettingsSearchSections = () => settingsUiState.sections.filter((section) => {
+    if (settingsUiState.mode === 'basic') {
+        return isBasicWorkspaceSection(section);
+    }
+    if (isBasicWorkspaceSection(section)) {
+        return false;
+    }
+    return settingsUiState.searchAllAdvanced === true || section.advancedGroup === settingsUiState.advancedTab;
+});
+
+const reduceSettingsSearchMatchesToSpecificTargets = (matches) => matches.filter((entry, index) => (
+    !matches.some((candidate, candidateIndex) => (
+        candidateIndex !== index
+        && candidate.sectionKey === entry.sectionKey
+        && entry.target !== candidate.target
+        && entry.target.contains(candidate.target)
+    ))
+));
+
+const getSettingsSearchEvaluation = () => {
+    const tokens = tokenizeSettingsSearchQuery(settingsUiState.query);
+    const cacheKey = [
+        settingsUiState.searchIndexRevision,
+        settingsUiState.mode,
+        settingsUiState.advancedTab,
+        settingsUiState.searchAllAdvanced ? 'all' : 'current',
+        tokens.join('|')
+    ].join(':');
+    if (settingsUiState.searchResultCache?.key === cacheKey) {
+        return settingsUiState.searchResultCache.value;
+    }
+    if (tokens.length === 0) {
+        const empty = { tokens, matches: [], sectionKeys: new Set(), total: 0 };
+        settingsUiState.searchResultCache = { key: cacheKey, value: empty };
+        return empty;
+    }
+
+    const scopedSections = getScopedSettingsSearchSections();
+    const scopedKeys = new Set(scopedSections.map((section) => section.key));
+    const index = buildSettingsSearchIndex();
+    const matches = [];
+    for (const section of scopedSections) {
+        const sectionEntries = index.filter((entry) => entry.sectionKey === section.key);
+        const fieldMatches = sectionEntries.filter((entry) => (
+            entry.kind !== 'section' && matchesSettingsSearchTokens(entry.text, tokens)
+        ));
+        if (fieldMatches.length > 0) {
+            matches.push(...reduceSettingsSearchMatchesToSpecificTargets(fieldMatches));
+            continue;
+        }
+        const sectionMatch = sectionEntries.find((entry) => (
+            entry.kind === 'section' && matchesSettingsSearchTokens(entry.text, tokens)
+        ));
+        if (sectionMatch) {
+            matches.push(sectionMatch);
+        }
+    }
+    const uniqueMatches = matches.filter((entry, indexValue) => (
+        matches.findIndex((candidate) => candidate.target === entry.target) === indexValue
+        && scopedKeys.has(entry.sectionKey)
+    ));
+    const value = {
+        tokens,
+        matches: uniqueMatches,
+        sectionKeys: new Set(uniqueMatches.map((entry) => entry.sectionKey)),
+        total: uniqueMatches.length
+    };
+    settingsUiState.searchResultCache = { key: cacheKey, value };
+    return value;
+};
+
+const restoreSearchOpenedDetails = () => {
+    document.querySelectorAll('details[data-fv-search-opened="1"]').forEach((details) => {
+        details.open = false;
+        delete details.dataset.fvSearchOpened;
+    });
+};
+
+const ensureSettingsSearchEmptyState = () => {
+    let emptyState = document.getElementById('fv-settings-search-empty');
+    if (emptyState instanceof HTMLElement) {
+        return emptyState;
+    }
+    emptyState = document.createElement('div');
+    emptyState.id = 'fv-settings-search-empty';
+    emptyState.className = 'fv-settings-search-empty';
+    emptyState.hidden = true;
+    emptyState.innerHTML = `
+        <i class="fa fa-search" aria-hidden="true"></i>
+        <div>
+            <strong>No settings found</strong>
+            <span>Try fewer words, another Advanced scope, or reset the search.</span>
+        </div>
+        <button type="button" data-fv-clear-settings-search><i class="fa fa-times" aria-hidden="true"></i> Reset search</button>
+    `;
+    const topbar = document.getElementById('fv-settings-topbar');
+    topbar?.insertAdjacentElement('afterend', emptyState);
+    return emptyState;
+};
+
+const renderSettingsSearchFeedback = (evaluation) => {
+    const hasQuery = tokenizeSettingsSearchQuery(settingsUiState.query).length > 0;
+    const total = Number(evaluation?.total || 0);
+    const status = document.getElementById('fv-settings-search-status');
+    const clearButton = document.getElementById('fv-settings-clear-search');
+    if (status) {
+        status.textContent = hasQuery
+            ? (total === 0 ? 'No settings found' : `${total} ${total === 1 ? 'setting' : 'settings'} found`)
+            : '';
+        status.title = total > 0 ? 'Press Enter to jump to the first matching setting' : '';
+    }
+    if (clearButton instanceof HTMLButtonElement) {
+        clearButton.hidden = !hasQuery;
+    }
+    const emptyState = ensureSettingsSearchEmptyState();
+    emptyState.hidden = !(hasQuery && total === 0);
+};
+
+const syncSettingsSearchMatchPresentation = () => {
+    document.querySelectorAll('.fv-setting-search-match').forEach((element) => {
+        element.classList.remove('fv-setting-search-match');
+    });
+    restoreSearchOpenedDetails();
+    const evaluation = getSettingsSearchEvaluation();
+    settingsUiState.activeSearchMatches = evaluation.matches.filter((entry) => entry.target?.isConnected);
+    for (const entry of settingsUiState.activeSearchMatches) {
+        entry.target.classList.add('fv-setting-search-match');
+        const details = entry.target.closest('details');
+        if (details instanceof HTMLDetailsElement && !details.open) {
+            details.open = true;
+            details.dataset.fvSearchOpened = '1';
+        }
+    }
+    renderSettingsSearchFeedback(evaluation);
+};
+
+const focusFirstSettingsSearchMatch = () => {
+    const firstMatch = settingsUiState.activeSearchMatches.find((entry) => entry.target?.isConnected);
+    if (!firstMatch) {
+        return false;
+    }
+    const target = firstMatch.target;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const focusTarget = target.matches('input, select, textarea, button, summary')
+        ? target
+        : target.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), summary');
+    if (focusTarget instanceof HTMLElement) {
+        window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 180);
+    } else if (target instanceof HTMLElement) {
+        target.tabIndex = -1;
+        window.setTimeout(() => target.focus({ preventScroll: true }), 180);
+    }
+    return true;
+};
 
 const sectionContainsSelector = (section, selector) => {
     const nodes = Array.isArray(section?.nodes) ? section.nodes : [];
@@ -1722,7 +2063,7 @@ const getVisibleSections = () => settingsUiState.sections.filter((section) => {
     if (!query) {
         return true;
     }
-    return getSectionSearchHaystack(section).includes(query);
+    return getSettingsSearchEvaluation().sectionKeys.has(section.key);
 });
 
 const renderAdvancedNav = () => {
@@ -1859,17 +2200,18 @@ const applySettingsSectionVisibility = () => {
     }
 
     renderAdvancedNav();
-    const searchScopeToggle = $('#fv-search-all-advanced');
-    if (searchScopeToggle.length) {
+    const searchScopeSelect = $('#fv-settings-search-scope');
+    if (searchScopeSelect.length) {
         const enabled = settingsUiState.mode === 'advanced';
-        searchScopeToggle.prop('disabled', !enabled);
-        searchScopeToggle.prop('checked', settingsUiState.searchAllAdvanced === true);
-        searchScopeToggle.closest('.fv-search-scope').toggleClass('is-disabled', !enabled);
+        searchScopeSelect.prop('disabled', !enabled);
+        searchScopeSelect.val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
+        searchScopeSelect.closest('.fv-search-scope').toggleClass('is-disabled', !enabled);
     }
     const modeButtons = $('.fv-mode-btn');
     modeButtons.removeClass('is-active');
     modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
     $('#fv-settings-topbar').attr('data-fv-mode', settingsUiState.mode);
+    syncSettingsSearchMatchPresentation();
     refreshSectionApplyModeBadges();
 };
 
@@ -1885,7 +2227,7 @@ const syncSectionJumpOptions = () => {
         settingsUiState.activeSectionKey = visibleSections[0]?.key || '';
     }
     const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
-    if (activeSection?.advanced) {
+    if (activeSection?.advanced && !(settingsUiState.query && settingsUiState.searchAllAdvanced)) {
         setAdvancedTab(activeSection.advancedGroup);
     }
     persistActiveAdvancedSection(settingsUiState.activeSectionKey);
@@ -1924,11 +2266,13 @@ const setSettingsMode = (mode, { persistServer = false } = {}) => {
             setAdvancedTab(activeSection.advancedGroup);
         }
         settingsUiState.query = readActiveAdvancedSearchQuery();
-        const searchInput = $('#fv-settings-search');
-        if (searchInput.length) {
-            searchInput.val(settingsUiState.query);
-        }
         void ensureAdvancedDataLoaded();
+    } else {
+        settingsUiState.query = normalizedFilter(settingsUiState.basicSearchQuery);
+    }
+    const searchInput = $('#fv-settings-search');
+    if (searchInput.length) {
+        searchInput.val(settingsUiState.query);
     }
     persistTableUiState();
     applySettingsSectionVisibility();
@@ -1996,15 +2340,45 @@ const setSettingsSearchQuery = (query) => {
     settingsUiState.query = normalizedFilter(query);
     if (settingsUiState.mode === 'advanced') {
         writeActiveAdvancedSearchQuery(settingsUiState.query);
+    } else {
+        settingsUiState.basicSearchQuery = settingsUiState.query;
     }
+    settingsUiState.searchResultCache = null;
     persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
 };
 
+const scheduleSettingsSearchQuery = (query, { immediate = false } = {}) => {
+    if (settingsUiState.searchDebounceTimer !== null) {
+        window.clearTimeout(settingsUiState.searchDebounceTimer);
+        settingsUiState.searchDebounceTimer = null;
+    }
+    if (immediate) {
+        setSettingsSearchQuery(query);
+        return;
+    }
+    settingsUiState.searchDebounceTimer = window.setTimeout(() => {
+        settingsUiState.searchDebounceTimer = null;
+        setSettingsSearchQuery(query);
+    }, SETTINGS_SEARCH_DEBOUNCE_MS);
+};
+
+const clearSettingsSearch = ({ focus = true } = {}) => {
+    const input = document.getElementById('fv-settings-search');
+    if (input instanceof HTMLInputElement) {
+        input.value = '';
+    }
+    scheduleSettingsSearchQuery('', { immediate: true });
+    if (focus && input instanceof HTMLInputElement) {
+        input.focus();
+    }
+};
+
 const setSearchAllAdvanced = (enabled) => {
     settingsUiState.searchAllAdvanced = enabled === true;
+    settingsUiState.searchResultCache = null;
     writeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0', { delayMs: 60, idle: true });
     persistTableUiState();
     if (settingsUiState.mode === 'advanced') {
@@ -2306,12 +2680,20 @@ const initSettingsControls = () => {
                 <div class="fv-settings-right">
                     <div class="fv-settings-search-block">
                         <div class="fv-settings-search-wrap">
-                            <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                            <i class="fa fa-search fv-settings-search-icon" aria-hidden="true"></i>
+                            <input type="search" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings" aria-controls="fv-settings-root" aria-describedby="fv-settings-search-status" autocomplete="off" spellcheck="false" enterkeyhint="search">
+                            <button type="button" id="fv-settings-clear-search" class="fv-settings-clear-search" aria-label="Clear settings search" title="Clear search" hidden><i class="fa fa-times" aria-hidden="true"></i></button>
                         </div>
-                        <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
-                            <input type="checkbox" id="fv-search-all-advanced">
-                            Search all advanced
-                        </label>
+                        <div class="fv-settings-search-meta">
+                            <span id="fv-settings-search-status" class="fv-settings-search-status" role="status" aria-live="polite" aria-atomic="true"></span>
+                            <label class="fv-search-scope" for="fv-settings-search-scope" title="Choose whether Advanced search covers this tab or every Advanced tab">
+                                <span>Scope</span>
+                                <select id="fv-settings-search-scope" aria-label="Advanced settings search scope">
+                                    <option value="current">Current tab</option>
+                                    <option value="all">All advanced</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
                     <span class="fv-mode-toggle" title="Settings mode">
                         <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
@@ -2347,11 +2729,30 @@ const initSettingsControls = () => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode, { persistServer: true });
     });
-    $('#fv-settings-search').off('input.fvui').on('input.fvui', (event) => {
-        setSettingsSearchQuery($(event.currentTarget).val());
+    $('#fv-settings-search')
+        .off('input.fvui keydown.fvui')
+        .on('input.fvui', (event) => {
+            scheduleSettingsSearchQuery($(event.currentTarget).val());
+        })
+        .on('keydown.fvui', (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                clearSettingsSearch();
+                return;
+            }
+            if (event.key === 'Enter' && settingsUiState.query) {
+                event.preventDefault();
+                focusFirstSettingsSearchMatch();
+            }
+        });
+    $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
+        clearSettingsSearch();
     });
-    $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
-        setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
+    $(document).off('click.fvsettingssearchclear', '[data-fv-clear-settings-search]').on('click.fvsettingssearchclear', '[data-fv-clear-settings-search]', () => {
+        clearSettingsSearch();
+    });
+    $('#fv-settings-search-scope').off('change.fvui').on('change.fvui', (event) => {
+        setSearchAllAdvanced(String($(event.currentTarget).val() || '') === 'all');
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
@@ -2510,7 +2911,7 @@ const initSettingsControls = () => {
         });
 
     $('#fv-settings-search').val(settingsUiState.query || '');
-    $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+    $('#fv-settings-search-scope').val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
     renderOperationsWorkspace();
     syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
@@ -2528,6 +2929,9 @@ const initSettingsControls = () => {
 const refreshSettingsUx = (options = {}) => {
     const renderSecondaryWorkspaces = options.renderSecondaryWorkspaces !== false;
     const sectionsRebuilt = buildSettingsSections({ force: options.rebuildSections === true });
+    if (!sectionsRebuilt) {
+        invalidateSettingsSearchIndex();
+    }
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
     if (sectionsRebuilt || options.normalizeSections === true) {
@@ -2609,6 +3013,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
 
     settingsUiState.mode = 'basic';
     settingsUiState.query = '';
+    settingsUiState.basicSearchQuery = '';
     settingsUiState.searchAllAdvanced = false;
     settingsUiState.activeSectionKey = 'docker';
     try {
@@ -2619,7 +3024,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         root.style.opacity = '1';
         $('#fv-settings-topbar').show();
         $('#fv-settings-search').val('');
-        $('#fv-search-all-advanced').prop('checked', false);
+        $('#fv-settings-search-scope').val('current');
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
         buildSettingsSections({ force: true });
@@ -4150,6 +4555,7 @@ const buildTableUiStatePayload = () => ({
     },
     advancedSearch: {
         byTab: normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab),
+        basicQuery: normalizedFilter(settingsUiState.basicSearchQuery),
         query: normalizedFilter(settingsUiState.query),
         searchAll: settingsUiState.searchAllAdvanced === true
     }
@@ -4205,6 +4611,7 @@ const restoreTableUiState = () => {
         settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
             sourceAdvancedSearch.byTab || sourceAdvancedSearch.queryByTab || {}
         );
+        settingsUiState.basicSearchQuery = normalizedFilter(sourceAdvancedSearch.basicQuery);
         if (typeof sourceAdvancedSearch.query === 'string') {
             settingsUiState.query = normalizedFilter(sourceAdvancedSearch.query);
         } else if (settingsUiState.mode === 'advanced') {

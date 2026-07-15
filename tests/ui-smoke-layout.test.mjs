@@ -1105,13 +1105,14 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-settings-left\s*\{[\s\S]*margin-right:\s*auto/);
     assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*flex-wrap:\s*nowrap/);
     assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*flex:\s*0 0 auto/);
-    assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*width:\s*clamp\(180px,\s*15vw,\s*220px\)/);
+    assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*width:\s*clamp\(240px,\s*20vw,\s*320px\)/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*justify-self:\s*end/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*justify-content:\s*flex-end/);
-    assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*width:\s*100%/);
+    assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*width:\s*auto/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*margin-left:\s*auto/);
     assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*gap:\s*0\.4rem/);
-    assert.doesNotMatch(settingsJs, /fv-settings-clear-search/);
+    assert.match(settingsJs, /fv-settings-clear-search/);
+    assert.match(settingsJs, /fv-settings-search-scope/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
     assert.match(settingsCss, /\.module-empty-note\s*\{/);

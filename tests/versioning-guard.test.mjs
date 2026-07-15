@@ -481,6 +481,15 @@ test('release notes builder supports curated per-version override files', () => 
     assert.match(buildReleaseNotes, /cat "\$\{OVERRIDE_FILE\}"/);
 });
 
+test('release note parsers distinguish category headings from version headings', () => {
+    const versionHeadingPattern = '/^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}[[:space:]]*$/';
+    for (const script of [buildReleaseNotes, ensureChanges, releaseGuard]) {
+        assert.ok(script.includes(versionHeadingPattern));
+        assert.doesNotMatch(script, /\n\s*\/\^###\/ \{/);
+    }
+    assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###\[0-9\]\{4\}/);
+});
+
 test('release workflows serialize concurrent runs with shared release concurrency group', () => {
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /concurrency:/);

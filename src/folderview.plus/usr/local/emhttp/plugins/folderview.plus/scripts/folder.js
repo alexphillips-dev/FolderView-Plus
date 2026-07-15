@@ -107,6 +107,10 @@ const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapC
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
     : {};
+let folderEditorExpectedFolderRevision = Math.max(
+    0,
+    Number.parseInt(String(folderEditorBootstrapContext?.metadata?.folderRevision ?? '0'), 10) || 0
+);
 const inferFolderEditorTypeFromPath = () => {
     const pathname = String(window.location?.pathname || '').toLowerCase();
     if (pathname.includes('/docker/')) {
@@ -5331,11 +5335,16 @@ const submitForm = async (e, saveAsCopy = false) => {
     try {
         // send the data to the right endpoint
         if (folderId && !saveAsCopy) {
-            await securePost('/plugins/folderview.plus/server/update.php', {
+            const saveResponse = await securePost('/plugins/folderview.plus/server/update.php', {
                 type: type,
                 content: JSON.stringify(folder),
-                id: folderId
+                id: folderId,
+                expectedRevision: folderEditorExpectedFolderRevision
             });
+            const savedRevision = Number.parseInt(String(saveResponse?.metadata?.folderRevision ?? ''), 10);
+            if (Number.isFinite(savedRevision) && savedRevision >= 0) {
+                folderEditorExpectedFolderRevision = savedRevision;
+            }
         } else {
             await securePost('/plugins/folderview.plus/server/create.php', {
                 type: type,

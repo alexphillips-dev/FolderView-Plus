@@ -909,7 +909,7 @@ fi
 
 CURRENT_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
   BEGIN { capture = 0 }
-  /^###/ {
+  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
     if (capture) {
       exit
     }
@@ -1017,7 +1017,7 @@ fi
 
 PREVIOUS_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
   BEGIN { seen_current = 0; capture_previous = 0 }
-  /^###/ {
+  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
     if (!seen_current) {
       if ($0 ~ "^###" version "[[:space:]]*$") {
         seen_current = 1

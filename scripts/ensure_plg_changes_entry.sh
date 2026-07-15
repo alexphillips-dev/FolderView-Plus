@@ -61,7 +61,7 @@ changes_block_for_version() {
   local target_version="${1:-}"
   awk -v version="${target_version}" '
     BEGIN { capture = 0 }
-    /^###/ {
+    /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
       if (capture) {
         exit
       }
@@ -79,7 +79,7 @@ changes_block_for_version() {
 previous_changes_version() {
   local target_version="${1:-}"
   awk -v version="${target_version}" '
-    /^###/ {
+    /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
       candidate = $0
       sub(/^###/, "", candidate)
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", candidate)
@@ -118,7 +118,7 @@ head_manifest_version() {
 
 list_changes_versions() {
   awk '
-    /^###/ {
+    /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
       candidate = $0
       sub(/^###/, "", candidate)
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", candidate)
@@ -136,7 +136,7 @@ remove_changes_block_for_version() {
   tmp_file="$(mktemp)"
   awk -v version="${target_version}" '
     BEGIN { skip = 0 }
-    /^###/ {
+    /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
       if ($0 ~ "^###" version "[[:space:]]*$") {
         skip = 1
         next

@@ -20,8 +20,22 @@
     $folderVersion = 1.0;
     $configDir = "/boot/config/plugins/folderview.plus";
     $sourceDir = "/usr/local/emhttp/plugins/folderview.plus";
+    if (PHP_SAPI === 'cli') {
+        $testConfigDir = trim((string)getenv('FVPLUS_TEST_CONFIG_DIR'));
+        $testSourceDir = trim((string)getenv('FVPLUS_TEST_SOURCE_DIR'));
+        if ($testConfigDir !== '') {
+            $configDir = $testConfigDir;
+        }
+        if ($testSourceDir !== '') {
+            $sourceDir = $testSourceDir;
+        }
+    }
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
     $fvplusHostDependencyStatus = [];
+
+    if (!class_exists('FVPlusConfigConflictException')) {
+        class FVPlusConfigConflictException extends RuntimeException {}
+    }
 
     function fvplus_register_host_dependency_status(string $key, string $path, bool $loaded, string $detail = ''): void {
         global $fvplusHostDependencyStatus;
@@ -350,6 +364,9 @@
     const FVPLUS_RUNTIME_PREFS_SCHEMA = 3;
     const FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
     const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
+    const FVPLUS_CONFIG_METADATA_SCHEMA_VERSION = 1;
+    const FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS = 10;
+    const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
@@ -971,6 +988,7 @@
         if (!isTrustedMutationContext() && !$headerValidated) {
             throw new RuntimeException('Blocked by request guard.');
         }
+        acquireConfigMutationLock();
     }
 
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
@@ -1033,6 +1051,9 @@
     }
 
     function fvplus_get_api_error_status(Throwable $error): int {
+        if ($error instanceof FVPlusConfigConflictException) {
+            return 409;
+        }
         if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
             return 400;
         }
@@ -1760,6 +1781,71 @@
         return is_array($decoded) ? $decoded : null;
     }
 
+    function getConfigMutationLockPath(): string {
+        global $configDir;
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        return "$configDir/.config-mutation.lock";
+    }
+
+    function acquireConfigMutationLock(): void {
+        if (is_resource($GLOBALS['fvplus_config_mutation_lock_handle'] ?? null)) {
+            return;
+        }
+        $handle = @fopen(getConfigMutationLockPath(), 'c+');
+        if (!is_resource($handle)) {
+            throw new RuntimeException('Unable to open the configuration mutation lock.');
+        }
+        $startedAt = microtime(true);
+        $locked = false;
+        while ((microtime(true) - $startedAt) <= FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS) {
+            if (@flock($handle, LOCK_EX | LOCK_NB)) {
+                $locked = true;
+                break;
+            }
+            usleep(25000);
+        }
+        if (!$locked) {
+            @fclose($handle);
+            throw new RuntimeException('FolderView Plus configuration is busy. Please retry the action.');
+        }
+        $GLOBALS['fvplus_config_mutation_lock_handle'] = $handle;
+        register_shutdown_function(static function (): void {
+            $active = $GLOBALS['fvplus_config_mutation_lock_handle'] ?? null;
+            if (!is_resource($active)) {
+                return;
+            }
+            @flock($active, LOCK_UN);
+            @fclose($active);
+            $GLOBALS['fvplus_config_mutation_lock_handle'] = null;
+        });
+    }
+
+    function releaseConfigMutationLock(): void {
+        $handle = $GLOBALS['fvplus_config_mutation_lock_handle'] ?? null;
+        if (!is_resource($handle)) {
+            return;
+        }
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+        $GLOBALS['fvplus_config_mutation_lock_handle'] = null;
+    }
+
+    function withConfigMutationLock(callable $callback) {
+        $alreadyHeld = is_resource($GLOBALS['fvplus_config_mutation_lock_handle'] ?? null);
+        if (!$alreadyHeld) {
+            acquireConfigMutationLock();
+        }
+        try {
+            return $callback();
+        } finally {
+            if (!$alreadyHeld) {
+                releaseConfigMutationLock();
+            }
+        }
+    }
+
     function getLastGoodJsonPath(string $path): string {
         return $path . '.lastgood';
     }
@@ -1821,6 +1907,191 @@
             // Keep recovery best-effort.
         }
         return $decoded;
+    }
+
+    function getConfigMetadataPath(string $type): string {
+        global $configDir;
+        $safeType = ensureType($type);
+        return "$configDir/$safeType.metadata.json";
+    }
+
+    function configMetadataTimestampFromPath(string $path): string {
+        $mtime = is_file($path) ? (int)@filemtime($path) : 0;
+        return $mtime > 0 ? gmdate('c', $mtime) : '';
+    }
+
+    function configMetadataHashFromPath(string $path): string {
+        if (!is_file($path)) {
+            return '';
+        }
+        $hash = @hash_file('sha256', $path);
+        return is_string($hash) ? strtolower(trim($hash)) : '';
+    }
+
+    function defaultConfigMetadata(string $type): array {
+        $safeType = ensureType($type);
+        $folderPath = getFolderFilePath($safeType);
+        $prefsPath = getTypePrefsPath($safeType);
+        $now = gmdate('c');
+        return [
+            'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
+            'type' => $safeType,
+            'createdAt' => $now,
+            'updatedAt' => $now,
+            'folderRevision' => is_file($folderPath) ? 1 : 0,
+            'prefsRevision' => is_file($prefsPath) ? 1 : 0,
+            'folderUpdatedAt' => configMetadataTimestampFromPath($folderPath),
+            'prefsUpdatedAt' => configMetadataTimestampFromPath($prefsPath),
+            'folderSha256' => configMetadataHashFromPath($folderPath),
+            'prefsSha256' => configMetadataHashFromPath($prefsPath),
+            'externalChangeCount' => 0,
+            'lastExternalChangeAt' => ''
+        ];
+    }
+
+    function normalizeConfigMetadata($value, string $type): array {
+        $safeType = ensureType($type);
+        $incoming = is_array($value) ? $value : [];
+        $defaults = defaultConfigMetadata($safeType);
+        $createdAt = normalizeIsoTimestamp($incoming['createdAt'] ?? '');
+        if ($createdAt === '') {
+            $createdAt = (string)$defaults['createdAt'];
+        }
+        $updatedAt = normalizeIsoTimestamp($incoming['updatedAt'] ?? '');
+        if ($updatedAt === '') {
+            $updatedAt = (string)$defaults['updatedAt'];
+        }
+        return [
+            'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
+            'type' => $safeType,
+            'createdAt' => $createdAt,
+            'updatedAt' => $updatedAt,
+            'folderRevision' => max(0, (int)($incoming['folderRevision'] ?? $defaults['folderRevision'])),
+            'prefsRevision' => max(0, (int)($incoming['prefsRevision'] ?? $defaults['prefsRevision'])),
+            'folderUpdatedAt' => normalizeIsoTimestamp($incoming['folderUpdatedAt'] ?? ''),
+            'prefsUpdatedAt' => normalizeIsoTimestamp($incoming['prefsUpdatedAt'] ?? ''),
+            'folderSha256' => strtolower(trim((string)($incoming['folderSha256'] ?? ''))),
+            'prefsSha256' => strtolower(trim((string)($incoming['prefsSha256'] ?? ''))),
+            'externalChangeCount' => max(0, (int)($incoming['externalChangeCount'] ?? 0)),
+            'lastExternalChangeAt' => normalizeIsoTimestamp($incoming['lastExternalChangeAt'] ?? '')
+        ];
+    }
+
+    function writeConfigMetadata(string $type, array $metadata): array {
+        $safeType = ensureType($type);
+        $normalized = normalizeConfigMetadata($metadata, $safeType);
+        writeJsonObjectWithLastGood(getConfigMetadataPath($safeType), $normalized);
+        return $normalized;
+    }
+
+    function readConfigMetadata(string $type, bool $reconcile = true): array {
+        $safeType = ensureType($type);
+        return withConfigMutationLock(static function () use ($safeType, $reconcile): array {
+            $path = getConfigMetadataPath($safeType);
+            $decoded = readJsonObjectFile($path);
+            $recovered = false;
+            if (!is_array($decoded)) {
+                $decoded = recoverJsonObjectFromLastGood($path);
+                $recovered = is_array($decoded);
+            }
+            $metadata = normalizeConfigMetadata($decoded, $safeType);
+            $changed = $recovered || !is_array($decoded) || jsonObjectsDiffer($decoded, $metadata);
+
+            if ($reconcile) {
+                $now = gmdate('c');
+                $targets = [
+                    'folder' => getFolderFilePath($safeType),
+                    'prefs' => getTypePrefsPath($safeType)
+                ];
+                foreach ($targets as $kind => $targetPath) {
+                    $hashKey = $kind . 'Sha256';
+                    $revisionKey = $kind . 'Revision';
+                    $updatedKey = $kind . 'UpdatedAt';
+                    $actualHash = configMetadataHashFromPath($targetPath);
+                    $storedHash = strtolower(trim((string)($metadata[$hashKey] ?? '')));
+                    if (is_array($decoded) && $storedHash !== $actualHash) {
+                        $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
+                        $metadata['externalChangeCount'] = max(0, (int)$metadata['externalChangeCount']) + 1;
+                        $metadata['lastExternalChangeAt'] = $now;
+                        $changed = true;
+                    }
+                    if ($storedHash !== $actualHash) {
+                        $metadata[$hashKey] = $actualHash;
+                        $metadata[$updatedKey] = configMetadataTimestampFromPath($targetPath);
+                        $changed = true;
+                    }
+                }
+                if ($changed) {
+                    $metadata['updatedAt'] = $now;
+                }
+            }
+
+            if ($changed) {
+                return writeConfigMetadata($safeType, $metadata);
+            }
+            return $metadata;
+        });
+    }
+
+    function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata): array {
+        $safeType = ensureType($type);
+        if (!in_array($kind, ['folder', 'prefs'], true)) {
+            throw new RuntimeException('Unsupported configuration metadata kind.');
+        }
+        $now = gmdate('c');
+        $revisionKey = $kind . 'Revision';
+        $updatedKey = $kind . 'UpdatedAt';
+        $hashKey = $kind . 'Sha256';
+        $metadata = normalizeConfigMetadata($metadata, $safeType);
+        $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
+        $metadata[$updatedKey] = $now;
+        $metadata[$hashKey] = configMetadataHashFromPath($targetPath);
+        $metadata['updatedAt'] = $now;
+        return writeConfigMetadata($safeType, $metadata);
+    }
+
+    function rebuildConfigMetadata(string $type): array {
+        $safeType = ensureType($type);
+        return withConfigMutationLock(static function () use ($safeType): array {
+            $path = getConfigMetadataPath($safeType);
+            $decoded = readJsonObjectFile($path);
+            if (!is_array($decoded)) {
+                $decoded = readJsonObjectFile(getLastGoodJsonPath($path));
+            }
+            $previous = normalizeConfigMetadata($decoded, $safeType);
+            $rebuilt = defaultConfigMetadata($safeType);
+            $rebuilt['createdAt'] = (string)($previous['createdAt'] ?? $rebuilt['createdAt']);
+            $rebuilt['folderRevision'] = max(1, (int)($previous['folderRevision'] ?? 0) + 1);
+            $rebuilt['prefsRevision'] = max(1, (int)($previous['prefsRevision'] ?? 0) + 1);
+            $rebuilt['externalChangeCount'] = max(0, (int)($previous['externalChangeCount'] ?? 0)) + 1;
+            $rebuilt['lastExternalChangeAt'] = gmdate('c');
+            $rebuilt['updatedAt'] = gmdate('c');
+            return writeConfigMetadata($safeType, $rebuilt);
+        });
+    }
+
+    function assertExpectedConfigRevision(string $type, string $kind, $expectedRevision): array {
+        $safeType = ensureType($type);
+        $metadata = readConfigMetadata($safeType, true);
+        $raw = trim((string)$expectedRevision);
+        if ($raw === '') {
+            return $metadata;
+        }
+        if (!ctype_digit($raw)) {
+            throw new RuntimeException('Invalid expected configuration revision.');
+        }
+        $key = $kind === 'prefs' ? 'prefsRevision' : 'folderRevision';
+        $expected = (int)$raw;
+        $current = max(0, (int)($metadata[$key] ?? 0));
+        if ($expected !== $current) {
+            throw new FVPlusConfigConflictException(sprintf(
+                'This %s configuration changed in another page or browser tab (expected revision %d, current revision %d). Refresh before saving again.',
+                $kind === 'prefs' ? 'preferences' : 'folder',
+                $expected,
+                $current
+            ));
+        }
+        return $metadata;
     }
 
     function getThemeWorkspacePath(): string {
@@ -2208,11 +2479,13 @@
             'types' => [
                 'docker' => [
                     'folders' => readRawFolderMap('docker'),
-                    'prefs' => readTypePrefs('docker')
+                    'prefs' => readTypePrefs('docker'),
+                    'configurationMetadata' => readConfigMetadata('docker', true)
                 ],
                 'vm' => [
                     'folders' => readRawFolderMap('vm'),
-                    'prefs' => readTypePrefs('vm')
+                    'prefs' => readTypePrefs('vm'),
+                    'configurationMetadata' => readConfigMetadata('vm', true)
                 ]
             ],
             'themeWorkspace' => readThemeWorkspace()
@@ -2926,9 +3199,13 @@
 
     function writeRawFolderMap(string $type, array $folders): void {
         $type = ensureType($type);
-        $path = getFolderFilePath($type);
-        $normalized = normalizeFolderMapPayload($folders);
-        writeJsonObjectWithLastGood($path, $normalized);
+        withConfigMutationLock(static function () use ($type, $folders): void {
+            $path = getFolderFilePath($type);
+            $metadata = readConfigMetadata($type, true);
+            $normalized = normalizeFolderMapPayload($folders);
+            writeJsonObjectWithLastGood($path, $normalized);
+            commitConfigMetadataWrite($type, 'folder', $path, $metadata);
+        });
     }
 
     function reorderFoldersByIdList(string $type, array $orderedIds): array {
@@ -3493,6 +3770,7 @@
             'type' => $type,
             'mode' => 'full',
             'reason' => $reason,
+            'configurationMetadata' => readConfigMetadata($type, true),
             'folders' => $folders,
             'prefs' => $prefs
         ];
@@ -3584,6 +3862,9 @@
             'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
             'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
             'count' => count($folders),
+            'configurationMetadata' => is_array($decoded['configurationMetadata'] ?? null)
+                ? normalizeConfigMetadata($decoded['configurationMetadata'], $type)
+                : null,
             'prefs' => $prefs,
             'folders' => $folders
         ];
@@ -5159,12 +5440,15 @@
         }
     }
 
-    function updateFolder(string $type, string $content, string $id = '') : void {
+    function updateFolder(string $type, string $content, string $id = '', $expectedRevision = '') : array {
         $type = ensureType($type);
         if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
             throw new RuntimeException('Folder payload exceeds raw upload limit.');
         }
         $isCreate = empty($id);
+        if (!$isCreate) {
+            assertExpectedConfigRevision($type, 'folder', $expectedRevision);
+        }
         if (empty($id)) {
             $id = generateId();
         }
@@ -5210,6 +5494,7 @@
         } catch (Throwable $err) {
             // Keep update flow non-fatal.
         }
+        return readConfigMetadata($type, false);
     }
 
     function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {

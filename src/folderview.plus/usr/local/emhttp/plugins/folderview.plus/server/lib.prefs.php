@@ -569,8 +569,12 @@
 
     function writeTypePrefs(string $type, array $prefs): array {
         $type = ensureType($type);
-        $path = getTypePrefsPath($type);
         $normalized = normalizeTypePrefs($prefs);
-        writeJsonObjectWithLastGood($path, $normalized);
+        withConfigMutationLock(static function () use ($type, $normalized): void {
+            $path = getTypePrefsPath($type);
+            $metadata = readConfigMetadata($type, true);
+            writeJsonObjectWithLastGood($path, $normalized);
+            commitConfigMetadataWrite($type, 'prefs', $path, $metadata);
+        });
         return $normalized;
     }

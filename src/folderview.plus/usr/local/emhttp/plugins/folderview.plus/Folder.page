@@ -28,7 +28,8 @@ $folderEditorBootstrapContext = [
     'requestedId' => '',
     'resolvedId' => '',
     'resolvedBy' => '',
-    'folder' => null
+    'folder' => null,
+    'metadata' => null
 ];
 try {
     $folderEditorCookieRaw = trim((string)($_COOKIE['fv_folder_editor_bootstrap'] ?? ''));
@@ -46,6 +47,7 @@ try {
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorTypePrefs = readTypePrefs($folderEditorPageType);
+    $folderEditorTypePrefs['_metadata'] = readConfigMetadata($folderEditorPageType, true);
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
     $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
@@ -65,6 +67,7 @@ try {
         $folderEditorBootstrapContext = resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
         $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
     }
+    $folderEditorBootstrapContext['metadata'] = readConfigMetadata($folderEditorPageType, true);
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'modern';
@@ -76,7 +79,8 @@ try {
         'requestedId' => '',
         'resolvedId' => '',
         'resolvedBy' => '',
-        'folder' => null
+        'folder' => null,
+        'metadata' => null
     ];
 }
 ?>

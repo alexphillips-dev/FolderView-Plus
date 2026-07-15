@@ -264,7 +264,10 @@
                 if (response?.ok === false) {
                     throw new Error(String(response.error || 'Failed to load folder editor preferences.'));
                 }
-                folderEditorPrefs = normalizePrefs(response?.prefs || {});
+                folderEditorPrefs = normalizePrefs({
+                    ...(response?.prefs || {}),
+                    _metadata: response?.metadata || {}
+                });
                 folderEditorPrefsLoaded = true;
                 return folderEditorPrefs;
             })();
@@ -279,14 +282,27 @@
             if (!requestClient || typeof requestClient.postJson !== 'function') {
                 throw new Error('Advanced rule controls are unavailable because the shared request client did not load.');
             }
-            const response = await requestClient.postJson('/plugins/folderview.plus/server/prefs.php', {
+            const payload = {
                 type,
-                prefs: JSON.stringify(nextPrefs)
-            });
+                prefs: JSON.stringify(Object.fromEntries(
+                    Object.entries(nextPrefs || {}).filter(([key]) => key !== '_metadata')
+                ))
+            };
+            const expectedRevision = Math.max(
+                0,
+                Number.parseInt(String(folderEditorPrefs?._metadata?.prefsRevision ?? '0'), 10) || 0
+            );
+            if (expectedRevision > 0) {
+                payload.expectedRevision = expectedRevision;
+            }
+            const response = await requestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
             if (response?.ok === false) {
                 throw new Error(String(response.error || 'Failed to save folder editor preferences.'));
             }
-            folderEditorPrefs = normalizePrefs(response?.prefs || nextPrefs);
+            folderEditorPrefs = normalizePrefs({
+                ...(response?.prefs || nextPrefs),
+                _metadata: response?.metadata || {}
+            });
             folderEditorPrefsLoaded = true;
             return folderEditorPrefs;
         };

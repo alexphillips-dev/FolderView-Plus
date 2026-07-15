@@ -454,7 +454,7 @@
             is_array($sanitized['issues'] ?? null) ? $sanitized['issues'] : []
         ));
         $paths = is_array($sanitized['paths'] ?? null) ? $sanitized['paths'] : [];
-        foreach (['configDir', 'sourceDir', 'folderFile', 'prefsFile', 'backupDir'] as $key) {
+        foreach (['configDir', 'sourceDir', 'folderFile', 'prefsFile', 'metadataFile', 'backupDir'] as $key) {
             if (!is_array($paths[$key] ?? null)) {
                 continue;
             }
@@ -841,6 +841,16 @@
         $missingReferenceCount = 0;
         $missingReferencedIconCount = 0;
         $missingReferencedIcons = [];
+        $metadataPath = "$directory/.metadata.json";
+        $metadataPayload = readJsonObjectFile($metadataPath);
+        if (!is_array($metadataPayload) && is_file($metadataPath)) {
+            $metadataPayload = recoverJsonObjectFromLastGood($metadataPath);
+        }
+        $metadataItems = is_array($metadataPayload['items'] ?? null)
+            ? $metadataPayload['items']
+            : [];
+        $metadataMissingFileCount = 0;
+        $metadataOrphanEntryCount = 0;
 
         if (is_dir($directory)) {
             foreach ((array)@scandir($directory) as $name) {
@@ -899,6 +909,18 @@
             ];
         }
 
+        foreach (array_keys($existingIcons) as $name) {
+            if (!is_array($metadataItems[$name] ?? null)) {
+                $metadataMissingFileCount++;
+            }
+        }
+        foreach ($metadataItems as $name => $entry) {
+            if (!is_string($name) || !is_array($entry) || isset($existingIcons[$name])) {
+                continue;
+            }
+            $metadataOrphanEntryCount++;
+        }
+
         usort($topReferences, static function (array $a, array $b): int {
             $cmp = ((int)($b['referenceCount'] ?? 0)) <=> ((int)($a['referenceCount'] ?? 0));
             if ($cmp !== 0) {
@@ -922,6 +944,19 @@
                 $missingReferenceCount
             );
         }
+        if (is_file($metadataPath) && !is_array($metadataPayload)) {
+            $issues[] = 'Custom icon metadata index is unreadable.';
+        }
+        if (is_array($metadataPayload)
+            && (int)($metadataPayload['schemaVersion'] ?? 0) !== FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION) {
+            $issues[] = 'Custom icon metadata schema is invalid.';
+        }
+        if ($metadataMissingFileCount > 0) {
+            $issues[] = sprintf('%d custom icon file(s) are missing metadata entries.', $metadataMissingFileCount);
+        }
+        if ($metadataOrphanEntryCount > 0) {
+            $issues[] = sprintf('%d custom icon metadata entry or entries reference missing files.', $metadataOrphanEntryCount);
+        }
 
         $repairHint = 'mkdir -p ' . escapeshellarg($directory) . ' && chmod -R 775 ' . escapeshellarg($directory);
         return [
@@ -934,6 +969,14 @@
             'missingReferenceCount' => $missingReferenceCount,
             'missingReferencedIconCount' => $missingReferencedIconCount,
             'missingReferencedIcons' => array_slice($missingReferencedIcons, 0, 20),
+            'metadata' => [
+                'schemaVersion' => (int)($metadataPayload['schemaVersion'] ?? 0),
+                'updatedAt' => (string)($metadataPayload['updatedAt'] ?? ''),
+                'trackedCount' => count($metadataItems),
+                'missingEntryCount' => $metadataMissingFileCount,
+                'orphanEntryCount' => $metadataOrphanEntryCount,
+                'atomicRecoveryAvailable' => is_file(getLastGoodJsonPath($metadataPath))
+            ],
             'topReferences' => array_slice($topReferences, 0, 15),
             'issues' => $issues,
             'repairHint' => $repairHint
@@ -944,6 +987,7 @@
         global $configDir, $sourceDir;
         $folderPath = getFolderFilePath($type);
         $prefsPath = getTypePrefsPath($type);
+        $metadataPath = getConfigMetadataPath($type);
         $backupDir = getBackupsDirPath();
         $issues = [];
 
@@ -951,6 +995,7 @@
         $sourceDesc = diagnosticsPathDescriptor($sourceDir, $privacyMode);
         $folderDesc = diagnosticsPathDescriptor($folderPath, $privacyMode);
         $prefsDesc = diagnosticsPathDescriptor($prefsPath, $privacyMode);
+        $metadataDesc = diagnosticsPathDescriptor($metadataPath, $privacyMode);
         $backupDesc = diagnosticsPathDescriptor($backupDir, $privacyMode);
 
         if ($configDesc['exists'] !== true || $configDesc['isDir'] !== true) {
@@ -972,6 +1017,12 @@
         }
         if ($prefsDesc['exists'] === true && $prefsDesc['writable'] !== true) {
             $issues[] = 'Preferences file is not writable.';
+        }
+        if ($metadataDesc['exists'] === true && $metadataDesc['isFile'] !== true) {
+            $issues[] = 'Configuration metadata path is not a file.';
+        }
+        if ($metadataDesc['exists'] === true && $metadataDesc['writable'] !== true) {
+            $issues[] = 'Configuration metadata file is not writable.';
         }
         if ($backupDesc['exists'] === true && $backupDesc['isDir'] !== true) {
             $issues[] = 'Backups path is not a directory.';
@@ -1002,13 +1053,56 @@
                 'sourceDir' => $sourceDesc,
                 'folderFile' => $folderDesc,
                 'prefsFile' => $prefsDesc,
+                'metadataFile' => $metadataDesc,
                 'backupDir' => $backupDesc
             ],
             'legacyRemnants' => $legacyRemnants
         ];
     }
 
-    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
+    function diagnosticsBuildConfigMetadataIntegrity(string $type): array {
+        $safeType = ensureType($type);
+        $issues = [];
+        try {
+            $metadata = readConfigMetadata($safeType, true);
+        } catch (Throwable $error) {
+            return [
+                'ok' => false,
+                'issuesCount' => 1,
+                'issues' => ['Configuration metadata could not be read or repaired.'],
+                'metadata' => null
+            ];
+        }
+
+        if ((int)($metadata['schemaVersion'] ?? 0) !== FVPLUS_CONFIG_METADATA_SCHEMA_VERSION) {
+            $issues[] = 'Configuration metadata schema is invalid.';
+        }
+        if ((string)($metadata['type'] ?? '') !== $safeType) {
+            $issues[] = 'Configuration metadata type does not match its folder type.';
+        }
+        foreach (['folderRevision', 'prefsRevision'] as $revisionKey) {
+            if ((int)($metadata[$revisionKey] ?? -1) < 0) {
+                $issues[] = "$revisionKey is invalid.";
+            }
+        }
+        $folderHash = configMetadataHashFromPath(getFolderFilePath($safeType));
+        $prefsHash = configMetadataHashFromPath(getTypePrefsPath($safeType));
+        if (!hash_equals((string)($metadata['folderSha256'] ?? ''), $folderHash)) {
+            $issues[] = 'Folder metadata fingerprint does not match the folder map.';
+        }
+        if (!hash_equals((string)($metadata['prefsSha256'] ?? ''), $prefsHash)) {
+            $issues[] = 'Preferences metadata fingerprint does not match the preferences file.';
+        }
+
+        return [
+            'ok' => count($issues) === 0,
+            'issuesCount' => count($issues),
+            'issues' => $issues,
+            'metadata' => $metadata
+        ];
+    }
+
+    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode, array $configMetadataIntegrity = []): array {
         $validNames = array_keys($infoByName);
         $validSet = array_fill_keys($validNames, true);
         $nameBuckets = [];
@@ -1207,7 +1301,8 @@
             + count($missingPinnedFolderIds)
             + $orphanedCount
             + $buildConflicts($effectiveAssignments)['count']
-            + $pathIssueCount;
+            + $pathIssueCount
+            + max(0, (int)($configMetadataIntegrity['issuesCount'] ?? 0));
 
         return [
             'ok' => $issuesCount === 0,
@@ -1245,6 +1340,7 @@
                 'regex' => $buildConflicts($regexAssignments),
                 'effective' => $buildConflicts($effectiveAssignments)
             ],
+            'configurationMetadata' => $configMetadataIntegrity,
             'pathHealth' => $pathHealth
         ];
     }
@@ -1600,6 +1696,10 @@
         if (!empty($pathIssues)) {
             return $pathIssues[0];
         }
+        $metadataIssues = array_values(array_filter(array_map('strval', (array)($integrity['configurationMetadata']['issues'] ?? []))));
+        if (!empty($metadataIssues)) {
+            return $metadataIssues[0];
+        }
 
         $orphanedCount = max(0, (int)($integrity['orphanedMembers']['count'] ?? 0));
         if ($orphanedCount > 0) {
@@ -1825,7 +1925,10 @@
         }
 
         $prefsNeedCleanup = false;
+        $metadataNeedsRepair = false;
         foreach ([$dockerIntegrity, $vmIntegrity] as $integrity) {
+            $metadataNeedsRepair = $metadataNeedsRepair
+                || ((int)($integrity['configurationMetadata']['issuesCount'] ?? 0)) > 0;
             $prefsNeedCleanup = $prefsNeedCleanup
                 || ((int)($integrity['invalidAutoRules']['count'] ?? 0)) > 0
                 || ((int)($integrity['invalidFolderRegex']['count'] ?? 0)) > 0
@@ -1841,6 +1944,13 @@
                 'normalize_prefs',
                 'Validate and normalize prefs',
                 'Folder rules or saved preference ids need cleanup.'
+            );
+        }
+        if ($metadataNeedsRepair) {
+            $addAction(
+                'repair_config_metadata',
+                'Rebuild configuration metadata',
+                'Saved configuration fingerprints or revisions need to be reconciled.'
             );
         }
 
@@ -2033,7 +2143,8 @@
             $backups = listBackupSnapshots($type);
             $templates = readFolderTemplates($type);
             $infoByName = readInfo($type);
-            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName, $privacyMode);
+            $configMetadataIntegrity = diagnosticsBuildConfigMetadataIntegrity($type);
+            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName, $privacyMode, $configMetadataIntegrity);
             $stateSnapshot = diagnosticsBuildStateSnapshot($type, $folders, $prefs, $infoByName, $privacyMode);
             $typesData[$type] = [
                 'folderPath' => $privacyMode === 'full' ? $folderPath : basename($folderPath),
@@ -2100,6 +2211,7 @@
                 'lastBackup' => $backups[0] ?? null,
                 'backupCount' => count($backups),
                 'templateCount' => count($templates),
+                'configurationMetadata' => $configMetadataIntegrity['metadata'] ?? null,
                 'integrityChecks' => $integrityChecks,
                 'stateSnapshot' => $stateSnapshot
             ];
@@ -2305,8 +2417,23 @@
         $folderPath = (string)($typeData['folderPath'] ?? '');
         $folderFileHash = is_array($hashes[$type . 'Folders'] ?? null) ? $hashes[$type . 'Folders'] : [];
         $prefsFileHash = is_array($hashes[$type . 'Prefs'] ?? null) ? $hashes[$type . 'Prefs'] : [];
+        $configMetadata = is_array($typeData['configurationMetadata'] ?? null) ? $typeData['configurationMetadata'] : [];
 
         return [
+            'configurationMetadata' => [
+                'schemaVersion' => (int)($configMetadata['schemaVersion'] ?? 0),
+                'type' => (string)($configMetadata['type'] ?? $type),
+                'createdAt' => (string)($configMetadata['createdAt'] ?? ''),
+                'updatedAt' => (string)($configMetadata['updatedAt'] ?? ''),
+                'folderRevision' => (int)($configMetadata['folderRevision'] ?? 0),
+                'prefsRevision' => (int)($configMetadata['prefsRevision'] ?? 0),
+                'folderUpdatedAt' => (string)($configMetadata['folderUpdatedAt'] ?? ''),
+                'prefsUpdatedAt' => (string)($configMetadata['prefsUpdatedAt'] ?? ''),
+                'folderSha256' => (string)($configMetadata['folderSha256'] ?? ''),
+                'prefsSha256' => (string)($configMetadata['prefsSha256'] ?? ''),
+                'externalChangeCount' => (int)($configMetadata['externalChangeCount'] ?? 0),
+                'lastExternalChangeAt' => (string)($configMetadata['lastExternalChangeAt'] ?? '')
+            ],
             'prefs' => [
                 'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
                 'dashboard' => is_array($typeData['dashboard'] ?? null) ? $typeData['dashboard'] : [],

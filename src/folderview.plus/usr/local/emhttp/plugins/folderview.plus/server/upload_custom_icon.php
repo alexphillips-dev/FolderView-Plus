@@ -11,7 +11,6 @@ const FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS = 10;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_MAX_DIMENSION = 1024;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_JPEG_QUALITY = 90;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_PNG_COMPRESSION = 6;
-const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
 const FVPLUS_CUSTOM_ICON_SVG_ALLOWED_ELEMENTS = [
     'svg', 'g', 'defs', 'symbol', 'use', 'title', 'desc',
     'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon',
@@ -296,14 +295,10 @@ function customIconUsageSummary(array $usageMap): array {
 
 function readCustomIconMetadataIndex(): array {
     $path = customIconMetadataPath();
-    if (!is_file($path)) {
-        return [];
+    $decoded = readJsonObjectFile($path);
+    if (!is_array($decoded)) {
+        $decoded = recoverJsonObjectFromLastGood($path);
     }
-    $raw = @file_get_contents($path);
-    if (!is_string($raw) || trim($raw) === '') {
-        return [];
-    }
-    $decoded = json_decode($raw, true);
     if (!is_array($decoded)) {
         return [];
     }
@@ -342,12 +337,7 @@ function writeCustomIconMetadataIndex(array $items): void {
         'updatedAt' => gmdate('c'),
         'items' => $items
     ];
-    $encoded = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    if (!is_string($encoded) || $encoded === '') {
-        return;
-    }
-    @file_put_contents($path, $encoded . "\n", LOCK_EX);
-    @chmod($path, 0644);
+    writeJsonObjectWithLastGood($path, $payload);
 }
 
 function customIconRateDirPath(): string {

@@ -12,10 +12,15 @@ const uploadEndpointPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/upload_custom_icon.php'
 );
+const libPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
+);
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
 
 const thirdPartyPhp = fs.readFileSync(thirdPartyEndpointPath, 'utf8');
 const uploadPhp = fs.readFileSync(uploadEndpointPath, 'utf8');
+const libPhp = fs.readFileSync(libPath, 'utf8');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 
 const parsePhpStringArray = (source, constantName) => {
@@ -119,7 +124,7 @@ test('upload endpoint supports custom icon manager actions', () => {
 });
 
 test('upload endpoint stores metadata and supports dedupe or replace flows', () => {
-    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;/);
+    assert.match(libPhp, /const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;/);
     assert.match(uploadPhp, /function readCustomIconMetadataIndex\s*\(/);
     assert.match(uploadPhp, /function writeCustomIconMetadataIndex\s*\(/);
     assert.match(uploadPhp, /function findCustomIconNameByHash\s*\(/);

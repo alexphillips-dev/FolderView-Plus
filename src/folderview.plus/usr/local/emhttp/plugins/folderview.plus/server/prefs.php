@@ -5,7 +5,8 @@ fvplus_json_try(function (): array {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
         return [
-            'prefs' => readTypePrefs($type)
+            'prefs' => readTypePrefs($type),
+            'metadata' => readConfigMetadata($type, true)
         ];
     }
 
@@ -24,6 +25,7 @@ fvplus_json_try(function (): array {
         $decoded = $incoming;
     }
     fvplus_assert_prefs_payload_shape($decoded);
+    assertExpectedConfigRevision($type, 'prefs', $_POST['expectedRevision'] ?? '');
 
     $current = readTypePrefs($type);
     $next = normalizeTypePrefs(array_merge($current, $decoded));
@@ -36,6 +38,8 @@ fvplus_json_try(function (): array {
 
     $saved = writeTypePrefs($type, $next);
     syncManualOrderWithFolders($type, readRawFolderMap($type));
+    $saved = readTypePrefs($type);
+    $metadata = readConfigMetadata($type, false);
     $dockerOrderChanged = $type === 'docker' && (
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
         || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
@@ -59,6 +63,7 @@ fvplus_json_try(function (): array {
 
     return [
         'prefs' => $saved,
-        'backup' => $backup
+        'backup' => $backup,
+        'metadata' => $metadata
     ];
 });

@@ -189,6 +189,7 @@ run_lane() {
   local lane="$1"
   case "${lane}" in
     lint)
+      run_timed_step settings-metadata-schema "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_settings_metadata.mjs")" --check
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax

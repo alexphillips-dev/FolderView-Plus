@@ -625,6 +625,14 @@
 
     const normalizePrefs = (prefs) => {
         const incoming = isPlainObject(prefs) ? prefs : {};
+        const incomingMetadata = isPlainObject(incoming._metadata) ? incoming._metadata : {};
+        const metadata = {
+            schemaVersion: Math.max(0, Number.parseInt(String(incomingMetadata.schemaVersion ?? '0'), 10) || 0),
+            type: String(incomingMetadata.type || '').trim(),
+            folderRevision: Math.max(0, Number.parseInt(String(incomingMetadata.folderRevision ?? '0'), 10) || 0),
+            prefsRevision: Math.max(0, Number.parseInt(String(incomingMetadata.prefsRevision ?? '0'), 10) || 0),
+            updatedAt: String(incomingMetadata.updatedAt || '').trim()
+        };
         const sortMode = FOLDER_SORT_MODES.includes(incoming.sortMode) ? incoming.sortMode : 'created';
         const manualOrder = Array.isArray(incoming.manualOrder) ? incoming.manualOrder.filter((id) => typeof id === 'string' && id !== '') : [];
         const autoRulesRaw = Array.isArray(incoming.autoRules) ? incoming.autoRules : [];
@@ -917,6 +925,7 @@
         };
 
         return {
+            _metadata: metadata,
             sortMode,
             manualOrder,
             pinnedFolderIds,

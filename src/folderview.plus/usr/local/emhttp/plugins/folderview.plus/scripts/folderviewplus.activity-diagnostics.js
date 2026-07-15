@@ -110,6 +110,11 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
         icon: 'fa-wrench',
         handler: "repairDiagnostics('normalize_prefs')"
     }),
+    repair_config_metadata: Object.freeze({
+        label: 'Rebuild configuration metadata',
+        icon: 'fa-database',
+        handler: "repairDiagnostics('repair_config_metadata')"
+    }),
     repair_paths: Object.freeze({
         label: 'Repair plugin paths',
         icon: 'fa-folder-open',
@@ -617,7 +622,10 @@ const fetchPrefs = async (type) => {
     try {
         const response = await apiGetJson(`/plugins/folderview.plus/server/prefs.php?type=${type}`);
         if (response.ok && response.prefs) {
-            return utils.normalizePrefs(response.prefs);
+            return utils.normalizePrefs({
+                ...response.prefs,
+                _metadata: response.metadata || {}
+            });
         }
     } catch (error) {
         // Keep defaults.
@@ -626,15 +634,32 @@ const fetchPrefs = async (type) => {
 };
 
 const postPrefs = async (type, prefs) => {
-    const response = await apiPostJson('/plugins/folderview.plus/server/prefs.php', {
+    const expectedRevision = Math.max(
+        0,
+        Number.parseInt(String(
+            prefs?._metadata?.prefsRevision
+            ?? prefsByType?.[type]?._metadata?.prefsRevision
+            ?? '0'
+        ), 10) || 0
+    );
+    const payload = {
         type,
-        prefs: JSON.stringify(prefs)
-    });
+        prefs: JSON.stringify(Object.fromEntries(
+            Object.entries(prefs || {}).filter(([key]) => key !== '_metadata')
+        ))
+    };
+    if (expectedRevision > 0) {
+        payload.expectedRevision = expectedRevision;
+    }
+    const response = await apiPostJson('/plugins/folderview.plus/server/prefs.php', payload);
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
     latestPrefsBackupByType[type] = response.backup || null;
-    return utils.normalizePrefs(response.prefs || prefs);
+    return utils.normalizePrefs({
+        ...(response.prefs || prefs),
+        _metadata: response.metadata || {}
+    });
 };
 
 const createBackup = async (type, reason) => {

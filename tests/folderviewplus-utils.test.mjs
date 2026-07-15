@@ -5,6 +5,27 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
+test('normalizePrefs preserves transient configuration revision metadata for stale-save protection', () => {
+    const prefs = utils.normalizePrefs({
+        sortMode: 'manual',
+        _metadata: {
+            schemaVersion: 1,
+            type: 'docker',
+            folderRevision: 4,
+            prefsRevision: 7,
+            updatedAt: '2026-07-15T12:00:00+00:00'
+        }
+    });
+
+    assert.deepEqual(prefs._metadata, {
+        schemaVersion: 1,
+        type: 'docker',
+        folderRevision: 4,
+        prefsRevision: 7,
+        updatedAt: '2026-07-15T12:00:00+00:00'
+    });
+});
+
 test('buildFullExportPayload includes schema metadata and folders', () => {
     const payload = utils.buildFullExportPayload({
         type: 'docker',

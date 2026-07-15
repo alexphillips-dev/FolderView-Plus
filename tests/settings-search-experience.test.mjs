@@ -61,3 +61,9 @@ test('settings search aligns with desktop mode controls without overlapping them
     assert.match(settingsCss, /\.fv-settings-search-wrap\s*\{[\s\S]*box-sizing:\s*border-box[\s\S]*width:\s*100%/);
     assert.match(settingsCss, /@media \(max-width:\s*760px\)[\s\S]*\.fv-settings-right\s*\{[\s\S]*align-items:\s*center/);
 });
+
+test('settings Wizard control aligns with the toolbar and uses theme-aware blue text', () => {
+    assert.match(settingsCss, /#fv-run-wizard\s*\{[\s\S]*align-self:\s*flex-start[\s\S]*margin:\s*0/);
+    assert.match(settingsCss, /#fv-run-wizard\s*\{[\s\S]*min-height:\s*34px/);
+    assert.match(settingsCss, /#fv-settings-root #fv-run-wizard\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-info\) !important/);
+});

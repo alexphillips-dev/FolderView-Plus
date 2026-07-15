@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.12">
-<!ENTITY md5 "196ff7467591f9ef4151d11b4d9b7642">
+<!ENTITY version "2026.07.15.13">
+<!ENTITY md5 "cfdaab9b50764b81a2ef84fef81c0285">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.13
+### Wizard toolbar polish
+- UI/UX: Aligned the Wizard button with the Settings search, Basic, and Advanced controls by removing inherited host spacing and matching the toolbar row height.
+- Theme: Applied the existing theme-aware information blue to the Wizard icon and label while preserving the shared button surface and interaction states.
+- Test: Added focused regression coverage for Wizard alignment, sizing, and theme-token color usage.
+
 
 ###2026.07.15.12
 ### Settings search alignment

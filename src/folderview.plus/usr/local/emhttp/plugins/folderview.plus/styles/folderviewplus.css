@@ -7828,7 +7828,9 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 #fv-run-wizard {
+    align-self: flex-start;
     flex: 0 0 auto;
+    margin: 0;
 }
 
 .fv-mode-toggle button:last-child {
@@ -8029,7 +8031,7 @@ body.fv-mobile-compact .fv-setup-import-hero-chips {
 }
 
 #fv-run-wizard {
-    min-height: 32px;
+    min-height: 34px;
     padding: 0.3rem 0.55rem;
 }
 
@@ -11087,6 +11089,10 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root .fv-mode-toggle button:not(.is-active):focus-visible {
     background: var(--fvplus-settings-button-quiet-hover-top) !important;
     box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
+}
+
+#fv-settings-root #fv-run-wizard {
+    color: var(--fvplus-settings-chip-info) !important;
 }
 
 /* Start Order keeps its actions readable without making a normal action look selected. */

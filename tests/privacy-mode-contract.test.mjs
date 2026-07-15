@@ -82,6 +82,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(settingsJs, /else if \(key === 'privacyMaskContainerIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskLocalIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskPorts' && type === 'docker'\) \{/);
+    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard: nextDashboard\s*\},\s*\{\s*render: \(\) => renderDashboardControls\(type\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime', dockerPrivacyMode\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskNames !== false\)/);
     assert.match(dockerJs, /toggleClass\('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized\?\.dashboard\?\.privacyMaskContainerIps !== false\)/);
@@ -99,6 +100,8 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.doesNotMatch(settingsCss, /body\.fvplus-privacy-vm-settings-mask-names/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime/);
     assert.match(dockerCss, /body\.fvplus-privacy-docker-runtime-mask-names/);
+    assert.match(dockerCss, /#docker_list \.folder-preview img\.img/);
+    assert.match(dockerCss, /#docker_view \.folder-preview img\.img/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime-mask-names/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);
@@ -127,9 +130,13 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => utils\.normalizePrefs\(folderTypePrefs \|\| \{\}\)\.dashboard\?\.privacyMode === true;/);
     assert.match(dockerJs, /const enabled = readDockerRuntimePrivacyMode\(\);/);
     assert.match(dockerJs, /checked: enabled/);
-    assert.match(dockerJs, /basePrefs = await fetchDockerBootstrapPrefs\(\);/);
+    assert.match(dockerJs, /const basePrefs = previousPrefs;/);
+    assert.doesNotMatch(dockerJs, /const setDockerRuntimePrivacyMode = async[\s\S]*?basePrefs = await fetchDockerBootstrapPrefs\(\);/);
     assert.match(dockerJs, /buildDockerRuntimePrivacyPrefsPayload\(nextEnabled, basePrefs\)/);
     assert.match(dockerJs, /persistDockerRuntimePrivacyMode\(targetEnabled, folderTypePrefs\)/);
+    assert.match(dockerJs, /assertDockerPrefsSaveResponse\(response, 'Failed to save Docker privacy mode\.'\);/);
+    assert.match(dockerJs, /if \(!response\?\.prefs \|\| typeof response\.prefs !== 'object' \|\| Array\.isArray\(response\.prefs\)\) \{/);
+    assert.match(dockerJs, /if \(savedPrefs\.dashboard\?\.privacyMode !== \(enabled === true\)\) \{/);
     assert.match(dockerJs, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);[\s\S]*applyRuntimePrefs\(folderTypePrefs\);/);
     assert.match(dockerJs, /folderTypePrefs = nextPrefs;[\s\S]*applyRuntimePrefs\(nextPrefs\);/);
     assert.match(dockerJs, /queueDockerRuntimePrivacyToggleMount\(\);/);

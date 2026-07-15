@@ -4258,17 +4258,31 @@ const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) =>
         })
     };
     const request = window.FolderViewPlusRequest;
+    let response = null;
     if (request && typeof request.postJson === 'function') {
         try {
-            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
                 retries: 1,
                 retryDelayMs: 260
             });
         } catch (_error) {
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    if (!response) {
+        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy mode.');
+    if (!response?.prefs || typeof response.prefs !== 'object' || Array.isArray(response.prefs)) {
+        throw new Error('Docker privacy mode save returned no preferences.');
+    }
+    const savedPrefs = utils.normalizePrefs(response.prefs);
+    if (savedPrefs.dashboard?.privacyMode !== (enabled === true)) {
+        throw new Error('Docker privacy mode did not persist.');
+    }
+    return {
+        ...response,
+        prefs: savedPrefs
+    };
 };
 
 const findDockerRuntimeListViewToggleAnchor = () => {
@@ -4433,14 +4447,7 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
 const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
     const previousPrefs = getDockerRuntimePersistedPrefs();
-    let basePrefs = previousPrefs;
-    if (options.persist !== false) {
-        try {
-            basePrefs = await fetchDockerBootstrapPrefs();
-        } catch (_error) {
-            basePrefs = previousPrefs;
-        }
-    }
+    const basePrefs = previousPrefs;
     const basePrivacyMode = utils.normalizePrefs(basePrefs || {}).dashboard?.privacyMode === true;
     if (basePrivacyMode === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
         folderTypePrefs = basePrefs;

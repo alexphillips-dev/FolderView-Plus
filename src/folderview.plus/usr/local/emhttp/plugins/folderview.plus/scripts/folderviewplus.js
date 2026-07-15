@@ -10050,14 +10050,12 @@ const changeDashboardPref = async (type, key, value) => {
         return;
     }
 
-    const next = {
-        ...current,
-        dashboard: nextDashboard
-    };
-
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderDashboardControls(type);
+        await updatePrefsPartial(type, {
+            dashboard: nextDashboard
+        }, {
+            render: () => renderDashboardControls(type)
+        });
     } catch (error) {
         renderDashboardControls(type);
         showError('Dashboard preference save failed', error);

@@ -314,6 +314,8 @@ td.ct-name.folder-name > .folder-name-sub > .folder-outer {
 
 body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name img.img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_view td.ct-name img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview img.img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime-mask-names .preview-img > .folder-img,

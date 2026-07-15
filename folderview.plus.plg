@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.02">
-<!ENTITY md5 "ce1cddc3166de65a97c9781fde4fd644">
+<!ENTITY version "2026.07.15.03">
+<!ENTITY md5 "00b41562af5818721ac0ee91139574e1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.15.03
+- Fix: Persist the Docker-page privacy toggle immediately so its enabled state survives refreshes and navigation.
+- Fix: Save Dashboard privacy mask options through the optimistic partial-preference path so checkbox changes apply reliably without overwriting unrelated preferences.
+- Privacy: Mask container icons inside folder row previews as well as expanded native container rows.
+- Quality: Add regression coverage for privacy preference saves, persisted toggle response validation, and folder row-preview masking.
+
 
 ###2026.07.15.02
 ### Configuration Safety

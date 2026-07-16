@@ -363,9 +363,10 @@ test('vm runtime tiny-width overflow guard can still recover clipped folder name
     assert.match(vmJs, /Math\.min\(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
 });
 
-test('import apply uses chunked execution and performance diagnostics stay internal to support exports', () => {
-    assert.match(settingsRuntime, /IMPORT_APPLY_CHUNK_SIZE/);
-    assert.match(settingsRuntime, /runImportChunked/);
+test('import apply uses one atomic batch and performance diagnostics stay internal to support exports', () => {
+    assert.match(settingsRuntime, /server\/batch\.php/);
+    assert.match(settingsRuntime, /transport:\s*'atomic-batch'/);
+    assert.doesNotMatch(settingsRuntime, /runImportChunked/);
     assert.match(settingsRuntime, /performanceDiagnosticsState/);
     assert.match(settingsRuntime, /renderPerformanceDiagnostics/);
     assert.doesNotMatch(settingsPage, /performance-diagnostics-output/);

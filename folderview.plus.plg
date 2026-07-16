@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.20">
-<!ENTITY md5 "10434b38b41fc98cd81cc58689b9aa1a">
+<!ENTITY version "2026.07.16.22">
+<!ENTITY md5 "71d76b3fd63d6c5619dd9b264ef3281b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.22
+### Atomic configuration imports and deletes
+- Performance: Replaces one HTTP request and full configuration rewrite per folder with one bounded server-side batch transaction for imports and bulk deletes.
+- Performance: Applies all folder changes under one configuration lock with one folder-map read, one normalization pass, one atomic folder-map write, one metadata commit, and one manual-order reconciliation.
+- Performance: Removes the fixed import and delete completion delays so the refreshed result appears as soon as the transaction finishes.
+- Security: Validates every delete, update, and create operation before changing disk state, preserves the existing pre-import safety backup and undo flow, and attempts an in-lock rollback if a post-write step fails.
+- Quality: Reconciles nested-folder parents, manual folder order, and Docker start order once after the final batch state is known instead of repeating that work for every folder.
+- Quality: Records sanitized batch counts and server execution time for troubleshooting without exporting folder names or payload content.
+- Test: Adds an executable transaction regression proving multi-folder changes commit one folder revision, repair hierarchy and order correctly, and reject invalid batches without partial mutation.
 
 ###2026.07.16.20
 ### Compact import mode badges

@@ -820,80 +820,43 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const pauseImportApplyChunk = () => new Promise((resolve) => {
-    window.setTimeout(resolve, IMPORT_APPLY_CHUNK_PAUSE_MS);
-});
-
-const runImportChunked = async (items, runner) => {
-    const list = Array.isArray(items) ? items : [];
-    for (let start = 0; start < list.length; start += IMPORT_APPLY_CHUNK_SIZE) {
-        const end = Math.min(start + IMPORT_APPLY_CHUNK_SIZE, list.length);
-        for (let index = start; index < end; index += 1) {
-            await runner(list[index], index);
-        }
-        if (end < list.length) {
-            await pauseImportApplyChunk();
-        }
-    }
-};
-
 const applyImportOperations = async (type, operations, onProgress = null) => {
     const resolvedType = normalizeManagedType(type);
     const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
     const upserts = Array.isArray(operations?.upserts) ? operations.upserts : [];
     const creates = Array.isArray(operations?.creates) ? operations.creates : [];
-    const currentFolders = getFolderMap(resolvedType);
-    const totalSteps = deletes.length + upserts.length + creates.length + (resolvedType === 'docker' ? 1 : 0);
-    let completed = 0;
-    const emit = (label) => {
+    const totalSteps = deletes.length + upserts.length + creates.length;
+    const emit = (completed, label) => {
         if (typeof onProgress === 'function') {
             onProgress({ completed, total: totalSteps, label: String(label || '') });
         }
     };
-
-    await runImportChunked(deletes, async (id) => {
-        const folderName = String(currentFolders[id]?.name || id || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id });
-        completed += 1;
-        emit(`Deleted ${folderName}`);
-    });
-
-    await runImportChunked(upserts, async (item) => {
-        const folderName = String(item?.folder?.name || currentFolders[item?.id]?.name || item?.id || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/update.php', {
-            type: resolvedType,
-            id: item.id,
-            content: JSON.stringify(item.folder)
-        });
-        completed += 1;
-        emit(`Updated ${folderName}`);
-    });
-
-    await runImportChunked(creates, async (item) => {
-        const folderName = String(item?.folder?.name || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/create.php', {
-            type: resolvedType,
-            content: JSON.stringify(item.folder)
-        });
-        completed += 1;
-        emit(`Created ${folderName}`);
-    });
-
-    if (resolvedType === 'docker') {
-        await syncDockerOrder();
-        completed += 1;
-        emit('Synced Docker folder order');
+    if (totalSteps <= 0) {
+        return { completed: 0, total: 0 };
     }
+
+    emit(0, `Applying ${totalSteps} folder change${totalSteps === 1 ? '' : 's'} in one transaction...`);
+    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
+        type: resolvedType,
+        operations: JSON.stringify({ deletes, upserts, creates })
+    });
+    if (!response.ok || !response.result) {
+        throw new Error(response.error || 'Folder import transaction failed.');
+    }
+    emit(totalSteps, `Applied ${totalSteps} folder change${totalSteps === 1 ? '' : 's'}`);
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
         deletes: deletes.length,
         updates: upserts.length,
-        creates: creates.length
+        creates: creates.length,
+        transport: 'atomic-batch',
+        serverDurationMs: Number(response.result.durationMs) || 0
     });
 
     return {
-        completed,
+        ...response.result,
+        completed: totalSteps,
         total: totalSteps
     };
 };

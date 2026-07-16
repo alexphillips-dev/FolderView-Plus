@@ -252,7 +252,7 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(importScript, /note = ''/);
     assert.match(importScript, /overlay\.show\(\);/);
     assert.match(importScript, /overlay\.hide\(\);/);
-    assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
+    assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, total, label \}\) =>/);
 });
 
 test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {

@@ -376,6 +376,8 @@
     const FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES = 65536;
     const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
     const FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES = 1048576;
+    const FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES = 8388608;
+    const FVPLUS_MAX_FOLDER_BATCH_OPERATIONS = 500;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
     const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
@@ -3462,13 +3464,12 @@
         return $applyPinnedOrder($folders);
     }
 
-    function syncManualOrderWithFolders(string $type, array $folders): void {
-        $prefs = readTypePrefs($type);
+    function reconcileManualOrderPrefs(array $prefs, array $folders): array {
         if (($prefs['sortMode'] ?? 'created') !== 'manual') {
-            return;
+            return $prefs;
         }
         $order = [];
-        foreach ($prefs['manualOrder'] as $id) {
+        foreach ((array)($prefs['manualOrder'] ?? []) as $id) {
             if (array_key_exists($id, $folders)) {
                 $order[] = $id;
             }
@@ -3478,9 +3479,15 @@
                 $order[] = $id;
             }
         }
-        if ($order !== ($prefs['manualOrder'] ?? [])) {
-            $prefs['manualOrder'] = $order;
-            writeTypePrefs($type, $prefs);
+        $prefs['manualOrder'] = $order;
+        return $prefs;
+    }
+
+    function syncManualOrderWithFolders(string $type, array $folders): void {
+        $prefs = readTypePrefs($type);
+        $nextPrefs = reconcileManualOrderPrefs($prefs, $folders);
+        if ($nextPrefs !== $prefs) {
+            writeTypePrefs($type, $nextPrefs);
         }
     }
 
@@ -5629,6 +5636,208 @@
             // Keep update flow non-fatal.
         }
         return readConfigMetadata($type, false);
+    }
+
+    function applyFolderBatchOperations(string $type, array $operations): array {
+        $type = ensureType($type);
+        $deletes = $operations['deletes'] ?? [];
+        $upserts = $operations['upserts'] ?? [];
+        $creates = $operations['creates'] ?? [];
+        if (!is_array($deletes) || !is_array($upserts) || !is_array($creates)) {
+            throw new RuntimeException('Batch operations must contain delete, update, and create arrays.');
+        }
+        $operationCount = count($deletes) + count($upserts) + count($creates);
+        if ($operationCount <= 0) {
+            throw new RuntimeException('No folder operations were provided.');
+        }
+        if ($operationCount > FVPLUS_MAX_FOLDER_BATCH_OPERATIONS) {
+            throw new RuntimeException('Folder batch exceeds the maximum operation count.');
+        }
+
+        $normalizedDeletes = [];
+        foreach ($deletes as $rawId) {
+            $id = trim((string)$rawId);
+            if ($id === '' || strlen($id) > 128) {
+                throw new RuntimeException('Batch delete contains an invalid folder ID.');
+            }
+            $normalizedDeletes[] = $id;
+        }
+
+        $normalizeBatchFolder = static function ($rawEntry, bool $requiresId): array {
+            if (!is_array($rawEntry)) {
+                throw new RuntimeException('Batch folder operation must be an object.');
+            }
+            $id = $requiresId ? trim((string)($rawEntry['id'] ?? '')) : '';
+            if ($requiresId && ($id === '' || strlen($id) > 128)) {
+                throw new RuntimeException('Batch update contains an invalid folder ID.');
+            }
+            $folder = $rawEntry['folder'] ?? null;
+            if (!is_array($folder)) {
+                throw new RuntimeException('Batch folder operation is missing a valid folder payload.');
+            }
+            fvplus_assert_folder_payload_shape($folder);
+            $rawPreview = json_encode($folder, JSON_UNESCAPED_SLASHES);
+            if (!is_string($rawPreview) || strlen($rawPreview) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
+                throw new RuntimeException('Batch folder payload exceeds the raw upload limit.');
+            }
+            $normalized = normalizeFolderContentPayload($folder);
+            $normalizedPreview = json_encode($normalized, JSON_UNESCAPED_SLASHES);
+            if (!is_string($normalizedPreview) || strlen($normalizedPreview) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
+                throw new RuntimeException('Batch folder payload is too large after normalization.');
+            }
+            return [
+                'id' => $id,
+                'folder' => $normalized
+            ];
+        };
+
+        $normalizedUpserts = [];
+        foreach ($upserts as $entry) {
+            $normalizedUpserts[] = $normalizeBatchFolder($entry, true);
+        }
+        $normalizedCreates = [];
+        foreach ($creates as $entry) {
+            $normalizedCreates[] = $normalizeBatchFolder($entry, false);
+        }
+
+        return withConfigMutationLock(static function () use (
+            $type,
+            $normalizedDeletes,
+            $normalizedUpserts,
+            $normalizedCreates,
+            $operationCount
+        ): array {
+            $startedAt = microtime(true);
+            $originalFolders = readRawFolderMap($type);
+            $originalPrefs = readTypePrefs($type);
+            $nextFolders = $originalFolders;
+            $deletedIds = [];
+            $updatedIds = [];
+            $createdIds = [];
+            $now = gmdate('c');
+
+            foreach ($normalizedDeletes as $id) {
+                if (!array_key_exists($id, $nextFolders)) {
+                    continue;
+                }
+                $deletedParentId = normalizeFolderParentIdValue($nextFolders[$id]['parentId'] ?? '');
+                unset($nextFolders[$id]);
+                foreach ($nextFolders as &$folder) {
+                    if (!is_array($folder)) {
+                        continue;
+                    }
+                    $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
+                    if ($parentId === $id) {
+                        $folder['parentId'] = $deletedParentId;
+                    }
+                }
+                unset($folder);
+                $deletedIds[] = $id;
+            }
+
+            foreach ($normalizedUpserts as $entry) {
+                $id = (string)$entry['id'];
+                $nextFolder = (array)$entry['folder'];
+                $existingFolder = is_array($nextFolders[$id] ?? null)
+                    ? normalizeFolderContentPayload((array)$nextFolders[$id])
+                    : null;
+                $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
+                if (is_array($existingFolder)) {
+                    $existingCreatedAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
+                    if ($existingCreatedAt !== '') {
+                        $createdAt = $existingCreatedAt;
+                    }
+                }
+                if ($createdAt === '') {
+                    $createdAt = $now;
+                }
+                $nextFolder['createdAt'] = $createdAt;
+                $nextFolder['updatedAt'] = $now;
+                $nextFolders[$id] = $nextFolder;
+                $updatedIds[] = $id;
+            }
+
+            foreach ($normalizedCreates as $entry) {
+                do {
+                    $id = generateId();
+                } while (array_key_exists($id, $nextFolders));
+                $nextFolder = (array)$entry['folder'];
+                $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
+                $nextFolder['createdAt'] = $createdAt !== '' ? $createdAt : $now;
+                $nextFolder['updatedAt'] = $now;
+                $nextFolders[$id] = $nextFolder;
+                $createdIds[] = $id;
+            }
+
+            $nextFolders = normalizeFolderParentLinks($nextFolders);
+            $nextPrefs = reconcileManualOrderPrefs($originalPrefs, $nextFolders);
+            $folderWriteCommitted = false;
+            $prefsWriteCommitted = false;
+            try {
+                writeRawFolderMap($type, $nextFolders);
+                $folderWriteCommitted = true;
+                if ($nextPrefs !== $originalPrefs) {
+                    writeTypePrefs($type, $nextPrefs);
+                    $prefsWriteCommitted = true;
+                }
+                if ($type === 'docker') {
+                    syncContainerOrder($type);
+                }
+            } catch (Throwable $error) {
+                $rollbackErrors = [];
+                if ($folderWriteCommitted) {
+                    try {
+                        writeRawFolderMap($type, $originalFolders);
+                    } catch (Throwable $rollbackError) {
+                        $rollbackErrors[] = 'folders: ' . $rollbackError->getMessage();
+                    }
+                    if ($prefsWriteCommitted) {
+                        try {
+                            writeTypePrefs($type, $originalPrefs);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'preferences: ' . $rollbackError->getMessage();
+                        }
+                    }
+                    if ($type === 'docker') {
+                        try {
+                            syncContainerOrder($type);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'Docker order: ' . $rollbackError->getMessage();
+                        }
+                    }
+                }
+                $rollbackDetail = count($rollbackErrors) > 0
+                    ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
+                    : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
+            }
+
+            $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+            try {
+                appendDiagnosticsHistoryEvent('folder_batch_mutation', $type, [
+                    'requestedCount' => $operationCount,
+                    'deletedCount' => count($deletedIds),
+                    'updatedCount' => count($updatedIds),
+                    'createdCount' => count($createdIds),
+                    'folderCount' => count($nextFolders),
+                    'durationMs' => $durationMs,
+                    'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+                ], 'ok', 'server');
+            } catch (Throwable $err) {
+                // Keep the committed transaction successful if diagnostics logging fails.
+            }
+
+            return [
+                'requestedCount' => $operationCount,
+                'deletedIds' => $deletedIds,
+                'updatedIds' => $updatedIds,
+                'createdIds' => $createdIds,
+                'folderCount' => count($nextFolders),
+                'dockerOrderSynced' => $type === 'docker',
+                'durationMs' => $durationMs,
+                'metadata' => readConfigMetadata($type, false)
+            ];
+        });
     }
 
     function applyFolderMemberIdentityPatches(string $type, array $patches): array {

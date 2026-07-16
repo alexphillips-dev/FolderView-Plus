@@ -664,8 +664,6 @@ let backupCompareDiffPagingState = {
     page: 1,
     pageSize: 120
 };
-const IMPORT_APPLY_CHUNK_SIZE = 20;
-const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 let latestPrefsBackupByType = {
@@ -9792,8 +9790,7 @@ const importType = async (type) => {
 
     let transactionBackup = null;
     const operationCount = countImportOperations(operations);
-    const syncStepCount = resolvedType === 'docker' ? 1 : 0;
-    const progressTotal = Math.max(3, operationCount + syncStepCount + 2);
+    const progressTotal = 3;
     let progressOpen = false;
     const setProgress = (completed, label) => {
         updateImportApplyProgressDialog({
@@ -9810,14 +9807,14 @@ const importType = async (type) => {
         transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
         setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
 
-        await applyImportOperations(resolvedType, operations, ({ completed, label }) => {
-            setProgress(1 + completed, label || 'Applying import operations...');
+        await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
+            const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
+            setProgress(batchComplete ? 2 : 1, label || 'Applying import transaction...');
         });
 
-        setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+        setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
         setProgress(progressTotal, 'Import complete.');
-        await new Promise((resolve) => setTimeout(resolve, 180));
         closeImportApplyProgressDialog();
         progressOpen = false;
 
@@ -9894,8 +9891,7 @@ const clearType = (type, id) => {
         }
 
         const deleteIds = id ? [id] : Object.keys(getFolderMap(resolvedType));
-        const syncStepCount = resolvedType === 'docker' ? 1 : 0;
-        const progressTotal = Math.max(3, deleteIds.length + syncStepCount + 2);
+        const progressTotal = 3;
         let progressOpen = false;
         const operationTitle = id
             ? `Deleting ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`
@@ -9945,38 +9941,35 @@ const clearType = (type, id) => {
                 deletedCount: 0
             });
 
-            let completed = 1;
             const foldersBeforeDelete = getFolderMap(resolvedType);
             let deletedCount = 0;
-            for (const currentId of deleteIds) {
-                const currentName = foldersBeforeDelete[currentId]?.name || currentId;
-                setProgress(completed, `Deleting ${currentName}`, {
-                    current: `Removing folder: ${currentName}`,
-                    deletedCount
+            if (deleteIds.length > 0) {
+                const currentLabel = id
+                    ? `Removing folder: ${foldersBeforeDelete[id]?.name || id}`
+                    : `Removing ${deleteIds.length} folders in one transaction.`;
+                setProgress(1, id ? `Deleting ${folderName || id}` : `Deleting ${deleteIds.length} folders`, {
+                    current: currentLabel,
+                    deletedCount: 0
                 });
-                await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId });
-                completed += 1;
-                deletedCount += 1;
-                setProgress(completed, `Deleted ${currentName}`, {
-                    current: `Removed folder: ${currentName}`,
+                const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
+                    type: resolvedType,
+                    operations: JSON.stringify({ deletes: deleteIds, upserts: [], creates: [] })
+                });
+                if (!response.ok || !response.result) {
+                    throw new Error(response.error || 'Folder delete transaction failed.');
+                }
+                deletedCount = Array.isArray(response.result.deletedIds)
+                    ? response.result.deletedIds.length
+                    : deleteIds.length;
+                setProgress(2, id ? `Deleted ${folderName || id}` : `Deleted ${deletedCount} folders`, {
+                    current: resolvedType === 'docker'
+                        ? 'Folder configuration and Docker order updated.'
+                        : 'Folder configuration updated.',
                     deletedCount
                 });
             }
 
-            if (resolvedType === 'docker') {
-                setProgress(completed, 'Syncing Docker folder order...', {
-                    current: 'Removing deleted folders from Docker order.',
-                    deletedCount
-                });
-                await syncDockerOrder();
-                completed += 1;
-                setProgress(completed, 'Synced Docker folder order', {
-                    current: 'Docker folder order synced.',
-                    deletedCount
-                });
-            }
-
-            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
+            setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
                 current: 'Refreshing settings table and backups.',
                 deletedCount
             });
@@ -9989,7 +9982,6 @@ const clearType = (type, id) => {
                 remainingLabel: 0,
                 note: 'Cleanup complete. The settings view has been refreshed.'
             });
-            await new Promise((resolve) => setTimeout(resolve, 650));
             closeImportApplyProgressDialog();
             progressOpen = false;
 

@@ -362,7 +362,11 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         dialogShell
             .find('.ui-dialog-title, #import-preview-dialog, #import-preview-dialog *, .ui-dialog-buttonpane button')
             .each((_, element) => {
-                if (!element?.style || String(element.tagName || '').toLowerCase() === 'i') return;
+                if (
+                    !element?.style
+                    || String(element.tagName || '').toLowerCase() === 'i'
+                    || element.classList?.contains('import-mode-choice-badge')
+                ) return;
                 const renderedFontSize = Number.parseFloat(window.getComputedStyle(element).fontSize);
                 if (Number.isFinite(renderedFontSize) && renderedFontSize + 0.01 < minimumFontSize) {
                     element.style.setProperty('font-size', '1.2rem', 'important');

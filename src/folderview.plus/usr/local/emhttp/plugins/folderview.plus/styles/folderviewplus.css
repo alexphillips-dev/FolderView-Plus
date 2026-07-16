@@ -6984,7 +6984,7 @@ html body .ui-dialog.fv-import-preview-modal .ui-dialog-titlebar-close {
 
 html body .ui-dialog.fv-import-preview-modal .ui-dialog-title,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog,
-html body .ui-dialog.fv-import-preview-modal #import-preview-dialog *:not(i),
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog *:not(i):not(.import-mode-choice-badge),
 html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button {
     font-size: 1.2rem !important;
 }
@@ -6998,7 +6998,6 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-prev
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-control-label,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-copy strong,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-copy small,
-html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-badge,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-summary-total span,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-summary-breakdown > span,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .preview-result,
@@ -7018,6 +7017,10 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .fv-table-pa
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .fv-table-pager-info,
 html body .ui-dialog.fv-import-preview-modal #import-preview-dialog textarea {
     font-size: 1.2rem !important;
+}
+
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-badge {
+    font-size: 1rem !important;
 }
 
 .import-preview-head {

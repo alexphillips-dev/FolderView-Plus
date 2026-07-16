@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.19">
-<!ENTITY md5 "5761163e274b6f4b2daa8aa103da0a17">
+<!ENTITY version "2026.07.16.20">
+<!ENTITY md5 "10434b38b41fc98cd81cc58689b9aa1a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.20
+### Compact import mode badges
+- UI/UX: Sets the Recommended and Can delete mode badges to 1.0rem while retaining the 1.2rem minimum for all other import popup text.
+- Fix: Excludes only import mode badges from both the CSS text-floor selector and runtime computed-font safeguard so they are not raised back to 1.2rem.
+- Test: Added regressions for the 1.0rem badge exception and its runtime minimum-font exclusion.
 
 ###2026.07.16.19
 ### Enforced 1.2rem import text minimum

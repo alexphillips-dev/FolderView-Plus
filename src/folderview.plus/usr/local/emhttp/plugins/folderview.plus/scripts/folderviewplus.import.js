@@ -294,6 +294,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
     const counts = $('#import-preview-counts');
+    const planSummary = $('#import-plan-summary');
+    const modeChoices = dialog.find('[data-import-mode-option]');
     const previewFirstToggle = $('#import-preview-first-toggle');
     const reviewAckRow = $('#import-review-ack-row');
     const reviewAck = $('#import-review-ack');
@@ -318,6 +320,14 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         if (reviewAck.length) {
             reviewAck.prop('checked', enabled === true);
         }
+    };
+    const syncModeChoiceUi = () => {
+        const activeMode = normalizeImportMode(modeSelect.val());
+        modeChoices.each((_, element) => {
+            const button = $(element);
+            const selected = String(button.attr('data-import-mode-option') || '') === activeMode;
+            button.toggleClass('is-selected', selected).attr('aria-pressed', selected ? 'true' : 'false');
+        });
     };
     const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
         .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
@@ -351,7 +361,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const riskInfo = getImportRiskInfo(selectedOperations);
         const requireAck = currentDryRunOnly !== true && (previewFirstEnabled === true || riskInfo.requiresReview === true);
         if (reviewAckRow.length) {
-            reviewAckRow.toggle(requireAck);
+            reviewAckRow.css('display', requireAck ? 'flex' : 'none');
+            reviewAckRow.attr('aria-hidden', requireAck ? 'false' : 'true');
             reviewAckRow.attr('title', riskInfo.requiresReview ? `${riskInfo.label} requires review before apply.` : '');
         }
         if (!requireAck) {
@@ -391,14 +402,26 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected and ready to apply.`);
         }
         const riskInfo = getImportRiskInfo(selectedOperations);
+        const changeParts = [
+            selectedCreates > 0 ? `${selectedCreates} to create` : '',
+            selectedUpdates > 0 ? `${selectedUpdates} to update` : '',
+            selectedDeletes > 0 ? `${selectedDeletes} to delete` : ''
+        ].filter(Boolean);
+        const changeSummary = changeParts.length ? changeParts.join(', ') : 'No folder changes selected';
 
         counts.html(`
-            <span class="import-count-chip is-create">Create: ${selectedCreates}/${currentOperations.creates.length}</span>
-            <span class="import-count-chip is-update">Update: ${selectedUpdates}/${currentOperations.upserts.length}</span>
-            <span class="import-count-chip is-delete">Delete: ${selectedDeletes}/${currentOperations.deletes.length}</span>
-            <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
-            <span class="import-count-chip is-dryrun">Dry run: ${currentDryRunOnly ? 'ON' : 'OFF'}</span>
-            <span class="import-count-chip is-risk-${escapeHtml(riskInfo.level)}">Risk: ${escapeHtml(riskInfo.label)}</span>
+            <div class="import-impact-card is-create"><i class="fa fa-plus-circle" aria-hidden="true"></i><span><strong>${selectedCreates}</strong><small>of ${currentOperations.creates.length} to create</small></span></div>
+            <div class="import-impact-card is-update"><i class="fa fa-refresh" aria-hidden="true"></i><span><strong>${selectedUpdates}</strong><small>of ${currentOperations.upserts.length} to update</small></span></div>
+            <div class="import-impact-card is-delete"><i class="fa fa-trash" aria-hidden="true"></i><span><strong>${selectedDeletes}</strong><small>of ${currentOperations.deletes.length} to delete</small></span></div>
+            <div class="import-impact-card is-risk-${escapeHtml(riskInfo.level)}"><i class="fa fa-shield" aria-hidden="true"></i><span><strong>${escapeHtml(riskInfo.label)}</strong><small>${currentDryRunOnly ? 'Preview only' : `${selectedCount} selected operation${selectedCount === 1 ? '' : 's'}`}</small></span></div>
+        `);
+        planSummary.html(`
+            <div class="import-plan-summary-title"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> What happens when you continue</div>
+            <ol>
+                <li><span>1</span><div><strong>${currentDryRunOnly ? 'Build a preview without saving' : 'Back up the current configuration'}</strong><small>${currentDryRunOnly ? 'FolderView Plus calculates the result and makes no changes.' : 'A recovery snapshot is created before any folder is changed.'}</small></div></li>
+                <li><span>2</span><div><strong>${escapeHtml(changeSummary)}</strong><small>Only checked operations are included; excluded folders remain untouched.</small></div></li>
+                <li><span>3</span><div><strong>${currentDryRunOnly ? 'Show the simulated result' : 'Refresh FolderView Plus with the imported configuration'}</strong><small>${currentDryRunOnly ? 'You can return and apply later.' : 'The settings page reloads after the import completes.'}</small></div></li>
+            </ol>
         `);
         syncImportSafetyUi();
     };
@@ -491,6 +514,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         renderOperationSelection(updateSelectionSummary);
         renderImportDiffTable(diffRows, { resetPage: true });
         previewText.val(formatImportSummary(summary));
+        syncModeChoiceUi();
 
         const metaItems = [
             { label: 'Type', value: type },
@@ -519,6 +543,12 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     };
 
     utils.bindEventOnce(modeSelect, 'change.fvimport', () => {
+        renderPreview();
+    });
+    utils.bindEventOnce(modeChoices, 'click.fvimportmode', (event) => {
+        const requestedMode = normalizeImportMode($(event.currentTarget).attr('data-import-mode-option'));
+        if (requestedMode === normalizeImportMode(modeSelect.val())) return;
+        modeSelect.val(requestedMode);
         renderPreview();
     });
     utils.bindEventOnce($('#import-dry-run-only'), 'change.fvimport', () => {
@@ -605,19 +635,26 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
 
     refreshPresetControls();
+    $('#import-preview-kind').text(type === 'docker' ? 'Docker folder' : 'VM folder');
     renderPreview();
 
-    const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
+    const modalWidth = Math.min(960, Math.max(320, Math.floor(window.innerWidth * 0.94)));
+    const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
         title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
         resizable: false,
         width: modalWidth,
+        maxHeight: modalMaxHeight,
         modal: true,
         dialogClass: 'fv-import-preview-modal',
         closeText: '',
         show: { effect: 'fade', duration: 120 },
         hide: { effect: 'fade', duration: 120 },
         open: () => {
+            const buttonPane = dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane');
+            const applyButton = getImportApplyButton();
+            applyButton.addClass('fv-import-apply-button').html('<i class="fa fa-check" aria-hidden="true"></i> Apply import');
+            buttonPane.find('button').not(applyButton).addClass('fv-import-cancel-button');
             syncImportSafetyUi();
         },
         close: () => resolve(dialogResult),

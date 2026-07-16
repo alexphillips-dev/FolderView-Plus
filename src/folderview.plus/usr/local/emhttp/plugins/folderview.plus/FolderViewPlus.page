@@ -1763,19 +1763,68 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <div id="import-preview-dialog" style="display:none;">
     <div class="import-preview-head">
-        <p class="import-preview-title">Review import plan</p>
-        <p class="import-preview-subtitle">Choose mode, review changes, and apply only what you want.</p>
-    </div>
-    <div class="import-top-grid">
-        <div class="import-preview-card">
-            <p class="import-card-title">Summary</p>
-            <div id="import-preview-meta" class="preview-meta"></div>
-            <div id="import-preview-result" class="preview-result"></div>
-            <div id="import-preview-counts" class="import-preview-counts"></div>
+        <div class="import-preview-head-icon" aria-hidden="true"><i class="fa fa-upload"></i></div>
+        <div class="import-preview-head-copy">
+            <p class="import-preview-kicker">Guided configuration import</p>
+            <p class="import-preview-title">Review and apply your <span id="import-preview-kind">folder</span> import</p>
+            <p class="import-preview-subtitle">FolderView Plus will back up the current configuration, apply only the selected changes, and leave anything excluded untouched.</p>
         </div>
-        <div class="import-preview-card import-mode-card">
+    </div>
+
+    <div class="import-preview-journey" aria-label="Import steps">
+        <span class="is-active"><b>1</b> Choose behavior</span>
+        <span><b>2</b> Review changes</span>
+        <span><b>3</b> Confirm and apply</span>
+    </div>
+
+    <section class="import-preview-card import-source-card" aria-labelledby="import-source-title">
+        <div class="import-section-heading is-compact">
+            <div class="import-section-icon"><i class="fa fa-file-code-o" aria-hidden="true"></i></div>
+            <div>
+                <p id="import-source-title" class="import-card-title">Import source</p>
+                <p class="import-card-help">File identity and validation details.</p>
+            </div>
+        </div>
+        <div id="import-preview-meta" class="preview-meta"></div>
+    </section>
+
+    <section class="import-preview-card import-mode-card" aria-labelledby="import-mode-title">
+        <div class="import-section-heading">
+            <span class="import-step-number">1</span>
+            <div>
+                <p id="import-mode-title" class="import-card-title">Choose how existing folders are handled</p>
+                <p class="import-card-help">Merge is the safest choice for most imports. You can change this without modifying anything yet.</p>
+            </div>
+        </div>
+        <label class="import-mode-native-label" for="import-mode-select">Import behavior</label>
+        <select id="import-mode-select" class="import-mode-native-select" tabindex="-1" aria-hidden="true">
+            <option value="merge">Merge</option>
+            <option value="replace">Replace</option>
+            <option value="skip">Skip existing</option>
+        </select>
+        <div class="import-mode-choices" role="group" aria-label="Import behavior">
+            <button type="button" class="import-mode-choice" data-import-mode-option="merge" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-compress" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong>Merge safely</strong><small>Add new folders and update matching folders. Nothing is deleted.</small></span>
+                <span class="import-mode-choice-badge">Recommended</span>
+            </button>
+            <button type="button" class="import-mode-choice" data-import-mode-option="skip" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-plus-circle" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong>Add new only</strong><small>Create missing folders and leave every existing folder unchanged.</small></span>
+            </button>
+            <button type="button" class="import-mode-choice is-caution" data-import-mode-option="replace" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-exchange" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong>Replace exactly</strong><small>Match the export exactly. Existing folders missing from the file may be deleted.</small></span>
+                <span class="import-mode-choice-badge is-caution">Can delete</span>
+            </button>
+        </div>
+        <div id="import-mode-help" class="import-mode-help">Your selection only builds a preview. No changes occur until you choose Apply import.</div>
+
+        <details class="import-secondary-options">
+            <summary><i class="fa fa-sliders" aria-hidden="true"></i> Saved presets and safety options</summary>
+            <div class="import-secondary-options-body">
             <div class="import-preset-stack">
-                <label for="import-preset-select">Preset</label>
+                    <label for="import-preset-select">Saved import preset</label>
                 <select id="import-preset-select"></select>
                 <div class="import-preset-actions">
                     <button type="button" id="import-preset-save"><i class="fa fa-save"></i> Save current</button>
@@ -1783,28 +1832,56 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <button type="button" id="import-preset-delete"><i class="fa fa-trash"></i> Delete</button>
                 </div>
             </div>
-            <label for="import-mode-select">Import mode</label>
-            <select id="import-mode-select">
-                <option value="merge">Merge</option>
-                <option value="replace">Replace</option>
-                <option value="skip">Skip existing</option>
-            </select>
-            <div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>
-            <label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>
-            <label id="import-preview-first-row"><input id="import-preview-first-toggle" type="checkbox" checked> Preview diff first (recommended)</label>
-            <label id="import-review-ack-row" style="display:none;"><input id="import-review-ack" type="checkbox"> I reviewed the diff and selected operations</label>
+                <div class="import-option-list">
+                    <label id="import-dry-run-row" class="import-option-row">
+                        <input id="import-dry-run-only" type="checkbox">
+                        <span><strong>Preview-only dry run</strong><small>Calculate and display the result without changing folders.</small></span>
+                    </label>
+                    <label id="import-preview-first-row" class="import-option-row">
+                        <input id="import-preview-first-toggle" type="checkbox" checked>
+                        <span><strong>Require review before applying</strong><small>Keep the Apply button locked until the review confirmation is checked.</small></span>
+                    </label>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="import-preview-card import-review-card" aria-labelledby="import-review-title">
+        <div class="import-section-heading">
+            <span class="import-step-number">2</span>
+            <div>
+                <p id="import-review-title" class="import-card-title">Review what will change</p>
+                <p class="import-card-help">These totals update immediately when you change the behavior or exclude an operation.</p>
+            </div>
         </div>
-    </div>
-    <div class="import-preview-card">
-        <p class="import-card-title">Changed rows</p>
-        <div id="import-preview-diff"></div>
-    </div>
-    <div class="import-preview-card import-selection-card">
-        <p class="import-card-title">Selected operations</p>
-        <div id="import-preview-selection" class="import-selection"></div>
-    </div>
+        <div id="import-preview-counts" class="import-preview-counts"></div>
+        <div id="import-preview-result" class="preview-result" role="status" aria-live="polite"></div>
+        <div id="import-plan-summary" class="import-plan-summary"></div>
+
+        <details class="import-review-details" open>
+            <summary><span><i class="fa fa-list-alt" aria-hidden="true"></i> Changed folders</span><small>See the action and fields affected for each folder.</small></summary>
+            <div id="import-preview-diff"></div>
+        </details>
+        <details class="import-review-details">
+            <summary><span><i class="fa fa-check-square-o" aria-hidden="true"></i> Choose included operations</span><small>Everything is selected by default. Uncheck anything you do not want applied.</small></summary>
+            <div id="import-preview-selection" class="import-selection"></div>
+        </details>
+    </section>
+
+    <section class="import-preview-card import-confirm-card" aria-labelledby="import-confirm-title">
+        <div class="import-section-heading">
+            <span class="import-step-number">3</span>
+            <div>
+                <p id="import-confirm-title" class="import-card-title">Confirm the safety check</p>
+                <p class="import-card-help">A backup is created automatically before a live import. You can cancel now without changing anything.</p>
+            </div>
+        </div>
+        <div class="import-safety-note"><i class="fa fa-shield" aria-hidden="true"></i><span><strong>Protected by an automatic backup</strong><small>If the import fails, the current FolderView Plus configuration remains recoverable.</small></span></div>
+        <label id="import-review-ack-row" class="import-review-ack" style="display:none;"><input id="import-review-ack" type="checkbox"><span><strong>I reviewed the planned changes</strong><small>Confirm that the selected operations and import behavior are correct.</small></span></label>
+    </section>
+
     <details id="import-summary-details" class="import-summary-details">
-        <summary>Show raw summary details</summary>
+        <summary><i class="fa fa-code" aria-hidden="true"></i> Technical summary</summary>
         <textarea id="import-preview-text" readonly></textarea>
     </details>
 </div>

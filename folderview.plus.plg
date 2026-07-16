@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.11">
-<!ENTITY md5 "e401570e7bc9096c29cc7a3b27ca7d4e">
+<!ENTITY version "2026.07.16.12">
+<!ENTITY md5 "1eed10b3a299db941a7b64df6d4187b0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.12
+### Guided import configuration
+- Feature: Rebuilt the Docker and VM configuration import popup as a guided three-step flow for choosing import behavior, reviewing changes, and confirming the apply operation.
+- UI/UX: Replaced the technical mode selector with plain-language Merge safely, Add new only, and Replace exactly choices, including clear recommended and deletion-risk guidance.
+- UI/UX: Added a live impact overview and a concise what-happens-next explanation that updates with the selected operations and preview-only state.
+- UI/UX: Moved presets and optional safety controls into a collapsible secondary section while keeping changed folders visible and detailed operation selection available on demand.
+- UI/UX: Added a responsive theme-token modal shell with one bounded vertical scroller, compact review lists, mobile single-column layouts, and scoped footer buttons without the legacy orange outline.
+- Quality: Preserved automatic backups, preview-only dry runs, per-operation selection, destructive or untrusted import acknowledgement, presets, pagination, and the technical summary.
+- Test: Added regression coverage for the guided structure, mode synchronization, safety controls, responsive overflow handling, themed actions, and updated impact counters.
 
 ###2026.07.16.11
 ### Optional setup import navigation

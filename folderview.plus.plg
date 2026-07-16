@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.03">
-<!ENTITY md5 "1a4492a31444d2ad726b8f7f542bb071">
+<!ENTITY version "2026.07.16.04">
+<!ENTITY md5 "8007a7d01ac14d402cc3594ab3150aa0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.04
+### Larger Docker privacy menu text
+- UI/UX: Increased the Docker privacy dropdown text size to 1.2rem for the heading, helper text, and every mask option.
+- Test: Expanded the privacy-mode contract guard to keep the complete dropdown typography at the requested 1.2rem scale.
+
 
 ###2026.07.16.03
 ### Compact privacy dropdown trigger

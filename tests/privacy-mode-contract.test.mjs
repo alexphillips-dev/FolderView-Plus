@@ -167,6 +167,10 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /const setDockerRuntimePrivacyMaskPreference = async \(key, enabled\) =>/);
     assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker',[\s\S]*?\[key\]: enabled === true[\s\S]*?immediate: true/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?var\(--fvplus-runtime-menu-bg/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?font-size:\s*1\.2rem;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-heading\s*\{[\s\S]*?font-size:\s*inherit;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-help\s*\{[\s\S]*?font-size:\s*inherit;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-option\s*\{[\s\S]*?font-size:\s*inherit;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\[hidden\]\s*\{[\s\S]*?display:\s*none !important;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-option\s*\{[\s\S]*?cursor:\s*pointer;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-button\s*\{[\s\S]*?width:\s*fit-content !important;[\s\S]*?min-width:\s*0 !important;[\s\S]*?padding:\s*0\.18rem 0 !important;[\s\S]*?border:\s*0 !important;[\s\S]*?background:\s*transparent !important;[\s\S]*?box-shadow:\s*none !important;/);

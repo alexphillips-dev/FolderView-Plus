@@ -7,14 +7,7 @@
     root.FolderViewPlusBulkAssignmentShared = factory();
     root.FolderViewPlusBulkAssignmentSharedModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
-    const fallbackWindow = typeof globalThis !== 'undefined'
-        ? globalThis
-        : (typeof window !== 'undefined' ? window : null);
-    const DEFAULT_BULK_ASSIGN_CHUNK_SIZE = 40;
-    const DEFAULT_BULK_ASSIGN_CHUNK_PAUSE_MS = 20;
-
     const createApi = (deps = {}) => {
-        const win = deps.window || fallbackWindow;
         const utils = deps.utils || {};
         const normalizeManagedType = typeof deps.normalizeManagedType === 'function'
             ? deps.normalizeManagedType
@@ -74,10 +67,6 @@
         const offerUndoAction = typeof deps.offerUndoAction === 'function'
             ? deps.offerUndoAction
             : (async () => {});
-        const setTimeoutRef = typeof deps.setTimeoutRef === 'function'
-            ? deps.setTimeoutRef
-            : (typeof win?.setTimeout === 'function' ? win.setTimeout.bind(win) : setTimeout);
-
         const sanitizeBulkItemName = (value) => String(value || '').trim();
 
         const isValidBulkItemName = (name) => {
@@ -263,12 +252,6 @@
                 : buildBulkAssignmentPreludeLines(plan, options);
             const showUndo = options.offerUndo !== false;
             const trackDiagnostics = options.trackDiagnostics !== false;
-            const chunkSize = Number.isFinite(Number(options.chunkSize))
-                ? Math.max(1, Number(options.chunkSize))
-                : DEFAULT_BULK_ASSIGN_CHUNK_SIZE;
-            const chunkPauseMs = Number.isFinite(Number(options.chunkPauseMs))
-                ? Math.max(0, Number(options.chunkPauseMs))
-                : DEFAULT_BULK_ASSIGN_CHUNK_PAUSE_MS;
             const onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
             const actionableNames = Array.isArray(plan.actionableNames) ? plan.actionableNames.filter(Boolean) : [];
             const targetFolderId = String(plan.targetFolderId || '').trim();
@@ -315,54 +298,44 @@
 
             try {
                 backup = await createBackup(resolvedType, backupReason);
-                const chunks = [];
-                for (let index = 0; index < actionableNames.length; index += chunkSize) {
-                    chunks.push(actionableNames.slice(index, index + chunkSize));
+                if (onProgress) {
+                    onProgress({
+                        chunkNumber: 1,
+                        chunkCount: 1,
+                        chunkSize: actionableNames.length,
+                        actionableCount: actionableNames.length,
+                        targetFolderId,
+                        targetFolderName,
+                        resultLines: resultLines.slice()
+                    });
                 }
-                for (let index = 0; index < chunks.length; index += 1) {
-                    const chunk = chunks[index];
-                    if (onProgress) {
-                        onProgress({
-                            chunkNumber: index + 1,
-                            chunkCount: chunks.length,
-                            chunkSize: chunk.length,
-                            actionableCount: actionableNames.length,
-                            targetFolderId,
-                            targetFolderName,
-                            resultLines: resultLines.slice()
-                        });
-                    }
-                    try {
-                        const result = await requestBulkAssign(resolvedType, targetFolderId, chunk);
-                        const assignedSet = new Set(
-                            (Array.isArray(result?.assigned) ? result.assigned : [])
-                                .map((name) => sanitizeBulkItemName(name))
-                                .filter(Boolean)
-                        );
-                        const invalidSet = new Set(
-                            (Array.isArray(result?.skippedInvalid) ? result.skippedInvalid : [])
-                                .map((name) => sanitizeBulkItemName(name))
-                                .filter(Boolean)
-                        );
-                        for (const name of chunk) {
-                            if (assignedSet.has(name)) {
-                                resultLines.push({ status: 'success', name, detail: `Assigned to ${targetFolderName}.` });
-                            } else if (invalidSet.has(name)) {
-                                resultLines.push({ status: 'invalid', name, detail: 'Blocked by request guard validation.' });
-                            } else {
-                                failedNames.push(name);
-                                resultLines.push({ status: 'failed', name, detail: 'Not applied by server response.' });
-                            }
-                        }
-                    } catch (error) {
-                        const message = error?.message || 'Chunk request failed.';
-                        for (const name of chunk) {
+                try {
+                    const result = await requestBulkAssign(resolvedType, targetFolderId, actionableNames);
+                    const assignedSet = new Set(
+                        (Array.isArray(result?.assigned) ? result.assigned : [])
+                            .map((name) => sanitizeBulkItemName(name))
+                            .filter(Boolean)
+                    );
+                    const invalidSet = new Set(
+                        (Array.isArray(result?.skippedInvalid) ? result.skippedInvalid : [])
+                            .map((name) => sanitizeBulkItemName(name))
+                            .filter(Boolean)
+                    );
+                    for (const name of actionableNames) {
+                        if (assignedSet.has(name)) {
+                            resultLines.push({ status: 'success', name, detail: `Assigned to ${targetFolderName}.` });
+                        } else if (invalidSet.has(name)) {
+                            resultLines.push({ status: 'invalid', name, detail: 'Blocked by request guard validation.' });
+                        } else {
                             failedNames.push(name);
-                            resultLines.push({ status: 'failed', name, detail: message });
+                            resultLines.push({ status: 'failed', name, detail: 'Not applied by server response.' });
                         }
                     }
-                    if (index < chunks.length - 1 && chunkPauseMs > 0) {
-                        await new Promise((resolve) => setTimeoutRef(resolve, chunkPauseMs));
+                } catch (error) {
+                    const message = error?.message || 'Atomic assignment request failed.';
+                    for (const name of actionableNames) {
+                        failedNames.push(name);
+                        resultLines.push({ status: 'failed', name, detail: message });
                     }
                 }
 
@@ -399,7 +372,7 @@
                             skippedCount,
                             skippedInvalidCount: invalidCount,
                             failedCount: uniqueFailedNames.length,
-                            chunkCount: Math.max(1, Math.ceil(actionableNames.length / chunkSize))
+                            requestCount: 1
                         }
                     });
                 }
@@ -438,8 +411,6 @@
     };
 
     return Object.freeze({
-        DEFAULT_BULK_ASSIGN_CHUNK_SIZE,
-        DEFAULT_BULK_ASSIGN_CHUNK_PAUSE_MS,
         createApi
     });
 }));

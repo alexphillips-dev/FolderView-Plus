@@ -2065,9 +2065,14 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
         };
     }
 
-    for (const folderId of changedFolderIds) {
-        await saveFolderRecord(resolvedType, folderId, nextFolders[folderId]);
-    }
+    await requestFolderBatchMutation(resolvedType, {
+        deletes: [],
+        creates: [],
+        upserts: changedFolderIds.map((folderId) => ({
+            id: folderId,
+            folder: nextFolders[folderId]
+        }))
+    });
     await refreshType(resolvedType);
     return {
         enabled: true,
@@ -2105,6 +2110,7 @@ const applySetupAssistantTemplatesForType = async (type) => {
             .filter(Boolean)
     );
     const createdNames = [];
+    const creates = [];
     for (const blueprint of plan.selectedBlueprints) {
         const folderName = String(blueprint?.name || '').trim();
         if (!folderName) {
@@ -2116,14 +2122,12 @@ const applySetupAssistantTemplatesForType = async (type) => {
         }
         existingNames.add(normalizedName);
         const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
-        await apiPostText('/plugins/folderview.plus/server/create.php', {
-            type: resolvedType,
-            content: JSON.stringify(payload)
-        });
+        creates.push({ folder: payload });
         createdNames.push(folderName);
     }
 
     if (createdNames.length > 0) {
+        await requestFolderBatchMutation(resolvedType, { deletes: [], upserts: [], creates });
         await refreshType(resolvedType);
     }
 

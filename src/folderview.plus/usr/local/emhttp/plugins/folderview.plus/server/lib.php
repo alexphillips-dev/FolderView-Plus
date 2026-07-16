@@ -378,6 +378,7 @@
     const FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES = 1048576;
     const FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES = 8388608;
     const FVPLUS_MAX_FOLDER_BATCH_OPERATIONS = 500;
+    const FVPLUS_MAX_BULK_ASSIGN_BATCH_ITEMS = 5000;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
     const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
@@ -5047,101 +5048,212 @@
         return $result;
     }
 
-    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments): array {
         $type = ensureType($type);
-        $folderId = trim($folderId);
-        if ($folderId === '') {
-            throw new RuntimeException('Folder ID is required.');
+        if (count($assignments) <= 0) {
+            throw new RuntimeException('At least one folder assignment is required.');
         }
-
-        $folders = readRawFolderMap($type);
-        if (!array_key_exists($folderId, $folders)) {
-            throw new RuntimeException('Target folder not found.');
+        if (count($assignments) > FVPLUS_MAX_FOLDER_BATCH_OPERATIONS) {
+            throw new RuntimeException('Bulk assignment exceeds the maximum target folder count.');
         }
 
         $validSet = array_fill_keys(array_keys(readInfo($type)), true);
-        foreach ($folders as $folder) {
-            foreach (normalizeFolderMembers($folder['containers'] ?? []) as $memberName) {
-                $safeMemberName = trim((string)$memberName);
-                if ($safeMemberName !== '') {
-                    $validSet[$safeMemberName] = true;
-                }
+        $normalizedByFolder = [];
+        $skippedByFolder = [];
+        $targetByItem = [];
+        $requestedItemCount = 0;
+        foreach ($assignments as $assignment) {
+            if (!is_array($assignment)) {
+                throw new RuntimeException('Bulk assignment entries must be objects.');
             }
-        }
-        $requested = [];
-        $skippedInvalid = [];
-        foreach ($items as $item) {
-            $name = trim((string)$item);
-            if ($name === '' || isset($requested[$name])) {
-                continue;
+            $folderId = trim((string)($assignment['folderId'] ?? ''));
+            $items = $assignment['items'] ?? null;
+            if ($folderId === '' || strlen($folderId) > 128) {
+                throw new RuntimeException('Bulk assignment contains an invalid folder ID.');
             }
-            if (preg_match('/[\x00-\x1F\x7F]/u', $name)) {
-                $skippedInvalid[] = $name;
-                continue;
+            if (!is_array($items)) {
+                throw new RuntimeException('Bulk assignment items must be an array.');
             }
-            // Keep migration compatibility: allow names already known in runtime data
-            // or present in existing folder mappings. Also allow unknown names from UI
-            // when they are sane-length printable strings.
-            if (!isset($validSet[$name])) {
-                $len = strlen($name);
-                if ($len < 1 || $len > 255) {
-                    $skippedInvalid[] = $name;
+            if (!array_key_exists($folderId, $normalizedByFolder)) {
+                $normalizedByFolder[$folderId] = [];
+                $skippedByFolder[$folderId] = [];
+            }
+            foreach ($items as $item) {
+                $name = trim((string)$item);
+                if ($name === '' || isset($normalizedByFolder[$folderId][$name])) {
                     continue;
                 }
+                $requestedItemCount++;
+                if ($requestedItemCount > FVPLUS_MAX_BULK_ASSIGN_BATCH_ITEMS) {
+                    throw new RuntimeException('Bulk assignment exceeds the maximum item count.');
+                }
+                $invalid = preg_match('/[\x00-\x1F\x7F]/u', $name) === 1;
+                if (!$invalid && !isset($validSet[$name])) {
+                    $len = strlen($name);
+                    $invalid = $len < 1 || $len > 255;
+                }
+                if ($invalid) {
+                    $skippedByFolder[$folderId][] = $name;
+                    continue;
+                }
+                $existingTarget = (string)($targetByItem[$name] ?? '');
+                if ($existingTarget !== '' && $existingTarget !== $folderId) {
+                    throw new RuntimeException("Bulk assignment item '$name' targets more than one folder.");
+                }
+                $targetByItem[$name] = $folderId;
+                $normalizedByFolder[$folderId][$name] = true;
             }
-            $requested[$name] = true;
         }
-        $itemNames = array_keys($requested);
-        if (empty($itemNames)) {
+
+        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem): array {
+            $startedAt = microtime(true);
+            $originalFolders = readRawFolderMap($type);
+            foreach (array_keys($normalizedByFolder) as $folderId) {
+                if (!array_key_exists($folderId, $originalFolders)) {
+                    throw new RuntimeException("Bulk assignment target folder '$folderId' was not found.");
+                }
+            }
+
+            $nextFolders = $originalFolders;
+            $removedFrom = [];
+            $changedFolderIds = [];
+            if (count($targetByItem) > 0) {
+                foreach ($nextFolders as $id => &$folder) {
+                    $members = normalizeFolderMembers($folder['containers'] ?? []);
+                    $nextMembers = [];
+                    foreach ($members as $member) {
+                        if (isset($targetByItem[$member])) {
+                            if (!isset($removedFrom[$member])) {
+                                $removedFrom[$member] = [];
+                            }
+                            $removedFrom[$member][] = $id;
+                            continue;
+                        }
+                        $nextMembers[] = $member;
+                    }
+                    $folder['containers'] = $nextMembers;
+                }
+                unset($folder);
+
+                foreach ($normalizedByFolder as $folderId => $requested) {
+                    $targetMembers = normalizeFolderMembers($nextFolders[$folderId]['containers'] ?? []);
+                    foreach (array_keys($requested) as $name) {
+                        if (!in_array($name, $targetMembers, true)) {
+                            $targetMembers[] = $name;
+                        }
+                    }
+                    $nextFolders[$folderId]['containers'] = $targetMembers;
+                }
+
+                foreach ($nextFolders as $folderId => $folder) {
+                    $beforeMembers = normalizeFolderMembers($originalFolders[$folderId]['containers'] ?? []);
+                    $afterMembers = normalizeFolderMembers($folder['containers'] ?? []);
+                    if ($beforeMembers !== $afterMembers) {
+                        $changedFolderIds[] = $folderId;
+                    }
+                }
+            }
+
+            $folderWriteCommitted = false;
+            if (count($changedFolderIds) > 0) {
+                try {
+                    writeRawFolderMap($type, $nextFolders);
+                    $folderWriteCommitted = true;
+                    if ($type === 'docker') {
+                        syncContainerOrder('docker');
+                    }
+                } catch (Throwable $error) {
+                    $rollbackErrors = [];
+                    if ($folderWriteCommitted) {
+                        try {
+                            writeRawFolderMap($type, $originalFolders);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'folders: ' . $rollbackError->getMessage();
+                        }
+                        if ($type === 'docker') {
+                            try {
+                                syncContainerOrder('docker');
+                            } catch (Throwable $rollbackError) {
+                                $rollbackErrors[] = 'Docker order: ' . $rollbackError->getMessage();
+                            }
+                        }
+                    }
+                    $rollbackDetail = count($rollbackErrors) > 0
+                        ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
+                        : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                    throw new RuntimeException('Bulk assignment transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
+                }
+            }
+
+            $results = [];
+            $assignedCount = 0;
+            $skippedInvalidCount = 0;
+            foreach ($normalizedByFolder as $folderId => $requested) {
+                $assigned = array_keys($requested);
+                $skippedInvalid = array_values($skippedByFolder[$folderId] ?? []);
+                $assignedCount += count($assigned);
+                $skippedInvalidCount += count($skippedInvalid);
+                $removedForTarget = [];
+                foreach ($assigned as $name) {
+                    if (isset($removedFrom[$name])) {
+                        $removedForTarget[$name] = $removedFrom[$name];
+                    }
+                }
+                $results[] = [
+                    'folderId' => $folderId,
+                    'assigned' => $assigned,
+                    'removedFrom' => $removedForTarget,
+                    'count' => count($assigned),
+                    'skippedInvalid' => $skippedInvalid
+                ];
+            }
+
+            $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+            try {
+                appendDiagnosticsHistoryEvent('folder_batch_assignment', $type, [
+                    'targetFolderCount' => count($normalizedByFolder),
+                    'assignedCount' => $assignedCount,
+                    'skippedInvalidCount' => $skippedInvalidCount,
+                    'changedFolderCount' => count($changedFolderIds),
+                    'durationMs' => $durationMs,
+                    'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+                ], 'ok', 'server');
+            } catch (Throwable $error) {
+                // Keep the committed assignment successful if diagnostics logging fails.
+            }
+
             return [
                 'type' => $type,
-                'folderId' => $folderId,
-                'assigned' => [],
-                'removedFrom' => [],
-                'count' => 0,
-                'skippedInvalid' => $skippedInvalid
+                'results' => $results,
+                'assignedCount' => $assignedCount,
+                'skippedInvalidCount' => $skippedInvalidCount,
+                'changedFolderIds' => $changedFolderIds,
+                'changedFolderCount' => count($changedFolderIds),
+                'dockerOrderSynced' => $type === 'docker' && count($changedFolderIds) > 0,
+                'durationMs' => $durationMs,
+                'metadata' => readConfigMetadata($type, false)
             ];
-        }
+        });
+    }
 
-        $removedFrom = [];
-        foreach ($folders as $id => &$folder) {
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            $nextMembers = [];
-            foreach ($members as $member) {
-                if (in_array($member, $itemNames, true)) {
-                    if (!isset($removedFrom[$member])) {
-                        $removedFrom[$member] = [];
-                    }
-                    $removedFrom[$member][] = $id;
-                    continue;
-                }
-                $nextMembers[] = $member;
-            }
-            $folder['containers'] = $nextMembers;
-        }
-        unset($folder);
-
-        $targetMembers = normalizeFolderMembers($folders[$folderId]['containers'] ?? []);
-        foreach ($itemNames as $name) {
-            if (!in_array($name, $targetMembers, true)) {
-                $targetMembers[] = $name;
-            }
-        }
-        $folders[$folderId]['containers'] = $targetMembers;
-
-        writeRawFolderMap($type, $folders);
-        syncManualOrderWithFolders($type, $folders);
-        if ($type === 'docker') {
-            syncContainerOrder('docker');
-        }
-
+    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+        $type = ensureType($type);
+        $folderId = trim($folderId);
+        $batch = bulkAssignItemsToFolders($type, [[
+            'folderId' => $folderId,
+            'items' => $items
+        ]]);
+        $result = is_array($batch['results'][0] ?? null) ? $batch['results'][0] : [];
         return [
             'type' => $type,
             'folderId' => $folderId,
-            'assigned' => $itemNames,
-            'removedFrom' => $removedFrom,
-            'count' => count($itemNames),
-            'skippedInvalid' => $skippedInvalid
+            'assigned' => array_values((array)($result['assigned'] ?? [])),
+            'removedFrom' => (array)($result['removedFrom'] ?? []),
+            'count' => (int)($result['count'] ?? 0),
+            'skippedInvalid' => array_values((array)($result['skippedInvalid'] ?? [])),
+            'changedFolderIds' => array_values((array)($batch['changedFolderIds'] ?? [])),
+            'durationMs' => (int)($batch['durationMs'] ?? 0),
+            'metadata' => (array)($batch['metadata'] ?? [])
         ];
     }
 

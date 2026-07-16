@@ -18,11 +18,13 @@ test('folder editor members module exposes bulk move scope helpers with regex-sa
     assert.match(folderMembersJs, /movableCount: names\.length/);
 });
 
-test('shared bulk assignment module provides plan building and chunked execution helpers', () => {
+test('shared bulk assignment module provides plan building and atomic execution helpers', () => {
     assert.match(bulkSharedJs, /FolderViewPlusBulkAssignmentSharedModuleLoaded = true/);
     assert.match(bulkSharedJs, /const buildBulkAssignmentPlan = \(type,\s*folderId,\s*namesInput = null\) =>/);
     assert.match(bulkSharedJs, /const buildBulkAssignmentPreludeLines = \(plan,\s*options = \{\}\) =>/);
     assert.match(bulkSharedJs, /const executeBulkAssignmentPlan = async \(type,\s*planInput,\s*options = \{\}\) =>/);
+    assert.match(bulkSharedJs, /const result = await requestBulkAssign\(resolvedType, targetFolderId, actionableNames\);/);
+    assert.doesNotMatch(bulkSharedJs, /DEFAULT_BULK_ASSIGN_CHUNK/);
 });
 
 test('folder editor members tab renders compact bulk move controls and blocks unsafe local member drift', () => {

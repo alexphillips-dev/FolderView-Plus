@@ -837,13 +837,7 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
     }
 
     emit(0, `Applying ${totalSteps} folder change${totalSteps === 1 ? '' : 's'} in one transaction...`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
-        type: resolvedType,
-        operations: JSON.stringify({ deletes, upserts, creates })
-    });
-    if (!response.ok || !response.result) {
-        throw new Error(response.error || 'Folder import transaction failed.');
-    }
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates });
     emit(totalSteps, `Applied ${totalSteps} folder change${totalSteps === 1 ? '' : 's'}`);
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
@@ -851,11 +845,11 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         updates: upserts.length,
         creates: creates.length,
         transport: 'atomic-batch',
-        serverDurationMs: Number(response.result.durationMs) || 0
+        serverDurationMs: Number(result.durationMs) || 0
     });
 
     return {
-        ...response.result,
+        ...result,
         completed: totalSteps,
         total: totalSteps
     };

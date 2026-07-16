@@ -643,7 +643,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const updateBulkPreviewPanel = \(type\) =>/);
     assert.match(script, /const renderBulkChecklist = \(type, visibleNames\) =>/);
     assert.match(script, /const retryFailedBulkItems = async \(type\) =>/);
-    assert.match(script, /const BULK_ASSIGN_CHUNK_SIZE = 40;/);
+    assert.doesNotMatch(script, /const BULK_ASSIGN_CHUNK_SIZE = 40;/);
+    assert.match(script, /in one atomic request/);
     assert.match(script, /const BULK_LIST_RENDER_CHUNK_SIZE = 120;/);
     assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
@@ -652,6 +653,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
-    assert.match(libPhp, /foreach \(\$folders as \$folder\) \{[\s\S]*normalizeFolderMembers\(\$folder\['containers'\] \?\? \[\]\)/);
+    assert.match(libPhp, /function bulkAssignItemsToFolders\(string \$type, array \$assignments\): array/);
+    assert.match(libPhp, /withConfigMutationLock\(static function \(\) use \(\$type, \$normalizedByFolder/);
+    assert.match(libPhp, /writeRawFolderMap\(\$type, \$nextFolders\)/);
     assert.match(libPhp, /'skippedInvalid' => \$skippedInvalid/);
 });

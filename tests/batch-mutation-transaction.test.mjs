@@ -153,9 +153,11 @@ test('batch endpoint is guarded, bounded, and delegates one transaction', () => 
 
 test('imports and deletes use one batch request instead of per-folder endpoints', () => {
     const clearFlow = settings.slice(settings.indexOf('const clearType ='), settings.indexOf('const updatePrefsPartial ='));
-    assert.match(importRuntime, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
+    assert.match(settings, /const requestFolderBatchMutation = async \(type, operations\) =>/);
+    assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
+    assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);
     assert.doesNotMatch(importRuntime, /runImportChunked/);
-    assert.match(settings, /operations:\s*JSON\.stringify\(\{ deletes: deleteIds, upserts: \[\], creates: \[\] \}\)/);
+    assert.match(clearFlow, /requestFolderBatchMutation\(resolvedType, \{\s*deletes: deleteIds,\s*upserts: \[\],\s*creates: \[\]\s*\}\)/);
     assert.doesNotMatch(clearFlow, /await new Promise\(\(resolve\) => setTimeout\(resolve, (?:180|650)\)\)/);
 });

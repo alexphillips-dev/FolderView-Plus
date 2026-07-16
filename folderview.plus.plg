@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.22">
-<!ENTITY md5 "71d76b3fd63d6c5619dd9b264ef3281b">
+<!ENTITY version "2026.07.16.23">
+<!ENTITY md5 "581ec018f1236d86cbfd76e0b090d0fe">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.23
+### Atomic batching across folder workflows
+- Performance: Creates selected starter-template folders in one transaction instead of issuing and reconciling one request per folder.
+- Performance: Applies Setup Assistant folder creation and membership phases as bounded batch requests, with one folder-map write and one refresh per phase.
+- Performance: Applies rule-preview assignments across every destination folder in one multi-target request and removes the 40-item request loop from shared bulk assignment.
+- Fix: Repairs every affected nested-folder parent link in one batch so a failed tree-integrity request cannot leave only part of the tree repaired.
+- Security: Validates all destination folders and rejects conflicting item destinations before mutation, preventing partial moves when any target is invalid.
+- Quality: Uses one configuration lock, one folder-map read, one atomic write, and one Docker-order reconciliation for multi-target assignments while preserving legacy single-target API compatibility.
+- Quality: Records sanitized target, assignment, changed-folder, and duration counts for troubleshooting without logging folder or member names.
+- Test: Adds executable regressions proving one-revision multi-folder commits, full rollback on conflicts or missing targets, and one request for assignments larger than the former 40-item chunk size.
 
 ###2026.07.16.22
 ### Atomic configuration imports and deletes

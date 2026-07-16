@@ -4041,8 +4041,7 @@ const getBulkAssignmentApi = (() => {
             trackDiagnosticsEvent,
             offerUndoAction,
             showError,
-            requestAnimationFrameRef: window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : null,
-            setTimeoutRef: window.setTimeout ? window.setTimeout.bind(window) : null
+            requestAnimationFrameRef: window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : null
         });
         return cachedApi;
     };
@@ -4079,7 +4078,7 @@ const getSettingsRuntimeActionsApi = (() => {
             getPluginVersion: () => pluginVersion,
             selectJsonFile,
             applyImportOperations,
-            saveFolderRecord,
+            requestFolderBatchMutation,
             ensureRuntimeConflictActionAllowed,
             TREE_INTEGRITY_DEPTH_WARN_LEVEL,
             setRuntimePreviewOutput: (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args),
@@ -5359,6 +5358,25 @@ const apiPostJson = async (url, data = {}, options = {}) => {
         });
         throw error;
     }
+};
+
+const requestFolderBatchMutation = async (type, operations) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeOperations = operations && typeof operations === 'object' && !Array.isArray(operations)
+        ? operations
+        : {};
+    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
+        type: resolvedType,
+        operations: JSON.stringify({
+            deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
+            upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
+            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : []
+        })
+    });
+    if (!response?.ok || !response?.result) {
+        throw new Error(response?.error || 'Folder batch transaction failed.');
+    }
+    return response.result;
 };
 
 const fetchPluginVersion = async () => {
@@ -9951,15 +9969,13 @@ const clearType = (type, id) => {
                     current: currentLabel,
                     deletedCount: 0
                 });
-                const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
-                    type: resolvedType,
-                    operations: JSON.stringify({ deletes: deleteIds, upserts: [], creates: [] })
+                const result = await requestFolderBatchMutation(resolvedType, {
+                    deletes: deleteIds,
+                    upserts: [],
+                    creates: []
                 });
-                if (!response.ok || !response.result) {
-                    throw new Error(response.error || 'Folder delete transaction failed.');
-                }
-                deletedCount = Array.isArray(response.result.deletedIds)
-                    ? response.result.deletedIds.length
+                deletedCount = Array.isArray(result.deletedIds)
+                    ? result.deletedIds.length
                     : deleteIds.length;
                 setProgress(2, id ? `Deleted ${folderName || id}` : `Deleted ${deletedCount} folders`, {
                     current: resolvedType === 'docker'
@@ -11492,17 +11508,17 @@ const applyRuleSimulatorAssignments = (type) => {
 
             try {
                 backup = await createBackup(resolvedType, 'before-rule-preview-assign');
+                const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
+                    type: resolvedType,
+                    assignments: JSON.stringify(Array.from(byFolder.entries()).map(([folderId, items]) => ({ folderId, items })))
+                });
+                if (!response?.ok || !response?.result) {
+                    throw new Error(response?.error || 'Rule preview assignment transaction failed.');
+                }
+                const batchResults = Array.isArray(response.result.results) ? response.result.results : [];
+                const resultByFolder = new Map(batchResults.map((result) => [String(result?.folderId || '').trim(), result]));
                 for (const [folderId, items] of byFolder.entries()) {
-                    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
-                        type: resolvedType,
-                        folderId,
-                        items: JSON.stringify(items)
-                    });
-                    if (!response?.ok) {
-                        failed.push(...items.map((item) => `${item}: ${response?.error || 'request failed'}`));
-                        continue;
-                    }
-                    const result = response.result || {};
+                    const result = resultByFolder.get(folderId) || {};
                     assignedCount += Array.isArray(result.assigned) ? result.assigned.length : 0;
                     skippedInvalidCount += Array.isArray(result.skippedInvalid) ? result.skippedInvalid.length : 0;
                     const assignedSet = new Set((Array.isArray(result.assigned) ? result.assigned : []).map((item) => String(item || '').trim()));

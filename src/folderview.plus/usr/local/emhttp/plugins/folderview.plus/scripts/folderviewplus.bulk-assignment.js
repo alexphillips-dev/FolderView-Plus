@@ -10,8 +10,6 @@
     const fallbackWindow = typeof globalThis !== 'undefined'
         ? globalThis
         : (typeof window !== 'undefined' ? window : null);
-    const BULK_ASSIGN_CHUNK_SIZE = 40;
-    const BULK_ASSIGN_CHUNK_PAUSE_MS = 20;
     const BULK_LIST_RENDER_CHUNK_SIZE = 120;
 
     const createBulkAssignUiState = () => ({
@@ -90,9 +88,6 @@
             : (typeof win?.requestAnimationFrame === 'function'
                 ? win.requestAnimationFrame.bind(win)
                 : ((callback) => win?.setTimeout?.(callback, 16) ?? setTimeout(callback, 16)));
-        const setTimeoutRef = typeof deps.setTimeoutRef === 'function'
-            ? deps.setTimeoutRef
-            : (typeof win?.setTimeout === 'function' ? win.setTimeout.bind(win) : setTimeout);
         const sharedApi = sharedModule && typeof sharedModule.createApi === 'function'
             ? sharedModule.createApi({
                 window: win,
@@ -110,8 +105,7 @@
                 releaseOperationLock: releaseAdvancedOperationLock,
                 showActionSummaryToast,
                 trackDiagnosticsEvent,
-                offerUndoAction,
-                setTimeoutRef
+                offerUndoAction
             })
             : null;
 
@@ -919,7 +913,7 @@
             updateBulkResultActions(resolvedType);
             renderBulkResultPanel(resolvedType, {
                 level: 'progress',
-                summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in chunks...`,
+                summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in one atomic request...`,
                 lines: []
             });
             try {
@@ -927,12 +921,10 @@
                     ? await sharedApi.executeBulkAssignmentPlan(resolvedType, plan, {
                         typeLabel,
                         preludeLines: resultLines,
-                        chunkSize: BULK_ASSIGN_CHUNK_SIZE,
-                        chunkPauseMs: BULK_ASSIGN_CHUNK_PAUSE_MS,
-                        onProgress: ({ chunkNumber, chunkCount, chunkSize: currentChunkSize, resultLines: nextLines }) => {
+                        onProgress: ({ chunkSize: currentBatchSize, resultLines: nextLines }) => {
                             renderBulkResultPanel(resolvedType, {
                                 level: 'progress',
-                                summary: `Applying chunk ${chunkNumber}/${chunkCount} (${currentChunkSize} item${currentChunkSize === 1 ? '' : 's'})...`,
+                                summary: `Applying one atomic request (${currentBatchSize} item${currentBatchSize === 1 ? '' : 's'})...`,
                                 lines: nextLines
                             });
                         }

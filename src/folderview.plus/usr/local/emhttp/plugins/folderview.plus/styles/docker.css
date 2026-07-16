@@ -234,7 +234,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     top: calc(100% + 0.55rem);
     right: 0;
     width: min(17rem, calc(100vw - 1.5rem));
-    max-height: min(26rem, calc(100vh - 7rem));
+    max-height: min(30rem, calc(100vh - 3rem));
     padding: 0.65rem;
     overflow-y: auto;
     white-space: normal;

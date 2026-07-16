@@ -168,6 +168,7 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker',[\s\S]*?\[key\]: enabled === true[\s\S]*?immediate: true/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?var\(--fvplus-runtime-menu-bg/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?font-size:\s*1\.2rem;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?max-height:\s*min\(30rem, calc\(100vh - 3rem\)\);/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-heading\s*\{[\s\S]*?font-size:\s*inherit;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-help\s*\{[\s\S]*?font-size:\s*inherit;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-option\s*\{[\s\S]*?font-size:\s*inherit;/);

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.04">
-<!ENTITY md5 "8007a7d01ac14d402cc3594ab3150aa0">
+<!ENTITY version "2026.07.16.05">
+<!ENTITY md5 "b2e07139ef5ad6c89cc8c6039c503d84">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.05
+### Taller Docker privacy menu
+- UI/UX: Increased the Docker privacy dropdown's maximum height from 26rem to 30rem and reduced its reserved viewport margin so all 1.2rem menu text fits without a scrollbar on normal desktop screens.
+- Compatibility: Retained viewport-aware overflow handling for unusually short browser windows where the complete menu cannot physically fit.
+- Test: Expanded the privacy-mode contract guard to preserve the taller responsive menu limit.
+
 
 ###2026.07.16.04
 ### Larger Docker privacy menu text

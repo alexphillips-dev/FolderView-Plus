@@ -103,6 +103,7 @@ let supportBundlePreviewApi = null;
 let supportBundleTelemetryApi = null;
 const DIAGNOSTICS_STATUS_CONFIG = Object.freeze({
     healthy: Object.freeze({ label: 'Healthy', icon: 'fa-check-circle' }),
+    info: Object.freeze({ label: 'Optional', icon: 'fa-info-circle' }),
     warning: Object.freeze({ label: 'Follow up', icon: 'fa-exclamation-triangle' }),
     error: Object.freeze({ label: 'Needs action', icon: 'fa-times-circle' })
 });
@@ -141,6 +142,11 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
         label: 'Theme self-heal now',
         icon: 'fa-magic',
         handler: 'runThemeSelfHeal()'
+    }),
+    check_native_organizer: Object.freeze({
+        label: 'Check again',
+        icon: 'fa-refresh',
+        handler: 'checkNativeOrganizerDiagnostics()'
     })
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
@@ -507,6 +513,7 @@ const getSupportBundleTelemetryApi = () => {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
                 bootstrap: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
                 surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY,
+                nativeOrganizer: NATIVE_ORGANIZER_STATUS_STORAGE_KEY,
                 dockerPage: 'fv.support.bundle.docker.page.v1',
                 dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
@@ -1273,15 +1280,42 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
     const created = Number(browserStatus?.created);
     const updated = Number(browserStatus?.updated);
     const syncedCount = (Number.isFinite(created) ? created : 0) + (Number.isFinite(updated) ? updated : 0);
+    const failureCategory = String(browserStatus?.failureCategory || '').trim().toLowerCase();
+    const failureStage = String(browserStatus?.failureStage || '').trim().toLowerCase();
+    const httpStatus = Number(browserStatus?.httpStatus);
+    const apiAvailable = browserStatus?.apiAvailable === true;
+    const organizerApiAvailable = browserStatus?.organizerApiAvailable === true;
+    const requested = browserStatus?.requested === true || source === 'settings';
+    const failureLabels = {
+        fetch_unavailable: 'Browser fetch support was unavailable',
+        network: 'The GraphQL request could not reach the API',
+        authentication: 'The GraphQL request was not authorized',
+        endpoint_unavailable: 'The GraphQL endpoint was not found',
+        http_error: 'The GraphQL endpoint returned an HTTP error',
+        schema_unsupported: 'This Unraid API does not expose Docker Organizer fields',
+        graphql_error: 'The GraphQL API rejected the organizer request',
+        invalid_response: 'The GraphQL endpoint returned an unexpected response',
+        aborted: 'The organizer check was interrupted',
+        unknown: 'The organizer check returned an unclassified result'
+    };
+    const failureLabel = failureLabels[failureCategory] || '';
+    const safeFailureDetail = [
+        failureLabel,
+        Number.isInteger(httpStatus) && httpStatus >= 100 && httpStatus <= 599 ? `HTTP ${httpStatus}` : '',
+        failureStage ? `stage ${failureStage.replace(/_/g, ' ')}` : ''
+    ].filter(Boolean).join('; ');
+    const actionKey = 'check_native_organizer';
 
     if (!browserStatus) {
         return {
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
-            status: 'warning',
+            status: 'info',
             headline: 'Native organizer sync status is waiting for the Docker page.',
-            detail: 'Open the Docker page once after updating to capture whether Unraid GraphQL organizer sync is available or skipped.',
-            count: 1
+            detail: 'This optional integration has not been checked in this browser yet.',
+            count: 0,
+            meta: 'Optional integration',
+            actionKey
         };
     }
     if (browserStatus.ok === true && browserStatus.skipped !== true) {
@@ -1293,38 +1327,64 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
                 ? `Native organizer synced ${syncedCount} folder change${syncedCount === 1 ? '' : 's'}.`
                 : 'Native organizer API detected; no folder changes were needed.',
             detail: `Last sync ${checkedAt}${source ? ` from ${source}` : ''}.`,
-            count: 0
+            count: 0,
+            actionKey
         };
     }
-    if (reason === 'graphql_unavailable' || reason === 'fetch_unavailable') {
-        return {
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'warning',
-            headline: 'Native organizer API was unavailable, so sync was skipped.',
-            detail: `FolderView Plus continued normally. Last checked ${checkedAt || 'recently'}.`,
-            count: 1
-        };
-    }
-    if (browserStatus.ok === true && browserStatus.skipped === true) {
+    if (organizerApiAvailable && ['capability_available', 'already_synced', 'no_organizer_views'].includes(reason)) {
         return {
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'healthy',
-            headline: reason === 'already_synced'
-                ? 'Native organizer sync already ran for this browser session.'
-                : 'Native organizer sync was safely skipped.',
-            detail: `${reason || 'No sync needed'}${checkedAt ? `, checked ${checkedAt}` : ''}.`,
-            count: 0
+            headline: reason === 'no_organizer_views'
+                ? 'Native organizer API detected; no organizer view is configured.'
+                : 'Native organizer API is available.',
+            detail: `Capability checked ${checkedAt || 'recently'}${source ? ` from ${source}` : ''}.`,
+            count: 0,
+            actionKey
+        };
+    }
+    const unavailable = reason === 'graphql_unavailable'
+        || reason === 'fetch_unavailable'
+        || reason === 'base_api_unavailable'
+        || reason === 'organizer_unavailable'
+        || reason === 'organizer_unsupported'
+        || apiAvailable !== true
+        || organizerApiAvailable !== true;
+    if (unavailable) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'info',
+            headline: apiAvailable && reason === 'organizer_unsupported'
+                ? 'Native Docker Organizer is not exposed by this Unraid API.'
+                : 'Optional native organizer integration is unavailable.',
+            detail: `${safeFailureDetail ? `${safeFailureDetail}. ` : ''}FolderView Plus continues normally. Checked ${checkedAt || 'recently'}.`,
+            count: 0,
+            meta: 'Optional integration',
+            actionKey
+        };
+    }
+    if (requested && organizerApiAvailable) {
+        return {
+            key: 'nativeOrganizer',
+            label: 'Native Docker Organizer',
+            status: 'warning',
+            headline: 'A requested native organizer sync failed.',
+            detail: `${safeFailureDetail || 'The organizer mutation was not completed'}. FolderView Plus data was not affected.`,
+            count: 1,
+            actionKey
         };
     }
     return {
         key: 'nativeOrganizer',
         label: 'Native Docker Organizer',
-        status: 'error',
-        headline: 'Native organizer sync failed.',
-        detail: reason || 'The client GraphQL sync returned an unexpected failure.',
-        count: 1
+        status: 'info',
+        headline: 'Automatic native organizer sync was skipped.',
+        detail: `${safeFailureDetail || 'The optional background sync did not complete'}. FolderView Plus continues normally.`,
+        count: 0,
+        meta: 'Optional integration',
+        actionKey
     };
 };
 
@@ -1458,6 +1518,29 @@ const renderDiagnosticsActionCards = (actions) => {
     }).join(''));
 };
 
+const buildDiagnosticsCardMetaHtml = (card, status, countValue) => {
+    if (Number.isFinite(countValue) && countValue > 0) {
+        return `${countValue} related issue${countValue === 1 ? '' : 's'}`;
+    }
+    if (status === 'info') {
+        return diagnosticsEscapeHtml(String(card?.meta || 'Informational only'));
+    }
+    return 'No extra action needed';
+};
+
+const buildDiagnosticsCardActionHtml = (card) => {
+    const actionKey = String(card?.actionKey || '').trim();
+    const config = DIAGNOSTICS_ACTION_CONFIG[actionKey];
+    if (!actionKey || !config) return '';
+    return `
+        <div class="fv-diagnostics-card-action">
+            <button type="button" data-fv-diagnostics-card-action="${diagnosticsEscapeHtml(actionKey)}" onclick="${config.handler}">
+                <i class="fa ${config.icon}" aria-hidden="true"></i> ${diagnosticsEscapeHtml(config.label)}
+            </button>
+        </div>
+    `;
+};
+
 const renderDiagnosticsSummary = (diagnostics) => {
     const summaryHost = $('#fv-diagnostics-summary');
     if (!summaryHost.length) {
@@ -1497,7 +1580,8 @@ const renderDiagnosticsSummary = (diagnostics) => {
                     </div>
                     <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
                     <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(themeCard.detail || ''))}</div>
-                    <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
+                    <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(themeCard, status, countValue)}</div>
+                    ${buildDiagnosticsCardActionHtml(themeCard)}
                 </div>
             </div>
         `);
@@ -1557,7 +1641,8 @@ const renderDiagnosticsSummary = (diagnostics) => {
                 </div>
                 <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
                 <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
-                <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
+                <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(card, status, countValue)}</div>
+                ${buildDiagnosticsCardActionHtml(card)}
             </div>
         `;
     }).join('');
@@ -1598,6 +1683,40 @@ const runDiagnostics = async () => {
         });
     } catch (error) {
         diagnosticsShowError('Diagnostics failed', error);
+    }
+};
+
+const checkNativeOrganizerDiagnostics = async () => {
+    const organizerModule = window.FolderViewPlusNativeOrganizer || null;
+    const buttons = Array.from(document.querySelectorAll('[data-fv-diagnostics-card-action="check_native_organizer"]'));
+    buttons.forEach((button) => { button.disabled = true; });
+    try {
+        if (!organizerModule || typeof organizerModule.checkCapabilities !== 'function') {
+            throw new Error('The native organizer capability checker is not loaded.');
+        }
+        const result = await organizerModule.checkCapabilities({
+            force: true,
+            requested: false,
+            source: 'diagnostics'
+        });
+        renderDiagnosticsSummary(lastDiagnostics);
+        void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
+        const available = result?.organizerApiAvailable === true;
+        diagnosticsShowToastMessage({
+            title: available ? 'Native organizer available' : 'Native organizer check complete',
+            message: available
+                ? 'The optional native Docker Organizer API is available.'
+                : 'The optional organizer API is not available; FolderView Plus continues normally.',
+            level: available ? 'success' : 'info'
+        });
+        return result;
+    } catch (error) {
+        diagnosticsShowError('Native organizer check failed', error);
+        return null;
+    } finally {
+        document.querySelectorAll('[data-fv-diagnostics-card-action="check_native_organizer"]').forEach((button) => {
+            button.disabled = false;
+        });
     }
 };
 
@@ -2089,6 +2208,7 @@ Object.assign(window, {
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
+    checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
     exportDiagnosticsByMode,
@@ -2126,6 +2246,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
+    checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
     exportDiagnosticsByMode,

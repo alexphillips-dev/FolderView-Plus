@@ -2122,8 +2122,22 @@
             'clientModule' => 'folderviewplus.native-organizer.js',
             'mode' => 'best_effort_client_sync',
             'nonFatal' => true,
+            'statusSchemaVersion' => 2,
             'detectQuery' => '{ info { os { release } cpu { cores } } }',
+            'capabilityQuery' => '{ docker { organizer { views { id } } } }',
             'organizerQuery' => '{ docker { organizer { views { id flatEntries { id type name childrenIds } } } } }',
+            'failureCategories' => [
+                'fetch_unavailable',
+                'network',
+                'authentication',
+                'endpoint_unavailable',
+                'http_error',
+                'schema_unsupported',
+                'graphql_error',
+                'invalid_response',
+                'aborted',
+                'unknown'
+            ],
             'mutations' => [
                 'setDockerFolderChildren',
                 'createDockerFolderWithItems'

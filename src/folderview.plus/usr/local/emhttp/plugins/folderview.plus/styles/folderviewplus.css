@@ -4874,6 +4874,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-warning);
 }
 
+.fv-recovery-empty-state.is-info {
+    border-color: var(--fvplus-settings-chip-info-border);
+    background: var(--fvplus-settings-chip-info-bg);
+}
+
+.fv-recovery-empty-state.is-info > strong {
+    color: var(--fvplus-settings-chip-info);
+}
+
 .fv-recovery-hidden-helpers {
     display: none !important;
 }
@@ -6181,6 +6190,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-color: var(--fvplus-settings-chip-success-border);
 }
 
+.fv-diagnostics-overview.is-info,
+.fv-diagnostics-card.is-info {
+    border-color: var(--fvplus-settings-chip-info-border);
+}
+
 .fv-diagnostics-overview.is-warning,
 .fv-diagnostics-card.is-warning {
     border-color: var(--fvplus-settings-chip-warning-border);
@@ -6194,6 +6208,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-overview.is-healthy .fv-diagnostics-overview-label,
 .fv-diagnostics-card.is-healthy .fv-diagnostics-card-badge {
     color: var(--fvplus-settings-chip-success);
+}
+
+.fv-diagnostics-overview.is-info .fv-diagnostics-overview-label,
+.fv-diagnostics-card.is-info .fv-diagnostics-card-badge {
+    color: var(--fvplus-settings-chip-info);
 }
 
 .fv-diagnostics-overview.is-warning .fv-diagnostics-overview-label,
@@ -6211,6 +6230,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-color: var(--fvplus-settings-chip-success-border);
 }
 
+.fv-diagnostics-card.is-info .fv-diagnostics-card-badge {
+    background: var(--fvplus-settings-chip-info-bg);
+    border-color: var(--fvplus-settings-chip-info-border);
+}
+
 .fv-diagnostics-card.is-warning .fv-diagnostics-card-badge {
     background: var(--fvplus-settings-chip-warning-bg);
     border-color: var(--fvplus-settings-chip-warning-border);
@@ -6219,6 +6243,33 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-card.is-error .fv-diagnostics-card-badge {
     background: var(--fvplus-settings-chip-danger-bg);
     border-color: var(--fvplus-settings-chip-danger-border);
+}
+
+.fv-diagnostics-card-action {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 0.2rem;
+}
+
+.fv-diagnostics-card-action button {
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0.34rem 0.55rem !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    border-radius: 5px !important;
+    background: var(--fvplus-settings-surface-muted) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: none !important;
+    font-size: 0.98rem !important;
+    line-height: 1.1;
+}
+
+.fv-diagnostics-card-action button:hover,
+.fv-diagnostics-card-action button:focus-visible {
+    border-color: var(--fvplus-settings-chip-info-border) !important;
+    background: var(--fvplus-settings-chip-info-bg) !important;
+    color: var(--fvplus-settings-chip-info) !important;
+    outline: none;
 }
 
 .fv-diagnostics-workbench {

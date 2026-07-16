@@ -8576,16 +8576,35 @@ const buildNativeDockerOrganizerStatusHtml = (status = null) => {
     const updated = Math.max(0, Number(source.updated) || 0);
     const synced = created + updated;
     const reason = String(source.reason || '').trim();
+    const failureCategory = String(source.failureCategory || '').trim().toLowerCase();
+    const failureLabels = {
+        fetch_unavailable: 'Browser fetch support unavailable',
+        network: 'GraphQL network request unavailable',
+        authentication: 'GraphQL authentication rejected',
+        endpoint_unavailable: 'GraphQL endpoint not found',
+        http_error: 'GraphQL HTTP error',
+        schema_unsupported: 'Docker Organizer schema not exposed',
+        graphql_error: 'GraphQL organizer request rejected',
+        invalid_response: 'Unexpected GraphQL response',
+        aborted: 'Organizer check interrupted',
+        unknown: 'Unclassified organizer result'
+    };
+    const failureLabel = failureLabels[failureCategory] || '';
+    const requestedFailure = source.requested === true
+        && source.organizerApiAvailable === true
+        && reason === 'sync_failed';
     const headline = source.ok === true
         ? (source.skipped === true
             ? 'Native organizer sync was skipped safely.'
             : `Native organizer synced ${synced} folder change${synced === 1 ? '' : 's'}.`)
-        : 'Native organizer sync is unavailable right now.';
+        : (requestedFailure
+            ? 'The requested native organizer sync did not complete.'
+            : 'Optional native organizer integration is unavailable.');
     const detail = source.ok === true
         ? `${synced} changed, checked ${checkedAt}${reason ? ` (${reason})` : ''}.`
-        : `${reason || 'GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
+        : `${failureLabel || 'Optional GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
     return `
-        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : 'is-warning'}">
+        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : (requestedFailure ? 'is-warning' : 'is-info')}">
             <strong>${escapeHtml(headline)}</strong>
             <span>${escapeHtml(detail)}</span>
         </div>
@@ -8624,15 +8643,19 @@ const syncNativeDockerOrganizerFromSettings = async () => {
     try {
         const result = await nativeOrganizerModule.syncDockerOrganizer(dockers, {
             force: true,
+            explicit: true,
             source: 'settings'
         });
         renderNativeDockerOrganizerStatus(result);
+        const requestedFailure = result?.requested === true
+            && result?.organizerApiAvailable === true
+            && result?.reason === 'sync_failed';
         showToastMessage({
-            title: result.ok ? 'Native organizer checked' : 'Native organizer skipped',
+            title: result.ok ? 'Native organizer checked' : (requestedFailure ? 'Native organizer sync failed' : 'Native organizer unavailable'),
             message: result.ok
                 ? `Created ${Number(result.created) || 0}, updated ${Number(result.updated) || 0}.`
-                : String(result.reason || 'GraphQL organizer API unavailable.'),
-            level: result.ok ? 'success' : 'warning'
+                : 'The optional organizer API is unavailable or the requested sync could not complete.',
+            level: result.ok ? 'success' : (requestedFailure ? 'warning' : 'info')
         });
         return result.ok === true;
     } catch (error) {

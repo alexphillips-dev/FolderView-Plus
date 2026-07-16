@@ -70,10 +70,16 @@ test('native organizer sync is best-effort and represented in diagnostics', () =
     assert.match(nativeOrganizerJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
     assert.match(nativeOrganizerJs, /const writeStatus = \(status = \{\}\) => \{/);
     assert.match(nativeOrganizerJs, /root\.localStorage\?\.setItem\?\.\(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON\.stringify\(lastStatus\)\)/);
-    assert.match(nativeOrganizerJs, /catch \(error\) \{[\s\S]*reason: String\(error\?\.message \|\| error \|\| 'organizer_sync_failed'\)/);
+    assert.match(nativeOrganizerJs, /const sanitizeFailure = \(error, stage = 'unknown'\) => \{/);
+    assert.match(nativeOrganizerJs, /failureCategory: failure\.failureCategory/);
+    assert.match(nativeOrganizerJs, /failureStage: failure\.failureStage/);
+    assert.match(nativeOrganizerJs, /httpStatus: failure\.httpStatus/);
+    assert.doesNotMatch(nativeOrganizerJs, /reason:\s*String\(error\?\.message/);
     assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
     assert.match(libDiagnosticsPhp, /'clientModule'\s*=>\s*'folderviewplus\.native-organizer\.js'/);
+    assert.match(libDiagnosticsPhp, /'statusSchemaVersion'\s*=>\s*2/);
+    assert.match(libDiagnosticsPhp, /'capabilityQuery'\s*=>/);
     assert.match(libDiagnosticsPhp, /'nativeOrganizer'\s*=>\s*diagnosticsBuildNativeOrganizerStatus\(\)/);
 });
 

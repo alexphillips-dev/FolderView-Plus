@@ -108,8 +108,10 @@ test('docker runtime page loads shared runtime module before docker modules/runt
 test('native organizer helper exposes best-effort GraphQL sync contract', () => {
     assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizer = factory\(root\);/);
     assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizerModuleLoaded = true;/);
-    assert.match(nativeOrganizerJs, /const graphQL = async \(query, variables = null\) =>/);
+    assert.match(nativeOrganizerJs, /const graphQL = async \(query, variables = null, options = \{\}\) =>/);
     assert.match(nativeOrganizerJs, /fetch\('\/graphql'/);
+    assert.match(nativeOrganizerJs, /const detectOrganizerApi = async \(options = \{\}\) =>/);
+    assert.match(nativeOrganizerJs, /const checkCapabilities = async \(options = \{\}\) =>/);
     assert.match(nativeOrganizerJs, /const syncDockerOrganizer = async \(folders = \{\}, options = \{\}\) =>/);
     assert.match(nativeOrganizerJs, /setDockerFolderChildren/);
     assert.match(nativeOrganizerJs, /createDockerFolderWithItems/);

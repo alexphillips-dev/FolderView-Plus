@@ -112,6 +112,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
     assert.match(diagnosticsJs, /const buildNativeOrganizerDiagnosticsSummaryCard = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /Native organizer sync status is waiting for the Docker page/);
+    assert.match(diagnosticsJs, /info:\s*Object\.freeze\(\{ label: 'Optional'/);
+    assert.match(diagnosticsJs, /const checkNativeOrganizerDiagnostics = async \(\) =>/);
+    assert.match(diagnosticsJs, /actionKey = 'check_native_organizer'/);
+    assert.match(diagnosticsJs, /status:\s*'info',[\s\S]{0,240}Optional native organizer integration is unavailable/);
     assert.match(diagnosticsJs, /nativeOrganizerCard/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
@@ -134,6 +138,9 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
+    assert.match(supportBundleBrowserJs, /nativeOrganizerSource/);
+    assert.match(supportBundleBrowserJs, /failureCategory: normalizeEnum\(nativeOrganizerSource\.failureCategory, NATIVE_ORGANIZER_FAILURE_CATEGORIES\)/);
+    assert.match(diagnosticsJs, /nativeOrganizer: NATIVE_ORGANIZER_STATUS_STORAGE_KEY/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);
     assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);

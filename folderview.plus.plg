@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.08">
-<!ENTITY md5 "8929f60782663c948956903874a6f034">
+<!ENTITY version "2026.07.16.10">
+<!ENTITY md5 "7860eb75c17b0769654ec54b8df33c43">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.10
+### Native Docker Organizer diagnostics and retry
+- Fix: Treats an unavailable optional native Docker Organizer API as informational instead of raising a Diagnostics follow-up warning.
+- Fix: Forced organizer checks now clear cached GraphQL capability failures and perform fresh base-API and organizer-schema probes.
+- Fix: Reserves warning status for an explicitly requested organizer sync that fails after the organizer API was positively detected.
+- Feature: Adds a Check again action to the Native Docker Organizer diagnostics card for an immediate forced capability refresh.
+- Quality: Adds allowlisted organizer capability, failure category, stage, and HTTP status fields to sanitized support bundles without exporting raw GraphQL error text.
+- UI/UX: Adds a themed Optional diagnostics state and matching informational status in the Operations workspace.
+- Quality: Separates base GraphQL availability from organizer-schema availability and records structured, privacy-safe failure categories.
+- Test: Adds regressions for unsupported schemas, recovery after a cached failure, explicit mutation failures, optional Diagnostics rendering, and legacy support-bundle sanitization.
 
 ###2026.07.16.08
 ### Docker toolbar filter and menu recovery

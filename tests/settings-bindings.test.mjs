@@ -312,7 +312,7 @@ test('operations workspace exposes native Docker organizer sync controls', () =>
     assert.match(script, /const nativeOrganizerModule = window\.FolderViewPlusNativeOrganizer \|\| null;/);
     assert.match(script, /const buildNativeDockerOrganizerStatusHtml = \(status = null\) => \{/);
     assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\('Sync native Docker organizer'\)\) \{/);
-    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*source:\s*'settings'/);
+    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*explicit:\s*true,\s*source:\s*'settings'/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*refreshNativeDockerOrganizerStatus[\s\S]*syncNativeDockerOrganizerFromSettings[\s\S]*\}\);/);
 });
 

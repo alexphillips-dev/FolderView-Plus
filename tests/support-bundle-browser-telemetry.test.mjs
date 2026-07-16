@@ -97,6 +97,65 @@ test('support bundle browser telemetry captures the persisted docker list view m
     assert.equal(clientStorage.dockerListViewModeCookie, 'advanced');
 });
 
+test('support bundle browser telemetry exports only allowlisted native organizer diagnostics', () => {
+    const rawStatus = {
+        schemaVersion: 2,
+        checkedAt: '2026-07-16T18:00:00.000Z',
+        ok: false,
+        skipped: true,
+        requested: false,
+        source: 'diagnostics',
+        reason: 'organizer_unsupported',
+        failureCategory: 'schema_unsupported',
+        failureStage: 'organizer_capability_probe',
+        httpStatus: 0,
+        apiAvailable: true,
+        organizerApiAvailable: false,
+        created: 0,
+        updated: 0,
+        unsupportedField: 'https://tower.local/private',
+        rawMessage: 'Cannot query /mnt/private and https://tower.local/graphql'
+    };
+    const collectors = loadBrowserModule({}).createCollectors({
+        storageKeys: { nativeOrganizer: 'fv.native.organizer.status.v1' },
+        readClientDiagnosticsStorageRecord(key) {
+            return key === 'fv.native.organizer.status.v1' ? rawStatus : null;
+        }
+    });
+
+    const exported = collectors.collectClientStorageDiagnostics().nativeOrganizer;
+    assert.equal(exported.available, true);
+    assert.equal(exported.failureCategory, 'schema_unsupported');
+    assert.equal(exported.failureStage, 'organizer_capability_probe');
+    assert.equal(Object.prototype.hasOwnProperty.call(exported, 'rawMessage'), false);
+    assert.equal(JSON.stringify(exported).includes('/mnt/private'), false);
+    assert.equal(JSON.stringify(exported).includes('tower.local'), false);
+});
+
+test('support bundle browser telemetry drops free-form values from legacy native organizer records', () => {
+    const collectors = loadBrowserModule({}).createCollectors({
+        storageKeys: { nativeOrganizer: 'fv.native.organizer.status.v1' },
+        readClientDiagnosticsStorageRecord() {
+            return {
+                checkedAt: '/mnt/private',
+                source: 'https://tower.local/settings',
+                reason: 'GraphQL failed at /mnt/private',
+                failureCategory: 'secret-container-name',
+                failureStage: 'https://tower.local/graphql'
+            };
+        }
+    });
+
+    const exported = collectors.collectClientStorageDiagnostics().nativeOrganizer;
+    assert.equal(exported.checkedAt, '');
+    assert.equal(exported.source, 'detect');
+    assert.equal(exported.reason, '');
+    assert.equal(exported.failureCategory, '');
+    assert.equal(exported.failureStage, '');
+    assert.equal(JSON.stringify(exported).includes('/mnt/private'), false);
+    assert.equal(JSON.stringify(exported).includes('tower.local'), false);
+});
+
 test('support bundle browser telemetry includes aggregate preference save health without values', () => {
     const root = {
         FolderViewPlusPrefsStore: {

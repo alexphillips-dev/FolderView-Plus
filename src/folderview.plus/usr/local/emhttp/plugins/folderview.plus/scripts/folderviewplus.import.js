@@ -340,6 +340,27 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         element.style.setProperty('color', 'var(--fvplus-settings-text-primary)', 'important');
         element.style.setProperty('box-shadow', 'var(--fvplus-settings-button-shadow)', 'important');
     };
+    const applyImportContentWidths = () => {
+        const contentWidth = Math.min(520, Math.max(280, Math.floor(window.innerWidth - 40)));
+        dialog.children().each((_, element) => {
+            if (!element?.style) return;
+            element.style.setProperty('width', `${contentWidth}px`, 'important');
+            element.style.setProperty('max-width', 'calc(100vw - 2.5rem)', 'important');
+            element.style.setProperty('min-width', '0', 'important');
+            element.style.setProperty('margin-left', 'auto', 'important');
+            element.style.setProperty('margin-right', 'auto', 'important');
+            element.style.setProperty('justify-self', 'center', 'important');
+            element.style.setProperty('box-sizing', 'border-box', 'important');
+        });
+        dialog.find('.import-disclosures > .import-disclosure, .import-disclosure-body, .import-mode-choice, #import-preview-diff, #import-preview-selection')
+            .each((_, element) => {
+                if (!element?.style) return;
+                element.style.setProperty('width', '100%', 'important');
+                element.style.setProperty('max-width', '100%', 'important');
+                element.style.setProperty('min-width', '0', 'important');
+                element.style.setProperty('box-sizing', 'border-box', 'important');
+            });
+    };
     const getImportRiskInfo = (selectedOperations) => {
         const deletes = Array.isArray(selectedOperations?.deletes) ? selectedOperations.deletes.length : 0;
         if (deletes > 0) {
@@ -578,6 +599,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     utils.bindEventOnce(reviewAck, 'change.fvimportsafety', () => {
         syncImportSafetyUi();
     });
+    utils.bindEventOnce($(window), 'resize.fvimportdialog', () => {
+        applyImportContentWidths();
+    });
     utils.bindEventOnce(presetSelect, 'change.fvimportpreset', () => {
         const selectedId = String(presetSelect.val() || '');
         if (selectedId === '' || selectedId === '__custom__') {
@@ -680,7 +704,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
                 dialogShell[0].style.setProperty('width', `${modalWidth}px`, 'important');
                 dialogShell[0].style.setProperty('max-width', 'calc(100vw - 1rem)', 'important');
             }
+            applyImportContentWidths();
             window.requestAnimationFrame(() => {
+                applyImportContentWidths();
                 dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
             });
             syncImportSafetyUi();

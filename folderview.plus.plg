@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.15">
-<!ENTITY md5 "b254f97d981cc3b69f3ad423ba4a2430">
+<!ENTITY version "2026.07.16.16">
+<!ENTITY md5 "509c180a076e3c93809fe151c1812340">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.16
+### Runtime-enforced import module widths
+- Fix: Applies the shared 520px width directly to every top-level import module after jQuery UI and Unraid finish constructing the dialog, preventing host styles from assigning different intrinsic widths.
+- Fix: Reapplies the same width contract on the next animation frame and whenever the viewport resizes so the header, behavior panel, summary, disclosures, and confirmation remain identical.
+- Fix: Applies full-width constraints directly to mode choices, collapsed and expanded disclosure rows, disclosure bodies, change tables, and operation lists.
+- Compatibility: Uses runtime important styles as the authoritative fallback for Unraid themes that override the popup's stylesheet width rules after render.
+- Performance: Refreshed the measured import-script performance baseline after adding the host-compatibility width coordinator; aggregate JavaScript and CSS remain within project budgets.
+- Test: Added regressions for direct-child width enforcement, nested disclosure constraints, resize reconciliation, and the shared responsive 520px maximum.
 
 ###2026.07.16.15
 ### Unified import dialog sizing and neutral controls

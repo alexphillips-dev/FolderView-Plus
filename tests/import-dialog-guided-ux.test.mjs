@@ -71,6 +71,12 @@ test('import modal is compact, bounded, and responsive', () => {
     assert.match(runtime, /const modalWidth = Math\.min\(620, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
     assert.match(runtime, /maxHeight: modalMaxHeight/);
     assert.match(runtime, /style\.setProperty\('width', `\$\{modalWidth\}px`, 'important'\)/);
+    assert.match(runtime, /const applyImportContentWidths = \(\) => \{/);
+    assert.match(runtime, /const contentWidth = Math\.min\(520, Math\.max\(280, Math\.floor\(window\.innerWidth - 40\)\)\);/);
+    assert.match(runtime, /dialog\.children\(\)\.each\(\(_, element\) => \{/);
+    assert.match(runtime, /element\.style\.setProperty\('width', `\$\{contentWidth\}px`, 'important'\)/);
+    assert.match(runtime, /\.import-disclosures > \.import-disclosure, \.import-disclosure-body, \.import-mode-choice, #import-preview-diff, #import-preview-selection/);
+    assert.match(runtime, /resize\.fvimportdialog'[\s\S]*applyImportContentWidths\(\)/);
 });
 
 test('change summary is concise and only surfaces warnings when action is needed', () => {

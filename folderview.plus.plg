@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.02">
-<!ENTITY md5 "eb004f456e2c0fcef54fae9bd489133d">
+<!ENTITY version "2026.07.16.03">
+<!ENTITY md5 "1a4492a31444d2ad726b8f7f542bb071">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.03
+### Compact privacy dropdown trigger
+- UI/UX: Removed the border, shadow, and hover or open-state fill from the Docker privacy dropdown trigger so it blends cleanly into the runtime toolbar.
+- UI/UX: Removed the forced minimum width and horizontal padding while preserving the existing icon size and control height, leaving an icon-width trigger beside the Privacy switch.
+- Test: Expanded the privacy-mode contract guard to prevent button chrome or excess trigger width from returning.
+
 
 ###2026.07.16.02
 ### Docker privacy quick controls

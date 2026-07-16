@@ -169,6 +169,8 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?var\(--fvplus-runtime-menu-bg/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\[hidden\]\s*\{[\s\S]*?display:\s*none !important;/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-option\s*\{[\s\S]*?cursor:\s*pointer;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-button\s*\{[\s\S]*?width:\s*fit-content !important;[\s\S]*?min-width:\s*0 !important;[\s\S]*?padding:\s*0\.18rem 0 !important;[\s\S]*?border:\s*0 !important;[\s\S]*?background:\s*transparent !important;[\s\S]*?box-shadow:\s*none !important;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu-button\.is-open\s*\{[\s\S]*?background:\s*transparent !important;[\s\S]*?box-shadow:\s*none !important;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus\.runtime\.privacy\.docker\.v1';/);
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => resolveDockerRuntimePrivacyMode\(folderTypePrefs\);/);
     assert.match(dockerJs, /const stored = readStoredDockerRuntimePrivacyMode\(\);[\s\S]*if \(stored !== null\) \{[\s\S]*return stored;/);

@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.18">
-<!ENTITY md5 "d03274ef49be78999b5ba88c46a57322">
+<!ENTITY version "2026.07.16.19">
+<!ENTITY md5 "5761163e274b6f4b2daa8aa103da0a17">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.19
+### Enforced 1.2rem import text minimum
+- Fix: Replaces the inherited import-popup font floor with direct scoped 1.2rem rules for mode descriptions, recommendation badges, change chips, disclosure labels, helper text, safety notes, metadata, tables, and selection controls.
+- Fix: Adds a runtime computed-size check that raises any remaining rendered popup text below 1.2rem, covering host styles, native small-text scaling, and dynamically generated content.
+- Compatibility: Calculates the minimum from the active root font size so the runtime check matches exactly how 1.2rem resolves in the current Unraid theme.
+- UI/UX: Preserves icons and all text already larger than 1.2rem, including the 1.55rem planned-change total.
+- Test: Added regressions for direct badge, summary-chip, disclosure, and helper-text sizing plus the runtime computed-font safeguard.
 
 ###2026.07.16.18
 ### Locked import window width and readable text

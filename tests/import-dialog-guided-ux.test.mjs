@@ -87,6 +87,11 @@ test('import modal is compact, bounded, and responsive', () => {
     assert.match(runtime, /new window\.ResizeObserver\([\s\S]*actualWidth !== shellWidth[\s\S]*queueImportDialogLayout\(\)/);
     assert.match(css, /#import-preview-dialog \*:not\(i\),[\s\S]*?font-size:\s*1\.2rem !important;/);
     assert.match(css, /#import-preview-dialog \.import-summary-total strong\s*\{[\s\S]*?font-size:\s*1\.55rem !important;/);
+    assert.match(css, /#import-preview-dialog \.import-mode-choice-badge,[\s\S]*?#import-preview-dialog \.import-summary-breakdown > span,[\s\S]*?#import-preview-dialog \.import-disclosure > summary small,[\s\S]*?font-size:\s*1\.2rem !important;/);
+    assert.match(runtime, /const enforceImportTextMinimum = \(dialogShell\) => \{/);
+    assert.match(runtime, /const minimumFontSize = rootFontSize \* 1\.2;/);
+    assert.match(runtime, /renderedFontSize \+ 0\.01 < minimumFontSize/);
+    assert.match(runtime, /element\.style\.setProperty\('font-size', '1\.2rem', 'important'\)/);
 });
 
 test('change summary is concise and only surfaces warnings when action is needed', () => {

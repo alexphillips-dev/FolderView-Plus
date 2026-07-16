@@ -356,6 +356,19 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         }
         return dialog.closest('.ui-dialog');
     };
+    const enforceImportTextMinimum = (dialogShell) => {
+        const rootFontSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+        const minimumFontSize = rootFontSize * 1.2;
+        dialogShell
+            .find('.ui-dialog-title, #import-preview-dialog, #import-preview-dialog *, .ui-dialog-buttonpane button')
+            .each((_, element) => {
+                if (!element?.style || String(element.tagName || '').toLowerCase() === 'i') return;
+                const renderedFontSize = Number.parseFloat(window.getComputedStyle(element).fontSize);
+                if (Number.isFinite(renderedFontSize) && renderedFontSize + 0.01 < minimumFontSize) {
+                    element.style.setProperty('font-size', '1.2rem', 'important');
+                }
+            });
+    };
     const applyImportDialogLayout = () => {
         const { shellWidth, contentWidth } = getImportDialogWidths();
         const dialogShell = getImportDialogShell();
@@ -392,6 +405,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
                 element.style.setProperty('min-width', '0', 'important');
                 element.style.setProperty('box-sizing', 'border-box', 'important');
             });
+        enforceImportTextMinimum(dialogShell);
     };
     const queueImportDialogLayout = () => {
         if (dialogLayoutFrame) return;

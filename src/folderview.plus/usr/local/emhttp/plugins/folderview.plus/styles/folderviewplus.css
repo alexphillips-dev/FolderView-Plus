@@ -6993,6 +6993,33 @@ html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-summ
     font-size: 1.55rem !important;
 }
 
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-preview-title,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-preview-subtitle,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-control-label,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-copy strong,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-copy small,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-mode-choice-badge,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-summary-total span,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-summary-breakdown > span,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .preview-result,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-disclosure > summary,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-disclosure > summary small,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-detail-label,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-option-row strong,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-option-row small,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-safety-note strong,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-safety-note small,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-review-ack strong,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-review-ack small,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .preview-meta-item,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog #import-preview-diff table,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .import-selection-item,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .fv-table-pager button,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog .fv-table-pager-info,
+html body .ui-dialog.fv-import-preview-modal #import-preview-dialog textarea {
+    font-size: 1.2rem !important;
+}
+
 .import-preview-head {
     display: flex;
     align-items: center;

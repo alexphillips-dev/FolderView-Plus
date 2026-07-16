@@ -206,15 +206,16 @@ test('import preview dialog stays outside section-collapse visibility controls',
     assert.match(runtimeScript, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
 });
 
-test('import preview layout provides a guided, review-first import flow', () => {
-    assert.match(page, /class="import-preview-journey"/);
-    assert.match(page, /<span class="is-active"><b>1<\/b> Choose behavior<\/span>/);
+test('import preview layout provides a compact progressive-disclosure flow', () => {
+    assert.match(page, /class="import-primary-panel"/);
     assert.match(page, /data-import-mode-option="merge"/);
     assert.match(page, /data-import-mode-option="skip"/);
     assert.match(page, /data-import-mode-option="replace"/);
     assert.match(page, /id="import-preview-counts"/);
-    assert.match(page, /id="import-plan-summary"/);
-    assert.match(page, /class="import-review-details" open/);
+    assert.match(page, /class="import-disclosures"/);
+    assert.match(page, /class="import-disclosure import-review-details"/);
+    assert.match(page, /class="import-disclosure import-secondary-options"/);
+    assert.match(page, /class="import-disclosure import-source-details"/);
     assert.match(page, /id="import-review-ack-row" class="import-review-ack"/);
     assert.match(page, /id="import-preset-select"/);
     assert.match(page, /id="import-preset-save"/);
@@ -225,8 +226,9 @@ test('import preview layout provides a guided, review-first import flow', () => 
     assert.match(runtimeScript, /const counts = \$\('#import-preview-counts'\);/);
     assert.match(runtimeScript, /const modeChoices = dialog\.find\('\[data-import-mode-option\]'\);/);
     assert.match(runtimeScript, /const syncModeChoiceUi = \(\) => \{/);
-    assert.match(runtimeScript, /What happens when you continue/);
-    assert.match(runtimeScript, /result\.text\(`\$\{selectedCount\} operation/);
+    assert.match(runtimeScript, /changeDetailsLabel\.text\(selectedCount > 0/);
+    assert.doesNotMatch(runtimeScript, /What happens when you continue/);
+    assert.doesNotMatch(page, /class="import-preview-journey"/);
     assert.match(script, /saveCustomImportPresetForType/);
     assert.match(script, /setDefaultImportPresetIdForType/);
 });
@@ -236,10 +238,10 @@ test('import preview requires acknowledgement for destructive or untrusted appli
     assert.match(runtimeScript, /level:\s*'destructive'[\s\S]*requiresReview:\s*true/);
     assert.match(runtimeScript, /currentTrustInfo\.level && currentTrustInfo\.level !== 'trusted'/);
     assert.match(runtimeScript, /const requireAck = currentDryRunOnly !== true && \(previewFirstEnabled === true \|\| riskInfo\.requiresReview === true\);/);
-    assert.match(runtimeScript, /import-impact-card is-risk-\$\{escapeHtml\(riskInfo\.level\)\}/);
+    assert.match(runtimeScript, /class="is-risk"/);
     assert.match(runtimeScript, /const requireAck = dryRunOnly !== true && \(isPreviewFirstEnabled\(\) === true \|\| riskInfo\.requiresReview === true\);/);
-    assert.match(settingsCss, /\.import-impact-card\.is-risk-normal/);
-    assert.match(settingsCss, /\.import-impact-card\.is-risk-untrusted,\s*\.import-impact-card\.is-risk-destructive/);
+    assert.match(settingsCss, /\.import-summary-breakdown \.is-risk/);
+    assert.match(settingsCss, /\.import-review-ack\s*\{[\s\S]*?cursor:\s*pointer/);
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {

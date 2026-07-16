@@ -294,7 +294,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
     const counts = $('#import-preview-counts');
-    const planSummary = $('#import-plan-summary');
+    const changeDetailsLabel = $('#import-change-details-label');
+    const trustLabel = $('#import-trust-label');
     const modeChoices = dialog.find('[data-import-mode-option]');
     const previewFirstToggle = $('#import-preview-first-toggle');
     const reviewAckRow = $('#import-review-ack-row');
@@ -390,39 +391,44 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const selectedUpdates = selectedOperations.upserts.length;
         const selectedDeletes = selectedOperations.deletes.length;
 
-        if (selectedCount === 0) {
-            result.text('No operations selected yet. Use the checkboxes below to include at least one change.');
-        } else if (currentDryRunOnly) {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected. Dry run is ON, so no folder changes will be applied.`);
-        } else if (selectedOperations.deletes.length > 0) {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected, including ${selectedOperations.deletes.length} delete${selectedOperations.deletes.length === 1 ? '' : 's'}. Review acknowledgement is required before apply.`);
-        } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected from an untrusted or incomplete export. Review acknowledgement is required before apply.`);
-        } else {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected and ready to apply.`);
-        }
         const riskInfo = getImportRiskInfo(selectedOperations);
-        const changeParts = [
-            selectedCreates > 0 ? `${selectedCreates} to create` : '',
-            selectedUpdates > 0 ? `${selectedUpdates} to update` : '',
-            selectedDeletes > 0 ? `${selectedDeletes} to delete` : ''
-        ].filter(Boolean);
-        const changeSummary = changeParts.length ? changeParts.join(', ') : 'No folder changes selected';
+        let statusMessage = '';
+        let statusLevel = 'normal';
+        if (selectedCount === 0) {
+            statusMessage = 'Select at least one change to continue.';
+            statusLevel = 'warning';
+        } else if (currentDryRunOnly) {
+            statusMessage = 'Preview only is enabled. No changes will be saved.';
+            statusLevel = 'info';
+        } else if (selectedDeletes > 0) {
+            statusMessage = `${selectedDeletes} folder${selectedDeletes === 1 ? '' : 's'} will be deleted. Review and confirm below.`;
+            statusLevel = 'warning';
+        } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
+            statusMessage = 'This export could not be fully validated. Review and confirm below.';
+            statusLevel = 'warning';
+        }
+
+        result
+            .removeClass('is-info is-warning')
+            .addClass(statusLevel === 'normal' ? '' : `is-${statusLevel}`)
+            .text(statusMessage)
+            .toggle(statusMessage !== '');
 
         counts.html(`
-            <div class="import-impact-card is-create"><i class="fa fa-plus-circle" aria-hidden="true"></i><span><strong>${selectedCreates}</strong><small>of ${currentOperations.creates.length} to create</small></span></div>
-            <div class="import-impact-card is-update"><i class="fa fa-refresh" aria-hidden="true"></i><span><strong>${selectedUpdates}</strong><small>of ${currentOperations.upserts.length} to update</small></span></div>
-            <div class="import-impact-card is-delete"><i class="fa fa-trash" aria-hidden="true"></i><span><strong>${selectedDeletes}</strong><small>of ${currentOperations.deletes.length} to delete</small></span></div>
-            <div class="import-impact-card is-risk-${escapeHtml(riskInfo.level)}"><i class="fa fa-shield" aria-hidden="true"></i><span><strong>${escapeHtml(riskInfo.label)}</strong><small>${currentDryRunOnly ? 'Preview only' : `${selectedCount} selected operation${selectedCount === 1 ? '' : 's'}`}</small></span></div>
+            <div class="import-summary-total">
+                <strong>${selectedCount}</strong>
+                <span>${currentDryRunOnly ? 'planned change' : 'folder change'}${selectedCount === 1 ? '' : 's'}${currentDryRunOnly ? ' in preview' : ''}</span>
+            </div>
+            <div class="import-summary-breakdown">
+                <span class="is-create"><i class="fa fa-plus" aria-hidden="true"></i> ${selectedCreates} new</span>
+                <span class="is-update"><i class="fa fa-refresh" aria-hidden="true"></i> ${selectedUpdates} update${selectedUpdates === 1 ? '' : 's'}</span>
+                <span class="is-delete"><i class="fa fa-trash" aria-hidden="true"></i> ${selectedDeletes} delete${selectedDeletes === 1 ? '' : 's'}</span>
+                ${riskInfo.level === 'normal' ? '' : `<span class="is-risk"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ${escapeHtml(riskInfo.label)}</span>`}
+            </div>
         `);
-        planSummary.html(`
-            <div class="import-plan-summary-title"><i class="fa fa-arrow-circle-right" aria-hidden="true"></i> What happens when you continue</div>
-            <ol>
-                <li><span>1</span><div><strong>${currentDryRunOnly ? 'Build a preview without saving' : 'Back up the current configuration'}</strong><small>${currentDryRunOnly ? 'FolderView Plus calculates the result and makes no changes.' : 'A recovery snapshot is created before any folder is changed.'}</small></div></li>
-                <li><span>2</span><div><strong>${escapeHtml(changeSummary)}</strong><small>Only checked operations are included; excluded folders remain untouched.</small></div></li>
-                <li><span>3</span><div><strong>${currentDryRunOnly ? 'Show the simulated result' : 'Refresh FolderView Plus with the imported configuration'}</strong><small>${currentDryRunOnly ? 'You can return and apply later.' : 'The settings page reloads after the import completes.'}</small></div></li>
-            </ol>
-        `);
+        changeDetailsLabel.text(selectedCount > 0
+            ? `Review ${selectedCount} planned change${selectedCount === 1 ? '' : 's'}`
+            : 'Review planned changes');
         syncImportSafetyUi();
     };
     const refreshPresetControls = () => {
@@ -483,11 +489,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         <option value="skip">Skip existing (only add new)</option>
     `);
 
-    if (!$('#import-mode-help').length) {
-        modeSelect.after('<div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>');
-    }
     if (!$('#import-dry-run-row').length) {
-        $('#import-mode-help').after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
+        modeSelect.after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
     }
     // Safety default: keep dry-run disabled unless a user preset explicitly turns it on.
     $('#import-dry-run-only').prop('checked', false);
@@ -533,6 +536,10 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         meta.html(metaItems.map((item) => (
             `<span class="preview-meta-item ${escapeHtml(String(item.className || '').trim())}" title="${escapeHtml(String(item.title || '').trim())}"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
         )).join(''));
+        trustLabel
+            .removeClass('is-trust-trusted is-trust-legacy is-trust-untrusted')
+            .addClass(`is-trust-${trust.level}`)
+            .text(trust.label);
         if (trust.reason && trust.level !== 'trusted') {
             result.attr('title', trust.reason);
         } else {
@@ -638,7 +645,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     $('#import-preview-kind').text(type === 'docker' ? 'Docker folder' : 'VM folder');
     renderPreview();
 
-    const modalWidth = Math.min(960, Math.max(320, Math.floor(window.innerWidth * 0.94)));
+    const modalWidth = Math.min(760, Math.max(320, Math.floor(window.innerWidth * 0.94)));
     const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
         title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,

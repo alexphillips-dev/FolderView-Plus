@@ -48,8 +48,9 @@ test('import selection and compare tables include pagination and live counters',
     assert.match(script, /let importDiffPagingState = \{/);
     assert.match(script, /let backupCompareDiffPagingState = \{/);
     assert.match(runtimeScript, /renderOperationSelection\(updateSelectionSummary\)/);
-    assert.match(runtimeScript, /import-impact-card is-create/);
-    assert.match(runtimeScript, /of \$\{currentOperations\.creates\.length\} to create/);
+    assert.match(runtimeScript, /class="import-summary-total"/);
+    assert.match(runtimeScript, /class="import-summary-breakdown"/);
+    assert.match(runtimeScript, /\$\{selectedCreates\} new/);
     assert.match(runtimeScript, /class="fv-import-diff-prev"/);
     assert.match(runtimeScript, /class="fv-backup-diff-prev"/);
 });

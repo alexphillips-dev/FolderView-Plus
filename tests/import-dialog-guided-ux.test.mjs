@@ -9,14 +9,14 @@ const page = fs.readFileSync(path.join(pluginRoot, 'FolderViewPlus.page'), 'utf8
 const runtime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.import.js'), 'utf8');
 const css = fs.readFileSync(path.join(pluginRoot, 'styles/folderviewplus.css'), 'utf8');
 
-test('import dialog walks users through behavior, review, and confirmation', () => {
-    assert.match(page, /Guided configuration import/);
-    assert.match(page, /Choose behavior[\s\S]*Review changes[\s\S]*Confirm and apply/);
-    assert.match(page, /Choose how existing folders are handled/);
-    assert.match(page, /Review what will change/);
-    assert.match(page, /Confirm the safety check/);
-    assert.match(page, /Protected by an automatic backup/);
-    assert.match(page, /id="import-plan-summary"/);
+test('import dialog keeps the default view focused on one decision and one summary', () => {
+    assert.match(page, /Import <span id="import-preview-kind">folder<\/span> configuration/);
+    assert.match(page, /How should existing folders be handled\?/);
+    assert.match(page, /class="import-change-summary"/);
+    assert.match(page, /Automatic backup included/);
+    assert.doesNotMatch(page, /import-preview-journey/);
+    assert.doesNotMatch(page, /import-plan-summary/);
+    assert.doesNotMatch(page, /import-source-card/);
 });
 
 test('plain-language behavior cards remain synchronized with the native import mode', () => {
@@ -50,12 +50,33 @@ test('advanced import controls and destructive review safeguards remain availabl
     assert.match(runtime, /applyButton\.prop\('disabled', selectedCount <= 0 \|\| \(requireAck && !isImportReviewAcked\(\)\)\)/);
 });
 
-test('import modal uses one bounded vertical scroller and responsive single-column layouts', () => {
+test('secondary information is hidden behind clear progressive-disclosure sections', () => {
+    assert.match(page, /class="import-disclosure import-review-details"/);
+    assert.match(page, /Review planned changes/);
+    assert.match(page, /class="import-disclosure import-secondary-options"/);
+    assert.match(page, /<strong>Import options<\/strong>/);
+    assert.match(page, /class="import-disclosure import-source-details"/);
+    assert.match(page, /<strong>File details<\/strong>/);
+    assert.doesNotMatch(page, /class="import-disclosure[^>]*" open/);
+});
+
+test('import modal is compact, bounded, and responsive', () => {
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?overflow:\s*hidden !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-content\s*\{[\s\S]*?overflow-y:\s*auto !important;[\s\S]*?overflow-x:\s*hidden !important;/);
-    assert.match(css, /@media \(max-width: 820px\)\s*\{[\s\S]*?\.import-mode-choices,[\s\S]*?grid-template-columns:\s*1fr;/);
-    assert.match(runtime, /const modalWidth = Math\.min\(960, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
+    assert.match(css, /\.import-mode-choices\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
+    assert.match(css, /@media \(max-width: 620px\)/);
+    assert.match(runtime, /const modalWidth = Math\.min\(760, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
     assert.match(runtime, /maxHeight: modalMaxHeight/);
+});
+
+test('change summary is concise and only surfaces warnings when action is needed', () => {
+    assert.match(runtime, /class="import-summary-total"/);
+    assert.match(runtime, /class="import-summary-breakdown"/);
+    assert.match(runtime, /statusMessage = 'Preview only is enabled\. No changes will be saved\.'/);
+    assert.match(runtime, /statusMessage = `\$\{selectedDeletes\} folder/);
+    assert.match(runtime, /\.toggle\(statusMessage !== ''\)/);
+    assert.doesNotMatch(runtime, /What happens when you continue/);
+    assert.doesNotMatch(runtime, /import-impact-card/);
 });
 
 test('import dialog actions use scoped theme-token styling without browser focus outlines', () => {

@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.12">
-<!ENTITY md5 "1eed10b3a299db941a7b64df6d4187b0">
+<!ENTITY version "2026.07.16.13">
+<!ENTITY md5 "b84c4bf78e47e0821dd35eb0a9789647">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.13
+### Compact configuration import redesign
+- UI/UX: Replaced the multi-panel guided import screen with a compact decision-first layout that shows only import behavior, one change summary, safety confirmation, and the primary actions by default.
+- UI/UX: Converted Merge safely, Add new only, and Replace exactly into concise stacked choices that are faster to scan and remain clear about update and deletion behavior.
+- UI/UX: Moved folder rows, operation selection, presets, dry-run controls, file metadata, and the technical summary into closed progressive-disclosure sections.
+- UI/UX: Replaced the four-card impact grid and three-step explanation with one live total and compact create, update, and delete indicators.
+- UI/UX: Normal imports no longer display a redundant ready banner; contextual messages now appear only for preview-only, empty, destructive, or untrusted plans.
+- UI/UX: Reduced the desktop modal width to 760px and tightened spacing, typography, controls, and mobile behavior while retaining one bounded vertical scroller.
+- Quality: Preserved automatic backups, review acknowledgement, import presets, per-operation exclusion, pagination, trust validation, dry runs, and destructive-import safeguards.
+- Test: Updated import regressions to enforce the compact default view, collapsed secondary information, concise contextual summaries, responsive sizing, and existing safety behavior.
 
 ###2026.07.16.12
 ### Guided import configuration

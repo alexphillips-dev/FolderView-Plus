@@ -4163,32 +4163,267 @@ const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPa
     utils.normalizePrefs(prefs || {}).pageViewMode
 );
 
-const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
-    const resolvedMode = normalizeDockerPageViewMode(mode);
-    const existing = document.getElementById('fvplus-docker-add-folder-btn');
-    if (resolvedMode !== 'folderview') {
-        if (existing) {
-            existing.remove();
+const DOCKER_RUNTIME_ACTION_BAR_ID = 'fvplus-docker-action-bar';
+const DOCKER_RUNTIME_ACTION_MENU_VALUES = new Set(['view', 'tools']);
+const DOCKER_RUNTIME_FOLDER_FILTER_VALUES = new Set(['all', 'unassigned', 'updates', 'empty', 'health']);
+const DOCKER_RUNTIME_SETTINGS_ROUTES = Object.freeze({
+    folders: '/Settings/FolderViewPlus?fvMode=basic&fvSection=docker',
+    bulk: '/Settings/FolderViewPlus?fvMode=advanced&fvAdvancedTab=automation&fvSection=bulk-assignment',
+    rules: '/Settings/FolderViewPlus?fvMode=advanced&fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=docker'
+});
+const DOCKER_RUNTIME_VIEW_OPTIONS = Object.freeze([
+    Object.freeze({ value: 'folderview', label: 'FolderView', icon: 'fa-folder-open' }),
+    Object.freeze({ value: 'host', label: 'Host list', icon: 'fa-list' }),
+    Object.freeze({ value: 'command', label: 'Command', icon: 'fa-terminal' }),
+    Object.freeze({ value: 'tree-explorer', label: 'Tree Explorer', icon: 'fa-sitemap' }),
+    Object.freeze({ value: 'orbit', label: 'Orbit', icon: 'fa-circle-o' })
+]);
+let dockerRuntimeActionMenuOpen = '';
+let dockerRuntimeFolderFilterMode = 'all';
+let dockerRuntimeActionBarEventsBound = false;
+let dockerRuntimeActionBarBusy = false;
+
+const getDockerRuntimeListRows = () => Array.from(document.querySelectorAll('#docker_list > tr'));
+
+const isDockerUnassignedContainerRow = (row) => {
+    if (!(row instanceof HTMLElement) || readFolderIdFromRow(row) || readFolderOwnerFromRow(row)) {
+        return false;
+    }
+    if (row.classList.contains('fv-runtime-loading-row')) {
+        return false;
+    }
+    return !!row.querySelector('.ct-name, .appname, [data-name]');
+};
+
+const getDockerRuntimeFolderHealthPolicy = (folder = {}) => {
+    const normalizedPrefs = utils.normalizePrefs(folderTypePrefs || {});
+    const health = normalizedPrefs.health || {};
+    const settings = folder?.settings && typeof folder.settings === 'object' ? folder.settings : {};
+    const readThreshold = (folderValue, globalValue, fallback) => {
+        const raw = folderValue === '' || folderValue === null || folderValue === undefined ? globalValue : folderValue;
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? Math.max(0, Math.min(100, Math.round(parsed))) : fallback;
+    };
+    return {
+        warnThreshold: readThreshold(settings.health_warn_stopped_percent, health.warnStoppedPercent, 60),
+        updatesMode: String(settings.health_updates_mode || health.updatesMode || 'maintenance').trim().toLowerCase(),
+        allStoppedMode: String(settings.health_all_stopped_mode || health.allStoppedMode || 'critical').trim().toLowerCase()
+    };
+};
+
+const summarizeDockerRuntimeToolbarState = () => {
+    const summaries = {};
+    let updates = 0;
+    let empty = 0;
+    let health = 0;
+    for (const [id, folder] of Object.entries(globalFolders || {})) {
+        const branchContainers = getScopedRuntimeContainersForFolder(id, true) || {};
+        const memberCount = Object.keys(branchContainers).length;
+        const status = folder?.status || {};
+        const started = Math.max(0, Number(status.started) || 0);
+        const paused = Math.max(0, Number(status.paused) || 0);
+        const stopped = Math.max(0, Number(status.stopped) || 0);
+        const total = Math.max(memberCount, started + paused + stopped);
+        const hasUpdates = status.upToDate === false;
+        const policy = getDockerRuntimeFolderHealthPolicy(folder);
+        const stoppedPercent = total > 0 ? Math.round((stopped / total) * 100) : 0;
+        const allStopped = total > 0 && started === 0 && paused === 0 && stopped > 0;
+        const hasHealthIssue = total > 0 && (
+            paused > 0
+            || stoppedPercent >= policy.warnThreshold
+            || (allStopped && policy.allStoppedMode !== 'ignore')
+            || (hasUpdates && policy.updatesMode === 'warn')
+        );
+        summaries[id] = { memberCount, hasUpdates, isEmpty: memberCount === 0, hasHealthIssue };
+        if (hasUpdates) updates += 1;
+        if (memberCount === 0) empty += 1;
+        if (hasHealthIssue) health += 1;
+    }
+    return {
+        folders: Object.keys(summaries).length,
+        unassigned: getDockerRuntimeListRows().filter(isDockerUnassignedContainerRow).length,
+        updates,
+        empty,
+        health,
+        summaries
+    };
+};
+
+const getDockerRuntimeFilterVisibleFolderIds = (mode, summaries) => {
+    const visible = new Set();
+    if (mode === 'all' || mode === 'unassigned') {
+        return visible;
+    }
+    for (const [id, summary] of Object.entries(summaries || {})) {
+        const matches = (mode === 'updates' && summary.hasUpdates)
+            || (mode === 'empty' && summary.isEmpty)
+            || (mode === 'health' && summary.hasHealthIssue);
+        if (!matches) {
+            continue;
         }
-        return;
+        visible.add(id);
+        getFolderAncestors(id).forEach((folderId) => visible.add(folderId));
+        getFolderDescendants(id).forEach((folderId) => visible.add(folderId));
     }
-    if (existing) {
-        return;
+    return visible;
+};
+
+const getDockerRuntimeFilterMatchingFolderIds = (mode, summaries) => new Set(
+    Object.entries(summaries || {})
+        .filter(([, summary]) => (mode === 'updates' && summary.hasUpdates)
+            || (mode === 'empty' && summary.isEmpty)
+            || (mode === 'health' && summary.hasHealthIssue))
+        .map(([id]) => id)
+);
+
+const applyDockerRuntimeToolbarFilterState = () => {
+    if (!DOCKER_RUNTIME_FOLDER_FILTER_VALUES.has(dockerRuntimeFolderFilterMode)) {
+        dockerRuntimeFolderFilterMode = 'all';
     }
-    const table = document.querySelector('table#docker_containers');
-    if (!table || typeof table.insertAdjacentHTML !== 'function') {
-        return;
+    const rows = getDockerRuntimeListRows();
+    rows.forEach((row) => row.classList.remove('fv-toolbar-filter-hidden'));
+    if (dockerRuntimeFolderFilterMode !== 'all') {
+        const summary = summarizeDockerRuntimeToolbarState();
+        const visibleFolders = getDockerRuntimeFilterVisibleFolderIds(dockerRuntimeFolderFilterMode, summary.summaries);
+        const matchingFolders = getDockerRuntimeFilterMatchingFolderIds(dockerRuntimeFolderFilterMode, summary.summaries);
+        rows.forEach((row) => {
+            const folderId = readFolderIdFromRow(row);
+            const ownerId = readFolderOwnerFromRow(row);
+            let visible = false;
+            if (dockerRuntimeFolderFilterMode === 'unassigned') {
+                visible = isDockerUnassignedContainerRow(row);
+            } else if (folderId) {
+                visible = visibleFolders.has(folderId);
+            } else if (ownerId) {
+                visible = matchingFolders.has(ownerId)
+                    || getFolderAncestors(ownerId).some((ancestorId) => matchingFolders.has(ancestorId));
+            }
+            row.classList.toggle('fv-toolbar-filter-hidden', !visible);
+        });
     }
-    table.insertAdjacentHTML(
-        'afterend',
-        '<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">'
-    );
-    if (typeof $('body').i18n === 'function') {
-        $('body').i18n();
+    applyDockerFocusedFolderState();
+    scheduleDockerRuntimeWidthReflow('toolbar-filter', 24);
+};
+
+const buildDockerRuntimeActionButtonHtml = ({ action, label, icon, count = null, active = false, disabled = false, title = '' }) => `
+    <button type="button"
+        class="fvplus-docker-action-button${active ? ' is-active' : ''}"
+        data-fvplus-docker-action="${escapeHtml(action)}"
+        ${disabled ? 'disabled' : ''}
+        ${title ? `title="${escapeHtml(title)}"` : ''}
+        aria-pressed="${active ? 'true' : 'false'}">
+        <i class="fa ${escapeHtml(icon)}" aria-hidden="true"></i>
+        <span>${escapeHtml(label)}</span>
+        ${count === null ? '' : `<span class="fvplus-docker-action-count">${Number(count) || 0}</span>`}
+    </button>
+`;
+
+const buildDockerRuntimeViewMenuHtml = (currentMode) => DOCKER_RUNTIME_VIEW_OPTIONS.map((option) => `
+    <button type="button" role="menuitemradio" aria-checked="${option.value === currentMode ? 'true' : 'false'}"
+        class="fvplus-docker-action-menu-item${option.value === currentMode ? ' is-selected' : ''}"
+        data-fvplus-docker-view="${escapeHtml(option.value)}">
+        <i class="fa ${escapeHtml(option.icon)}" aria-hidden="true"></i>
+        <span>${escapeHtml(option.label)}</span>
+        <i class="fa fa-check fvplus-docker-action-menu-check" aria-hidden="true"></i>
+    </button>
+`).join('');
+
+const buildDockerRuntimeToolsMenuHtml = () => {
+    const hideEmpty = utils.normalizePrefs(folderTypePrefs || {}).hideEmptyFolders === true;
+    const focusActive = !!String(dockerFocusedFolderId || '').trim();
+    return `
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="toggle-empty">
+            <i class="fa ${hideEmpty ? 'fa-eye' : 'fa-eye-slash'}" aria-hidden="true"></i>
+            <span>${hideEmpty ? 'Show empty folders' : 'Hide empty folders'}</span>
+        </button>
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="clear-focus" ${focusActive ? '' : 'disabled'}>
+            <i class="fa fa-crosshairs" aria-hidden="true"></i><span>Clear folder focus</span>
+        </button>
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="refresh">
+            <i class="fa fa-refresh" aria-hidden="true"></i><span>Refresh folder state</span>
+        </button>
+        <span class="fvplus-docker-action-menu-divider" role="separator"></span>
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-route="bulk">
+            <i class="fa fa-tasks" aria-hidden="true"></i><span>Bulk assignment</span>
+        </button>
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-route="rules">
+            <i class="fa fa-code" aria-hidden="true"></i><span>Rules workspace</span>
+        </button>
+        <span class="fvplus-docker-action-menu-divider" role="separator"></span>
+        <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="reset">
+            <i class="fa fa-undo" aria-hidden="true"></i><span>Reset view</span>
+        </button>
+    `;
+};
+
+const ensureDockerRuntimeActionBarHost = () => {
+    let bar = document.getElementById(DOCKER_RUNTIME_ACTION_BAR_ID);
+    const legacyButton = document.getElementById('fvplus-docker-add-folder-btn');
+    if (!bar && legacyButton?.parentNode) {
+        bar = document.createElement('div');
+        bar.id = DOCKER_RUNTIME_ACTION_BAR_ID;
+        bar.className = 'fvplus-docker-action-bar';
+        legacyButton.parentNode.replaceChild(bar, legacyButton);
     }
-    if (typeof $('[type="button"]').i18n === 'function') {
-        $('[type="button"]').i18n();
+    if (!bar) {
+        const table = document.querySelector('table#docker_containers');
+        if (!table || !table.parentNode) {
+            return null;
+        }
+        bar = document.createElement('div');
+        bar.id = DOCKER_RUNTIME_ACTION_BAR_ID;
+        bar.className = 'fvplus-docker-action-bar';
+        table.insertAdjacentElement('afterend', bar);
     }
+    bar.setAttribute('aria-label', 'FolderView actions');
+    return bar;
+};
+
+const renderDockerRuntimeActionBar = (mode = resolveDockerPageViewMode()) => {
+    const bar = ensureDockerRuntimeActionBarHost();
+    if (!bar) return;
+    const resolvedMode = normalizeDockerPageViewMode(mode);
+    const isFolderView = resolvedMode === 'folderview';
+    const state = summarizeDockerRuntimeToolbarState();
+    const hideEmpty = utils.normalizePrefs(folderTypePrefs || {}).hideEmptyFolders === true;
+    const folderControls = isFolderView ? `
+        ${buildDockerRuntimeActionButtonHtml({ action: 'add-folder', label: 'Add Folder', icon: 'fa-plus' })}
+        ${buildDockerRuntimeActionButtonHtml({ action: 'expand-all', label: 'Expand All', icon: 'fa-expand' })}
+        ${buildDockerRuntimeActionButtonHtml({ action: 'collapse-all', label: 'Collapse All', icon: 'fa-compress' })}
+        <span class="fvplus-docker-action-separator" aria-hidden="true"></span>
+        ${buildDockerRuntimeActionButtonHtml({ action: 'filter-unassigned', label: 'Unassigned', icon: 'fa-inbox', count: state.unassigned, active: dockerRuntimeFolderFilterMode === 'unassigned' })}
+        ${buildDockerRuntimeActionButtonHtml({ action: 'filter-updates', label: 'Updates', icon: 'fa-download', count: state.updates, active: dockerRuntimeFolderFilterMode === 'updates' })}
+        ${buildDockerRuntimeActionButtonHtml({ action: 'filter-empty', label: 'Empty', icon: 'fa-folder-o', count: state.empty, active: dockerRuntimeFolderFilterMode === 'empty', disabled: hideEmpty, title: hideEmpty ? 'Show empty folders from Tools before filtering them.' : '' })}
+        ${buildDockerRuntimeActionButtonHtml({ action: 'filter-health', label: 'Health Issues', icon: 'fa-heartbeat', count: state.health, active: dockerRuntimeFolderFilterMode === 'health' })}
+    ` : '';
+    bar.dataset.mode = resolvedMode;
+    bar.classList.toggle('is-busy', dockerRuntimeActionBarBusy);
+    bar.setAttribute('aria-busy', dockerRuntimeActionBarBusy ? 'true' : 'false');
+    bar.innerHTML = `
+        <div class="fvplus-docker-action-primary">${folderControls}</div>
+        <div class="fvplus-docker-action-secondary">
+            ${buildDockerRuntimeActionButtonHtml({ action: 'manage-folders', label: 'Manage Folders', icon: 'fa-folder' })}
+            <span class="fvplus-docker-action-menu-shell">
+                <button type="button" class="fvplus-docker-action-button${dockerRuntimeActionMenuOpen === 'view' ? ' is-active' : ''}" data-fvplus-docker-menu="view" aria-haspopup="menu" aria-expanded="${dockerRuntimeActionMenuOpen === 'view' ? 'true' : 'false'}">
+                    <i class="fa fa-eye" aria-hidden="true"></i><span>View</span><i class="fa fa-caret-up" aria-hidden="true"></i>
+                </button>
+                <span class="fvplus-docker-action-menu${dockerRuntimeActionMenuOpen === 'view' ? ' is-open' : ''}" role="menu">${buildDockerRuntimeViewMenuHtml(resolvedMode)}</span>
+            </span>
+            <span class="fvplus-docker-action-menu-shell">
+                <button type="button" class="fvplus-docker-action-button${dockerRuntimeActionMenuOpen === 'tools' ? ' is-active' : ''}" data-fvplus-docker-menu="tools" aria-haspopup="menu" aria-expanded="${dockerRuntimeActionMenuOpen === 'tools' ? 'true' : 'false'}">
+                    <i class="fa fa-wrench" aria-hidden="true"></i><span>Tools</span><i class="fa fa-caret-up" aria-hidden="true"></i>
+                </button>
+                <span class="fvplus-docker-action-menu${dockerRuntimeActionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildDockerRuntimeToolsMenuHtml()}</span>
+            </span>
+        </div>
+    `;
+    Array.from(bar.querySelectorAll('button')).forEach((button) => {
+        button.disabled = button.disabled || dockerRuntimeActionBarBusy;
+    });
+};
+
+const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
+    renderDockerRuntimeActionBar(normalizeDockerPageViewMode(mode));
 };
 
 const fetchDockerBootstrapPrefs = async () => {
@@ -4259,7 +4494,7 @@ const unmountDockerIsolatedViews = (exceptMode = '') => {
 };
 
 const queueDockerRuntimeRenderForPageViewMode = () => {
-    Promise.resolve()
+    return Promise.resolve()
         .then(() => ensureDockerBootstrapPrefs({ forceRefresh: true }))
         .then((prefs) => {
             const mode = resolveDockerPageViewMode(prefs);
@@ -4317,8 +4552,241 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
             rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
-        });
+        })
+        .finally(() => renderDockerRuntimeActionBar(resolveDockerPageViewMode()));
 };
+
+const setDockerRuntimeActionMenuOpen = (menu = '') => {
+    dockerRuntimeActionMenuOpen = DOCKER_RUNTIME_ACTION_MENU_VALUES.has(menu) ? menu : '';
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+};
+
+const getDockerRuntimeRootFolderIds = () => {
+    const hierarchy = buildFolderHierarchy(globalFolders || {});
+    return Object.keys(globalFolders || {}).filter((id) => !String(hierarchy?.parentById?.[id] || '').trim());
+};
+
+const runDockerRuntimeToolbarTask = async (task) => {
+    if (dockerRuntimeActionBarBusy || typeof task !== 'function') {
+        return;
+    }
+    dockerRuntimeActionBarBusy = true;
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    try {
+        await task();
+    } catch (error) {
+        swal({
+            title: 'FolderView action failed',
+            text: escapeHtml(String(error?.message || 'The action could not be completed.')),
+            type: 'error',
+            html: true,
+            confirmButtonText: 'OK'
+        });
+    } finally {
+        dockerRuntimeActionBarBusy = false;
+        renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    }
+};
+
+const setDockerRuntimeFolderFilter = (mode) => {
+    const normalized = DOCKER_RUNTIME_FOLDER_FILTER_VALUES.has(mode) ? mode : 'all';
+    dockerRuntimeFolderFilterMode = dockerRuntimeFolderFilterMode === normalized ? 'all' : normalized;
+    if (dockerRuntimeFolderFilterMode !== 'all' && dockerFocusedFolderId) {
+        dockerRuntimeStateStore.set({ focusedFolderId: '' });
+        dockerFocusedFolderId = '';
+    }
+    applyDockerRuntimeToolbarFilterState();
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+};
+
+const saveDockerRuntimeToolbarPrefs = async (patch, currentPrefs) => {
+    if (dockerPrefsCoordinator) {
+        return dockerPrefsCoordinator.save('docker', patch, {
+            currentPrefs,
+            immediate: true
+        });
+    }
+    const response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', {
+        type: 'docker',
+        prefs: JSON.stringify(patch || {})
+    }).promise());
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker view preferences.');
+    return utils.normalizePrefs(response?.prefs || currentPrefs || {});
+};
+
+const setDockerRuntimePageViewMode = async (mode) => {
+    const normalizedMode = normalizeDockerPageViewMode(mode);
+    const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+    if (resolveDockerPageViewMode(previousPrefs) === normalizedMode) {
+        setDockerRuntimeActionMenuOpen('');
+        return;
+    }
+    const nextPrefs = utils.normalizePrefs({ ...previousPrefs, pageViewMode: normalizedMode });
+    folderTypePrefs = nextPrefs;
+    applyRuntimePrefs(nextPrefs);
+    try {
+        const savedPrefs = await saveDockerRuntimeToolbarPrefs({ pageViewMode: normalizedMode }, nextPrefs);
+        folderTypePrefs = utils.normalizePrefs(savedPrefs || nextPrefs);
+        applyRuntimePrefs(folderTypePrefs);
+        dockerRuntimeFolderFilterMode = 'all';
+        await queueDockerRuntimeRenderForPageViewMode();
+    } catch (error) {
+        folderTypePrefs = previousPrefs;
+        applyRuntimePrefs(previousPrefs);
+        throw error;
+    }
+};
+
+const toggleDockerRuntimeEmptyFolders = async () => {
+    const previousPrefs = utils.normalizePrefs(folderTypePrefs || {});
+    const hideEmptyFolders = previousPrefs.hideEmptyFolders !== true;
+    const nextPrefs = utils.normalizePrefs({ ...previousPrefs, hideEmptyFolders });
+    folderTypePrefs = nextPrefs;
+    if (hideEmptyFolders && dockerRuntimeFolderFilterMode === 'empty') {
+        dockerRuntimeFolderFilterMode = 'all';
+    }
+    applyRuntimePrefs(nextPrefs);
+    try {
+        const savedPrefs = await saveDockerRuntimeToolbarPrefs({ hideEmptyFolders }, nextPrefs);
+        folderTypePrefs = utils.normalizePrefs(savedPrefs || nextPrefs);
+        applyRuntimePrefs(folderTypePrefs);
+        await queueDockerRuntimeRenderForPageViewMode();
+    } catch (error) {
+        folderTypePrefs = previousPrefs;
+        applyRuntimePrefs(previousPrefs);
+        throw error;
+    }
+};
+
+const resetDockerRuntimeToolbarView = () => {
+    dockerRuntimeFolderFilterMode = 'all';
+    dockerRuntimeStateStore.set({ focusedFolderId: '' });
+    dockerFocusedFolderId = '';
+    applyDockerRuntimeToolbarFilterState();
+    setDockerRuntimeActionMenuOpen('');
+};
+
+const handleDockerRuntimeActionBarClick = (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const menuButton = target.closest('[data-fvplus-docker-menu]');
+    if (menuButton) {
+        event.preventDefault();
+        const menu = String(menuButton.getAttribute('data-fvplus-docker-menu') || '');
+        setDockerRuntimeActionMenuOpen(dockerRuntimeActionMenuOpen === menu ? '' : menu);
+        return;
+    }
+    const viewButton = target.closest('[data-fvplus-docker-view]');
+    if (viewButton) {
+        event.preventDefault();
+        const mode = String(viewButton.getAttribute('data-fvplus-docker-view') || '');
+        setDockerRuntimeActionMenuOpen('');
+        runDockerRuntimeToolbarTask(() => setDockerRuntimePageViewMode(mode));
+        return;
+    }
+    const routeButton = target.closest('[data-fvplus-docker-route]');
+    if (routeButton) {
+        event.preventDefault();
+        const route = String(routeButton.getAttribute('data-fvplus-docker-route') || '');
+        if (DOCKER_RUNTIME_SETTINGS_ROUTES[route]) {
+            window.location.href = DOCKER_RUNTIME_SETTINGS_ROUTES[route];
+        }
+        return;
+    }
+    const toolButton = target.closest('[data-fvplus-docker-tool]');
+    if (toolButton && !toolButton.disabled) {
+        event.preventDefault();
+        const tool = String(toolButton.getAttribute('data-fvplus-docker-tool') || '');
+        setDockerRuntimeActionMenuOpen('');
+        if (tool === 'toggle-empty') {
+            runDockerRuntimeToolbarTask(() => toggleDockerRuntimeEmptyFolders());
+        } else if (tool === 'clear-focus') {
+            dockerRuntimeStateStore.set({ focusedFolderId: '' });
+            dockerFocusedFolderId = '';
+            applyDockerRuntimeToolbarFilterState();
+            renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+        } else if (tool === 'refresh') {
+            runDockerRuntimeToolbarTask(() => queueDockerRuntimeRenderForPageViewMode());
+        } else if (tool === 'reset') {
+            resetDockerRuntimeToolbarView();
+        }
+        return;
+    }
+    const actionButton = target.closest('[data-fvplus-docker-action]');
+    if (!actionButton || actionButton.disabled) return;
+    event.preventDefault();
+    const action = String(actionButton.getAttribute('data-fvplus-docker-action') || '');
+    if (action === 'add-folder') {
+        createFolderBtn();
+    } else if (action === 'manage-folders') {
+        window.location.href = DOCKER_RUNTIME_SETTINGS_ROUTES.folders;
+    } else if (action === 'expand-all') {
+        getDockerRuntimeRootFolderIds().forEach((id) => expandFolderBranch(id));
+        applyDockerRuntimeToolbarFilterState();
+        renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    } else if (action === 'collapse-all') {
+        getDockerRuntimeRootFolderIds().forEach((id) => collapseFolderBranch(id));
+        applyDockerRuntimeToolbarFilterState();
+        renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    } else if (action.startsWith('filter-')) {
+        setDockerRuntimeFolderFilter(action.slice('filter-'.length));
+    }
+};
+
+const bindDockerRuntimeActionBarEvents = () => {
+    if (dockerRuntimeActionBarEventsBound) return;
+    dockerRuntimeActionBarEventsBound = true;
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        const bar = document.getElementById(DOCKER_RUNTIME_ACTION_BAR_ID);
+        if (target && bar?.contains(target)) {
+            handleDockerRuntimeActionBarClick(event);
+            return;
+        }
+        if (dockerRuntimeActionMenuOpen) {
+            setDockerRuntimeActionMenuOpen('');
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        const closedMenuButton = target?.closest?.('[data-fvplus-docker-menu]');
+        if (event.key === 'ArrowDown' && closedMenuButton && !dockerRuntimeActionMenuOpen) {
+            event.preventDefault();
+            const menu = String(closedMenuButton.getAttribute('data-fvplus-docker-menu') || '');
+            setDockerRuntimeActionMenuOpen(menu);
+            const focusFirstMenuItem = () => {
+                document.querySelector(`#${DOCKER_RUNTIME_ACTION_BAR_ID} .fvplus-docker-action-menu.is-open .fvplus-docker-action-menu-item:not(:disabled)`)?.focus();
+            };
+            if (typeof window.requestAnimationFrame === 'function') {
+                window.requestAnimationFrame(focusFirstMenuItem);
+            } else {
+                window.setTimeout(focusFirstMenuItem, 0);
+            }
+            return;
+        }
+        if (event.key === 'Escape' && dockerRuntimeActionMenuOpen) {
+            event.preventDefault();
+            const openMenu = dockerRuntimeActionMenuOpen;
+            setDockerRuntimeActionMenuOpen('');
+            document.querySelector(`[data-fvplus-docker-menu="${openMenu}"]`)?.focus();
+            return;
+        }
+        if (!dockerRuntimeActionMenuOpen || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+        const menu = document.querySelector(`#${DOCKER_RUNTIME_ACTION_BAR_ID} .fvplus-docker-action-menu.is-open`);
+        const items = Array.from(menu?.querySelectorAll('.fvplus-docker-action-menu-item:not(:disabled)') || []);
+        if (!items.length || !menu?.contains(target)) return;
+        event.preventDefault();
+        const currentIndex = Math.max(0, items.indexOf(target.closest('.fvplus-docker-action-menu-item')));
+        let nextIndex = currentIndex;
+        if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % items.length;
+        if (event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + items.length) % items.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = items.length - 1;
+        items[nextIndex]?.focus();
+    });
+};
+
+bindDockerRuntimeActionBarEvents();
 window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlusDockerRuntimeInternals || {}, {
     buildDockerIsolatedViewDeps,
     getDockerCommandViewApi,
@@ -4327,7 +4795,11 @@ window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlu
     fetchDockerBootstrapPrefs,
     ensureDockerBootstrapPrefs,
     unmountDockerIsolatedViews,
-    queueDockerRuntimeRenderForPageViewMode
+    queueDockerRuntimeRenderForPageViewMode,
+    summarizeDockerRuntimeToolbarState,
+    applyDockerRuntimeToolbarFilterState,
+    renderDockerRuntimeActionBar,
+    setDockerRuntimePageViewMode
 });
 const syncDockerVisibleFoldersFromRuntimeCache = () => {
     Object.entries(globalFolders || {}).forEach(([id, folder]) => {
@@ -4349,6 +4821,8 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    applyDockerRuntimeToolbarFilterState();
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     queueDockerSupportBundlePageSnapshot('runtime-sync');
 };
 
@@ -5314,6 +5788,8 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    applyDockerRuntimeToolbarFilterState();
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);

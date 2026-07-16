@@ -37,7 +37,9 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script>
     $(document).ready(() => {
         folderi18n = () => {
-            $(`<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">`).insertAfter('table#docker_containers');
+            if (!document.getElementById('fvplus-docker-action-bar')) {
+                $(`<div id="fvplus-docker-action-bar" class="fvplus-docker-action-bar" aria-label="FolderView actions"></div>`).insertAfter('table#docker_containers');
+            }
             $('body').i18n();
             $('[type="button"]').i18n();
         }

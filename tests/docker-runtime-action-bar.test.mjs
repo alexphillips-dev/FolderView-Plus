@@ -84,8 +84,12 @@ test('view menu covers every supported mode and workspace routes remain targeted
     assert.match(actionBarJs, /fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=docker/);
 });
 
-test('action menus open upward and support dismissal plus keyboard navigation', () => {
-    assert.match(dockerCss, /\.fvplus-docker-action-menu \{[\s\S]*bottom: calc\(100% \+ 0\.45rem\)/);
+test('action menus use viewport-aware fixed positioning and support dismissal plus keyboard navigation', () => {
+    assert.match(dockerCss, /\.fvplus-docker-action-menu \{[\s\S]*position: fixed/);
+    assert.match(dockerCss, /\.fvplus-docker-action-menu\.is-open\.is-positioned \{[\s\S]*visibility: visible/);
+    assert.match(actionBarJs, /const positionOpenMenu = \(\) => \{/);
+    assert.match(actionBarJs, /const opensUp = menuHeight > spaceBelow && spaceAbove > spaceBelow/);
+    assert.match(actionBarJs, /win\?\.addEventListener\?\.\('scroll', queueOpenMenuPosition, true\)/);
     assert.match(actionBarJs, /event\.key === 'Escape' && actionMenuOpen/);
     assert.match(actionBarJs, /\['ArrowDown', 'ArrowUp', 'Home', 'End'\]/);
     assert.match(actionBarJs, /aria-haspopup=\"menu\"/);
@@ -149,4 +153,14 @@ test('extracted action bar computes live counters and hierarchy-aware row visibi
     assert.equal(rows[2].classList.has('fv-toolbar-filter-hidden'), true, 'unrelated ancestor members stay hidden');
     assert.equal(rows[3].classList.has('fv-toolbar-filter-hidden'), false, 'matching folder members remain visible');
     assert.equal(rows[4].classList.has('fv-toolbar-filter-hidden'), true, 'unassigned rows stay out of folder filters');
+    api.resetView();
+    assert.equal(api.getFilterMode(), 'all', 'reset returns to the unfiltered view');
+    assert.equal(rows.every((row) => !row.classList.has('fv-toolbar-filter-hidden')), true, 'reset restores every runtime row');
+});
+
+test('hiding empty folders reconciles an active empty-only filter before rendering', () => {
+    assert.match(actionBarJs, /const reconcileFilterWithPrefs = \(\) => \{/);
+    assert.match(actionBarJs, /if \(!hideEmptyFolders \|\| folderFilterMode !== 'empty'\) return false/);
+    assert.match(actionBarJs, /if \(reconcileFilterWithPrefs\(\)\) applyFilterState\(\)/);
+    assert.match(actionBarJs, /actionMenuOpen = '';[\s\S]{0,500}if \(tool === 'reset'\) resetView\(\)/);
 });

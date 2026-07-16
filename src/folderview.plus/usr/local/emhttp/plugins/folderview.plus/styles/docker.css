@@ -1484,12 +1484,19 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 
 /* Docker page action bar: FolderView controls, scoped filters, view switcher, and tools. */
 .fvplus-docker-action-bar {
-    display: flex;
+    position: relative;
+    clear: both;
+    float: none !important;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
+    flex: 0 0 100%;
     gap: 0.65rem 1rem;
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     margin: 0.9rem 0 0.35rem;
     padding: 0;
     color: var(--fvplus-theme-foreground);
@@ -1578,10 +1585,12 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
 }
 
 .fvplus-docker-action-menu {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.45rem);
-    z-index: 1200;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    z-index: 10050;
     width: max-content;
     min-width: 210px;
     max-width: min(310px, calc(100vw - 24px));
@@ -1594,10 +1603,17 @@ body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
     background: var(--fvplus-runtime-menu-bg, #1d1d1f);
     color: var(--fvplus-theme-foreground);
     box-shadow: 0 9px 24px rgba(0, 0, 0, 0.32);
+    overflow-x: hidden;
+    overflow-y: auto;
+    visibility: hidden;
 }
 
 .fvplus-docker-action-menu.is-open {
     display: flex;
+}
+
+.fvplus-docker-action-menu.is-open.is-positioned {
+    visibility: visible;
 }
 
 .fvplus-docker-action-menu-item {

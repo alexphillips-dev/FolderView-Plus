@@ -58,6 +58,7 @@
         let folderFilterMode = 'all';
         let eventsBound = false;
         let busy = false;
+        let menuPositionFrame = 0;
 
         const getListRows = () => Array.from(doc?.querySelectorAll?.('#docker_list > tr') || []);
         const isElement = (value) => !win?.Element || value instanceof win.Element;
@@ -210,6 +211,13 @@
                 </button>`;
         };
 
+        const reconcileFilterWithPrefs = () => {
+            const hideEmptyFolders = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
+            if (!hideEmptyFolders || folderFilterMode !== 'empty') return false;
+            folderFilterMode = 'all';
+            return true;
+        };
+
         const ensureHost = () => {
             let bar = doc?.getElementById?.(ACTION_BAR_ID);
             const legacyButton = doc?.getElementById?.('fvplus-docker-add-folder-btn');
@@ -236,8 +244,9 @@
             if (!bar) return;
             const resolvedMode = normalizePageViewMode(mode);
             const isFolderView = resolvedMode === 'folderview';
-            const state = summarize();
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
+            if (reconcileFilterWithPrefs()) applyFilterState();
+            const state = summarize();
             const folderControls = isFolderView ? `
                 ${buildActionButtonHtml({ action: 'add-folder', label: 'Add Folder', icon: 'fa-plus' })}
                 ${buildActionButtonHtml({ action: 'expand-all', label: 'Expand All', icon: 'fa-expand' })}
@@ -256,13 +265,13 @@
                     ${buildActionButtonHtml({ action: 'manage-folders', label: 'Manage Folders', icon: 'fa-folder' })}
                     <span class="fvplus-docker-action-menu-shell">
                         <button type="button" class="fvplus-docker-action-button${actionMenuOpen === 'view' ? ' is-active' : ''}" data-fvplus-docker-menu="view" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'view' ? 'true' : 'false'}">
-                            <i class="fa fa-eye" aria-hidden="true"></i><span>View</span><i class="fa fa-caret-up" aria-hidden="true"></i>
+                            <i class="fa fa-eye" aria-hidden="true"></i><span>View</span><i class="fa fa-caret-down fvplus-docker-action-menu-caret" aria-hidden="true"></i>
                         </button>
                         <span class="fvplus-docker-action-menu${actionMenuOpen === 'view' ? ' is-open' : ''}" role="menu">${buildViewMenuHtml(resolvedMode)}</span>
                     </span>
                     <span class="fvplus-docker-action-menu-shell">
                         <button type="button" class="fvplus-docker-action-button${actionMenuOpen === 'tools' ? ' is-active' : ''}" data-fvplus-docker-menu="tools" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'tools' ? 'true' : 'false'}">
-                            <i class="fa fa-wrench" aria-hidden="true"></i><span>Tools</span><i class="fa fa-caret-up" aria-hidden="true"></i>
+                            <i class="fa fa-wrench" aria-hidden="true"></i><span>Tools</span><i class="fa fa-caret-down fvplus-docker-action-menu-caret" aria-hidden="true"></i>
                         </button>
                         <span class="fvplus-docker-action-menu${actionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildToolsMenuHtml()}</span>
                     </span>
@@ -270,7 +279,49 @@
             Array.from(bar.querySelectorAll('button')).forEach((button) => {
                 button.disabled = button.disabled || busy;
             });
+            queueOpenMenuPosition();
         };
+
+        const positionOpenMenu = () => {
+            menuPositionFrame = 0;
+            if (!actionMenuOpen) return;
+            const bar = doc?.getElementById?.(ACTION_BAR_ID);
+            const menu = bar?.querySelector?.('.fvplus-docker-action-menu.is-open');
+            const trigger = bar?.querySelector?.(`[data-fvplus-docker-menu="${actionMenuOpen}"]`);
+            if (!menu || !trigger?.getBoundingClientRect) return;
+            const triggerRect = trigger.getBoundingClientRect();
+            const viewportWidth = Math.max(0, Number(win?.innerWidth) || Number(doc?.documentElement?.clientWidth) || 0);
+            const viewportHeight = Math.max(0, Number(win?.innerHeight) || Number(doc?.documentElement?.clientHeight) || 0);
+            const margin = 8;
+            const gap = 6;
+            const menuWidth = Math.max(210, Number(menu.offsetWidth) || 0);
+            const menuHeight = Math.max(0, Number(menu.offsetHeight) || 0);
+            const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - margin - gap);
+            const spaceAbove = Math.max(0, triggerRect.top - margin - gap);
+            const opensUp = menuHeight > spaceBelow && spaceAbove > spaceBelow;
+            const availableHeight = Math.max(120, opensUp ? spaceAbove : spaceBelow);
+            const left = Math.max(margin, Math.min(triggerRect.right - menuWidth, viewportWidth - menuWidth - margin));
+            const top = opensUp
+                ? Math.max(margin, triggerRect.top - Math.min(menuHeight, availableHeight) - gap)
+                : Math.min(viewportHeight - margin, triggerRect.bottom + gap);
+            menu.classList.toggle('opens-up', opensUp);
+            menu.style.left = `${Math.round(left)}px`;
+            menu.style.top = `${Math.round(top)}px`;
+            menu.style.maxHeight = `${Math.round(availableHeight)}px`;
+            menu.classList.add('is-positioned');
+            const caret = trigger.querySelector?.('.fvplus-docker-action-menu-caret');
+            caret?.classList?.toggle('fa-caret-up', opensUp);
+            caret?.classList?.toggle('fa-caret-down', !opensUp);
+        };
+
+        function queueOpenMenuPosition() {
+            if (!actionMenuOpen || menuPositionFrame) return;
+            if (typeof win?.requestAnimationFrame === 'function') {
+                menuPositionFrame = win.requestAnimationFrame(positionOpenMenu);
+                return;
+            }
+            win?.setTimeout?.(positionOpenMenu, 0);
+        }
 
         const setMenuOpen = (menu = '') => {
             actionMenuOpen = MENU_VALUES.has(menu) ? menu : '';
@@ -327,7 +378,7 @@
             const hideEmptyFolders = previousPrefs.hideEmptyFolders !== true;
             const nextPrefs = utils.normalizePrefs({ ...previousPrefs, hideEmptyFolders });
             setPrefs(nextPrefs);
-            if (hideEmptyFolders && folderFilterMode === 'empty') folderFilterMode = 'all';
+            if (reconcileFilterWithPrefs()) applyFilterState();
             applyPrefs(nextPrefs);
             try {
                 const savedPrefs = await savePrefs({ hideEmptyFolders }, nextPrefs);
@@ -342,10 +393,11 @@
         };
 
         const resetView = () => {
+            actionMenuOpen = '';
             folderFilterMode = 'all';
             clearFocusedFolder();
             applyFilterState();
-            setMenuOpen('');
+            sync();
         };
 
         const getRootFolderIds = () => {
@@ -368,7 +420,7 @@
             if (viewButton) {
                 event.preventDefault();
                 const mode = String(viewButton.getAttribute('data-fvplus-docker-view') || '');
-                setMenuOpen('');
+                actionMenuOpen = '';
                 runTask(() => setPageViewMode(mode));
                 return;
             }
@@ -383,7 +435,7 @@
             if (toolButton && !toolButton.disabled) {
                 event.preventDefault();
                 const tool = String(toolButton.getAttribute('data-fvplus-docker-tool') || '');
-                setMenuOpen('');
+                actionMenuOpen = '';
                 if (tool === 'toggle-empty') runTask(toggleEmptyFolders);
                 if (tool === 'clear-focus') {
                     clearFocusedFolder();
@@ -453,6 +505,8 @@
                 if (event.key === 'End') nextIndex = items.length - 1;
                 items[nextIndex]?.focus();
             });
+            win?.addEventListener?.('resize', queueOpenMenuPosition);
+            win?.addEventListener?.('scroll', queueOpenMenuPosition, true);
         };
 
         bindEvents();

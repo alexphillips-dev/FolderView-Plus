@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.07">
-<!ENTITY md5 "96bded1ab91cda1823748607ac4e3fbe">
+<!ENTITY version "2026.07.16.08">
+<!ENTITY md5 "8929f60782663c948956903874a6f034">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.08
+### Docker toolbar filter and menu recovery
+- Fix: Reset View now clears the active runtime filter and folder focus without rerendering away the click before the reset executes.
+- Fix: Hiding empty folders now automatically clears an active Empty-only filter, preventing the Docker table from becoming stranded with every row hidden.
+- UI/UX: View and Tools menus now use viewport-aware fixed positioning, open below or above their trigger according to available space, and remain outside table clipping and overlap.
+- UI/UX: The Docker action bar now claims a cleared full-width row so it cannot share or overlap the Docker table header area.
+- Test: Added regression coverage proving Reset View restores every runtime row and hidden-empty preferences reconcile an incompatible Empty-only filter.
 
 ###2026.07.16.07
 ### Action toolbar runtime architecture

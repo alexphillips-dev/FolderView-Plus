@@ -4356,7 +4356,20 @@ const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advan
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_ID = 'fvplus-docker-runtime-privacy-toggle';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID = 'fvplus-docker-runtime-privacy-shell';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_FALLBACK_HOST_ID = 'fvplus-docker-runtime-toolbar-controls';
+const DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID = 'fvplus-docker-runtime-privacy-menu-button';
+const DOCKER_RUNTIME_PRIVACY_MENU_ID = 'fvplus-docker-runtime-privacy-menu';
 const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus.runtime.privacy.docker.v1';
+const DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS = Object.freeze([
+    Object.freeze({ key: 'privacyMaskNames', label: 'Mask names and icons' }),
+    Object.freeze({ key: 'privacyMaskLocalIps', label: 'Mask LAN IPs' }),
+    Object.freeze({ key: 'privacyMaskPorts', label: 'Mask ports' }),
+    Object.freeze({ key: 'privacyMaskVolumePaths', label: 'Mask volume paths' }),
+    Object.freeze({ key: 'privacyMaskImageRegistry', label: 'Mask image registries' }),
+    Object.freeze({ key: 'privacyMaskPublicIps', label: 'Mask public IPs' }),
+    Object.freeze({ key: 'privacyMaskInterfaces', label: 'Mask network interfaces' }),
+    Object.freeze({ key: 'privacyMaskExternalUrls', label: 'Mask external URLs' })
+]);
+const DOCKER_RUNTIME_PRIVACY_OPTION_KEYS = new Set(DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS.map((option) => option.key));
 const DOCKER_LEGACY_HOST_BOOTSTRAP_RENDER_COMPAT = false;
 let dockerRuntimePrivacyToggleMountQueued = false;
 let dockerRuntimePrivacyPersistPromise = null;
@@ -4364,6 +4377,8 @@ let dockerRuntimePrivacyPendingEnabled = null;
 let dockerRuntimePrivacyPersistedPrefs = null;
 let dockerRuntimePrivacyServerReconcileTimer = null;
 let dockerRuntimePrivacyStorageSyncBound = false;
+let dockerRuntimePrivacyMenuOpen = false;
+let dockerRuntimePrivacyMenuEventsBound = false;
 
 const readStoredDockerRuntimePrivacyMode = () => {
     try {
@@ -4578,6 +4593,135 @@ const resolveDockerRuntimePrivacyToggleMount = () => {
     };
 };
 
+const setDockerRuntimePrivacyMenuOpen = (open, options = {}) => {
+    dockerRuntimePrivacyMenuOpen = open === true;
+    const button = document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID);
+    const menu = document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_ID);
+    button?.setAttribute('aria-expanded', dockerRuntimePrivacyMenuOpen ? 'true' : 'false');
+    button?.classList.toggle('is-open', dockerRuntimePrivacyMenuOpen);
+    if (menu) {
+        menu.hidden = !dockerRuntimePrivacyMenuOpen;
+    }
+    if (dockerRuntimePrivacyMenuOpen && options.focusFirst === true) {
+        menu?.querySelector('input[type="checkbox"]')?.focus();
+    }
+};
+
+const bindDockerRuntimePrivacyMenuEvents = () => {
+    if (dockerRuntimePrivacyMenuEventsBound || typeof document?.addEventListener !== 'function') {
+        return;
+    }
+    dockerRuntimePrivacyMenuEventsBound = true;
+    document.addEventListener('click', (event) => {
+        if (!dockerRuntimePrivacyMenuOpen) {
+            return;
+        }
+        const shell = document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID);
+        if (!shell?.contains(event.target)) {
+            setDockerRuntimePrivacyMenuOpen(false);
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !dockerRuntimePrivacyMenuOpen) {
+            return;
+        }
+        setDockerRuntimePrivacyMenuOpen(false);
+        document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID)?.focus();
+    });
+};
+
+const buildDockerRuntimePrivacyMenuOptionsHtml = (prefs = null) => {
+    const dashboard = utils.normalizePrefs(prefs || folderTypePrefs || {}).dashboard || {};
+    return DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS.map((option) => `
+        <label class="fvplus-docker-runtime-privacy-option">
+            <input
+                type="checkbox"
+                data-fvplus-privacy-option="${escapeHtml(option.key)}"
+                ${dashboard[option.key] !== false ? 'checked' : ''}
+            >
+            <span>${escapeHtml(option.label)}</span>
+        </label>
+    `).join('');
+};
+
+const persistDockerRuntimePrivacyMaskPreference = async (key, enabled, prefsOverride = null) => {
+    if (!DOCKER_RUNTIME_PRIVACY_OPTION_KEYS.has(key)) {
+        throw new Error('Unknown Docker privacy option.');
+    }
+    const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
+    const nextPrefs = utils.normalizePrefs({
+        ...current,
+        dashboard: {
+            ...(current.dashboard || {}),
+            [key]: enabled === true
+        }
+    });
+    if (dockerPrefsCoordinator) {
+        const savedPrefs = await dockerPrefsCoordinator.save('docker', {
+            dashboard: {
+                [key]: enabled === true
+            }
+        }, {
+            currentPrefs: nextPrefs,
+            immediate: true
+        });
+        return utils.normalizePrefs(savedPrefs || nextPrefs);
+    }
+    const payload = {
+        type: 'docker',
+        prefs: JSON.stringify({
+            dashboard: {
+                [key]: enabled === true
+            }
+        })
+    };
+    const request = window.FolderViewPlusRequest;
+    let response = null;
+    if (request && typeof request.postJson === 'function') {
+        response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+    } else {
+        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy option.');
+    const savedPrefs = utils.normalizePrefs(response?.prefs || nextPrefs);
+    if (savedPrefs.dashboard?.[key] !== (enabled === true)) {
+        throw new Error('Docker privacy option did not persist.');
+    }
+    return savedPrefs;
+};
+
+const setDockerRuntimePrivacyMaskPreference = async (key, enabled) => {
+    if (!DOCKER_RUNTIME_PRIVACY_OPTION_KEYS.has(key)) {
+        return;
+    }
+    const current = utils.normalizePrefs(folderTypePrefs || {});
+    folderTypePrefs = utils.normalizePrefs({
+        ...current,
+        dashboard: {
+            ...(current.dashboard || {}),
+            [key]: enabled === true
+        }
+    });
+    applyRuntimePrefs(folderTypePrefs);
+    try {
+        folderTypePrefs = await persistDockerRuntimePrivacyMaskPreference(key, enabled, folderTypePrefs);
+        dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+        applyRuntimePrefs(folderTypePrefs);
+    } catch (error) {
+        applyRuntimePrefs(folderTypePrefs);
+        swal({
+            title: 'Privacy option sync pending',
+            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not sync this privacy option.'))}<br>The change remains active and will retry through the preference outbox.`,
+            type: 'warning',
+            html: true,
+            confirmButtonText: 'OK'
+        });
+    }
+};
+
 const renderDockerRuntimePrivacyToggle = () => {
     const mount = resolveDockerRuntimePrivacyToggleMount();
     if (!mount?.host) {
@@ -4602,10 +4746,33 @@ const renderDockerRuntimePrivacyToggle = () => {
     }
     const enabled = readDockerRuntimePrivacyMode();
     const savePending = dockerRuntimePrivacyPersistPromise !== null;
+    const menuOptionsHtml = buildDockerRuntimePrivacyMenuOptionsHtml(folderTypePrefs);
     shell.innerHTML = `
         <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
         <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
+        <button
+            id="${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}"
+            class="fvplus-docker-runtime-privacy-menu-button${dockerRuntimePrivacyMenuOpen ? ' is-open' : ''}"
+            type="button"
+            aria-label="Privacy options"
+            aria-haspopup="dialog"
+            aria-expanded="${dockerRuntimePrivacyMenuOpen ? 'true' : 'false'}"
+            aria-controls="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
+            title="Privacy options"
+        ><i class="fa fa-sliders" aria-hidden="true"></i><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+        <div
+            id="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
+            class="fvplus-docker-runtime-privacy-menu"
+            role="dialog"
+            aria-label="Docker privacy options"
+            ${dockerRuntimePrivacyMenuOpen ? '' : 'hidden'}
+        >
+            <div class="fvplus-docker-runtime-privacy-menu-heading">Privacy mode</div>
+            <div class="fvplus-docker-runtime-privacy-menu-help">Choose what is hidden while Privacy is enabled.</div>
+            <div class="fvplus-docker-runtime-privacy-menu-options">${menuOptionsHtml}</div>
+        </div>
     `;
+    bindDockerRuntimePrivacyMenuEvents();
     const $input = $(`#${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}`);
     if (!$input.length) {
         return;
@@ -4613,14 +4780,25 @@ const renderDockerRuntimePrivacyToggle = () => {
     if (typeof $input.switchButton === 'function') {
         $input.switchButton({
             labels_placement: 'right',
-            off_label: $.i18n('off'),
-            on_label: $.i18n('on'),
+            off_label: '',
+            on_label: '',
             checked: enabled
         });
     }
     $input.off('change.fvDockerRuntimePrivacy').on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyChange() {
         void setDockerRuntimePrivacyMode($(this).is(':checked'));
     });
+    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}`).off('click.fvDockerRuntimePrivacy').on('click.fvDockerRuntimePrivacy', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setDockerRuntimePrivacyMenuOpen(!dockerRuntimePrivacyMenuOpen);
+    });
+    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_ID} input[data-fvplus-privacy-option]`)
+        .off('change.fvDockerRuntimePrivacy')
+        .on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyOptionChange() {
+            const key = String($(this).attr('data-fvplus-privacy-option') || '');
+            void setDockerRuntimePrivacyMaskPreference(key, $(this).is(':checked'));
+        });
 };
 
 const queueDockerRuntimePrivacyToggleMount = () => {

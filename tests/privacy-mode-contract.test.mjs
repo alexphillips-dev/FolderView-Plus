@@ -147,6 +147,28 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
 
 test('docker runtime privacy toggle stays in sync with saved dashboard privacy prefs', () => {
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID = 'fvplus-docker-runtime-privacy-menu-button';/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MENU_ID = 'fvplus-docker-runtime-privacy-menu';/);
+    for (const [key, label] of [
+        ['privacyMaskNames', 'Mask names and icons'],
+        ['privacyMaskLocalIps', 'Mask LAN IPs'],
+        ['privacyMaskPorts', 'Mask ports'],
+        ['privacyMaskVolumePaths', 'Mask volume paths'],
+        ['privacyMaskImageRegistry', 'Mask image registries'],
+        ['privacyMaskPublicIps', 'Mask public IPs'],
+        ['privacyMaskInterfaces', 'Mask network interfaces'],
+        ['privacyMaskExternalUrls', 'Mask external URLs']
+    ]) {
+        assert.match(dockerJs, new RegExp(`key: '${key}', label: '${label}'`));
+    }
+    assert.match(dockerJs, /aria-haspopup="dialog"/);
+    assert.match(dockerJs, /data-fvplus-privacy-option=/);
+    assert.match(dockerJs, /off_label:\s*'',\s*on_label:\s*''/);
+    assert.match(dockerJs, /const setDockerRuntimePrivacyMaskPreference = async \(key, enabled\) =>/);
+    assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker',[\s\S]*?\[key\]: enabled === true[\s\S]*?immediate: true/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\s*\{[\s\S]*?var\(--fvplus-runtime-menu-bg/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-menu\[hidden\]\s*\{[\s\S]*?display:\s*none !important;/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-privacy-option\s*\{[\s\S]*?cursor:\s*pointer;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus\.runtime\.privacy\.docker\.v1';/);
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => resolveDockerRuntimePrivacyMode\(folderTypePrefs\);/);
     assert.match(dockerJs, /const stored = readStoredDockerRuntimePrivacyMode\(\);[\s\S]*if \(stored !== null\) \{[\s\S]*return stored;/);

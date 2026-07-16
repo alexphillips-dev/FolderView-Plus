@@ -1368,7 +1368,8 @@ const computeFormSnapshot = () => {
         state.members.push({
             name: $(row).attr('data-name') || '',
             included: input.prop('checked'),
-            locked: input.prop('disabled')
+            locked: input.prop('disabled'),
+            previewVisible: $(row).find('input.member-preview-switch').prop('checked') === true
         });
     });
     state.childFolders = $('#fvFolderMembersBody > tr[data-child-folder-id]')
@@ -1665,6 +1666,7 @@ const getFolderEditorPreviewRuntimeApi = () => {
         modernEditorEnabled: modernFolderEditorEnabled,
         getForm,
         getIncludedMemberNames,
+        getPreviewMemberNames,
         getMemberMapByName,
         getAllMembers,
         normalizePreviewRowLimit,
@@ -2715,6 +2717,12 @@ const enforceLeftAlignedSettingsLayout = () => {
 };
 
 const getIncludedMemberNames = () => $('input[name*="containers"]:checked').map((_, el) => String($(el).val() || '')).get();
+
+const getPreviewMemberNames = () => $('table.sortable > tbody > tr').filter((_, row) => {
+    const $row = $(row);
+    return $row.find('input.container-switch').prop('checked') === true
+        && $row.find('input.member-preview-switch').prop('checked') === true;
+}).map((_, row) => String($(row).attr('data-name') || '').trim()).get().filter(Boolean);
 
 const getMemberMapByName = () => new Map(getAllMembers().map((member) => [String(member?.Name || ''), member]));
 
@@ -4688,11 +4696,16 @@ const updateList = (afterRender = null) => {
         renderFolderMembersSection();
 
         $('input.container-switch').off('change').on('change', function() {
-            const previewInput = $(this).closest('tr').find('input.member-preview-switch').get(0);
+            const $row = $(this).closest('tr');
+            const previewInput = $row.find('input.member-preview-switch').get(0);
             if (previewInput) {
                 previewInput.disabled = this.checked !== true;
                 if (this.checked !== true) {
                     previewInput.checked = true;
+                    const name = String($row.attr('data-name') || '').trim();
+                    if (name) {
+                        hiddenPreviewMembers.delete(name);
+                    }
                 }
             }
             updateMemberStats();

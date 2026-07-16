@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.15.15">
-<!ENTITY md5 "5a3a3f6dafca3e4e3f1e8b9cb313a27b">
+<!ENTITY version "2026.07.16.01">
+<!ENTITY md5 "848eba7b1f02b74fbc4b28838b8c7197">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.01
+### Live preview visibility synchronization
+- Fix: Updated the modern folder editor's live canvas to render only included members whose Show in preview toggle is enabled.
+- UI/UX: Added a clear live-preview empty state when a folder has included members but every member is hidden from the collapsed preview.
+- Fix: Added per-member preview visibility to the editor dirty snapshot so visibility-only edits reliably show as unsaved changes.
+- Fix: Cleared stale hidden-preview state when a member is excluded and its preview toggle is reset.
+- Test: Added executable regression coverage for immediate live-preview filtering, the all-hidden message, dependency wiring, and dirty-state tracking.
+
 
 ###2026.07.15.15
 ### Folder identity, preview, privacy, and runtime roadmap

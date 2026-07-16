@@ -11,6 +11,9 @@
         const onAfterSummaryUpdate = typeof deps.onAfterSummaryUpdate === 'function' ? deps.onAfterSummaryUpdate : (() => {});
         const updateMemberStats = typeof deps.updateMemberStats === 'function' ? deps.updateMemberStats : (() => {});
         const getIncludedMemberNames = typeof deps.getIncludedMemberNames === 'function' ? deps.getIncludedMemberNames : (() => []);
+        const getPreviewMemberNames = typeof deps.getPreviewMemberNames === 'function'
+            ? deps.getPreviewMemberNames
+            : getIncludedMemberNames;
         const getMemberMapByName = typeof deps.getMemberMapByName === 'function' ? deps.getMemberMapByName : (() => new Map());
         const getAllMembers = typeof deps.getAllMembers === 'function' ? deps.getAllMembers : (() => []);
         const normalizePreviewRowLimit = typeof deps.normalizePreviewRowLimit === 'function' ? deps.normalizePreviewRowLimit : (() => 1);
@@ -82,7 +85,8 @@
                 return;
             }
 
-            const memberNames = getIncludedMemberNames();
+            const memberNames = getPreviewMemberNames();
+            const includedMemberCount = getIncludedMemberNames().length;
             const memberMap = getMemberMapByName();
             const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
             const previewMode = Number(form.preview?.value || 0);
@@ -162,7 +166,9 @@
                 ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
                 : (memberPreviewItems.length > 0
                     ? memberPreviewItems.join('')
-                    : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
+                    : `<div class="fv-live-preview-empty">${includedMemberCount > 0
+                        ? 'All included members are hidden from the collapsed preview.'
+                        : 'Select or match at least one member to see how the row preview will render.'}</div>`);
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
             const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${borderGlowEnabled ? ' has-border-glow' : ''}${accentEnabled ? ' has-accent' : ''}${safeHoverAnimation !== 'none' ? ` fv-hover-animation-${safeHoverAnimation}` : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;

@@ -21,6 +21,9 @@
         const modernEditorEnabled = deps.modernEditorEnabled === true;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
         const getIncludedMemberNames = typeof deps.getIncludedMemberNames === 'function' ? deps.getIncludedMemberNames : (() => []);
+        const getPreviewMemberNames = typeof deps.getPreviewMemberNames === 'function'
+            ? deps.getPreviewMemberNames
+            : getIncludedMemberNames;
         const getMemberMapByName = typeof deps.getMemberMapByName === 'function' ? deps.getMemberMapByName : (() => new Map());
         const getAllMembers = typeof deps.getAllMembers === 'function' ? deps.getAllMembers : (() => []);
         const normalizePreviewRowLimit = typeof deps.normalizePreviewRowLimit === 'function' ? deps.normalizePreviewRowLimit : (() => 1);
@@ -101,6 +104,7 @@
                 shouldUpdate: () => modernEditorEnabled,
                 getForm,
                 getIncludedMemberNames,
+                getPreviewMemberNames,
                 getMemberMapByName,
                 getAllMembers,
                 normalizePreviewRowLimit,

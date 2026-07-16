@@ -306,6 +306,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
     let currentDryRunOnly = false;
     let currentTrustInfo = { level: 'trusted', label: 'Trusted', reason: '' };
+    let dialogLayoutObserver = null;
+    let dialogLayoutFrame = 0;
     const isPreviewFirstEnabled = () => (
         previewFirstToggle.length ? previewFirstToggle.prop('checked') === true : true
     );
@@ -345,13 +347,28 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const contentWidth = Math.min(520, Math.max(280, shellWidth - 46));
         return { shellWidth, contentWidth };
     };
+    const getImportDialogShell = () => {
+        try {
+            const widget = dialog.dialog('widget');
+            if (widget?.length) return widget;
+        } catch (_error) {
+            // The widget is not available until jQuery UI finishes initialization.
+        }
+        return dialog.closest('.ui-dialog');
+    };
     const applyImportDialogLayout = () => {
         const { shellWidth, contentWidth } = getImportDialogWidths();
-        const dialogShell = dialog.closest('.ui-dialog');
+        const dialogShell = getImportDialogShell();
+        if (dialog.hasClass('ui-dialog-content') && Number(dialog.dialog('option', 'width')) !== shellWidth) {
+            dialog.dialog('option', 'width', shellWidth);
+        }
         if (dialogShell[0]?.style) {
             dialogShell[0].style.setProperty('width', `${shellWidth}px`, 'important');
-            dialogShell[0].style.setProperty('max-width', 'calc(100vw - 1rem)', 'important');
+            dialogShell[0].style.setProperty('max-width', `${shellWidth}px`, 'important');
             dialogShell[0].style.setProperty('min-width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('inline-size', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('max-inline-size', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('min-inline-size', `${shellWidth}px`, 'important');
             dialogShell[0].style.setProperty('box-sizing', 'border-box', 'important');
         }
         if (dialog[0]?.style) {
@@ -375,6 +392,26 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
                 element.style.setProperty('min-width', '0', 'important');
                 element.style.setProperty('box-sizing', 'border-box', 'important');
             });
+    };
+    const queueImportDialogLayout = () => {
+        if (dialogLayoutFrame) return;
+        dialogLayoutFrame = window.requestAnimationFrame(() => {
+            dialogLayoutFrame = 0;
+            applyImportDialogLayout();
+            dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+        });
+    };
+    const startImportDialogLayoutLock = () => {
+        dialogLayoutObserver?.disconnect();
+        dialogLayoutObserver = null;
+        const dialogShell = getImportDialogShell();
+        if (typeof window.ResizeObserver !== 'function' || !dialogShell[0]) return;
+        dialogLayoutObserver = new window.ResizeObserver(() => {
+            const { shellWidth } = getImportDialogWidths();
+            const actualWidth = Math.round(dialogShell[0].getBoundingClientRect().width);
+            if (actualWidth !== shellWidth) queueImportDialogLayout();
+        });
+        dialogLayoutObserver.observe(dialogShell[0]);
     };
     const getImportRiskInfo = (selectedOperations) => {
         const deletes = Array.isArray(selectedOperations?.deletes) ? selectedOperations.deletes.length : 0;
@@ -615,8 +652,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         syncImportSafetyUi();
     });
     utils.bindEventOnce($(window), 'resize.fvimportdialog', () => {
-        applyImportDialogLayout();
-        dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+        queueImportDialogLayout();
     });
     utils.bindEventOnce(presetSelect, 'change.fvimportpreset', () => {
         const selectedId = String(presetSelect.val() || '');
@@ -716,14 +752,25 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             dialogShell.find('.ui-dialog-titlebar-close').each((_, element) => {
                 element.style.setProperty('display', 'none', 'important');
             });
+            startImportDialogLayoutLock();
             applyImportDialogLayout();
             window.requestAnimationFrame(() => {
                 applyImportDialogLayout();
                 dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
             });
+            window.setTimeout(queueImportDialogLayout, 150);
+            window.setTimeout(queueImportDialogLayout, 500);
             syncImportSafetyUi();
         },
-        close: () => resolve(dialogResult),
+        close: () => {
+            dialogLayoutObserver?.disconnect();
+            dialogLayoutObserver = null;
+            if (dialogLayoutFrame) {
+                window.cancelAnimationFrame(dialogLayoutFrame);
+                dialogLayoutFrame = 0;
+            }
+            resolve(dialogResult);
+        },
         buttons: {
             'Apply Import': function() {
                 const mode = modeSelect.val();

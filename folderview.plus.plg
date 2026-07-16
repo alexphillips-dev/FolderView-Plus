@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.17">
-<!ENTITY md5 "27a52cb33c0120135531f6a094ea8253">
+<!ENTITY version "2026.07.16.18">
+<!ENTITY md5 "d03274ef49be78999b5ba88c46a57322">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.18
+### Locked import window width and readable text
+- Fix: Targets the actual jQuery UI dialog widget and caps its physical and logical width at a responsive 566px, preventing the outer host window from leaving large empty areas around the 520px content column.
+- Fix: Adds a scoped resize lock that detects and immediately corrects late width changes applied by Unraid after the import window opens.
+- Fix: Reapplies the compact layout shortly after opening to cover delayed host dialog initialization and recenters the corrected window.
+- UI/UX: Raises all import popup text below 1.2rem to 1.2rem, including titles, descriptions, mode labels, badges, summaries, disclosures, file details, and footer buttons.
+- UI/UX: Preserves the existing 1.55rem planned-change total so text that was already larger than the new minimum is not reduced.
+- Test: Expanded import-dialog regressions for widget targeting, physical and logical width locks, late resize correction, the 1.2rem text floor, and preservation of larger summary text.
 
 ###2026.07.16.17
 ### Compact import dialog spacing

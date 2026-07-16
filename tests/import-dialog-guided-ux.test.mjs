@@ -59,7 +59,7 @@ test('secondary information is hidden behind clear progressive-disclosure sectio
 });
 
 test('import modal is compact, bounded, and responsive', () => {
-    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?width:\s*min\(566px, calc\(100vw - 1rem\)\) !important;[\s\S]*?min-width:\s*min\(566px, calc\(100vw - 1rem\)\) !important;[\s\S]*?overflow:\s*hidden !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?width:\s*min\(566px, calc\(100vw - 1rem\)\) !important;[\s\S]*?min-width:\s*min\(566px, calc\(100vw - 1rem\)\) !important;[\s\S]*?max-width:\s*min\(566px, calc\(100vw - 1rem\)\) !important;[\s\S]*?overflow:\s*hidden !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-content\s*\{[\s\S]*?overflow-y:\s*auto !important;[\s\S]*?overflow-x:\s*hidden !important;/);
     assert.match(css, /--fv-import-content-width:\s*520px;/);
     assert.match(css, /#import-preview-dialog > \*\s*\{[\s\S]*?max-width:\s*var\(--fv-import-content-width\) !important;[\s\S]*?justify-self:\s*center !important;/);
@@ -74,13 +74,19 @@ test('import modal is compact, bounded, and responsive', () => {
     assert.match(runtime, /const modalWidth = getImportDialogWidths\(\)\.shellWidth;/);
     assert.match(runtime, /maxHeight: modalMaxHeight/);
     assert.match(runtime, /const applyImportDialogLayout = \(\) => \{/);
+    assert.match(runtime, /const widget = dialog\.dialog\('widget'\);/);
     assert.match(runtime, /style\.setProperty\('width', `\$\{shellWidth\}px`, 'important'\)/);
+    assert.match(runtime, /style\.setProperty\('max-width', `\$\{shellWidth\}px`, 'important'\)/);
     assert.match(runtime, /style\.setProperty\('min-width', `\$\{shellWidth\}px`, 'important'\)/);
+    assert.match(runtime, /style\.setProperty\('inline-size', `\$\{shellWidth\}px`, 'important'\)/);
     assert.match(runtime, /dialog\[0\]\.style\.setProperty\('row-gap', '0\.55rem', 'important'\)/);
     assert.match(runtime, /dialog\.children\(\)\.each\(\(_, element\) => \{/);
     assert.match(runtime, /element\.style\.setProperty\('width', `\$\{contentWidth\}px`, 'important'\)/);
     assert.match(runtime, /\.import-disclosures > \.import-disclosure, \.import-disclosure-body, \.import-mode-choice, #import-preview-diff, #import-preview-selection/);
-    assert.match(runtime, /resize\.fvimportdialog'[\s\S]*applyImportDialogLayout\(\)/);
+    assert.match(runtime, /resize\.fvimportdialog'[\s\S]*queueImportDialogLayout\(\)/);
+    assert.match(runtime, /new window\.ResizeObserver\([\s\S]*actualWidth !== shellWidth[\s\S]*queueImportDialogLayout\(\)/);
+    assert.match(css, /#import-preview-dialog \*:not\(i\),[\s\S]*?font-size:\s*1\.2rem !important;/);
+    assert.match(css, /#import-preview-dialog \.import-summary-total strong\s*\{[\s\S]*?font-size:\s*1\.55rem !important;/);
 });
 
 test('change summary is concise and only surfaces warnings when action is needed', () => {

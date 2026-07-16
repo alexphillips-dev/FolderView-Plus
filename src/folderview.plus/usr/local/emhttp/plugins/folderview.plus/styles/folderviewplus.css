@@ -6831,7 +6831,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 /* Compact import review */
 .ui-dialog.fv-import-preview-modal {
-    width: min(760px, calc(100vw - 1rem)) !important;
+    width: min(620px, calc(100vw - 1rem)) !important;
     max-width: calc(100vw - 1rem) !important;
     max-height: calc(100vh - 1rem) !important;
     overflow: hidden !important;
@@ -6860,15 +6860,24 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .ui-dialog.fv-import-preview-modal #import-preview-dialog {
+    --fv-import-content-width: 520px;
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 0.62rem;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    justify-items: center !important;
 }
 
-.ui-dialog.fv-import-preview-modal #import-preview-dialog > *,
+.ui-dialog.fv-import-preview-modal #import-preview-dialog > * {
+    width: 100% !important;
+    max-width: var(--fv-import-content-width) !important;
+    min-width: 0 !important;
+    justify-self: center !important;
+    box-sizing: border-box !important;
+}
+
 .ui-dialog.fv-import-preview-modal .import-disclosures,
 .ui-dialog.fv-import-preview-modal .import-disclosure,
 .ui-dialog.fv-import-preview-modal .import-disclosure[open] {
@@ -6886,10 +6895,21 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: var(--fvplus-settings-surface-strong) !important;
 }
 
+.ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane .ui-dialog-buttonset {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    float: none !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    margin: 0 auto !important;
+}
+
 .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button {
     min-width: 0 !important;
     min-height: 34px;
-    margin: 0 0 0 0.5rem !important;
+    margin: 0 !important;
     padding: 0.4rem 0.78rem !important;
     appearance: none !important;
     border: 1px solid var(--fvplus-settings-button-outline) !important;
@@ -6928,6 +6948,36 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-button-fg) !important;
     box-shadow: none !important;
     opacity: 0.56;
+}
+
+html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button {
+    appearance: none !important;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-text-primary) 28%, transparent) !important;
+    outline: 0 !important;
+    background: var(--fvplus-settings-surface-strong) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
+}
+
+html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:hover:not(:disabled),
+html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:focus-visible {
+    border-color: color-mix(in srgb, var(--fvplus-settings-text-primary) 42%, transparent) !important;
+    background: var(--fvplus-settings-surface-muted) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    filter: brightness(1.08);
+}
+
+html body .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button.fv-import-dialog-button.ui-button:disabled {
+    border-color: color-mix(in srgb, var(--fvplus-settings-text-primary) 20%, transparent) !important;
+    background: var(--fvplus-settings-surface-strong) !important;
+    color: var(--fvplus-settings-text-muted) !important;
+    box-shadow: none !important;
+    opacity: 0.56;
+}
+
+html body .ui-dialog.fv-import-preview-modal .ui-dialog-titlebar-close {
+    display: none !important;
 }
 
 .import-preview-head {

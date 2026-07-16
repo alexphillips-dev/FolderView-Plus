@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.14">
-<!ENTITY md5 "5f61716f68da5fb14019780e66499457">
+<!ENTITY version "2026.07.16.15">
+<!ENTITY md5 "b254f97d981cc3b69f3ad423ba4a2430">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.15
+### Unified import dialog sizing and neutral controls
+- Fix: Replaced mixed intrinsic and full-dialog widths with one explicit 520px content column shared by the import header, behavior panel, change summary, disclosure rows, expanded content, backup confirmation, and footer actions.
+- Fix: Reduced and forcibly reapplied the dialog shell width at runtime so Unraid's host dialog rules cannot stretch the popup back across the viewport.
+- Fix: Re-centers the dialog after applying its runtime width, keeping the popup correctly positioned on desktop and narrow screens.
+- UI/UX: Aligned the footer button group with the same content column used by every import module.
+- UI/UX: Added a high-specificity neutral button skin and runtime important styles so Apply Import and Cancel cannot inherit Unraid's orange outline or fill.
+- UI/UX: Force-hides the empty host title-bar close control that appeared as an orange outlined rectangle.
+- Quality: Keeps collapsed and expanded disclosure widths identical while constraining tables and operation lists within the shared content column.
+- Test: Added regressions for the 520px shared column, 620px dialog shell, runtime width enforcement, centered footer actions, neutral button override, and forced title-bar control removal.
 
 ###2026.07.16.14
 ### Stable import disclosure layout

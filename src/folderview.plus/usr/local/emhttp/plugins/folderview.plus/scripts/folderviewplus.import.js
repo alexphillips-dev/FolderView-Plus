@@ -333,6 +333,13 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
         .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
         .first();
+    const applyImportDialogButtonSkin = (element) => {
+        if (!element?.style) return;
+        element.style.setProperty('border', '1px solid color-mix(in srgb, var(--fvplus-settings-text-primary) 28%, transparent)', 'important');
+        element.style.setProperty('background', 'var(--fvplus-settings-surface-strong)', 'important');
+        element.style.setProperty('color', 'var(--fvplus-settings-text-primary)', 'important');
+        element.style.setProperty('box-shadow', 'var(--fvplus-settings-button-shadow)', 'important');
+    };
     const getImportRiskInfo = (selectedOperations) => {
         const deletes = Array.isArray(selectedOperations?.deletes) ? selectedOperations.deletes.length : 0;
         if (deletes > 0) {
@@ -645,7 +652,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     $('#import-preview-kind').text(type === 'docker' ? 'Docker folder' : 'VM folder');
     renderPreview();
 
-    const modalWidth = Math.min(760, Math.max(320, Math.floor(window.innerWidth * 0.94)));
+    const modalWidth = Math.min(620, Math.max(320, Math.floor(window.innerWidth * 0.94)));
     const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
         title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
@@ -658,10 +665,24 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         show: { effect: 'fade', duration: 120 },
         hide: { effect: 'fade', duration: 120 },
         open: () => {
-            const buttonPane = dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane');
+            const dialogShell = dialog.closest('.ui-dialog');
+            const buttonPane = dialogShell.find('.ui-dialog-buttonpane');
             const applyButton = getImportApplyButton();
             applyButton.addClass('fv-import-apply-button').html('<i class="fa fa-check" aria-hidden="true"></i> Apply import');
-            buttonPane.find('button').not(applyButton).addClass('fv-import-cancel-button');
+            const dialogButtons = buttonPane.find('button');
+            dialogButtons.addClass('fv-import-dialog-button');
+            dialogButtons.not(applyButton).addClass('fv-import-cancel-button');
+            dialogButtons.each((_, element) => applyImportDialogButtonSkin(element));
+            dialogShell.find('.ui-dialog-titlebar-close').each((_, element) => {
+                element.style.setProperty('display', 'none', 'important');
+            });
+            if (dialogShell[0]?.style) {
+                dialogShell[0].style.setProperty('width', `${modalWidth}px`, 'important');
+                dialogShell[0].style.setProperty('max-width', 'calc(100vw - 1rem)', 'important');
+            }
+            window.requestAnimationFrame(() => {
+                dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+            });
             syncImportSafetyUi();
         },
         close: () => resolve(dialogResult),

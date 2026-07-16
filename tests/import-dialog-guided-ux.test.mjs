@@ -59,14 +59,18 @@ test('secondary information is hidden behind clear progressive-disclosure sectio
 });
 
 test('import modal is compact, bounded, and responsive', () => {
-    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?width:\s*min\(760px, calc\(100vw - 1rem\)\) !important;[\s\S]*?overflow:\s*hidden !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?width:\s*min\(620px, calc\(100vw - 1rem\)\) !important;[\s\S]*?overflow:\s*hidden !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-content\s*\{[\s\S]*?overflow-y:\s*auto !important;[\s\S]*?overflow-x:\s*hidden !important;/);
+    assert.match(css, /--fv-import-content-width:\s*520px;/);
+    assert.match(css, /#import-preview-dialog > \*\s*\{[\s\S]*?max-width:\s*var\(--fv-import-content-width\) !important;[\s\S]*?justify-self:\s*center !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane \.ui-dialog-buttonset\s*\{[\s\S]*?max-width:\s*520px !important;[\s\S]*?margin:\s*0 auto !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.import-disclosure,\s*\.ui-dialog\.fv-import-preview-modal \.import-disclosure\[open\]\s*\{[\s\S]*?width:\s*100% !important;[\s\S]*?max-width:\s*100% !important;/);
     assert.match(css, /#import-preview-dialog \.import-review-details #import-preview-diff table\s*\{[\s\S]*?table-layout:\s*fixed !important;/);
     assert.match(css, /\.import-mode-choices\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
     assert.match(css, /@media \(max-width: 620px\)/);
-    assert.match(runtime, /const modalWidth = Math\.min\(760, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
+    assert.match(runtime, /const modalWidth = Math\.min\(620, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
     assert.match(runtime, /maxHeight: modalMaxHeight/);
+    assert.match(runtime, /style\.setProperty\('width', `\$\{modalWidth\}px`, 'important'\)/);
 });
 
 test('change summary is concise and only surfaces warnings when action is needed', () => {
@@ -81,6 +85,10 @@ test('change summary is concise and only surfaces warnings when action is needed
 
 test('import dialog actions use scoped theme-token styling without browser focus outlines', () => {
     assert.match(runtime, /addClass\('fv-import-apply-button'\)/);
+    assert.match(runtime, /addClass\('fv-import-dialog-button'\)/);
+    assert.match(runtime, /applyImportDialogButtonSkin/);
+    assert.match(runtime, /setProperty\('border', '1px solid color-mix\(in srgb, var\(--fvplus-settings-text-primary\) 28%, transparent\)', 'important'\)/);
+    assert.match(runtime, /ui-dialog-titlebar-close'[\s\S]*setProperty\('display', 'none', 'important'\)/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane button\s*\{[\s\S]*?border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;[\s\S]*?background:\s*var\(--fvplus-settings-button-bg-top\) !important;[\s\S]*?box-shadow:\s*var\(--fvplus-settings-button-shadow\) !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane button:hover:not\(:disabled\),[\s\S]*?outline:\s*none !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane \.fv-import-apply-button\s*\{[\s\S]*?background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);

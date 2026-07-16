@@ -14,8 +14,15 @@
     <CHANGES>
 
 ###2026.07.16.06
-- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
-- Fix: Docker runtime rows, folder state, and container interactions.
+### Docker page action toolbar
+- Feature: Replaced the standalone Add Folder control with a responsive FolderView action bar containing Add Folder, Expand All, Collapse All, and direct folder-management access.
+- Feature: Added live Unassigned, Updates, Empty, and Health Issues filters with current counts, nested-folder context, and temporary filter state that never rewrites saved folder order.
+- Feature: Added an on-page View menu for switching between FolderView, Host list, Command, Tree Explorer, and Orbit modes, with immediate conflict-safe preference persistence.
+- Feature: Added a Tools menu for showing or hiding empty folders, clearing folder focus, refreshing runtime state, opening bulk assignment or rules, and resetting temporary view state.
+- UI/UX: Added compact themed controls, upward-opening menus, responsive wrapping, active filter states, empty-filter guidance, and busy feedback across desktop and mobile layouts.
+- UI/UX: Added menu semantics, selected-state reporting, Escape dismissal, outside-click dismissal, focus restoration, and Arrow, Home, and End keyboard navigation.
+- Quality: Reused the existing hierarchy, focus, preference coordinator, and runtime refresh paths so toolbar actions stay synchronized with saved settings and live Docker state.
+- Test: Added focused regression coverage for the complete control set, hierarchy-aware filters, immediate preference saves, supported view modes, workspace routes, responsive styling, and keyboard behavior.
 
 
 ###2026.07.16.05

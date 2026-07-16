@@ -33,10 +33,6 @@ test('plain-language behavior cards remain synchronized with the native import m
 
 test('advanced import controls and destructive review safeguards remain available', () => {
     for (const id of [
-        'import-preset-select',
-        'import-preset-save',
-        'import-preset-default',
-        'import-preset-delete',
         'import-dry-run-only',
         'import-preview-first-toggle',
         'import-preview-diff',
@@ -46,6 +42,7 @@ test('advanced import controls and destructive review safeguards remain availabl
     ]) {
         assert.match(page, new RegExp(`id="${id}"`));
     }
+    assert.doesNotMatch(page, /id="import-preset-(?:select|save|default|delete)"/);
     assert.match(runtime, /reviewAckRow\.css\('display', requireAck \? 'flex' : 'none'\)/);
     assert.match(runtime, /applyButton\.prop\('disabled', selectedCount <= 0 \|\| \(requireAck && !isImportReviewAcked\(\)\)\)/);
 });
@@ -54,15 +51,18 @@ test('secondary information is hidden behind clear progressive-disclosure sectio
     assert.match(page, /class="import-disclosure import-review-details"/);
     assert.match(page, /Review planned changes/);
     assert.match(page, /class="import-disclosure import-secondary-options"/);
-    assert.match(page, /<strong>Import options<\/strong>/);
+    assert.match(page, /<strong>Safety options<\/strong>/);
+    assert.match(page, /<small>Preview and confirmation<\/small>/);
     assert.match(page, /class="import-disclosure import-source-details"/);
     assert.match(page, /<strong>File details<\/strong>/);
     assert.doesNotMatch(page, /class="import-disclosure[^>]*" open/);
 });
 
 test('import modal is compact, bounded, and responsive', () => {
-    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?overflow:\s*hidden !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal\s*\{[\s\S]*?width:\s*min\(760px, calc\(100vw - 1rem\)\) !important;[\s\S]*?overflow:\s*hidden !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-content\s*\{[\s\S]*?overflow-y:\s*auto !important;[\s\S]*?overflow-x:\s*hidden !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.import-disclosure,\s*\.ui-dialog\.fv-import-preview-modal \.import-disclosure\[open\]\s*\{[\s\S]*?width:\s*100% !important;[\s\S]*?max-width:\s*100% !important;/);
+    assert.match(css, /#import-preview-dialog \.import-review-details #import-preview-diff table\s*\{[\s\S]*?table-layout:\s*fixed !important;/);
     assert.match(css, /\.import-mode-choices\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
     assert.match(css, /@media \(max-width: 620px\)/);
     assert.match(runtime, /const modalWidth = Math\.min\(760, Math\.max\(320, Math\.floor\(window\.innerWidth \* 0\.94\)\)\);/);
@@ -81,7 +81,7 @@ test('change summary is concise and only surfaces warnings when action is needed
 
 test('import dialog actions use scoped theme-token styling without browser focus outlines', () => {
     assert.match(runtime, /addClass\('fv-import-apply-button'\)/);
-    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane button\s*\{[\s\S]*?box-shadow:\s*none !important;/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane button\s*\{[\s\S]*?border:\s*1px solid var\(--fvplus-settings-button-outline\) !important;[\s\S]*?background:\s*var\(--fvplus-settings-button-bg-top\) !important;[\s\S]*?box-shadow:\s*var\(--fvplus-settings-button-shadow\) !important;/);
     assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane button:hover:not\(:disabled\),[\s\S]*?outline:\s*none !important;/);
-    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane \.fv-import-apply-button/);
+    assert.match(css, /\.ui-dialog\.fv-import-preview-modal \.ui-dialog-buttonpane \.fv-import-apply-button\s*\{[\s\S]*?background:\s*var\(--fvplus-settings-button-bg-top\) !important;/);
 });

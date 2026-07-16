@@ -6831,6 +6831,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 /* Compact import review */
 .ui-dialog.fv-import-preview-modal {
+    width: min(760px, calc(100vw - 1rem)) !important;
     max-width: calc(100vw - 1rem) !important;
     max-height: calc(100vh - 1rem) !important;
     overflow: hidden !important;
@@ -6859,7 +6860,23 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .ui-dialog.fv-import-preview-modal #import-preview-dialog {
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 0.62rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.ui-dialog.fv-import-preview-modal #import-preview-dialog > *,
+.ui-dialog.fv-import-preview-modal .import-disclosures,
+.ui-dialog.fv-import-preview-modal .import-disclosure,
+.ui-dialog.fv-import-preview-modal .import-disclosure[open] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
 }
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane {
@@ -6874,25 +6891,43 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     min-height: 34px;
     margin: 0 0 0 0.5rem !important;
     padding: 0.4rem 0.78rem !important;
-    border: 1px solid var(--fvplus-settings-border-subtle) !important;
-    border-radius: 6px !important;
-    background: var(--fvplus-settings-surface-muted) !important;
-    color: var(--fvplus-settings-text-primary) !important;
-    box-shadow: none !important;
+    appearance: none !important;
+    border: 1px solid var(--fvplus-settings-button-outline) !important;
+    border-radius: 8px !important;
+    outline: 0 !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
 }
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane .fv-import-apply-button {
-    border-color: var(--fvplus-settings-chip-info-border) !important;
-    background: var(--fvplus-settings-chip-info-bg) !important;
-    color: var(--fvplus-settings-chip-info) !important;
+    border-color: var(--fvplus-settings-button-outline) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
 }
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button:hover:not(:disabled),
 .ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button:focus-visible {
-    border-color: var(--fvplus-settings-chip-info-border) !important;
-    background: var(--fvplus-settings-chip-info-bg) !important;
-    color: var(--fvplus-settings-chip-info) !important;
+    border-color: var(--fvplus-settings-button-outline-hover) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
     outline: none !important;
+}
+
+.ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button:active:not(:disabled) {
+    border-color: var(--fvplus-settings-button-outline-active) !important;
+    background: var(--fvplus-settings-button-active-top) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-active) !important;
+}
+
+.ui-dialog.fv-import-preview-modal .ui-dialog-buttonpane button:disabled {
+    border-color: var(--fvplus-settings-button-outline) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: none !important;
+    opacity: 0.56;
 }
 
 .import-preview-head {
@@ -7135,7 +7170,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .import-disclosures {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.35rem;
+    width: 100%;
+    min-width: 0;
 }
 
 .import-disclosure,
@@ -7146,6 +7184,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-radius: 7px;
     background: var(--fvplus-settings-surface-muted);
     color: var(--fvplus-settings-text-primary);
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .import-disclosure > summary,
@@ -7207,8 +7247,13 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #import-trust-label.is-trust-untrusted { color: var(--fvplus-settings-chip-danger); }
 
 .import-disclosure-body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 0.58rem;
     border-top: 1px solid var(--fvplus-settings-border-faint);
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .import-detail-label {
@@ -7226,11 +7271,21 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 #import-preview-dialog .import-review-details #import-preview-diff,
 #import-preview-dialog .import-review-details .import-selection {
-    width: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     max-height: 230px;
     margin: 0;
     border-color: var(--fvplus-settings-border-faint);
     background: var(--fvplus-settings-surface-card);
+    box-sizing: border-box !important;
+}
+
+#import-preview-dialog .import-review-details #import-preview-diff table {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
 }
 
 #import-preview-dialog #import-preview-diff th {
@@ -7248,8 +7303,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .import-secondary-options-body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.65rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
 }
 
 .import-preset-stack {

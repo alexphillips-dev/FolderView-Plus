@@ -1813,17 +1813,8 @@ if (!empty($fvplusRuntimeConflicts)) {
         </details>
 
         <details class="import-disclosure import-secondary-options">
-            <summary><span><i class="fa fa-sliders" aria-hidden="true"></i><strong>Import options</strong></span><small>Presets and dry run</small></summary>
+            <summary><span><i class="fa fa-shield" aria-hidden="true"></i><strong>Safety options</strong></span><small>Preview and confirmation</small></summary>
             <div class="import-disclosure-body import-secondary-options-body">
-                <div class="import-preset-stack">
-                    <label for="import-preset-select">Saved preset</label>
-                    <select id="import-preset-select"></select>
-                    <div class="import-preset-actions">
-                        <button type="button" id="import-preset-save"><i class="fa fa-save"></i> Save</button>
-                        <button type="button" id="import-preset-default"><i class="fa fa-star"></i> Default</button>
-                        <button type="button" id="import-preset-delete"><i class="fa fa-trash"></i> Delete</button>
-                    </div>
-                </div>
                 <div class="import-option-list">
                     <label id="import-dry-run-row" class="import-option-row">
                         <input id="import-dry-run-only" type="checkbox">

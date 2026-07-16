@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.13">
-<!ENTITY md5 "b84c4bf78e47e0821dd35eb0a9789647">
+<!ENTITY version "2026.07.16.14">
+<!ENTITY md5 "5f61716f68da5fb14019780e66499457">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.14
+### Stable import disclosure layout
+- Fix: Locked the import modal and all collapsed or expanded disclosure sections to one stable responsive width so opening change details no longer stretches the popup across the viewport.
+- Fix: Constrained import tables, operation lists, and disclosure bodies to the modal content box, preventing wide row content from changing the dialog dimensions.
+- UI/UX: Expanded collapsed Review, Safety options, and File details rows to the same width as the primary import behavior panel.
+- UI/UX: Removed the redundant saved-preset selector and its Save, Default, and Delete controls from the popup because import behavior is already selected directly at the top.
+- UI/UX: Renamed Import options to Safety options and retained only the distinct Preview only and Require confirmation controls.
+- UI/UX: Restyled Apply Import and Cancel with the shared FolderView Plus neutral button tokens, including neutral outlines, fills, hover, active, focus, and disabled states.
+- Quality: Retained server-side import preset compatibility so an existing default preset can still initialize the visible behavior and safety state without duplicating controls.
+- Test: Added regressions for stable collapsed and expanded widths, constrained review tables, neutral shared button tokens, and removal of duplicate preset controls.
 
 ###2026.07.16.13
 ### Compact configuration import redesign

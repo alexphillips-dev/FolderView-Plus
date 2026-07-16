@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.06">
-<!ENTITY md5 "1755f6103a7f19088c141ba7e0904260">
+<!ENTITY version "2026.07.16.07">
+<!ENTITY md5 "96bded1ab91cda1823748607ac4e3fbe">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.07
+### Action toolbar runtime architecture
+- Quality: Extracted the Docker action toolbar into a dedicated runtime module so the core Docker script remains focused and independently maintainable.
+- Performance: Reduced docker.js from 420,056 bytes to 397,865 bytes, restoring both byte and gzip performance-ratchet compliance without removing toolbar functionality.
+- Quality: Kept the toolbar connected through a narrow adapter to the existing folder hierarchy, focus state, preference coordinator, runtime refresh, and error-reporting paths.
+- Test: Added executable coverage for live toolbar counters and hierarchy-aware filtering, plus module loading, syntax, performance-budget, architecture, and install-smoke validation.
 
 ###2026.07.16.06
 ### Docker page action toolbar

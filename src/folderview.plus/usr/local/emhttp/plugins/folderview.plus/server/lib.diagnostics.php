@@ -2288,7 +2288,10 @@
             'manifestSha256' => null,
             'manifestMd5' => null,
             'manifestUrl' => null,
-            'archiveUrl' => null
+            'archiveUrl' => null,
+            'iconAssetPackVersion' => null,
+            'iconAssetPackSha256' => null,
+            'iconAssetPackUrl' => null
         ];
 
         foreach (readInstalledManifestPathCandidates() as $manifestPath) {
@@ -2303,7 +2306,7 @@
             if (preg_match('/<!ENTITY\s+md5\s+"([^"]+)"/i', $contents, $match)) {
                 $manifestMetadata['manifestMd5'] = (string)($match[1] ?? '');
             }
-            foreach (['name', 'version', 'github', 'pluginURL'] as $entityKey) {
+            foreach (['name', 'version', 'github', 'pluginURL', 'iconPackVersion', 'iconPackSha256', 'iconPackURL'] as $entityKey) {
                 if (preg_match('/<!ENTITY\s+' . preg_quote($entityKey, '/') . '\s+"([^"]+)"/i', $contents, $match)) {
                     $entityValue = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
                     if ($entityValue !== '') {
@@ -2318,12 +2321,17 @@
             if (preg_match('/<!ENTITY\s+pluginURL\s+"([^"]+)"/i', $contents, $match)) {
                 $manifestMetadata['manifestUrl'] = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
             }
-            if (preg_match('/<URL>([^<]+)<\/URL>/i', $contents, $match)) {
+            if (preg_match('/<URL>([^<]*\/archive\/[^<]*&version;\.txz)<\/URL>/i', $contents, $match)) {
                 $manifestMetadata['archiveUrl'] = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
             }
+            $manifestMetadata['iconAssetPackVersion'] = trim((string)($manifestEntities['iconPackVersion'] ?? '')) ?: null;
+            $manifestMetadata['iconAssetPackSha256'] = preg_match('/^[a-f0-9]{64}$/', (string)($manifestEntities['iconPackSha256'] ?? ''))
+                ? (string)$manifestEntities['iconPackSha256']
+                : null;
+            $manifestMetadata['iconAssetPackUrl'] = trim((string)($manifestEntities['iconPackURL'] ?? '')) ?: null;
             if (!empty($manifestMetadata['githubRepository'])) {
                 $githubEntity = (string)$manifestMetadata['githubRepository'];
-                foreach (['manifestUrl', 'archiveUrl'] as $urlKey) {
+                foreach (['manifestUrl', 'archiveUrl', 'iconAssetPackUrl'] as $urlKey) {
                     $urlValue = (string)($manifestMetadata[$urlKey] ?? '');
                     if ($urlValue !== '') {
                         $manifestMetadata[$urlKey] = str_replace('&github;', $githubEntity, $urlValue);
@@ -2331,7 +2339,7 @@
                 }
             }
             if (!empty($manifestEntities)) {
-                foreach (['manifestUrl', 'archiveUrl'] as $urlKey) {
+                foreach (['manifestUrl', 'archiveUrl', 'iconAssetPackUrl'] as $urlKey) {
                     $urlValue = (string)($manifestMetadata[$urlKey] ?? '');
                     if ($urlValue === '') {
                         continue;
@@ -2405,7 +2413,12 @@
             'manifestMd5' => $manifestMetadata['manifestMd5'] ?? null,
             'archiveMd5' => $manifestMetadata['manifestMd5'] ?? null,
             'manifestUrl' => $manifestUrl !== '' ? $manifestUrl : null,
-            'archiveUrl' => $archiveUrl !== '' ? $archiveUrl : null
+            'archiveUrl' => $archiveUrl !== '' ? $archiveUrl : null,
+            'iconAssetPackVersion' => trim((string)($buildMetadata['iconAssetPackVersion'] ?? ($manifestMetadata['iconAssetPackVersion'] ?? ''))) ?: null,
+            'iconAssetPackSha256' => preg_match('/^[a-f0-9]{64}$/', (string)($buildMetadata['iconAssetPackSha256'] ?? ($manifestMetadata['iconAssetPackSha256'] ?? '')))
+                ? (string)($buildMetadata['iconAssetPackSha256'] ?? $manifestMetadata['iconAssetPackSha256'])
+                : null,
+            'iconAssetPackUrl' => trim((string)($manifestMetadata['iconAssetPackUrl'] ?? ($buildMetadata['iconAssetPackUrl'] ?? ''))) ?: null
         ];
     }
 

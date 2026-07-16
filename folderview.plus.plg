@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.23">
-<!ENTITY md5 "581ec018f1236d86cbfd76e0b090d0fe">
+<!ENTITY version "2026.07.16.24">
+<!ENTITY md5 "e1b20f20bbb0e02378549b5256e59429">
+<!ENTITY iconPackVersion "1.0.0">
+<!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
+<!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.24
+### Versioned icon asset pack
+- Performance: Moves the 1,982-file third-party icon library out of the frequently rebuilt core plugin archive and into an independently versioned `1.0.0` asset pack.
+- Performance: Reuses a checksum-marked extracted icon cache during ordinary plugin updates and rebuilds the RAM cache from the persistent pack after reboot.
+- Quality: Verifies the immutable pack with manifest-pinned MD5 and SHA-256 checksums, stages extraction, atomically activates the cache, and keeps the existing third-party icon URLs through a runtime symlink.
+- Quality: Adds deterministic asset-pack tooling and release guards that reject source drift, checksum mismatches, unsafe entries, or accidental icon-library inclusion in the core archive.
+- Feature: Exposes icon-pack version, checksum, URL, readiness, and link state through runtime metadata and sanitized support-bundle build identity.
+- Test: Adds executable regressions for archive contents, checksum rejection, real extraction, atomic activation, cached-pack reuse, endpoint health, packaging exclusion, and support metadata.
+
 
 ###2026.07.16.23
 ### Atomic batching across folder workflows
@@ -6892,6 +6906,11 @@
 
     </CHANGES>
 
+    <FILE Name="/boot/config/plugins/&name;/folderview.plus-icons-&iconPackVersion;.txz">
+        <URL>&iconPackURL;</URL>
+        <MD5>&iconPackMd5;</MD5>
+    </FILE>
+
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
         <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
@@ -6901,7 +6920,8 @@
         <INLINE>
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
-            rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '&version;')
+            find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
+            /bin/bash &plugdir;scripts/install_icon_asset_pack.sh "&iconPackVersion;" "&iconPackSha256;"
             echo "&version;" > /boot/config/plugins/&name;/version
             echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
             chmod 644 /etc/cron.d/folderview.plus
@@ -6921,6 +6941,7 @@
             rm -f /etc/cron.d/folderview.plus
             /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
             rm -rf &plugdir;
+            rm -rf /tmp/folderview.plus-assets
             rm -rf /boot/config/plugins/&name;
         </INLINE>
     </FILE>

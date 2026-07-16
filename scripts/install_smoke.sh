@@ -63,6 +63,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
@@ -90,15 +91,10 @@ for required_entry in "${REQUIRED_ARCHIVE_ENTRIES[@]}"; do
   fi
 done
 
-ICON_ARCHIVE_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -E '^usr/local/emhttp/plugins/folderview.plus/images/(third-party-icons|custom)/' || true)"
+ICON_ARCHIVE_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -E '^usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/' || true)"
 if [[ -n "${ICON_ARCHIVE_ENTRIES}" ]]; then
-  ICON_ARCHIVE_FILES="$(printf '%s\n' "${ICON_ARCHIVE_ENTRIES}" | grep -Ev '/$' || true)"
-  INVALID_ICON_ENTRIES="$(printf '%s\n' "${ICON_ARCHIVE_FILES}" | grep -Ev '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
-  if [[ -n "${INVALID_ICON_ENTRIES}" ]]; then
-    echo "ERROR: Archive contains non-icon files in icon asset directories:" >&2
-    echo "${INVALID_ICON_ENTRIES}" >&2
-    exit 1
-  fi
+  echo "ERROR: Core plugin archive must not contain the versioned third-party icon library." >&2
+  exit 1
 fi
 
 TMP_DIR="$(mktemp -d "${ROOT_DIR}/.tmp-install-smoke.XXXXXX")"
@@ -136,6 +132,7 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.runtime-actions.js"
   "scripts/folderviewplus.wizard.js"
   "scripts/folderviewplus.import.js"
+  "scripts/install_icon_asset_pack.sh"
   "scripts/docker.runtime.hierarchy.js"
   "scripts/docker.runtime.actions.js"
   "scripts/folder.settings-transfer.js"

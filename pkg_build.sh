@@ -9,6 +9,7 @@ plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
+icon_asset_pack_guard_script="$CWD/scripts/icon_asset_pack_guard.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
 changes_entry_timeout_raw="${FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10}"
 archive_prefix="folderview.plus"
@@ -119,6 +120,7 @@ rewrite_manifest_branch_metadata() {
         exit 1
     fi
     sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$target_branch"'/folderview.plus.plg">|' "$target_file"
+    sed -E -i 's|^<!ENTITY iconPackURL ".*">|<!ENTITY iconPackURL "https://raw.githubusercontent.com/\&github;/'"$target_branch"'/asset-packs/folderview.plus-icons-\&iconPackVersion;.txz">|' "$target_file"
     sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$target_branch"'/archive/\&name;-\&version;.txz</URL>|' "$target_file"
     perl -0pi -e 's{<PLUGIN\s+name="[^"]*"\s+author="[^"]*"\s+version="[^"]*"\s+launch="[^"]*"\s+pluginURL="[^"]*"\s+icon="folder-icon\.png"\s+support="https://forums\.unraid\.net/topic/197631-plugin-folderview-plus/"\s+min="7\.0\.0">}{<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">}s' "$target_file"
 }
@@ -135,14 +137,17 @@ validate_manifest_branch_matrix() {
         local probe_file=""
         local entity_url=""
         local archive_url=""
+        local icon_pack_url=""
         local plugin_tag=""
         local expected_entity_url="https://raw.githubusercontent.com/&github;/${branch_name}/folderview.plus.plg"
         local expected_archive_url="https://raw.githubusercontent.com/&github;/${branch_name}/archive/&name;-&version;.txz"
+        local expected_icon_pack_url="https://raw.githubusercontent.com/&github;/${branch_name}/asset-packs/folderview.plus-icons-&iconPackVersion;.txz"
         probe_file="$(mktemp)"
         cp "$source_file" "$probe_file"
         rewrite_manifest_branch_metadata "$probe_file" "$target_version" "$branch_name"
         entity_url="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "$probe_file" | head -n 1 || true)"
         archive_url="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "$probe_file" | head -n 1 || true)"
+        icon_pack_url="$(sed -n 's/^<!ENTITY iconPackURL "\([^"]*\)".*/\1/p' "$probe_file" | head -n 1 || true)"
         plugin_tag="$(perl -0777 -ne 'if (/<PLUGIN\b[^>]*>/s) { my $tag = $&; $tag =~ s/\s+/ /g; print $tag; }' "$probe_file")"
         rm -f "$probe_file"
         if [ "$entity_url" != "$expected_entity_url" ]; then
@@ -151,6 +156,10 @@ validate_manifest_branch_matrix() {
         fi
         if [ "$archive_url" != "$expected_archive_url" ]; then
             echo "ERROR: Manifest branch matrix archive URL mismatch for ${branch_name}. expected=${expected_archive_url}, found=${archive_url}" >&2
+            exit 1
+        fi
+        if [ "$icon_pack_url" != "$expected_icon_pack_url" ]; then
+            echo "ERROR: Manifest branch matrix icon asset-pack URL mismatch for ${branch_name}. expected=${expected_icon_pack_url}, found=${icon_pack_url}" >&2
             exit 1
         fi
         if [[ "$plugin_tag" != *'name="&name;"'* ]] || [[ "$plugin_tag" != *'author="&author;"'* ]] || [[ "$plugin_tag" != *'version="&version;"'* ]] || [[ "$plugin_tag" != *'launch="&launch;"'* ]] || [[ "$plugin_tag" != *'pluginURL="&pluginURL;"'* ]]; then
@@ -397,7 +406,10 @@ next_stable_version_for_date() {
 should_package_file() {
     local file_path="${1:-}"
     case "$file_path" in
-        ./usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/*|./usr/local/emhttp/plugins/folderview.plus/images/custom/*)
+        ./usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/*)
+            return 1
+            ;;
+        ./usr/local/emhttp/plugins/folderview.plus/images/custom/*)
             local ext="${file_path##*.}"
             ext="${ext,,}"
             if [[ "$ext" =~ $icon_ext_regex ]]; then
@@ -504,6 +516,10 @@ if [ ! -f "$ensure_changes_entry_script" ]; then
     echo "ERROR: Missing CHANGES helper script: $ensure_changes_entry_script" >&2
     exit 1
 fi
+if [ ! -f "$icon_asset_pack_guard_script" ]; then
+    echo "ERROR: Missing icon asset-pack guard script: $icon_asset_pack_guard_script" >&2
+    exit 1
+fi
 if [ "$run_install_smoke" = true ]; then
     require_commands bash
     if [ ! -f "$install_smoke_script" ]; then
@@ -511,6 +527,7 @@ if [ "$run_install_smoke" = true ]; then
         exit 1
     fi
 fi
+bash "$icon_asset_pack_guard_script"
 
 # Set branch and base version by build type
 if [ -n "$branch_override" ]; then
@@ -631,6 +648,9 @@ if [ "$build_git_snapshot_mode" = "head" ] && [ -n "$build_git_head_commit_sha" 
 fi
 build_manifest_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg"
 build_archive_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/${archive_prefix}-${version}.txz"
+build_icon_pack_version="$(sed -n 's/^<!ENTITY iconPackVersion "\([^"]*\)".*/\1/p' "$plgfile" | head -n 1)"
+build_icon_pack_sha256="$(sed -n 's/^<!ENTITY iconPackSha256 "\([^"]*\)".*/\1/p' "$plgfile" | head -n 1)"
+build_icon_pack_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/asset-packs/folderview.plus-icons-${build_icon_pack_version}.txz"
 cat > "$build_metadata_path" <<EOF
 {
   "sourceCommitSha": "${build_git_source_commit_sha}",
@@ -642,7 +662,10 @@ cat > "$build_metadata_path" <<EOF
   "sourceBranch": "${branch}",
   "manifestUrl": "${build_manifest_url}",
   "archiveUrl": "${build_archive_url}",
-  "packageVersion": "${version}"
+  "packageVersion": "${version}",
+  "iconAssetPackVersion": "${build_icon_pack_version}",
+  "iconAssetPackSha256": "${build_icon_pack_sha256}",
+  "iconAssetPackUrl": "${build_icon_pack_url}"
 }
 EOF
 
@@ -717,7 +740,7 @@ if [ "$archive_prune_keep" -gt 0 ]; then
 fi
 
 if [ "$validate_after_build" = true ]; then
-    FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
+    FVPLUS_ICON_ASSET_PACK_GUARDED=1 FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
 fi
 if [ "$run_install_smoke" = true ]; then
     bash "$install_smoke_script"

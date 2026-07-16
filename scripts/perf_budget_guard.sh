@@ -44,13 +44,14 @@ const walkPackagedFiles = (root) => {
 };
 
 const packagedFiles = walkPackagedFiles(pluginDir);
-const packagedBytes = packagedFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 const thirdPartyIconRoot = path.join(pluginDir, 'images', 'third-party-icons');
 const thirdPartyIconFiles = packagedFiles.filter((file) => file.startsWith(thirdPartyIconRoot + path.sep));
 const thirdPartyIconBytes = thirdPartyIconFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const coreSourceFiles = packagedFiles.filter((file) => !file.startsWith(thirdPartyIconRoot + path.sep));
+const coreSourceBytes = coreSourceFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 const nonRuntimeSourceFiles = thirdPartyIconFiles.filter((file) => /\.(?:psd|xcf|ai|sketch)$/i.test(file));
 const nonRuntimeSourceBytes = nonRuntimeSourceFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
-const packageBudget = Number.parseInt(process.env.FVPLUS_MAX_PACKAGE_BYTES || '100000000', 10);
+const packageBudget = Number.parseInt(process.env.FVPLUS_MAX_PACKAGE_BYTES || '30000000', 10);
 const thirdPartyIconBudget = Number.parseInt(process.env.FVPLUS_MAX_THIRD_PARTY_ICON_BYTES || '75000000', 10);
 
 const envInt = (name, fallback) => {
@@ -508,8 +509,8 @@ if (baseline) {
 
 runAbsoluteBudgetChecks();
 
-if (!Number.isFinite(packageBudget) || packagedBytes > packageBudget) {
-  console.error(`ERROR: Packaged plugin assets exceed budget (${packagedBytes} > ${packageBudget}).`);
+if (!Number.isFinite(packageBudget) || coreSourceBytes > packageBudget) {
+  console.error(`ERROR: Core plugin source exceeds budget (${coreSourceBytes} > ${packageBudget}).`);
   failed = true;
 }
 if (!Number.isFinite(thirdPartyIconBudget) || thirdPartyIconBytes > thirdPartyIconBudget) {
@@ -537,6 +538,6 @@ console.log(
   `Performance budget guard passed: JS ${totalJs}B (${totalJsGzip}B gzip), CSS ${totalCss}B (${totalCssGzip}B gzip), ratchet baseline ${baselineStatus}.`
 );
 console.log(
-  `Package inventory: ${packagedFiles.length} files / ${packagedBytes}B; third-party icon library ${thirdPartyIconFiles.length} files / ${thirdPartyIconBytes}B; non-runtime source assets ${nonRuntimeSourceFiles.length} files / ${nonRuntimeSourceBytes}B.`
+  `Core source inventory: ${coreSourceFiles.length} files / ${coreSourceBytes}B; versioned icon-pack source ${thirdPartyIconFiles.length} files / ${thirdPartyIconBytes}B; excluded non-runtime icon sources ${nonRuntimeSourceFiles.length} files / ${nonRuntimeSourceBytes}B.`
 );
 NODE

@@ -164,9 +164,17 @@ test('upload and third-party endpoints share the same icon extension allowlist',
     assert.ok(thirdPartyExt.includes('svg'));
 });
 
-test('pkg_build filters non-icon files in third-party and custom icon folders', () => {
+test('pkg_build excludes the versioned third-party library and still filters custom icons', () => {
     assert.match(pkgBuild, /should_package_file\(\)/);
-    assert.match(pkgBuild, /images\/third-party-icons/);
+    assert.match(pkgBuild, /images\/third-party-icons\/\*\)\s*return 1/);
     assert.match(pkgBuild, /images\/custom/);
     assert.match(pkgBuild, /icon_ext_regex/);
+    assert.match(pkgBuild, /iconAssetPackVersion/);
+    assert.match(pkgBuild, /iconAssetPackSha256/);
+});
+
+test('third-party endpoint reports versioned asset-pack health', () => {
+    assert.match(thirdPartyPhp, /function thirdPartyIconAssetPackStatus\(\): array/);
+    assert.match(thirdPartyPhp, /icon-asset-pack\.json/);
+    assert.match(thirdPartyPhp, /'assetPack' => thirdPartyIconAssetPackStatus\(\)/);
 });

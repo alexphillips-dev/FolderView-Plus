@@ -134,6 +134,7 @@
         let thirdPartyFilterSheetOpen = false;
         let thirdPartyAdvancedMode = false;
         let thirdPartyPackActionsOpen = false;
+        let thirdPartyAssetPackStatus = null;
         let customIconEntries = [];
         let customIconStats = null;
         let customIconHealth = null;
@@ -1644,6 +1645,12 @@
             const payload = parseJsonPayload(response);
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to load third-party icon folders.'));
+            }
+            thirdPartyAssetPackStatus = payload.assetPack && typeof payload.assetPack === 'object'
+                ? payload.assetPack
+                : null;
+            if (thirdPartyAssetPackStatus && thirdPartyAssetPackStatus.ready === false) {
+                throw new Error('The versioned icon asset pack is unavailable. Reinstall or update FolderView Plus to restore it.');
             }
             thirdPartyIconFolders = asArray(payload.folders).map((entry) => ({
                 name: String(entry?.name || '').trim(),

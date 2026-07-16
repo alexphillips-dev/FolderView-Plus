@@ -1708,27 +1708,9 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
     }
 
     if (step === 'import' || step === 'review') {
-        const includeTypes = [];
-        for (const type of ['docker', 'vm']) {
-            const plan = setupAssistantState.importPlans[type];
-            if (!plan) {
-                continue;
-            }
-            if (plan.include === true) {
-                includeTypes.push(type);
-                if (!plan.parsed) {
-                    blockers.push(`${type.toUpperCase()} import is enabled but no file is selected.`);
-                }
-                if (plan.parsed?.legacy === true) {
-                    warnings.push(`${type.toUpperCase()} import uses legacy format. Review diff before apply.`);
-                }
-                const planWarnings = Array.isArray(plan.warnings) ? plan.warnings : [];
-                warnings.push(...planWarnings.map((message) => `${type.toUpperCase()}: ${message}`));
-            }
-        }
-        if (setupAssistantState.route === 'migrate' && includeTypes.length === 0) {
-            blockers.push('Migrate route requires at least one enabled import.');
-        }
+        const importValidation = validateSetupAssistantImportPlans(setupAssistantState.importPlans);
+        blockers.push(...importValidation.blockers);
+        warnings.push(...importValidation.warnings);
     }
 
     if (step === 'templates' || step === 'review') {
@@ -1801,10 +1783,6 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
     blockers.forEach((message) => {
         if (/no file is selected/i.test(message)) {
             addHint('Use "Select Docker/VM export" and keep Include enabled only for files you want to apply.');
-            return;
-        }
-        if (/requires at least one enabled import/i.test(message)) {
-            addHint('For migrate flow, enable at least one Docker or VM import plan before continuing.');
             return;
         }
         if (/between 0 and 100/i.test(message)) {

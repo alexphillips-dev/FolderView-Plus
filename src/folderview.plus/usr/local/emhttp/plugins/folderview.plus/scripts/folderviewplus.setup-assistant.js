@@ -211,6 +211,26 @@ const normalizeQuickProfilePresetId = (value, fallback = 'balanced') => {
         : 'balanced';
 };
 
+const validateSetupAssistantImportPlans = (importPlans = {}) => {
+    const blockers = [];
+    const warnings = [];
+    const includeTypes = [];
+    for (const type of ['docker', 'vm']) {
+        const plan = importPlans && typeof importPlans === 'object' ? importPlans[type] : null;
+        if (!plan || plan.include !== true) continue;
+        includeTypes.push(type);
+        if (!plan.parsed) {
+            blockers.push(`${type.toUpperCase()} import is enabled but no file is selected.`);
+        }
+        if (plan.parsed?.legacy === true) {
+            warnings.push(`${type.toUpperCase()} import uses legacy format. Review diff before apply.`);
+        }
+        const planWarnings = Array.isArray(plan.warnings) ? plan.warnings : [];
+        warnings.push(...planWarnings.map((message) => `${type.toUpperCase()}: ${message}`));
+    }
+    return { blockers, warnings, includeTypes };
+};
+
 Object.assign(window, {
     WIZARD_DONE_STORAGE_KEY,
     SETUP_ASSISTANT_DONE_STORAGE_KEY,
@@ -226,7 +246,8 @@ Object.assign(window, {
     SETUP_ASSISTANT_ENV_PRESETS,
     SETUP_ASSISTANT_PROFILE_PRESETS,
     QUICK_PROFILE_PRESETS,
-    normalizeQuickProfilePresetId
+    normalizeQuickProfilePresetId,
+    validateSetupAssistantImportPlans
 });
 
 window.FolderViewPlusSetupAssistantSupport = Object.freeze({
@@ -244,6 +265,7 @@ window.FolderViewPlusSetupAssistantSupport = Object.freeze({
     SETUP_ASSISTANT_ENV_PRESETS,
     SETUP_ASSISTANT_PROFILE_PRESETS,
     QUICK_PROFILE_PRESETS,
-    normalizeQuickProfilePresetId
+    normalizeQuickProfilePresetId,
+    validateSetupAssistantImportPlans
 });
 window.FolderViewPlusSetupAssistantSupportModuleLoaded = true;

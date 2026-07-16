@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.10">
-<!ENTITY md5 "7860eb75c17b0769654ec54b8df33c43">
+<!ENTITY version "2026.07.16.11">
+<!ENTITY md5 "e401570e7bc9096c29cc7a3b27ca7d4e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.11
+### Optional setup import navigation
+- Fix: The Setup Assistant migration flow can now continue past the optional Import step when no Docker or VM export file is selected.
+- Fix: Import validation now blocks only plans explicitly enabled without a valid selected file, while preserving legacy-format and file-specific review warnings.
+- Quality: Centralized Docker and VM import-plan validation so the Import and Review steps use the same route-independent rules.
+- Test: Added executable regressions for skipping all imports, rejecting an enabled import without a file, and allowing valid legacy imports with warnings.
 
 ###2026.07.16.10
 ### Native Docker Organizer diagnostics and retry

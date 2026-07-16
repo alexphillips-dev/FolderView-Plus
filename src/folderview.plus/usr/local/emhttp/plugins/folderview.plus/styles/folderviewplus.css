@@ -6831,7 +6831,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 /* Compact import review */
 .ui-dialog.fv-import-preview-modal {
-    width: min(620px, calc(100vw - 1rem)) !important;
+    width: min(566px, calc(100vw - 1rem)) !important;
+    min-width: min(566px, calc(100vw - 1rem)) !important;
     max-width: calc(100vw - 1rem) !important;
     max-height: calc(100vh - 1rem) !important;
     overflow: hidden !important;
@@ -6862,7 +6863,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .ui-dialog.fv-import-preview-modal #import-preview-dialog {
     --fv-import-content-width: 520px;
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 0.62rem;
+    row-gap: 0.55rem !important;
+    column-gap: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;

@@ -340,8 +340,23 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         element.style.setProperty('color', 'var(--fvplus-settings-text-primary)', 'important');
         element.style.setProperty('box-shadow', 'var(--fvplus-settings-button-shadow)', 'important');
     };
-    const applyImportContentWidths = () => {
-        const contentWidth = Math.min(520, Math.max(280, Math.floor(window.innerWidth - 40)));
+    const getImportDialogWidths = () => {
+        const shellWidth = Math.min(566, Math.max(320, Math.floor(window.innerWidth - 16)));
+        const contentWidth = Math.min(520, Math.max(280, shellWidth - 46));
+        return { shellWidth, contentWidth };
+    };
+    const applyImportDialogLayout = () => {
+        const { shellWidth, contentWidth } = getImportDialogWidths();
+        const dialogShell = dialog.closest('.ui-dialog');
+        if (dialogShell[0]?.style) {
+            dialogShell[0].style.setProperty('width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('max-width', 'calc(100vw - 1rem)', 'important');
+            dialogShell[0].style.setProperty('min-width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('box-sizing', 'border-box', 'important');
+        }
+        if (dialog[0]?.style) {
+            dialog[0].style.setProperty('row-gap', '0.55rem', 'important');
+        }
         dialog.children().each((_, element) => {
             if (!element?.style) return;
             element.style.setProperty('width', `${contentWidth}px`, 'important');
@@ -600,7 +615,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         syncImportSafetyUi();
     });
     utils.bindEventOnce($(window), 'resize.fvimportdialog', () => {
-        applyImportContentWidths();
+        applyImportDialogLayout();
+        dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
     });
     utils.bindEventOnce(presetSelect, 'change.fvimportpreset', () => {
         const selectedId = String(presetSelect.val() || '');
@@ -676,7 +692,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     $('#import-preview-kind').text(type === 'docker' ? 'Docker folder' : 'VM folder');
     renderPreview();
 
-    const modalWidth = Math.min(620, Math.max(320, Math.floor(window.innerWidth * 0.94)));
+    const modalWidth = getImportDialogWidths().shellWidth;
     const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
         title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
@@ -700,13 +716,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             dialogShell.find('.ui-dialog-titlebar-close').each((_, element) => {
                 element.style.setProperty('display', 'none', 'important');
             });
-            if (dialogShell[0]?.style) {
-                dialogShell[0].style.setProperty('width', `${modalWidth}px`, 'important');
-                dialogShell[0].style.setProperty('max-width', 'calc(100vw - 1rem)', 'important');
-            }
-            applyImportContentWidths();
+            applyImportDialogLayout();
             window.requestAnimationFrame(() => {
-                applyImportContentWidths();
+                applyImportDialogLayout();
                 dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
             });
             syncImportSafetyUi();

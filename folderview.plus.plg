@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.16">
-<!ENTITY md5 "509c180a076e3c93809fe151c1812340">
+<!ENTITY version "2026.07.16.17">
+<!ENTITY md5 "27a52cb33c0120135531f6a094ea8253">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.17
+### Compact import dialog spacing
+- UI/UX: Adds a consistent 0.55rem gap between each top-level import module so the behavior panel, change summary, disclosures, and confirmation no longer touch.
+- UI/UX: Reduces the import dialog shell from 620px to a responsive 566px around the existing 520px content column, removing unnecessary empty space on both sides.
+- Fix: Enforces the dialog shell's width and minimum width at runtime so Unraid host styles cannot stretch the popup back across the viewport.
+- Fix: Recalculates and reapplies the shell, content, spacing, and centered position whenever the viewport changes.
+- Test: Updated the compact-dialog regression coverage for the 566px shell, shared 520px content width, runtime minimum-width guard, and enforced module spacing.
 
 ###2026.07.16.16
 ### Runtime-enforced import module widths

@@ -14,6 +14,9 @@
 
     const DEFAULT_INITIAL_DELAY_MS = 220;
     const DEFAULT_POLL_DELAY_MS = 4000;
+    const DEFAULT_POLL_COUNT = 2;
+    const POST_UPDATE_CALLBACK_WINDOW_MS = 15000;
+    const DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME = '__fvplusDockerPostUpdateRefresh';
     const DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME = '__fvplusDockerLifecycleRefresh';
     const DOCKER_LIFECYCLE_REFRESH_DELAYS_MS = Object.freeze([0, 750, 2000]);
     const DOCKER_LIFECYCLE_ACTIONS = new Set(['start', 'stop', 'pause', 'resume', 'restart']);
@@ -66,6 +69,7 @@
         let dockerPostUpdateRuntimePollTimer = null;
         let dockerPostUpdateRuntimePollPending = false;
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
+        let dockerPostUpdateRuntimePollRemaining = 0;
         let dockerLifecycleRefreshGeneration = 0;
         let pendingDockerLifecycleRequest = {};
 
@@ -118,8 +122,9 @@
         };
 
         const schedulePostUpdateRuntimePoll = (reason = 'post-update-runtime-poll', delayMs = pollDelayMsDefault) => {
-            if (!isDockerHostUpdateSyncSuspended()) {
+            if (!isDockerHostUpdateSyncSuspended() || dockerPostUpdateRuntimePollRemaining <= 0) {
                 clearPostUpdateRuntimePoll();
+                dockerPostUpdateRuntimePollRemaining = 0;
                 return;
             }
             if (dockerPostUpdateRuntimePollTimer || dockerPostUpdateRuntimePollPending) {
@@ -133,15 +138,19 @@
             dockerPostUpdateRuntimePollTimer = schedule(() => {
                 dockerPostUpdateRuntimePollTimer = null;
                 if (!isDockerHostUpdateSyncSuspended()) {
+                    dockerPostUpdateRuntimePollRemaining = 0;
                     return;
                 }
+                dockerPostUpdateRuntimePollRemaining = Math.max(0, dockerPostUpdateRuntimePollRemaining - 1);
                 dockerPostUpdateRuntimePollPending = true;
                 appendDockerBulkUpdateTrace('postUpdateRuntimePoll', {
                     reason: safeReason,
-                    pollDelayMs: dockerPostUpdateRuntimePollIntervalMs
+                    pollDelayMs: dockerPostUpdateRuntimePollIntervalMs,
+                    remainingPolls: dockerPostUpdateRuntimePollRemaining
                 });
                 Promise.resolve(refreshDockerRuntimeStateInPlace({
-                    liveUpdateStatus: true
+                    liveUpdateStatus: true,
+                    preserveGroupedDom: true
                 }))
                     .then((success) => {
                         appendDockerBulkUpdateTrace('postUpdateRuntimePollResult', {
@@ -157,13 +166,40 @@
                     })
                     .finally(() => {
                         dockerPostUpdateRuntimePollPending = false;
-                        if (isDockerHostUpdateSyncSuspended()) {
+                        if (isDockerHostUpdateSyncSuspended() && dockerPostUpdateRuntimePollRemaining > 0) {
                             schedulePostUpdateRuntimePoll('post-update-runtime-poll', dockerPostUpdateRuntimePollIntervalMs);
                         } else {
                             queueDockerSupportBundlePageSnapshot('post-update-runtime-poll-complete', 80);
                         }
                     });
             }, safeDelayMs);
+        };
+
+        const queuePostUpdateRuntimeRefresh = (reason = 'host-update-callback', options = {}) => {
+            const tailPolls = Math.max(0, Number(options?.tailPolls ?? 1) || 0);
+            suspendDockerHostUpdateSync(POST_UPDATE_CALLBACK_WINDOW_MS);
+            dockerPostUpdateRuntimePollRemaining = Math.max(
+                dockerPostUpdateRuntimePollRemaining,
+                1 + tailPolls
+            );
+            clearPostUpdateRuntimePoll();
+            appendDockerBulkUpdateTrace('postUpdateRuntimeRefreshQueued', {
+                reason: String(reason || '').trim() || 'host-update-callback',
+                tailPolls
+            });
+            schedulePostUpdateRuntimePoll(reason, 0);
+        };
+
+        const getPostUpdateRefreshCallbackName = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME;
+            }
+            if (typeof win[DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME] !== 'function') {
+                win[DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME] = () => {
+                    queuePostUpdateRuntimeRefresh('host-update-dialog-callback', { tailPolls: 1 });
+                };
+            }
+            return DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME;
         };
 
         const queuePostUpdateRenderReconcile = (reason = 'docker-post-folders-creation') => {
@@ -190,7 +226,8 @@
                     });
                     return refreshDockerRuntimeStateInPlace({
                         followupDelayMs: 650,
-                        liveUpdateStatus: true
+                        liveUpdateStatus: true,
+                        preserveGroupedDom: true
                     });
                 })
                 .catch(() => {})
@@ -226,13 +263,19 @@
                 0,
                 Number(options?.pollDelayMs ?? pollDelayMsDefault) || 0
             );
+            const pollCount = Math.max(
+                1,
+                Number(options?.pollCount ?? DEFAULT_POLL_COUNT) || DEFAULT_POLL_COUNT
+            );
             appendDockerBulkUpdateTrace('reconcileWindowArmed', {
                 durationMs: Math.max(0, Number(durationMs) || 0),
                 initialDelayMs,
                 pollDelayMs,
-                strategy: 'event-driven-post-render-and-poll'
+                pollCount,
+                strategy: 'event-driven-incremental-with-finite-backstops'
             });
             dockerPostUpdateRuntimePollIntervalMs = pollDelayMs;
+            dockerPostUpdateRuntimePollRemaining = Math.max(dockerPostUpdateRuntimePollRemaining, pollCount);
             schedulePostUpdateRuntimePoll('reconcile-window-armed', initialDelayMs);
             return resolvedUntil;
         };
@@ -306,6 +349,15 @@
                     }
                 });
                 armForHostCommand(args[0], 'host-openDocker');
+                if (isUpdateCommand) {
+                    const previousCallback = String(args?.[3] || '').trim();
+                    args[3] = getPostUpdateRefreshCallbackName();
+                    appendDockerBulkUpdateTrace('hostUpdateRefreshCallbackIntercepted', {
+                        previousCallback: previousCallback || 'none',
+                        replacementCallback: args[3],
+                        containerCount: containerNames.length
+                    });
+                }
                 return originalOpenDocker.apply(this, args);
             };
             try {
@@ -479,6 +531,9 @@
     return {
         DEFAULT_INITIAL_DELAY_MS,
         DEFAULT_POLL_DELAY_MS,
+        DEFAULT_POLL_COUNT,
+        POST_UPDATE_CALLBACK_WINDOW_MS,
+        DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME,
         DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME,
         DOCKER_LIFECYCLE_REFRESH_DELAYS_MS,
         createApi

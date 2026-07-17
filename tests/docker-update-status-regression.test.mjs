@@ -16,6 +16,9 @@ const dockerPreviewActionsModule = require(
 const dockerRuntimeInfoModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js')
 );
+const dockerRuntimeReconcileModule = require(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')
+);
 const dockerPreviewActionsJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
@@ -204,17 +207,77 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
 });
 
-test('docker post-update reconcile window actively polls live update status until the window closes', () => {
+test('docker post-update reconcile uses finite incremental polls that preserve the grouped DOM', () => {
     assert.match(dockerRuntimeReconcileJs, /let dockerPostUpdateRuntimePollTimer = null;/);
+    assert.match(dockerRuntimeReconcileJs, /let dockerPostUpdateRuntimePollRemaining = 0;/);
     assert.match(dockerRuntimeReconcileJs, /const schedulePostUpdateRuntimePoll = \(reason = 'post-update-runtime-poll'/);
-    assert.match(dockerRuntimeReconcileJs, /refreshDockerRuntimeStateInPlace\(\{\s*liveUpdateStatus: true\s*\}\)/);
+    assert.match(dockerRuntimeReconcileJs, /refreshDockerRuntimeStateInPlace\(\{\s*liveUpdateStatus: true,\s*preserveGroupedDom: true\s*\}\)/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePoll'/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePollResult'/);
     assert.match(dockerRuntimeReconcileJs, /note:\s*isUpdateCommand \? 'update_container invoked' : 'invoked'/);
     assert.match(dockerRuntimeReconcileJs, /containerNames:\s*containerNames\.slice\(0, 10\)/);
     assert.doesNotMatch(dockerRuntimeReconcileJs, /note:\s*String\(args\?\.\[0\]/);
-    assert.match(dockerRuntimeReconcileJs, /strategy:\s*'event-driven-post-render-and-poll'/);
+    assert.match(dockerRuntimeReconcileJs, /strategy:\s*'event-driven-incremental-with-finite-backstops'/);
     assert.match(dockerRuntimeReconcileJs, /schedulePostUpdateRuntimePoll\('reconcile-window-armed', initialDelayMs\);/);
+    assert.doesNotMatch(dockerRuntimeReconcileJs, /if \(isDockerHostUpdateSyncSuspended\(\)\) \{\s*schedulePostUpdateRuntimePoll\('post-update-runtime-poll'/);
+});
+
+test('docker update dialog callbacks replace host loadlist redraws with a bounded incremental refresh', async () => {
+    let nextTimerId = 1;
+    const timers = new Map();
+    let forwardedArgs = null;
+    const refreshCalls = [];
+    const suspendCalls = [];
+    const win = {
+        location: { pathname: '/Docker' },
+        openDocker: (...args) => {
+            forwardedArgs = args;
+            return 'opened';
+        },
+        setTimeout: (handler, delayMs) => {
+            const id = nextTimerId++;
+            timers.set(id, { handler, delayMs });
+            return id;
+        },
+        clearTimeout: (id) => timers.delete(id)
+    };
+    const api = dockerRuntimeReconcileModule.createApi({
+        window: win,
+        document: {},
+        isDockerHostUpdateCommand: (command) => /^update_container(?:\s|$)/i.test(String(command || '')),
+        suspendDockerHostUpdateSync: (durationMs) => {
+            suspendCalls.push(durationMs);
+            return Date.now() + durationMs;
+        },
+        isDockerHostUpdateSyncSuspended: () => true,
+        refreshDockerRuntimeStateInPlace: async (options) => {
+            refreshCalls.push(options);
+            return true;
+        },
+        initialDelayMs: 10,
+        pollDelayMs: 20
+    });
+
+    api.bindHostOpenDockerPatch();
+    assert.equal(win.openDocker('update_container app-one*app-two', 'Update all', '', 'loadlist'), 'opened');
+    assert.equal(forwardedArgs[3], dockerRuntimeReconcileModule.DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME);
+    assert.notEqual(forwardedArgs[3], 'loadlist');
+
+    win[forwardedArgs[3]]();
+    assert.ok(suspendCalls.includes(dockerRuntimeReconcileModule.POST_UPDATE_CALLBACK_WINDOW_MS));
+    for (let iteration = 0; iteration < 4 && timers.size > 0; iteration += 1) {
+        const [id, timer] = timers.entries().next().value;
+        timers.delete(id);
+        timer.handler();
+        await new Promise((resolve) => setImmediate(resolve));
+    }
+
+    assert.equal(refreshCalls.length, 2, 'one callback refresh plus one finite tail poll should run');
+    assert.deepEqual(refreshCalls, [
+        { liveUpdateStatus: true, preserveGroupedDom: true },
+        { liveUpdateStatus: true, preserveGroupedDom: true }
+    ]);
+    assert.equal(timers.size, 0, 'the reconciliation loop must terminate without waiting for a page refresh');
 });
 
 test('docker support bundle snapshot reads only visible update-column text in basic view', () => {

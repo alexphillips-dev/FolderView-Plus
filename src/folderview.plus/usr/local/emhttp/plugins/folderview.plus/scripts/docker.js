@@ -5317,11 +5317,30 @@ const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {})
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
 
+const beginDockerFolderRenderCommit = () => {
+    const dockerList = document.getElementById('docker_list');
+    if (!(dockerList instanceof HTMLElement)) {
+        return null;
+    }
+    dockerList.classList.add('fvplus-docker-render-staging');
+    dockerList.setAttribute('aria-busy', 'true');
+    return dockerList;
+};
+
+const finishDockerFolderRenderCommit = (dockerList) => {
+    if (!(dockerList instanceof HTMLElement)) {
+        return;
+    }
+    dockerList.classList.remove('fvplus-docker-render-staging');
+    dockerList.removeAttribute('aria-busy');
+};
+
 /**
  * Handles the creation of all folders
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
+    const stagedDockerList = beginDockerFolderRenderCommit();
     const widthBootstrapGeneration = dockerRuntimeWidthState.pendingRenderGeneration
         || beginDockerRuntimeWidthBootstrap();
     dockerRuntimeWidthState.pendingRenderGeneration = 0;
@@ -5657,6 +5676,7 @@ const createFolders = async () => {
     completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
         stabilize: foldersRenderedSuccessfully
     });
+    finishDockerFolderRenderCommit(stagedDockerList);
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {

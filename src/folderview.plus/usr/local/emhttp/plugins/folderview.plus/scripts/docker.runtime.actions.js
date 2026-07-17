@@ -178,18 +178,11 @@
             writeDockerBulkUpdateTrace('dialogCallback', {
                 reconcileWindowMs: DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS
             });
-            try {
-                refreshDockerList();
-            } catch (error) {
-                debugWarn('[FV3_DEBUG] Docker dialog refresh: host loadlist refresh failed.', error);
-                writeDockerBulkUpdateTrace('dialogCallbackLoadlistFailed', {
-                    message: String(error?.message || 'loadlist failed')
-                });
-            }
             defer(() => {
                 Promise.resolve(refreshDockerRuntimeState({
                     followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
-                    liveUpdateStatus: true
+                    liveUpdateStatus: true,
+                    preserveGroupedDom: true
                 })).catch((error) => {
                     debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime state refresh failed.', error);
                     writeDockerBulkUpdateTrace('dialogCallbackRuntimeRefreshFailed', {
@@ -207,20 +200,14 @@
                     });
                     Promise.resolve(refreshDockerRuntimeState({
                         followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
-                        liveUpdateStatus: true
+                        liveUpdateStatus: true,
+                        preserveGroupedDom: true
                     })).catch((error) => {
                         debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime-state backstop failed.', error);
                         writeDockerBulkUpdateTrace('backstopRefreshFailed', {
                             delayMs,
                             message: String(error?.message || 'runtime-state backstop failed')
                         });
-                        try {
-                            queueDockerListRefresh({ suppressLoadingUi: true });
-                        } catch (_queueError) {
-                            try {
-                                refreshDockerList();
-                            } catch (_refreshError) {}
-                        }
                     });
                 }, delayMs);
             });

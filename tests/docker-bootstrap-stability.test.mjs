@@ -9,6 +9,10 @@ const scriptsRoot = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts'
 );
 const dockerJs = fs.readFileSync(path.join(scriptsRoot, 'docker.js'), 'utf8');
+const dockerCss = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
+    'utf8'
+);
 const isolatedViewSources = [
     'docker.runtime.command-view.js',
     'docker.runtime.tree-explorer.js',
@@ -59,4 +63,12 @@ test('Docker folder rendering yields by elapsed work instead of a fixed folder c
     assert.match(dockerJs, /if \(elapsed < DOCKER_RENDER_TIME_BUDGET_MS\) \{\s*return sliceStartedAt;/);
     assert.match(dockerJs, /await waitForDockerRenderFrame\(\);\s*return readDockerRenderClock\(\);/);
     assert.doesNotMatch(dockerJs, /DOCKER_RENDER_YIELD_BATCH_SIZE/);
+});
+
+test('Docker folder rendering keeps yielded mutations hidden until one atomic visual commit', () => {
+    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*classList\.add\('fvplus-docker-render-staging'\);[\s\S]*setAttribute\('aria-busy', 'true'\);/);
+    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(dockerList\) => \{[\s\S]*classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*removeAttribute\('aria-busy'\);/);
+    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*const stagedDockerList = beginDockerFolderRenderCommit\(\);/);
+    assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(stagedDockerList\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
+    assert.match(dockerCss, /#docker_list\.fvplus-docker-render-staging\s*\{\s*visibility:\s*hidden;\s*pointer-events:\s*none;\s*\}/);
 });

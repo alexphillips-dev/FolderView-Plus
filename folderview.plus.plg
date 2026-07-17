@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.03">
-<!ENTITY md5 "64b742cc41418bbf3f6ebffe66c5fca8">
+<!ENTITY version "2026.07.17.04">
+<!ENTITY md5 "76c98b58b73b20c38dacf596177d7c2b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.04
+- Fix: Stop Docker Update All and folder update dialogs from repeatedly calling Unraid's full `loadlist()` rebuild while containers are updating.
+- Performance: Replace the 120-second recursive post-update redraw cycle with coalesced incremental runtime refreshes and a finite tail check that preserves the grouped folder DOM during transient container replacement.
+- UI/UX: Keep cooperative Docker folder construction hidden until the complete folder tree is ready, then reveal every folder together instead of cascading rows from top to bottom.
+- Quality: Add regression coverage proving update callbacks cannot forward the destructive `loadlist` callback, reconciliation terminates without a page refresh, and initial folder rendering commits atomically.
+
 
 ###2026.07.17.03
 - Feature: Add a versioned, namespaced localization runtime with 338 English source messages, explicit English fallback, full regional locale resolution, and page-specific catalog loading.

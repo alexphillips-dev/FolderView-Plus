@@ -47,6 +47,7 @@
             : (() => {});
         const webuiLinkRel = String(deps.webuiLinkRel || 'noopener noreferrer').trim() || 'noopener noreferrer';
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
+        const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';
 
         const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui"></span>').append(
             jq('<a></a>')
@@ -297,7 +298,7 @@
                     .attr('title', localizedLabel)
                     .attr('data-fv-runtime-state', statusMeta.key);
                 $inlineStatus.find('i.fa').first()
-                    .removeClass('fa-play fa-pause fa-square')
+                    .removeClass(dockerRuntimeIconClassList)
                     .addClass(`fa ${statusMeta.icon}`);
             }
             const $iconStatus = $outer.find('.fv-preview-icon-status').first();
@@ -308,7 +309,7 @@
                     .attr('title', localizedLabel)
                     .attr('data-fv-runtime-state', statusMeta.key);
                 $iconStatus.find('i.fa').first()
-                    .removeClass('fa-play fa-pause fa-square')
+                    .removeClass(dockerRuntimeIconClassList)
                     .addClass(`fa ${statusMeta.icon}`);
                 $iconStatus.find('span.state').first().text(` ${localizedLabel}`);
             }
@@ -375,7 +376,7 @@
             if ($icon.length) {
                 $icon
                     .removeClass(dockerRuntimeStateClassList)
-                    .removeClass('fa-play fa-pause fa-square')
+                    .removeClass(dockerRuntimeIconClassList)
                     .addClass(`fa ${statusMeta.icon} ${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`);
             }
             if ($stateLabel.length) {
@@ -476,7 +477,7 @@
             }
             if ($icon.length) {
                 $icon
-                    .removeClass('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped')
+                    .removeClass(`${dockerRuntimeIconClassList} ${dockerRuntimeStateClassList}`)
                     .addClass(`fa ${statusMeta.icon} ${$compactStatus.length ? statusMeta.compactClassName : `${statusMeta.legacyStateClass} ${statusMeta.legacyToneClass}`}`);
             }
             if ($stateLabel.length) {

@@ -191,7 +191,8 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /syncDockerPreviewStateSurface\(\$target,\s*statusMeta,\s*localizedLabel\);/);
     assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
-    assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
+    assert.match(dockerPreviewActionsScript, /const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';/);
+    assert.match(dockerPreviewActionsScript, /removeClass\(`\$\{dockerRuntimeIconClassList\} \$\{dockerRuntimeStateClassList\}`\)/);
     assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
     assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'symbol'\) \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.removeClass\('fv-preview-status-hidden'\);[\s\S]*\} else \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.remove\(\);/);
     assert.match(dockerPreviewActionsScript, /const resolveDockerMemberUpdateState = \(entry = \{\},\s*options = \{\}\) =>/);
@@ -213,6 +214,23 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerCss, /\.folder-preview \.fv-preview-icon-status\s*\{/);
     assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
+});
+
+test('docker incremental lifecycle sync removes pending spinner classes from every settled status icon', () => {
+    const iconNormalizationCalls = dockerPreviewActionsScript.match(/\.removeClass\(dockerRuntimeIconClassList\)/g) || [];
+    assert.equal(iconNormalizationCalls.length, 3);
+    assert.match(
+        dockerPreviewActionsScript,
+        /const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const syncDockerStorageRowStatus = \(\$row,\s*entry = \{\}\) => \{[\s\S]*?\.removeClass\(dockerRuntimeIconClassList\)[\s\S]*?\.addClass\(`fa \$\{statusMeta\.icon\}/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) => \{[\s\S]*?\.removeClass\(`\$\{dockerRuntimeIconClassList\} \$\{dockerRuntimeStateClassList\}`\)[\s\S]*?\.addClass\(`fa \$\{statusMeta\.icon\}/
+    );
 });
 
 test('docker hydration refresh updates collapsed folder update columns from runtime cache', () => {

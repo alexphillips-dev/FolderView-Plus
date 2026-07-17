@@ -45,6 +45,6 @@ test('vm runtime and folder settings actions use the debounced reload queue inst
     assert.match(vmJs, /const folderCustomAction = async \(id,\s*action\) => \{[\s\S]*?await Promise\.all\(prom\);[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
     assert.match(vmJs, /const cloneVmFolderFromMenu = async \(id\) => \{[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
     assert.match(vmJs, /const pasteVmFolderSettingsFromMenu = async \(id\) => \{[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
-    assert.ok(vmJs.includes("await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' }).promise();"));
+    assert.ok(vmJs.includes("await pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' });"));
     assert.ok(vmJs.includes('swal.close();'));
 });

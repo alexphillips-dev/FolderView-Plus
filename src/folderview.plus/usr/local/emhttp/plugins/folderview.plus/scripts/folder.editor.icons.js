@@ -48,6 +48,7 @@
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win?.document || null;
         const $ = deps.$ || win?.jQuery || win?.$;
+        const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
         const swal = typeof deps.swal === 'function'
             ? deps.swal
             : (typeof win?.swal === 'function' ? win.swal.bind(win) : (() => {}));
@@ -1641,8 +1642,9 @@
         };
 
         const loadThirdPartyFolders = async () => {
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_folders' }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_folders' }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to load third-party icon folders.'));
             }
@@ -1663,8 +1665,9 @@
         };
 
         const loadThirdPartyIconIndex = async () => {
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_index' }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_index' }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to build icon index.'));
             }
@@ -1687,8 +1690,9 @@
                 renderThirdPartyIconGrid();
                 return;
             }
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_icons', folder }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_icons', folder }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to load icons for selected folder.'));
             }
@@ -1726,10 +1730,10 @@
 
         const loadBuiltInIcons = async () => {
             try {
-                const response = await $.get(builtInIconManifestPath).promise();
-                const payload = (typeof response === 'string')
-                    ? JSON.parse(response.replace(/^\uFEFF/, ''))
-                    : response;
+                const payload = await requestClient.getJson(builtInIconManifestPath, {
+                    cache: true,
+                    retries: 1
+                });
                 builtInIcons = folderIconApi && typeof folderIconApi.normalizeBuiltInIconManifest === 'function'
                     ? folderIconApi.normalizeBuiltInIconManifest(payload)
                     : asArray(payload);

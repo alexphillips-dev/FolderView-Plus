@@ -266,7 +266,13 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     root.FolderViewPlusSupportBundleBrowser = browserModule;
     const telemetryModule = loadTelemetryModule(root);
     const api = telemetryModule.createApi({
-        normalizeSupportBundleV2Payload: (bundle) => (bundle && typeof bundle === 'object' ? { ...bundle } : {})
+        normalizeSupportBundleV2Payload: (bundle) => (bundle && typeof bundle === 'object' ? { ...bundle } : {}),
+        getStandardRequestDiagnosticsSnapshot: () => ({
+            count: 1,
+            failures: 0,
+            retries: 0,
+            entries: [{ method: 'GET', endpoint: '/plugins/folderview.plus/server/read.php', outcome: 'ok' }]
+        })
     });
 
     const payload = api.collectSupportBundleUiTelemetry({
@@ -278,6 +284,8 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     });
 
     assert.equal(payload.uiTelemetry.clientStorage.dockerListViewModeCookie, 'basic');
+    assert.equal(payload.uiTelemetry.requestActivity.count, 1);
+    assert.equal(payload.uiTelemetry.requestActivity.entries[0].endpoint, '/plugins/folderview.plus/server/read.php');
     assert.equal(payload.redactionManifest.privacySelfCheck.status, 'passed');
     assert.equal(payload.redactionManifest.privacySelfCheck.scope, 'uiTelemetry');
     assert.equal(payload.redactionManifest.privacySelfCheck.violationCount, 0);

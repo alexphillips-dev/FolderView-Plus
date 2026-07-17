@@ -4,6 +4,7 @@ if (!window || !$) {
 }
 
 const folderContract = window.FolderViewPlusFolderContract || null;
+const requestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const localDefaultFolderStatusColors = {
@@ -661,8 +662,10 @@ const readDashboardNativeOrderSnapshotForType = async (type) => {
         }
     }
     try {
-        const payload = await $.get(`/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`).promise();
-        return Object.values(JSON.parse(payload));
+        const payload = await requestClient.getJson('/plugins/folderview.plus/server/read_unraid_order.php', {
+            data: { type: resolvedType }
+        });
+        return Object.values(payload);
     } catch (_error) {
         return [];
     }
@@ -798,21 +801,13 @@ const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
         });
         return { ok: true, prefs };
     }
-    const requestApi = window.FolderViewPlusRequest;
-    if (requestApi && typeof requestApi.postJson === 'function') {
-        return requestApi.postJson('/plugins/folderview.plus/server/prefs.php', {
-            type: resolvedType,
-            prefs: JSON.stringify(prefsPayload || {})
-        }, {
-            retries: 0,
-            timeoutMs: 10000
-        });
-    }
-    const payload = await $.post('/plugins/folderview.plus/server/prefs.php', {
+    return requestClient.postJson('/plugins/folderview.plus/server/prefs.php', {
         type: resolvedType,
         prefs: JSON.stringify(prefsPayload || {})
-    }).promise();
-    return parseJsonPayloadSafe(payload);
+    }, {
+        retries: 0,
+        timeoutMs: 10000
+    });
 };
 const rerenderDashboardWidgetStructureForType = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -1104,7 +1099,7 @@ const recordDashboardRequestFallback = (type, label, error) => {
         console.warn(`[FolderView Plus] Dashboard ${resolvedType} ${entry.label} failed; using fallback.`, error);
     }
 };
-const getDashboardRequestWithFallback = (type, label, url, fallback) => $.get(url)
+const getDashboardRequestWithFallback = (type, label, url, fallback) => requestClient.getText(url)
     .then((data) => data, (error) => {
         recordDashboardRequestFallback(type, label, error);
         return JSON.stringify(fallback);
@@ -1189,7 +1184,7 @@ const buildDashboardDebugPayload = async (type, details) => {
         {}
     );
     return {
-        version: String((await $.get('/plugins/folderview.plus/server/version.php').promise()) || '').trim(),
+        version: String((await requestClient.getText('/plugins/folderview.plus/server/version.php')) || '').trim(),
         type: resolvedType,
         requestFallbacks: dashboardRequestDiagnostics[resolvedType] || [],
         pluginAssets: collectDashboardActivePluginAssets(),
@@ -2439,8 +2434,10 @@ const queueLoadlistRefresh = () => {
 const fetchDashboardTypeSnapshotCheck = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
-        const payload = await $.get(`/plugins/folderview.plus/server/read_info.php?type=${resolvedType}&mode=state`).promise();
-        const parsed = parseJsonPayloadSafe(payload);
+        const parsed = await requestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
+            data: { type: resolvedType, mode: 'state' },
+            cache: false
+        });
         const signature = resolvedType === 'docker'
             ? buildDockerStateSignature(parsed, true)
             : buildVmStateSignature(parsed, true);
@@ -2450,10 +2447,10 @@ const fetchDashboardTypeSnapshotCheck = async (type) => {
             runtimeSignature: signature
         };
     }
-    const payload = await $.get(runtimeSnapshotApi.buildUrl(resolvedType, 'check', {
+    const payload = await requestClient.getJson(runtimeSnapshotApi.buildUrl(resolvedType, 'check', {
         since: lastDashboardSnapshotTokens[resolvedType],
         forceRefresh: true
-    })).promise();
+    }), { cache: false });
     return runtimeSnapshotApi.parsePayload(payload);
 };
 
@@ -2567,7 +2564,7 @@ const bindDashboardPreferenceSync = () => {
 };
 bindDashboardPreferenceSync();
 
-const refreshDashboardDockerCpuCores = () => $.get('/plugins/folderview.plus/server/cpu.php')
+const refreshDashboardDockerCpuCores = () => requestClient.getText('/plugins/folderview.plus/server/cpu.php')
     .then((value) => {
         const numeric = Number.parseInt(String(value || '').trim(), 10);
         dashboardDockerCpuCores = Number.isFinite(numeric) && numeric > 0 ? numeric : 1;
@@ -2625,9 +2622,9 @@ const prepareDashboardFolderRequestsForType = (type) => {
         folderReq[resolvedType] = legacyFactories.map((factory) => factory());
         return folderReq[resolvedType];
     }
-    const snapshotRequest = $.get(runtimeSnapshotApi.buildUrl(resolvedType, 'full', {
+    const snapshotRequest = requestClient.getJson(runtimeSnapshotApi.buildUrl(resolvedType, 'full', {
         cacheBust: Date.now()
-    })).then((data) => data, (error) => {
+    }), { cache: false }).then((data) => data, (error) => {
         recordDashboardRequestFallback(resolvedType, 'runtime snapshot', error);
         throw error;
     });

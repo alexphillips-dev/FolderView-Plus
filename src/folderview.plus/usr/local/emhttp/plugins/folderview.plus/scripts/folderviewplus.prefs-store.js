@@ -612,7 +612,7 @@
                     throw new Error('Preference request client is unavailable.');
                 }
                 return request.getJson(`/plugins/folderview.plus/server/prefs.php?type=${type}&_=${Date.now()}`, {
-                    retries: 1,
+                    retries: 0,
                     retryDelayMs: 220
                 });
             }),
@@ -629,7 +629,7 @@
                     payload.expectedRevision = Number(context.expectedRevision);
                 }
                 return request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                    retries: 1,
+                    retries: 0,
                     retryDelayMs: 260
                 });
             })

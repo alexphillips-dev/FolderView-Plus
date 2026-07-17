@@ -4,6 +4,7 @@
 
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
@@ -280,7 +281,7 @@ const dockerRuntimeDiagnostics = createDockerRuntimeDiagnosticsBridge
         reportFatalError: () => {},
         reportDegradedState: () => {},
         inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
-        createRequest: (url) => $.get(url).promise()
+        createRequest: (url) => window.FolderViewPlusRequest.getText(url)
     });
 const markDockerFatalBannerStep = (step) => dockerRuntimeDiagnostics.markStep(step);
 const setDockerFatalBannerPhase = (phase) => dockerRuntimeDiagnostics.setPhase(phase);
@@ -3115,7 +3116,7 @@ const fetchDockerPinnedFolderPrefs = async () => {
             retryDelayMs: 220
         });
     } else {
-        response = parseJsonPayloadSafe(await $.get(url).promise());
+        response = await pluginRequestClient.getJson(url);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
     return normalizeDockerPrefsResponse(response);
@@ -3167,7 +3168,7 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
     if (request && typeof request.postJson === 'function') {
         try {
             response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3176,7 +3177,7 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
         }
     }
     if (!response) {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to save Docker pinned folders.');
     const confirmedPrefs = await fetchDockerPinnedFolderPrefs();
@@ -3324,7 +3325,7 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
     if (request && typeof request.postJson === 'function') {
         try {
             return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3332,8 +3333,7 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
             // works if the runtime request wrapper is temporarily unavailable.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
 };
 const persistDockerFolderRecord = async (folderId, folderPayload) => {
     const id = String(folderId || '').trim();
@@ -3349,7 +3349,7 @@ const persistDockerFolderRecord = async (folderId, folderPayload) => {
     if (request && typeof request.postJson === 'function') {
         try {
             return await request.postJson('/plugins/folderview.plus/server/update.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3357,8 +3357,7 @@ const persistDockerFolderRecord = async (folderId, folderPayload) => {
             // if the runtime request wrapper is temporarily unavailable.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/update.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson('/plugins/folderview.plus/server/update.php', payload);
 };
 const applyDockerFolderMenuOrderToDom = (orderedIds) => {
     if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
@@ -4173,8 +4172,10 @@ const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
 };
 
 const fetchDockerBootstrapPrefs = async () => {
-    const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
-    const parsed = parseJsonPayloadSafe(response);
+    const parsed = await pluginRequestClient.getJson('/plugins/folderview.plus/server/prefs.php', {
+        data: { type: 'docker', _: Date.now() },
+        cache: false
+    });
     const nextPrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(parsed));
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
@@ -4309,10 +4310,10 @@ const saveDockerRuntimeToolbarPrefs = async (patch, currentPrefs) => {
             immediate: true
         });
     }
-    const response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', {
+    const response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', {
         type: 'docker',
         prefs: JSON.stringify(patch || {})
-    }).promise());
+    });
     assertDockerPrefsSaveResponse(response, 'Failed to save Docker view preferences.');
     return utils.normalizePrefs(response?.prefs || currentPrefs || {});
 };
@@ -4492,14 +4493,14 @@ const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) =>
     if (request && typeof request.postJson === 'function') {
         try {
             response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
         }
     }
     if (!response) {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy mode.');
     if (!response?.prefs || typeof response.prefs !== 'object' || Array.isArray(response.prefs)) {
@@ -4722,11 +4723,11 @@ const persistDockerRuntimePrivacyMaskPreference = async (key, enabled, prefsOver
     let response = null;
     if (request && typeof request.postJson === 'function') {
         response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-            retries: 1,
+            retries: 0,
             retryDelayMs: 260
         });
     } else {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy option.');
     const savedPrefs = utils.normalizePrefs(response?.prefs || nextPrefs);
@@ -5161,7 +5162,7 @@ const createFolders = async () => {
     if(folderDebugMode) { // This is the existing folderDebugMode, not FOLDER_VIEW_DEBUG_MODE
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: folderDebugMode (existing) is TRUE. Preparing debug JSON download.');
         const debugData = JSON.stringify({
-            version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
             folders,
             unraidOrder,
             originalOrder: order,
@@ -7616,7 +7617,7 @@ bindDockerSettingsPinSyncListener();
 
 // Get the number of CPU, nneded for a right display of the load
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Requesting CPU count.');
-$.get('/plugins/folderview.plus/server/cpu.php').promise().then((data) => {
+pluginRequestClient.getText('/plugins/folderview.plus/server/cpu.php').then((data) => {
     cpus = parseInt(data);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] CPU count received: ${cpus}. Attaching SSE listener for dockerload.`);
     // Attach to the scoket and process the data
@@ -7940,21 +7941,20 @@ const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
 const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
     const liveUpdateStatus = options?.liveUpdateStatus === true;
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
-        const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
+        const parsed = await pluginRequestClient.getJson(buildDockerRuntimeInfoUrl('state', Date.now(), {
             liveUpdateStatus
-        })).promise();
-        const parsed = parseJsonPayloadSafe(payload);
+        }), { cache: false });
         return {
             notModified: buildDockerStateSignature(parsed, true) === lastLiveRefreshStateSignature,
             snapshotToken: '',
             runtimeSignature: buildDockerStateSignature(parsed, true)
         };
     }
-    const payload = await $.get(runtimeSnapshotApi.buildUrl('docker', 'check', {
+    const payload = await pluginRequestClient.getJson(runtimeSnapshotApi.buildUrl('docker', 'check', {
         since: lastDockerRuntimeSnapshotToken,
         liveUpdateStatus,
         forceRefresh: true
-    })).promise();
+    }), { cache: false });
     return runtimeSnapshotApi.parsePayload(payload);
 };
 
@@ -7966,12 +7966,12 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     };
     const applyStatePayload = async () => {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
-        const payload = await $.get(useSnapshot
+        const payload = await pluginRequestClient.getJson(useSnapshot
             ? runtimeSnapshotApi.buildUrl('docker', 'state', {
                 liveUpdateStatus,
                 forceRefresh: true
             })
-            : buildDockerRuntimeInfoUrl('state', Date.now(), { liveUpdateStatus })).promise();
+            : buildDockerRuntimeInfoUrl('state', Date.now(), { liveUpdateStatus }), { cache: false });
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
@@ -8332,7 +8332,10 @@ const scheduleFolderViewPlusDockerStartOrderSync = () => {
             }).catch(() => {});
             return;
         }
-        $.post('/plugins/folderview.plus/server/sync_order.php', payload);
+        pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', payload, {
+            retries: 0,
+            timeoutMs: 8000
+        }).catch(() => {});
     }, 250);
 };
 

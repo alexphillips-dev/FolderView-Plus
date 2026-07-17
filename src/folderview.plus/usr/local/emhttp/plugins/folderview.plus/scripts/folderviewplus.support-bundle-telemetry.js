@@ -320,6 +320,9 @@
         const getRequestErrorDiagnosticsSnapshot = typeof deps.getRequestErrorDiagnosticsSnapshot === 'function'
             ? deps.getRequestErrorDiagnosticsSnapshot
             : (() => ({ count: 0, last: null, samples: [] }));
+        const getStandardRequestDiagnosticsSnapshot = typeof deps.getStandardRequestDiagnosticsSnapshot === 'function'
+            ? deps.getStandardRequestDiagnosticsSnapshot
+            : (() => ({ count: 0, failures: 0, retries: 0, entries: [] }));
         const collectFolderEditorDebugDiagnostics = typeof deps.collectFolderEditorDebugDiagnostics === 'function'
             ? deps.collectFolderEditorDebugDiagnostics
             : (() => null);
@@ -393,6 +396,11 @@
                 'uiTelemetry.requestErrors',
                 'requestErrors',
                 getRequestErrorDiagnosticsSnapshot()
+            );
+            existingUiTelemetry.requestActivity = uiRedactor.sanitizeValue(
+                'uiTelemetry.requestActivity',
+                'requestActivity',
+                getStandardRequestDiagnosticsSnapshot()
             );
             existingUiTelemetry.browserConsoleErrors = uiRedactor.sanitizeValue(
                 'uiTelemetry.browserConsoleErrors',

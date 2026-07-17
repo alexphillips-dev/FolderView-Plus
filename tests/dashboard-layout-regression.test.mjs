@@ -168,7 +168,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const dashboardAdvancedPreviewModule = window\.FolderViewPlusDashboardAdvancedPreview \|\| null;/);
     assert.match(dashboardScript, /const attachDashboardAdvancedPreviewIfEnabled = \(\$containerEl, ct, folder, id\) =>/);
     assert.match(dashboardScript, /let dashboardDockerCpuCores = 1;/);
-    assert.match(dashboardScript, /const refreshDashboardDockerCpuCores = \(\) => \$\.get\('\/plugins\/folderview\.plus\/server\/cpu\.php'\)/);
+    assert.match(dashboardScript, /const refreshDashboardDockerCpuCores = \(\) => requestClient\.getText\('\/plugins\/folderview\.plus\/server\/cpu\.php'\)/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
     assert.match(dashboardScript, /buildFolderChildrenIndex,/);
     assert.match(dashboardScript, /const getDashboardQuickRailController = \(\) =>/);
@@ -376,7 +376,7 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
 
 test('dashboard render waits for successful folder hydration and has request fallbacks', () => {
     assert.match(dashboardScript, /const dashboardRequestDiagnostics = \{\s*docker: \[\],\s*vm: \[\]\s*\};/);
-    assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => \$\.get\(url\)/);
+    assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => requestClient\.getText\(url\)/);
     assert.match(dashboardScript, /recordDashboardRequestFallback\(type, label, error\);/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) => \{/);
     assert.match(dashboardScript, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'full'/);

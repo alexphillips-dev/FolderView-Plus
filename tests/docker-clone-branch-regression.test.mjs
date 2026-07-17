@@ -56,6 +56,9 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
     loadlist: deps.loadlist || (() => {}),
     queueLoadlistRefresh: deps.queueLoadlistRefresh || (() => {}),
+    requestClient: deps.requestClient || {
+        postJson: async () => ({ ok: true })
+    },
     refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
     suspendDockerHostUpdateSync: deps.suspendDockerHostUpdateSync || (() => 0),
     eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
@@ -305,20 +308,6 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
         const parentId = normalizeFolderParentId(currentFolders[candidateId]?.parentId || currentFolders[candidateId]?.parent_id || '');
         return parentId === String(folderId || '').trim();
     });
-    const $ = Object.assign(
-        () => ({
-            show: () => {},
-            hide: () => {}
-        }),
-        {
-            post: (url, payload) => ({
-                promise: async () => {
-                    syncCalls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
-        }
-    );
     const actionsApi = createActionsApi({
         window: {
             prompt: () => promptResponses.shift(),
@@ -327,7 +316,12 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
         },
         getGlobalFolders: () => currentFolders,
         getFolderChildren,
-        $,
+        requestClient: {
+            postJson: async (url, payload) => {
+                syncCalls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
+        },
         generateDockerFolderCloneId: () => {
             const nextId = generatedIds.shift();
             assert.ok(nextId, 'expected deterministic clone id');
@@ -375,13 +369,11 @@ test('docker branch delete helper deletes descendants before deleting the root f
     const calls = [];
     const actionsApi = createActionsApi({
         getFolderDescendants: () => ['childA', 'childB', 'grandChild'],
-        $: {
-            post: (url, payload) => ({
-                promise: async () => {
-                    calls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
+        requestClient: {
+            postJson: async (url, payload) => {
+                calls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
         }
     });
 
@@ -397,13 +389,11 @@ test('docker branch delete helper deletes descendants before deleting the root f
 test('docker branch clone rollback helper deletes partial clones in reverse order before syncing order', async () => {
     const calls = [];
     const actionsApi = createActionsApi({
-        $: {
-            post: (url, payload) => ({
-                promise: async () => {
-                    calls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
+        requestClient: {
+            postJson: async (url, payload) => {
+                calls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
         }
     });
 

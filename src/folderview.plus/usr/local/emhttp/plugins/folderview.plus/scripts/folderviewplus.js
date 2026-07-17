@@ -5228,12 +5228,7 @@ const recordFatalBannerRequestResult = (method, url, source, outcome, error = nu
 
 const apiGetText = async (url, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.getText === 'function') {
-            const response = await requestClient.getText(url, options);
-            recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
-            return response;
-        }
-        const response = await $.get(url, options?.data).promise();
+        const response = await requestClient.getText(url, options);
         recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
         return response;
     } catch (error) {
@@ -5252,44 +5247,9 @@ const apiGetText = async (url, options = {}) => {
     }
 };
 
-const buildMutationRequestPayload = (data = {}) => {
-    const token = getOptionalRequestToken();
-    if (typeof FormData !== 'undefined' && data instanceof FormData) {
-        if (!data.has('_fv_request')) {
-            data.append('_fv_request', '1');
-        }
-        if (token && !data.has('token')) {
-            data.append('token', token);
-        }
-        return data;
-    }
-    if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
-        if (!data.has('_fv_request')) {
-            data.set('_fv_request', '1');
-        }
-        if (token && !data.has('token')) {
-            data.set('token', token);
-        }
-        return data;
-    }
-    const payload = data && typeof data === 'object' ? { ...data } : {};
-    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
-        payload._fv_request = '1';
-    }
-    if (token && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
-        payload.token = token;
-    }
-    return payload;
-};
-
 const apiPostText = async (url, data = {}, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.postText === 'function') {
-            const response = await requestClient.postText(url, data, options);
-            recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
-            return response;
-        }
-        const response = await $.post(url, buildMutationRequestPayload(data)).promise();
+        const response = await requestClient.postText(url, data, options);
         recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
         return response;
     } catch (error) {
@@ -5310,12 +5270,7 @@ const apiPostText = async (url, data = {}, options = {}) => {
 
 const apiGetJson = async (url, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.getJson === 'function') {
-            const response = await requestClient.getJson(url, options);
-            recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
-            return response;
-        }
-        const response = parseJsonResponse(await $.get(url, options?.data).promise());
+        const response = await requestClient.getJson(url, options);
         recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
         return response;
     } catch (error) {
@@ -5336,12 +5291,7 @@ const apiGetJson = async (url, options = {}) => {
 
 const apiPostJson = async (url, data = {}, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.postJson === 'function') {
-            const response = await requestClient.postJson(url, data, options);
-            recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
-            return response;
-        }
-        const response = parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
+        const response = await requestClient.postJson(url, data, options);
         recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
         return response;
     } catch (error) {

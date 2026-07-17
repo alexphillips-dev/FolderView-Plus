@@ -121,8 +121,8 @@ test('read_info supports cached full/state payload retrieval', () => {
 
 test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
     assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
-    assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
-    assert.match(dashboardJs, /read_info\.php\?type=\$\{resolvedType\}&mode=state/);
+    assert.match(vmJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: 'vm', mode: 'state' \}/);
+    assert.match(dashboardJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: resolvedType, mode: 'state' \}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
@@ -465,8 +465,7 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
 
 test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {
     assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
-    assert.match(folderEditorJs, /navigator\.sendBeacon/);
-    assert.match(folderEditorJs, /keepalive:\s*true/);
+    assert.match(folderEditorJs, /requestClient\.sendKeepalive\(safeUrl, data\)/);
     assert.match(folderEditorJs, /const resolveFolderEditorTypeModule = \(\) =>/);
     assert.match(folderEditorJs, /const getFolderEditorTypeApi = \(\) =>/);
     assert.match(folderEditorJs, /const flushPostSaveTypeSync = async \(options = \{\}\) =>/);

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.26">
-<!ENTITY md5 "0c8bb86c52e9766a749e76e133be9790">
+<!ENTITY version "2026.07.16.27">
+<!ENTITY md5 "08fc776661c2e2eeb26e5d34c74b6916">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.27
+### Standardized plugin requests
+- Quality: Routes every FolderView Plus-owned browser request through one shared client while keeping native Unraid Docker, VM, User Scripts, GraphQL, WebSocket, SSE, and logging transports separate.
+- Fix: Prevents preference saves, folder mutations, expanded-state writes, and apply-settings operations from being replayed after an ambiguous network failure; reads retain one controlled retry.
+- Quality: Standardizes request tokens, trace IDs, encoded query construction, timeouts, JSON parsing, cache controls, abort handling, upload progress, keepalive writes, and normalized HTTP errors.
+- Diagnostics: Adds a bounded sanitized request-activity history with endpoint paths, outcomes, status codes, durations, attempts, and trace IDs to support-bundle UI telemetry.
+- Compatibility: Preserves icon upload cancellation/progress, unload-safe background synchronization, runtime snapshot polling, and native Unraid action transports during the migration.
+- Test: Adds behavior and enforcement coverage that rejects direct plugin-owned Ajax/fetch calls and mutation retry overrides while validating GET retries, URL encoding, diagnostic redaction, and all migrated runtime/editor paths.
+
 
 ###2026.07.16.26
 ### Coherent runtime snapshots

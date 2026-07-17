@@ -309,7 +309,6 @@ const CUSTOM_ICON_ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'sv
 const ICON_FALLBACK_PATH = '/plugins/dynamix.docker.manager/images/question.png';
 const ICON_UPLOAD_ENDPOINT_CONTEXT = 'icon upload endpoint';
 const CUSTOM_ICON_MANAGER_CONTEXT = 'custom icon manager';
-const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const ICON_PICKER_PAGE_SIZE = 120;
 const CUSTOM_ICON_PAGE_SIZE = 60;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
@@ -1123,6 +1122,7 @@ const getFolderEditorRulesApi = () => {
         window,
         document,
         $,
+        requestClient,
         swal,
         type,
         utils,
@@ -1198,8 +1198,8 @@ const folderIconApi = folderIconApiModule && typeof folderIconApiModule.createAp
         window,
         document,
         $,
+        requestClient,
         asArray,
-        requestTokenStorageKey: REQUEST_TOKEN_STORAGE_KEY,
         iconUploadApiPath: CUSTOM_ICON_UPLOAD_API_PATH,
         uploadMaxBytes: CUSTOM_ICON_UPLOAD_MAX_BYTES,
         allowedExtensions: CUSTOM_ICON_ALLOWED_EXTENSIONS,
@@ -1212,55 +1212,14 @@ const folderIconApi = folderIconApiModule && typeof folderIconApiModule.createAp
 const paginateItems = (items, page, pageSize) => iconPickerRuntime.paginateItems(items, page, pageSize);
 const filterIconItems = (icons, query) => iconPickerRuntime.filterIconsByQuery(icons, query);
 
-const getOptionalRequestToken = () => folderIconApi.getOptionalRequestToken();
-const buildMutationHeaders = (token) => folderIconApi.buildMutationHeaders(token);
 const securePost = async (url, data = {}) => folderIconApi.securePost(url, data);
 
 const queueBackgroundMutationPost = (url, data = {}) => {
     const safeUrl = String(url || '').trim();
-    if (!safeUrl || typeof FormData === 'undefined') {
+    if (!safeUrl || !requestClient || typeof requestClient.sendKeepalive !== 'function') {
         return false;
     }
-    const token = getOptionalRequestToken();
-    const body = new FormData();
-    const payload = (data && typeof data === 'object') ? data : {};
-    Object.entries(payload).forEach(([key, value]) => {
-        if (value === undefined || value === null) {
-            return;
-        }
-        body.append(key, String(value));
-    });
-    if (!body.has('_fv_request')) {
-        body.append('_fv_request', '1');
-    }
-    if (token && !body.has('token')) {
-        body.append('token', token);
-    }
-
-    try {
-        if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
-            return navigator.sendBeacon(safeUrl, body);
-        }
-    } catch (_error) {
-        // Fall through to fetch keepalive.
-    }
-
-    if (typeof fetch !== 'function') {
-        return false;
-    }
-
-    try {
-        void fetch(safeUrl, {
-            method: 'POST',
-            body,
-            keepalive: true,
-            credentials: 'same-origin',
-            headers: buildMutationHeaders(token)
-        }).catch(() => {});
-        return true;
-    } catch (_error) {
-        return false;
-    }
+    return requestClient.sendKeepalive(safeUrl, data);
 };
 
 const getIconInput = () => $(getForm()?.icon);
@@ -1285,6 +1244,7 @@ const getFolderEditorIconsApi = () => {
         window,
         document,
         $,
+        requestClient,
         swal,
         folderIconApi,
         asArray,
@@ -3488,7 +3448,10 @@ const startFolderEditorRuntime = async () => {
     }
     const cacheBust = Date.now();
     // get folders
-    const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
+    const foldersResponse = await requestClient.getJson('/plugins/folderview.plus/server/read.php', {
+        data: { type, nocache: 1, _: cacheBust },
+        cache: false
+    });
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
     const folders = {};
     if (foldersResponse && typeof foldersResponse === 'object') {
@@ -3638,7 +3601,10 @@ const startFolderEditorRuntime = async () => {
     const typeMemberMapper = typeof getFolderEditorTypeApi()?.mapRuntimeMember === 'function'
         ? getFolderEditorTypeApi().mapRuntimeMember
         : ((entry) => entry);
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state&_=${cacheBust}`).promise()))
+    choose = Object.values(await requestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
+        data: { type, mode: 'state', _: cacheBust },
+        cache: false
+    }))
         .map((entry) => typeMemberMapper(entry))
         .filter((entry) => entry && String(entry.Name || '').trim() !== '');
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';

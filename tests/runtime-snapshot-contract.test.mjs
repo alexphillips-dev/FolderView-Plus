@@ -23,7 +23,13 @@ const installSmoke = read('scripts/install_smoke.sh');
 const releaseGuard = read('scripts/release_guard.sh');
 
 const loadClientApi = () => {
-    const context = { window: {} };
+    const context = {
+        window: {
+            FolderViewPlusRequest: {
+                buildUrl: (url, query) => `${url}?${new URLSearchParams(query).toString()}`
+            }
+        }
+    };
     vm.runInNewContext(runtimeSnapshotClient, context, { filename: 'folderviewplus.runtime-snapshot.js' });
     return context.window.FolderViewPlusRuntimeSnapshot;
 };

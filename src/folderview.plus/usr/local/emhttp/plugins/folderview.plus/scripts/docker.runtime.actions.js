@@ -278,15 +278,10 @@
         };
 
         const postJsonWithFallback = async (url, payload, options = {}) => {
-            if (requestClient && typeof requestClient.postJson === 'function') {
-                try {
-                    return await requestClient.postJson(url, payload, options);
-                } catch (_error) {
-                    // Fall through to the legacy jQuery path if the request client is not ready.
-                }
+            if (!requestClient || typeof requestClient.postJson !== 'function') {
+                throw new Error('FolderView Plus request client is unavailable.');
             }
-            const response = await jq.post(url, payload).promise();
-            return parseJsonPayloadSafe(response);
+            return requestClient.postJson(url, payload, options);
         };
 
         const summarizeFolderActionCounts = (containersMap) => {
@@ -375,7 +370,7 @@
                 }
                 getSpinner()?.show('slow');
                 debugLog(`[FV3_DEBUG] rmFolder (id: ${id}): Calling delete API.`);
-                await jq.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id }).promise();
+                await requestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'docker', id });
                 debugLog(`[FV3_DEBUG] rmFolder (id: ${id}): Delete API call finished. Reloading list.`);
                 defer(refreshDockerList, 500);
             });
@@ -416,7 +411,7 @@
             const deleteIds = [...getFolderDescendants(id)].reverse();
             deleteIds.push(id);
             for (const deleteId of deleteIds) {
-                await jq.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId }).promise();
+                await requestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId });
             }
         };
 
@@ -862,7 +857,7 @@
                             targetIds: JSON.stringify([id]),
                             settings: JSON.stringify(clipboardEntry.payload)
                         }, {
-                            retries: 1,
+                            retries: 0,
                             retryDelayMs: 260
                         });
                         swal.close();
@@ -928,12 +923,12 @@
             if (safeFolderId) {
                 request.id = safeFolderId;
             }
-            await jq.post(
+            await requestClient.postJson(
                 safeFolderId
                     ? '/plugins/folderview.plus/server/update.php'
                     : '/plugins/folderview.plus/server/create.php',
                 request
-            ).promise();
+            );
         };
 
         const persistDockerFolderClonePayload = typeof deps.persistDockerFolderClonePayload === 'function'
@@ -946,17 +941,17 @@
                 : [];
             for (const createdId of ids.slice().reverse()) {
                 try {
-                    await jq.post('/plugins/folderview.plus/server/delete.php', {
+                    await requestClient.postJson('/plugins/folderview.plus/server/delete.php', {
                         type: 'docker',
                         id: createdId
-                    }).promise();
+                    });
                 } catch (_error) {
                     // Best-effort rollback only.
                 }
             }
             if (ids.length > 0) {
                 try {
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                 } catch (_error) {
                     // Best-effort rollback only.
                 }
@@ -985,7 +980,7 @@
                 getSpinner()?.show('slow');
                 try {
                     await persistDockerFolderClonePayload(clonePayload);
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                     refreshDockerList();
                 } finally {
                     getSpinner()?.hide('slow');
@@ -1049,7 +1044,7 @@
                         await persistDockerFolderClonePayload(clonePayload, cloneId);
                         createdIds.push(cloneId);
                     }
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                     refreshDockerList();
                 } catch (error) {
                     await rollbackClonedDockerFolders(createdIds);

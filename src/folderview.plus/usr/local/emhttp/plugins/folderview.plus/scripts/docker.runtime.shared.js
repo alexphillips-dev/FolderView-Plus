@@ -4,6 +4,7 @@
 
     const folderContract = window.FolderViewPlusFolderContract || null;
     const runtimeJquery = window.jQuery || window.$ || null;
+    const pluginRequestClient = window.FolderViewPlusRequest || null;
 
     /**
      * @template T
@@ -876,20 +877,27 @@
             const label = trimDiagnostic(requestOptions.label || source || url);
             const allowFallback = requestOptions.allowFallback === true;
             const fallbackValue = requestOptions.fallbackValue;
-            return runtimeJquery.get(url).promise().then(
-                (data, _textStatus, jqXHR) => {
+            const requestPromise = method.toUpperCase() === 'POST'
+                ? pluginRequestClient?.postText?.(url, requestOptions.data || {}, requestOptions)
+                : pluginRequestClient?.getText?.(url, requestOptions);
+            if (!requestPromise || typeof requestPromise.then !== 'function') {
+                return Promise.reject(new Error('FolderView Plus request client is unavailable.'));
+            }
+            return requestPromise.then(
+                (data) => {
                     recordRequest({
                         method,
                         url,
                         source,
                         outcome: 'ok',
-                        status: trimDiagnostic(jqXHR?.status || ''),
                         detail
                     });
                     return data;
                 },
-                (jqXHR, textStatus, errorThrown) => {
-                    const error = buildRequestError(label, url, jqXHR, textStatus, errorThrown, requestOptions);
+                (requestError) => {
+                    const error = requestError instanceof Error
+                        ? requestError
+                        : buildRequestError(label, url, requestError?.jqXHR, requestError?.textStatus, requestError?.errorThrown, requestOptions);
                     recordRequest({
                         method,
                         url,

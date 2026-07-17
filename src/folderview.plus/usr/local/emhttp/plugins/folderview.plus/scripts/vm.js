@@ -1,5 +1,6 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const pluginRequestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
@@ -279,7 +280,7 @@ const vmRuntimeDiagnostics = createVmRuntimeDiagnosticsBridge
         reportFatalError: () => {},
         reportDegradedState: () => {},
         inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
-        createRequest: (url) => $.get(url).promise()
+        createRequest: (url) => window.FolderViewPlusRequest.getText(url)
     });
 const markVmFatalBannerStep = (step) => vmRuntimeDiagnostics.markStep(step);
 const setVmFatalBannerPhase = (phase) => vmRuntimeDiagnostics.setPhase(phase);
@@ -931,7 +932,7 @@ const fetchVmPinnedFolderPrefs = async () => {
             retryDelayMs: 220
         });
     } else {
-        response = parseJsonPayloadSafe(await $.get(url).promise());
+        response = await pluginRequestClient.getJson(url);
     }
     assertVmPrefsSaveResponse(response, 'Failed to confirm VM pinned folders.');
     return normalizeVmPrefsResponse(response);
@@ -955,7 +956,7 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
     if (request && typeof request.postJson === 'function') {
         try {
             response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -964,7 +965,7 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
         }
     }
     if (!response) {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertVmPrefsSaveResponse(response, 'Failed to save VM pinned folders.');
     const confirmedPrefs = await fetchVmPinnedFolderPrefs();
@@ -1139,16 +1140,7 @@ const parseJsonPayloadSafe = (payload) => {
 };
 
 const postVmJsonWithFallback = async (url, payload, options = {}) => {
-    const request = window.FolderViewPlusRequest;
-    if (request && typeof request.postJson === 'function') {
-        try {
-            return await request.postJson(url, payload, options);
-        } catch (_error) {
-            // Fall through to the legacy POST path if the request client is not ready.
-        }
-    }
-    const response = await $.post(url, payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson(url, payload, options);
 };
 
 const normalizeVmStateToken = (entry, fromStateMode = false) => {
@@ -1603,10 +1595,12 @@ const createFolders = async () => {
     // debug mode, download the debug json file
     if(folderDebugMode) {
         const debugData = JSON.stringify({
-            version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
             folders,
             unraidOrder,
-            originalOrder: JSON.parse(await $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise()),
+            originalOrder: await pluginRequestClient.getJson('/plugins/folderview.plus/server/read_unraid_order.php', {
+                data: { type: 'vm' }
+            }),
             newOnes,
             order,
             vmInfo
@@ -2355,7 +2349,7 @@ const rmFolder = (id) => {
     async (c) => {
         if (!c) { setTimeout(loadlist); return; }
         $('div.spinner.fixed').show('slow');
-        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'vm', id: id }).promise();
+        await pluginRequestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'vm', id });
         loadedFolder = false;
         setTimeout(loadlist, 500)
     });
@@ -2698,11 +2692,11 @@ const cloneVmFolderFromMenu = async (id) => {
         };
         $('div.spinner.fixed').show('slow');
         try {
-            await $.post('/plugins/folderview.plus/server/create.php', {
+            await pluginRequestClient.postJson('/plugins/folderview.plus/server/create.php', {
                 type: 'vm',
                 content: JSON.stringify(clonePayload)
-            }).promise();
-            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' }).promise();
+            });
+            await pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' });
             queueLoadlistRefresh();
         } finally {
             $('div.spinner.fixed').hide('slow');
@@ -2814,7 +2808,7 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
                     targetIds: JSON.stringify([id]),
                     settings: JSON.stringify(clipboardEntry.payload)
                 }, {
-                    retries: 1,
+                    retries: 0,
                     retryDelayMs: 260
                 });
                 swal.close();
@@ -3203,8 +3197,10 @@ const queueLoadlistRefresh = () => {
 
 const fetchVmRuntimeSnapshotCheck = async () => {
     if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
-        const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=vm&mode=state').promise();
-        const parsed = parseJsonPayloadSafe(payload);
+        const parsed = await pluginRequestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
+            data: { type: 'vm', mode: 'state' },
+            cache: false
+        });
         const signature = buildVmStateSignature(parsed, true);
         return {
             notModified: signature === lastLiveRefreshStateSignature,
@@ -3212,10 +3208,10 @@ const fetchVmRuntimeSnapshotCheck = async () => {
             runtimeSignature: signature
         };
     }
-    const payload = await $.get(runtimeSnapshotApi.buildUrl('vm', 'check', {
+    const payload = await pluginRequestClient.getJson(runtimeSnapshotApi.buildUrl('vm', 'check', {
         since: lastVmRuntimeSnapshotToken,
         forceRefresh: true
-    })).promise();
+    }), { cache: false });
     return runtimeSnapshotApi.parsePayload(payload);
 };
 

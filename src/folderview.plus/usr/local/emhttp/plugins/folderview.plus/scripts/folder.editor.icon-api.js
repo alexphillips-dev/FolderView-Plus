@@ -12,16 +12,14 @@
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
-        const doc = deps.document || (typeof document !== 'undefined' ? document : null);
-        const jq = deps.$;
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : ((value) => Array.isArray(value) ? value : []);
-        const requestTokenStorageKey = String(deps.requestTokenStorageKey || 'fv.request.token').trim();
         const uploadApiPath = String(deps.iconUploadApiPath || '').trim();
         const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 4194304;
         const allowedExtensions = Array.isArray(deps.allowedExtensions) ? deps.allowedExtensions.map((entry) => String(entry || '').toLowerCase()) : [];
         const uploadContext = String(deps.uploadContext || 'icon upload endpoint').trim() || 'icon upload endpoint';
         const managerContext = String(deps.managerContext || 'custom icon manager').trim() || 'custom icon manager';
         const builtInIconFallback = Array.isArray(deps.builtInIconFallback) ? deps.builtInIconFallback : [];
+        const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
 
         const parseJsonPayload = (value, context = 'response') => {
             if (value && typeof value === 'object') {
@@ -89,40 +87,11 @@
             return `Request failed for ${context}.`;
         };
 
-        const getOptionalRequestToken = () => {
-            const metaToken = doc?.querySelector?.('meta[name="fv-request-token"]');
-            if (typeof HTMLMetaElement !== 'undefined' && metaToken instanceof HTMLMetaElement) {
-                return String(metaToken.content || '').trim();
-            }
-            try {
-                return String(win.localStorage?.getItem(requestTokenStorageKey) || '').trim();
-            } catch (_error) {
-                return '';
-            }
-        };
-
-        const buildMutationHeaders = (token) => ({
-            'X-FV-Request': '1',
-            ...(token ? { 'X-FV-Token': token } : {})
-        });
-
         const securePost = async (url, data = {}) => {
-            const token = getOptionalRequestToken();
-            const payload = {
-                ...(data && typeof data === 'object' ? data : {})
-            };
-            if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
-                payload._fv_request = '1';
+            if (!requestClient || typeof requestClient.postJson !== 'function') {
+                throw new Error('FolderView Plus request client is unavailable.');
             }
-            if (token) {
-                payload.token = token;
-            }
-            return jq.ajax({
-                url,
-                type: 'POST',
-                data: payload,
-                headers: buildMutationHeaders(token)
-            });
+            return requestClient.postJson(url, data, { retries: 0 });
         };
 
         const normalizeBuiltInIconEntry = (entry, basePath) => {
@@ -218,7 +187,7 @@
                 || message.includes('unexpected');
         };
 
-        const uploadCustomIconFileInline = async (file, token, options = {}) => {
+        const uploadCustomIconFileInline = async (file, options = {}) => {
             const inlinePayload = await readFileAsDataUrl(file);
             const body = {
                 action: 'upload',
@@ -227,22 +196,10 @@
                 replace: options?.replace ? '1' : '0',
                 dedupe: options?.dedupe === false ? '0' : '1'
             };
-            if (token) {
-                body.token = token;
-            }
-
-            const response = await jq.ajax({
-                url: uploadApiPath,
-                method: 'POST',
-                data: body,
-                processData: true,
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                cache: false,
-                dataType: 'text',
-                headers: buildMutationHeaders(token)
-            }).promise();
-
-            return parseJsonPayload(response, uploadContext);
+            return requestClient.postJson(uploadApiPath, body, {
+                retries: 0,
+                timeoutMs: 30000
+            });
         };
 
         const uploadCustomIconFile = async (file, options = {}) => {
@@ -251,49 +208,28 @@
             }
             validateCustomIconFileBeforeUpload(file);
 
-            const token = getOptionalRequestToken();
             const formData = new FormData();
             formData.append('action', 'upload');
             formData.append('icon', file);
             formData.append('replace', options?.replace ? '1' : '0');
             formData.append('dedupe', options?.dedupe === false ? '0' : '1');
-            if (token) {
-                formData.append('token', token);
-            }
 
             let payload;
             const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
             try {
-                const request = jq.ajax({
-                    url: uploadApiPath,
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    cache: false,
-                    dataType: 'text',
-                    headers: buildMutationHeaders(token),
-                    xhr: () => {
-                        const xhr = jq.ajaxSettings.xhr();
-                        if (xhr && xhr.upload && onProgress) {
-                            xhr.upload.addEventListener('progress', (event) => {
-                                if (!event || event.lengthComputable !== true) {
-                                    return;
-                                }
-                                onProgress(Number(event.loaded || 0), Number(event.total || 0));
-                            });
+                payload = await requestClient.uploadJson(uploadApiPath, formData, {
+                    timeoutMs: 30000,
+                    onProgress,
+                    onRequest: (request) => {
+                        if (typeof options?.setActiveRequest === 'function') {
+                            options.setActiveRequest(request);
                         }
-                        return xhr;
                     }
                 });
-                if (typeof options?.setActiveRequest === 'function') {
-                    options.setActiveRequest(request);
-                }
-                const response = await request.promise();
-                payload = parseJsonPayload(response, uploadContext);
             } catch (error) {
                 const aborted = String(error?.textStatus || '').toLowerCase() === 'abort'
-                    || String(error?.statusText || '').toLowerCase() === 'abort';
+                    || String(error?.statusText || '').toLowerCase() === 'abort'
+                    || String(error?.message || '').toLowerCase().includes('abort');
                 if (aborted) {
                     throw new Error('Upload cancelled.');
                 }
@@ -304,7 +240,7 @@
                     throw new Error(extractAjaxErrorMessage(error, uploadContext));
                 }
                 try {
-                    payload = await uploadCustomIconFileInline(file, token, options);
+                    payload = await uploadCustomIconFileInline(file, options);
                 } catch (inlineError) {
                     throw new Error(extractAjaxErrorMessage(inlineError, uploadContext));
                 }
@@ -333,34 +269,22 @@
         };
 
         const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
-            const token = getOptionalRequestToken();
             const normalizedMethod = String(method || 'GET').toUpperCase();
             const data = {
                 action: String(action || '').trim(),
                 ...(payload && typeof payload === 'object' ? payload : {})
             };
             if (normalizedMethod === 'GET') {
-                const response = await jq.get(uploadApiPath, data).promise();
-                const parsed = parseJsonPayload(response, managerContext);
+                const parsed = await requestClient.getJson(uploadApiPath, { data });
                 if (!parsed || parsed.ok !== true) {
                     throw new Error(String(parsed?.error || 'Request failed.'));
                 }
                 return parsed;
             }
-            if (token) {
-                data.token = token;
-            }
-            const response = await jq.ajax({
-                url: uploadApiPath,
-                method: 'POST',
-                data,
-                processData: true,
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                cache: false,
-                dataType: 'text',
-                headers: buildMutationHeaders(token)
-            }).promise();
-            const parsed = parseJsonPayload(response, managerContext);
+            const parsed = await requestClient.postJson(uploadApiPath, data, {
+                retries: 0,
+                timeoutMs: 15000
+            });
             if (!parsed || parsed.ok !== true) {
                 throw new Error(String(parsed?.error || 'Request failed.'));
             }
@@ -370,8 +294,6 @@
         return Object.freeze({
             parseJsonPayload,
             extractAjaxErrorMessage,
-            getOptionalRequestToken,
-            buildMutationHeaders,
             securePost,
             normalizeBuiltInIconEntry,
             normalizeBuiltInIconManifest,

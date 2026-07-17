@@ -112,7 +112,7 @@
                             expandedFolderState: payloadMap
                         })
                     }, {
-                        retries: 1,
+                        retries: 0,
                         retryDelayMs: 260
                     }))?.prefs || {});
                 writeServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);

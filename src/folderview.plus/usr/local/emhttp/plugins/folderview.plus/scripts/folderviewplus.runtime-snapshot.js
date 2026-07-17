@@ -3,6 +3,7 @@
 
     const ENDPOINT = '/plugins/folderview.plus/server/runtime_snapshot.php';
     const SCHEMA_VERSION = 1;
+    const requestClient = window.FolderViewPlusRequest || null;
 
     const parsePayload = (payload) => {
         let parsed = payload;
@@ -29,25 +30,25 @@
         const safeMode = ['state', 'full', 'check'].includes(String(mode || '').toLowerCase())
             ? String(mode).toLowerCase()
             : 'state';
-        const params = [
-            `type=${encodeURIComponent(safeType)}`,
-            `mode=${encodeURIComponent(safeMode)}`
-        ];
+        const query = { type: safeType, mode: safeMode };
         const since = String(options?.since || '').trim().toLowerCase();
         if (/^[a-f0-9]{64}$/.test(since)) {
-            params.push(`since=${encodeURIComponent(since)}`);
+            query.since = since;
         }
         if (options?.liveUpdateStatus === true && safeType === 'docker' && safeMode !== 'full') {
-            params.push('liveupdate=1');
+            query.liveupdate = 1;
         }
         if (options?.forceRefresh === true || safeMode === 'check') {
-            params.push('nocache=1');
+            query.nocache = 1;
         }
         if (Number.isFinite(Number(options?.ttl))) {
-            params.push(`ttl=${Math.max(0, Math.min(30, Math.round(Number(options.ttl))))}`);
+            query.ttl = Math.max(0, Math.min(30, Math.round(Number(options.ttl))));
         }
-        params.push(`_=${encodeURIComponent(String(options?.cacheBust || Date.now()))}`);
-        return `${ENDPOINT}?${params.join('&')}`;
+        query._ = String(options?.cacheBust || Date.now());
+        if (!requestClient || typeof requestClient.buildUrl !== 'function') {
+            throw new Error('FolderView Plus request URL builder is unavailable.');
+        }
+        return requestClient.buildUrl(ENDPOINT, query);
     };
 
     const projectValue = (snapshot, field) => {

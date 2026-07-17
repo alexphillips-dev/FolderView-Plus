@@ -376,6 +376,19 @@ const getRuntimePerfTelemetrySnapshot = () => ({
         : {}
 });
 
+const getStandardRequestDiagnosticsSnapshot = () => {
+    const entries = typeof window.FolderViewPlusRequest?.diagnostics === 'function'
+        ? window.FolderViewPlusRequest.diagnostics()
+        : [];
+    const safeEntries = Array.isArray(entries) ? entries.slice(-100) : [];
+    return {
+        count: safeEntries.length,
+        failures: safeEntries.filter((entry) => ['error', 'rejected', 'unavailable'].includes(String(entry?.outcome || ''))).length,
+        retries: safeEntries.reduce((total, entry) => total + Math.max(0, (Number(entry?.attempts) || 1) - 1), 0),
+        entries: safeEntries
+    };
+};
+
 const collectClientPerformanceTelemetry = () => ({
     updatedAt: performanceDiagnosticsState.updatedAt > 0
         ? new Date(performanceDiagnosticsState.updatedAt).toISOString()
@@ -506,6 +519,7 @@ const getSupportBundleTelemetryApi = () => {
             normalizeSupportBundleV2Payload,
             collectClientPerformanceTelemetry,
             getRequestErrorDiagnosticsSnapshot,
+            getStandardRequestDiagnosticsSnapshot,
             collectFolderEditorDebugDiagnostics,
             collectThemeTelemetrySnapshot,
             readClientDiagnosticsStorageRecord,
@@ -542,6 +556,7 @@ const collectSupportBundleUiTelemetry = (bundle) => {
             entries: loadedAssetEntries
         },
         performance: collectClientPerformanceTelemetry(),
+        requestActivity: getStandardRequestDiagnosticsSnapshot(),
         requestErrors: getRequestErrorDiagnosticsSnapshot(),
         browserConsoleErrors: fatalBanner && typeof fatalBanner.getBrowserConsoleErrorSnapshot === 'function'
             ? fatalBanner.getBrowserConsoleErrorSnapshot()

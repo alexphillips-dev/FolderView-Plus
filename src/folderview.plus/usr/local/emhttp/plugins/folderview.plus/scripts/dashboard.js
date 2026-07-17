@@ -1215,6 +1215,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allDockerFolders = normalizeDashboardFolderMap(folders);
         const containersInfo = parseDashboardPayloadOr(prom[2], {});
+        dashboardRuntimeInfoByType.docker = containersInfo;
         allDockerFolders = reconcileDashboardMemberIdentities('docker', allDockerFolders, containersInfo);
         const dockerTreeIndex = buildFolderChildrenIndex(allDockerFolders);
         const dockerChildrenByParent = dockerTreeIndex.childrenByParent || {};
@@ -1417,6 +1418,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         let folders = parseDashboardPayloadOr(prom[0], {});
         let allVmFolders = normalizeDashboardFolderMap(folders);
         const vmInfo = parseDashboardPayloadOr(prom[2], {});
+        dashboardRuntimeInfoByType.vm = vmInfo;
         allVmFolders = reconcileDashboardMemberIdentities('vm', allVmFolders, vmInfo);
         const vmTreeIndex = buildFolderChildrenIndex(allVmFolders);
         const vmChildrenByParent = vmTreeIndex.childrenByParent || {};
@@ -1800,7 +1802,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
                 return innerText === container;
             }).first();
-            element.append($containerEl.addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
+            element.append($containerEl.attr('data-fv-runtime-name', container).addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
             appendDashboardDockerMemberQuickActions($containerEl, ct, folder.settings || {});
             attachDashboardAdvancedPreviewIfEnabled($containerEl, ct, folder, id);
             
@@ -2112,7 +2114,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
                 return innerText === container;
             }).first();
-            $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
+            $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.attr('data-fv-runtime-name', container).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
 
             if(folderDebugMode) {
                 dashboardDebugLog(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
@@ -2337,6 +2339,14 @@ let lastDashboardSnapshotTokens = {
     docker: '',
     vm: ''
 };
+let lastDashboardSnapshotRevisions = {
+    docker: { folder: 0, prefs: 0 },
+    vm: { folder: 0, prefs: 0 }
+};
+let dashboardRuntimeInfoByType = {
+    docker: {},
+    vm: {}
+};
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -2454,6 +2464,240 @@ const fetchDashboardTypeSnapshotCheck = async (type) => {
     return runtimeSnapshotApi.parsePayload(payload);
 };
 
+const rememberDashboardRuntimeSnapshot = (type, snapshot) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (snapshot?.snapshotToken) {
+        lastDashboardSnapshotTokens[resolvedType] = String(snapshot.snapshotToken);
+    }
+    if (snapshot?.revisions && typeof snapshot.revisions === 'object') {
+        lastDashboardSnapshotRevisions[resolvedType] = {
+            folder: Math.max(0, Number(snapshot.revisions.folder) || 0),
+            prefs: Math.max(0, Number(snapshot.revisions.prefs) || 0)
+        };
+    }
+};
+
+const dashboardRuntimeSnapshotConfigMatches = (type, snapshot) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (!lastDashboardSnapshotTokens[resolvedType] || !snapshot?.revisions) {
+        return true;
+    }
+    const previous = lastDashboardSnapshotRevisions[resolvedType] || {};
+    return Math.max(0, Number(snapshot.revisions.folder) || 0) === Math.max(0, Number(previous.folder) || 0)
+        && Math.max(0, Number(snapshot.revisions.prefs) || 0) === Math.max(0, Number(previous.prefs) || 0);
+};
+
+const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rawMap = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+    const previous = previousMap && typeof previousMap === 'object' && !Array.isArray(previousMap) ? previousMap : {};
+    const normalized = {};
+    Object.entries(rawMap).forEach(([name, entry]) => {
+        const safeName = String(name || entry?.name || '').trim();
+        if (!safeName || !entry || typeof entry !== 'object') return;
+        if (resolvedType === 'vm') {
+            normalized[safeName] = {
+                ...(previous[safeName] || {}),
+                ...entry,
+                name: safeName,
+                uuid: String(entry.uuid || previous[safeName]?.uuid || '').trim(),
+                state: String(entry.state || previous[safeName]?.state || 'unknown').trim().toLowerCase(),
+                autostart: entry.autostart === true
+            };
+            return;
+        }
+        const prior = previous[safeName] && typeof previous[safeName] === 'object' ? previous[safeName] : {};
+        const priorInfo = prior.info && typeof prior.info === 'object' ? prior.info : {};
+        const priorState = priorInfo.State && typeof priorInfo.State === 'object' ? priorInfo.State : {};
+        const sourceInfo = entry.info && typeof entry.info === 'object' ? entry.info : {};
+        const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
+        const stateKind = String(entry.state || '').trim().toLowerCase();
+        normalized[safeName] = {
+            ...prior,
+            ...entry,
+            shortId: String(entry.id || entry.shortId || prior.shortId || '').replace(/^sha256:/i, '').slice(0, 12),
+            Labels: { ...(prior.Labels || {}), ...(entry.Labels || {}) },
+            info: {
+                ...priorInfo,
+                ...sourceInfo,
+                Name: safeName,
+                State: {
+                    ...priorState,
+                    ...sourceState,
+                    Running: entry.running === true || stateKind === 'running' || sourceState.Running === true,
+                    Paused: entry.paused === true || stateKind === 'paused' || sourceState.Paused === true,
+                    Autostart: Object.prototype.hasOwnProperty.call(entry, 'autostart') ? entry.autostart === true : sourceState.Autostart === true,
+                    Updated: Object.prototype.hasOwnProperty.call(entry, 'Updated') ? entry.Updated : sourceState.Updated,
+                    manager: String(entry.manager || sourceState.manager || priorState.manager || '').trim()
+                }
+            }
+        };
+    });
+    return normalized;
+};
+
+const getDashboardRuntimeStateMeta = (type, entry = {}) => {
+    if (type === 'vm') {
+        const state = String(entry?.state || 'unknown').trim().toLowerCase();
+        if (state === 'running') return { state, key: 'started', icon: 'fa-play', className: 'started', active: true, paused: false };
+        if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') return { state, key: 'paused', icon: 'fa-pause', className: 'paused', active: true, paused: true };
+        return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
+    }
+    const stateNode = entry?.info?.State || {};
+    const running = entry?.running === true || stateNode.Running === true;
+    const paused = running && (entry?.paused === true || stateNode.Paused === true);
+    if (paused) return { state: 'paused', key: 'paused', icon: 'fa-pause', className: 'paused', active: true, paused: true };
+    if (running) return { state: 'running', key: 'started', icon: 'fa-play', className: 'started', active: true, paused: false };
+    return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
+};
+
+const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
+    if (!$surface || !$surface.length) return;
+    const meta = getDashboardRuntimeStateMeta(type, entry);
+    const $inner = $surface.find('span.inner').first();
+    const $state = $inner.find('span.state').first();
+    const $icon = $state.length ? $state.prevAll('i.fa').first() : $inner.find('i.fa').first();
+    $surface.add($surface.find('span.hand, span.inner')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
+    $surface.attr('data-fv-runtime-state', meta.state);
+    if ($icon.length) $icon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${meta.icon} ${meta.className}`);
+    if ($state.length) $state.text(` ${$.i18n(meta.key)}`).removeClass('started paused stopped').addClass(meta.className);
+    const autostart = type === 'vm' ? entry?.autostart === true : entry?.info?.State?.Autostart === true;
+    $surface.toggleClass('autostart', autostart);
+};
+
+const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const runtimeMap = dashboardRuntimeInfoByType[resolvedType] || {};
+    const entries = Object.keys(folder?.containers || {}).map((name) => runtimeMap[name]).filter(Boolean);
+    let started = 0;
+    let paused = 0;
+    let stopped = 0;
+    let autostart = 0;
+    let autostartStarted = 0;
+    let managed = 0;
+    let upToDate = true;
+    const managerTypes = new Set();
+    entries.forEach((entry) => {
+        const meta = getDashboardRuntimeStateMeta(resolvedType, entry);
+        if (meta.active) started += 1;
+        else stopped += 1;
+        if (meta.paused) paused += 1;
+        const stateNode = entry?.info?.State || {};
+        const isAutostart = resolvedType === 'vm' ? entry.autostart === true : stateNode.Autostart === true;
+        if (isAutostart) {
+            autostart += 1;
+            if (meta.active) autostartStarted += 1;
+        }
+        if (resolvedType === 'docker') {
+            const manager = String(stateNode.manager || entry.manager || '').trim();
+            if (manager) managerTypes.add(manager);
+            if (manager === 'dockerman') managed += 1;
+            if (manager === 'dockerman' && stateNode.Updated === false) upToDate = false;
+        }
+    });
+    const total = entries.length;
+    const $outer = $(`${resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view'} .folder-showcase-outer-${id}`).first();
+    const $folderSurface = $outer.children('span.outer').first();
+    const $statusIcon = $folderSurface.find(`i.folder-load-status-${resolvedType}`).first();
+    const $statusText = $folderSurface.find(`span.folder-state-${resolvedType}`).first();
+    const allActivePaused = started > 0 && paused === started;
+    const aggregate = started > 0
+        ? (allActivePaused ? { count: started, key: 'paused', icon: 'fa-pause', className: 'paused' } : { count: started, key: 'started', icon: 'fa-play', className: 'started' })
+        : { count: stopped, key: 'stopped', icon: 'fa-square', className: 'stopped' };
+    const statusColors = resolveDashboardFolderStatusColors(folder?.settings || {});
+    const statusColor = statusColors[aggregate.className] || '';
+    $folderSurface.removeClass('started paused stopped').addClass(aggregate.className);
+    $statusIcon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${aggregate.icon} ${aggregate.className}`).css('color', statusColor);
+    $statusText.text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`).css('color', statusColor);
+    $outer.add($folderSurface).removeClass('no-autostart autostart-off autostart-partial autostart-full no-managed managed-partial managed-full');
+    if (autostart === 0) $outer.add($folderSurface).addClass('no-autostart');
+    else if (autostartStarted === 0) $outer.add($folderSurface).addClass('autostart-off');
+    else if (autostartStarted < autostart) $outer.add($folderSurface).addClass('autostart-partial');
+    else $outer.add($folderSurface).addClass('autostart-full');
+    if (resolvedType === 'docker') {
+        if (managed === 0) $outer.add($folderSurface).addClass('no-managed');
+        else if (managed < total) $outer.add($folderSurface).addClass('managed-partial');
+        else $outer.add($folderSurface).addClass('managed-full');
+        $folderSurface.find('.folder-appname-docker').toggleClass(folder?.settings?.preview_update ? 'orange-text' : 'blue-text', !upToDate);
+    }
+    const expanded = folder?.status?.expanded === true;
+    folder.status = { started, paused, stopped, autostart, autostartStarted, managed, upToDate, managerTypes: Array.from(managerTypes), expanded };
+};
+
+const syncDashboardRuntimeRows = (type, changedNames) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const changedSet = new Set(Array.isArray(changedNames) ? changedNames : []);
+    const runtimeMap = dashboardRuntimeInfoByType[resolvedType] || {};
+    const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
+    changedSet.forEach((name) => {
+        const entry = runtimeMap[name];
+        if (!entry) return;
+        $(`${tbodySelector} span.outer`).not(`.folder-${resolvedType}`).filter(function matchDashboardRuntimeMember() {
+            const stampedName = String($(this).attr('data-fv-runtime-name') || '').trim();
+            const renderedName = String($(this).find('span.inner').contents().first().text() || '').trim();
+            return stampedName === name || renderedName === name;
+        }).each((_, node) => syncDashboardRuntimeSurface(resolvedType, $(node), entry));
+    });
+    const folderMap = resolvedType === 'vm' ? (globalFolders.vms || {}) : (globalFolders.docker || {});
+    let patchedFolders = 0;
+    Object.entries(folderMap).forEach(([id, folder]) => {
+        if (!Object.keys(folder?.containers || {}).some((name) => changedSet.has(name))) return;
+        updateDashboardFolderRuntimeSummary(resolvedType, id, folder);
+        patchedFolders += 1;
+    });
+    window.FolderViewPlusDashboardRowReconciliation = {
+        ...(window.FolderViewPlusDashboardRowReconciliation || {}),
+        [resolvedType]: {
+            mode: 'incremental',
+            changedRows: changedSet.size,
+            patchedFolders,
+            capturedAt: new Date().toISOString()
+        }
+    };
+};
+
+const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    try {
+        const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
+        const payload = await requestClient.getJson(useSnapshot
+            ? runtimeSnapshotApi.buildUrl(resolvedType, 'state', { forceRefresh: true })
+            : '/plugins/folderview.plus/server/read_info.php', {
+                data: useSnapshot ? undefined : { type: resolvedType, mode: 'state', nocache: 1 },
+                cache: false
+            });
+        const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
+        const parsed = snapshot ? snapshot.runtime : parseDashboardPayloadOr(payload, {});
+        if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !dashboardRuntimeSnapshotConfigMatches(resolvedType, snapshot))) return false;
+        const nextRuntimeInfo = normalizeDashboardRuntimeInfoMap(resolvedType, parsed, dashboardRuntimeInfoByType[resolvedType]);
+        const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
+            ? runtimeSnapshotApi.diffRuntimeRows(resolvedType, dashboardRuntimeInfoByType[resolvedType], nextRuntimeInfo)
+            : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
+        dashboardRuntimeInfoByType[resolvedType] = nextRuntimeInfo;
+        lastDashboardStateSignatures[resolvedType] = resolvedType === 'docker'
+            ? buildDockerStateSignature(parsed, true)
+            : buildVmStateSignature(parsed, true);
+        if (snapshot) rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
+        if (rowDiff.structuralChanged) {
+            window.FolderViewPlusDashboardRowReconciliation = {
+                ...(window.FolderViewPlusDashboardRowReconciliation || {}),
+                [resolvedType]: {
+                    mode: 'structural-fallback',
+                    changedRows: Number(rowDiff.changed?.length || 0),
+                    addedRows: Number(rowDiff.added?.length || 0),
+                    removedRows: Number(rowDiff.removed?.length || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            };
+            return false;
+        }
+        if (rowDiff.hasChanges) syncDashboardRuntimeRows(resolvedType, rowDiff.changed);
+        return true;
+    } catch (_error) {
+        return false;
+    }
+};
+
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
         clearInterval(liveRefreshTimer);
@@ -2480,7 +2724,7 @@ const runLiveRefreshTick = () => {
                 return;
             }
 
-            let changed = false;
+            let requiresFullRefresh = false;
             for (const type of checks) {
                 let check = null;
                 try {
@@ -2489,14 +2733,15 @@ const runLiveRefreshTick = () => {
                     check = null;
                 }
                 if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-                    changed = true;
+                    requiresFullRefresh = true;
                     continue;
                 }
                 if (check.notModified !== true) {
-                    changed = true;
+                    const patched = await refreshDashboardTypeRuntimeStateInPlace(type);
+                    if (patched !== true) requiresFullRefresh = true;
                 }
             }
-            if (changed) {
+            if (requiresFullRefresh) {
                 queueLoadlistRefresh();
             }
         })
@@ -2633,9 +2878,7 @@ const prepareDashboardFolderRequestsForType = (type) => {
         ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
         {
             onSnapshot: (snapshot) => {
-                if (snapshot?.snapshotToken) {
-                    lastDashboardSnapshotTokens[resolvedType] = String(snapshot.snapshotToken);
-                }
+                rememberDashboardRuntimeSnapshot(resolvedType, snapshot);
             },
             fallbackFactories: legacyFactories
         }

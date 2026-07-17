@@ -661,7 +661,7 @@ const getDockerRuntimeInfoApi = () => {
                 dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
                 return dockerRuntimeInfoByName;
             },
-            syncDockerVisibleFoldersFromRuntimeCache: () => syncDockerVisibleFoldersFromRuntimeCache(),
+            syncDockerVisibleFoldersFromRuntimeCache: (changedNames = null) => syncDockerVisibleFoldersFromRuntimeCache(changedNames),
             resolvePreferredWebuiValue: (...candidates) => resolvePreferredWebuiValue(...candidates),
             getFolderLabelValue,
             folderLabelKeys: FOLDER_LABEL_KEYS,
@@ -4371,7 +4371,21 @@ window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlu
     renderDockerRuntimeActionBar,
     setDockerRuntimePageViewMode: (mode) => dockerRuntimeActionBarApi?.setPageViewMode(mode)
 });
-const syncDockerVisibleFoldersFromRuntimeCache = () => {
+const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
+    const changedSet = changedNames instanceof Set
+        ? changedNames
+        : (Array.isArray(changedNames) ? new Set(changedNames.map((name) => String(name || '').trim()).filter(Boolean)) : null);
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (runtimeInfoApi && previewActionsApi && typeof runtimeInfoApi.buildRuntimeContainerEntry === 'function' && typeof previewActionsApi.syncDockerRuntimeRows === 'function') {
+        const runtimeRows = {};
+        const names = changedSet ? Array.from(changedSet) : Object.keys(dockerRuntimeInfoByName || {});
+        names.forEach((name) => {
+            runtimeRows[name] = runtimeInfoApi.buildRuntimeContainerEntry(name);
+        });
+        previewActionsApi.syncDockerRuntimeRows(runtimeRows, changedSet);
+    }
+    let patchedFolderCount = 0;
     Object.entries(globalFolders || {}).forEach(([id, folder]) => {
         if (!folder || typeof folder !== 'object') {
             return;
@@ -4379,20 +4393,32 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
         const runtimeContainers = folderHasChildren(id)
             ? buildRuntimeContainerMapForFolder(id, true)
             : getFolderRuntimeContainers(folder);
+        if (changedSet && !Object.keys(runtimeContainers).some((name) => changedSet.has(name))) {
+            return;
+        }
         folder.runtimeContainers = runtimeContainers;
-        syncDockerFolderMemberRows(id, runtimeContainers);
+        syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
         if (folderHasChildren(id)) {
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
         } else {
-            syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
+            syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedSet);
         }
         updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
+        patchedFolderCount += 1;
     });
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    dockerRuntimeStateStore.set({
+        rowReconciliation: {
+            mode: changedSet ? 'incremental' : 'full-cache-sync',
+            changedRows: changedSet ? changedSet.size : Object.keys(dockerRuntimeInfoByName || {}).length,
+            patchedFolders: patchedFolderCount,
+            capturedAt: new Date().toISOString()
+        }
+    });
     queueDockerSupportBundlePageSnapshot('runtime-sync');
 };
 
@@ -6496,17 +6522,17 @@ const appendDockerPreviewActionButtons = ($target, settings = {}, containerName 
     }
 };
 
-const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
+const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
-        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
+        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames);
     }
 };
 
-const syncDockerFolderMemberRows = (id, runtimeContainers) => {
+const syncDockerFolderMemberRows = (id, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerFolderMemberRows === 'function') {
-        previewActionsApi.syncDockerFolderMemberRows(id, runtimeContainers);
+        previewActionsApi.syncDockerFolderMemberRows(id, runtimeContainers, changedNames);
     }
 };
 
@@ -7977,25 +8003,59 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
         if (!parsed || Object.keys(parsed).length <= 0) {
             throw new Error('Docker runtime state payload was empty.');
         }
-        if (snapshot && dockerRuntimeSnapshotConfigMatches(snapshot)) {
-            rememberDockerRuntimeSnapshot(snapshot);
-        } else if (snapshot) {
-            queueLoadlistRefresh({ suppressLoadingUi: true });
+        if (snapshot && !dockerRuntimeSnapshotConfigMatches(snapshot)) {
+            return false;
         }
-        dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+        const previousRuntimeInfo = dockerRuntimeInfoByName;
+        const nextRuntimeInfo = normalizeDockerRuntimeInfoMap(parsed, previousRuntimeInfo);
+        const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
+            ? runtimeSnapshotApi.diffRuntimeRows('docker', previousRuntimeInfo, nextRuntimeInfo)
+            : {
+                changed: Object.keys(nextRuntimeInfo),
+                structuralChanged: Object.keys(previousRuntimeInfo || {}).length !== Object.keys(nextRuntimeInfo).length,
+                hasChanges: true
+            };
+        dockerRuntimeInfoByName = nextRuntimeInfo;
         const nextSignature = buildDockerStateSignature(parsed, true);
         if (nextSignature) {
             lastLiveRefreshStateSignature = nextSignature;
             lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
         }
-        syncDockerVisibleFoldersFromRuntimeCache();
+        if (snapshot) {
+            rememberDockerRuntimeSnapshot(snapshot);
+        }
+        if (rowDiff.structuralChanged) {
+            dockerRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'structural-fallback',
+                    changedRows: Number(rowDiff.changed?.length || 0),
+                    addedRows: Number(rowDiff.added?.length || 0),
+                    removedRows: Number(rowDiff.removed?.length || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            return false;
+        }
+        if (rowDiff.hasChanges) {
+            syncDockerVisibleFoldersFromRuntimeCache(rowDiff.changed);
+        }
         return true;
     };
     try {
-        await applyStatePayload();
+        const applied = await applyStatePayload();
+        if (applied !== true) {
+            fallbackToLoadlist();
+            return false;
+        }
         if (followupDelayMs > 0) {
             window.setTimeout(() => {
-                Promise.resolve(applyStatePayload()).catch(() => fallbackToLoadlist());
+                Promise.resolve(applyStatePayload())
+                    .then((followupApplied) => {
+                        if (followupApplied !== true) {
+                            fallbackToLoadlist();
+                        }
+                    })
+                    .catch(() => fallbackToLoadlist());
             }, followupDelayMs);
         }
         return true;
@@ -8075,7 +8135,9 @@ const runLiveRefreshTick = () => {
                 return;
             }
             if (check.notModified !== true) {
-                queueLoadlistRefresh();
+                await refreshDockerRuntimeStateInPlace({
+                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+                });
             }
         })
         .finally(() => {

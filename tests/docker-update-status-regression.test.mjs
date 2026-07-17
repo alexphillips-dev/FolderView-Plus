@@ -168,7 +168,7 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerRuntimeInfoJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{/);
     assert.match(dockerRuntimeInfoJs, /if \(isHostUpdateSyncSuspended\(\)\) \{\s*return false;\s*\}/);
     assert.match(dockerRuntimeInfoJs, /const queueDockerHostRowUpdateStateSync = \(names = \[\]\) => \{/);
-    assert.match(dockerRuntimeInfoJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(pendingNames\);\s*\}/);
     assert.match(dockerRuntimeInfoJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
     assert.match(dockerJs, /const DOCKER_HOST_UPDATE_SYNC_SUSPENDED_UNTIL_KEY = '__fvplusDockerHostUpdateSyncSuspendedUntil';/);
     assert.match(dockerJs, /const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule\?\.DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY \|\| 'fv\.support\.bundle\.docker\.page\.v1';/);
@@ -190,7 +190,7 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(!isDockerHostUpdateSyncSuspended\(\) && syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
-    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true;[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
+    assert.match(dockerJs, /const fetchDockerRuntimeSnapshotCheck = async \(options = \{\}\) => \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true;[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
     assert.match(dockerJs, /const bindDockerPostUpdateRenderReconcile = \(\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindPostUpdateRenderReconcile\?\.\(\);/);
     assert.match(dockerJs, /function bindDockerHostOpenDockerPatch\(\) \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindHostOpenDockerPatch\?\.\(\);/);
     assert.match(dockerJs, /const armDockerPostUpdateRuntimeReconcileWindow = \(durationMs = 0,\s*options = \{\}\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.armPostUpdateRuntimeReconcileWindow\?\.\(durationMs,\s*options\) \|\| 0;/);
@@ -353,8 +353,8 @@ test('docker runtime sync normalizes hidden member rows before expand', () => {
         }),
         escapeHtml: (value) => String(value ?? '')
     }).buildDockerMemberUpdateColumnHtml({ name: 'demo', manager: 'dockerman', update: true }), /apply-update/);
-    assert.match(dockerJs, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
-    assert.match(dockerJs, /folder\.runtimeContainers = runtimeContainers;\s*syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
+    assert.match(dockerJs, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedNames\);/s);
+    assert.match(dockerJs, /folder\.runtimeContainers = runtimeContainers;\s*syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedSet\);/s);
     assert.match(dockerJs, /folder\.containers = newFolder;[\s\S]*syncDockerFolderMemberRows\(id,\s*newFolder\);/s);
 });
 

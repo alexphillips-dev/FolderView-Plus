@@ -40,8 +40,8 @@ test('docker runtime actions refresh visible state in place instead of forcing a
     );
 });
 
-test('vm runtime and folder settings actions use the debounced reload queue instead of direct loadlist calls', () => {
-    assert.match(vmJs, /const actionFolder = async \(id,\s*action,\s*\{ includeDescendants = true \} = \{\}\) => \{[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
+test('vm runtime actions patch rows while structural folder changes retain the debounced reload queue', () => {
+    assert.match(vmJs, /const actionFolder = async \(id,\s*action,\s*\{ includeDescendants = true \} = \{\}\) => \{[\s\S]*?await refreshVmRuntimeStateInPlace\(\);[\s\S]*?window\.setTimeout\(\(\) => \{ void refreshVmRuntimeStateInPlace\(\); \}, 650\);[\s\S]*?\};/);
     assert.match(vmJs, /const folderCustomAction = async \(id,\s*action\) => \{[\s\S]*?await Promise\.all\(prom\);[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
     assert.match(vmJs, /const cloneVmFolderFromMenu = async \(id\) => \{[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);
     assert.match(vmJs, /const pasteVmFolderSettingsFromMenu = async \(id\) => \{[\s\S]*?queueLoadlistRefresh\(\);[\s\S]*?\};/);

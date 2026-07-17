@@ -13,6 +13,7 @@
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
+        const doc = deps.document || win?.document || null;
         const jq = deps.$ || win?.jQuery || win?.$;
         const utils = deps.utils && typeof deps.utils === 'object' ? deps.utils : {};
         const escapeHtml = typeof deps.escapeHtml === 'function'
@@ -393,8 +394,13 @@
             $updateColumn.html(buildDockerMemberUpdateColumnHtml(entry));
         };
 
-        const syncDockerFolderMemberRows = (id, runtimeContainers) => {
-            const entries = Object.values(runtimeContainers || {});
+        const syncDockerFolderMemberRows = (id, runtimeContainers, changedNames = null) => {
+            const changedSet = changedNames instanceof Set
+                ? changedNames
+                : (Array.isArray(changedNames) ? new Set(changedNames) : null);
+            const entries = Object.values(runtimeContainers || {}).filter((entry) => (
+                !changedSet || changedSet.has(String(entry?.name || '').trim())
+            ));
             entries.forEach((entry) => {
                 const containerName = String(entry?.name || '').trim();
                 if (!containerName) {
@@ -403,6 +409,24 @@
                 const $row = findDockerFolderMemberRow(id, containerName);
                 syncDockerStorageRowStatus($row, entry);
                 syncDockerStorageRowUpdateColumn($row, entry);
+            });
+        };
+
+        const syncDockerRuntimeRows = (runtimeContainers, changedNames = null) => {
+            const changedSet = changedNames instanceof Set
+                ? changedNames
+                : (Array.isArray(changedNames) ? new Set(changedNames) : null);
+            Object.values(runtimeContainers || {}).forEach((entry) => {
+                const containerName = String(entry?.name || entry?.info?.Name || '').trim();
+                if (!containerName || (changedSet && !changedSet.has(containerName))) {
+                    return;
+                }
+                const row = doc?.getElementById?.(`ct-${containerName}`) || null;
+                if (!row) {
+                    return;
+                }
+                const $row = jq(row);
+                syncDockerStorageRowStatus($row, entry);
             });
         };
 
@@ -482,7 +506,7 @@
             });
         };
 
-        const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
+        const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
             const $preview = jq(`tr.folder-id-${id} div.folder-preview`);
             if (!$preview.length) {
                 return;
@@ -495,13 +519,19 @@
             }
             const actionTargets = collectDockerPreviewActionTargets($preview, settings);
             const entries = Object.values(runtimeContainers || {});
-            syncDockerFolderMemberRows(id, runtimeContainers);
+            const changedSet = changedNames instanceof Set
+                ? changedNames
+                : (Array.isArray(changedNames) ? new Set(changedNames) : null);
+            syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
             actionTargets.forEach(($target, index) => {
                 const entry = entries[index];
                 if (!$target || !$target.length || !entry) {
                     return;
                 }
                 const containerName = String(entry?.name || '').trim();
+                if (changedSet && !changedSet.has(containerName)) {
+                    return;
+                }
                 const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
                 const webuiUrl = getSafeWebuiUrl(entry?.webui);
                 const previewStatusMode = normalizePreviewStatusMode(settings?.preview_status);
@@ -540,6 +570,7 @@
             appendDockerPreviewActionButtons,
             resolveDockerMemberUpdateState,
             buildDockerMemberUpdateColumnHtml,
+            syncDockerRuntimeRows,
             syncDockerFolderMemberRows,
             syncDockerLeafFolderPreviewActions
         });

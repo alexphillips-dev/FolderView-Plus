@@ -130,6 +130,61 @@ test('client projects one snapshot into legacy renderer inputs and falls back pe
     assert.match(api.buildUrl('docker', 'check', { since: 'a'.repeat(64) }), /runtime_snapshot\.php\?type=docker&mode=check&since=/);
 });
 
+test('runtime row diff isolates state changes and distinguishes structural changes', () => {
+    const api = loadClientApi();
+    assert.equal(
+        api.buildRuntimeRowToken('docker', {
+            shortId: 'abc123000000',
+            Labels: { 'folderview.plus': 'Media' },
+            info: { State: { Running: true, Paused: false, Autostart: true, Updated: true, manager: 'dockerman' } }
+        }),
+        api.buildRuntimeRowToken('docker', {
+            id: 'abc123000000',
+            folderLabel: 'Media',
+            running: true,
+            paused: false,
+            autostart: true,
+            Updated: true,
+            manager: 'dockerman'
+        })
+    );
+    const previousDocker = {
+        app: { id: 'abc123000000', running: true, paused: false, autostart: true, Updated: true },
+        db: { id: 'def456000000', running: true, paused: false, autostart: true, Updated: true }
+    };
+    const nextDocker = {
+        app: { id: 'abc123000000', running: false, paused: false, autostart: true, Updated: true },
+        db: { id: 'def456000000', running: true, paused: false, autostart: true, Updated: true }
+    };
+    const stateDiff = api.diffRuntimeRows('docker', previousDocker, nextDocker);
+    assert.deepEqual(Array.from(stateDiff.changed), ['app']);
+    assert.deepEqual(Array.from(stateDiff.unchanged), ['db']);
+    assert.equal(stateDiff.structuralChanged, false);
+    assert.equal(stateDiff.hasChanges, true);
+
+    const structuralDiff = api.diffRuntimeRows('vm', {
+        media: { uuid: 'vm-1', state: 'running', autostart: true }
+    }, {
+        media: { uuid: 'vm-1', state: 'running', autostart: true },
+        backup: { uuid: 'vm-2', state: 'shutoff', autostart: false }
+    });
+    assert.deepEqual(Array.from(structuralDiff.added), ['backup']);
+    assert.equal(structuralDiff.structuralChanged, true);
+});
+
+test('runtime pages patch state changes incrementally and retain structural fallbacks', () => {
+    assert.match(dockerJs, /runtimeSnapshotApi\.diffRuntimeRows\('docker',\s*previousRuntimeInfo,\s*nextRuntimeInfo\)/);
+    assert.match(dockerJs, /syncDockerVisibleFoldersFromRuntimeCache\(rowDiff\.changed\)/);
+    assert.match(dockerJs, /if \(rowDiff\.structuralChanged\) \{[\s\S]*mode: 'structural-fallback'/);
+    assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{[\s\S]*liveUpdateStatus:/);
+    assert.match(vmJs, /const refreshVmRuntimeStateInPlace = async \(\) =>/);
+    assert.match(vmJs, /runtimeSnapshotApi\.diffRuntimeRows\('vm',\s*vmRuntimeInfoByName,\s*nextRuntimeInfo\)/);
+    assert.match(vmJs, /syncVmRuntimeRows\(rowDiff\.changed\)/);
+    assert.match(dashboardJs, /const refreshDashboardTypeRuntimeStateInPlace = async \(type\) =>/);
+    assert.match(dashboardJs, /runtimeSnapshotApi\.diffRuntimeRows\(resolvedType,\s*dashboardRuntimeInfoByType\[resolvedType\],\s*nextRuntimeInfo\)/);
+    assert.match(dashboardJs, /syncDashboardRuntimeRows\(resolvedType,\s*rowDiff\.changed\)/);
+});
+
 test('Docker, VM, and Dashboard bootstrap and polling use the coherent endpoint', () => {
     assert.match(dockerJs, /createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'prefsResponse'\]/);
     assert.match(dockerJs, /buildUrl\('docker', 'check'/);

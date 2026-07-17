@@ -1563,6 +1563,7 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const vmInfo = JSON.parse(prom[2]);
+    vmRuntimeInfoByName = normalizeVmRuntimeInfoMap(vmInfo, vmRuntimeInfoByName);
     folders = reconcileVmMemberIdentities(folders, vmInfo);
     let order = Object.values(JSON.parse(prom[3]));
     let prefsResponse = {};
@@ -1922,16 +1923,19 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         case 1:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
             };
             break;
         case 2:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.hand:last`);
             };
             break;
         case 3:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.inner:last`);
             };
             break;
         case 4:
@@ -1942,11 +1946,13 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                     lstSpan = $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
-                lstSpan.children('span.inner:last').append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`))
+                const $inner = lstSpan.children('span.inner:last');
+                $inner.append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $inner;
             };
             break;
         default:
-            addPreview = (id) => { };
+            addPreview = () => $();
             break;
     }
 
@@ -2026,7 +2032,10 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             }
             
             if (!hiddenPreviewSet.has(container)) {
-            addPreview(id, ct.autostart);
+            const $previewMember = addPreview(id, ct.autostart);
+            if ($previewMember && $previewMember.length) {
+                $previewMember.attr('data-fv-runtime-name', container);
+            }
             $(`tr.folder-id-${id} div.folder-preview span.inner > a`).css("width", folder.settings.preview_text_width || '');
 
             // element to set the preview options
@@ -2534,9 +2543,10 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                         type: 'error',
                         html: true,
                         confirmButtonText: 'Ok'
-                    }, queueLoadlistRefresh);
+                    }, () => { void refreshVmRuntimeStateInPlace(); });
                 } else {
-                    queueLoadlistRefresh();
+                    await refreshVmRuntimeStateInPlace();
+                    window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
                 }
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
@@ -3154,6 +3164,7 @@ let folderDebugMode  = false;
 let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
+let vmRuntimeInfoByName = {};
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
@@ -3161,6 +3172,7 @@ let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let lastVmRuntimeSnapshotToken = '';
+let lastVmRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -3215,6 +3227,206 @@ const fetchVmRuntimeSnapshotCheck = async () => {
     return runtimeSnapshotApi.parsePayload(payload);
 };
 
+const rememberVmRuntimeSnapshot = (snapshot) => {
+    if (snapshot?.snapshotToken) {
+        lastVmRuntimeSnapshotToken = String(snapshot.snapshotToken);
+    }
+    if (snapshot?.revisions && typeof snapshot.revisions === 'object') {
+        lastVmRuntimeSnapshotRevisions = {
+            folder: Math.max(0, Number(snapshot.revisions.folder) || 0),
+            prefs: Math.max(0, Number(snapshot.revisions.prefs) || 0)
+        };
+    }
+};
+
+const vmRuntimeSnapshotConfigMatches = (snapshot) => {
+    if (!lastVmRuntimeSnapshotToken || !snapshot?.revisions) {
+        return true;
+    }
+    return Math.max(0, Number(snapshot.revisions.folder) || 0) === lastVmRuntimeSnapshotRevisions.folder
+        && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastVmRuntimeSnapshotRevisions.prefs;
+};
+
+const normalizeVmRuntimeInfoMap = (source, previousMap = null) => {
+    const rawMap = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+    const previous = previousMap && typeof previousMap === 'object' && !Array.isArray(previousMap) ? previousMap : {};
+    const normalized = {};
+    Object.entries(rawMap).forEach(([name, entry]) => {
+        const safeName = String(name || entry?.name || '').trim();
+        if (!safeName || !entry || typeof entry !== 'object') {
+            return;
+        }
+        normalized[safeName] = {
+            ...(previous[safeName] || {}),
+            ...entry,
+            name: safeName,
+            uuid: String(entry.uuid || previous[safeName]?.uuid || '').trim(),
+            state: String(entry.state || previous[safeName]?.state || 'unknown').trim().toLowerCase(),
+            autostart: entry.autostart === true
+        };
+    });
+    return normalized;
+};
+
+const getVmRuntimeStateMeta = (entry = {}) => {
+    const state = String(entry?.state || 'unknown').trim().toLowerCase();
+    if (state === 'running') {
+        return { state, key: 'started', icon: 'fa-play', className: 'started' };
+    }
+    if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') {
+        return { state, key: 'paused', icon: 'fa-pause', className: 'paused' };
+    }
+    return { state, key: 'stopped', icon: 'fa-square', className: 'stopped' };
+};
+
+const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
+    if (!$surface || !$surface.length) {
+        return;
+    }
+    const meta = getVmRuntimeStateMeta(entry);
+    const label = typeof $.i18n === 'function' ? String($.i18n(meta.key) || meta.key) : meta.key;
+    const $outer = $surface.hasClass('outer') ? $surface : $surface.find('span.outer').first();
+    const $scope = $outer.length ? $outer : $surface;
+    const $state = $scope.find('span.state').first();
+    const $icon = $state.length ? $state.prevAll('i.fa').first() : $scope.find('i[id^="load-"], i.folder-load-status-vm').first();
+    $scope.add($scope.find('span.hand, span.inner, a')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
+    $surface.attr('data-fv-runtime-state', meta.state);
+    if ($icon.length) {
+        $icon.removeClass('fa-play fa-pause fa-square started paused stopped running shutoff pmsuspended unknown')
+            .addClass(`fa ${meta.icon} ${meta.className}`);
+    }
+    if ($state.length) {
+        $state.text(` ${label}`).removeClass('started paused stopped').addClass(meta.className);
+    }
+    $scope.toggleClass('autostart', entry?.autostart === true);
+};
+
+const findVmRuntimeRowsByName = (name) => {
+    const safeName = String(name || '').trim();
+    if (!safeName) {
+        return $();
+    }
+    return $('#kvm_list tr').not('.folder').filter(function matchVmRuntimeRow() {
+        return String($(this).find('td.vm-name span.outer span.inner a').first().text() || '').trim() === safeName;
+    });
+};
+
+const updateVmFolderRuntimeSummary = (id, folder) => {
+    const names = Object.keys(folder?.containers || {});
+    const entries = names.map((name) => vmRuntimeInfoByName[name]).filter(Boolean);
+    let started = 0;
+    let paused = 0;
+    let stopped = 0;
+    let autostart = 0;
+    let autostartStarted = 0;
+    entries.forEach((entry) => {
+        const meta = getVmRuntimeStateMeta(entry);
+        if (meta.className === 'started') started += 1;
+        else if (meta.className === 'paused') paused += 1;
+        else stopped += 1;
+        if (entry.autostart === true) {
+            autostart += 1;
+            if (meta.className !== 'stopped') autostartStarted += 1;
+        }
+        const current = folder.containers[entry.name] && typeof folder.containers[entry.name] === 'object'
+            ? folder.containers[entry.name]
+            : {};
+        folder.containers[entry.name] = { ...current, id: entry.uuid || current.id || '', state: entry.state, autostart: entry.autostart === true };
+    });
+    const total = entries.length;
+    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderState = $folderRow.find('span.folder-state');
+    const aggregate = started > 0
+        ? { count: started, key: 'started', icon: 'fa-play', className: 'started' }
+        : (paused > 0
+            ? { count: paused, key: 'paused', icon: 'fa-pause', className: 'paused' }
+            : { count: stopped, key: 'stopped', icon: 'fa-square', className: 'stopped' });
+    $folderIcon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${aggregate.icon} ${aggregate.className} folder-load-status`);
+    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
+        .text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`)
+        .addClass(`fv-folder-state-${aggregate.className}`);
+    $folderRow.removeClass('no-autostart autostart-off autostart-partial autostart-full');
+    if (autostart === 0) $folderRow.addClass('no-autostart');
+    else if (autostartStarted === 0) $folderRow.addClass('autostart-off');
+    else if (autostartStarted < autostart) $folderRow.addClass('autostart-partial');
+    else $folderRow.addClass('autostart-full');
+    $(`#folder-${id}-auto`).prop('checked', autostart > 0);
+    const expanded = folder?.status?.expanded === true;
+    folder.status = { started, paused, stopped, autostart, autostartStarted, expanded };
+};
+
+const syncVmRuntimeRows = (changedNames) => {
+    const changedSet = changedNames instanceof Set ? changedNames : new Set(Array.isArray(changedNames) ? changedNames : []);
+    changedSet.forEach((name) => {
+        const entry = vmRuntimeInfoByName[name];
+        if (!entry) return;
+        findVmRuntimeRowsByName(name).each((_, row) => syncVmRuntimeStateSurface($(row), entry));
+        $('[data-fv-runtime-name]').filter(function matchVmPreviewMember() {
+            return String($(this).attr('data-fv-runtime-name') || '') === name;
+        }).each((_, node) => syncVmRuntimeStateSurface($(node), entry));
+    });
+    let patchedFolders = 0;
+    Object.entries(globalFolders || {}).forEach(([id, folder]) => {
+        const names = Object.keys(folder?.containers || {});
+        if (!names.some((name) => changedSet.has(name))) return;
+        updateVmFolderRuntimeSummary(id, folder);
+        patchedFolders += 1;
+    });
+    renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    refreshVmFolderQuickActionStates();
+    applyVmFocusedFolderState();
+    vmRuntimeStateStore.set({
+        rowReconciliation: {
+            mode: 'incremental',
+            changedRows: changedSet.size,
+            patchedFolders,
+            capturedAt: new Date().toISOString()
+        }
+    });
+    scheduleVmZebraRefresh(0);
+};
+
+const refreshVmRuntimeStateInPlace = async () => {
+    try {
+        const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
+        const payload = await pluginRequestClient.getJson(useSnapshot
+            ? runtimeSnapshotApi.buildUrl('vm', 'state', { forceRefresh: true })
+            : '/plugins/folderview.plus/server/read_info.php?type=vm&mode=state&nocache=1', { cache: false });
+        const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
+        const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
+        if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !vmRuntimeSnapshotConfigMatches(snapshot))) {
+            queueLoadlistRefresh();
+            return false;
+        }
+        const nextRuntimeInfo = normalizeVmRuntimeInfoMap(parsed, vmRuntimeInfoByName);
+        const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
+            ? runtimeSnapshotApi.diffRuntimeRows('vm', vmRuntimeInfoByName, nextRuntimeInfo)
+            : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
+        vmRuntimeInfoByName = nextRuntimeInfo;
+        lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
+        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
+        if (rowDiff.structuralChanged) {
+            vmRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'structural-fallback',
+                    changedRows: Number(rowDiff.changed?.length || 0),
+                    addedRows: Number(rowDiff.added?.length || 0),
+                    removedRows: Number(rowDiff.removed?.length || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            queueLoadlistRefresh();
+            return false;
+        }
+        if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
+        return true;
+    } catch (_error) {
+        queueLoadlistRefresh();
+        return false;
+    }
+};
+
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
         clearInterval(liveRefreshTimer);
@@ -3241,7 +3453,7 @@ const runLiveRefreshTick = () => {
                 return;
             }
             if (check.notModified !== true) {
-                queueLoadlistRefresh();
+                await refreshVmRuntimeStateInPlace();
             }
         })
         .finally(() => {
@@ -3522,9 +3734,7 @@ function buildVmFolderReq() {
         ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
         {
             onSnapshot: (snapshot) => {
-                if (snapshot?.snapshotToken) {
-                    lastVmRuntimeSnapshotToken = String(snapshot.snapshotToken);
-                }
+                rememberVmRuntimeSnapshot(snapshot);
             },
             fallbackFactories: legacyFactories
         }

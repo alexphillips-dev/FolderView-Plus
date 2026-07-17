@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.27">
-<!ENTITY md5 "08fc776661c2e2eeb26e5d34c74b6916">
+<!ENTITY version "2026.07.16.28">
+<!ENTITY md5 "d60f381e05ef4c8c95fc007f626e1c68">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.28
+### Incremental runtime row updates
+- Performance: Docker, VM, and Dashboard live refreshes now diff keyed runtime entities and patch only rows whose state, autostart, update, manager, identity, or folder-label data changed.
+- UI/UX: In-place updates preserve expanded folders, focus, menus, previews, current ordering, scroll position, and existing host row elements instead of rebuilding the full runtime list.
+- Performance: VM start, stop, pause, and resume actions now apply an immediate incremental refresh plus one delayed confirmation pass.
+- Safety: Entity additions or removals and folder or preference revision changes still use the full Unraid list rebuild so membership and ordering cannot become stale.
+- Diagnostics: Docker, VM, and Dashboard runtime state now records incremental versus structural reconciliation counts for troubleshooting.
+- Test: Adds runtime diff coverage for changed, unchanged, added, and removed entities plus contracts for all three incremental render paths.
+
 
 ###2026.07.16.27
 ### Standardized plugin requests

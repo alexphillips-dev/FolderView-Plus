@@ -177,6 +177,49 @@ test('runtime preserves requested RTL direction while falling back to English', 
     assert.equal(runtime.api.snapshot().direction, 'rtl');
 });
 
+test('runtime translates multiple text and attribute bindings independently', async () => {
+    const runtime = createRuntime({
+        '/en.json': {
+            '@metadata': {},
+            'settings.search.placeholder': 'Search settings',
+            'settings.search.label': 'Search all plugin settings',
+            'settings.tabs.basic': 'Basic',
+            'settings.mode.basic-label': 'Use basic settings mode'
+        }
+    });
+    await runtime.api.configure({
+        requestedLocale: 'en',
+        resolvedLocale: 'en',
+        assets: [{ locale: 'en', namespace: 'settings', url: '/en.json' }]
+    });
+    const createNode = (binding, textContent = '', attributes = {}) => ({
+        textContent,
+        innerHTML: textContent,
+        values: new Map(Object.entries({ 'data-i18n': binding, ...attributes })),
+        matches: (selector) => selector === '[data-i18n]',
+        querySelectorAll: () => [],
+        getAttribute(name) { return this.values.get(name) || ''; },
+        setAttribute(name, value) { this.values.set(name, String(value)); }
+    });
+    const search = createNode(
+        '[placeholder]settings.search.placeholder;[aria-label]settings.search.label',
+        '',
+        { placeholder: 'Fallback search', 'aria-label': 'Fallback label' }
+    );
+    runtime.api.translate(search);
+    assert.equal(search.getAttribute('placeholder'), 'Search settings');
+    assert.equal(search.getAttribute('aria-label'), 'Search all plugin settings');
+
+    const basic = createNode(
+        'settings.tabs.basic;[aria-label]settings.mode.basic-label',
+        'Fallback basic',
+        { 'aria-label': 'Fallback basic label' }
+    );
+    runtime.api.translate(basic);
+    assert.equal(basic.textContent, 'Basic');
+    assert.equal(basic.getAttribute('aria-label'), 'Use basic settings mode');
+});
+
 test('server loader resolves full locale tags and support bundles include localization diagnostics', () => {
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
     const registry = fs.readFileSync(path.join(langsRoot, 'registry.php'), 'utf8');

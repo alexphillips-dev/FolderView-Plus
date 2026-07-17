@@ -147,7 +147,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
 }
 
 /* Keep cooperative render yields off-screen and reveal the completed folder tree atomically. */
-#docker_list.fvplus-docker-render-staging {
+body.fvplus-docker-render-staging #docker_list {
     visibility: hidden;
     pointer-events: none;
 }

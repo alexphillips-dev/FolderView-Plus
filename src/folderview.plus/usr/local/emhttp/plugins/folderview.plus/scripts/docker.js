@@ -4465,11 +4465,13 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
                 unmountDockerIsolatedViews();
                 requestBundle.consumed = true;
                 releaseWidthBootstrap();
+                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker host list mode active');
                 recordDockerFatalBannerAction('Docker host list mode active');
             } else if (mode === 'command') {
                 unmountDockerIsolatedViews('command');
                 releaseWidthBootstrap();
+                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker command view active');
                 recordDockerFatalBannerAction('Docker command view active');
                 const commandViewApi = getDockerCommandViewApi();
@@ -4484,6 +4486,7 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
             } else if (mode === 'tree-explorer') {
                 unmountDockerIsolatedViews('tree-explorer');
                 releaseWidthBootstrap();
+                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker tree explorer active');
                 recordDockerFatalBannerAction('Docker tree explorer active');
                 const treeExplorerApi = getDockerTreeExplorerApi();
@@ -4498,6 +4501,7 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
             } else if (mode === 'orbit') {
                 unmountDockerIsolatedViews('orbit');
                 releaseWidthBootstrap();
+                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker orbit view active');
                 recordDockerFatalBannerAction('Docker orbit view active');
                 const orbitViewApi = getDockerOrbitViewApi();
@@ -5316,23 +5320,33 @@ const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {})
 
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
+let dockerFolderRenderCommitActive = false;
 
 const beginDockerFolderRenderCommit = () => {
-    const dockerList = document.getElementById('docker_list');
-    if (!(dockerList instanceof HTMLElement)) {
-        return null;
+    if (!(document.body instanceof HTMLElement)) {
+        return false;
     }
-    dockerList.classList.add('fvplus-docker-render-staging');
-    dockerList.setAttribute('aria-busy', 'true');
-    return dockerList;
+    document.body.classList.add('fvplus-docker-render-staging');
+    const dockerList = document.getElementById('docker_list');
+    if (dockerList instanceof HTMLElement) {
+        dockerList.setAttribute('aria-busy', 'true');
+    }
+    dockerFolderRenderCommitActive = true;
+    return true;
 };
 
-const finishDockerFolderRenderCommit = (dockerList) => {
-    if (!(dockerList instanceof HTMLElement)) {
+const finishDockerFolderRenderCommit = () => {
+    if (!dockerFolderRenderCommitActive) {
         return;
     }
-    dockerList.classList.remove('fvplus-docker-render-staging');
-    dockerList.removeAttribute('aria-busy');
+    if (document.body instanceof HTMLElement) {
+        document.body.classList.remove('fvplus-docker-render-staging');
+    }
+    const dockerList = document.getElementById('docker_list');
+    if (dockerList instanceof HTMLElement) {
+        dockerList.removeAttribute('aria-busy');
+    }
+    dockerFolderRenderCommitActive = false;
 };
 
 /**
@@ -5340,7 +5354,7 @@ const finishDockerFolderRenderCommit = (dockerList) => {
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
-    const stagedDockerList = beginDockerFolderRenderCommit();
+    beginDockerFolderRenderCommit();
     const widthBootstrapGeneration = dockerRuntimeWidthState.pendingRenderGeneration
         || beginDockerRuntimeWidthBootstrap();
     dockerRuntimeWidthState.pendingRenderGeneration = 0;
@@ -5676,7 +5690,7 @@ const createFolders = async () => {
     completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
         stabilize: foldersRenderedSuccessfully
     });
-    finishDockerFolderRenderCommit(stagedDockerList);
+    finishDockerFolderRenderCommit();
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
@@ -7856,6 +7870,7 @@ window.loadlist = () => {
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
+    beginDockerFolderRenderCommit();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
     appendDockerRequestBundleTrace('loadlist', {
         currentPage: String(location?.pathname || ''),

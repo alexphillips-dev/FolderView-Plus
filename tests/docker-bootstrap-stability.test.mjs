@@ -66,9 +66,11 @@ test('Docker folder rendering yields by elapsed work instead of a fixed folder c
 });
 
 test('Docker folder rendering keeps yielded mutations hidden until one atomic visual commit', () => {
-    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*classList\.add\('fvplus-docker-render-staging'\);[\s\S]*setAttribute\('aria-busy', 'true'\);/);
-    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(dockerList\) => \{[\s\S]*classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*removeAttribute\('aria-busy'\);/);
-    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*const stagedDockerList = beginDockerFolderRenderCommit\(\);/);
-    assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(stagedDockerList\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
-    assert.match(dockerCss, /#docker_list\.fvplus-docker-render-staging\s*\{\s*visibility:\s*hidden;\s*pointer-events:\s*none;\s*\}/);
+    assert.match(dockerJs, /let dockerFolderRenderCommitActive = false;/);
+    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*setAttribute\('aria-busy', 'true'\);/);
+    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*removeAttribute\('aria-busy'\);/);
+    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*beginDockerFolderRenderCommit\(\);/);
+    assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
+    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*dockerHostLoadOwnsLoadingUi = true;\s*beginDockerFolderRenderCommit\(\);[\s\S]*window\.loadlist_original\(\);/);
+    assert.match(dockerCss, /body\.fvplus-docker-render-staging #docker_list\s*\{\s*visibility:\s*hidden;\s*pointer-events:\s*none;\s*\}/);
 });

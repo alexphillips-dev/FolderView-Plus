@@ -98,13 +98,47 @@
     };
 
     const translateDom = (target = root.document?.body) => {
-        if (!target || typeof root.jQuery !== 'function') {
+        if (!target) {
             return;
         }
-        const $target = root.jQuery(target);
-        if (typeof $target.i18n === 'function') {
-            $target.i18n();
+        const translatableNodes = [];
+        if (typeof target.matches === 'function' && target.matches('[data-i18n]')) {
+            translatableNodes.push(target);
         }
+        if (typeof target.querySelectorAll === 'function') {
+            translatableNodes.push(...target.querySelectorAll('[data-i18n]'));
+        }
+        if (translatableNodes.length === 0) {
+            const $target = typeof root.jQuery === 'function' ? root.jQuery(target) : null;
+            if (typeof $target?.i18n === 'function') {
+                $target.i18n();
+            }
+            return;
+        }
+        translatableNodes.forEach((node) => {
+            const binding = String(node.getAttribute?.('data-i18n') || '').trim();
+            if (!binding) {
+                return;
+            }
+            binding.split(';').map((entry) => entry.trim()).filter(Boolean).forEach((entry) => {
+                const attributeMatch = entry.match(/^\[([^\]]+)\](.+)$/);
+                const targetName = attributeMatch ? String(attributeMatch[1] || '').trim() : 'text';
+                const key = String(attributeMatch ? attributeMatch[2] : entry).trim();
+                if (!key) {
+                    return;
+                }
+                if (targetName === 'html') {
+                    node.innerHTML = translate(key, node.innerHTML || '');
+                    return;
+                }
+                if (targetName !== 'text') {
+                    const fallback = String(node.getAttribute?.(targetName) || '');
+                    node.setAttribute?.(targetName, translate(key, fallback));
+                    return;
+                }
+                node.textContent = translate(key, node.textContent || '');
+            });
+        });
     };
 
     const formatter = (type, options = {}) => {

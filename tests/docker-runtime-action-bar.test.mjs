@@ -72,7 +72,9 @@ test('view and empty-folder preference changes use the immediate conflict-safe s
     assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker', patch, \{[\s\S]*currentPrefs,[\s\S]*immediate: true/);
     assert.match(actionBarJs, /savePrefs\(\{ pageViewMode: normalizedMode \}, nextPrefs\)/);
     assert.match(actionBarJs, /savePrefs\(\{ hideEmptyFolders \}, nextPrefs\)/);
-    assert.match(dockerJs, /return Promise\.resolve\(\)[\s\S]*ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)/);
+    assert.match(dockerJs, /const requestBundle = ensureDockerFolderReqForHostRender\(\{[\s\S]*forceRefresh: options\?\.forceRefresh === true/);
+    assert.match(dockerJs, /resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)/);
+    assert.doesNotMatch(dockerJs, /ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)/);
 });
 
 test('view menu covers every supported mode and workspace routes remain targeted', () => {

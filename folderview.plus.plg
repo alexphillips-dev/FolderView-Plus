@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.32">
-<!ENTITY md5 "300b9546fbf46cd5bac06aa0ab3ac185">
+<!ENTITY version "2026.07.16.33">
+<!ENTITY md5 "9c3bd7a84381946fa3042209d38b7835">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.33
+### Faster, stable Docker folder startup
+- Performance: The Docker page now reuses one primed coherent runtime snapshot instead of replacing it during the first native `loadlist()` pass or issuing a separate preference request.
+- Performance: Full Docker runtime details now begin loading only after the lightweight folder view is visible, keeping advanced metadata off the initial render path.
+- UI/UX: The Application column holds its cached width while folders, previews, fonts, and host rows settle, then performs one final measured adjustment instead of visibly resizing several times.
+- Performance: Folder rendering now yields according to elapsed browser work rather than pausing after every six folders, reducing unnecessary frame delays on faster systems.
+- Reliability: Startup row mutations, font events, preference application, and post-render polish are coalesced behind a generation-safe width stabilization gate.
+- Test: Adds focused regression coverage for single-bundle startup, deferred detail hydration, stabilized column sizing, and time-budgeted folder rendering.
+
 
 ###2026.07.16.32
 ### Live Docker action-menu state

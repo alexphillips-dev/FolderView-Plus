@@ -886,7 +886,10 @@
             let runtimeInfoByName = normalizeRuntimeInfoMap(runtimeState);
             if (requestBundle.fullInfo) {
                 try {
-                    const runtimeFull = parseJsonPayloadSafe(await requestBundle.fullInfo);
+                    const fullInfoRequest = typeof requestBundle.fullInfo === 'function'
+                        ? requestBundle.fullInfo()
+                        : requestBundle.fullInfo;
+                    const runtimeFull = parseJsonPayloadSafe(await fullInfoRequest);
                     runtimeInfoByName = normalizeRuntimeInfoMap(runtimeFull, runtimeInfoByName);
                 } catch (_error) {
                     // Optional staged full-info hydration.

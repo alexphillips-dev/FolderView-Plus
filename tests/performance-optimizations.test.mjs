@@ -146,14 +146,17 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}/s);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
-    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) =>/);
     assert.match(dockerJs, /let dockerHostLoadOwnsLoadingUi = false;/);
     assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => dockerHostLoadOwnsLoadingUi \|\| nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);/);
     assert.doesNotMatch(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
-    assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
+    assert.match(dockerJs, /const DOCKER_RENDER_TIME_BUDGET_MS = 10;/);
+    assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount,\s*sliceStartedAt = readDockerRenderClock\(\)\) =>/);
+    assert.match(dockerJs, /const elapsed = readDockerRenderClock\(\) - Number\(sliceStartedAt \|\| 0\);[\s\S]*elapsed < DOCKER_RENDER_TIME_BUDGET_MS/);
+    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_YIELD_BATCH_SIZE/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
@@ -276,7 +279,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
     assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
     assert.match(dockerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
-    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct'\) =>/);
+    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct', options = \{\}\) =>/);
     assert.match(dockerJs, /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_PHASES = Object\.freeze\(/);
     assert.match(dockerJs, /phase:\s*DOCKER_RUNTIME_WIDTH_PHASES\.idle/);
@@ -305,7 +308,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = decision\.nextFloor;/);
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
-    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
+    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null, options = \{\}\) =>/);
     assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
     assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
     assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);

@@ -197,8 +197,8 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.match(dockerJs, /const bindDockerUpdateActionClickCapture = \(\) => \{[\s\S]*getDockerRuntimeReconcileApi\(\)\?\.bindUpdateActionClickCapture\?\.\(\);/);
     assert.doesNotMatch(dockerJs, /queueDockerSupportBundlePageSnapshot\('render-complete', 260\);\s*queueDockerPostUpdateRuntimeReconcile\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerHostOpenDockerPatch\(\);\s*bindDockerLifecycleEventControlPatch\(\);\s*bindDockerContainerContextStatePatch\(\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
-    assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = buildDockerFolderReq\(\{\s*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)\s*\}\);/);
+    assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
+    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
     assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
     assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{/);
     assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
@@ -226,18 +226,18 @@ test('docker runtime can stay in host-list mode without rendering FolderView row
     assert.match(dockerJs, /const normalizeDockerPageViewMode = \(value\) =>/);
     assert.match(dockerJs, /const resolveDockerPageViewMode = \(prefs = folderTypePrefs\) =>/);
     assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(options = \{\}\) => \{/);
-    assert.match(dockerJs, /const rebuildDockerFolderReqForHostRender = \(\) => \{[\s\S]*folderReq = buildDockerFolderReq\(\{[\s\S]*liveUpdateStatus: isDockerHostUpdateSyncSuspended\(\)[\s\S]*\}\);[\s\S]*return folderReq;[\s\S]*\};/);
-    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*rebuildDockerFolderReqForHostRender\(\);[\s\S]*queueCreateFoldersRender\(\);/);
-    assert.doesNotMatch(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(\) => \{[\s\S]*if \(!folderReq \|\| !Array\.isArray\(folderReq\.render\) \|\| folderReq\.render\.length === 0\) \{/);
+    assert.match(dockerJs, /const ensureDockerFolderReqForHostRender = \(options = \{\}\) => \{[\s\S]*const hasReusableBundle = folderReq[\s\S]*if \(options\?\.forceRefresh === true \|\| !hasReusableBundle\) \{[\s\S]*folderReq = buildDockerFolderReq/);
+    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(options = \{\}\) => \{[\s\S]*ensureDockerFolderReqForHostRender\([\s\S]*resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.doesNotMatch(dockerJs, /rebuildDockerFolderReqForHostRender/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
-    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
-    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
-    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const nextWebuiSignature/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const nextWebuiSignature/);
 });
 
 test('docker bootstrap render preserves prior runtime update flags when partial state payloads omit Updated', () => {

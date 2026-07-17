@@ -34,7 +34,7 @@ test('docker runtime width reflow scheduler remains deterministic under rapid ev
     assert.match(dockerJs, /dockerRuntimeWidthState\.debounceTimer = window\.setTimeout\(\(\) => \{/);
     assert.match(dockerJs, /const pendingReason = dockerRuntimeWidthState\.pendingReason \|\| reason;/);
     assert.match(dockerJs, /runDockerRuntimeWidthReflow\(`debounced:\$\{pendingReason\}`\);/);
-    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct'\) =>/);
+    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct', options = \{\}\) =>/);
     assert.match(dockerJs, /dockerRuntimeWidthState\.pendingReason = '';/);
 });
 

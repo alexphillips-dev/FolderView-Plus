@@ -702,15 +702,15 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
     });
     assert.equal(commandViewMode.pageViewMode, 'command');
 
-    const treeExplorerMode = utils.normalizePrefs({
+    const removedTreeExplorerMode = utils.normalizePrefs({
         pageViewMode: 'TREE-EXPLORER'
     });
-    assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
+    assert.equal(removedTreeExplorerMode.pageViewMode, 'folderview');
 
-    const orbitMode = utils.normalizePrefs({
+    const removedOrbitMode = utils.normalizePrefs({
         pageViewMode: 'ORBIT'
     });
-    assert.equal(orbitMode.pageViewMode, 'orbit');
+    assert.equal(removedOrbitMode.pageViewMode, 'folderview');
 
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'

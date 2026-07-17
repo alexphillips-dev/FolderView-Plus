@@ -16,9 +16,7 @@
     const VIEW_OPTIONS = Object.freeze([
         Object.freeze({ value: 'folderview', label: 'FolderView', i18nKey: 'docker.views.folderview', icon: 'fa-folder-open' }),
         Object.freeze({ value: 'host', label: 'Host list', i18nKey: 'docker.views.host', icon: 'fa-list' }),
-        Object.freeze({ value: 'command', label: 'Command', i18nKey: 'docker.views.command', icon: 'fa-terminal' }),
-        Object.freeze({ value: 'tree-explorer', label: 'Tree Explorer', i18nKey: 'docker.views.tree', icon: 'fa-sitemap' }),
-        Object.freeze({ value: 'orbit', label: 'Orbit', i18nKey: 'docker.views.orbit', icon: 'fa-circle-o' })
+        Object.freeze({ value: 'command', label: 'Command', i18nKey: 'docker.views.command', icon: 'fa-terminal' })
     ]);
 
     const createApi = (deps = {}) => {
@@ -28,7 +26,7 @@
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
         const normalizePageViewMode = typeof deps.normalizePageViewMode === 'function'
             ? deps.normalizePageViewMode
-            : ((value) => ['host', 'command', 'tree-explorer', 'orbit'].includes(String(value || '')) ? String(value) : 'folderview');
+            : ((value) => ['host', 'command'].includes(String(value || '')) ? String(value) : 'folderview');
         const resolvePageViewMode = typeof deps.resolvePageViewMode === 'function'
             ? deps.resolvePageViewMode
             : ((prefs) => normalizePageViewMode(prefs?.pageViewMode));
@@ -36,7 +34,7 @@
         const setPrefs = typeof deps.setPrefs === 'function' ? deps.setPrefs : (() => {});
         const applyPrefs = typeof deps.applyPrefs === 'function' ? deps.applyPrefs : (() => {});
         const savePrefs = typeof deps.savePrefs === 'function' ? deps.savePrefs : (async (_patch, prefs) => prefs);
-        const queueRuntimeRender = typeof deps.queueRuntimeRender === 'function' ? deps.queueRuntimeRender : (async () => {});
+        const refreshRuntimeView = typeof deps.refreshRuntimeView === 'function' ? deps.refreshRuntimeView : (async () => {});
         const getFolders = typeof deps.getFolders === 'function' ? deps.getFolders : (() => ({}));
         const getScopedContainers = typeof deps.getScopedContainers === 'function' ? deps.getScopedContainers : (() => ({}));
         const readFolderIdFromRow = typeof deps.readFolderIdFromRow === 'function' ? deps.readFolderIdFromRow : (() => '');
@@ -368,7 +366,7 @@
                 setPrefs(savedPrefs || nextPrefs);
                 applyPrefs(getPrefs());
                 folderFilterMode = 'all';
-                await queueRuntimeRender();
+                await refreshRuntimeView();
             } catch (error) {
                 setPrefs(previousPrefs);
                 applyPrefs(previousPrefs);
@@ -387,7 +385,7 @@
                 const savedPrefs = await savePrefs({ hideEmptyFolders }, nextPrefs);
                 setPrefs(savedPrefs || nextPrefs);
                 applyPrefs(getPrefs());
-                await queueRuntimeRender();
+                await refreshRuntimeView();
             } catch (error) {
                 setPrefs(previousPrefs);
                 applyPrefs(previousPrefs);
@@ -445,7 +443,7 @@
                     applyFilterState();
                     sync();
                 }
-                if (tool === 'refresh') runTask(queueRuntimeRender);
+                if (tool === 'refresh') runTask(refreshRuntimeView);
                 if (tool === 'reset') resetView();
                 return;
             }

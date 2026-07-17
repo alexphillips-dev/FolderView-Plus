@@ -290,7 +290,7 @@ test('docker runtime can stay in host-list mode without rendering FolderView row
     assert.match(dockerJs, /const resolveDockerPageViewMode = \(prefs = folderTypePrefs\) =>/);
     assert.match(dockerJs, /const ensureDockerBootstrapPrefs = \(options = \{\}\) => \{/);
     assert.match(dockerJs, /const ensureDockerFolderReqForHostRender = \(options = \{\}\) => \{[\s\S]*const hasReusableBundle = folderReq[\s\S]*if \(options\?\.forceRefresh === true \|\| !hasReusableBundle\) \{[\s\S]*folderReq = buildDockerFolderReq/);
-    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(options = \{\}\) => \{[\s\S]*ensureDockerFolderReqForHostRender\([\s\S]*resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*mode === 'tree-explorer'[\s\S]*mode === 'orbit'[\s\S]*queueCreateFoldersRender\(\);/);
+    assert.match(dockerJs, /const queueDockerRuntimeRenderForPageViewMode = \(options = \{\}\) => \{[\s\S]*ensureDockerFolderReqForHostRender\([\s\S]*resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)[\s\S]*const mode = resolveDockerPageViewMode\(prefs\);[\s\S]*mode === 'host'[\s\S]*mode === 'command'[\s\S]*queueCreateFoldersRender\(\);/);
     assert.doesNotMatch(dockerJs, /rebuildDockerFolderReqForHostRender/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);

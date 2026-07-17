@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.08">
-<!ENTITY md5 "29b6e497ab5ab3b83e01130e169faf8d">
+<!ENTITY version "2026.07.17.09">
+<!ENTITY md5 "b13cab2a74f251455d1585d677d2cc7a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.09
+- Fix: Docker View-menu transitions now rebuild Unraid's native container rows before applying the selected FolderView mode, preventing repeated switches from appending duplicate folder rows.
+- UX: Removed Tree Explorer and Orbit from the Docker View menu and the Settings runtime selector, leaving FolderView, Host list, and Command as the supported Docker page views.
+- Maintenance: Removed the retired Tree Explorer and Orbit JavaScript modules, stylesheets, page assets, privacy selectors, translations, and runtime integration paths from the plugin package.
+- Compatibility: Existing preferences saved with either removed view now normalize safely to FolderView on both the client and server.
+- Quality: Added regression coverage for repeated FolderView/Host transitions, legacy preference fallback, supported-view surfaces, and the absence of retired assets from the package.
+
 
 ###2026.07.17.08
 - UX: Docker startup now leaves Unraid's native container rows visible while FolderView Plus resolves its folder data and preferences, then converts those rows into the completed folder view without an intermediate blank or cloned overlay.

@@ -77,8 +77,6 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.command-view.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.action-bar.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script defer src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.js')?>"></script>
@@ -86,7 +84,5 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.command-view.css')?>">
-<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.tree-explorer.css')?>">
-<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.orbit-view.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.css')?>">
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php') ?>

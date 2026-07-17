@@ -419,8 +419,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="folderview">FolderView</option>
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
-                            <option value="tree-explorer">Tree explorer</option>
-                            <option value="orbit">Orbit view</option>
                         </select>
                     </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>

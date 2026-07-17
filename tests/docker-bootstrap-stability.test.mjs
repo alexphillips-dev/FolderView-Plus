@@ -14,9 +14,7 @@ const dockerCss = fs.readFileSync(
     'utf8'
 );
 const isolatedViewSources = [
-    'docker.runtime.command-view.js',
-    'docker.runtime.tree-explorer.js',
-    'docker.runtime.orbit-view.js'
+    'docker.runtime.command-view.js'
 ].map((file) => fs.readFileSync(path.join(scriptsRoot, file), 'utf8'));
 
 test('Docker bootstrap reuses its coherent request bundle instead of issuing a second startup snapshot', () => {

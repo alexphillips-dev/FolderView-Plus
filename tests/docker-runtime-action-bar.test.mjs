@@ -75,18 +75,44 @@ test('view and empty-folder preference changes use the immediate conflict-safe s
     assert.match(dockerJs, /dockerPrefsCoordinator\.save\('docker', patch, \{[\s\S]*currentPrefs,[\s\S]*immediate: true/);
     assert.match(actionBarJs, /savePrefs\(\{ pageViewMode: normalizedMode \}, nextPrefs\)/);
     assert.match(actionBarJs, /savePrefs\(\{ hideEmptyFolders \}, nextPrefs\)/);
+    assert.match(dockerJs, /refreshRuntimeView: \(\) => \{[\s\S]*queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\)/);
+    assert.match(actionBarJs, /await refreshRuntimeView\(\)/);
+    assert.doesNotMatch(actionBarJs, /queueRuntimeRender/);
     assert.match(dockerJs, /const requestBundle = ensureDockerFolderReqForHostRender\(\{[\s\S]*forceRefresh: options\?\.forceRefresh === true/);
     assert.match(dockerJs, /resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)/);
     assert.doesNotMatch(dockerJs, /ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)/);
 });
 
 test('view menu covers every supported mode and workspace routes remain targeted', () => {
-    for (const mode of ['folderview', 'host', 'command', 'tree-explorer', 'orbit']) {
+    for (const mode of ['folderview', 'host', 'command']) {
         assert.match(actionBarJs, new RegExp(`value: '${mode}'`));
     }
+    assert.doesNotMatch(actionBarJs, /tree-explorer|Tree Explorer|docker\.views\.tree/);
+    assert.doesNotMatch(actionBarJs, /value: 'orbit'|docker\.views\.orbit/);
     assert.match(actionBarJs, /fvMode=basic&fvSection=docker/);
     assert.match(actionBarJs, /fvAdvancedTab=automation&fvSection=bulk-assignment/);
     assert.match(actionBarJs, /fvAdvancedTab=rules&fvSection=auto-assignment&fvRulesType=docker/);
+});
+
+test('switching Docker page views rebuilds native rows before FolderView renders again', async () => {
+    let prefs = { pageViewMode: 'folderview' };
+    let refreshes = 0;
+    const api = actionBarModule.createApi({
+        window: { addEventListener() {}, Element: null, HTMLElement: null },
+        document: { addEventListener() {}, querySelectorAll: () => [], getElementById: () => null, querySelector: () => null },
+        utils: { normalizePrefs: (value) => value || {} },
+        getPrefs: () => prefs,
+        setPrefs: (value) => { prefs = value; },
+        applyPrefs() {},
+        savePrefs: async (_patch, value) => value,
+        refreshRuntimeView: async () => { refreshes += 1; }
+    });
+
+    await api.setPageViewMode('host');
+    await api.setPageViewMode('folderview');
+
+    assert.equal(refreshes, 2, 'each view transition must request one native list rebuild');
+    assert.equal(prefs.pageViewMode, 'folderview');
 });
 
 test('action menus use viewport-aware fixed positioning and support dismissal plus keyboard navigation', () => {

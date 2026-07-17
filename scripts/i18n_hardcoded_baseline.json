@@ -1,5 +1,5 @@
 {
-  "catalogVersion": "2026.07.17.1",
+  "catalogVersion": "2026.07.17.2",
   "description": "Per-file ceiling for legacy hard-coded user-facing string candidates. New code must use FolderViewPlusI18n or data-i18n; counts may decrease without updating this baseline.",
   "files": {
     "Folder.page": 254,
@@ -13,9 +13,7 @@
     "scripts/docker.js": 23,
     "scripts/docker.runtime.actions.js": 24,
     "scripts/docker.runtime.command-view.js": 31,
-    "scripts/docker.runtime.orbit-view.js": 34,
     "scripts/docker.runtime.preview-actions.js": 10,
-    "scripts/docker.runtime.tree-explorer.js": 42,
     "scripts/folder.editor.chrome.js": 41,
     "scripts/folder.editor.hierarchy.js": 1,
     "scripts/folder.editor.icon-api.js": 1,

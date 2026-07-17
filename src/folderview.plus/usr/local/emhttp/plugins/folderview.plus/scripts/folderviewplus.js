@@ -7474,7 +7474,7 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-page-view-mode`).val(
         typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(prefs.pageViewMode)
-            : (['host', 'command', 'tree-explorer'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
+            : (['host', 'command'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
     );
     $(`#${type}-theme-compat-mode`).val(resolveThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
@@ -10409,7 +10409,7 @@ const changeRuntimePref = async (type, key, value) => {
     } else if (key === 'pageViewMode') {
         next.pageViewMode = typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(value)
-            : (['host', 'command', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
+            : (['host', 'command'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
     } else if (key === 'themeCompatibilityMode') {
         next.themeCompatibilityMode = resolveThemeCompatibilityMode(value);
     } else {

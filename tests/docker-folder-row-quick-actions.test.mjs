@@ -20,14 +20,6 @@ const dockerCommandViewScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js'),
     'utf8'
 );
-const dockerOrbitViewScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js'),
-    'utf8'
-);
-const dockerTreeExplorerScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js'),
-    'utf8'
-);
 const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
@@ -127,8 +119,6 @@ test('docker pinned folder affordances use a pin icon instead of a star', () => 
     assert.match(dockerCss, /\.fv-folder-title-line\s*\{/);
     assert.match(dockerCss, /\.fv-folder-pin-indicator\s*\{[\s\S]*rgba\(255,\s*202,\s*99,\s*0\.16\)/);
     assert.match(dockerCommandViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
-    assert.match(dockerOrbitViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
-    assert.match(dockerTreeExplorerScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
 });
 
 test('docker folder menu can move folders within the current level', () => {

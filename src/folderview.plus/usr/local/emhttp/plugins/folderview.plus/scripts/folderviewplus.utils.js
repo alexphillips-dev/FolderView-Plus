@@ -23,7 +23,7 @@
     const PRIVACY_MODE_PREFS_SCHEMA = 3;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
-    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command', 'tree-explorer', 'orbit'];
+    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',

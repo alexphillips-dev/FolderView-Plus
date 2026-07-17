@@ -1,5 +1,6 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
@@ -3165,6 +3166,7 @@ let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+let lastVmRuntimeSnapshotToken = '';
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -3199,10 +3201,22 @@ const queueLoadlistRefresh = () => {
     }, delayMs);
 };
 
-const fetchVmStateSignature = async () => {
-    const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=vm&mode=state').promise();
-    const parsed = parseJsonPayloadSafe(payload);
-    return buildVmStateSignature(parsed, true);
+const fetchVmRuntimeSnapshotCheck = async () => {
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
+        const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=vm&mode=state').promise();
+        const parsed = parseJsonPayloadSafe(payload);
+        const signature = buildVmStateSignature(parsed, true);
+        return {
+            notModified: signature === lastLiveRefreshStateSignature,
+            snapshotToken: '',
+            runtimeSignature: signature
+        };
+    }
+    const payload = await $.get(runtimeSnapshotApi.buildUrl('vm', 'check', {
+        since: lastVmRuntimeSnapshotToken,
+        forceRefresh: true
+    })).promise();
+    return runtimeSnapshotApi.parsePayload(payload);
 };
 
 const clearLiveRefreshTimer = () => {
@@ -3220,18 +3234,17 @@ const runLiveRefreshTick = () => {
     liveRefreshInFlight = true;
     Promise.resolve()
         .then(async () => {
-            let nextSignature = '';
+            let check = null;
             try {
-                nextSignature = await fetchVmStateSignature();
+                check = await fetchVmRuntimeSnapshotCheck();
             } catch (_error) {
-                nextSignature = '';
+                check = null;
             }
-            if (!nextSignature) {
+            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                 queueLoadlistRefresh();
                 return;
             }
-            if (nextSignature !== lastLiveRefreshStateSignature) {
-                lastLiveRefreshStateSignature = nextSignature;
+            if (check.notModified !== true) {
                 queueLoadlistRefresh();
             }
         })
@@ -3475,36 +3488,51 @@ window.getVmRuntimeStateSnapshot = () => vmRuntimeStateStore.getState();
 
 function buildVmFolderReq() {
     const cacheBust = Date.now();
-    const safePrefsReq = createVmRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=vm&_=${cacheBust}`, {
-        source: 'prefs',
-        label: 'VM preferences',
-        allowFallback: true,
-        fallbackValue: JSON.stringify({ ok: false, prefs: {} })
-    });
-    return [
-        // Get the folders
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read.php?type=vm', {
+    const legacyFactories = [
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read.php?type=vm', {
             source: 'folders',
             label: 'VM folder definitions'
         }),
-        // Get the order as unraid sees it
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=vm', {
             source: 'folder-order',
             label: 'VM folder order'
         }),
-        // Get the info on VMs, needed for autostart and started
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=vm', {
             source: 'runtime-info',
             label: 'VM runtime info'
         }),
-        // Get the order that is shown in the webui
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {
             source: 'host-order',
             label: 'VM host order'
         }),
-        // Get sort and auto-assignment preferences
-        safePrefsReq
+        () => createVmRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=vm&_=${cacheBust}`, {
+            source: 'prefs',
+            label: 'VM preferences',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({ ok: false, prefs: {} })
+        })
     ];
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
+        return legacyFactories.map((factory) => factory());
+    }
+    const snapshotRequest = createVmRuntimeRequest(runtimeSnapshotApi.buildUrl('vm', 'full', {
+        cacheBust
+    }), {
+        source: 'runtime-snapshot-full',
+        label: 'VM runtime snapshot'
+    });
+    return runtimeSnapshotApi.createProjectedBundle(
+        snapshotRequest,
+        ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
+        {
+            onSnapshot: (snapshot) => {
+                if (snapshot?.snapshotToken) {
+                    lastVmRuntimeSnapshotToken = String(snapshot.snapshotToken);
+                }
+            },
+            fallbackFactories: legacyFactories
+        }
+    );
 }
 
 // Prime requests for environments where loadlist isn't called first.

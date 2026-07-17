@@ -4,6 +4,7 @@ if (!window || !$) {
 }
 
 const folderContract = window.FolderViewPlusFolderContract || null;
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const localDefaultFolderStatusColors = {
     started: '#ffffff',
@@ -2337,6 +2338,10 @@ let lastDashboardStateSignatures = {
     docker: '',
     vm: ''
 };
+let lastDashboardSnapshotTokens = {
+    docker: '',
+    vm: ''
+};
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -2431,13 +2436,25 @@ const queueLoadlistRefresh = () => {
     }, delayMs);
 };
 
-const fetchDashboardTypeStateSignature = async (type) => {
-    const payload = await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state`).promise();
-    const parsed = parseJsonPayloadSafe(payload);
-    if (type === 'docker') {
-        return buildDockerStateSignature(parsed, true);
+const fetchDashboardTypeSnapshotCheck = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
+        const payload = await $.get(`/plugins/folderview.plus/server/read_info.php?type=${resolvedType}&mode=state`).promise();
+        const parsed = parseJsonPayloadSafe(payload);
+        const signature = resolvedType === 'docker'
+            ? buildDockerStateSignature(parsed, true)
+            : buildVmStateSignature(parsed, true);
+        return {
+            notModified: signature === lastDashboardStateSignatures[resolvedType],
+            snapshotToken: '',
+            runtimeSignature: signature
+        };
     }
-    return buildVmStateSignature(parsed, true);
+    const payload = await $.get(runtimeSnapshotApi.buildUrl(resolvedType, 'check', {
+        since: lastDashboardSnapshotTokens[resolvedType],
+        forceRefresh: true
+    })).promise();
+    return runtimeSnapshotApi.parsePayload(payload);
 };
 
 const clearLiveRefreshTimer = () => {
@@ -2468,18 +2485,17 @@ const runLiveRefreshTick = () => {
 
             let changed = false;
             for (const type of checks) {
-                let signature = '';
+                let check = null;
                 try {
-                    signature = await fetchDashboardTypeStateSignature(type);
+                    check = await fetchDashboardTypeSnapshotCheck(type);
                 } catch (_error) {
-                    signature = '';
+                    check = null;
                 }
-                if (!signature) {
+                if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                     changed = true;
                     continue;
                 }
-                if (signature !== lastDashboardStateSignatures[type]) {
-                    lastDashboardStateSignatures[type] = signature;
+                if (check.notModified !== true) {
                     changed = true;
                 }
             }
@@ -2598,24 +2614,36 @@ const prepareDashboardFolderRequestsForType = (type) => {
         folderReq[resolvedType] = [];
         return [];
     }
-    if (resolvedType === 'docker') {
-        folderReq.docker = [
-            getDashboardRequestWithFallback('docker', 'folders', '/plugins/folderview.plus/server/read.php?type=docker', {}),
-            getDashboardRequestWithFallback('docker', 'folder order', '/plugins/folderview.plus/server/read_order.php?type=docker', {}),
-            getDashboardRequestWithFallback('docker', 'runtime info', '/plugins/folderview.plus/server/read_info.php?type=docker', {}),
-            getDashboardRequestWithFallback('docker', 'unraid order', '/plugins/folderview.plus/server/read_unraid_order.php?type=docker', {}),
-            getDashboardRequestWithFallback('docker', 'preferences', '/plugins/folderview.plus/server/prefs.php?type=docker', { ok: false, prefs: {} })
-        ];
-        return folderReq.docker;
-    }
-    folderReq.vm = [
-        getDashboardRequestWithFallback('vm', 'folders', '/plugins/folderview.plus/server/read.php?type=vm', {}),
-        getDashboardRequestWithFallback('vm', 'folder order', '/plugins/folderview.plus/server/read_order.php?type=vm', {}),
-        getDashboardRequestWithFallback('vm', 'runtime info', '/plugins/folderview.plus/server/read_info.php?type=vm', {}),
-        getDashboardRequestWithFallback('vm', 'unraid order', '/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {}),
-        getDashboardRequestWithFallback('vm', 'preferences', '/plugins/folderview.plus/server/prefs.php?type=vm', { ok: false, prefs: {} })
+    const legacyFactories = [
+        () => getDashboardRequestWithFallback(resolvedType, 'folders', `/plugins/folderview.plus/server/read.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'folder order', `/plugins/folderview.plus/server/read_order.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'runtime info', `/plugins/folderview.plus/server/read_info.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'unraid order', `/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`, {}),
+        () => getDashboardRequestWithFallback(resolvedType, 'preferences', `/plugins/folderview.plus/server/prefs.php?type=${resolvedType}`, { ok: false, prefs: {} })
     ];
-    return folderReq.vm;
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
+        folderReq[resolvedType] = legacyFactories.map((factory) => factory());
+        return folderReq[resolvedType];
+    }
+    const snapshotRequest = $.get(runtimeSnapshotApi.buildUrl(resolvedType, 'full', {
+        cacheBust: Date.now()
+    })).then((data) => data, (error) => {
+        recordDashboardRequestFallback(resolvedType, 'runtime snapshot', error);
+        throw error;
+    });
+    folderReq[resolvedType] = runtimeSnapshotApi.createProjectedBundle(
+        snapshotRequest,
+        ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
+        {
+            onSnapshot: (snapshot) => {
+                if (snapshot?.snapshotToken) {
+                    lastDashboardSnapshotTokens[resolvedType] = String(snapshot.snapshotToken);
+                }
+            },
+            fallbackFactories: legacyFactories
+        }
+    );
+    return folderReq[resolvedType];
 };
 
 // Patching the original function to make sure the containers are rendered before insering the folder

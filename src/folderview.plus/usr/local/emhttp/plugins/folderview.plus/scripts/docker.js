@@ -4,6 +4,7 @@
 
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
@@ -7765,6 +7766,8 @@ let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let lastLiveRefreshStateEntityCount = 0;
+let lastDockerRuntimeSnapshotToken = '';
+let lastDockerRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
 let lastDockerOrderReconciliation = { available: false };
 let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
@@ -7914,13 +7917,45 @@ const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), option
     return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}${liveUpdateQuery}&nocache=1&_=${cacheBust || Date.now()}`;
 };
 
-const fetchDockerStateSignature = async (options = {}) => {
+const rememberDockerRuntimeSnapshot = (snapshot) => {
+    if (snapshot?.snapshotToken) {
+        lastDockerRuntimeSnapshotToken = String(snapshot.snapshotToken);
+    }
+    if (snapshot?.revisions && typeof snapshot.revisions === 'object') {
+        lastDockerRuntimeSnapshotRevisions = {
+            folder: Math.max(0, Number(snapshot.revisions.folder) || 0),
+            prefs: Math.max(0, Number(snapshot.revisions.prefs) || 0)
+        };
+    }
+};
+
+const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
+    if (!lastDockerRuntimeSnapshotToken || !snapshot?.revisions) {
+        return true;
+    }
+    return Math.max(0, Number(snapshot.revisions.folder) || 0) === lastDockerRuntimeSnapshotRevisions.folder
+        && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastDockerRuntimeSnapshotRevisions.prefs;
+};
+
+const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
     const liveUpdateStatus = options?.liveUpdateStatus === true;
-    const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
-        liveUpdateStatus
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
+        const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
+            liveUpdateStatus
+        })).promise();
+        const parsed = parseJsonPayloadSafe(payload);
+        return {
+            notModified: buildDockerStateSignature(parsed, true) === lastLiveRefreshStateSignature,
+            snapshotToken: '',
+            runtimeSignature: buildDockerStateSignature(parsed, true)
+        };
+    }
+    const payload = await $.get(runtimeSnapshotApi.buildUrl('docker', 'check', {
+        since: lastDockerRuntimeSnapshotToken,
+        liveUpdateStatus,
+        forceRefresh: true
     })).promise();
-    const parsed = parseJsonPayloadSafe(payload);
-    return buildDockerStateSignature(parsed, true);
+    return runtimeSnapshotApi.parsePayload(payload);
 };
 
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
@@ -7930,12 +7965,22 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
         queueLoadlistRefresh({ suppressLoadingUi: true });
     };
     const applyStatePayload = async () => {
-        const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
-            liveUpdateStatus
-        })).promise();
-        const parsed = parseJsonPayloadSafe(payload);
+        const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
+        const payload = await $.get(useSnapshot
+            ? runtimeSnapshotApi.buildUrl('docker', 'state', {
+                liveUpdateStatus,
+                forceRefresh: true
+            })
+            : buildDockerRuntimeInfoUrl('state', Date.now(), { liveUpdateStatus })).promise();
+        const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
+        const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
             throw new Error('Docker runtime state payload was empty.');
+        }
+        if (snapshot && dockerRuntimeSnapshotConfigMatches(snapshot)) {
+            rememberDockerRuntimeSnapshot(snapshot);
+        } else if (snapshot) {
+            queueLoadlistRefresh({ suppressLoadingUi: true });
         }
         dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
         const nextSignature = buildDockerStateSignature(parsed, true);
@@ -8017,20 +8062,19 @@ const runLiveRefreshTick = () => {
     liveRefreshInFlight = true;
     Promise.resolve()
         .then(async () => {
-            let nextSignature = '';
+            let check = null;
             try {
-                nextSignature = await fetchDockerStateSignature({
+                check = await fetchDockerRuntimeSnapshotCheck({
                     liveUpdateStatus: isDockerHostUpdateSyncSuspended()
                 });
             } catch (_error) {
-                nextSignature = '';
+                check = null;
             }
-            if (!nextSignature) {
+            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                 queueLoadlistRefresh();
                 return;
             }
-            if (nextSignature !== lastLiveRefreshStateSignature) {
-                lastLiveRefreshStateSignature = nextSignature;
+            if (check.notModified !== true) {
                 queueLoadlistRefresh();
             }
         })
@@ -8140,12 +8184,6 @@ window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 function buildDockerFolderReq(options = {}) {
     const cacheBust = Date.now();
     const liveUpdateStatus = options?.liveUpdateStatus === true || isDockerHostUpdateSyncSuspended();
-    const safePrefsReq = createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
-        source: 'prefs',
-        label: 'Docker preferences',
-        allowFallback: true,
-        fallbackValue: JSON.stringify({ ok: false, prefs: {} })
-    });
     const generation = ++dockerBootstrapGeneration;
     appendDockerRequestBundleTrace('buildDockerFolderReq', {
         currentPage: String(location?.pathname || ''),
@@ -8154,34 +8192,72 @@ function buildDockerFolderReq(options = {}) {
         liveUpdateStatus,
         hostSyncSuspended: isDockerHostUpdateSyncSuspended()
     });
+    const legacyRenderFactories = [
+        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
+            source: 'folders',
+            label: 'Docker folder definitions'
+        }),
+        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
+            source: 'folder-order',
+            label: 'Docker folder order'
+        }),
+        () => createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust, { liveUpdateStatus }), {
+            source: 'runtime-info-state',
+            label: 'Docker runtime state'
+        }),
+        () => createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
+            source: 'prefs',
+            label: 'Docker preferences',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({ ok: false, prefs: {} })
+        })
+    ];
+    const legacyFullInfoFactory = () => createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('full', cacheBust), {
+        source: 'runtime-info-full',
+        label: 'Docker runtime details',
+        allowFallback: true,
+        fallbackValue: JSON.stringify({}),
+        fallbackTitle: 'Docker runtime details were partially unavailable',
+        fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
+        fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
+    });
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
+        return {
+            generation,
+            render: legacyRenderFactories.map((factory) => factory()),
+            fullInfo: legacyFullInfoFactory()
+        };
+    }
+    const stateSnapshotRequest = createDockerRuntimeRequest(runtimeSnapshotApi.buildUrl('docker', 'state', {
+        cacheBust,
+        liveUpdateStatus,
+        forceRefresh: true
+    }), {
+        source: 'runtime-snapshot-state',
+        label: 'Docker runtime snapshot'
+    });
+    const fullSnapshotRequest = createDockerRuntimeRequest(runtimeSnapshotApi.buildUrl('docker', 'full', {
+        cacheBust,
+        forceRefresh: true
+    }), {
+        source: 'runtime-snapshot-full',
+        label: 'Docker runtime detail snapshot'
+    });
+    const rememberSnapshot = (snapshot) => {
+        rememberDockerRuntimeSnapshot(snapshot);
+    };
     return {
         generation,
-        render: [
-            createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
-                source: 'folders',
-                label: 'Docker folder definitions'
-            }),
-            createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
-                source: 'folder-order',
-                label: 'Docker folder order'
-            }),
-            createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust, {
-                liveUpdateStatus
-            }), {
-                source: 'runtime-info-state',
-                label: 'Docker runtime state'
-            }),
-            safePrefsReq
-        ],
-        fullInfo: createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('full', cacheBust), {
-            source: 'runtime-info-full',
-            label: 'Docker runtime details',
-            allowFallback: true,
-            fallbackValue: JSON.stringify({}),
-            fallbackTitle: 'Docker runtime details were partially unavailable',
-            fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
-            fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
-        })
+        render: runtimeSnapshotApi.createProjectedBundle(
+            stateSnapshotRequest,
+            ['folders', 'order', 'runtime', 'prefsResponse'],
+            { onSnapshot: rememberSnapshot, fallbackFactories: legacyRenderFactories }
+        ),
+        fullInfo: runtimeSnapshotApi.projectRequest(
+            fullSnapshotRequest,
+            'runtime',
+            legacyFullInfoFactory
+        )
     };
 }
 

@@ -14,6 +14,7 @@ const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 test('vm runtime page loads shared runtime module before vm runtime script', () => {
     const fatalBannerIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js');
     const contractIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+    const snapshotIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
@@ -22,6 +23,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     const vmCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     assert.ok(fatalBannerIndex >= 0, 'vm page should load the shared fatal banner runtime');
     assert.ok(contractIndex >= 0, 'shared folder contract include missing from VMs page');
+    assert.ok(snapshotIndex >= 0, 'runtime snapshot client include missing from VMs page');
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
@@ -33,6 +35,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.match(vmPage, /hostSelector:\s*'#fvplus-vm-runtime-banner-host'/);
     assert.match(vmPage, /<div id="fvplus-vm-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'vm fatal banner must load before folder contract/runtime scripts');
+    assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before vm.js');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');

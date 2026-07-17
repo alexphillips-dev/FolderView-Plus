@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.25">
-<!ENTITY md5 "283f31c52597da2f6ad3b5143fa29f84">
+<!ENTITY version "2026.07.16.26">
+<!ENTITY md5 "0c8bb86c52e9766a749e76e133be9790">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.26
+### Coherent runtime snapshots
+- Performance: Replaces fragmented Docker, VM, and Dashboard bootstrap reads with one versioned runtime snapshot per type while preserving Docker's fast initial state render and deferred detail hydration.
+- Fix: Captures folders, preferences, saved order, and metadata revisions under one configuration lock so a render cannot combine values from different save generations.
+- Performance: Adds lightweight conditional checks with deterministic snapshot tokens so unchanged live-refresh polls omit folder and runtime payloads.
+- Quality: Derives host order from the snapshot's entity generation and normalizes state and full runtime shapes to the same identity before calculating change tokens.
+- Compatibility: Keeps the existing read endpoints as per-field fallbacks if the snapshot endpoint is unavailable or returns an unsupported contract.
+- Test: Adds endpoint assembly, schema, conditional polling, revision invalidation, client projection, fallback, script-order, packaging, and cross-runtime regression coverage.
+
 
 ###2026.07.16.25
 ### Icon asset-pack activation fix

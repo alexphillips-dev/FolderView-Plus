@@ -122,11 +122,14 @@ test('read_info supports cached full/state payload retrieval', () => {
 test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
     assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
-    assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
+    assert.match(dashboardJs, /read_info\.php\?type=\$\{resolvedType\}&mode=state/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
-    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
+    assert.match(dockerJs, /const fetchDockerRuntimeSnapshotCheck = async \(options = \{\}\) =>/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'check'/);
+    assert.match(vmJs, /runtimeSnapshotApi\.buildUrl\('vm', 'check'/);
+    assert.match(dashboardJs, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'check'/);
     assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
@@ -155,8 +158,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
     assert.match(dockerJs, /function buildDockerFolderReq\(options = \{\}\) \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true \|\| isDockerHostUpdateSyncSuspended\(\);/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust, \{\s*liveUpdateStatus\s*\}\),/);
-    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'prefsResponse'\]/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.projectRequest\([\s\S]*'runtime'/);
     assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(state\.Updated\);/);

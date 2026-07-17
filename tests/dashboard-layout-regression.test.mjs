@@ -378,8 +378,12 @@ test('dashboard render waits for successful folder hydration and has request fal
     assert.match(dashboardScript, /const dashboardRequestDiagnostics = \{\s*docker: \[\],\s*vm: \[\]\s*\};/);
     assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => \$\.get\(url\)/);
     assert.match(dashboardScript, /recordDashboardRequestFallback\(type, label, error\);/);
-    assert.match(dashboardScript, /folderReq\.docker = \[[\s\S]*getDashboardRequestWithFallback\('docker', 'runtime info'/);
-    assert.match(dashboardScript, /folderReq\.vm = \[[\s\S]*getDashboardRequestWithFallback\('vm', 'runtime info'/);
+    assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) => \{/);
+    assert.match(dashboardScript, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'full'/);
+    assert.match(dashboardScript, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
+    assert.match(dashboardScript, /const legacyFactories = \[[\s\S]*getDashboardRequestWithFallback\(resolvedType, 'runtime info'/);
+    assert.match(dashboardScript, /fallbackFactories: legacyFactories/);
+    assert.match(dashboardScript, /prepareDashboardFolderRequestsForType\('docker'\);[\s\S]*prepareDashboardFolderRequestsForType\('vm'\);/);
     assert.match(dashboardScript, /const queueCreateFoldersRender = \(\) => \{/);
     assert.match(dashboardScript, /let createFoldersPromise = null;/);
     assert.match(dashboardScript, /return createFoldersPromise \|\| Promise\.resolve\(false\);/);

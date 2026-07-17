@@ -31,6 +31,7 @@ const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 test('docker runtime page loads shared runtime module before docker modules/runtime', () => {
     const fatalBannerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js');
     const contractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+    const snapshotIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
@@ -54,6 +55,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const dockerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
     assert.ok(fatalBannerIndex >= 0, 'docker page should load the shared fatal banner runtime');
     assert.ok(contractIndex >= 0, 'shared folder contract include is missing');
+    assert.ok(snapshotIndex >= 0, 'runtime snapshot client include is missing');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
@@ -81,6 +83,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host,\s*\.canvas'/);
     assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
+    assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before docker.js');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before docker.runtime.shared.js');
     assert.ok(sharedIndex < modulesIndex, 'shared runtime must load before docker.modules.js');
     assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');

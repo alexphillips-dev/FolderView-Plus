@@ -42,6 +42,7 @@ const endpointsUsingHelpers = [
     'environment_snapshot.php',
     'prefs.php',
     'reorder.php',
+    'runtime_snapshot.php',
     'sync_order.php',
     'templates.php',
     'update.php',

@@ -25,12 +25,29 @@ const createHarness = () => {
     const scheduled = [];
     const refreshCalls = [];
     const trace = [];
+    const contextCalls = [];
+    const runtimeByName = {
+        audiobookshelf: {
+            info: {
+                State: {
+                    Running: true,
+                    Paused: false,
+                    Updated: true,
+                    Autostart: true
+                }
+            }
+        }
+    };
     const originalEventControl = (...args) => {
         hostCalls.push(args);
         return 'host-result';
     };
     const window = {
         eventControl: originalEventControl,
+        addDockerContainerContext: (...args) => {
+            contextCalls.push(args);
+            return 'context-result';
+        },
         setTimeout(handler, delayMs) {
             scheduled.push({ handler, delayMs });
             return scheduled.length;
@@ -45,9 +62,10 @@ const createHarness = () => {
         },
         appendDockerBulkUpdateTrace: (eventType, details = {}) => {
             trace.push({ eventType, details });
-        }
+        },
+        getDockerRuntimeContainerInfo: (name) => runtimeByName[name] || null
     });
-    return { api, window, originalEventControl, hostCalls, scheduled, refreshCalls, trace };
+    return { api, window, originalEventControl, hostCalls, scheduled, refreshCalls, trace, contextCalls, runtimeByName };
 };
 
 test('Docker lifecycle actions replace the destructive host loadlist callback', async () => {
@@ -96,6 +114,30 @@ test('Docker lifecycle patch leaves structural and unrelated host callbacks unch
     assert.equal(harness.hostCalls[1][1], 'customRefresh');
     assert.equal(harness.window.eventControl, wrappedEventControl);
     assert.equal(harness.scheduled.length, 0);
+});
+
+test('Docker container context menus resolve lifecycle actions from the latest runtime cache', () => {
+    const harness = createHarness();
+    assert.equal(harness.api.bindDockerContainerContextStatePatch(), true);
+
+    const staleStoppedArgs = ['audiobookshelf', 'image', 'template', false, false, 1, false];
+    assert.equal(harness.window.addDockerContainerContext(...staleStoppedArgs), 'context-result');
+    assert.equal(harness.contextCalls[0][3], true);
+    assert.equal(harness.contextCalls[0][4], false);
+    assert.equal(harness.contextCalls[0][5], 0);
+    assert.equal(harness.contextCalls[0][6], true);
+
+    harness.runtimeByName.audiobookshelf.info.State.Running = false;
+    harness.runtimeByName.audiobookshelf.info.State.Autostart = false;
+    const staleStartedArgs = ['audiobookshelf', 'image', 'template', true, false, 0, true];
+    harness.window.addDockerContainerContext(...staleStartedArgs);
+    assert.equal(harness.contextCalls[1][3], false);
+    assert.equal(harness.contextCalls[1][4], false);
+    assert.equal(harness.contextCalls[1][6], false);
+
+    const wrappedContextBuilder = harness.window.addDockerContainerContext;
+    assert.equal(harness.api.bindDockerContainerContextStatePatch(), true);
+    assert.equal(harness.window.addDockerContainerContext, wrappedContextBuilder);
 });
 
 test('Docker lifecycle reconciliation never promotes revision churn into a grouped-table rebuild', () => {

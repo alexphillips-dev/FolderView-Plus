@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.31">
-<!ENTITY md5 "3a5b307a2bc945aa852cb5fb0bc2fdbf">
+<!ENTITY version "2026.07.16.32">
+<!ENTITY md5 "300b9546fbf46cd5bac06aa0ab3ac185">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.32
+### Live Docker action-menu state
+- Fix: Container menus now immediately switch between Start, Stop, Pause, and Resume after lifecycle actions without requiring a page refresh.
+- Fix: Prevents stale Start actions from being offered for containers that are already running, eliminating the resulting Docker "already running" error.
+- Reliability: Native Unraid context menus now resolve lifecycle state from FolderView Plus's canonical runtime cache instead of the original row's immutable inline arguments.
+- UI/UX: Already-initialized folder preview popups refresh their status icon and available actions as soon as incremental runtime reconciliation settles.
+- Test: Adds stopped-to-started-to-stopped regression coverage for native context menus and live preview popup refreshes.
+
 
 ###2026.07.16.31
 ### Docker lifecycle spinner cleanup

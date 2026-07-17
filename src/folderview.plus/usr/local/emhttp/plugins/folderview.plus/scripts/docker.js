@@ -968,6 +968,7 @@ const getDockerRuntimeReconcileApi = () => {
                 queueDockerSupportBundlePageSnapshot(reason, delayMs),
             markDockerFatalBannerStep: (step) => markDockerFatalBannerStep(step),
             getDockerHostGuardsApi: () => getDockerHostGuardsApi(),
+            getDockerRuntimeContainerInfo: (containerName) => getDockerRuntimeContainerInfo(containerName),
             initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
             pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
         });
@@ -2503,6 +2504,36 @@ const buildDockerTooltipContent = (ct) => {
         }
     });
     return $content;
+};
+
+const refreshDockerPreviewTooltipContent = (changedNames = null) => {
+    const names = changedNames instanceof Set
+        ? Array.from(changedNames)
+        : (Array.isArray(changedNames) ? changedNames : Object.keys(dockerRuntimeInfoByName || {}));
+    names.forEach((name) => {
+        const runtimeEntry = getDockerRuntimeContainerInfo(name);
+        const shortId = String(runtimeEntry?.shortId || '').trim();
+        if (!runtimeEntry || !shortId) {
+            return;
+        }
+        const triggerId = `folder-preview-${shortId}`;
+        $('[id^="folder-preview-"]').filter((_, node) => String(node?.id || '') === triggerId).each((_, node) => {
+            const $trigger = $(node);
+            $trigger.data('fvTooltipLazyBuilt', false);
+            if ($trigger.data('fvTooltipsterInitialized') !== true || typeof $trigger.tooltipster !== 'function') {
+                return;
+            }
+            try {
+                const instance = $trigger.tooltipster('instance');
+                if (instance && typeof instance.content === 'function') {
+                    instance.content(buildDockerTooltipContent(runtimeEntry));
+                    $trigger.data('fvTooltipLazyBuilt', true);
+                }
+            } catch (_error) {
+                // Leave the tooltip invalidated so functionBefore rebuilds it on the next open.
+            }
+        });
+    });
 };
 
 const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
@@ -4412,6 +4443,7 @@ const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
     applyDockerFocusedFolderState();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    refreshDockerPreviewTooltipContent(changedSet);
     dockerRuntimeStateStore.set({
         rowReconciliation: {
             mode: changedSet ? 'incremental' : 'full-cache-sync',
@@ -5080,6 +5112,9 @@ function bindDockerHostOpenDockerPatch() {
 }
 const bindDockerLifecycleEventControlPatch = () => {
     getDockerRuntimeReconcileApi()?.bindLifecycleEventControlPatch?.();
+};
+const bindDockerContainerContextStatePatch = () => {
+    getDockerRuntimeReconcileApi()?.bindDockerContainerContextStatePatch?.();
 };
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
     return getDockerRuntimeReconcileApi()?.armPostUpdateRuntimeReconcileWindow?.(durationMs, options) || 0;
@@ -7585,6 +7620,7 @@ window.loadlist = () => {
     getDockerHostGuardsApi()?.noteHookInvocation?.('window.loadlist', { note: 'invoked' });
     bindDockerHostOpenDockerPatch();
     bindDockerLifecycleEventControlPatch();
+    bindDockerContainerContextStatePatch();
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
@@ -8360,6 +8396,7 @@ folderReq = buildDockerFolderReq();
 markDockerFatalBannerStep('Docker request bundle primed');
 bindDockerHostOpenDockerPatch();
 bindDockerLifecycleEventControlPatch();
+bindDockerContainerContextStatePatch();
 bindDockerUpdateActionClickCapture();
 bindDockerPostUpdateRenderReconcile();
 startDockerListViewModeObserver();

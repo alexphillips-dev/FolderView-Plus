@@ -233,6 +233,14 @@ test('docker incremental lifecycle sync removes pending spinner classes from eve
     );
 });
 
+test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {
+    assert.match(dockerScript, /const refreshDockerPreviewTooltipContent = \(changedNames = null\) =>/);
+    assert.match(dockerScript, /const runtimeEntry = getDockerRuntimeContainerInfo\(name\);/);
+    assert.match(dockerScript, /const instance = \$trigger\.tooltipster\('instance'\);/);
+    assert.match(dockerScript, /instance\.content\(buildDockerTooltipContent\(runtimeEntry\)\);/);
+    assert.match(dockerScript, /refreshDockerPreviewTooltipContent\(changedSet\);/);
+});
+
 test('docker hydration refresh updates collapsed folder update columns from runtime cache', () => {
     assert.match(dockerScript, /const renderFolderUpdateColumn = \(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\) => \{/);
     assert.match(dockerScript, /renderFolderUpdateColumn\(id,\s*\$updateColumn,\s*managerTypes,\s*upToDate,\s*managed\);/);

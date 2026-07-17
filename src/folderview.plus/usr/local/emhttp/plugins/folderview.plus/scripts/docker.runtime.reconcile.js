@@ -52,6 +52,9 @@
         const getDockerHostGuardsApi = typeof deps.getDockerHostGuardsApi === 'function'
             ? deps.getDockerHostGuardsApi
             : (() => null);
+        const getDockerRuntimeContainerInfo = typeof deps.getDockerRuntimeContainerInfo === 'function'
+            ? deps.getDockerRuntimeContainerInfo
+            : (() => null);
         const initialDelayMsDefault = Math.max(0, Number(deps.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS) || DEFAULT_INITIAL_DELAY_MS);
         const pollDelayMsDefault = Math.max(0, Number(deps.pollDelayMs ?? DEFAULT_POLL_DELAY_MS) || DEFAULT_POLL_DELAY_MS);
 
@@ -65,6 +68,44 @@
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
         let dockerLifecycleRefreshGeneration = 0;
         let pendingDockerLifecycleRequest = {};
+
+        const bindDockerContainerContextStatePatch = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return false;
+            }
+            const currentContextBuilder = win.addDockerContainerContext;
+            if (typeof currentContextBuilder !== 'function') {
+                return false;
+            }
+            if (currentContextBuilder.__fvplusDockerRuntimeStatePatched === true) {
+                return true;
+            }
+            const originalContextBuilder = currentContextBuilder;
+            const wrappedContextBuilder = function(...args) {
+                const containerName = String(args?.[0] || '').trim();
+                const runtimeEntry = containerName ? getDockerRuntimeContainerInfo(containerName) : null;
+                const runtimeState = runtimeEntry?.info?.State && typeof runtimeEntry.info.State === 'object'
+                    ? runtimeEntry.info.State
+                    : null;
+                if (runtimeState && typeof runtimeState.Running === 'boolean') {
+                    args[3] = runtimeState.Running;
+                    args[4] = runtimeState.Running && runtimeState.Paused === true;
+                    if (typeof runtimeState.Updated === 'boolean') {
+                        args[5] = runtimeState.Updated === false ? 1 : 0;
+                    }
+                    if (typeof runtimeState.Autostart === 'boolean') {
+                        args[6] = runtimeState.Autostart;
+                    }
+                }
+                return originalContextBuilder.apply(this, args);
+            };
+            try {
+                wrappedContextBuilder.__fvplusDockerRuntimeStatePatched = true;
+                wrappedContextBuilder.__fvplusOriginal = originalContextBuilder;
+            } catch (_error) {}
+            win.addDockerContainerContext = wrappedContextBuilder;
+            return true;
+        };
 
         const clearPostUpdateRuntimePoll = () => {
             if (dockerPostUpdateRuntimePollTimer) {
@@ -427,6 +468,7 @@
             armPostUpdateRuntimeReconcileWindow,
             handleUpdateActionClickCapture,
             bindUpdateActionClickCapture,
+            bindDockerContainerContextStatePatch,
             isDockerLifecycleRequest,
             runDockerLifecycleRefresh,
             bindLifecycleEventControlPatch,

@@ -25,6 +25,7 @@ const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const requestClientJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
@@ -209,8 +210,9 @@ test('folder editor supports unicode names and secure guarded create/update post
     }
     assert.equal(folderNameControlCharRegex.test("Bad\u0000Name"), true);
     assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
-    assert.match(folderIconApiJs, /payload\._fv_request = '1';/);
-    assert.match(folderIconApiJs, /'X-FV-Request': '1'/);
+    assert.match(folderIconApiJs, /requestClient\.postJson\(url, data, \{ retries: 0 \}\)/);
+    assert.match(requestClientJs, /'X-FV-Request': '1'/);
+    assert.match(requestClientJs, /payload\._fv_request = '1';/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
 });
@@ -220,9 +222,9 @@ test('request guard allows explicit mutation header fallback when token bypass i
     assert.match(libPhp, /\$_POST\['_fv_request'\] \?\? \$_GET\['_fv_request'\] \?\? ''/);
     assert.match(libPhp, /\$tokenRequiredForBypass = \$tokenMode !== 'off' && getConfiguredRequestToken\(\) !== '';/);
     assert.match(libPhp, /hasExplicitMutationRequestHeader\(\) && \(\$tokenValidated \|\| !\$tokenRequiredForBypass\)/);
-    assert.match(folderViewPlusJs, /const buildMutationRequestPayload = \(data = \{\}\) =>/);
-    assert.match(folderViewPlusJs, /payload\._fv_request = '1';/);
-    assert.match(folderViewPlusJs, /\$\.post\(url, buildMutationRequestPayload\(data\)\)/);
+    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = ''\) =>/);
+    assert.match(requestClientJs, /payload\._fv_request = '1';/);
+    assert.match(folderViewPlusJs, /requestClient\.postJson\(url, data, options\)/);
 });
 
 test('external links and popup actions enforce noopener protections', () => {

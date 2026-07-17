@@ -20,6 +20,9 @@ const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile
 const dockerCommandViewModule = window.FolderViewPlusDockerCommandView || null;
 const dockerTreeExplorerModule = window.FolderViewPlusDockerTreeExplorer || null;
 const dockerOrbitViewModule = window.FolderViewPlusDockerOrbitView || null;
+const dockerT = (key, fallback = '', ...params) => (
+    window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
+);
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -4651,14 +4654,14 @@ const DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID = 'fvplus-docker-runtime-privacy-men
 const DOCKER_RUNTIME_PRIVACY_MENU_ID = 'fvplus-docker-runtime-privacy-menu';
 const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus.runtime.privacy.docker.v1';
 const DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS = Object.freeze([
-    Object.freeze({ key: 'privacyMaskNames', label: 'Mask names and icons' }),
-    Object.freeze({ key: 'privacyMaskLocalIps', label: 'Mask LAN IPs' }),
-    Object.freeze({ key: 'privacyMaskPorts', label: 'Mask ports' }),
-    Object.freeze({ key: 'privacyMaskVolumePaths', label: 'Mask volume paths' }),
-    Object.freeze({ key: 'privacyMaskImageRegistry', label: 'Mask image registries' }),
-    Object.freeze({ key: 'privacyMaskPublicIps', label: 'Mask public IPs' }),
-    Object.freeze({ key: 'privacyMaskInterfaces', label: 'Mask network interfaces' }),
-    Object.freeze({ key: 'privacyMaskExternalUrls', label: 'Mask external URLs' })
+    Object.freeze({ key: 'privacyMaskNames', label: 'Mask names and icons', i18nKey: 'docker.privacy.mask-names' }),
+    Object.freeze({ key: 'privacyMaskLocalIps', label: 'Mask LAN IPs', i18nKey: 'docker.privacy.mask-lan-ips' }),
+    Object.freeze({ key: 'privacyMaskPorts', label: 'Mask ports', i18nKey: 'docker.privacy.mask-ports' }),
+    Object.freeze({ key: 'privacyMaskVolumePaths', label: 'Mask volume paths', i18nKey: 'docker.privacy.mask-volume-paths' }),
+    Object.freeze({ key: 'privacyMaskImageRegistry', label: 'Mask image registries', i18nKey: 'docker.privacy.mask-image-registries' }),
+    Object.freeze({ key: 'privacyMaskPublicIps', label: 'Mask public IPs', i18nKey: 'docker.privacy.mask-public-ips' }),
+    Object.freeze({ key: 'privacyMaskInterfaces', label: 'Mask network interfaces', i18nKey: 'docker.privacy.mask-network-interfaces' }),
+    Object.freeze({ key: 'privacyMaskExternalUrls', label: 'Mask external URLs', i18nKey: 'docker.privacy.mask-external-urls' })
 ]);
 const DOCKER_RUNTIME_PRIVACY_OPTION_KEYS = new Set(DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS.map((option) => option.key));
 const DOCKER_LEGACY_HOST_BOOTSTRAP_RENDER_COMPAT = false;
@@ -4930,7 +4933,7 @@ const buildDockerRuntimePrivacyMenuOptionsHtml = (prefs = null) => {
                 data-fvplus-privacy-option="${escapeHtml(option.key)}"
                 ${dashboard[option.key] !== false ? 'checked' : ''}
             >
-            <span>${escapeHtml(option.label)}</span>
+            <span>${escapeHtml(dockerT(option.i18nKey, option.label))}</span>
         </label>
     `).join('');
 };
@@ -5039,27 +5042,27 @@ const renderDockerRuntimePrivacyToggle = () => {
     const savePending = dockerRuntimePrivacyPersistPromise !== null;
     const menuOptionsHtml = buildDockerRuntimePrivacyMenuOptionsHtml(folderTypePrefs);
     shell.innerHTML = `
-        <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
+        <span class="fvplus-docker-runtime-toggle-label">${escapeHtml(dockerT('docker.privacy.label', 'Privacy'))}</span>
         <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
         <button
             id="${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}"
             class="fvplus-docker-runtime-privacy-menu-button${dockerRuntimePrivacyMenuOpen ? ' is-open' : ''}"
             type="button"
-            aria-label="Privacy options"
+            aria-label="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
             aria-haspopup="dialog"
             aria-expanded="${dockerRuntimePrivacyMenuOpen ? 'true' : 'false'}"
             aria-controls="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
-            title="Privacy options"
+            title="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
         ><i class="fa fa-sliders" aria-hidden="true"></i><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
         <div
             id="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
             class="fvplus-docker-runtime-privacy-menu"
             role="dialog"
-            aria-label="Docker privacy options"
+            aria-label="${escapeHtml(dockerT('docker.privacy.dialog-label', 'Docker privacy options'))}"
             ${dockerRuntimePrivacyMenuOpen ? '' : 'hidden'}
         >
-            <div class="fvplus-docker-runtime-privacy-menu-heading">Privacy mode</div>
-            <div class="fvplus-docker-runtime-privacy-menu-help">Choose what is hidden while Privacy is enabled.</div>
+            <div class="fvplus-docker-runtime-privacy-menu-heading">${escapeHtml(dockerT('docker.privacy.title', 'Privacy mode'))}</div>
+            <div class="fvplus-docker-runtime-privacy-menu-help">${escapeHtml(dockerT('docker.privacy.description', 'Choose what is hidden while Privacy is enabled.'))}</div>
             <div class="fvplus-docker-runtime-privacy-menu-options">${menuOptionsHtml}</div>
         </div>
     `;

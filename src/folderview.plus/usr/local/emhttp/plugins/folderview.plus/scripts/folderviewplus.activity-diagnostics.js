@@ -522,6 +522,12 @@ const getSupportBundleTelemetryApi = () => {
             getStandardRequestDiagnosticsSnapshot,
             collectFolderEditorDebugDiagnostics,
             collectThemeTelemetrySnapshot,
+            getLocalizationDiagnosticsSnapshot: () => window.FolderViewPlusI18n?.snapshot?.() || {
+                requestedLocale: document.documentElement?.lang || 'en',
+                resolvedLocale: 'en',
+                activeLocale: document.documentElement?.lang || 'en',
+                initialized: false
+            },
             readClientDiagnosticsStorageRecord,
             storageKeys: {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
@@ -562,7 +568,13 @@ const collectSupportBundleUiTelemetry = (bundle) => {
             ? fatalBanner.getBrowserConsoleErrorSnapshot()
             : { count: 0, entries: [] },
         folderEditorDebug: collectFolderEditorDebugDiagnostics(),
-        theme: collectThemeTelemetrySnapshot()
+        theme: collectThemeTelemetrySnapshot(),
+        localization: window.FolderViewPlusI18n?.snapshot?.() || {
+            requestedLocale: document.documentElement?.lang || 'en',
+            resolvedLocale: 'en',
+            activeLocale: document.documentElement?.lang || 'en',
+            initialized: false
+        }
     };
     return payload;
 };

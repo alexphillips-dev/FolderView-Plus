@@ -1,8 +1,17 @@
 {
     "@metadata": {
         "authors": [],
+        "catalog-version": "2026.07.17.1",
+        "direction": "ltr",
+        "last-reviewed": null,
         "last-updated": "2026-03-08",
-        "locale": "cs"
+        "locale": "cs",
+        "native-name": "Čeština",
+        "reviewed": false,
+        "source-revision": "2026.07.17.1",
+        "status": "placeholder",
+        "translated-messages": 0,
+        "total-source-messages": 338
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",

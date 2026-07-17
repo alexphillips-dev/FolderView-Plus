@@ -329,6 +329,9 @@
         const collectThemeTelemetrySnapshot = typeof deps.collectThemeTelemetrySnapshot === 'function'
             ? deps.collectThemeTelemetrySnapshot
             : (() => null);
+        const getLocalizationDiagnosticsSnapshot = typeof deps.getLocalizationDiagnosticsSnapshot === 'function'
+            ? deps.getLocalizationDiagnosticsSnapshot
+            : (() => ({ requestedLocale: 'en', resolvedLocale: 'en', activeLocale: 'en', initialized: false }));
         const readClientDiagnosticsStorageRecord = typeof deps.readClientDiagnosticsStorageRecord === 'function'
             ? deps.readClientDiagnosticsStorageRecord
             : (() => null);
@@ -421,6 +424,11 @@
                 collectFolderEditorDebugDiagnostics()
             );
             existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
+            existingUiTelemetry.localization = uiRedactor.sanitizeValue(
+                'uiTelemetry.localization',
+                'localization',
+                getLocalizationDiagnosticsSnapshot()
+            );
             payload.uiTelemetry = existingUiTelemetry;
             payload.redactionManifest.privacySelfCheck = buildUiTelemetryPrivacySelfCheck(
                 existingUiTelemetry,

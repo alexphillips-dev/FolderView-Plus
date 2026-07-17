@@ -50,7 +50,7 @@ test('import selection and compare tables include pagination and live counters',
     assert.match(runtimeScript, /renderOperationSelection\(updateSelectionSummary\)/);
     assert.match(runtimeScript, /class="import-summary-total"/);
     assert.match(runtimeScript, /class="import-summary-breakdown"/);
-    assert.match(runtimeScript, /\$\{selectedCreates\} new/);
+    assert.match(runtimeScript, /importT\('import\.summary\.new', '\$1 new', selectedCreates\)/);
     assert.match(runtimeScript, /class="fv-import-diff-prev"/);
     assert.match(runtimeScript, /class="fv-backup-diff-prev"/);
 });

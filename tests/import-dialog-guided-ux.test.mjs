@@ -51,10 +51,10 @@ test('secondary information is hidden behind clear progressive-disclosure sectio
     assert.match(page, /class="import-disclosure import-review-details"/);
     assert.match(page, /Review planned changes/);
     assert.match(page, /class="import-disclosure import-secondary-options"/);
-    assert.match(page, /<strong>Safety options<\/strong>/);
-    assert.match(page, /<small>Preview and confirmation<\/small>/);
+    assert.match(page, /<strong[^>]*>Safety options<\/strong>/);
+    assert.match(page, /<small[^>]*>Preview and confirmation<\/small>/);
     assert.match(page, /class="import-disclosure import-source-details"/);
-    assert.match(page, /<strong>File details<\/strong>/);
+    assert.match(page, /<strong[^>]*>File details<\/strong>/);
     assert.doesNotMatch(page, /class="import-disclosure[^>]*" open/);
 });
 

@@ -1,4 +1,6 @@
 <?php
+    require_once(__DIR__ . '/../langs/registry.php');
+
     function normalizeDiagnosticsPrivacyMode(string $mode): string {
         return strtolower(trim($mode)) === 'full' ? 'full' : FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY;
     }
@@ -2423,6 +2425,8 @@
     }
 
     function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array $redactor): array {
+        $requestedLocale = fvplus_i18n_normalize_locale((string)($_SESSION['locale'] ?? 'en'));
+        $localeResolution = fvplus_i18n_resolve_locale($requestedLocale);
         return [
             'bundleType' => 'FolderViewPlusSupportBundle',
             'bundleVersion' => 2,
@@ -2434,6 +2438,14 @@
             'redactionPolicyVersion' => 1,
             'bundleSaltScope' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)) === 'full' ? 'none' : 'per-bundle',
             'bundleSaltHash' => $redactor['saltFingerprint'] ?? null,
+            'localization' => [
+                'requestedLocale' => $requestedLocale,
+                'resolvedLocale' => (string)($localeResolution['resolved'] ?? 'en'),
+                'fallbackChain' => array_values(is_array($localeResolution['fallbackChain'] ?? null) ? $localeResolution['fallbackChain'] : [$requestedLocale, 'en']),
+                'direction' => (string)($localeResolution['direction'] ?? 'ltr'),
+                'catalogVersion' => FVPLUS_I18N_CATALOG_VERSION,
+                'status' => (string)($localeResolution['status'] ?? 'source')
+            ],
             'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics)
         ];
     }

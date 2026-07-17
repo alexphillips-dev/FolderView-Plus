@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.1",
+        "locale": "en",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Setup Assistant",
+    "wizard.welcome.kicker": "FolderView Plus Setup Assistant",
+    "wizard.welcome.title": "Organize your Docker containers and VMs into folders.",
+    "wizard.welcome.description": "FolderView Plus helps group related apps, preview changes before they are applied, and optionally keep future apps organized automatically.",
+    "wizard.welcome.begin": "Begin Setup",
+    "wizard.welcome.skip": "Skip wizard",
+    "wizard.welcome.group-title": "Group related apps",
+    "wizard.welcome.group-description": "Keep media, downloads, utilities, home automation, and other apps together.",
+    "wizard.welcome.preview-title": "Preview before applying",
+    "wizard.welcome.preview-description": "You will review folders, assignments, rules, and settings before anything changes.",
+    "wizard.welcome.automatic-title": "Stay organized automatically",
+    "wizard.welcome.automatic-description": "Optional starter rules can place future matching apps into the right folders.",
+    "wizard.navigation.next": "Next",
+    "wizard.navigation.back": "Back",
+    "wizard.navigation.begin": "Begin Setup",
+    "wizard.navigation.run-preview": "Run preview",
+    "wizard.navigation.apply": "Apply setup",
+    "wizard.navigation.show-details": "Show details",
+    "wizard.navigation.hide-details": "Hide details",
+    "wizard.navigation.close": "Close",
+    "wizard.navigation.review": "Review",
+    "wizard.navigation.go-to": "Go to $1",
+    "wizard.progress.step": "Step $1 of $2",
+    "wizard.impact.live": "Live impact for this step"
+}

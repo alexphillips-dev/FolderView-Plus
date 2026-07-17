@@ -152,6 +152,7 @@ The plugin uses shared theme tokens for modern dark and light surfaces, while st
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Theme Guide](docs/THEME_GUIDE.md)
 - [Theme API Contract](docs/THEME_API_CONTRACT.md)
+- [Translation Guide](docs/TRANSLATING.md)
 - [Support Policy](docs/SUPPORT_POLICY.md)
 - [Visual Runtime Contract](docs/visual-runtime-contract.md)
 

@@ -3,32 +3,42 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
-EN_FILE="${PLUGIN_DIR}/langs/en.json"
+LANG_DIR="${PLUGIN_DIR}/langs"
 STRICT_MODE="${FVPLUS_I18N_STRICT:-0}"
 ALLOW_UNUSED_KEYS="${FVPLUS_I18N_ALLOW_UNUSED_KEYS:-}"
+HARDCODED_BASELINE="${ROOT_DIR}/scripts/i18n_hardcoded_baseline.json"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 
-if [[ ! -f "${EN_FILE}" ]]; then
-  fvplus::fail "Missing base locale file: ${EN_FILE}"
+if [[ ! -f "${LANG_DIR}/en.json" ]]; then
+  fvplus::fail "Missing base locale file: ${LANG_DIR}/en.json"
 fi
 
-"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${EN_FILE}")" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" "$(fvplus::path_for_command "${NODE_BIN}" "${HARDCODED_BASELINE}")" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 
 const pluginDir = process.argv[2];
-const enFile = process.argv[3];
+const langDir = process.argv[3];
 const strictMode = /^(1|true|yes|on)$/i.test(String(process.argv[4] || '').trim());
+const hardcodedBaselineFile = process.argv[6];
 const allowUnusedKeys = new Set(
   String(process.argv[5] || '')
     .split(/[,\n;]+/)
     .map((raw) => raw.trim())
     .filter(Boolean)
 );
+[
+  'custom-action',
+  'custom-actions-type-0',
+  'custom-actions-type-1',
+  'folderviewplus-desc',
+  'member-preview-visible',
+  'updating'
+].forEach((key) => allowUnusedKeys.add(key));
 
 const normalizeKey = (raw) => {
   if (!raw) return '';
@@ -71,25 +81,65 @@ while (queue.length > 0) {
   }
 }
 
-let en;
-try {
-  en = JSON.parse(fs.readFileSync(enFile, 'utf8'));
-} catch (error) {
-  console.error(`ERROR: Failed to parse ${enFile}: ${error.message}`);
-  process.exit(1);
+const catalogFiles = [path.join(langDir, 'en.json')];
+const englishNamespaces = path.join(langDir, 'namespaces', 'en');
+if (fs.existsSync(englishNamespaces)) {
+  catalogFiles.push(...fs.readdirSync(englishNamespaces)
+    .filter((name) => name.endsWith('.json'))
+    .sort()
+    .map((name) => path.join(englishNamespaces, name)));
 }
-
-if (!en || typeof en !== 'object' || Array.isArray(en)) {
-  console.error('ERROR: en.json must contain a JSON object.');
-  process.exit(1);
+const en = {};
+for (const catalogFile of catalogFiles) {
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(catalogFile, 'utf8'));
+  } catch (error) {
+    console.error(`ERROR: Failed to parse ${catalogFile}: ${error.message}`);
+    process.exit(1);
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    console.error(`ERROR: ${catalogFile} must contain a JSON object.`);
+    process.exit(1);
+  }
+  for (const [key, value] of Object.entries(parsed)) {
+    if (key === '@metadata') continue;
+    if (Object.prototype.hasOwnProperty.call(en, key)) {
+      console.error(`ERROR: Duplicate English locale key "${key}" in ${catalogFile}.`);
+      process.exit(1);
+    }
+    en[key] = value;
+  }
 }
 
 const localeKeys = new Set(Object.keys(en));
 const referencedKeys = new Map();
+const hardcodedCounts = {};
 
 for (const fullPath of sourceFiles.sort()) {
   const relPath = path.relative(pluginDir, fullPath).replace(/\\/g, '/');
   const source = fs.readFileSync(fullPath, 'utf8');
+  let hardcodedCount = 0;
+  const attributeRegex = /\b(?:placeholder|aria-label|title)\s*=\s*["']([A-Za-z][^"'<>]*[A-Za-z])["']/g;
+  let attributeMatch;
+  while ((attributeMatch = attributeRegex.exec(source)) !== null) {
+    const tagStart = source.lastIndexOf('<', attributeMatch.index);
+    const tagEnd = source.indexOf('>', attributeMatch.index);
+    const tagSource = tagStart >= 0 && tagEnd >= 0 ? source.slice(tagStart, tagEnd + 1) : '';
+    if (/\bdata-i18n\s*=/.test(tagSource) || /\bdata-i18n-ignore\b/.test(tagSource)) continue;
+    hardcodedCount += 1;
+  }
+  const textNodeRegex = />([^<>{}`$]*[A-Za-z][^<>{}`$]*)</g;
+  let textMatch;
+  while ((textMatch = textNodeRegex.exec(source)) !== null) {
+    const text = String(textMatch[1] || '').replace(/\s+/g, ' ').trim();
+    if (!text || text.length < 2 || /^(?:https?:|\/|[A-Z0-9_.-]+)$/.test(text)) continue;
+    const tagStart = source.lastIndexOf('<', textMatch.index);
+    const tagSource = tagStart >= 0 ? source.slice(tagStart, textMatch.index + 1) : '';
+    if (/\bdata-i18n\s*=/.test(tagSource) || /\bdata-i18n-ignore\b/.test(tagSource)) continue;
+    hardcodedCount += 1;
+  }
+  if (hardcodedCount > 0) hardcodedCounts[relPath] = hardcodedCount;
 
   const dataI18nRegex = /data-i18n\s*=\s*["']([^"']+)["']/g;
   let match;
@@ -123,6 +173,33 @@ for (const fullPath of sourceFiles.sort()) {
     if (!referencedKeys.has(key)) referencedKeys.set(key, []);
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
+
+  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|translate)\(\s*['"]([^'"]+)['"]/g;
+  while ((match = applicationWrapperRegex.exec(source)) !== null) {
+    const key = match[1].trim();
+    if (!key) continue;
+    const line = lineNumberAt(source, match.index);
+    if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+    referencedKeys.get(key).push(`${relPath}:${line}`);
+  }
+
+  const declaredApplicationKeyRegex = /\bi18nKey\s*:\s*['"]([^'"]+)['"]/g;
+  while ((match = declaredApplicationKeyRegex.exec(source)) !== null) {
+    const key = match[1].trim();
+    if (!key) continue;
+    const line = lineNumberAt(source, match.index);
+    if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+    referencedKeys.get(key).push(`${relPath}:${line}`);
+  }
+
+  const directApplicationRegex = /FolderViewPlusI18n(?:\?\.|\.)t(?:\?\.)?\(\s*['"]([^'"]+)['"]/g;
+  while ((match = directApplicationRegex.exec(source)) !== null) {
+    const key = match[1].trim();
+    if (!key) continue;
+    const line = lineNumberAt(source, match.index);
+    if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+    referencedKeys.get(key).push(`${relPath}:${line}`);
+  }
 }
 
 const missing = [...referencedKeys.keys()].filter((key) => !localeKeys.has(key)).sort();
@@ -149,5 +226,27 @@ if (unused.length > 0) {
   }
 }
 
-console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${referencedKeys.size} unique keys referenced.`);
+let hardcodedBaseline = null;
+try {
+  hardcodedBaseline = JSON.parse(fs.readFileSync(hardcodedBaselineFile, 'utf8'));
+} catch (error) {
+  console.error(`ERROR: Missing or invalid hard-coded UI baseline ${hardcodedBaselineFile}: ${error.message}`);
+  console.error(JSON.stringify(hardcodedCounts, null, 2));
+  process.exit(1);
+}
+const baselineCounts = hardcodedBaseline?.files && typeof hardcodedBaseline.files === 'object'
+  ? hardcodedBaseline.files
+  : {};
+const hardcodedRegressions = Object.entries(hardcodedCounts)
+  .filter(([file, count]) => count > Number(baselineCounts[file] || 0));
+if (hardcodedRegressions.length > 0) {
+  console.error(`ERROR: ${hardcodedRegressions.length} file(s) introduced additional hard-coded user-facing strings.`);
+  for (const [file, count] of hardcodedRegressions.slice(0, 30)) {
+    console.error(`  - ${file}: ${count} candidate(s), baseline ${Number(baselineCounts[file] || 0)}`);
+  }
+  process.exit(1);
+}
+const hardcodedTotal = Object.values(hardcodedCounts).reduce((sum, count) => sum + Number(count || 0), 0);
+
+console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${catalogFiles.length} English catalog file(s), ${referencedKeys.size} unique keys referenced, ${hardcodedTotal} baselined hard-coded candidate(s).`);
 NODE

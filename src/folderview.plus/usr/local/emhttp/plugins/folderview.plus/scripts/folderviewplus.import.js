@@ -1,3 +1,12 @@
+const importT = (key, fallback = '', ...params) => {
+    if (window.FolderViewPlusI18n?.t) {
+        return window.FolderViewPlusI18n.t(key, fallback, ...params);
+    }
+    return String(fallback || key).replace(/\$(\d+)/g, (match, index) => (
+        params[Number(index) - 1] === undefined ? match : String(params[Number(index) - 1])
+    ));
+};
+
 const closeImportApplyProgressDialog = () => {
     const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
@@ -515,18 +524,20 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         counts.html(`
             <div class="import-summary-total">
                 <strong>${selectedCount}</strong>
-                <span>${currentDryRunOnly ? 'planned change' : 'folder change'}${selectedCount === 1 ? '' : 's'}${currentDryRunOnly ? ' in preview' : ''}</span>
+                <span>${escapeHtml(currentDryRunOnly
+                    ? importT('import.summary.planned-change', selectedCount === 1 ? 'planned change in preview' : 'planned changes in preview', selectedCount)
+                    : importT('import.summary.folder-change', selectedCount === 1 ? 'folder change' : 'folder changes', selectedCount))}</span>
             </div>
             <div class="import-summary-breakdown">
-                <span class="is-create"><i class="fa fa-plus" aria-hidden="true"></i> ${selectedCreates} new</span>
-                <span class="is-update"><i class="fa fa-refresh" aria-hidden="true"></i> ${selectedUpdates} update${selectedUpdates === 1 ? '' : 's'}</span>
-                <span class="is-delete"><i class="fa fa-trash" aria-hidden="true"></i> ${selectedDeletes} delete${selectedDeletes === 1 ? '' : 's'}</span>
+                <span class="is-create"><i class="fa fa-plus" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.new', '$1 new', selectedCreates))}</span>
+                <span class="is-update"><i class="fa fa-refresh" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.update', `$1 update${selectedUpdates === 1 ? '' : 's'}`, selectedUpdates))}</span>
+                <span class="is-delete"><i class="fa fa-trash" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.delete', `$1 delete${selectedDeletes === 1 ? '' : 's'}`, selectedDeletes))}</span>
                 ${riskInfo.level === 'normal' ? '' : `<span class="is-risk"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ${escapeHtml(riskInfo.label)}</span>`}
             </div>
         `);
         changeDetailsLabel.text(selectedCount > 0
-            ? `Review ${selectedCount} planned change${selectedCount === 1 ? '' : 's'}`
-            : 'Review planned changes');
+            ? importT('import.review.count', `Review $1 planned change${selectedCount === 1 ? '' : 's'}`, selectedCount)
+            : importT('import.review.title', 'Review planned changes'));
         syncImportSafetyUi();
     };
     const refreshPresetControls = () => {
@@ -743,13 +754,17 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
 
     refreshPresetControls();
-    $('#import-preview-kind').text(type === 'docker' ? 'Docker folder' : 'VM folder');
+    $('#import-preview-kind').text(type === 'docker'
+        ? importT('import.kind.docker-folder', 'Docker folder')
+        : importT('import.kind.vm-folder', 'VM folder'));
     renderPreview();
 
     const modalWidth = getImportDialogWidths().shellWidth;
     const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
-        title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
+        title: type === 'docker'
+            ? importT('import.dialog.docker-title', 'Import Docker Folders')
+            : importT('import.dialog.vm-title', 'Import VM Folders'),
         resizable: false,
         width: modalWidth,
         maxHeight: modalMaxHeight,
@@ -762,7 +777,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             const dialogShell = dialog.closest('.ui-dialog');
             const buttonPane = dialogShell.find('.ui-dialog-buttonpane');
             const applyButton = getImportApplyButton();
-            applyButton.addClass('fv-import-apply-button').html('<i class="fa fa-check" aria-hidden="true"></i> Apply import');
+            applyButton.addClass('fv-import-apply-button').html(`<i class="fa fa-check" aria-hidden="true"></i> ${escapeHtml(importT('import.actions.apply', 'Apply import'))}`);
             const dialogButtons = buttonPane.find('button');
             dialogButtons.addClass('fv-import-dialog-button');
             dialogButtons.not(applyButton).addClass('fv-import-cancel-button');

@@ -53,12 +53,12 @@ test('settings page exposes granular privacy mask controls under a privacy mode 
     assert.doesNotMatch(settingsPage, /id="docker-dashboard-privacy-mask-container-ips"/);
     assert.doesNotMatch(settingsPage, /id="docker-dashboard-privacy-mask-local-ips"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-lan-ips"/);
-    assert.match(settingsPage, /> Mask LAN IPs<\/label>/);
+    assert.match(settingsPage, /data-i18n="settings\.privacy\.mask-lan-ips">Mask LAN IPs<\/span><\/label>/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-ports"/);
     assert.doesNotMatch(settingsPage, /id="vm-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-mask-names"/);
-    assert.match(settingsPage, /<div class="setting-help">Non-classic layouts can show[\s\S]*<div class="settings-privacy-title">Privacy mode<\/div>/);
+    assert.match(settingsPage, /<div class="setting-help">Non-classic layouts can show[\s\S]*<div class="settings-privacy-title"[^>]*>Privacy mode<\/div>/);
     assert.doesNotMatch(settingsPage, /changeDashboardPref\('docker', 'privacyMode', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskNames', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskLocalIps', this\.checked\)/);

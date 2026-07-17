@@ -55,15 +55,6 @@
         const folderIconApi = deps.folderIconApi && typeof deps.folderIconApi === 'object' ? deps.folderIconApi : null;
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : fallbackAsArray;
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : fallbackEscapeHtml;
-        const parseJsonPayload = typeof deps.parseJsonPayload === 'function'
-            ? deps.parseJsonPayload
-            : ((value) => {
-                try {
-                    return typeof value === 'string' ? JSON.parse(value.replace(/^\uFEFF/, '')) : value;
-                } catch (_error) {
-                    return null;
-                }
-            });
         const paginateItems = typeof deps.paginateItems === 'function' ? deps.paginateItems : fallbackPaginateItems;
         const filterIconItems = typeof deps.filterIconItems === 'function' ? deps.filterIconItems : fallbackFilterIconItems;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);

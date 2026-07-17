@@ -39,7 +39,10 @@ test('FolderView action bar exposes the complete folder and troubleshooting cont
         'View',
         'Tools'
     ]) {
-        assert.match(actionBarJs, new RegExp(`label: '${label}'|<span>${label}</span>`));
+        assert.ok(
+            actionBarJs.includes(`'${label}'`) || actionBarJs.includes(`>${label}</span>`),
+            `missing action-bar fallback label: ${label}`
+        );
     }
     for (const tool of [
         'Show empty folders',

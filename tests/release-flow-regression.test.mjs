@@ -125,8 +125,10 @@ test('pkg_build dry-run falls back to manifest branch when git branch detection 
     writeFile(path.join(tempRoot, 'folderview.plus.xml'), `<FILE Name="folderview.plus.plg"><Date>2026-04-15</Date><PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg</PluginURL><Icon>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/folder-icon.png</Icon><Beta>False</Beta><Name>FolderView Plus</Name></FILE>`);
     writeFile(path.join(tempRoot, 'scripts', 'release_guard.sh'), '#!/usr/bin/env bash\nexit 0\n');
     writeFile(path.join(tempRoot, 'scripts', 'ensure_plg_changes_entry.sh'), '#!/usr/bin/env bash\nexit 0\n');
+    writeFile(path.join(tempRoot, 'scripts', 'icon_asset_pack_guard.sh'), '#!/usr/bin/env bash\nexit 0\n');
     fs.chmodSync(path.join(tempRoot, 'scripts', 'release_guard.sh'), 0o755);
     fs.chmodSync(path.join(tempRoot, 'scripts', 'ensure_plg_changes_entry.sh'), 0o755);
+    fs.chmodSync(path.join(tempRoot, 'scripts', 'icon_asset_pack_guard.sh'), 0o755);
     writeFile(path.join(tempRoot, 'src', 'folderview.plus', 'usr', 'local', 'emhttp', 'plugins', 'folderview.plus', 'README.md'), 'placeholder\n');
 
     const brokenGitBin = createBrokenGitBin(tempRoot);

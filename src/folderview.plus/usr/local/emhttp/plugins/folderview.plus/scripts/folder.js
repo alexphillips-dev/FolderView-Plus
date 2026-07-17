@@ -8,6 +8,9 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 let hiddenPreviewMembers = new Set();
+const folderEditorT = (key, fallback = '', ...params) => (
+    window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
+);
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
@@ -4629,15 +4632,16 @@ const updateList = (afterRender = null) => {
         const name = escapeHtml(member.Name);
         const stateKey = getMemberStateKey(member);
         const previewVisible = !hiddenPreviewMembers.has(String(member.Name || '').trim());
+        const dragLabel = escapeHtml(folderEditorT('editor.members.drag-reorder', 'Drag to reorder'));
         const orderControls = locked
-            ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
-            : '<div class="order-buttons"><button type="button" class="member-drag-handle fv-six-dot-drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
+            ? `<span class="order-lock" title="${escapeHtml(folderEditorT('editor.members.auto-included', 'Auto-included by regex or label'))}"><i class="fa fa-lock" aria-hidden="true"></i></span>`
+            : `<div class="order-buttons"><button type="button" class="member-drag-handle fv-six-dot-drag-handle" draggable="true" title="${dragLabel}" aria-label="${dragLabel}"><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span><span class="fv-six-dot-drag-dot" aria-hidden="true"></span></button><button type="button" class="member-move" data-direction="up" title="${escapeHtml(folderEditorT('editor.members.move-up', 'Move up'))}"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="${escapeHtml(folderEditorT('editor.members.move-down', 'Move down'))}"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>`;
         return `
             <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
-                <td><label class="fv-member-preview-toggle" title="Keep this member in the folder but hide it from the collapsed preview"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span data-i18n="member-preview-visible">Visible</span></label></td>
+                <td><label class="fv-member-preview-toggle" title="${escapeHtml(folderEditorT('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(folderEditorT('editor.members.visible', 'Visible'))}</span></label></td>
             </tr>
         `;
     };

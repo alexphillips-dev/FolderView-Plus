@@ -75,7 +75,7 @@ PACK_VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' <<< "${PACK_MANIFEST}
 PACK_FILE_COUNT="$(sed -n 's/.*"fileCount": \([0-9][0-9]*\).*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 PACK_SOURCE_BYTES="$(sed -n 's/.*"sourceBytes": \([0-9][0-9]*\).*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
 PACK_CONTENT_SHA256="$(sed -n 's/.*"contentSha256": "\([a-f0-9]*\)".*/\1/p' <<< "${PACK_MANIFEST}" | head -n 1)"
-SOURCE_FILE_COUNT="$(find "${SOURCE_DIR}" -type f | grep -Ei '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' | wc -l | tr -d '[:space:]')"
+SOURCE_FILE_COUNT="$(find "${SOURCE_DIR}" -type f | grep -Eic '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
 SOURCE_BYTES="$(find "${SOURCE_DIR}" -type f -printf '%p\t%s\n' | grep -Ei '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)[[:space:]]' | awk '{sum += $NF} END {print sum + 0}')"
 SOURCE_CONTENT_SHA256="$({
   cd "${SOURCE_DIR}"

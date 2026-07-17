@@ -217,7 +217,7 @@ test('import preview layout provides a compact progressive-disclosure flow', () 
     assert.match(page, /class="import-disclosure import-secondary-options"/);
     assert.match(page, /class="import-disclosure import-source-details"/);
     assert.match(page, /id="import-review-ack-row" class="import-review-ack"/);
-    assert.match(page, /<strong>Safety options<\/strong>/);
+    assert.match(page, /<strong[^>]*>Safety options<\/strong>/);
     assert.doesNotMatch(page, /id="import-preset-(?:select|save|default|delete)"/);
     assert.match(page, /id="import-summary-details"/);
     assert.doesNotMatch(page, /class="import-top-grid"/);

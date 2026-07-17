@@ -6,6 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'dashboard';
+$fvplusI18nNamespaces = ['dashboard'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();

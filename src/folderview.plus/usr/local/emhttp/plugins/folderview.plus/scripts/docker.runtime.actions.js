@@ -260,23 +260,6 @@
             openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };
 
-        const parseJsonPayloadSafe = (payload) => {
-            if (!payload) {
-                return {};
-            }
-            if (typeof payload === 'string') {
-                try {
-                    return JSON.parse(payload);
-                } catch (_error) {
-                    return {};
-                }
-            }
-            if (typeof payload === 'object') {
-                return payload;
-            }
-            return {};
-        };
-
         const postJsonWithFallback = async (url, payload, options = {}) => {
             if (!requestClient || typeof requestClient.postJson !== 'function') {
                 throw new Error('FolderView Plus request client is unavailable.');

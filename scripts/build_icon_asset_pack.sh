@@ -45,7 +45,7 @@ PACK_ICON_DIR="${STAGE_DIR}/third-party-icons"
 mkdir -p "${PACK_ICON_DIR}"
 
 while IFS= read -r -d '' source_file; do
-  relative_path="${source_file#${SOURCE_DIR}/}"
+  relative_path="${source_file#"${SOURCE_DIR}"/}"
   extension="${relative_path##*.}"
   extension="${extension,,}"
   case "${extension}" in

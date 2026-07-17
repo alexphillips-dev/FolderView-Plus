@@ -17,7 +17,6 @@
         const uploadMaxBytes = Number.isFinite(Number(deps.uploadMaxBytes)) ? Math.max(1, Number(deps.uploadMaxBytes)) : 4194304;
         const allowedExtensions = Array.isArray(deps.allowedExtensions) ? deps.allowedExtensions.map((entry) => String(entry || '').toLowerCase()) : [];
         const uploadContext = String(deps.uploadContext || 'icon upload endpoint').trim() || 'icon upload endpoint';
-        const managerContext = String(deps.managerContext || 'custom icon manager').trim() || 'custom icon manager';
         const builtInIconFallback = Array.isArray(deps.builtInIconFallback) ? deps.builtInIconFallback : [];
         const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
 

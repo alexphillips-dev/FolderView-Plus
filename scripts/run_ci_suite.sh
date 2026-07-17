@@ -134,7 +134,7 @@ prepare_playwright() {
 }
 
 lint_shell_scripts() {
-  mapfile -d '' files < <(find . -type f \( -name "*.sh" -o -path "./.githooks/pre-push" \) -print0)
+  mapfile -d '' files < <(git ls-files -z -- '*.sh' '.githooks/pre-push')
   local file=""
   for file in "${files[@]}"; do
     shellcheck -x --source-path=SCRIPTDIR "${file}"

@@ -1,0 +1,24 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.1",
+        "locale": "en",
+        "namespace": "diagnostics"
+    },
+    "diagnostics.title": "Diagnostics",
+    "diagnostics.panel.title": "Troubleshoot and share",
+    "diagnostics.panel.description": "Run one health check, review what actually needs attention, and only then use fixes or support exports.",
+    "diagnostics.actions.run": "Run health check",
+    "diagnostics.fixes.title": "Suggested fixes",
+    "diagnostics.fixes.description": "Only actions that match the current health check are shown here.",
+    "diagnostics.fixes.empty-title": "No recommended fixes yet.",
+    "diagnostics.fixes.empty-description": "Run health check first so FolderView Plus can suggest the right repair path.",
+    "diagnostics.summary.empty-title": "Run health check to inspect the plugin state.",
+    "diagnostics.summary.empty-description": "The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.",
+    "diagnostics.support.title": "Share with support",
+    "diagnostics.support.description": "Use the issue report for quick triage and the support bundle when someone needs the full picture.",
+    "diagnostics.support.copy": "Copy issue report",
+    "diagnostics.support.export": "Export support bundle",
+    "diagnostics.support.note": "Support bundle exports are sanitized by default and include the troubleshooting data needed for support.",
+    "diagnostics.support.preview-title": "Preparing support bundle preview.",
+    "diagnostics.support.preview-description": "Included sections and redaction categories will appear here before you download the bundle."
+}

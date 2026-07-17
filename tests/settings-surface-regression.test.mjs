@@ -386,9 +386,9 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
 });
 
 test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
-    const suggestedFixesIndex = settingsPage.indexOf('<strong>Suggested fixes</strong>');
+    const suggestedFixesIndex = settingsPage.indexOf('>Suggested fixes</strong>');
     const diagnosticsSummaryIndex = settingsPage.indexOf('id="fv-diagnostics-summary"');
-    const shareWithSupportIndex = settingsPage.indexOf('<strong>Share with support</strong>');
+    const shareWithSupportIndex = settingsPage.indexOf('>Share with support</strong>');
     assert.match(settingsPage, /<div class="fv-diagnostics-module-wrap">/);
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
     assert.ok(suggestedFixesIndex >= 0, 'suggested fixes module is missing');

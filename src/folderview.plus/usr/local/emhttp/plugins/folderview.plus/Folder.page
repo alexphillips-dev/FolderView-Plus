@@ -11,6 +11,7 @@ Markdown="false"
     }
 </script>
 <?php
+$fvplusI18nNamespaces = ['editor'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -1543,7 +1544,7 @@ try {
             <dl>
                 <dt>​</dt>
                 <dd>
-                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-i18n="[html]custom-action" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> Add a custom action</button>
+                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1652,15 +1653,15 @@ try {
                 <fieldset class="fv-action-type-field is-wide">
                     <legend data-i18n="custom-actions-type">Type:</legend>
                     <select name="action_type" class="fv-action-type-select" tabindex="-1" aria-hidden="true">
-                        <option value="0" data-i18n="custom-actions-type-0">Standard</option>
-                        <option value="1" data-i18n="custom-actions-type-1">Custom</option>
+                        <option value="0" data-i18n="editor.actions.standard">Standard</option>
+                        <option value="1" data-i18n="editor.actions.user-script">User script</option>
                     </select>
                     <div class="fv-action-type-options" role="radiogroup" aria-label="Action type">
                         <button type="button" class="fv-action-type-option" data-action-type="0" role="radio" aria-checked="true">
-                            <i class="fa fa-cogs" aria-hidden="true"></i><span><strong data-i18n="custom-actions-type-0">Standard</strong><small>Control selected folder members.</small></span>
+                            <i class="fa fa-cogs" aria-hidden="true"></i><span><strong data-i18n="editor.actions.standard">Standard</strong><small data-i18n="editor.actions.control-members">Control selected folder members.</small></span>
                         </button>
                         <button type="button" class="fv-action-type-option" data-action-type="1" role="radio" aria-checked="false">
-                            <i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong>User Script</strong><small>Run a task from the User Scripts plugin.</small></span>
+                            <i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong data-i18n="editor.actions.user-script">User Script</strong><small data-i18n="editor.actions.run-user-script">Run a task from the User Scripts plugin.</small></span>
                         </button>
                     </div>
                 </fieldset>

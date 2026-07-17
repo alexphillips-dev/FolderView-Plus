@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
@@ -9,6 +10,10 @@ const reconcileModule = require(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'
 ));
+const dockerRuntimeSource = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
+), 'utf8');
 
 const flushPromises = async () => {
     await Promise.resolve();
@@ -91,4 +96,23 @@ test('Docker lifecycle patch leaves structural and unrelated host callbacks unch
     assert.equal(harness.hostCalls[1][1], 'customRefresh');
     assert.equal(harness.window.eventControl, wrappedEventControl);
     assert.equal(harness.scheduled.length, 0);
+});
+
+test('Docker lifecycle reconciliation never promotes revision churn into a grouped-table rebuild', () => {
+    assert.match(
+        dockerRuntimeSource,
+        /const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches\(snapshot\);/
+    );
+    assert.match(
+        dockerRuntimeSource,
+        /if \(configurationChanged && !preserveGroupedDom\) \{\s*fallbackReason = 'configuration-changed';\s*return false;\s*\}/
+    );
+    assert.match(
+        dockerRuntimeSource,
+        /if \(preserveGroupedDom\) \{[\s\S]*mode: 'incremental-retry'[\s\S]*return;\s*\}/
+    );
+    assert.doesNotMatch(
+        dockerRuntimeSource,
+        /preserveGroupedDom && fallbackReason !== 'configuration-changed'/
+    );
 });

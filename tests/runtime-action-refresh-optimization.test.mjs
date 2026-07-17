@@ -14,7 +14,10 @@ test('docker runtime actions refresh visible state in place instead of forcing a
     assert.match(dockerJs, /refreshDockerRuntimeState:\s*\(options = \{\}\) => refreshDockerRuntimeStateInPlace\(options\)/);
     assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = async \(options = \{\}\) => \{/);
     assert.match(dockerJs, /const preserveGroupedDom = options\?\.preserveGroupedDom === true;/);
-    assert.match(dockerJs, /if \(preserveGroupedDom && fallbackReason !== 'configuration-changed'\) \{/);
+    assert.match(dockerJs, /if \(preserveGroupedDom\) \{[\s\S]*mode: 'incremental-retry'/);
+    assert.match(dockerJs, /const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches\(snapshot\);/);
+    assert.match(dockerJs, /if \(configurationChanged && !preserveGroupedDom\) \{\s*fallbackReason = 'configuration-changed';\s*return false;\s*\}/);
+    assert.match(dockerJs, /if \(configurationChanged\) \{[\s\S]*deferredConfigurationRebuild:/);
     assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\);/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{ followupDelayMs: 650 \}\);/);
     assert.match(dockerRuntimeActionsJs, /const refreshDockerRuntimeState = typeof deps\.refreshDockerRuntimeState === 'function'/);

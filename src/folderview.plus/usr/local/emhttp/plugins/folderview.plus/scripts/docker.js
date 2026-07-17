@@ -7995,7 +7995,7 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     const preserveGroupedDom = options?.preserveGroupedDom === true;
     let fallbackReason = 'request-error';
     const fallbackToLoadlist = () => {
-        if (preserveGroupedDom && fallbackReason !== 'configuration-changed') {
+        if (preserveGroupedDom) {
             dockerRuntimeStateStore.set({
                 rowReconciliation: {
                     mode: 'incremental-retry',
@@ -8022,9 +8022,20 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
             fallbackReason = 'empty-runtime-payload';
             throw new Error('Docker runtime state payload was empty.');
         }
-        if (snapshot && !dockerRuntimeSnapshotConfigMatches(snapshot)) {
+        const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches(snapshot);
+        if (configurationChanged && !preserveGroupedDom) {
             fallbackReason = 'configuration-changed';
             return false;
+        }
+        if (configurationChanged) {
+            dockerRuntimeStateStore.set({
+                deferredConfigurationRebuild: {
+                    reason: 'lifecycle-runtime-refresh',
+                    folderRevision: Math.max(0, Number(snapshot?.revisions?.folder) || 0),
+                    prefsRevision: Math.max(0, Number(snapshot?.revisions?.prefs) || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
         }
         const previousRuntimeInfo = dockerRuntimeInfoByName;
         const nextRuntimeInfo = normalizeDockerRuntimeInfoMap(parsed, previousRuntimeInfo);

@@ -76,6 +76,16 @@ test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(plg, /<MD5>&iconPackMd5;<\/MD5>/);
 });
 
+test('manifest resolves and requires the installed asset-pack activation helper', () => {
+    const pluginDir = entity('plugdir').replace('&name;', entity('name'));
+    const activationPath = `${pluginDir}/scripts/install_icon_asset_pack.sh`;
+    assert.equal(activationPath, '/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh');
+    assert.match(plg, /<INLINE>\s*set -e/);
+    assert.match(plg, /\/bin\/bash "&plugdir;\/scripts\/install_icon_asset_pack\.sh"/);
+    assert.doesNotMatch(plg, /&plugdir;scripts\/install_icon_asset_pack\.sh/);
+    assert.match(plg, /Activating FolderView Plus icon asset pack &iconPackVersion;/);
+});
+
 test('asset pack contains only its manifest and supported runtime icons', () => {
     const entries = execFileSync('tar', ['-tf', archivePath], { encoding: 'utf8' })
         .split(/\r?\n/)

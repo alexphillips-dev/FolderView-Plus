@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.24">
-<!ENTITY md5 "e1b20f20bbb0e02378549b5256e59429">
+<!ENTITY version "2026.07.16.25">
+<!ENTITY md5 "283f31c52597da2f6ad3b5143fa29f84">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.25
+### Icon asset-pack activation fix
+- Fix: Corrects the installed asset-pack helper path so the separately downloaded `1.0.0` icon library is extracted, linked, and available to the modern folder editor.
+- Fix: Makes the plugin install block stop and report a failure when icon-pack verification or activation fails instead of continuing to display a successful installation banner.
+- Quality: Prints an explicit activation start message and the helper's ready confirmation in the Unraid update window.
+- Test: Adds a manifest regression that expands the plugin-directory entity and proves the activation helper resolves to the installed script path.
+
 
 ###2026.07.16.24
 ### Versioned icon asset pack
@@ -6918,10 +6926,12 @@
 
     <FILE Run="/bin/bash">
         <INLINE>
+            set -e
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
             find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
-            /bin/bash &plugdir;scripts/install_icon_asset_pack.sh "&iconPackVersion;" "&iconPackSha256;"
+            echo "Activating FolderView Plus icon asset pack &iconPackVersion;..."
+            /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             echo "&version;" > /boot/config/plugins/&name;/version
             echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
             chmod 644 /etc/cron.d/folderview.plus

@@ -67,10 +67,11 @@ test('Docker folder rendering yields by elapsed work instead of a fixed folder c
 
 test('Docker folder rendering keeps yielded mutations hidden until one atomic visual commit', () => {
     assert.match(dockerJs, /let dockerFolderRenderCommitActive = false;/);
-    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*setAttribute\('aria-busy', 'true'\);/);
-    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*removeAttribute\('aria-busy'\);/);
+    assert.match(dockerJs, /const getDockerFolderRenderBodies = \(\) => Array\.from\([\s\S]*'tbody#docker_list, tbody#docker_view'/);
+    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.setAttribute\('aria-busy', 'true'\)\);/);
+    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.removeAttribute\('aria-busy'\)\);/);
     assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*beginDockerFolderRenderCommit\(\);/);
     assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
     assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*dockerHostLoadOwnsLoadingUi = true;\s*beginDockerFolderRenderCommit\(\);[\s\S]*window\.loadlist_original\(\);/);
-    assert.match(dockerCss, /body\.fvplus-docker-render-staging #docker_list\s*\{\s*visibility:\s*hidden;\s*pointer-events:\s*none;\s*\}/);
+    assert.match(dockerCss, /body\.fvplus-docker-render-staging tbody#docker_list,\s*body\.fvplus-docker-render-staging tbody#docker_view\s*\{[\s\S]*opacity:\s*0 !important;[\s\S]*visibility:\s*hidden !important;[\s\S]*pointer-events:\s*none !important;/);
 });

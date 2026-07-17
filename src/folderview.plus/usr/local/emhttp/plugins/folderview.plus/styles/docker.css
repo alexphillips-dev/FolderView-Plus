@@ -146,10 +146,15 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     white-space: nowrap;
 }
 
-/* Keep cooperative render yields off-screen and reveal the completed folder tree atomically. */
-body.fvplus-docker-render-staging #docker_list {
-    visibility: hidden;
-    pointer-events: none;
+/* Keep cooperative render yields off-screen and reveal the completed folder tree atomically.
+ * Opacity is applied to the tbody itself because descendants may explicitly restore
+ * visibility (for example preview controls and chevrons). Descendants cannot escape
+ * an ancestor opacity of zero. Cover both Unraid Docker tbody variants. */
+body.fvplus-docker-render-staging tbody#docker_list,
+body.fvplus-docker-render-staging tbody#docker_view {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .fvplus-docker-runtime-toolbar-controls {

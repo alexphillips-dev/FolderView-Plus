@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.05">
-<!ENTITY md5 "83388fdb50aff99a7f6bb902a73e453e">
+<!ENTITY version "2026.07.17.06">
+<!ENTITY md5 "2232470de26602a7e31399af5c4d9ac5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.06
+- Fix: Docker folder staging now hides both supported Unraid table-body variants as one composited surface, preventing dropdown chevrons and other descendants from painting one at a time before the completed folder view is ready.
+- Compatibility: Render busy state is applied to and cleared from both `docker_list` and `docker_view`, keeping atomic loading behavior consistent across Docker page variants.
+- Quality: Expanded the Docker bootstrap regression contract to verify non-overridable staging opacity and coverage of both Docker table bodies.
+
 
 ###2026.07.17.05
 - Fix: Start Docker render staging before Unraid's native `loadlist()` paints container rows, preventing orphan dropdown chevrons from appearing one at a time before the completed folder view is revealed.

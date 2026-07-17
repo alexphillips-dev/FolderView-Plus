@@ -5322,15 +5322,16 @@ let createFoldersInFlight = false;
 let createFoldersQueued = false;
 let dockerFolderRenderCommitActive = false;
 
+const getDockerFolderRenderBodies = () => Array.from(
+    document.querySelectorAll('tbody#docker_list, tbody#docker_view')
+);
+
 const beginDockerFolderRenderCommit = () => {
     if (!(document.body instanceof HTMLElement)) {
         return false;
     }
     document.body.classList.add('fvplus-docker-render-staging');
-    const dockerList = document.getElementById('docker_list');
-    if (dockerList instanceof HTMLElement) {
-        dockerList.setAttribute('aria-busy', 'true');
-    }
+    getDockerFolderRenderBodies().forEach((dockerList) => dockerList.setAttribute('aria-busy', 'true'));
     dockerFolderRenderCommitActive = true;
     return true;
 };
@@ -5342,10 +5343,7 @@ const finishDockerFolderRenderCommit = () => {
     if (document.body instanceof HTMLElement) {
         document.body.classList.remove('fvplus-docker-render-staging');
     }
-    const dockerList = document.getElementById('docker_list');
-    if (dockerList instanceof HTMLElement) {
-        dockerList.removeAttribute('aria-busy');
-    }
+    getDockerFolderRenderBodies().forEach((dockerList) => dockerList.removeAttribute('aria-busy'));
     dockerFolderRenderCommitActive = false;
 };
 

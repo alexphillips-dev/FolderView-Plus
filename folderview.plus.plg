@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.16.28">
-<!ENTITY md5 "d60f381e05ef4c8c95fc007f626e1c68">
+<!ENTITY version "2026.07.16.29">
+<!ENTITY md5 "624ea997da9b8d83b28a8611e990f0c8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.16.29
+### Stable Docker lifecycle refreshes
+- Fix: Starting, stopping, pausing, resuming, or restarting a container no longer exposes Unraid's ungrouped container table while FolderView reloads.
+- Performance: Native Unraid and FolderView lifecycle actions now use keyed in-place runtime reconciliation instead of the destructive global `loadlist` callback.
+- Reliability: Lifecycle transitions receive three lightweight refresh attempts across two seconds so delayed Docker state changes settle without rebuilding the grouped DOM.
+- UI/UX: Expanded folders, menus, focus, scroll position, previews, ordering, and existing rows remain mounted during container state changes.
+- Safety: Real folder or preference revision changes still retain the full rebuild path, while transient empty or structurally incomplete runtime responses preserve the current grouped view.
+- Diagnostics: Lifecycle callback interception and incremental refresh results are recorded in Docker troubleshooting telemetry.
+- Test: Adds regression coverage proving lifecycle callbacks cannot invoke `loadlist` while unrelated structural callbacks remain unchanged.
+
 
 ###2026.07.16.28
 ### Incremental runtime row updates

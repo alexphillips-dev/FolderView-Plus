@@ -13,6 +13,8 @@ const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/
 test('docker runtime actions refresh visible state in place instead of forcing a full reload', () => {
     assert.match(dockerJs, /refreshDockerRuntimeState:\s*\(options = \{\}\) => refreshDockerRuntimeStateInPlace\(options\)/);
     assert.match(dockerJs, /const refreshDockerRuntimeStateInPlace = async \(options = \{\}\) => \{/);
+    assert.match(dockerJs, /const preserveGroupedDom = options\?\.preserveGroupedDom === true;/);
+    assert.match(dockerJs, /if \(preserveGroupedDom && fallbackReason !== 'configuration-changed'\) \{/);
     assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\);/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{ followupDelayMs: 650 \}\);/);
     assert.match(dockerRuntimeActionsJs, /const refreshDockerRuntimeState = typeof deps\.refreshDockerRuntimeState === 'function'/);

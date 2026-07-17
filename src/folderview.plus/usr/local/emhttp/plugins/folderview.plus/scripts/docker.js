@@ -2484,7 +2484,8 @@ const buildDockerTooltipContent = (ct) => {
         const containerId = String($link.attr('data-container-id') || '').trim();
         const actionMap = new Set(['start', 'resume', 'stop', 'pause', 'restart']);
         if (actionMap.has(action) && containerId) {
-            eventControl({ action, container: containerId }, 'loadlist');
+            const refreshTarget = getDockerRuntimeReconcileApi()?.getLifecycleRefreshCallbackName?.() || 'loadlist';
+            eventControl({ action, container: containerId }, refreshTarget);
             return;
         }
         const actionContainerName = String($link.attr('data-container-name') || '').trim();
@@ -5077,6 +5078,9 @@ const bindDockerPostUpdateRenderReconcile = () => {
 function bindDockerHostOpenDockerPatch() {
     getDockerRuntimeReconcileApi()?.bindHostOpenDockerPatch?.();
 }
+const bindDockerLifecycleEventControlPatch = () => {
+    getDockerRuntimeReconcileApi()?.bindLifecycleEventControlPatch?.();
+};
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
     return getDockerRuntimeReconcileApi()?.armPostUpdateRuntimeReconcileWindow?.(durationMs, options) || 0;
 };
@@ -7580,6 +7584,7 @@ window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     getDockerHostGuardsApi()?.noteHookInvocation?.('window.loadlist', { note: 'invoked' });
     bindDockerHostOpenDockerPatch();
+    bindDockerLifecycleEventControlPatch();
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
@@ -7987,7 +7992,20 @@ const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
     const liveUpdateStatus = options?.liveUpdateStatus === true;
+    const preserveGroupedDom = options?.preserveGroupedDom === true;
+    let fallbackReason = 'request-error';
     const fallbackToLoadlist = () => {
+        if (preserveGroupedDom && fallbackReason !== 'configuration-changed') {
+            dockerRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'incremental-retry',
+                    reason: fallbackReason,
+                    preservedGroupedDom: true,
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            return;
+        }
         queueLoadlistRefresh({ suppressLoadingUi: true });
     };
     const applyStatePayload = async () => {
@@ -8001,9 +8019,11 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
+            fallbackReason = 'empty-runtime-payload';
             throw new Error('Docker runtime state payload was empty.');
         }
         if (snapshot && !dockerRuntimeSnapshotConfigMatches(snapshot)) {
+            fallbackReason = 'configuration-changed';
             return false;
         }
         const previousRuntimeInfo = dockerRuntimeInfoByName;
@@ -8025,6 +8045,7 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
             rememberDockerRuntimeSnapshot(snapshot);
         }
         if (rowDiff.structuralChanged) {
+            fallbackReason = 'transient-runtime-structure';
             dockerRuntimeStateStore.set({
                 rowReconciliation: {
                     mode: 'structural-fallback',
@@ -8327,6 +8348,7 @@ function buildDockerFolderReq(options = {}) {
 folderReq = buildDockerFolderReq();
 markDockerFatalBannerStep('Docker request bundle primed');
 bindDockerHostOpenDockerPatch();
+bindDockerLifecycleEventControlPatch();
 bindDockerUpdateActionClickCapture();
 bindDockerPostUpdateRenderReconcile();
 startDockerListViewModeObserver();

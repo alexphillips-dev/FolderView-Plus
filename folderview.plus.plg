@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.07">
-<!ENTITY md5 "65ec219efa8a772ec806703a268d5ec0">
+<!ENTITY version "2026.07.17.08">
+<!ENTITY md5 "29b6e497ab5ab3b83e01130e169faf8d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.08
+- UX: Docker startup now leaves Unraid's native container rows visible while FolderView Plus resolves its folder data and preferences, then converts those rows into the completed folder view without an intermediate blank or cloned overlay.
+- Fix: Removed the temporary Docker render snapshot, hidden tbody staging state, and related cleanup paths introduced during the cascading-chevron investigation.
+- Performance: Folder rows are now inserted in one uninterrupted synchronous DOM commit, matching FolderView3's paint behavior and preventing the browser from displaying partial folder or chevron states between animation frames.
+- Quality: Replaced the former yield/staging contracts with regressions that require native-first hook ordering, no render snapshot CSS or JavaScript, and no asynchronous yield inside either folder-construction loop.
+
 
 ###2026.07.17.07
 - UX: Docker page startup now keeps a non-interactive snapshot of the native container list visible while FolderView assembles the folder tree, eliminating the blank table between the Docker header and the completed folder view.

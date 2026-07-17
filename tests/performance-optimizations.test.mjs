@@ -153,10 +153,7 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.doesNotMatch(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
-    assert.match(dockerJs, /const DOCKER_RENDER_TIME_BUDGET_MS = 10;/);
-    assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount,\s*sliceStartedAt = readDockerRenderClock\(\)\) =>/);
-    assert.match(dockerJs, /const elapsed = readDockerRenderClock\(\) - Number\(sliceStartedAt \|\| 0\);[\s\S]*elapsed < DOCKER_RENDER_TIME_BUDGET_MS/);
-    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_YIELD_BATCH_SIZE/);
+    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_TIME_BUDGET_MS|yieldDockerRenderLoop|readDockerRenderClock/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);

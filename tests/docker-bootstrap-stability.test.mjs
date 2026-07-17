@@ -56,26 +56,21 @@ test('Docker folder construction suppresses intermediate width measurements and 
     assert.match(dockerJs, /completeDockerRuntimeWidthBootstrap\(widthBootstrapGeneration, \{[\s\S]*stabilize: foldersRenderedSuccessfully/);
 });
 
-test('Docker folder rendering yields by elapsed work instead of a fixed folder count', () => {
-    assert.match(dockerJs, /const DOCKER_RENDER_TIME_BUDGET_MS = 10;/);
-    assert.match(dockerJs, /const readDockerRenderClock = \(\) =>/);
-    assert.match(dockerJs, /const elapsed = readDockerRenderClock\(\) - Number\(sliceStartedAt \|\| 0\);/);
-    assert.match(dockerJs, /if \(elapsed < DOCKER_RENDER_TIME_BUDGET_MS\) \{\s*return sliceStartedAt;/);
-    assert.match(dockerJs, /await waitForDockerRenderFrame\(\);\s*return readDockerRenderClock\(\);/);
-    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_YIELD_BATCH_SIZE/);
+test('Docker folder construction completes without yielding partial rows to the browser', () => {
+    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_TIME_BUDGET_MS/);
+    assert.doesNotMatch(dockerJs, /yieldDockerRenderLoop/);
+    assert.doesNotMatch(dockerJs, /readDockerRenderClock/);
+    const renderStart = dockerJs.indexOf('// Draw the folders in the order');
+    const renderEnd = dockerJs.indexOf("dockerPerf.end('createFolders.renderRemaining'", renderStart);
+    assert.ok(renderStart >= 0 && renderEnd > renderStart);
+    assert.doesNotMatch(dockerJs.slice(renderStart, renderEnd), /\bawait\b/);
 });
 
-test('Docker folder rendering keeps yielded mutations hidden until one atomic visual commit', () => {
-    assert.match(dockerJs, /let dockerFolderRenderCommitActive = false;/);
-    assert.match(dockerJs, /let dockerFolderRenderSnapshot = null;/);
-    assert.match(dockerJs, /const getDockerFolderRenderBodies = \(\) => Array\.from\([\s\S]*'tbody#docker_list, tbody#docker_view'/);
-    assert.match(dockerJs, /const createDockerFolderRenderSnapshot = \(\) => \{[\s\S]*const snapshotBody = sourceBody\.cloneNode\(true\);[\s\S]*snapshotTable\.id = 'fvplus-docker-render-snapshot-table';[\s\S]*snapshot\.id = 'fvplus-docker-render-snapshot';[\s\S]*snapshot\.setAttribute\('inert', ''\);[\s\S]*snapshotBody\.querySelectorAll\('\[id\]'\)[\s\S]*snapshotBody\.querySelectorAll\('\[class\]'\)[\s\S]*\/\^folder-id-\/[\s\S]*document\.body\.appendChild\(snapshot\);/);
-    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*createDockerFolderRenderSnapshot\(\);[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.setAttribute\('aria-busy', 'true'\)\);/);
-    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.removeAttribute\('aria-busy'\)\);[\s\S]*removeDockerFolderRenderSnapshot\(\);/);
-    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*beginDockerFolderRenderCommit\(\);/);
-    assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
-    assert.doesNotMatch(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*dockerHostLoadOwnsLoadingUi = true;\s*beginDockerFolderRenderCommit\(\);[\s\S]*window\.loadlist_original\(\);/);
-    assert.match(dockerCss, /body\.fvplus-docker-render-staging tbody#docker_list,\s*body\.fvplus-docker-render-staging tbody#docker_view\s*\{[\s\S]*opacity:\s*0 !important;[\s\S]*visibility:\s*hidden !important;[\s\S]*pointer-events:\s*none !important;/);
-    assert.match(dockerCss, /#fvplus-docker-render-snapshot\s*\{[\s\S]*position:\s*absolute;[\s\S]*pointer-events:\s*none !important;/);
-    assert.match(dockerCss, /#fvplus-docker-render-snapshot-table\s*\{[\s\S]*table-layout:\s*fixed;/);
+test('Docker leaves Unraid native rows visible until one uninterrupted folder conversion', () => {
+    assert.doesNotMatch(dockerJs, /DockerFolderRenderSnapshot|DockerFolderRenderCommit/);
+    assert.doesNotMatch(dockerJs, /fvplus-docker-render-staging|fvplus-docker-render-snapshot/);
+    assert.doesNotMatch(dockerCss, /fvplus-docker-render-staging|fvplus-docker-render-snapshot/);
+    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);[\s\S]*window\.loadlist_original\(\);/);
+    assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*window\.listview_original\(\);[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
+    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*const widthBootstrapGeneration/);
 });

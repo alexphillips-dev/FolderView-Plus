@@ -146,30 +146,6 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     white-space: nowrap;
 }
 
-/* Keep cooperative render yields off-screen and reveal the completed folder tree atomically.
- * A sanitized, non-interactive snapshot stays visible while the real tbody is rebuilt, so
- * native container rows or the previous folder view remain on screen instead of a blank table. */
-body.fvplus-docker-render-staging tbody#docker_list,
-body.fvplus-docker-render-staging tbody#docker_view {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-
-#fvplus-docker-render-snapshot {
-    position: absolute;
-    z-index: 20;
-    overflow: hidden;
-    pointer-events: none !important;
-    user-select: none !important;
-}
-
-#fvplus-docker-render-snapshot-table {
-    width: 100% !important;
-    margin: 0 !important;
-    table-layout: fixed;
-}
-
 .fvplus-docker-runtime-toolbar-controls {
     display: flex;
     justify-content: flex-end;

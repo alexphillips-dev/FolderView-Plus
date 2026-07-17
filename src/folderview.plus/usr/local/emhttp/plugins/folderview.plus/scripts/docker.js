@@ -4465,13 +4465,11 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
                 unmountDockerIsolatedViews();
                 requestBundle.consumed = true;
                 releaseWidthBootstrap();
-                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker host list mode active');
                 recordDockerFatalBannerAction('Docker host list mode active');
             } else if (mode === 'command') {
                 unmountDockerIsolatedViews('command');
                 releaseWidthBootstrap();
-                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker command view active');
                 recordDockerFatalBannerAction('Docker command view active');
                 const commandViewApi = getDockerCommandViewApi();
@@ -4486,7 +4484,6 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
             } else if (mode === 'tree-explorer') {
                 unmountDockerIsolatedViews('tree-explorer');
                 releaseWidthBootstrap();
-                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker tree explorer active');
                 recordDockerFatalBannerAction('Docker tree explorer active');
                 const treeExplorerApi = getDockerTreeExplorerApi();
@@ -4501,7 +4498,6 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
             } else if (mode === 'orbit') {
                 unmountDockerIsolatedViews('orbit');
                 releaseWidthBootstrap();
-                finishDockerFolderRenderCommit();
                 markDockerFatalBannerStep('Docker orbit view active');
                 recordDockerFatalBannerAction('Docker orbit view active');
                 const orbitViewApi = getDockerOrbitViewApi();
@@ -5320,115 +5316,12 @@ const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {})
 
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
-let dockerFolderRenderCommitActive = false;
-let dockerFolderRenderSnapshot = null;
-
-const getDockerFolderRenderBodies = () => Array.from(
-    document.querySelectorAll('tbody#docker_list, tbody#docker_view')
-);
-
-const removeDockerFolderRenderSnapshot = () => {
-    if (dockerFolderRenderSnapshot instanceof HTMLElement) {
-        dockerFolderRenderSnapshot.remove();
-    }
-    dockerFolderRenderSnapshot = null;
-};
-
-const createDockerFolderRenderSnapshot = () => {
-    removeDockerFolderRenderSnapshot();
-    const renderBodies = getDockerFolderRenderBodies();
-    const sourceBody = renderBodies.find((body) => body.children.length > 0) || renderBodies[0] || null;
-    if (!(sourceBody instanceof HTMLElement) || !(sourceBody.parentNode instanceof Node)) {
-        return null;
-    }
-    const sourceTable = sourceBody.closest('table');
-    if (!(sourceTable instanceof HTMLTableElement)) {
-        return null;
-    }
-    const sourceRect = sourceBody.getBoundingClientRect();
-    if (!(sourceRect.width > 0) || !(sourceRect.height > 0)) {
-        return null;
-    }
-    const snapshotBody = sourceBody.cloneNode(true);
-    snapshotBody.removeAttribute('id');
-    const snapshotTable = sourceTable.cloneNode(false);
-    snapshotTable.id = 'fvplus-docker-render-snapshot-table';
-    const sourceTableStyle = window.getComputedStyle(sourceTable);
-    snapshotTable.style.borderCollapse = sourceTableStyle.borderCollapse;
-    snapshotTable.style.borderSpacing = sourceTableStyle.borderSpacing;
-    const sourceHeaders = Array.from(sourceTable.querySelectorAll('thead > tr:last-child > th'));
-    if (sourceHeaders.length > 0) {
-        const colgroup = document.createElement('colgroup');
-        sourceHeaders.forEach((header) => {
-            const col = document.createElement('col');
-            col.style.width = `${header.getBoundingClientRect().width}px`;
-            colgroup.appendChild(col);
-        });
-        snapshotTable.appendChild(colgroup);
-    }
-    snapshotTable.appendChild(snapshotBody);
-    const snapshot = document.createElement('div');
-    snapshot.id = 'fvplus-docker-render-snapshot';
-    snapshot.setAttribute('aria-hidden', 'true');
-    snapshot.setAttribute('inert', '');
-    snapshot.style.top = `${sourceRect.top + window.scrollY}px`;
-    snapshot.style.left = `${sourceRect.left + window.scrollX}px`;
-    snapshot.style.width = `${sourceRect.width}px`;
-    snapshot.style.height = `${sourceRect.height}px`;
-    snapshotBody.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
-    snapshotBody.querySelectorAll('[class]').forEach((element) => {
-        Array.from(element.classList).forEach((className) => {
-            if (
-                /^folder-id-/.test(className)
-                || /^folder-[A-Za-z0-9]+-element$/.test(className)
-                || /^dropDown-/.test(className)
-                || /^(?:cpu|mem)-folder-/.test(className)
-                || /^preview-outbox-/.test(className)
-            ) {
-                element.classList.remove(className);
-            }
-        });
-    });
-    snapshotBody.querySelectorAll('[onclick], [onchange], [oninput], [onmousedown], [onmouseup]')
-        .forEach((element) => {
-            ['onclick', 'onchange', 'oninput', 'onmousedown', 'onmouseup']
-                .forEach((attribute) => element.removeAttribute(attribute));
-        });
-    snapshot.appendChild(snapshotTable);
-    document.body.appendChild(snapshot);
-    dockerFolderRenderSnapshot = snapshot;
-    return snapshot;
-};
-
-const beginDockerFolderRenderCommit = () => {
-    if (!(document.body instanceof HTMLElement)) {
-        return false;
-    }
-    createDockerFolderRenderSnapshot();
-    document.body.classList.add('fvplus-docker-render-staging');
-    getDockerFolderRenderBodies().forEach((dockerList) => dockerList.setAttribute('aria-busy', 'true'));
-    dockerFolderRenderCommitActive = true;
-    return true;
-};
-
-const finishDockerFolderRenderCommit = () => {
-    if (!dockerFolderRenderCommitActive) {
-        return;
-    }
-    if (document.body instanceof HTMLElement) {
-        document.body.classList.remove('fvplus-docker-render-staging');
-    }
-    getDockerFolderRenderBodies().forEach((dockerList) => dockerList.removeAttribute('aria-busy'));
-    removeDockerFolderRenderSnapshot();
-    dockerFolderRenderCommitActive = false;
-};
 
 /**
  * Handles the creation of all folders
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
-    beginDockerFolderRenderCommit();
     const widthBootstrapGeneration = dockerRuntimeWidthState.pendingRenderGeneration
         || beginDockerRuntimeWidthBootstrap();
     dockerRuntimeWidthState.pendingRenderGeneration = 0;
@@ -5583,12 +5476,9 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
-    let renderSliceStartedAt = readDockerRenderClock();
-
     // Draw the folders in the order
     dockerPerf.begin('createFolders.renderOrdered');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders in order.');
-    let orderedFolderRenderCount = 0;
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Loop iteration: key=${key}, container=${container}`);
@@ -5614,12 +5504,6 @@ const createFolders = async () => {
                 foldersDone[id] = folders[id];
                 delete folders[id];
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
-                orderedFolderRenderCount += 1;
-                renderSliceStartedAt = await yieldDockerRenderLoop(
-                    orderedFolderRenderCount,
-                    order.length,
-                    renderSliceStartedAt
-                );
             } else {
                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolders: Folder ${id} (from order) not found in folders data.`);
             }
@@ -5633,7 +5517,6 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
     // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
-    let remainingFolderRenderCount = 0;
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
         // Add the folder on top of the array
@@ -5653,12 +5536,6 @@ const createFolders = async () => {
         foldersDone[id] = folders[id];
         delete folders[id];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Remaining folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
-        remainingFolderRenderCount += 1;
-        renderSliceStartedAt = await yieldDockerRenderLoop(
-            remainingFolderRenderCount,
-            remainingFolders.length,
-            renderSliceStartedAt
-        );
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
@@ -5764,7 +5641,6 @@ const createFolders = async () => {
     completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
         stabilize: foldersRenderedSuccessfully
     });
-    finishDockerFolderRenderCommit();
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
@@ -8169,7 +8045,6 @@ const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
-const DOCKER_RENDER_TIME_BUDGET_MS = 10;
 const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
 const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
@@ -8481,27 +8356,6 @@ const waitForDockerRenderFrame = () => new Promise((resolve) => {
     }
     window.setTimeout(resolve, 0);
 });
-
-const readDockerRenderClock = () => (
-    window.performance && typeof window.performance.now === 'function'
-        ? window.performance.now()
-        : Date.now()
-);
-
-const yieldDockerRenderLoop = async (processedCount, totalCount, sliceStartedAt = readDockerRenderClock()) => {
-    if (
-        processedCount <= 0
-        || processedCount >= totalCount
-    ) {
-        return sliceStartedAt;
-    }
-    const elapsed = readDockerRenderClock() - Number(sliceStartedAt || 0);
-    if (elapsed < DOCKER_RENDER_TIME_BUDGET_MS) {
-        return sliceStartedAt;
-    }
-    await waitForDockerRenderFrame();
-    return readDockerRenderClock();
-};
 
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {

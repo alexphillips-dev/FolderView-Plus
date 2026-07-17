@@ -5321,15 +5321,90 @@ const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {})
 let createFoldersInFlight = false;
 let createFoldersQueued = false;
 let dockerFolderRenderCommitActive = false;
+let dockerFolderRenderSnapshot = null;
 
 const getDockerFolderRenderBodies = () => Array.from(
     document.querySelectorAll('tbody#docker_list, tbody#docker_view')
 );
 
+const removeDockerFolderRenderSnapshot = () => {
+    if (dockerFolderRenderSnapshot instanceof HTMLElement) {
+        dockerFolderRenderSnapshot.remove();
+    }
+    dockerFolderRenderSnapshot = null;
+};
+
+const createDockerFolderRenderSnapshot = () => {
+    removeDockerFolderRenderSnapshot();
+    const renderBodies = getDockerFolderRenderBodies();
+    const sourceBody = renderBodies.find((body) => body.children.length > 0) || renderBodies[0] || null;
+    if (!(sourceBody instanceof HTMLElement) || !(sourceBody.parentNode instanceof Node)) {
+        return null;
+    }
+    const sourceTable = sourceBody.closest('table');
+    if (!(sourceTable instanceof HTMLTableElement)) {
+        return null;
+    }
+    const sourceRect = sourceBody.getBoundingClientRect();
+    if (!(sourceRect.width > 0) || !(sourceRect.height > 0)) {
+        return null;
+    }
+    const snapshotBody = sourceBody.cloneNode(true);
+    snapshotBody.removeAttribute('id');
+    const snapshotTable = sourceTable.cloneNode(false);
+    snapshotTable.id = 'fvplus-docker-render-snapshot-table';
+    const sourceTableStyle = window.getComputedStyle(sourceTable);
+    snapshotTable.style.borderCollapse = sourceTableStyle.borderCollapse;
+    snapshotTable.style.borderSpacing = sourceTableStyle.borderSpacing;
+    const sourceHeaders = Array.from(sourceTable.querySelectorAll('thead > tr:last-child > th'));
+    if (sourceHeaders.length > 0) {
+        const colgroup = document.createElement('colgroup');
+        sourceHeaders.forEach((header) => {
+            const col = document.createElement('col');
+            col.style.width = `${header.getBoundingClientRect().width}px`;
+            colgroup.appendChild(col);
+        });
+        snapshotTable.appendChild(colgroup);
+    }
+    snapshotTable.appendChild(snapshotBody);
+    const snapshot = document.createElement('div');
+    snapshot.id = 'fvplus-docker-render-snapshot';
+    snapshot.setAttribute('aria-hidden', 'true');
+    snapshot.setAttribute('inert', '');
+    snapshot.style.top = `${sourceRect.top + window.scrollY}px`;
+    snapshot.style.left = `${sourceRect.left + window.scrollX}px`;
+    snapshot.style.width = `${sourceRect.width}px`;
+    snapshot.style.height = `${sourceRect.height}px`;
+    snapshotBody.querySelectorAll('[id]').forEach((element) => element.removeAttribute('id'));
+    snapshotBody.querySelectorAll('[class]').forEach((element) => {
+        Array.from(element.classList).forEach((className) => {
+            if (
+                /^folder-id-/.test(className)
+                || /^folder-[A-Za-z0-9]+-element$/.test(className)
+                || /^dropDown-/.test(className)
+                || /^(?:cpu|mem)-folder-/.test(className)
+                || /^preview-outbox-/.test(className)
+            ) {
+                element.classList.remove(className);
+            }
+        });
+    });
+    snapshotBody.querySelectorAll('[onclick], [onchange], [oninput], [onmousedown], [onmouseup]')
+        .forEach((element) => {
+            ['onclick', 'onchange', 'oninput', 'onmousedown', 'onmouseup']
+                .forEach((attribute) => element.removeAttribute(attribute));
+        });
+    snapshot.appendChild(snapshotTable);
+    document.body.appendChild(snapshot);
+    dockerFolderRenderSnapshot = snapshot;
+    return snapshot;
+};
+
 const beginDockerFolderRenderCommit = () => {
     if (!(document.body instanceof HTMLElement)) {
         return false;
     }
+    createDockerFolderRenderSnapshot();
     document.body.classList.add('fvplus-docker-render-staging');
     getDockerFolderRenderBodies().forEach((dockerList) => dockerList.setAttribute('aria-busy', 'true'));
     dockerFolderRenderCommitActive = true;
@@ -5344,6 +5419,7 @@ const finishDockerFolderRenderCommit = () => {
         document.body.classList.remove('fvplus-docker-render-staging');
     }
     getDockerFolderRenderBodies().forEach((dockerList) => dockerList.removeAttribute('aria-busy'));
+    removeDockerFolderRenderSnapshot();
     dockerFolderRenderCommitActive = false;
 };
 
@@ -7868,7 +7944,6 @@ window.loadlist = () => {
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
-    beginDockerFolderRenderCommit();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
     appendDockerRequestBundleTrace('loadlist', {
         currentPage: String(location?.pathname || ''),

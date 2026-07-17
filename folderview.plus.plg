@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.06">
-<!ENTITY md5 "2232470de26602a7e31399af5c4d9ac5">
+<!ENTITY version "2026.07.17.07">
+<!ENTITY md5 "65ec219efa8a772ec806703a268d5ec0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.07
+- UX: Docker page startup now keeps a non-interactive snapshot of the native container list visible while FolderView assembles the folder tree, eliminating the blank table between the Docker header and the completed folder view.
+- Fix: Removed render staging from Unraid's native `loadlist()` phase so containers can paint normally before FolderView begins its atomic folder conversion.
+- Quality: The temporary render snapshot is isolated from user input and stripped of IDs, inline handlers, and operational folder classes so it cannot receive actions or interfere with the hidden live render.
+- Quality: Expanded Docker bootstrap, update-flow, layout, and performance regression coverage for the snapshot-backed atomic render path.
+
 
 ###2026.07.17.06
 - Fix: Docker folder staging now hides both supported Unraid table-body variants as one composited surface, preventing dropdown chevrons and other descendants from painting one at a time before the completed folder view is ready.

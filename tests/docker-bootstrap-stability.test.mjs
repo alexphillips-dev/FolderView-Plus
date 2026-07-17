@@ -67,11 +67,15 @@ test('Docker folder rendering yields by elapsed work instead of a fixed folder c
 
 test('Docker folder rendering keeps yielded mutations hidden until one atomic visual commit', () => {
     assert.match(dockerJs, /let dockerFolderRenderCommitActive = false;/);
+    assert.match(dockerJs, /let dockerFolderRenderSnapshot = null;/);
     assert.match(dockerJs, /const getDockerFolderRenderBodies = \(\) => Array\.from\([\s\S]*'tbody#docker_list, tbody#docker_view'/);
-    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.setAttribute\('aria-busy', 'true'\)\);/);
-    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.removeAttribute\('aria-busy'\)\);/);
+    assert.match(dockerJs, /const createDockerFolderRenderSnapshot = \(\) => \{[\s\S]*const snapshotBody = sourceBody\.cloneNode\(true\);[\s\S]*snapshotTable\.id = 'fvplus-docker-render-snapshot-table';[\s\S]*snapshot\.id = 'fvplus-docker-render-snapshot';[\s\S]*snapshot\.setAttribute\('inert', ''\);[\s\S]*snapshotBody\.querySelectorAll\('\[id\]'\)[\s\S]*snapshotBody\.querySelectorAll\('\[class\]'\)[\s\S]*\/\^folder-id-\/[\s\S]*document\.body\.appendChild\(snapshot\);/);
+    assert.match(dockerJs, /const beginDockerFolderRenderCommit = \(\) => \{[\s\S]*createDockerFolderRenderSnapshot\(\);[\s\S]*document\.body\.classList\.add\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.setAttribute\('aria-busy', 'true'\)\);/);
+    assert.match(dockerJs, /const finishDockerFolderRenderCommit = \(\) => \{[\s\S]*document\.body\.classList\.remove\('fvplus-docker-render-staging'\);[\s\S]*getDockerFolderRenderBodies\(\)\.forEach\(\(dockerList\) => dockerList\.removeAttribute\('aria-busy'\)\);[\s\S]*removeDockerFolderRenderSnapshot\(\);/);
     assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*beginDockerFolderRenderCommit\(\);/);
     assert.match(dockerJs, /finally \{[\s\S]*completeDockerRuntimeWidthBootstrap\([\s\S]*finishDockerFolderRenderCommit\(\);[\s\S]*hideDockerRuntimeLoadingOverlay\(\);/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*dockerHostLoadOwnsLoadingUi = true;\s*beginDockerFolderRenderCommit\(\);[\s\S]*window\.loadlist_original\(\);/);
+    assert.doesNotMatch(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*dockerHostLoadOwnsLoadingUi = true;\s*beginDockerFolderRenderCommit\(\);[\s\S]*window\.loadlist_original\(\);/);
     assert.match(dockerCss, /body\.fvplus-docker-render-staging tbody#docker_list,\s*body\.fvplus-docker-render-staging tbody#docker_view\s*\{[\s\S]*opacity:\s*0 !important;[\s\S]*visibility:\s*hidden !important;[\s\S]*pointer-events:\s*none !important;/);
+    assert.match(dockerCss, /#fvplus-docker-render-snapshot\s*\{[\s\S]*position:\s*absolute;[\s\S]*pointer-events:\s*none !important;/);
+    assert.match(dockerCss, /#fvplus-docker-render-snapshot-table\s*\{[\s\S]*table-layout:\s*fixed;/);
 });

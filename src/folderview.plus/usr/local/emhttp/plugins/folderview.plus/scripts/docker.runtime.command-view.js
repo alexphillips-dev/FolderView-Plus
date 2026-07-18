@@ -715,14 +715,20 @@
             let runtimeInfoByName = normalizeRuntimeInfoMap(runtimeState);
             if (requestBundle.fullInfo) {
                 try {
-                    const runtimeFull = parseJsonPayloadSafe(await requestBundle.fullInfo);
+                    const fullInfoRequest = typeof requestBundle.fullInfo === 'function'
+                        ? requestBundle.fullInfo()
+                        : requestBundle.fullInfo;
+                    const runtimeFull = parseJsonPayloadSafe(await fullInfoRequest);
                     runtimeInfoByName = normalizeRuntimeInfoMap(runtimeFull, runtimeInfoByName);
                 } catch (_error) {
                     // The staged full-info hydration is optional for the experimental surface.
                 }
             }
             const prefsResponse = parseJsonPayloadSafe(prefsPayload);
-            const prefs = normalizePrefs(prefsResponse?.prefs || {});
+            const prefs = normalizePrefs({
+                ...(prefsResponse?.prefs || {}),
+                _metadata: prefsResponse?.metadata || {}
+            });
             const hierarchy = buildFolderHierarchy(folders);
             const depthById = buildFolderDepthById(folders);
             const hostOrder = readDockerHostOrderFromDom();

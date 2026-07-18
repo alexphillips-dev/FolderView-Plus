@@ -7,6 +7,7 @@ Markdown="false"
 ---
 
 <?php
+$fvplusI18nNamespaces = ['settings', 'wizard', 'import', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -418,8 +419,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="folderview">FolderView</option>
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
-                            <option value="tree-explorer">Tree explorer</option>
-                            <option value="orbit">Orbit view</option>
                         </select>
                     </label>
                     <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
@@ -469,6 +468,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
                             <option value="compactmatrix">Compact Matrix</option>
+                            <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
@@ -504,13 +504,18 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                     <div class="settings-privacy-section">
-                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div class="settings-privacy-title" data-i18n="settings.privacy.title">Privacy mode</div>
                         <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-container-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskContainerIps', this.checked)"> Mask container IPs</label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-local-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> Mask local IPs</label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> Mask ports</label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> <span data-i18n="settings.privacy.mask-lan-ips">Mask LAN IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> <span data-i18n="settings.privacy.mask-ports">Mask ports</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
+                        <div class="setting-help" data-i18n="settings.privacy.lan-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
                     </div>
                 </div>
                 <div class="settings-mini-card">
@@ -768,6 +773,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
                             <option value="compactmatrix">Compact Matrix</option>
+                            <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
@@ -775,9 +781,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                     <div class="settings-privacy-section">
-                        <div class="settings-privacy-title">Privacy mode</div>
+                        <div class="settings-privacy-title" data-i18n="settings.privacy.title">Privacy mode</div>
                         <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
                             <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
                     </div>
                 </div>
@@ -1680,66 +1691,50 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="folder-health" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Folder health cards</h2>
-<div class="fv-diagnostics-module-wrap">
-    <div class="rules-panel">
-        <div class="rules-header">
-            <h3>Simple folder health snapshot</h3>
-            <span class="rules-help">Review which folders need attention, apply a quick filter, and jump to the relevant table or conflict scan.</span>
-        </div>
-        <div class="fv-diagnostics-section-body">
-            <div id="folder-health-content" class="folder-health-grid">
-                <div class="folder-health-empty">Health cards populate after Docker/VM folders finish loading.</div>
-            </div>
-        </div>
-    </div>
-</div>
-<hr>
-
-<h2 data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Diagnostics</h2>
+<h2 data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics" data-i18n="diagnostics.title">Diagnostics</h2>
 <div class="fv-diagnostics-module-wrap">
     <div class="rules-panel fv-diagnostics-panel">
         <div class="rules-header">
-            <h3>Troubleshoot and share</h3>
-            <span class="rules-help">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
+            <h3 data-i18n="diagnostics.panel.title">Troubleshoot and share</h3>
+            <span class="rules-help" data-i18n="diagnostics.panel.description">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
         </div>
         <div class="fv-diagnostics-section-body">
             <div class="backup-actions fv-diagnostics-primary-actions">
-                <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
+                <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> <span data-i18n="diagnostics.actions.run">Run health check</span></button>
             </div>
             <div class="fv-diagnostics-workbench">
                 <div class="fv-diagnostics-lane">
                     <div class="fv-diagnostics-lane-head">
-                        <strong>Suggested fixes</strong>
-                        <span class="rules-help">Only actions that match the current health check are shown here.</span>
+                        <strong data-i18n="diagnostics.fixes.title">Suggested fixes</strong>
+                        <span class="rules-help" data-i18n="diagnostics.fixes.description">Only actions that match the current health check are shown here.</span>
                     </div>
                     <div id="fv-diagnostics-actions" class="fv-diagnostics-action-list">
                         <div class="fv-diagnostics-empty-state is-compact">
-                            <strong>No recommended fixes yet.</strong>
-                            <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
+                            <strong data-i18n="diagnostics.fixes.empty-title">No recommended fixes yet.</strong>
+                            <span data-i18n="diagnostics.fixes.empty-description">Run health check first so FolderView Plus can suggest the right repair path.</span>
                         </div>
                     </div>
                 </div>
                 <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
                     <div class="fv-diagnostics-empty-state">
-                        <strong>Run health check to inspect the plugin state.</strong>
-                        <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+                        <strong data-i18n="diagnostics.summary.empty-title">Run health check to inspect the plugin state.</strong>
+                        <span data-i18n="diagnostics.summary.empty-description">The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
                     </div>
                 </div>
                 <div class="fv-diagnostics-lane">
-                    <div class="fv-diagnostics-lane-head">
-                        <strong>Share with support</strong>
-                        <span class="rules-help">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
+                    <div class="fv-diagnostics-lane-head is-support">
+                        <strong data-i18n="diagnostics.support.title">Share with support</strong>
+                        <span class="rules-help" data-i18n="diagnostics.support.description">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
                     </div>
                     <div class="backup-actions fv-diagnostics-share-actions">
-                        <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
-                        <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
+                        <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> <span data-i18n="diagnostics.support.copy">Copy issue report</span></button>
+                        <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> <span data-i18n="diagnostics.support.export">Export support bundle</span></button>
                     </div>
-                    <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
+                    <div class="fv-diagnostics-share-note" data-i18n="diagnostics.support.note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
                     <div id="fv-support-bundle-preview" class="fv-support-bundle-preview" aria-live="polite">
                         <div class="fv-diagnostics-empty-state is-compact">
-                            <strong>Preparing support bundle preview.</strong>
-                            <span>Included sections and redaction categories will appear here before you download the bundle.</span>
+                            <strong data-i18n="diagnostics.support.preview-title">Preparing support bundle preview.</strong>
+                            <span data-i18n="diagnostics.support.preview-description">Included sections and redaction categories will appear here before you download the bundle.</span>
                         </div>
                     </div>
                 </div>
@@ -1751,50 +1746,88 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <div id="import-preview-dialog" style="display:none;">
     <div class="import-preview-head">
-        <p class="import-preview-title">Review import plan</p>
-        <p class="import-preview-subtitle">Choose mode, review changes, and apply only what you want.</p>
-    </div>
-    <div class="import-top-grid">
-        <div class="import-preview-card">
-            <p class="import-card-title">Summary</p>
-            <div id="import-preview-meta" class="preview-meta"></div>
-            <div id="import-preview-result" class="preview-result"></div>
-            <div id="import-preview-counts" class="import-preview-counts"></div>
+        <div class="import-preview-head-icon" aria-hidden="true"><i class="fa fa-upload"></i></div>
+        <div class="import-preview-head-copy">
+            <p class="import-preview-title">Import <span id="import-preview-kind">folder</span> configuration</p>
+            <p class="import-preview-subtitle" data-i18n="import.subtitle">Choose how to handle existing folders. Nothing changes until you select Apply import.</p>
         </div>
-        <div class="import-preview-card import-mode-card">
-            <div class="import-preset-stack">
-                <label for="import-preset-select">Preset</label>
-                <select id="import-preset-select"></select>
-                <div class="import-preset-actions">
-                    <button type="button" id="import-preset-save"><i class="fa fa-save"></i> Save current</button>
-                    <button type="button" id="import-preset-default"><i class="fa fa-star"></i> Set default</button>
-                    <button type="button" id="import-preset-delete"><i class="fa fa-trash"></i> Delete</button>
+    </div>
+
+    <section class="import-primary-panel" aria-labelledby="import-mode-title">
+        <p id="import-mode-title" class="import-control-label" data-i18n="import.behavior.question">How should existing folders be handled?</p>
+        <label class="import-mode-native-label" for="import-mode-select" data-i18n="import.behavior.label">Import behavior</label>
+        <select id="import-mode-select" class="import-mode-native-select" tabindex="-1" aria-hidden="true">
+            <option value="merge">Merge</option>
+            <option value="replace">Replace</option>
+            <option value="skip">Skip existing</option>
+        </select>
+        <div class="import-mode-choices" role="group" aria-label="Import behavior">
+            <button type="button" class="import-mode-choice" data-import-mode-option="merge" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-compress" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong data-i18n="import.mode.merge.title">Merge safely</strong><small data-i18n="import.mode.merge.description">Add new folders and update matches. Delete nothing.</small></span>
+                <span class="import-mode-choice-badge" data-i18n="common.badges.recommended">Recommended</span>
+            </button>
+            <button type="button" class="import-mode-choice" data-import-mode-option="skip" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-plus-circle" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong data-i18n="import.mode.add.title">Add new only</strong><small data-i18n="import.mode.add.description">Create missing folders. Leave existing folders unchanged.</small></span>
+            </button>
+            <button type="button" class="import-mode-choice is-caution" data-import-mode-option="replace" aria-pressed="false">
+                <span class="import-mode-choice-icon"><i class="fa fa-exchange" aria-hidden="true"></i></span>
+                <span class="import-mode-choice-copy"><strong data-i18n="import.mode.replace.title">Replace exactly</strong><small data-i18n="import.mode.replace.description">Match the export. Folders absent from it may be deleted.</small></span>
+                <span class="import-mode-choice-badge is-caution" data-i18n="common.badges.can-delete">Can delete</span>
+            </button>
+        </div>
+    </section>
+
+    <section class="import-change-summary" aria-label="Planned changes">
+        <div id="import-preview-counts" class="import-preview-counts"></div>
+        <div id="import-preview-result" class="preview-result" role="status" aria-live="polite"></div>
+    </section>
+
+    <div class="import-disclosures">
+        <details class="import-disclosure import-review-details">
+            <summary><span><i class="fa fa-list-alt" aria-hidden="true"></i><strong id="import-change-details-label" data-i18n="import.review.title">Review planned changes</strong></span><small data-i18n="common.labels.optional">Optional</small></summary>
+            <div class="import-disclosure-body">
+                <p class="import-detail-label" data-i18n="import.review.folders-fields">Folders and fields</p>
+            <div id="import-preview-diff"></div>
+                <p class="import-detail-label" data-i18n="import.review.choose">Choose which changes to include</p>
+            <div id="import-preview-selection" class="import-selection"></div>
+            </div>
+        </details>
+
+        <details class="import-disclosure import-secondary-options">
+            <summary><span><i class="fa fa-shield" aria-hidden="true"></i><strong data-i18n="import.safety.title">Safety options</strong></span><small data-i18n="import.safety.summary">Preview and confirmation</small></summary>
+            <div class="import-disclosure-body import-secondary-options-body">
+                <div class="import-option-list">
+                    <label id="import-dry-run-row" class="import-option-row">
+                        <input id="import-dry-run-only" type="checkbox">
+                        <span><strong data-i18n="import.safety.preview-only">Preview only</strong><small data-i18n="import.safety.preview-only-description">Calculate the result without saving changes.</small></span>
+                    </label>
+                    <label id="import-preview-first-row" class="import-option-row">
+                        <input id="import-preview-first-toggle" type="checkbox" checked>
+                        <span><strong data-i18n="import.safety.confirmation">Require confirmation</strong><small data-i18n="import.safety.confirmation-description">Keep Apply locked until the review box is checked.</small></span>
+                    </label>
                 </div>
             </div>
-            <label for="import-mode-select">Import mode</label>
-            <select id="import-mode-select">
-                <option value="merge">Merge</option>
-                <option value="replace">Replace</option>
-                <option value="skip">Skip existing</option>
-            </select>
-            <div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>
-            <label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>
-            <label id="import-preview-first-row"><input id="import-preview-first-toggle" type="checkbox" checked> Preview diff first (recommended)</label>
-            <label id="import-review-ack-row" style="display:none;"><input id="import-review-ack" type="checkbox"> I reviewed the diff and selected operations</label>
-        </div>
+        </details>
+
+        <details class="import-disclosure import-source-details">
+            <summary><span><i class="fa fa-file-code-o" aria-hidden="true"></i><strong data-i18n="import.file.title">File details</strong></span><small id="import-trust-label" data-i18n="import.file.validated">Validated export</small></summary>
+            <div class="import-disclosure-body">
+                <div id="import-preview-meta" class="preview-meta"></div>
+                <details id="import-summary-details" class="import-summary-details">
+                    <summary><i class="fa fa-code" aria-hidden="true"></i> <span data-i18n="import.file.technical-summary">Technical summary</span></summary>
+                    <textarea id="import-preview-text" readonly></textarea>
+                </details>
+            </div>
+        </details>
     </div>
-    <div class="import-preview-card">
-        <p class="import-card-title">Changed rows</p>
-        <div id="import-preview-diff"></div>
+
+    <div class="import-confirm-strip">
+        <div class="import-safety-note"><i class="fa fa-shield" aria-hidden="true"></i><span><strong data-i18n="import.backup.title">Automatic backup included</strong><small data-i18n="import.backup.description">The current configuration is saved before a live import.</small></span></div>
+        <label id="import-review-ack-row" class="import-review-ack" style="display:none;"><input id="import-review-ack" type="checkbox"><span><strong data-i18n="import.acknowledge.title">I reviewed this import</strong><small data-i18n="import.acknowledge.description">The behavior and selected changes are correct.</small></span></label>
     </div>
-    <div class="import-preview-card import-selection-card">
-        <p class="import-card-title">Selected operations</p>
-        <div id="import-preview-selection" class="import-selection"></div>
-    </div>
-    <details id="import-summary-details" class="import-summary-details">
-        <summary>Show raw summary details</summary>
-        <textarea id="import-preview-text" readonly></textarea>
-    </details>
+
 </div>
 
 <div id="backup-compare-dialog" style="display:none;">
@@ -1813,9 +1846,9 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div class="import-apply-progress-head">
         <div>
             <div class="import-apply-progress-kicker" id="import-apply-progress-kicker">FolderView Plus</div>
-            <div class="import-apply-progress-title" id="import-apply-progress-title">Preparing operation</div>
+            <div class="import-apply-progress-title" id="import-apply-progress-title" data-i18n="import.progress.preparing">Preparing operation</div>
         </div>
-        <span class="import-apply-progress-state" id="import-apply-progress-state">Running</span>
+        <span class="import-apply-progress-state" id="import-apply-progress-state" data-i18n="import.progress.running">Running</span>
     </div>
     <div class="import-apply-progress-label" id="import-apply-progress-label">Preparing import...</div>
     <div class="import-apply-progress-current" id="import-apply-progress-current">Please keep this page open.</div>
@@ -1843,6 +1876,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>"></script>
@@ -1867,6 +1901,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>

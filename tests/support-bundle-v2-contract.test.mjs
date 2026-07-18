@@ -501,7 +501,10 @@ const loadSupportBundleFixture = () => {
             sourceBranch: 'dev',
             manifestUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg',
             archiveUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz',
-            packageVersion: '2026.04.04.10'
+            packageVersion: '2026.04.04.10',
+            iconAssetPackVersion: '1.0.0',
+            iconAssetPackSha256: '992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd',
+            iconAssetPackUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/asset-packs/folderview.plus-icons-1.0.0.txz'
         }, null, 2),
         'utf8'
     );
@@ -522,8 +525,11 @@ const loadSupportBundleFixture = () => {
             '<!ENTITY github "alexphillips-dev/FolderView-Plus">',
             '<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">',
             '<!ENTITY md5 "f9d807ddc1613bd63b665e7f9804c6a0">',
+            '<!ENTITY iconPackVersion "1.0.0">',
+            '<!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">',
+            '<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">',
             ']>',
-            '<PLUGIN pluginURL="&pluginURL;"><FILE><URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL></FILE></PLUGIN>'
+            '<PLUGIN pluginURL="&pluginURL;"><FILE><URL>&iconPackURL;</URL></FILE><FILE><URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL></FILE></PLUGIN>'
         ].join('\n'),
         'utf8'
     );
@@ -583,6 +589,9 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.bundleMeta.buildIdentity.archiveMd5, 'f9d807ddc1613bd63b665e7f9804c6a0');
         assert.equal(bundle.bundleMeta.buildIdentity.manifestUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg');
         assert.equal(bundle.bundleMeta.buildIdentity.archiveUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz');
+        assert.equal(bundle.bundleMeta.buildIdentity.iconAssetPackVersion, '1.0.0');
+        assert.equal(bundle.bundleMeta.buildIdentity.iconAssetPackSha256, '992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd');
+        assert.equal(bundle.bundleMeta.buildIdentity.iconAssetPackUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/asset-packs/folderview.plus-icons-1.0.0.txz');
         assert.equal(bundle.redactionManifest.mode, mode);
         assert.equal(bundle.uiTelemetry && typeof bundle.uiTelemetry, 'object');
         assert.ok(bundle.system && typeof bundle.system === 'object');

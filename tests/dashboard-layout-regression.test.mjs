@@ -135,7 +135,7 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
     assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
     assert.match(settingsScript, /const dashboard = normalizeDashboardPrefsForType\(type, current\);/);
-    assert.match(settingsScript, /dashboard:\s*nextDashboard/);
+    assert.match(settingsScript, /dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}/);
     assert.match(settingsScript, /renderDashboardControls\(type\);/);
     assert.match(settingsScript, /const recordFatalBannerRequestResult = \(method, url, source, outcome, error = null\) =>/);
     assert.match(settingsScript, /extractFatalBannerTraceId/);
@@ -150,7 +150,7 @@ test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
     assert.match(libPrefsPhp, /function normalizeDashboardPreviewContext\(\$value\): string/);
     assert.match(libPrefsPhp, /function normalizeDashboardPreviewTrigger\(\$value\): string/);
-    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'\]/);
     assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
     assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
     assert.doesNotMatch(libPrefsPhp, /'viewMode'\s*=>\s*'table'/);
@@ -163,12 +163,12 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.doesNotMatch(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.doesNotMatch(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
-    assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
+    assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardAdvancedPreviewModule = window\.FolderViewPlusDashboardAdvancedPreview \|\| null;/);
     assert.match(dashboardScript, /const attachDashboardAdvancedPreviewIfEnabled = \(\$containerEl, ct, folder, id\) =>/);
     assert.match(dashboardScript, /let dashboardDockerCpuCores = 1;/);
-    assert.match(dashboardScript, /const refreshDashboardDockerCpuCores = \(\) => \$\.get\('\/plugins\/folderview\.plus\/server\/cpu\.php'\)/);
+    assert.match(dashboardScript, /const refreshDashboardDockerCpuCores = \(\) => requestClient\.getText\('\/plugins\/folderview\.plus\/server\/cpu\.php'\)/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
     assert.match(dashboardScript, /buildFolderChildrenIndex,/);
     assert.match(dashboardScript, /const getDashboardQuickRailController = \(\) =>/);
@@ -376,10 +376,14 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
 
 test('dashboard render waits for successful folder hydration and has request fallbacks', () => {
     assert.match(dashboardScript, /const dashboardRequestDiagnostics = \{\s*docker: \[\],\s*vm: \[\]\s*\};/);
-    assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => \$\.get\(url\)/);
+    assert.match(dashboardScript, /const getDashboardRequestWithFallback = \(type, label, url, fallback\) => requestClient\.getText\(url\)/);
     assert.match(dashboardScript, /recordDashboardRequestFallback\(type, label, error\);/);
-    assert.match(dashboardScript, /folderReq\.docker = \[[\s\S]*getDashboardRequestWithFallback\('docker', 'runtime info'/);
-    assert.match(dashboardScript, /folderReq\.vm = \[[\s\S]*getDashboardRequestWithFallback\('vm', 'runtime info'/);
+    assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) => \{/);
+    assert.match(dashboardScript, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'full'/);
+    assert.match(dashboardScript, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
+    assert.match(dashboardScript, /const legacyFactories = \[[\s\S]*getDashboardRequestWithFallback\(resolvedType, 'runtime info'/);
+    assert.match(dashboardScript, /fallbackFactories: legacyFactories/);
+    assert.match(dashboardScript, /prepareDashboardFolderRequestsForType\('docker'\);[\s\S]*prepareDashboardFolderRequestsForType\('vm'\);/);
     assert.match(dashboardScript, /const queueCreateFoldersRender = \(\) => \{/);
     assert.match(dashboardScript, /let createFoldersPromise = null;/);
     assert.match(dashboardScript, /return createFoldersPromise \|\| Promise\.resolve\(false\);/);

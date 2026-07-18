@@ -20,14 +20,6 @@ const dockerCommandViewScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js'),
     'utf8'
 );
-const dockerOrbitViewScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js'),
-    'utf8'
-);
-const dockerTreeExplorerScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js'),
-    'utf8'
-);
 const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
@@ -90,7 +82,7 @@ test('docker pin quick action verifies server persistence before keeping optimis
     assert.match(dockerScript, /rememberDockerPinnedFolderIdsOverride\(nextPinned\);/);
     assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);/);
     assert.match(dockerScript, /broadcastDockerPinnedFolderChange\(\{[\s\S]*pinnedFolderIds:\s*confirmedPinned,[\s\S]*changedFolderId:\s*id,[\s\S]*pinned:\s*confirmedPinned\.includes\(id\)[\s\S]*\}\);/);
-    assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
+    assert.match(dockerScript, /folderTypePrefs = applyDockerPinnedFolderPrefsOverride\(normalizeDockerPrefsResponse\(prefsResponse\)\);/);
 });
 
 test('docker page listens for settings pin changes without a full reload', () => {
@@ -127,8 +119,6 @@ test('docker pinned folder affordances use a pin icon instead of a star', () => 
     assert.match(dockerCss, /\.fv-folder-title-line\s*\{/);
     assert.match(dockerCss, /\.fv-folder-pin-indicator\s*\{[\s\S]*rgba\(255,\s*202,\s*99,\s*0\.16\)/);
     assert.match(dockerCommandViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
-    assert.match(dockerOrbitViewScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
-    assert.match(dockerTreeExplorerScript, /<i class="fa fa-thumb-tack"><\/i> pinned/);
 });
 
 test('docker folder menu can move folders within the current level', () => {
@@ -191,28 +181,54 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerPreviewActionsScript, /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /syncDockerPreviewStateSurface\(\$target,\s*statusMeta,\s*localizedLabel\);/);
     assert.match(dockerPreviewActionsScript, /\$compactStatus\.attr\('title', localizedLabel\);/);
-    assert.match(dockerPreviewActionsScript, /removeClass\('fa-play fa-pause fa-square started paused stopped green-text orange-text red-text fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped'\)/);
+    assert.match(dockerPreviewActionsScript, /const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';/);
+    assert.match(dockerPreviewActionsScript, /removeClass\(`\$\{dockerRuntimeIconClassList\} \$\{dockerRuntimeStateClassList\}`\)/);
     assert.match(dockerPreviewActionsScript, /\$stateLabel\.text\(` \$\{localizedLabel\}`\);/);
     assert.match(dockerPreviewActionsScript, /if \(previewStatusMode === 'symbol'\) \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.removeClass\('fv-preview-status-hidden'\);[\s\S]*\} else \{[\s\S]*\$outer\.find\('\.fv-preview-icon-status'\)\.remove\(\);/);
     assert.match(dockerPreviewActionsScript, /const resolveDockerMemberUpdateState = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const buildDockerMemberUpdateColumnHtml = \(entry = \{\},\s*options = \{\}\) =>/);
     assert.match(dockerPreviewActionsScript, /const syncDockerStorageRowUpdateColumn = \(\$row,\s*entry = \{\}\) =>/);
-    assert.match(dockerPreviewActionsScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*syncDockerStorageRowStatus\(\$row,\s*entry\);[\s\S]*syncDockerStorageRowUpdateColumn\(\$row,\s*entry\);/s);
-    assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
-    assert.match(dockerPreviewActionsScript, /syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/);
+    assert.match(dockerPreviewActionsScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*syncDockerStorageRowStatus\(\$row,\s*entry\);[\s\S]*syncDockerStorageRowUpdateColumn\(\$row,\s*entry\);/s);
+    assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) =>/);
+    assert.match(dockerPreviewActionsScript, /syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedSet\);/);
     assert.match(dockerPreviewActionsScript, /syncDockerPreviewStatus\(\$target,\s*entry\);/);
     assert.match(dockerPreviewActionsScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*jq\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
-    assert.match(dockerScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers\);/s);
-    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/s);
-    assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/);
+    assert.match(dockerScript, /const syncDockerFolderMemberRows = \(id,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerFolderMemberRows\(id,\s*runtimeContainers,\s*changedNames\);/s);
+    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\);/s);
+    assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedSet\);/);
     assert.match(dockerScript, /const normalizePreviewStatusMode = \(value\) =>/);
     assert.match(dockerScript, /const shouldShowOnlyIconStatus = previewMode === 2 && previewStatusMode === 'symbol';/);
     assert.match(dockerScript, /fv-preview-icon-status/);
     assert.match(dockerScript, /const \$existingIconStatus = \$previewElementTarget\.children\('\.fv-preview-icon-status'\);/);
     assert.match(dockerScript, /previewStatusMode !== 'symbol' && \$existingIconStatus\.length/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-icon-status\s*\{/);
-    assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
-    assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
+    assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\.catch\(\(\) => \{\}\);/);
+    assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) => \{[\s\S]*?const previousWebuiSignature/);
+});
+
+test('docker incremental lifecycle sync removes pending spinner classes from every settled status icon', () => {
+    const iconNormalizationCalls = dockerPreviewActionsScript.match(/\.removeClass\(dockerRuntimeIconClassList\)/g) || [];
+    assert.equal(iconNormalizationCalls.length, 3);
+    assert.match(
+        dockerPreviewActionsScript,
+        /const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const syncDockerStorageRowStatus = \(\$row,\s*entry = \{\}\) => \{[\s\S]*?\.removeClass\(dockerRuntimeIconClassList\)[\s\S]*?\.addClass\(`fa \$\{statusMeta\.icon\}/
+    );
+    assert.match(
+        dockerPreviewActionsScript,
+        /const syncDockerPreviewStatus = \(\$target,\s*entry = \{\}\) => \{[\s\S]*?\.removeClass\(`\$\{dockerRuntimeIconClassList\} \$\{dockerRuntimeStateClassList\}`\)[\s\S]*?\.addClass\(`fa \$\{statusMeta\.icon\}/
+    );
+});
+
+test('docker incremental lifecycle sync refreshes initialized preview menus from canonical runtime state', () => {
+    assert.match(dockerScript, /const refreshDockerPreviewTooltipContent = \(changedNames = null\) =>/);
+    assert.match(dockerScript, /const runtimeEntry = getDockerRuntimeContainerInfo\(name\);/);
+    assert.match(dockerScript, /const instance = \$trigger\.tooltipster\('instance'\);/);
+    assert.match(dockerScript, /instance\.content\(buildDockerTooltipContent\(runtimeEntry\)\);/);
+    assert.match(dockerScript, /refreshDockerPreviewTooltipContent\(changedSet\);/);
 });
 
 test('docker hydration refresh updates collapsed folder update columns from runtime cache', () => {

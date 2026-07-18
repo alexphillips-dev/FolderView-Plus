@@ -33,9 +33,9 @@ const parityContracts = [
         vm: /const persistVmPinnedFolderIds = async/
     },
     {
-        name: 'pin persistence fallback',
-        docker: /\$\.post\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)\.promise\(\)/,
-        vm: /\$\.post\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)\.promise\(\)/
+        name: 'standardized pin persistence request',
+        docker: /pluginRequestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)/,
+        vm: /pluginRequestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)/
     },
     {
         name: 'lock toggle handler',

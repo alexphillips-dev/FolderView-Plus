@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "uk",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Необов'язково",
+    "common.badges.recommended": "Рекомендовано",
+    "common.badges.can-delete": "Можна видалити"
+}

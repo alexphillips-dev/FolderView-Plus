@@ -8,7 +8,24 @@ header('Expires: 0');
 
 try {
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-    echo readFolder($type);
+    $foldersJson = readFolder($type);
+    $metadata = readConfigMetadata($type, true);
+    if (!headers_sent()) {
+        header('X-FV-Config-Schema: ' . (string)($metadata['schemaVersion'] ?? FVPLUS_CONFIG_METADATA_SCHEMA_VERSION));
+        header('X-FV-Folder-Revision: ' . (string)($metadata['folderRevision'] ?? 0));
+        header('X-FV-Prefs-Revision: ' . (string)($metadata['prefsRevision'] ?? 0));
+    }
+    $includeMetadata = (string)($_GET['includeMetadata'] ?? '') === '1';
+    if ($includeMetadata) {
+        $folders = json_decode($foldersJson, true);
+        echo json_encode([
+            'ok' => true,
+            'folders' => is_array($folders) ? $folders : [],
+            'metadata' => $metadata
+        ], JSON_UNESCAPED_SLASHES);
+    } else {
+        echo $foldersJson;
+    }
 } catch (Throwable $e) {
     http_response_code(400);
     echo json_encode([

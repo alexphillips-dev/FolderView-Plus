@@ -42,6 +42,7 @@ const endpointsUsingHelpers = [
     'environment_snapshot.php',
     'prefs.php',
     'reorder.php',
+    'runtime_snapshot.php',
     'sync_order.php',
     'templates.php',
     'update.php',
@@ -290,7 +291,7 @@ test('diagnostics endpoint emits support bundle v2 shape only', () => {
     assert.match(libDiagnosticsPhp, /'saltScope'\s*=>\s*\$privacyMode === 'full' \? 'none' : 'per-bundle'/);
     assert.match(libDiagnosticsPhp, /'saltHash'\s*=>\s*\$privacyMode === 'full' \? null : \(\$redactor\['saltFingerprint'\] \?\? null\)/);
     assert.match(libDiagnosticsPhp, /getDiagnosticsSnapshot\('full'\)/);
-    assert.match(diagnosticsEndpointPhp, /\$mutatingActions = \['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'repair_missing_custom_icons', 'repair_orphaned_members', 'create_backup'\];/);
+    assert.match(diagnosticsEndpointPhp, /\$mutatingActions = \['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_config_metadata', 'repair_paths', 'repair_missing_custom_icons', 'repair_orphaned_members', 'create_backup'\];/);
     assert.match(diagnosticsEndpointPhp, /if \(\$action === 'repair_missing_custom_icons'\) \{/);
     assert.match(diagnosticsEndpointPhp, /'repair'\s*=>\s*\$repair,/);
     assert.match(diagnosticsEndpointPhp, /fvplusRepairMissingCustomIconReferences\(\)/);

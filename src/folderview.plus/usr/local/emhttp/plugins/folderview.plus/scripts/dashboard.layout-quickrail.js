@@ -57,7 +57,7 @@
         const getDashboardLayoutModes = () => (
             Array.isArray(deps.dashboardLayoutModes) && deps.dashboardLayoutModes.length
                 ? deps.dashboardLayoutModes
-                : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']
+                : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']
         );
 
         const getDashboardLayoutLabels = () => (
@@ -530,7 +530,7 @@
             const layout = dashboardPrefs.layout || 'classic';
             const folderCardLayout = !['classic', 'legacy'].includes(layout);
             $tbody.attr('data-fv-dashboard-layout', layout);
-            $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-legacy fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix');
+            $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-legacy fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix fv-dashboard-layout-embossed');
             $tbody.addClass(`fv-dashboard-layout-${layout}`);
             $tbody.toggleClass('fv-dashboard-show-expand-toggle', folderCardLayout && dashboardPrefs.expandToggle === true);
             $tbody.toggleClass('fv-dashboard-greyscale-enabled', folderCardLayout && dashboardPrefs.greyscale === true);

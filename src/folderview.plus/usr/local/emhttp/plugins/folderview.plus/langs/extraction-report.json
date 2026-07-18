@@ -1,0 +1,18 @@
+{
+    "catalog-version": "2026.07.17.4",
+    "generated-at": "2026-07-17",
+    "candidate-count": 1588,
+    "catalog-message-count": 373,
+    "description": "Heuristic count of legacy user-facing string candidates not yet represented by an explicit localization binding.",
+    "largest-surfaces": {
+        "FolderViewPlus.page": 629,
+        "Folder.page": 254,
+        "scripts/folderviewplus.wizard.js": 169,
+        "scripts/folderviewplus.js": 106,
+        "scripts/folder.js": 73,
+        "scripts/folderviewplus.settings-workspaces.js": 57,
+        "scripts/folder.editor.chrome.js": 41,
+        "scripts/docker.runtime.command-view.js": 31,
+        "scripts/folderviewplus.import.js": 28
+    }
+}

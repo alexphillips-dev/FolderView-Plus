@@ -6,60 +6,686 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.07.14.19">
-<!ENTITY md5 "f1c85726899914d8def9540b2cc777aa">
+<!ENTITY version "2026.07.18.04">
+<!ENTITY md5 "14e4f1cad946dcd1de77b8f549ceb60a">
+<!ENTITY iconPackVersion "1.0.0">
+<!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
+<!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.07.14.19
-- Feature: Add the Smart Rule Assistant, managed Advanced Auto-Rules workspace, safe legacy-regex migration, and redesigned Basic Settings organization and ordering workflows.
-- Fix: Correct new-container placement, Docker/VM pin synchronization, Dashboard rendering and paused states, editor runtime previews, obsolete status filters, and cross-page preference consistency.
-- UI/UX: Polish Diagnostics, Settings actions and drag handles, persistent icon tabs, editor typography, Docker Privacy text, and the responsive Add Custom Action workflow.
-- Security: Expand sanitized support-bundle privacy protection and self-checks while preserving actionable full-mode troubleshooting data.
-- Quality: Add extensive regression coverage, stricter release/language/performance guards, richer diagnostic provenance, and resilient runtime/request telemetry.
-- Docs: Remove the README Credits section and publish a complete categorized rollup of all work since `v2026.07.06.10`.
+###2026.07.18.04
+## FolderView Plus 2026.07.18.04
+This stable release rolls up all development work since `v2026.07.14.19`.
 ### Features and workflows
-- Added a Smart Rule Assistant for Docker and VM folders with folder-aware suggestions, beginner-friendly name/image/Compose match builders, structured assignment previews, conflict inspection, and backup-first application of previewed assignments.
-- Made managed Advanced Auto-Rules the primary Rules workspace and added a guarded legacy-regex migration flow with compatibility previews, duplicate protection, automatic backups, transactional writes, rollback, and focused repair guidance for invalid patterns.
-- Overhauled Basic Settings for Docker and VM folders with section summaries, visible search/filter/sort/add controls, clearer folder identity and health information, streamlined actions, manual-order capture, and better explanations for pinned and nested ordering.
-- Replaced same-level Basic Settings reorder arrows with full-row drag reordering while retaining Tree move for nesting and cross-level moves.
-### Docker, VM, and Dashboard fixes
-- Fixed new Docker containers rendering above folders: live-only containers and containers already saved first by Unraid are now reconciled after every folder, preserving the folders-first invariant.
-- Hardened Docker folder pin persistence with partial server-authoritative saves, read-back verification, rollback on failure, stale-render protection, normalized ordering, cross-page broadcasts, and preference refresh/reconciliation after tab changes.
-- Kept pinned Docker folders promoted through nested rendering and manual moves, added an explicit pin badge, updated indicators in place, and aligned alternate views on the pin icon.
-- Fixed Dashboard folder hydration so the loaded state is set only after successful async rendering, added request fallbacks and safe payload parsing, and expanded sanitized render/request diagnostics.
-- Restored Dashboard paused-state parity for Docker and VM folders and fixed compact-matrix visual ordering to match Docker/VM page order from top to bottom.
-- Fixed modern folder-editor live previews to derive started, paused, and stopped states from the current Docker runtime snapshot instead of stale status text.
-- Standardized partial preference updates and runtime pin synchronization so Settings, Docker, and VM pages remain consistent without unnecessary full reloads.
-### Diagnostics, support bundles, privacy, and troubleshooting
-- Reflowed Advanced > Diagnostics so Suggested fixes is the first full-width module, the health summary remains full width, and Share with support spans its own full-width row.
-- Expanded support-bundle build identity with exact-commit versus source-snapshot provenance, build-base role, source-content fingerprints, archive identity, and clearer package/collection version reporting.
-- Added richer Docker troubleshooting data for runtime rows, rendered folder state, container interactions, saved-order reconciliation, missing-container placement, hook installation/observation, trace caps, and snapshot health.
-- Separated current-session browser errors from historical records and added first/last-seen timestamps, truthful observed versions, structured request and bulk trace details, and improved fatal-banner telemetry.
-- Hardened sanitized exports by hashing dynamic names, IDs, signatures, hook notes, legacy update arguments, paths, URLs, and other trace identities while preserving full-mode diagnostic detail.
-- Added an aggregate sanitized-export privacy self-check for raw identities, absolute URLs, private-network addresses, and sensitive filesystem paths without echoing any detected values.
-### Settings UI and interaction polish
-- Centered the Basic Settings Actions column and isolated its controls from Unraid host float rules.
-- Matched the three-dot overflow action to the quiet gear-button treatment so it no longer appears selected or orange-filled while idle.
-- Replaced Basic Settings and modern editor reorder icons with compact, explicit two-by-three six-dot grips that render consistently across host themes.
-- Removed frames, outlines, backgrounds, and shadows from Order-column and member drag controls—including dark mode—while preserving interaction color and keyboard behavior.
-- Added clearer nested-row branch connectors, tightened and vertically centered pin switches, and unified Settings action styling across Basic, Rules, Operations, and Appearance.
-- Removed the Basic Settings Status Details workflow, popup, launchers, filter/sort/refresh controls, and dedicated styles; retained inline status summaries and Docker Health Details.
-- Made status filters session-only and ignored obsolete persisted popup filters so saved folders can no longer disappear from Basic Settings after an update or reload.
-### Modern folder editor UI/UX
-- Converted General-tab icon sources into persistent tabs: Built-in Icons opens by default, the active source remains open when clicking elsewhere, and returning to General resets to Built-in Icons while temporary Third Party flyouts still dismiss normally.
-- Increased the General Name field and live-summary Name, Preview, Context, and Members values to `1.3rem`; increased Status Colors, Docker Signals, and the Docker-page Privacy label to `1.1rem` for clearer visual hierarchy.
-- Rebuilt Add Custom Action as a semantic, theme-token button and redesigned its dialog into a compact responsive editor with action-type cards, grouped settings, target summaries, select/clear controls, live icon preview, and preserved values when switching modes.
-- Added mode-aware custom-action validation, disabled invalid saves, keyboard-navigable type selection, accessible close/focus recovery, and compatibility with existing saved custom actions.
-- Removed custom-action horizontal overflow, hid scrollbar chrome while preserving short-viewport scrolling, and removed host-provided orange button borders/outlines while retaining theme-aware hover and keyboard focus feedback.
-- Corrected global Advanced Auto-Rule priority in both JavaScript and PHP so the first matching enabled include or exclude rule wins, while preserving legacy-regex runtime, import, backup, template, diagnostics, and support-bundle compatibility during migration.
-### Quality, compatibility, and documentation
-- Added and expanded regression coverage for Dashboard hydration/order/paused states, Docker reconciliation and pinning, Basic Settings organization and drag behavior, support-bundle privacy and provenance, legacy-regex migration, icon-tab persistence, action-dialog behavior, status-detail removal, typography, theme compatibility, and responsive layout.
-- Strengthened release and packaging quality with strict language validation, restored localized action text, refreshed the shipped-asset performance ratchet and its 8% growth limit, and maintained release-note, retry, smoke, persistence, API, and server validation guards.
-- Preserved responsive safe-area behavior, reduced-motion support, escaped runtime values, and theme isolation across the updated Settings and editor surfaces.
-- Removed the Credits section from the project README.
+- Feature: Added stable Docker and VM member identities so uniquely identified renamed members keep folder membership, preview visibility, and custom-action targets without guessing when duplicate Docker images are ambiguous.
+- Added per-member **Show in preview** controls, an all-hidden preview state, preview overflow choices for configured limits, full expansion or horizontal scrolling, and optional colored preview-row separators.
+- Added an Embossed Dashboard layout, authoritative per-folder status-color locking, and a separate Docker folder-name highlight when any member has an available update.
+- Added a responsive Docker action toolbar with Add Folder, Expand All, Collapse All, Manage Folders, live Unassigned/Updates/Empty/Health Issues filters, View controls, and troubleshooting Tools.
+- Added hierarchy-aware toolbar counts and temporary filters that never rewrite saved folder order, plus accessible menu focus, keyboard navigation, outside-click dismissal, and responsive above/below positioning.
+- Added a compact Docker privacy quick-control menu for names/icons, LAN IPs, ports, volume paths, image registries, public IPs, interfaces, and external URLs.
+- Rebuilt Docker and VM configuration import as a compact decision-first flow with plain-language Merge safely, Add new only, and Replace exactly modes; live change totals; progressive disclosure; automatic backup; dry-run support; per-operation selection; and explicit destructive/untrusted confirmation.
+- Allowed Setup Assistant migration flows to skip the optional Import step when no Docker or VM export is selected while continuing to validate enabled, legacy, and malformed import plans correctly.
+- Added one atomic server transaction for configuration imports and bulk deletes, replacing per-folder requests and repeated configuration rewrites.
+- Extended atomic batching to starter templates, Setup Assistant folder creation and membership, rule-preview assignments, shared bulk assignment, and nested-tree repair.
+- Added one coherent, versioned runtime snapshot per Docker/VM type so folders, preferences, saved order, metadata revisions, and runtime entities come from the same configuration generation.
+- Added conditional runtime snapshot tokens so unchanged polling can omit folder and runtime payloads, while retaining the legacy read endpoints as compatibility fallbacks.
+- Standardized every FolderView Plus-owned browser request through one shared client with request tokens, trace IDs, timeouts, encoding, parsing, abort handling, upload progress, keepalive writes, normalized errors, controlled GET retries, and no ambiguous mutation replay.
+- Added keyed incremental Docker, VM, and Dashboard row reconciliation so ordinary state changes update only affected rows while structural changes still use the safe full rebuild path.
+- Moved the 1,982-file third-party icon library into independently versioned icon asset pack `1.0.0`, with persistent cache reuse, checksum verification, staged extraction, atomic activation, runtime linking, and support-bundle identity.
+### Configuration safety and saving
+- Added versioned metadata sidecars for Docker/VM folders and preferences while preserving existing configuration-file compatibility.
+- Added revision-aware saves so stale editors or browser tabs cannot silently overwrite newer folder or preference changes.
+- Serialized configuration mutations behind a shared lock and synchronized preference revisions when manual order reconciliation occurs during a save.
+- Added automatic detection and reconciliation for configuration files changed outside FolderView Plus.
+- Added metadata integrity, revision history, and fingerprints to Diagnostics and sanitized support bundles, plus a Suggested Fix that safely rebuilds configuration metadata.
+- Made custom-icon metadata atomic and recoverable through a last-good copy.
+- Added a shared optimistic preference coordinator across Docker, VM, Dashboard, Settings, privacy, folder order, pinning, expansion, and auto-rules so visible changes apply immediately.
+- Coalesced rapid preference edits into one nested patch per type, serialized writes, and replaced ordered arrays atomically while recursively merging preference objects.
+- Added a durable local outbox so refreshes, navigation, browser restarts, and brief network outages do not discard unsent preference changes.
+- Added revision-conflict rebasing, transient retry classification, intentional retention of permanent failures, cross-tab convergence, and coalesced backup checkpoints.
+- Added sanitized preference-save queue, retry, conflict, outbox, and latency telemetry without exporting preference values.
+### Privacy and security
+- Fixed Docker privacy mode persistence across refreshes, navigation, and browser tabs with durable browser state and background server reconciliation.
+- Fixed Settings privacy checkboxes so unchecked values persist as leaf-level updates without stale Dashboard fields restoring them.
+- Reapplied Docker, VM, and Dashboard privacy classes whenever synchronized preferences change, including another tab and restored outbox replay.
+- Masked icons and names inside collapsed folder previews as well as expanded native rows.
+- Added granular native Docker masking for Container IP, Container Port, and combined LAN IP/port values.
+- Replaced the ineffective Container IP setting with **Mask LAN IPs**, removed the redundant local-IP control, and made LAN IP and port masking independent.
+- Preserved native LAN mapping text while independently handling IPv4, bracketed IPv6, multiple mappings, and refreshed host rows.
+- Expanded reversible masking to Docker volume paths, image registries, public IPs, interfaces, external URLs, VM disk paths, and VM MAC addresses with private-address-aware classification.
+- Applied privacy-menu changes optimistically through the conflict-safe preference coordinator and added dialog semantics, expanded-state reporting, Escape/outside-click dismissal, and focus restoration.
+### Docker, VM, and Dashboard reliability
+- Stopped Docker start, stop, pause, resume, and restart actions from exposing the ungrouped native table or invoking destructive global `loadlist()` rebuilds.
+- Prevented lifecycle preference-revision churn from escalating into grouped-table rebuild loops while retaining structural rebuilds outside protected lifecycle reconciliation.
+- Added bounded lightweight lifecycle confirmation passes so delayed Docker state changes settle without replacing the folder DOM.
+- Fixed lifecycle status icons that remained spinning after actions settled across expanded rows, hidden members, and compact folder previews.
+- Made native container menus and initialized preview popups switch immediately between Start, Stop, Pause, and Resume using the canonical runtime cache, eliminating stale Start actions and “already running” errors.
+- Preserved expanded folders, focus, menus, previews, ordering, scroll position, and existing host rows during incremental lifecycle updates.
+- Reused one primed runtime snapshot during Docker startup, deferred advanced detail hydration until after the lightweight folder view was visible, and stabilized Application-column sizing behind a generation-safe measurement gate.
+- Replaced per-folder frame yields with elapsed-work budgeting and ultimately matched FolderView3’s native-first, uninterrupted folder conversion so Unraid rows remain visible until every folder commits synchronously.
+- Removed the temporary cloned snapshot and hidden-table staging approaches used during startup investigation, preventing blank tables and cascading chevron paints.
+- Stopped Update All and folder-update callbacks from recursively rebuilding the Docker list, replacing the former 120-second redraw cycle with finite coalesced incremental refreshes.
+- Fixed Docker View switching so native rows are restored before applying a selected FolderView mode, preventing duplicate folder rows after repeated transitions.
+- Removed the retired Tree Explorer and Orbit views, assets, preferences, translations, privacy paths, and runtime modules; legacy saved values now normalize safely to FolderView.
+- Restored Host list as the native Unraid container table with defensive extraction, duplicate removal, host-order restoration, and fallback placement for containers missing from saved order.
+- Tightened the Docker header/control spacing around Basic View and Privacy without changing native table or folder-row spacing.
+- Fixed toolbar Reset View, Empty-only filter recovery, full-width toolbar placement, viewport menu positioning, and hidden-empty/filter conflicts.
+- Added Docker, VM, and Dashboard reconciliation counters and lifecycle/request traces to sanitized troubleshooting telemetry.
+### Settings, search, and UI/UX
+- Added word-token Settings search over privacy-safe labels, descriptions, aliases, and control metadata with cached indexing and input debouncing.
+- Added live result counts, highlighted matches, Enter-to-jump, compact clear, Escape reset, accessible search semantics, polite announcements, and a dedicated no-results state.
+- Added Current tab/All advanced search scope while preserving independent Basic and per-tab Advanced queries and excluding folder names, runtime tables, outputs, entered values, and dynamic lists.
+- Aligned Search, Basic, Advanced, and Wizard controls; fixed search width clipping; added responsive mobile layout; and rebuilt the clear control as a compact theme-safe icon button.
+- Aligned and optically balanced the Wizard button and applied the theme-aware information blue to its icon and label.
+- Removed the Saved/Saving badge from the Settings topbar while preserving background preference synchronization and diagnostics.
+- Replaced generic update summaries with the exact heading and changes recorded for the installed version and fixed parsing so descriptive section headings remain inside the correct release block.
+- Fixed semicolon-separated localization bindings so Settings placeholders, ARIA labels, titles, and button text resolve independently instead of displaying concatenated keys.
+- Updated the modern folder-editor live preview immediately when Show in preview changes, tracked visibility-only dirty state, cleared stale hidden state when excluding members, and displayed a clear all-hidden message.
+- Made the Docker privacy menu compact and icon-width with no idle border/fill, raised its text to `1.2rem`, and increased its responsive height so normal desktop layouts avoid a scrollbar.
+### Import UI/UX and performance
+- Reduced the import popup to one compact responsive column with consistent module widths, spacing, footer alignment, and a bounded vertical scroller.
+- Moved changed folders, operation selection, safety options, file metadata, technical summaries, and dry-run controls into progressive-disclosure sections while retaining all import capabilities.
+- Removed redundant preset controls from the popup, retained server-side preset initialization compatibility, and renamed the remaining distinct controls to Safety options.
+- Replaced inherited orange outlines/fills and the empty host close rectangle with neutral FolderView Plus button tokens and scoped runtime overrides.
+- Locked the actual jQuery UI widget, header, behavior modes, summaries, disclosures, tables, selection lists, confirmation, and footer to one stable responsive width despite late Unraid theme overrides and resize changes.
+- Added consistent spacing between import modules and removed unused blank side space from the dialog shell.
+- Raised import popup text below `1.2rem` to a `1.2rem` minimum through scoped CSS and a computed runtime safeguard, while keeping the Recommended and Can delete badges compact at `1.0rem` and preserving larger summary text.
+- Removed fixed completion delays and reduced large import/delete operations to one lock, one normalized write, one metadata commit, and one final order reconciliation with rollback on post-write failure.
+### Diagnostics and support
+- Reorganized diagnostics into Core health, Performance advisories, and Optional integrations so unavailable optional capabilities do not change overall plugin health.
+- Replaced single-maximum performance warnings with a 15-minute evidence window that ignores cold loads for alerting, requires repeated warm overruns, and still flags an extreme warm overrun immediately.
+- Grouped nested Settings timings into one advisory, added freshness metadata and expandable technical details, and added Retest performance for a new warm measurement.
+- Treated an unavailable native Docker Organizer API as informational, reserved warnings for detected organizer sync failures, and added a forced **Check again** capability probe.
+- Added structured, sanitized organizer capability/failure stages and separated base GraphQL availability from organizer-schema availability.
+- Added a Localization readiness card covering active resolution, legacy/namespace coverage, catalog currency, missing keys, load failures, and the remaining extraction backlog.
+- Removed the redundant Simple folder health snapshot and its renderer, filters, actions, styles, and section metadata while retaining Basic-table health calculations.
+- Placed Performance Budgets, Native Docker Organizer, and Localization on one balanced desktop row with responsive wrapping.
+- Increased Suggested fixes, Core health, Performance advisories, Optional integrations, and Share with support headings to `1.3rem` and gave Share with support a theme-safe blue accent.
+- Added bounded sanitized plugin-request history with endpoint paths, outcomes, status codes, durations, attempts, and trace IDs to support-bundle UI telemetry.
+### Localization and accessibility
+- Added a versioned, namespaced localization runtime with English source/fallback catalogs, page-specific loading, complete BCP 47 resolution, and correct LTR/RTL document direction.
+- Added locale-aware number, date, relative-time, list, plural, and numeric-collation behavior plus `en-XA` and `ar-XB` pseudo-locales for expanded-text and RTL testing.
+- Localized the primary modern Settings, Setup Assistant, import, diagnostics, Docker action/privacy, Dashboard, and folder-editor surfaces while preserving readable English on catalog failures.
+- Split Brazilian and European Portuguese, identified Simplified Chinese as `zh-Hans`, prevented Traditional Chinese from silently falling back to Simplified Chinese, and made generic Portuguese resolve to the complete European Portuguese catalog.
+- Completed all 373 current source messages across the legacy catalog and eight namespaces for Czech, German, Spanish, French, Italian, Japanese, Korean, Dutch, Polish, Brazilian Portuguese, European Portuguese, Romanian, Russian, Swedish, Turkish, Ukrainian, and Simplified Chinese.
+- Added locale-correct one/few/many import-summary forms for Czech, Polish, Romanian, Russian, and Ukrainian.
+- Added accurate source/partial/complete/placeholder coverage metadata, locale resolution and load-failure telemetry, sanitized support-bundle readiness data, contributor guidance, glossary/safety policy, Weblate component guidance, and a GitHub translation issue form.
+- Added strict catalog-version, namespace, parameter, plural, duplicate-key, placeholder, regional-metadata, acceptance, source-revision, and hard-coded UI validation.
+### Performance, compatibility, and quality
+- Lazy-loaded the Dashboard chart stack only when an advanced graph preview opens and added package, JavaScript, CSS, third-party-icon, and gzip performance budgets.
+- Added a capability-driven runtime transport for GraphQL, WebSocket or SSE subscriptions, polling fallback, and Docker actions while preserving native Unraid action fallbacks.
+- Preserved upload cancellation/progress, unload-safe background synchronization, legacy read APIs, legacy single-target mutation compatibility, and safe fallback behavior throughout the request, snapshot, batching, and asset-pack migrations.
+- Added deterministic icon-pack and package tooling that rejects source drift, checksum mismatch, unsafe archive entries, accidental icon-library inclusion, or broken activation paths.
+- Fixed icon-pack activation to resolve the installed helper correctly, stop installation on verification/activation failure, and report activation progress and readiness in Unraid’s update window.
+- Added or expanded executable regression coverage across metadata revisions, optimistic saves, privacy, identity reconciliation, live previews, toolbar behavior, import safety/layout/batching, snapshots, requests, runtime diffs, lifecycle actions, startup rendering, view switching, localization, diagnostics, theme compatibility, packaging, and support-bundle sanitization.
+- Strengthened release, API, include-order, language, dead-code, theme, install-smoke, browser-smoke, performance, reproducibility, and archive-integrity guards.
+
+
+###2026.07.18.03
+## 2026.07.18.03
+- UI/UX: Increased Suggested fixes, Core health, Performance advisories, Optional integrations, and Share with support headings to `1.3rem` for a clearer diagnostics hierarchy.
+- Theme: Styled Share with support with the theme-safe blue information accent in both dark and light modes.
+- Tests: Added regression coverage for the diagnostics heading scale and support-title accent.
+
+
+###2026.07.18.02
+## 2026.07.18.02
+- UI/UX: Placed Performance Budgets, Native Docker Organizer, and Localization on one balanced diagnostics row on wide screens to reduce vertical spacing.
+- Responsive design: Preserved readable two-column and single-column wrapping for narrower settings layouts.
+- Tests: Added layout regression coverage for the new one-third/two-thirds diagnostics lane structure.
+
+
+###2026.07.18.01
+## 2026.07.18.01
+- UI/UX: Removed the Simple folder health snapshot from Advanced > Diagnostics so the tab focuses on the primary diagnostics and support workflow.
+- Quality: Removed the retired snapshot renderer, quick-filter actions, section registry metadata, and dedicated styles without changing the health metrics used by the Basic folder tables.
+- Tests: Added regression coverage that prevents the removed diagnostics snapshot and its orphaned UI hooks from returning.
+
+
+###2026.07.17.15
+## 2026.07.17.15
+- Localization: Completed all 17 non-English language catalogs with all 373 current messages across the legacy catalog and eight modern UI namespaces.
+- Localization: Czech, German, Spanish, French, Italian, Japanese, Korean, Dutch, Polish, Brazilian Portuguese, European Portuguese, Romanian, Russian, Swedish, Turkish, Ukrainian, and Simplified Chinese now load at 100% coverage without English fallback for cataloged UI.
+- Localization: Kept Brazilian and European Portuguese as independent regional translations while generic Portuguese now resolves to the complete European Portuguese catalog.
+- Localization: Added locale-correct one, few, and many forms for Czech, Polish, Romanian, Russian, and Ukrainian import summaries.
+- Diagnostics: Localization health now reports every shipped language as current, complete, and reviewed against catalog version `2026.07.17.4`.
+- Quality: Complete translation coverage now counts valid present messages even when established technical labels such as Docker, WebUI, or Compose correctly remain unchanged.
+- Quality: Strengthened localization validation to reject incomplete “complete” catalogs, stale source revisions, unaccepted catalogs, translation-workflow artifacts, and missing plural forms.
+- Quality: Audited destructive import, replace, delete, backup, confirmation, placeholder, link, markup, and technical-name wording before shipping the completed catalogs.
+- Translation workflow: Updated project policy so structurally validated, maintainer-accepted translations can ship without requiring an unavailable external native-speaker review.
+
+
+###2026.07.17.14
+## 2026.07.17.14
+- Localization: Split Portuguese into `pt-BR` and `pt-PT`, identify Simplified Chinese as `zh-Hans`, and prevent Traditional Chinese locales from silently falling back to Simplified Chinese.
+- Localization: Generic Portuguese and regional aliases now report the correct known translation status even when English fallback is required.
+- Localization: Added namespace-ready catalogs for every registered locale while keeping untranslated files empty and using the English fallback instead of presenting copied English as translation coverage.
+- Diagnostics: Added a Localization readiness card with active locale resolution, legacy and modern catalog coverage, current-review status, potentially stale message counts, runtime missing keys, load errors, and the remaining hard-coded UI extraction backlog.
+- Support: Added catalog coverage and extraction readiness to sanitized support-bundle localization metadata for faster language and fallback troubleshooting.
+- Quality: Enforced one catalog version across legacy and namespace files, required namespace scaffolds, validated regional metadata, and made localization extraction reporting fail when its totals become stale.
+- Testing: Added regional fallback regression tests, compact catalog-report tests, placeholder integrity checks, and automated expanded-text and RTL pseudo-locale browser screenshots.
+- Performance: Runtime pages now load only the active locale coverage report and skip empty namespace catalogs; the full language matrix is reserved for Settings diagnostics.
+- UI/UX: Folder and member selectors now use the active locale's numeric collation so names such as Folder 2 sort before Folder 10.
+- Translation workflow: Added Weblate-ready component guidance, a terminology and safety review policy, and a dedicated GitHub translation contribution form.
+- Localization: Moved Diagnostics activity, performance, history, repair, theme, retry, and technical-detail text into the English catalog, reducing the tracked hard-coded UI backlog without weakening the regression ceiling.
+
+
+###2026.07.17.12
+## 2026.07.17.12
+- Feature: Reorganized health cards into Core health, Performance advisories, and Optional integrations so unavailable optional capabilities no longer change the plugin's overall health status.
+- Fix: Replaced single-maximum performance warnings with a 15-minute evidence window that ignores cold loads for alerting, requires two recent warm overruns, and still flags an extreme warm overrun immediately.
+- Fix: Grouped nested Settings timings into one performance advisory instead of presenting a slow Settings load, Docker refresh, and VM refresh as independent health problems.
+- UI/UX: Added clearer core-health summary language, per-card freshness, expandable technical details, compact healthy-card spacing, and full-width advisory and optional lanes.
+- Feature: Added a Retest performance action that records a fresh warm Settings measurement and immediately reevaluates the advisory.
+- Quality: Removed the stale queued Docker-list refresh dependency left behind after runtime actions moved to incremental state reconciliation.
+
+
+###2026.07.17.11
+## 2026.07.17.11
+- UI/UX: Tightened the Docker-page view-control row above and below the Basic View and Privacy toggles so the container table begins closer to the page header without changing native table or folder-row spacing.
+
+
+###2026.07.17.10
+- Fix: Host list now explicitly extracts every native container row from FolderView storage, removes plugin folder rows and grouping classes, and restores Unraid's standard Docker table instead of relying on the host refresh to dismantle plugin-owned DOM.
+- Compatibility: Host restoration prefers freshly rendered direct Unraid rows when both native and previously stored copies exist, removes duplicates defensively, and falls back safely for containers missing from the saved host order.
+- Quality: Added request-bundle telemetry for Host list restoration counts and regression coverage for native row extraction, cleanup, ordering, duplicate handling, and the Host-mode render branch.
+
+
+###2026.07.17.09
+- Fix: Docker View-menu transitions now rebuild Unraid's native container rows before applying the selected FolderView mode, preventing repeated switches from appending duplicate folder rows.
+- UX: Removed Tree Explorer and Orbit from the Docker View menu and the Settings runtime selector, leaving FolderView, Host list, and Command as the supported Docker page views.
+- Maintenance: Removed the retired Tree Explorer and Orbit JavaScript modules, stylesheets, page assets, privacy selectors, translations, and runtime integration paths from the plugin package.
+- Compatibility: Existing preferences saved with either removed view now normalize safely to FolderView on both the client and server.
+- Quality: Added regression coverage for repeated FolderView/Host transitions, legacy preference fallback, supported-view surfaces, and the absence of retired assets from the package.
+
+
+###2026.07.17.08
+- UX: Docker startup now leaves Unraid's native container rows visible while FolderView Plus resolves its folder data and preferences, then converts those rows into the completed folder view without an intermediate blank or cloned overlay.
+- Fix: Removed the temporary Docker render snapshot, hidden tbody staging state, and related cleanup paths introduced during the cascading-chevron investigation.
+- Performance: Folder rows are now inserted in one uninterrupted synchronous DOM commit, matching FolderView3's paint behavior and preventing the browser from displaying partial folder or chevron states between animation frames.
+- Quality: Replaced the former yield/staging contracts with regressions that require native-first hook ordering, no render snapshot CSS or JavaScript, and no asynchronous yield inside either folder-construction loop.
+
+
+###2026.07.17.07
+- UX: Docker page startup now keeps a non-interactive snapshot of the native container list visible while FolderView assembles the folder tree, eliminating the blank table between the Docker header and the completed folder view.
+- Fix: Removed render staging from Unraid's native `loadlist()` phase so containers can paint normally before FolderView begins its atomic folder conversion.
+- Quality: The temporary render snapshot is isolated from user input and stripped of IDs, inline handlers, and operational folder classes so it cannot receive actions or interfere with the hidden live render.
+- Quality: Expanded Docker bootstrap, update-flow, layout, and performance regression coverage for the snapshot-backed atomic render path.
+
+
+###2026.07.17.06
+- Fix: Docker folder staging now hides both supported Unraid table-body variants as one composited surface, preventing dropdown chevrons and other descendants from painting one at a time before the completed folder view is ready.
+- Compatibility: Render busy state is applied to and cleared from both `docker_list` and `docker_view`, keeping atomic loading behavior consistent across Docker page variants.
+- Quality: Expanded the Docker bootstrap regression contract to verify non-overridable staging opacity and coverage of both Docker table bodies.
+
+
+###2026.07.17.05
+- Fix: Start Docker render staging before Unraid's native `loadlist()` paints container rows, preventing orphan dropdown chevrons from appearing one at a time before the completed folder view is revealed.
+- Fix: Parse semicolon-separated localization bindings independently so Settings search placeholders, accessibility labels, button text, and titles resolve to their intended translations instead of concatenated localization keys.
+- Compatibility: Release Docker render staging when host or isolated Docker views are selected so non-folder views remain visible.
+- Quality: Add regression coverage for pre-host-load Docker staging and combined text, placeholder, ARIA-label, and title localization bindings.
+
+
+###2026.07.17.04
+- Fix: Stop Docker Update All and folder update dialogs from repeatedly calling Unraid's full `loadlist()` rebuild while containers are updating.
+- Performance: Replace the 120-second recursive post-update redraw cycle with coalesced incremental runtime refreshes and a finite tail check that preserves the grouped folder DOM during transient container replacement.
+- UI/UX: Keep cooperative Docker folder construction hidden until the complete folder tree is ready, then reveal every folder together instead of cascading rows from top to bottom.
+- Quality: Add regression coverage proving update callbacks cannot forward the destructive `loadlist` callback, reconciliation terminates without a page refresh, and initial folder rendering commits atomically.
+
+
+###2026.07.17.03
+- Feature: Add a versioned, namespaced localization runtime with 338 English source messages, explicit English fallback, full regional locale resolution, and page-specific catalog loading.
+- Feature: Add locale-aware number, date, relative-time, and list formatting plus built-in `en-XA` and `ar-XB` pseudo-locales for translation and layout testing.
+- UI/UX: Localize the primary modern Settings, Setup Assistant, import, diagnostics, Docker action/privacy, Dashboard, and folder-editor surfaces while preserving readable English during catalog failures.
+- Compatibility: Preserve complete BCP 47 locale tags, fall back through regional language and English catalogs, and apply correct left-to-right or right-to-left document direction.
+- Quality: Include requested, resolved, active, and fallback locale details, catalog version, missing keys, and catalog load failures in sanitized support-bundle telemetry.
+- Quality: Classify every bundled locale as source, partial, complete, or placeholder with accurate coverage metadata so untranslated English copies are no longer presented as completed translations.
+- Quality: Add translation contributor documentation, glossary and message-format rules, pseudo-locale instructions, catalog metadata validation, plural and parameter checks, duplicate-key protection, and hard-coded UI regression detection.
+- Quality: Add localization runtime regression coverage and update existing UI contracts for translated fallback labels, coherent runtime snapshots, standardized requests, and incremental row refreshes.
+- Fix: Make local shell validation inspect tracked scripts only, correct icon asset-pack shell quoting/count checks, remove four confirmed dead JavaScript declarations, and ensure the current Unraid update displays these exact release notes.
+
+
+###2026.07.17.02
+- Fix: Docker support-bundle snapshots, trace storage caps, and rendered-state diagnostics.
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.07.17.01
+- Feature: Add a versioned, namespaced localization runtime with 338 English source messages, explicit English fallback, full regional locale resolution, and page-specific catalog loading.
+- Feature: Add locale-aware number, date, relative-time, and list formatting plus built-in `en-XA` and `ar-XB` pseudo-locales for translation and layout testing.
+- UI/UX: Localize the primary modern Settings, Setup Assistant, import, diagnostics, Docker action/privacy, Dashboard, and folder-editor surfaces while preserving readable English during catalog failures.
+- Compatibility: Preserve complete BCP 47 locale tags, fall back through regional language and English catalogs, and apply correct left-to-right or right-to-left document direction.
+- Quality: Include requested, resolved, active, and fallback locale details, catalog version, missing keys, and catalog load failures in sanitized support-bundle telemetry.
+- Quality: Classify every bundled locale as source, partial, complete, or placeholder with accurate coverage metadata so untranslated English copies are no longer presented as completed translations.
+- Quality: Add translation contributor documentation, glossary and message-format rules, pseudo-locale instructions, catalog metadata validation, plural and parameter checks, duplicate-key protection, and hard-coded UI regression detection.
+- Quality: Add localization runtime regression coverage and update existing UI contracts for translated fallback labels, coherent runtime snapshots, standardized requests, and incremental row refreshes.
+- Fix: Make local shell validation inspect tracked scripts only, correct icon asset-pack shell quoting/count checks, and remove four confirmed dead JavaScript declarations found by the full validation suite.
+
+
+###2026.07.16.33
+### Faster, stable Docker folder startup
+- Performance: The Docker page now reuses one primed coherent runtime snapshot instead of replacing it during the first native `loadlist()` pass or issuing a separate preference request.
+- Performance: Full Docker runtime details now begin loading only after the lightweight folder view is visible, keeping advanced metadata off the initial render path.
+- UI/UX: The Application column holds its cached width while folders, previews, fonts, and host rows settle, then performs one final measured adjustment instead of visibly resizing several times.
+- Performance: Folder rendering now yields according to elapsed browser work rather than pausing after every six folders, reducing unnecessary frame delays on faster systems.
+- Reliability: Startup row mutations, font events, preference application, and post-render polish are coalesced behind a generation-safe width stabilization gate.
+- Test: Adds focused regression coverage for single-bundle startup, deferred detail hydration, stabilized column sizing, and time-budgeted folder rendering.
+
+
+###2026.07.16.32
+### Live Docker action-menu state
+- Fix: Container menus now immediately switch between Start, Stop, Pause, and Resume after lifecycle actions without requiring a page refresh.
+- Fix: Prevents stale Start actions from being offered for containers that are already running, eliminating the resulting Docker "already running" error.
+- Reliability: Native Unraid context menus now resolve lifecycle state from FolderView Plus's canonical runtime cache instead of the original row's immutable inline arguments.
+- UI/UX: Already-initialized folder preview popups refresh their status icon and available actions as soon as incremental runtime reconciliation settles.
+- Test: Adds stopped-to-started-to-stopped regression coverage for native context menus and live preview popup refreshes.
+
+
+###2026.07.16.31
+### Docker lifecycle spinner cleanup
+- Fix: Container status icons no longer keep spinning after a start, stop, pause, resume, or restart action has settled.
+- UI/UX: Expanded member rows, hidden folder members, and compact folder previews now immediately restore the correct started, paused, or stopped glyph during incremental reconciliation.
+- Reliability: The shared Docker status normalizer clears Unraid's temporary refresh and spin classes before applying the latest runtime state.
+- Test: Adds regression coverage proving every incremental member and preview status path removes pending lifecycle animation classes.
+
+
+###2026.07.16.30
+### Docker lifecycle rebuild loop fix
+- Fix: Container start, stop, pause, resume, and restart reconciliation can no longer call `loadlist`, including when preference revisions change while the action is settling.
+- Fix: Eliminates the repeated native-container flash caused when a rebuild saved expanded-folder state and triggered another revision mismatch on the next retry.
+- Performance: Lifecycle refreshes now apply the latest runtime state to existing keyed rows while recording configuration revision changes for diagnostics instead of rebuilding the table.
+- UI/UX: Folder rows remain continuously mounted throughout lifecycle actions, preserving expansion, focus, menus, ordering, and scroll position.
+- Safety: Non-lifecycle refreshes still rebuild when folder or preference revisions change, preserving structural reconciliation outside the protected action window.
+- Test: Extends lifecycle regression coverage to prove preference-revision churn cannot be promoted into a grouped-table rebuild.
+
+
+###2026.07.16.29
+### Stable Docker lifecycle refreshes
+- Fix: Starting, stopping, pausing, resuming, or restarting a container no longer exposes Unraid's ungrouped container table while FolderView reloads.
+- Performance: Native Unraid and FolderView lifecycle actions now use keyed in-place runtime reconciliation instead of the destructive global `loadlist` callback.
+- Reliability: Lifecycle transitions receive three lightweight refresh attempts across two seconds so delayed Docker state changes settle without rebuilding the grouped DOM.
+- UI/UX: Expanded folders, menus, focus, scroll position, previews, ordering, and existing rows remain mounted during container state changes.
+- Safety: Real folder or preference revision changes still retain the full rebuild path, while transient empty or structurally incomplete runtime responses preserve the current grouped view.
+- Diagnostics: Lifecycle callback interception and incremental refresh results are recorded in Docker troubleshooting telemetry.
+- Test: Adds regression coverage proving lifecycle callbacks cannot invoke `loadlist` while unrelated structural callbacks remain unchanged.
+
+
+###2026.07.16.28
+### Incremental runtime row updates
+- Performance: Docker, VM, and Dashboard live refreshes now diff keyed runtime entities and patch only rows whose state, autostart, update, manager, identity, or folder-label data changed.
+- UI/UX: In-place updates preserve expanded folders, focus, menus, previews, current ordering, scroll position, and existing host row elements instead of rebuilding the full runtime list.
+- Performance: VM start, stop, pause, and resume actions now apply an immediate incremental refresh plus one delayed confirmation pass.
+- Safety: Entity additions or removals and folder or preference revision changes still use the full Unraid list rebuild so membership and ordering cannot become stale.
+- Diagnostics: Docker, VM, and Dashboard runtime state now records incremental versus structural reconciliation counts for troubleshooting.
+- Test: Adds runtime diff coverage for changed, unchanged, added, and removed entities plus contracts for all three incremental render paths.
+
+
+###2026.07.16.27
+### Standardized plugin requests
+- Quality: Routes every FolderView Plus-owned browser request through one shared client while keeping native Unraid Docker, VM, User Scripts, GraphQL, WebSocket, SSE, and logging transports separate.
+- Fix: Prevents preference saves, folder mutations, expanded-state writes, and apply-settings operations from being replayed after an ambiguous network failure; reads retain one controlled retry.
+- Quality: Standardizes request tokens, trace IDs, encoded query construction, timeouts, JSON parsing, cache controls, abort handling, upload progress, keepalive writes, and normalized HTTP errors.
+- Diagnostics: Adds a bounded sanitized request-activity history with endpoint paths, outcomes, status codes, durations, attempts, and trace IDs to support-bundle UI telemetry.
+- Compatibility: Preserves icon upload cancellation/progress, unload-safe background synchronization, runtime snapshot polling, and native Unraid action transports during the migration.
+- Test: Adds behavior and enforcement coverage that rejects direct plugin-owned Ajax/fetch calls and mutation retry overrides while validating GET retries, URL encoding, diagnostic redaction, and all migrated runtime/editor paths.
+
+
+###2026.07.16.26
+### Coherent runtime snapshots
+- Performance: Replaces fragmented Docker, VM, and Dashboard bootstrap reads with one versioned runtime snapshot per type while preserving Docker's fast initial state render and deferred detail hydration.
+- Fix: Captures folders, preferences, saved order, and metadata revisions under one configuration lock so a render cannot combine values from different save generations.
+- Performance: Adds lightweight conditional checks with deterministic snapshot tokens so unchanged live-refresh polls omit folder and runtime payloads.
+- Quality: Derives host order from the snapshot's entity generation and normalizes state and full runtime shapes to the same identity before calculating change tokens.
+- Compatibility: Keeps the existing read endpoints as per-field fallbacks if the snapshot endpoint is unavailable or returns an unsupported contract.
+- Test: Adds endpoint assembly, schema, conditional polling, revision invalidation, client projection, fallback, script-order, packaging, and cross-runtime regression coverage.
+
+
+###2026.07.16.25
+### Icon asset-pack activation fix
+- Fix: Corrects the installed asset-pack helper path so the separately downloaded `1.0.0` icon library is extracted, linked, and available to the modern folder editor.
+- Fix: Makes the plugin install block stop and report a failure when icon-pack verification or activation fails instead of continuing to display a successful installation banner.
+- Quality: Prints an explicit activation start message and the helper's ready confirmation in the Unraid update window.
+- Test: Adds a manifest regression that expands the plugin-directory entity and proves the activation helper resolves to the installed script path.
+
+
+###2026.07.16.24
+### Versioned icon asset pack
+- Performance: Moves the 1,982-file third-party icon library out of the frequently rebuilt core plugin archive and into an independently versioned `1.0.0` asset pack.
+- Performance: Reuses a checksum-marked extracted icon cache during ordinary plugin updates and rebuilds the RAM cache from the persistent pack after reboot.
+- Quality: Verifies the immutable pack with manifest-pinned MD5 and SHA-256 checksums, stages extraction, atomically activates the cache, and keeps the existing third-party icon URLs through a runtime symlink.
+- Quality: Adds deterministic asset-pack tooling and release guards that reject source drift, checksum mismatches, unsafe entries, or accidental icon-library inclusion in the core archive.
+- Feature: Exposes icon-pack version, checksum, URL, readiness, and link state through runtime metadata and sanitized support-bundle build identity.
+- Test: Adds executable regressions for archive contents, checksum rejection, real extraction, atomic activation, cached-pack reuse, endpoint health, packaging exclusion, and support metadata.
+
+
+###2026.07.16.23
+### Atomic batching across folder workflows
+- Performance: Creates selected starter-template folders in one transaction instead of issuing and reconciling one request per folder.
+- Performance: Applies Setup Assistant folder creation and membership phases as bounded batch requests, with one folder-map write and one refresh per phase.
+- Performance: Applies rule-preview assignments across every destination folder in one multi-target request and removes the 40-item request loop from shared bulk assignment.
+- Fix: Repairs every affected nested-folder parent link in one batch so a failed tree-integrity request cannot leave only part of the tree repaired.
+- Security: Validates all destination folders and rejects conflicting item destinations before mutation, preventing partial moves when any target is invalid.
+- Quality: Uses one configuration lock, one folder-map read, one atomic write, and one Docker-order reconciliation for multi-target assignments while preserving legacy single-target API compatibility.
+- Quality: Records sanitized target, assignment, changed-folder, and duration counts for troubleshooting without logging folder or member names.
+- Test: Adds executable regressions proving one-revision multi-folder commits, full rollback on conflicts or missing targets, and one request for assignments larger than the former 40-item chunk size.
+
+###2026.07.16.22
+### Atomic configuration imports and deletes
+- Performance: Replaces one HTTP request and full configuration rewrite per folder with one bounded server-side batch transaction for imports and bulk deletes.
+- Performance: Applies all folder changes under one configuration lock with one folder-map read, one normalization pass, one atomic folder-map write, one metadata commit, and one manual-order reconciliation.
+- Performance: Removes the fixed import and delete completion delays so the refreshed result appears as soon as the transaction finishes.
+- Security: Validates every delete, update, and create operation before changing disk state, preserves the existing pre-import safety backup and undo flow, and attempts an in-lock rollback if a post-write step fails.
+- Quality: Reconciles nested-folder parents, manual folder order, and Docker start order once after the final batch state is known instead of repeating that work for every folder.
+- Quality: Records sanitized batch counts and server execution time for troubleshooting without exporting folder names or payload content.
+- Test: Adds an executable transaction regression proving multi-folder changes commit one folder revision, repair hierarchy and order correctly, and reject invalid batches without partial mutation.
+
+###2026.07.16.20
+### Compact import mode badges
+- UI/UX: Sets the Recommended and Can delete mode badges to 1.0rem while retaining the 1.2rem minimum for all other import popup text.
+- Fix: Excludes only import mode badges from both the CSS text-floor selector and runtime computed-font safeguard so they are not raised back to 1.2rem.
+- Test: Added regressions for the 1.0rem badge exception and its runtime minimum-font exclusion.
+
+###2026.07.16.19
+### Enforced 1.2rem import text minimum
+- Fix: Replaces the inherited import-popup font floor with direct scoped 1.2rem rules for mode descriptions, recommendation badges, change chips, disclosure labels, helper text, safety notes, metadata, tables, and selection controls.
+- Fix: Adds a runtime computed-size check that raises any remaining rendered popup text below 1.2rem, covering host styles, native small-text scaling, and dynamically generated content.
+- Compatibility: Calculates the minimum from the active root font size so the runtime check matches exactly how 1.2rem resolves in the current Unraid theme.
+- UI/UX: Preserves icons and all text already larger than 1.2rem, including the 1.55rem planned-change total.
+- Test: Added regressions for direct badge, summary-chip, disclosure, and helper-text sizing plus the runtime computed-font safeguard.
+
+###2026.07.16.18
+### Locked import window width and readable text
+- Fix: Targets the actual jQuery UI dialog widget and caps its physical and logical width at a responsive 566px, preventing the outer host window from leaving large empty areas around the 520px content column.
+- Fix: Adds a scoped resize lock that detects and immediately corrects late width changes applied by Unraid after the import window opens.
+- Fix: Reapplies the compact layout shortly after opening to cover delayed host dialog initialization and recenters the corrected window.
+- UI/UX: Raises all import popup text below 1.2rem to 1.2rem, including titles, descriptions, mode labels, badges, summaries, disclosures, file details, and footer buttons.
+- UI/UX: Preserves the existing 1.55rem planned-change total so text that was already larger than the new minimum is not reduced.
+- Test: Expanded import-dialog regressions for widget targeting, physical and logical width locks, late resize correction, the 1.2rem text floor, and preservation of larger summary text.
+
+###2026.07.16.17
+### Compact import dialog spacing
+- UI/UX: Adds a consistent 0.55rem gap between each top-level import module so the behavior panel, change summary, disclosures, and confirmation no longer touch.
+- UI/UX: Reduces the import dialog shell from 620px to a responsive 566px around the existing 520px content column, removing unnecessary empty space on both sides.
+- Fix: Enforces the dialog shell's width and minimum width at runtime so Unraid host styles cannot stretch the popup back across the viewport.
+- Fix: Recalculates and reapplies the shell, content, spacing, and centered position whenever the viewport changes.
+- Test: Updated the compact-dialog regression coverage for the 566px shell, shared 520px content width, runtime minimum-width guard, and enforced module spacing.
+
+###2026.07.16.16
+### Runtime-enforced import module widths
+- Fix: Applies the shared 520px width directly to every top-level import module after jQuery UI and Unraid finish constructing the dialog, preventing host styles from assigning different intrinsic widths.
+- Fix: Reapplies the same width contract on the next animation frame and whenever the viewport resizes so the header, behavior panel, summary, disclosures, and confirmation remain identical.
+- Fix: Applies full-width constraints directly to mode choices, collapsed and expanded disclosure rows, disclosure bodies, change tables, and operation lists.
+- Compatibility: Uses runtime important styles as the authoritative fallback for Unraid themes that override the popup's stylesheet width rules after render.
+- Performance: Refreshed the measured import-script performance baseline after adding the host-compatibility width coordinator; aggregate JavaScript and CSS remain within project budgets.
+- Test: Added regressions for direct-child width enforcement, nested disclosure constraints, resize reconciliation, and the shared responsive 520px maximum.
+
+###2026.07.16.15
+### Unified import dialog sizing and neutral controls
+- Fix: Replaced mixed intrinsic and full-dialog widths with one explicit 520px content column shared by the import header, behavior panel, change summary, disclosure rows, expanded content, backup confirmation, and footer actions.
+- Fix: Reduced and forcibly reapplied the dialog shell width at runtime so Unraid's host dialog rules cannot stretch the popup back across the viewport.
+- Fix: Re-centers the dialog after applying its runtime width, keeping the popup correctly positioned on desktop and narrow screens.
+- UI/UX: Aligned the footer button group with the same content column used by every import module.
+- UI/UX: Added a high-specificity neutral button skin and runtime important styles so Apply Import and Cancel cannot inherit Unraid's orange outline or fill.
+- UI/UX: Force-hides the empty host title-bar close control that appeared as an orange outlined rectangle.
+- Quality: Keeps collapsed and expanded disclosure widths identical while constraining tables and operation lists within the shared content column.
+- Test: Added regressions for the 520px shared column, 620px dialog shell, runtime width enforcement, centered footer actions, neutral button override, and forced title-bar control removal.
+
+###2026.07.16.14
+### Stable import disclosure layout
+- Fix: Locked the import modal and all collapsed or expanded disclosure sections to one stable responsive width so opening change details no longer stretches the popup across the viewport.
+- Fix: Constrained import tables, operation lists, and disclosure bodies to the modal content box, preventing wide row content from changing the dialog dimensions.
+- UI/UX: Expanded collapsed Review, Safety options, and File details rows to the same width as the primary import behavior panel.
+- UI/UX: Removed the redundant saved-preset selector and its Save, Default, and Delete controls from the popup because import behavior is already selected directly at the top.
+- UI/UX: Renamed Import options to Safety options and retained only the distinct Preview only and Require confirmation controls.
+- UI/UX: Restyled Apply Import and Cancel with the shared FolderView Plus neutral button tokens, including neutral outlines, fills, hover, active, focus, and disabled states.
+- Quality: Retained server-side import preset compatibility so an existing default preset can still initialize the visible behavior and safety state without duplicating controls.
+- Test: Added regressions for stable collapsed and expanded widths, constrained review tables, neutral shared button tokens, and removal of duplicate preset controls.
+
+###2026.07.16.13
+### Compact configuration import redesign
+- UI/UX: Replaced the multi-panel guided import screen with a compact decision-first layout that shows only import behavior, one change summary, safety confirmation, and the primary actions by default.
+- UI/UX: Converted Merge safely, Add new only, and Replace exactly into concise stacked choices that are faster to scan and remain clear about update and deletion behavior.
+- UI/UX: Moved folder rows, operation selection, presets, dry-run controls, file metadata, and the technical summary into closed progressive-disclosure sections.
+- UI/UX: Replaced the four-card impact grid and three-step explanation with one live total and compact create, update, and delete indicators.
+- UI/UX: Normal imports no longer display a redundant ready banner; contextual messages now appear only for preview-only, empty, destructive, or untrusted plans.
+- UI/UX: Reduced the desktop modal width to 760px and tightened spacing, typography, controls, and mobile behavior while retaining one bounded vertical scroller.
+- Quality: Preserved automatic backups, review acknowledgement, import presets, per-operation exclusion, pagination, trust validation, dry runs, and destructive-import safeguards.
+- Test: Updated import regressions to enforce the compact default view, collapsed secondary information, concise contextual summaries, responsive sizing, and existing safety behavior.
+
+###2026.07.16.12
+### Guided import configuration
+- Feature: Rebuilt the Docker and VM configuration import popup as a guided three-step flow for choosing import behavior, reviewing changes, and confirming the apply operation.
+- UI/UX: Replaced the technical mode selector with plain-language Merge safely, Add new only, and Replace exactly choices, including clear recommended and deletion-risk guidance.
+- UI/UX: Added a live impact overview and a concise what-happens-next explanation that updates with the selected operations and preview-only state.
+- UI/UX: Moved presets and optional safety controls into a collapsible secondary section while keeping changed folders visible and detailed operation selection available on demand.
+- UI/UX: Added a responsive theme-token modal shell with one bounded vertical scroller, compact review lists, mobile single-column layouts, and scoped footer buttons without the legacy orange outline.
+- Quality: Preserved automatic backups, preview-only dry runs, per-operation selection, destructive or untrusted import acknowledgement, presets, pagination, and the technical summary.
+- Test: Added regression coverage for the guided structure, mode synchronization, safety controls, responsive overflow handling, themed actions, and updated impact counters.
+
+###2026.07.16.11
+### Optional setup import navigation
+- Fix: The Setup Assistant migration flow can now continue past the optional Import step when no Docker or VM export file is selected.
+- Fix: Import validation now blocks only plans explicitly enabled without a valid selected file, while preserving legacy-format and file-specific review warnings.
+- Quality: Centralized Docker and VM import-plan validation so the Import and Review steps use the same route-independent rules.
+- Test: Added executable regressions for skipping all imports, rejecting an enabled import without a file, and allowing valid legacy imports with warnings.
+
+###2026.07.16.10
+### Native Docker Organizer diagnostics and retry
+- Fix: Treats an unavailable optional native Docker Organizer API as informational instead of raising a Diagnostics follow-up warning.
+- Fix: Forced organizer checks now clear cached GraphQL capability failures and perform fresh base-API and organizer-schema probes.
+- Fix: Reserves warning status for an explicitly requested organizer sync that fails after the organizer API was positively detected.
+- Feature: Adds a Check again action to the Native Docker Organizer diagnostics card for an immediate forced capability refresh.
+- Quality: Adds allowlisted organizer capability, failure category, stage, and HTTP status fields to sanitized support bundles without exporting raw GraphQL error text.
+- UI/UX: Adds a themed Optional diagnostics state and matching informational status in the Operations workspace.
+- Quality: Separates base GraphQL availability from organizer-schema availability and records structured, privacy-safe failure categories.
+- Test: Adds regressions for unsupported schemas, recovery after a cached failure, explicit mutation failures, optional Diagnostics rendering, and legacy support-bundle sanitization.
+
+###2026.07.16.08
+### Docker toolbar filter and menu recovery
+- Fix: Reset View now clears the active runtime filter and folder focus without rerendering away the click before the reset executes.
+- Fix: Hiding empty folders now automatically clears an active Empty-only filter, preventing the Docker table from becoming stranded with every row hidden.
+- UI/UX: View and Tools menus now use viewport-aware fixed positioning, open below or above their trigger according to available space, and remain outside table clipping and overlap.
+- UI/UX: The Docker action bar now claims a cleared full-width row so it cannot share or overlap the Docker table header area.
+- Test: Added regression coverage proving Reset View restores every runtime row and hidden-empty preferences reconcile an incompatible Empty-only filter.
+
+###2026.07.16.07
+### Action toolbar runtime architecture
+- Quality: Extracted the Docker action toolbar into a dedicated runtime module so the core Docker script remains focused and independently maintainable.
+- Performance: Reduced docker.js from 420,056 bytes to 397,865 bytes, restoring both byte and gzip performance-ratchet compliance without removing toolbar functionality.
+- Quality: Kept the toolbar connected through a narrow adapter to the existing folder hierarchy, focus state, preference coordinator, runtime refresh, and error-reporting paths.
+- Test: Added executable coverage for live toolbar counters and hierarchy-aware filtering, plus module loading, syntax, performance-budget, architecture, and install-smoke validation.
+
+###2026.07.16.06
+### Docker page action toolbar
+- Feature: Replaced the standalone Add Folder control with a responsive FolderView action bar containing Add Folder, Expand All, Collapse All, and direct folder-management access.
+- Feature: Added live Unassigned, Updates, Empty, and Health Issues filters with current counts, nested-folder context, and temporary filter state that never rewrites saved folder order.
+- Feature: Added an on-page View menu for switching between FolderView, Host list, Command, Tree Explorer, and Orbit modes, with immediate conflict-safe preference persistence.
+- Feature: Added a Tools menu for showing or hiding empty folders, clearing folder focus, refreshing runtime state, opening bulk assignment or rules, and resetting temporary view state.
+- UI/UX: Added compact themed controls, upward-opening menus, responsive wrapping, active filter states, empty-filter guidance, and busy feedback across desktop and mobile layouts.
+- UI/UX: Added menu semantics, selected-state reporting, Escape dismissal, outside-click dismissal, focus restoration, and Arrow, Home, and End keyboard navigation.
+- Quality: Reused the existing hierarchy, focus, preference coordinator, and runtime refresh paths so toolbar actions stay synchronized with saved settings and live Docker state.
+- Test: Added focused regression coverage for the complete control set, hierarchy-aware filters, immediate preference saves, supported view modes, workspace routes, responsive styling, and keyboard behavior.
+
+
+###2026.07.16.05
+### Taller Docker privacy menu
+- UI/UX: Increased the Docker privacy dropdown's maximum height from 26rem to 30rem and reduced its reserved viewport margin so all 1.2rem menu text fits without a scrollbar on normal desktop screens.
+- Compatibility: Retained viewport-aware overflow handling for unusually short browser windows where the complete menu cannot physically fit.
+- Test: Expanded the privacy-mode contract guard to preserve the taller responsive menu limit.
+
+
+###2026.07.16.04
+### Larger Docker privacy menu text
+- UI/UX: Increased the Docker privacy dropdown text size to 1.2rem for the heading, helper text, and every mask option.
+- Test: Expanded the privacy-mode contract guard to keep the complete dropdown typography at the requested 1.2rem scale.
+
+
+###2026.07.16.03
+### Compact privacy dropdown trigger
+- UI/UX: Removed the border, shadow, and hover or open-state fill from the Docker privacy dropdown trigger so it blends cleanly into the runtime toolbar.
+- UI/UX: Removed the forced minimum width and horizontal padding while preserving the existing icon size and control height, leaving an icon-width trigger beside the Privacy switch.
+- Test: Expanded the privacy-mode contract guard to prevent button chrome or excess trigger width from returning.
+
+
+###2026.07.16.02
+### Docker privacy quick controls
+- Feature: Added a compact Docker-page privacy dropdown with quick controls for names and icons, LAN IPs, ports, volume paths, image registries, public IPs, network interfaces, and external URLs.
+- UI/UX: Replaced the Privacy switch's redundant ON/OFF text with a themed sliders-and-chevron dropdown button while retaining the main instant enable or disable toggle.
+- Performance: Privacy option changes now apply optimistically to the current Docker page and persist immediately through the shared conflict-safe preference coordinator and retry outbox.
+- UI/UX: Added dialog semantics, expanded-state reporting, outside-click dismissal, and Escape-key dismissal with focus restoration.
+- Test: Expanded the privacy-mode contract guard to cover all quick options, immediate persistence wiring, removal of ON/OFF labels, and themed dropdown behavior.
+
+
+###2026.07.16.01
+### Live preview visibility synchronization
+- Fix: Updated the modern folder editor's live canvas to render only included members whose Show in preview toggle is enabled.
+- UI/UX: Added a clear live-preview empty state when a folder has included members but every member is hidden from the collapsed preview.
+- Fix: Added per-member preview visibility to the editor dirty snapshot so visibility-only edits reliably show as unsaved changes.
+- Fix: Cleared stale hidden-preview state when a member is excluded and its preview toggle is reset.
+- Test: Added executable regression coverage for immediate live-preview filtering, the all-hidden message, dependency wiring, and dirty-state tracking.
+
+
+###2026.07.15.15
+### Folder identity, preview, privacy, and runtime roadmap
+- Feature: Added stable Docker and VM member identities so uniquely identified renamed members retain folder membership, collapsed-preview visibility, and custom-action targets; ambiguous duplicate Docker images remain untouched.
+- Feature: Added a per-member Show in preview control that hides selected members only from collapsed previews without changing membership, status totals, expanded rows, or actions.
+- Feature: Added preview overflow choices for configured row limits, full row expansion, or horizontal scrolling, plus optional colored separators between preview rows.
+- Feature: Added an Embossed Dashboard layout, authoritative per-folder status-color locking, and an independent Docker folder-name highlight when any member has an update.
+- Security: Expanded reversible privacy masking to cover Docker volume paths, image registries, public IPs, interfaces, and external URLs plus VM disk paths and MAC addresses, with private-address-aware classification.
+- Performance: Lazy-loaded the Dashboard chart stack only when an advanced graph preview opens and added complete package and third-party icon-library size budgets.
+- Compatibility: Added a capability-driven runtime transport for GraphQL queries, WebSocket or SSE subscriptions, polling fallback, and Docker actions while retaining host action fallbacks.
+- UI/UX: Added localized labels for all new folder, privacy, preview, and Dashboard controls across every bundled language catalog.
+- Fix: Persisted identity reconciliation through a guarded server endpoint, refreshed folder metadata timestamps, and prevented a claimed duplicate-image member from being treated as a unique rename candidate.
+- Quality: Added regression coverage for identity reconciliation, per-member previews, privacy classification, runtime transport, lazy assets, Dashboard layouts, overflow modes, preference normalization, and package contracts.
+- Quality: Updated the Settings script include-order contract to cover the shared preference store and removed stray CSS patch markers found during the final source audit.
+
+
+###2026.07.15.14
+### Settings toolbar finishing touches
+- UI/UX: Applied a small optical offset to align the Wizard button with the padded Basic and Advanced controls.
+- Fix: Rebuilt the search clear control as a compact 24px icon button that resists Unraid host minimum-width, padding, border, and shadow styles.
+- Theme: Added a subtle theme-aware blue hover state to the clear icon while retaining an accessible focus indicator.
+- Test: Added focused regressions for Wizard offset and search-clear size/style containment.
+
+
+###2026.07.15.13
+### Wizard toolbar polish
+- UI/UX: Aligned the Wizard button with the Settings search, Basic, and Advanced controls by removing inherited host spacing and matching the toolbar row height.
+- Theme: Applied the existing theme-aware information blue to the Wizard icon and label while preserving the shared button surface and interaction states.
+- Test: Added focused regression coverage for Wizard alignment, sizing, and theme-token color usage.
+
+
+###2026.07.15.12
+### Settings search alignment
+- UI/UX: Aligned the Settings search field with the Basic, Advanced, and Wizard controls while keeping its scope controls compact beneath the field.
+- Fix: Contained the search field's padding and border within its declared width so it no longer overlaps or clips the Basic button.
+- Responsive: Preserved the centered, full-width search layout on smaller screens.
+- Test: Added focused regression coverage for desktop alignment, width containment, and the mobile alignment override.
+
+
+###2026.07.15.11
+### Smarter Settings search
+- Feature: Added setting-level word-token search with privacy-safe indexing of labels, descriptions, aliases, and control metadata.
+- UI/UX: Added live result counts, highlighted matches, Enter-to-jump navigation, a clear button, Escape-to-reset behavior, and a dedicated no-results panel.
+- UI/UX: Replaced the Advanced search checkbox with a compact Current tab/All advanced scope selector and hid it in Basic mode.
+- Performance: Added a cached search index and short input debounce so large Settings pages remain responsive while typing.
+- Accessibility: Added native search semantics, accessible scope and clear controls, and polite live-result announcements.
+- Quality: Preserved independent Basic and per-tab Advanced queries while excluding folder names, runtime tables, dynamic lists, outputs, and entered values from the index.
+- Test: Added focused regressions for search structure, matching, privacy exclusions, persistence, keyboard behavior, responsive styling, and scope handling.
+
+
+###2026.07.15.10
+### Version-specific update summaries
+- Fix: Corrected the release-note parser so descriptive section headings no longer terminate the current version block.
+- UI/UX: Replaced canned update headlines with the descriptive heading and exact change bullets recorded for the installed version.
+- Quality: Removed generic category headlines from the server endpoint and browser fallback so missing notes are reported honestly instead of implying unspecified fixes.
+- Test: Added a functional regression proving that only the requested version is rendered and generic release summaries cannot return.
+
+
+###2026.07.15.09
+### Settings topbar cleanup
+- UI/UX: Removed the Saved/Saving status badge from the Settings topbar so the search field sits directly beside the Basic/Advanced mode control.
+- Quality: Removed the badge's unused renderer, styles, and animation while preserving background preference synchronization and diagnostics.
+- Test: Added a regression enforcing the compact topbar order and continued preference-sync listener binding.
+
+
+###2026.07.15.08
+### Independent LAN IP and port masking
+- Fix: Split native Docker LAN IP:PORT values into independently maskable IP and port elements.
+- Fix: Prevent Mask ports from blurring the entire LAN IP:PORT field when Mask LAN IPs is disabled.
+- Compatibility: Handle IPv4, bracketed IPv6, multiple mappings, and host row refreshes while preserving the native displayed values.
+- Test: Added privacy contracts that reject whole-field LAN masking and require separate LAN IP and port targets.
+
+
+###2026.07.15.07
+### LAN privacy control
+- Fix: Replaced the ineffective Mask container IPs setting with a single Mask LAN IPs control wired to the IP portion of the Docker page's LAN IP:PORT column.
+- UI/UX: Removed the redundant Mask local IPs checkbox and clarified that Mask ports controls the port portion independently.
+- Test: Updated privacy regressions to enforce the LAN-facing label, preference binding, and removal of the duplicate controls.
+
+
+###2026.07.15.06
+### Privacy mask settings
+- Fix: Save each granular privacy checkbox as an immediate leaf-level preference update so unchecked values are preserved without stale dashboard fields overwriting them.
+- Fix: Reapply Docker, VM, and Dashboard privacy classes whenever synchronized preferences change, including updates made from another browser tab.
+- Fix: Automatically replay durable pending preference changes when a runtime page restores them through its normal preference reconciliation path.
+- Test: Added regressions for unchecked privacy masks, runtime preference subscriptions, immediate partial saves, and restored-outbox replay.
+
+
+###2026.07.15.05
+### Instant preference saving
+- Feature: Added a shared optimistic preference-save coordinator so Docker, VM, Dashboard, Settings, privacy, folder order, pin, expansion, and auto-rule changes update the interface immediately.
+- Performance: Coalesced rapid edits into a single patch per preference type and serialized writes to avoid redundant requests and out-of-order saves.
+- UI/UX: Added clear Saved, Saving, and Sync pending status feedback in Settings without blocking normal interaction.
+### Reliability and recovery
+- Fix: Persisted unsent preference changes in a local outbox so refreshes, navigation, brief network outages, and browser restarts no longer discard pending edits.
+- Fix: Added revision-aware conflict recovery that refreshes the server state, reapplies the pending patch, and retries without rolling back the visible interface.
+- Fix: Synchronized saved preference changes across browser tabs while preventing duplicate server writes.
+- Fix: Restricted automatic retries to transient request failures and retained permanent failures for an intentional later retry.
+- Fix: Recursively merged nested preference patches on the server while continuing to replace ordered arrays atomically.
+- Fix: Coalesced rapid preference backup checkpoints so a burst of saves retains one useful pre-change snapshot without excessive filesystem work.
+### Diagnostics and quality
+- Diagnostics: Added aggregate preference-save health, queue, retry, conflict, and latency details to sanitized support bundles without exporting preference values.
+- Quality: Added regression coverage for optimistic updates, request coalescing, serialized writes, durable reload recovery, conflict rebasing, cross-tab convergence, nested server merges, backup coalescing, retry classification, request status propagation, and sanitized telemetry.
+
+
+###2026.07.15.04
+- Fix: Keep the Docker privacy toggle enabled across refreshes and Unraid tab navigation with browser-durable state and background server reconciliation.
+- Privacy: Mask native Container IP, Container Port, and LAN IP:Port values according to the granular Docker privacy settings.
+- Privacy: Synchronize the Docker privacy toggle between open browser tabs without exposing container details.
+- Quality: Add regression coverage for durable privacy state and native Docker column masking.
+
+
+###2026.07.15.03
+- Fix: Persist the Docker-page privacy toggle immediately so its enabled state survives refreshes and navigation.
+- Fix: Save Dashboard privacy mask options through the optimistic partial-preference path so checkbox changes apply reliably without overwriting unrelated preferences.
+- Privacy: Mask container icons inside folder row previews as well as expanded native container rows.
+- Quality: Add regression coverage for privacy preference saves, persisted toggle response validation, and folder row-preview masking.
+
+
+###2026.07.15.02
+### Configuration Safety
+- Feature: Added versioned metadata sidecars for Docker and VM folders and preferences while preserving the existing configuration-file format.
+- Fix: Added revision-aware saves so an older editor or browser tab cannot silently overwrite newer folder or preference changes.
+- Fix: Serialized configuration mutations behind a shared lock to prevent overlapping writes from losing data.
+- Fix: Kept returned preference revisions synchronized when manual folder ordering is reconciled during a save.
+### Recovery and Support
+- Feature: Added automatic detection and reconciliation for configuration files changed outside FolderView Plus.
+- Feature: Added configuration metadata integrity details, revision history, and fingerprints to Diagnostics and sanitized support bundles.
+- Feature: Added a Suggested Fixes action that safely rebuilds and reconciles configuration metadata.
+- Fix: Made custom-icon metadata atomic and recoverable through a last-good copy.
+### Quality
+- Quality: Moved Settings table metadata to a canonical schema with generated runtime output and CI drift detection.
+- Quality: Hardened release-note parsing so categorized curated notes remain attached to the correct version.
+- Test: Added functional regressions covering revisions, stale saves, external edits, recovery, legacy compatibility, diagnostics, support exports, and icon metadata.
 
 
 ###2026.07.14.18
@@ -367,24 +993,6 @@
 - Fix: Restore paused-state parity for Docker and VM Dashboard folders, including paused status counts, icon color, and folder status metadata.
 - Quality: Expand Dashboard debug bundles with sanitized runtime state, render/icon diagnostics, active plugin assets, and request fallback history.
 - Test: Add regression coverage for Dashboard render gating, request fallbacks, sanitized diagnostics, and paused-state handling.
-
-###2026.07.06.10
-- Feature: Add Docker start order controls with a dedicated Settings > Advanced > Start Order tab, current Docker-page order sync, custom startup batches, folder/container batch items, remaining-container placement, preview, and manual sync without rewriting unrelated Docker preferences.
-- Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained preview sample.
-- UX: Rework the Settings advanced tab strip to match the modern folder editor tabs, remove numeric suffixes, and move Docker start order out of Operations into its own workspace.
-- UX: Refresh the Docker Start Order workspace with cleaner dark-mode panels, brighter neutral action buttons, clearer startup controls, separated autostart preview, and non-duplicated Preview Order and Sync Now actions.
-- UX: Add a shared graphite/true-dark token foundation across Settings, the folder editor, Docker, VM, Dashboard, setup wizard, recovery, activity, and runtime menu surfaces so the plugin uses flatter black/gray panels instead of warm brown or blue-slate gradients.
-- UX: Polish the modern folder editor General tab Parent Folder picker with flat dark surfaces, full-width search controls, centered search icon, compact Clear button, squarer chips, and left-aligned folder names with paths beside them.
-- Docs: Overhaul the GitHub README into a cleaner product-style landing page with the new banner, polished quick links, two-column screenshots, feature summaries, install/support sections, and refreshed screenshots.
-- Performance: Cache tracked Settings inputs and the Settings section registry so lightweight refreshes no longer rescan every input or rebuild every section heading.
-- Performance: Make advanced Settings tab switches hydrate and refresh only the active workspace, defer hidden secondary workspace refreshes, and queue Settings table redraws so repeated UI updates collapse into fewer renders.
-- Performance: Improve Docker Start Order responsiveness by preserving the preview panel, caching folder/container select options, batching preference saves, and debouncing expensive autostart preview refreshes.
-- Performance: Use lightweight cached runtime state for Settings and the modern folder editor, remove duplicate editor boot module loads, extend non-live runtime info cache windows, and keep first-paint Docker tab work lighter.
-- Fix: Correct Settings health/status detection when using lightweight Docker runtime state so stopped containers are no longer counted as started.
-- Fix: Restore and guard the Settings primary text theme-token contract used by the GitHub checks and refreshed Start Order styles.
-- Fix: Restrict Theme Workspace token overrides to safe color values and stop raw custom CSS from being injected into the Settings page during live editing.
-- Quality: Add Docker start order server, settings UI, Docker runtime, and regression coverage for planning and sync behavior.
-- Quality: Add and refresh regression coverage for dark-mode tokens, parent picker layout, Settings performance paths, Theme Workspace scan/update/reset behavior, contained previews, server action wiring, and CI guard contracts.
 
 ###2026.07.06.09
 - Feature: Overhaul the Theme Workspace with summary cards, clearer import and managed-theme modules, scan-before-import review, per-theme update actions, safer token override resets, and a contained token preview sample.
@@ -6637,6 +7245,11 @@
 
     </CHANGES>
 
+    <FILE Name="/boot/config/plugins/&name;/folderview.plus-icons-&iconPackVersion;.txz">
+        <URL>&iconPackURL;</URL>
+        <MD5>&iconPackMd5;</MD5>
+    </FILE>
+
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
         <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
@@ -6644,9 +7257,12 @@
 
     <FILE Run="/bin/bash">
         <INLINE>
+            set -e
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
-            rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '&version;')
+            find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
+            echo "Activating FolderView Plus icon asset pack &iconPackVersion;..."
+            /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             echo "&version;" > /boot/config/plugins/&name;/version
             echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
             chmod 644 /etc/cron.d/folderview.plus
@@ -6666,6 +7282,7 @@
             rm -f /etc/cron.d/folderview.plus
             /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
             rm -rf &plugdir;
+            rm -rf /tmp/folderview.plus-assets
             rm -rf /boot/config/plugins/&name;
         </INLINE>
     </FILE>

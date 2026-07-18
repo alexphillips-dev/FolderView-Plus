@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "en",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Search settings",
+    "settings.search.label": "Search settings",
+    "settings.search.clear-label": "Clear settings search",
+    "settings.search.clear-title": "Clear search",
+    "settings.search.scope": "Scope",
+    "settings.search.scope-help": "Choose whether Advanced search covers this tab or every Advanced tab",
+    "settings.search.scope-label": "Advanced settings search scope",
+    "settings.search.scope-current": "Current tab",
+    "settings.search.scope-all": "All advanced",
+    "settings.header.plugin-settings": "Plugin settings",
+    "settings.mode.title": "Settings mode",
+    "settings.mode.basic-label": "Use basic settings mode",
+    "settings.mode.advanced-label": "Use advanced settings mode",
+    "settings.wizard.title": "Run setup assistant",
+    "settings.tabs.basic": "Basic",
+    "settings.tabs.advanced": "Advanced",
+    "settings.tabs.wizard": "Wizard",
+    "settings.privacy.title": "Privacy mode",
+    "settings.privacy.mask-names": "Mask names and icons",
+    "settings.privacy.mask-lan-ips": "Mask LAN IPs",
+    "settings.privacy.mask-ports": "Mask ports",
+    "settings.privacy.lan-help": "LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion."
+}

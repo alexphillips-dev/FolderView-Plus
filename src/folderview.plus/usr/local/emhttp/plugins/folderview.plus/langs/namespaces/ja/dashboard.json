@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ja",
+        "namespace": "dashboard"
+    },
+    "dashboard.folder.toggle-members": "フォルダーのメンバーを切り替える"
+}

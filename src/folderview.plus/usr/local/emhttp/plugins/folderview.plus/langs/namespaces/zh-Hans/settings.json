@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "zh-Hans",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "搜索设置",
+    "settings.search.label": "搜索设置",
+    "settings.search.clear-label": "清除设置搜索",
+    "settings.search.clear-title": "清除搜索",
+    "settings.search.scope": "范围",
+    "settings.search.scope-help": "选择高级搜索是仅覆盖此标签页还是所有高级标签页",
+    "settings.search.scope-label": "高级设置搜索范围",
+    "settings.search.scope-current": "当前标签页",
+    "settings.search.scope-all": "所有高级",
+    "settings.header.plugin-settings": "插件设置",
+    "settings.mode.title": "设置模式",
+    "settings.mode.basic-label": "使用基础设置模式",
+    "settings.mode.advanced-label": "使用高级设置模式",
+    "settings.wizard.title": "运行设置向导",
+    "settings.tabs.basic": "基础",
+    "settings.tabs.advanced": "高级",
+    "settings.tabs.wizard": "向导",
+    "settings.privacy.title": "隐私模式",
+    "settings.privacy.mask-names": "隐藏名称和图标",
+    "settings.privacy.mask-lan-ips": "隐藏 LAN IPs",
+    "settings.privacy.mask-ports": "屏蔽端口",
+    "settings.privacy.lan-help": "LAN IP 屏蔽适用于Docker页面的LANIP:PORT列的IP部分。端口部分使用屏蔽端口。"
+}

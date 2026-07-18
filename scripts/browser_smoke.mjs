@@ -64,6 +64,7 @@ const dockerUpdateFlowReports = [];
 const dockerPreviewStatusReports = [];
 const dashboardAdvancedPreviewReports = [];
 const nativeOrganizerDiagnosticsReports = [];
+const localizationReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -923,19 +924,34 @@ const runNativeOrganizerDiagnosticsSmoke = async (page, { browserName, settingsU
     await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
     await waitForSettingsShell(page);
     const report = await page.evaluate(async () => {
+        localStorage.setItem('fv.native.organizer.status.v1', JSON.stringify({
+            checkedAt: new Date().toISOString(),
+            ok: false,
+            skipped: true,
+            reason: 'graphql_unavailable',
+            source: 'detect'
+        }));
         if (typeof window.runDiagnostics === 'function') {
             await window.runDiagnostics();
         }
         await new Promise((resolve) => setTimeout(resolve, 300));
         const summaryText = String(document.querySelector('#fv-diagnostics-summary')?.textContent || '');
+        const organizerCard = Array.from(document.querySelectorAll('#fv-diagnostics-summary .fv-diagnostics-card'))
+            .find((card) => /Native Docker Organizer/i.test(String(card.textContent || '')));
         return {
             cardPresent: /Native Docker Organizer/i.test(summaryText),
             waitingStatePresent: /waiting for the Docker page/i.test(summaryText),
+            optionalStatePresent: organizerCard?.classList.contains('is-info') === true,
+            checkAgainPresent: Boolean(organizerCard?.querySelector('[data-fv-diagnostics-card-action="check_native_organizer"]')),
+            organizerIssueCountPresent: /related issue/i.test(String(organizerCard?.textContent || '')),
             summaryTextLength: summaryText.length
         };
     });
     if (report.cardPresent !== true) {
         throw new Error(`Native organizer diagnostics card was not rendered for ${browserName}.`);
+    }
+    if (report.optionalStatePresent !== true || report.checkAgainPresent !== true || report.organizerIssueCountPresent === true) {
+        throw new Error(`Native organizer unavailability was not rendered as a non-issue optional state for ${browserName}.`);
     }
     console.log(`Native organizer diagnostics smoke passed: ${browserName} ${JSON.stringify(report)}`);
     return {
@@ -1392,6 +1408,46 @@ const runBrowserSmoke = async (browserName, browserType) => {
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
         await waitForSettingsShell(page);
 
+        const localizationReport = await page.evaluate(() => {
+            const api = window.FolderViewPlusI18n;
+            if (!api || typeof api.usePseudoLocale !== 'function') {
+                return { available: false };
+            }
+            const source = api.snapshot();
+            const expanded = api.usePseudoLocale('en-XA');
+            const expandedState = {
+                lang: document.documentElement.lang,
+                dir: document.documentElement.dir,
+                translatedNodeCount: document.querySelectorAll('[data-i18n]').length,
+                horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)
+            };
+            const rtl = api.usePseudoLocale('ar-XB');
+            const rtlState = {
+                lang: document.documentElement.lang,
+                dir: document.documentElement.dir,
+                translatedNodeCount: document.querySelectorAll('[data-i18n]').length,
+                horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)
+            };
+            api.restoreLocale();
+            return { available: true, source, expanded, rtl, expandedState, rtlState };
+        });
+        if (localizationReport.available) {
+            if (localizationReport.expandedState.lang !== 'en-XA' || localizationReport.expandedState.dir !== 'ltr') {
+                throw new Error(`Expanded pseudo-locale did not apply correctly: ${JSON.stringify(localizationReport.expandedState)}`);
+            }
+            if (localizationReport.rtlState.lang !== 'ar-XB' || localizationReport.rtlState.dir !== 'rtl') {
+                throw new Error(`RTL pseudo-locale did not apply correctly: ${JSON.stringify(localizationReport.rtlState)}`);
+            }
+            await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('en-XA'));
+            const expandedScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-en-xa.png`);
+            await page.screenshot({ path: expandedScreenshotPath, fullPage: true });
+            await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('ar-XB'));
+            const rtlScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-ar-xb.png`);
+            await page.screenshot({ path: rtlScreenshotPath, fullPage: true });
+            await page.evaluate(() => window.FolderViewPlusI18n.restoreLocale());
+            localizationReports.push({ browserName, ...localizationReport, expandedScreenshotPath, rtlScreenshotPath });
+        }
+
         const importButton = page.getByRole('button', { name: /import/i }).first();
         const [chooser] = await Promise.all([
             page.waitForEvent('filechooser', { timeout: timeoutMs }),
@@ -1513,6 +1569,7 @@ try {
         dashboardReports,
         dashboardAdvancedPreviewReports,
         nativeOrganizerDiagnosticsReports,
+        localizationReports,
         folderEditorReports
     };
     const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');

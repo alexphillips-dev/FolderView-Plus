@@ -121,12 +121,15 @@ test('read_info supports cached full/state payload retrieval', () => {
 
 test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
     assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
-    assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
-    assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
+    assert.match(vmJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: 'vm', mode: 'state' \}/);
+    assert.match(dashboardJs, /getJson\('\/plugins\/folderview\.plus\/server\/read_info\.php',[\s\S]*data: \{ type: resolvedType, mode: 'state' \}/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\), options = \{\}\) =>/);
     assert.match(dockerJs, /const liveUpdateQuery = mode === 'state' && options\?\.liveUpdateStatus === true/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\$\{liveUpdateQuery\}&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
-    assert.match(dockerJs, /const fetchDockerStateSignature = async \(options = \{\}\) => \{[\s\S]*buildDockerRuntimeInfoUrl\('state', Date\.now\(\), \{\s*liveUpdateStatus\s*\}\)/);
+    assert.match(dockerJs, /const fetchDockerRuntimeSnapshotCheck = async \(options = \{\}\) =>/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.buildUrl\('docker', 'check'/);
+    assert.match(vmJs, /runtimeSnapshotApi\.buildUrl\('vm', 'check'/);
+    assert.match(dashboardJs, /runtimeSnapshotApi\.buildUrl\(resolvedType, 'check'/);
     assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
@@ -143,20 +146,20 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;[\s\S]*?nextDockerRenderSuppressLoadingUi = true;\s*queueCreateFoldersRender\(\);\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(createFoldersQueued\) \{\s*createFoldersQueued = false;\s*queueLoadlistRefresh\(\);\s*\}/s);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
-    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoSource = null\) =>/);
     assert.match(dockerJs, /let dockerHostLoadOwnsLoadingUi = false;/);
     assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => dockerHostLoadOwnsLoadingUi \|\| nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*syncDockerVisibleFoldersFromRuntimeCache\(\);/);
     assert.doesNotMatch(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
-    assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
+    assert.doesNotMatch(dockerJs, /DOCKER_RENDER_TIME_BUDGET_MS|yieldDockerRenderLoop|readDockerRenderClock/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
     assert.match(dockerJs, /function buildDockerFolderReq\(options = \{\}\) \{[\s\S]*const liveUpdateStatus = options\?\.liveUpdateStatus === true \|\| isDockerHostUpdateSyncSuspended\(\);/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust, \{\s*liveUpdateStatus\s*\}\),/);
-    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'prefsResponse'\]/);
+    assert.match(dockerJs, /runtimeSnapshotApi\.projectRequest\([\s\S]*'runtime'/);
     assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);
     assert.match(dockerJs, /const updated = normalizeUpdatedToken\(state\.Updated\);/);
@@ -273,7 +276,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
     assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
     assert.match(dockerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
-    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct'\) =>/);
+    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct', options = \{\}\) =>/);
     assert.match(dockerJs, /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_PHASES = Object\.freeze\(/);
     assert.match(dockerJs, /phase:\s*DOCKER_RUNTIME_WIDTH_PHASES\.idle/);
@@ -302,7 +305,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = decision\.nextFloor;/);
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
-    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
+    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null, options = \{\}\) =>/);
     assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
     assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
     assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
@@ -363,9 +366,10 @@ test('vm runtime tiny-width overflow guard can still recover clipped folder name
     assert.match(vmJs, /Math\.min\(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
 });
 
-test('import apply uses chunked execution and performance diagnostics stay internal to support exports', () => {
-    assert.match(settingsRuntime, /IMPORT_APPLY_CHUNK_SIZE/);
-    assert.match(settingsRuntime, /runImportChunked/);
+test('import apply uses one atomic batch and performance diagnostics stay internal to support exports', () => {
+    assert.match(settingsRuntime, /server\/batch\.php/);
+    assert.match(settingsRuntime, /transport:\s*'atomic-batch'/);
+    assert.doesNotMatch(settingsRuntime, /runImportChunked/);
     assert.match(settingsRuntime, /performanceDiagnosticsState/);
     assert.match(settingsRuntime, /renderPerformanceDiagnostics/);
     assert.doesNotMatch(settingsPage, /performance-diagnostics-output/);
@@ -416,7 +420,7 @@ test('settings table render defers secondary workspace surfaces', () => {
     assert.match(settingsJs, /trackedSettingsInputsCache = dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /const getSettingsSectionRegistrySignature = \(\) => Array\.from\(document\.querySelectorAll\('h2\[data-fv-section\]'\)\)/);
     assert.match(settingsJs, /const buildSettingsSections = \(options = \{\}\) => \{[\s\S]*if \(!force && settingsUiState\.sections\.length > 0 && signature === settingsSectionRegistrySignature\) \{\s*return false;\s*\}/);
-    assert.match(settingsJs, /settingsSectionRegistrySignature = signature;\s*invalidateTrackedSettingsInputs\(\);\s*return true;/);
+    assert.match(settingsJs, /settingsSectionRegistrySignature = signature;\s*invalidateTrackedSettingsInputs\(\);\s*invalidateSettingsSearchIndex\(\);\s*return true;/);
     assert.match(settingsJs, /const shouldRefreshSecondaryAdvancedGroup = \(group\) => \{/);
     assert.match(settingsJs, /if \(settingsUiState\.query && settingsUiState\.searchAllAdvanced === true\) \{\s*return true;\s*\}/);
     assert.match(settingsJs, /const renderSettingsSecondarySurfaces = \(type\) => \{/);
@@ -461,8 +465,7 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
 
 test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {
     assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
-    assert.match(folderEditorJs, /navigator\.sendBeacon/);
-    assert.match(folderEditorJs, /keepalive:\s*true/);
+    assert.match(folderEditorJs, /requestClient\.sendKeepalive\(safeUrl, data\)/);
     assert.match(folderEditorJs, /const resolveFolderEditorTypeModule = \(\) =>/);
     assert.match(folderEditorJs, /const getFolderEditorTypeApi = \(\) =>/);
     assert.match(folderEditorJs, /const flushPostSaveTypeSync = async \(options = \{\}\) =>/);

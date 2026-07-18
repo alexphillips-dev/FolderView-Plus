@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "pt-PT",
+        "namespace": "dashboard"
+    },
+    "dashboard.folder.toggle-members": "Alternar membros da pasta"
+}

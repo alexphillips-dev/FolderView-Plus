@@ -40,6 +40,13 @@
                 'privacyMaskContainerIps' => true,
                 'privacyMaskLocalIps' => true,
                 'privacyMaskPorts' => true,
+                'privacyMaskVolumePaths' => true,
+                'privacyMaskImageRegistry' => true,
+                'privacyMaskVmDiskPaths' => true,
+                'privacyMaskMacAddresses' => true,
+                'privacyMaskPublicIps' => true,
+                'privacyMaskInterfaces' => true,
+                'privacyMaskExternalUrls' => true,
                 'previewContext' => 'native',
                 'previewTrigger' => 'click',
                 'previewGraph' => 1,
@@ -316,7 +323,7 @@
 
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
+        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'], true)) {
             return $normalized;
         }
         return 'classic';
@@ -346,9 +353,38 @@
         return 'auto';
     }
 
+    function fvplusPrefsArrayIsList(array $value): bool {
+        if (count($value) === 0) {
+            return true;
+        }
+        return array_keys($value) === range(0, count($value) - 1);
+    }
+
+    function mergeTypePrefsPatch(array $current, array $patch): array {
+        $merged = $current;
+        foreach ($patch as $key => $value) {
+            $safeKey = (string)$key;
+            if ($safeKey === '_metadata') {
+                continue;
+            }
+            $currentValue = $merged[$safeKey] ?? null;
+            $valueRepresentsObject = is_array($value) && (
+                !fvplusPrefsArrayIsList($value)
+                || (count($value) === 0 && is_array($currentValue) && !fvplusPrefsArrayIsList($currentValue))
+            );
+            $shouldMergeObject = $valueRepresentsObject
+                && is_array($currentValue)
+                && !fvplusPrefsArrayIsList($currentValue);
+            $merged[$safeKey] = $shouldMergeObject
+                ? mergeTypePrefsPatch($currentValue, $value)
+                : $value;
+        }
+        return $merged;
+    }
+
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['folderview', 'host', 'command', 'tree-explorer', 'orbit'], true)) {
+        if (in_array($normalized, ['folderview', 'host', 'command'], true)) {
             return $normalized;
         }
         return 'folderview';
@@ -450,6 +486,13 @@
             'privacyMaskPorts' => !array_key_exists('privacyMaskPorts', $dashboardIncoming)
                 ? true
                 : normalizeBool($dashboardIncoming['privacyMaskPorts'], true),
+            'privacyMaskVolumePaths' => !array_key_exists('privacyMaskVolumePaths', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskVolumePaths'], true),
+            'privacyMaskImageRegistry' => !array_key_exists('privacyMaskImageRegistry', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskImageRegistry'], true),
+            'privacyMaskVmDiskPaths' => !array_key_exists('privacyMaskVmDiskPaths', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskVmDiskPaths'], true),
+            'privacyMaskMacAddresses' => !array_key_exists('privacyMaskMacAddresses', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskMacAddresses'], true),
+            'privacyMaskPublicIps' => !array_key_exists('privacyMaskPublicIps', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskPublicIps'], true),
+            'privacyMaskInterfaces' => !array_key_exists('privacyMaskInterfaces', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskInterfaces'], true),
+            'privacyMaskExternalUrls' => !array_key_exists('privacyMaskExternalUrls', $dashboardIncoming) ? true : normalizeBool($dashboardIncoming['privacyMaskExternalUrls'], true),
             'previewContext' => normalizeDashboardPreviewContext($dashboardIncoming['previewContext'] ?? 'native'),
             'previewTrigger' => normalizeDashboardPreviewTrigger($dashboardIncoming['previewTrigger'] ?? 'click'),
             'previewGraph' => normalizeIntInRange($dashboardIncoming['previewGraph'] ?? 1, 0, 4, 1),
@@ -569,8 +612,12 @@
 
     function writeTypePrefs(string $type, array $prefs): array {
         $type = ensureType($type);
-        $path = getTypePrefsPath($type);
         $normalized = normalizeTypePrefs($prefs);
-        writeJsonObjectWithLastGood($path, $normalized);
+        withConfigMutationLock(static function () use ($type, $normalized): void {
+            $path = getTypePrefsPath($type);
+            $metadata = readConfigMetadata($type, true);
+            writeJsonObjectWithLastGood($path, $normalized);
+            commitConfigMetadataWrite($type, 'prefs', $path, $metadata);
+        });
         return $normalized;
     }

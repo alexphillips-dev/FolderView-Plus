@@ -1,0 +1,55 @@
+name: Translation contribution
+description: Add, complete, or review a FolderView Plus language.
+title: "[Translation]: "
+labels:
+  - translation
+body:
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - Spanish (es)
+        - German (de)
+        - French (fr)
+        - Italian (it)
+        - Polish (pl)
+        - Dutch (nl)
+        - Portuguese - Brazil (pt-BR)
+        - Portuguese - Portugal (pt-PT)
+        - Chinese - Simplified (zh-Hans)
+        - Japanese (ja)
+        - Korean (ko)
+        - Another registered locale
+    validations:
+      required: true
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution type
+      options:
+        - New translation
+        - Complete a partial translation
+        - Human review
+        - Terminology correction
+        - Layout or RTL issue
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: UI context and proposed wording
+      description: Identify the page, control, message key, and intended wording. Include screenshots where layout matters.
+    validations:
+      required: true
+  - type: checkboxes
+    id: review
+    attributes:
+      label: Review confirmation
+      options:
+        - label: I can judge this language fluently in the supplied UI context.
+          required: true
+        - label: I preserved placeholders such as $1, plural syntax, supported HTML, and FolderView Plus product terminology.
+          required: true
+        - label: I identified any destructive action wording that needs a second reviewer.
+          required: true

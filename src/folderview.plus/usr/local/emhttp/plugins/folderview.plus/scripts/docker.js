@@ -4,19 +4,23 @@
 
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const pluginRequestClient = window.FolderViewPlusRequest || null;
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const folderPreviewModelModule = window.FolderViewPlusFolderPreviewModel || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const dockerRuntimeActionsModule = window.FolderViewPlusDockerRuntimeActions || null;
 const dockerHostGuardsModule = window.FolderViewPlusDockerHostGuards || null;
 const dockerRuntimeDiagnosticsModule = window.FolderViewPlusDockerRuntimeDiagnostics || null;
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const dockerCommandViewModule = window.FolderViewPlusDockerCommandView || null;
-const dockerTreeExplorerModule = window.FolderViewPlusDockerTreeExplorer || null;
-const dockerOrbitViewModule = window.FolderViewPlusDockerOrbitView || null;
+const dockerT = (key, fallback = '', ...params) => (
+    window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
+);
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -55,6 +59,9 @@ const normalizeFolderPreviewRowLimit = typeof dockerRuntimeShared.normalizeFolde
         }
         return Math.max(1, Math.min(4, parsed));
     });
+const normalizeFolderPreviewOverflow = typeof dockerRuntimeShared.normalizeFolderPreviewOverflow === 'function'
+    ? dockerRuntimeShared.normalizeFolderPreviewOverflow
+    : ((settings = {}) => ['expand_row', 'scroll'].includes(settings?.preview_overflow) ? settings.preview_overflow : 'default');
 const isCompactMultiRowPreview = typeof dockerRuntimeShared.isCompactMultiRowPreview === 'function'
     ? dockerRuntimeShared.isCompactMultiRowPreview
     : ((settings = {}) => {
@@ -163,7 +170,14 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: true
+            privacyMaskPorts: true,
+            privacyMaskVolumePaths: true,
+            privacyMaskImageRegistry: true,
+            privacyMaskVmDiskPaths: true,
+            privacyMaskMacAddresses: true,
+            privacyMaskPublicIps: true,
+            privacyMaskInterfaces: true,
+            privacyMaskExternalUrls: true
         },
         health: {
             cardsEnabled: true,
@@ -206,6 +220,39 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/'/g, '&#39;');
     }
 };
+const reconcileDockerMemberIdentities = (folders, runtimeInfo) => {
+    if (!memberIdentityModule || typeof memberIdentityModule.reconcileFolders !== 'function') {
+        return folders;
+    }
+    const result = memberIdentityModule.reconcileFolders('docker', folders, runtimeInfo);
+    const patches = result?.patches && typeof result.patches === 'object' ? result.patches : {};
+    if (Object.keys(patches).length > 0 && typeof window.FolderViewPlusRequest?.postJson === 'function') {
+        window.FolderViewPlusRequest.postJson('/plugins/folderview.plus/server/reconcile_member_identities.php', {
+            type: 'docker',
+            patches: JSON.stringify(patches)
+        }, { retries: 0 }).catch((error) => {
+            console.warn('folderview.plus: Docker member identity reconciliation could not be persisted.', error);
+        });
+    }
+    window.FolderViewPlusMemberIdentityDiagnostics = {
+        ...(window.FolderViewPlusMemberIdentityDiagnostics || {}),
+        docker: result?.diagnostics || {}
+    };
+    return result?.folders || folders;
+};
+const dockerPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
+    normalizePrefs: utils.normalizePrefs,
+    request: window.FolderViewPlusRequest
+}) || null;
+const normalizeDockerPrefsResponse = (response = {}) => {
+    const normalized = utils.normalizePrefs({
+        ...(response?.prefs || {}),
+        _metadata: response?.metadata || response?.prefs?._metadata || {}
+    });
+    return dockerPrefsCoordinator
+        ? dockerPrefsCoordinator.reconcile('docker', normalized)
+        : normalized;
+};
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
@@ -235,7 +282,7 @@ const dockerRuntimeDiagnostics = createDockerRuntimeDiagnosticsBridge
         reportFatalError: () => {},
         reportDegradedState: () => {},
         inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
-        createRequest: (url) => $.get(url).promise()
+        createRequest: (url) => window.FolderViewPlusRequest.getText(url)
     });
 const markDockerFatalBannerStep = (step) => dockerRuntimeDiagnostics.markStep(step);
 const setDockerFatalBannerPhase = (phase) => dockerRuntimeDiagnostics.setPhase(phase);
@@ -500,6 +547,9 @@ const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;
 const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;
 const DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP = 64;
 const DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS = 72;
+const DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS = 280;
+const DOCKER_RUNTIME_WIDTH_BOOTSTRAP_FONT_TIMEOUT_MS = 600;
+const DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX = 3;
 const DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY = 'fvplus.runtime.docker.widthDebug.v1';
 const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus.runtime.docker.appWidth.v1';
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
@@ -592,6 +642,13 @@ const dockerRuntimeWidthState = {
     pendingReason: '',
     lastReason: 'init',
     fontReadyBound: false,
+    bootstrapLocked: false,
+    stabilizationPending: false,
+    stabilizationGeneration: 0,
+    pendingRenderGeneration: 0,
+    stabilizationTimer: null,
+    deferredReason: '',
+    resizerBindPending: false,
     debugPanel: null,
     lastDecision: null
 };
@@ -615,7 +672,7 @@ const getDockerRuntimeInfoApi = () => {
                 dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
                 return dockerRuntimeInfoByName;
             },
-            syncDockerVisibleFoldersFromRuntimeCache: () => syncDockerVisibleFoldersFromRuntimeCache(),
+            syncDockerVisibleFoldersFromRuntimeCache: (changedNames = null) => syncDockerVisibleFoldersFromRuntimeCache(changedNames),
             resolvePreferredWebuiValue: (...candidates) => resolvePreferredWebuiValue(...candidates),
             getFolderLabelValue,
             folderLabelKeys: FOLDER_LABEL_KEYS,
@@ -778,12 +835,20 @@ const buildDockerIsolatedViewDeps = () => ({
         buildDockerFolderMatchCache(orderSnapshot, containersInfo, folders, prefs),
     readDockerHostOrderFromDom: () => readDockerHostOrderFromDom(),
     resolveRequestBundle: (options = {}) => {
-        if (options?.forceRefresh !== true && folderReq && Array.isArray(folderReq.render) && folderReq.render.length > 0) {
+        if (
+            options?.forceRefresh !== true
+            && folderReq
+            && folderReq.consumed !== true
+            && Array.isArray(folderReq.render)
+            && folderReq.render.length > 0
+        ) {
+            folderReq.consumed = true;
             return folderReq;
         }
         folderReq = buildDockerFolderReq({
             liveUpdateStatus: isDockerHostUpdateSyncSuspended()
         });
+        folderReq.consumed = true;
         return folderReq;
     },
     setRuntimeState: (snapshot = {}) => {
@@ -795,7 +860,11 @@ const buildDockerIsolatedViewDeps = () => ({
         dockerRuntimeInfoByName = snapshot?.runtimeInfoByName && typeof snapshot.runtimeInfoByName === 'object'
             ? snapshot.runtimeInfoByName
             : {};
-        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(snapshot?.prefs || {});
+        folderTypePrefs = applyDockerPinnedFolderPrefsOverride(
+            dockerPrefsCoordinator
+                ? dockerPrefsCoordinator.reconcile('docker', snapshot?.prefs || {})
+                : (snapshot?.prefs || {})
+        );
         lastAppliedRuntimePrefs = folderTypePrefs;
         dockerRuntimeLastRenderGeneration = Number(snapshot?.generation || dockerRuntimeLastRenderGeneration || 0);
         lastLiveRefreshStateSignature = String(snapshot?.stateSignature || lastLiveRefreshStateSignature || '');
@@ -805,6 +874,7 @@ const buildDockerIsolatedViewDeps = () => ({
             pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
         });
         applyRuntimePrefs(folderTypePrefs);
+        queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     },
     getScopedRuntimeContainersForFolder: (folderId, includeDescendants = true) =>
         getScopedRuntimeContainersForFolder(folderId, includeDescendants),
@@ -841,31 +911,10 @@ const getDockerCommandViewApi = () => {
     }
     return dockerCommandViewApi;
 };
-const getDockerTreeExplorerApi = () => {
-    if (
-        !dockerTreeExplorerApi
-        && dockerTreeExplorerModule
-        && window.FolderViewPlusDockerTreeExplorerModuleLoaded === true
-        && typeof dockerTreeExplorerModule.createApi === 'function'
-    ) {
-        dockerTreeExplorerApi = dockerTreeExplorerModule.createApi(buildDockerIsolatedViewDeps());
-    }
-    return dockerTreeExplorerApi;
-};
-const getDockerOrbitViewApi = () => {
-    if (
-        !dockerOrbitViewApi
-        && dockerOrbitViewModule
-        && window.FolderViewPlusDockerOrbitViewModuleLoaded === true
-        && typeof dockerOrbitViewModule.createApi === 'function'
-    ) {
-        dockerOrbitViewApi = dockerOrbitViewModule.createApi(buildDockerIsolatedViewDeps());
-    }
-    return dockerOrbitViewApi;
-};
 const buildDockerDiagnosticsCorrelationContext = () => ({
     currentPage: String(location?.pathname || ''),
     listViewMode: readDockerListViewMode(),
+    pageViewMode: resolveDockerPageViewMode(),
     renderGeneration: dockerRuntimeLastRenderGeneration,
     requestGeneration: Number(folderReq?.generation || 0),
     traceSessionId: dockerDiagnosticsTraceSessionId,
@@ -917,6 +966,7 @@ const getDockerRuntimeReconcileApi = () => {
                 queueDockerSupportBundlePageSnapshot(reason, delayMs),
             markDockerFatalBannerStep: (step) => markDockerFatalBannerStep(step),
             getDockerHostGuardsApi: () => getDockerHostGuardsApi(),
+            getDockerRuntimeContainerInfo: (containerName) => getDockerRuntimeContainerInfo(containerName),
             initialDelayMs: DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS,
             pollDelayMs: DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS
         });
@@ -973,7 +1023,7 @@ const DOCKER_SUPPORT_BUNDLE_PAGE_STORAGE_KEY = dockerRuntimeDiagnosticsModule?.D
 const getDockerRuntimePrivacyOptions = (prefs = null) => {
     const normalized = utils.normalizePrefs(prefs || folderTypePrefs || {});
     const dashboard = normalized?.dashboard && typeof normalized.dashboard === 'object' ? normalized.dashboard : {};
-    const enabled = dashboard.privacyMode === true;
+    const enabled = resolveDockerRuntimePrivacyMode(normalized);
     return {
         enabled,
         maskNames: enabled && dashboard.privacyMaskNames !== false,
@@ -1025,6 +1075,54 @@ const buildDockerPortMappingsHtml = (ports = []) => {
     }
     return `<span class="info-ports-mono">${lines.join('<br>')}</span>`;
 };
+const splitDockerLanEndpoint = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return { ip: '', port: '' };
+    }
+    if (raw.startsWith('[')) {
+        const bracketEnd = raw.indexOf(']');
+        if (bracketEnd > 0) {
+            return {
+                ip: raw.slice(0, bracketEnd + 1),
+                port: raw.slice(bracketEnd + 1).replace(/^:/, '')
+            };
+        }
+    }
+    const separatorIndex = raw.lastIndexOf(':');
+    if (separatorIndex > 0 && /^\d+(?:\/\w+)?$/.test(raw.slice(separatorIndex + 1))) {
+        return {
+            ip: raw.slice(0, separatorIndex),
+            port: raw.slice(separatorIndex + 1)
+        };
+    }
+    return { ip: raw, port: '' };
+};
+const decorateDockerRuntimeLanEndpointValues = () => {
+    document.querySelectorAll('#docker_list tr.folder-element > td:nth-child(6) .docker_readmore, #docker_view tr.folder-element > td:nth-child(6) .docker_readmore').forEach((node) => {
+        const rawLines = String(node.innerHTML || '').split(/<br\s*\/?\s*>/i).map((line) => {
+            const decoder = document.createElement('span');
+            decoder.innerHTML = line;
+            return String(decoder.textContent || '').trim();
+        });
+        const signature = rawLines.join('\n');
+        if (
+            node.dataset.fvplusPrivacyLanSignature === signature
+            && node.querySelector('.fvplus-privacy-lan-ip-value, .fvplus-privacy-lan-port-value')
+        ) {
+            return;
+        }
+        node.dataset.fvplusPrivacyLanSignature = signature;
+        node.innerHTML = rawLines.map((line) => {
+            const endpoint = splitDockerLanEndpoint(line);
+            const ip = `<span class="fvplus-privacy-lan-ip-value">${escapeHtml(endpoint.ip)}</span>`;
+            const port = endpoint.port
+                ? `:<span class="fvplus-privacy-lan-port-value">${escapeHtml(endpoint.port)}</span>`
+                : '';
+            return `${ip}${port}`;
+        }).join('<br>');
+    });
+};
 const buildDockerBindMountMappingLine = (entry = {}) => {
     const destination = escapeHtml(String(entry?.Destination || '').trim() || 'unknown');
     const source = escapeHtml(String(entry?.Source || '').trim() || 'unknown');
@@ -1052,6 +1150,7 @@ const findDockerRuntimeInfoByShortId = (shortId) => {
     }) || null;
 };
 const refreshDockerRuntimePrivacyPortMappings = () => {
+    decorateDockerRuntimeLanEndpointValues();
     document.querySelectorAll('.info-ports[id^="info-ports-"]').forEach((node) => {
         const shortId = String(node.id || '').replace(/^info-ports-/, '').trim();
         const runtimeEntry = findDockerRuntimeInfoByShortId(shortId);
@@ -1341,7 +1440,12 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!wrappers.length) {
         return;
     }
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const overflowMode = normalizeFolderPreviewOverflow(settings);
+    if (overflowMode === 'scroll') {
+        finalizePreviewRows($preview, [wrappers], settings);
+        return;
+    }
+    const rowLimit = overflowMode === 'expand_row' ? 0 : normalizeFolderPreviewRowLimit(settings);
     const maxItemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
@@ -1946,11 +2050,14 @@ const primeDockerRuntimeAppWidthBeforeRender = (folders = null) => {
     }
     const mode = getDockerRuntimeAppColumnMode();
     const cachedWidth = readDockerRuntimeCachedAppWidth(mode);
-    const primedWidth = clampDockerRuntimeColumnWidth(Math.max(
-        estimatedWidth || 0,
-        cachedWidth || 0,
-        Number(dockerRuntimeAutoAppWidthFloor) || 0
-    ), 1);
+    const bootstrapWidth = isDockerRuntimeWidthBootstrapActive() && cachedWidth
+        ? cachedWidth
+        : Math.max(
+            estimatedWidth || 0,
+            cachedWidth || 0,
+            Number(dockerRuntimeAutoAppWidthFloor) || 0
+        );
+    const primedWidth = clampDockerRuntimeColumnWidth(bootstrapWidth, 1);
     if (!primedWidth) {
         return null;
     }
@@ -2059,12 +2166,35 @@ const buildDockerRuntimeWidthDecision = () => {
     };
 };
 
-const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
+const readDockerRuntimeAppliedAppWidth = () => {
+    const inlineValue = document.body?.style?.getPropertyValue('--fvplus-docker-app-column-width') || '';
+    const parsedInline = Number.parseFloat(inlineValue);
+    if (Number.isFinite(parsedInline)) {
+        return clampDockerRuntimeColumnWidth(parsedInline, 1);
+    }
+    const targets = getDockerRuntimeTableTargets();
+    const parsedHeader = Number.parseFloat(targets?.headers?.[0]?.style?.width || '');
+    return Number.isFinite(parsedHeader) ? clampDockerRuntimeColumnWidth(parsedHeader, 1) : null;
+};
+
+const applyDockerRuntimeColumnWidths = (_widthMap = null, options = {}) => {
     const targets = getDockerRuntimeTableTargets();
     if (!targets) {
         return;
     }
     const decision = buildDockerRuntimeWidthDecision();
+    const currentWidth = readDockerRuntimeAppliedAppWidth();
+    const minimumDelta = Math.max(0, Number(options?.minimumDelta) || 0);
+    if (
+        minimumDelta > 0
+        && Number.isFinite(currentWidth)
+        && Math.abs(decision.appliedWidth - currentWidth) < minimumDelta
+    ) {
+        decision.requestedWidth = decision.appliedWidth;
+        decision.appliedWidth = currentWidth;
+        decision.nextFloor = currentWidth;
+        decision.suppressedSmallDelta = true;
+    }
     dockerRuntimeAutoAppWidthFloor = decision.nextFloor;
     writeDockerRuntimeCachedAppWidth(decision.mode, decision.appliedWidth);
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
@@ -2093,7 +2223,16 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     return decision.appliedWidth;
 };
 
-const runDockerRuntimeWidthReflow = (reason = 'direct') => {
+const isDockerRuntimeWidthBootstrapActive = () => (
+    dockerRuntimeWidthState.bootstrapLocked === true
+    || dockerRuntimeWidthState.stabilizationPending === true
+);
+
+const runDockerRuntimeWidthReflow = (reason = 'direct', options = {}) => {
+    if (isDockerRuntimeWidthBootstrapActive() && options?.force !== true) {
+        dockerRuntimeWidthState.deferredReason = String(reason || 'direct');
+        return null;
+    }
     if (dockerRuntimeWidthState.debounceTimer !== null) {
         clearTimeout(dockerRuntimeWidthState.debounceTimer);
         dockerRuntimeWidthState.debounceTimer = null;
@@ -2101,13 +2240,17 @@ const runDockerRuntimeWidthReflow = (reason = 'direct') => {
     dockerRuntimeWidthState.pendingReason = '';
     dockerRuntimeWidthState.lastReason = String(reason || 'direct');
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.measure;
-    const appliedWidth = applyDockerRuntimeColumnWidths(null);
+    const appliedWidth = applyDockerRuntimeColumnWidths(null, options);
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.apply;
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.idle;
     return appliedWidth;
 };
 
 const scheduleDockerRuntimeWidthReflow = (reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS) => {
+    if (isDockerRuntimeWidthBootstrapActive()) {
+        dockerRuntimeWidthState.deferredReason = String(reason || 'event');
+        return;
+    }
     dockerRuntimeWidthState.pendingReason = String(reason || 'event');
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.debounce;
     if (dockerRuntimeWidthState.debounceTimer !== null) {
@@ -2120,6 +2263,73 @@ const scheduleDockerRuntimeWidthReflow = (reason = 'event', delayMs = DOCKER_RUN
         dockerRuntimeWidthState.pendingReason = '';
         runDockerRuntimeWidthReflow(`debounced:${pendingReason}`);
     }, safeDelay);
+};
+
+const beginDockerRuntimeWidthBootstrap = () => {
+    dockerRuntimeWidthState.stabilizationGeneration += 1;
+    dockerRuntimeWidthState.bootstrapLocked = true;
+    dockerRuntimeWidthState.stabilizationPending = false;
+    dockerRuntimeWidthState.deferredReason = '';
+    dockerRuntimeWidthState.resizerBindPending = false;
+    if (dockerRuntimeWidthState.debounceTimer !== null) {
+        clearTimeout(dockerRuntimeWidthState.debounceTimer);
+        dockerRuntimeWidthState.debounceTimer = null;
+    }
+    if (dockerRuntimeWidthState.stabilizationTimer !== null) {
+        clearTimeout(dockerRuntimeWidthState.stabilizationTimer);
+        dockerRuntimeWidthState.stabilizationTimer = null;
+    }
+    if (dockerRuntimeResizerBindTimer !== null) {
+        clearTimeout(dockerRuntimeResizerBindTimer);
+        dockerRuntimeResizerBindTimer = null;
+    }
+    dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.idle;
+    return dockerRuntimeWidthState.stabilizationGeneration;
+};
+
+const completeDockerRuntimeWidthBootstrap = (generation, options = {}) => {
+    if (generation !== dockerRuntimeWidthState.stabilizationGeneration) {
+        return;
+    }
+    dockerRuntimeWidthState.bootstrapLocked = false;
+    if (options?.stabilize === false) {
+        dockerRuntimeWidthState.stabilizationPending = false;
+        dockerRuntimeWidthState.resizerBindPending = false;
+        bindDockerRuntimeColumnResizers({ scheduleReflow: false });
+        if (options?.reflow !== false) {
+            scheduleDockerRuntimeWidthReflow('bootstrap-error', 0);
+        }
+        return;
+    }
+    dockerRuntimeWidthState.stabilizationPending = true;
+    const startedAt = Date.now();
+    const waitForFonts = document.fonts?.ready && typeof document.fonts.ready.then === 'function'
+        ? Promise.resolve(document.fonts.ready).catch(() => undefined)
+        : Promise.resolve();
+    const fontTimeout = new Promise((resolve) => {
+        window.setTimeout(resolve, DOCKER_RUNTIME_WIDTH_BOOTSTRAP_FONT_TIMEOUT_MS);
+    });
+    Promise.race([waitForFonts, fontTimeout]).then(() => {
+        if (generation !== dockerRuntimeWidthState.stabilizationGeneration) {
+            return;
+        }
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS - elapsed);
+        dockerRuntimeWidthState.stabilizationTimer = window.setTimeout(() => {
+            if (generation !== dockerRuntimeWidthState.stabilizationGeneration) {
+                return;
+            }
+            dockerRuntimeWidthState.stabilizationTimer = null;
+            dockerRuntimeWidthState.stabilizationPending = false;
+            dockerRuntimeWidthState.resizerBindPending = false;
+            bindDockerRuntimeColumnResizers({ scheduleReflow: false });
+            runDockerRuntimeWidthReflow('bootstrap-stable', {
+                force: true,
+                minimumDelta: DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX
+            });
+            dockerRuntimeWidthState.deferredReason = '';
+        }, remaining);
+    });
 };
 
 const bindDockerRuntimeFontReadyReflow = () => {
@@ -2192,6 +2402,11 @@ const ensureDockerRuntimeResizerObserver = () => {
         return;
     }
     dockerRuntimeResizerObserver = new MutationObserver(() => {
+        decorateDockerRuntimeLanEndpointValues();
+        if (isDockerRuntimeWidthBootstrapActive()) {
+            dockerRuntimeWidthState.resizerBindPending = true;
+            return;
+        }
         queueDockerRuntimeResizerBind();
     });
     dockerRuntimeResizerObserver.observe(target, {
@@ -2201,6 +2416,10 @@ const ensureDockerRuntimeResizerObserver = () => {
 };
 
 const queueDockerRuntimeResizerBind = () => {
+    if (isDockerRuntimeWidthBootstrapActive()) {
+        dockerRuntimeWidthState.resizerBindPending = true;
+        return;
+    }
     if (dockerRuntimeResizerBindTimer !== null) {
         return;
     }
@@ -2210,7 +2429,11 @@ const queueDockerRuntimeResizerBind = () => {
     }, 0);
 };
 
-const bindDockerRuntimeColumnResizers = () => {
+const bindDockerRuntimeColumnResizers = (options = {}) => {
+    if (isDockerRuntimeWidthBootstrapActive() && options?.force !== true) {
+        dockerRuntimeWidthState.resizerBindPending = true;
+        return;
+    }
     const targets = getDockerRuntimeTableTargets();
     if (!targets) {
         if (dockerRuntimeResizerRetryCount < 20) {
@@ -2234,7 +2457,9 @@ const bindDockerRuntimeColumnResizers = () => {
             existingHandle.remove();
         }
     });
-    scheduleDockerRuntimeWidthReflow('table-bind', 0);
+    if (options?.scheduleReflow !== false) {
+        scheduleDockerRuntimeWidthReflow('table-bind', 0);
+    }
 };
 
 const bindDockerRuntimeAppColumnResizer = () => bindDockerRuntimeColumnResizers();
@@ -2378,7 +2603,8 @@ const buildDockerTooltipContent = (ct) => {
         const containerId = String($link.attr('data-container-id') || '').trim();
         const actionMap = new Set(['start', 'resume', 'stop', 'pause', 'restart']);
         if (actionMap.has(action) && containerId) {
-            eventControl({ action, container: containerId }, 'loadlist');
+            const refreshTarget = getDockerRuntimeReconcileApi()?.getLifecycleRefreshCallbackName?.() || 'loadlist';
+            eventControl({ action, container: containerId }, refreshTarget);
             return;
         }
         const actionContainerName = String($link.attr('data-container-name') || '').trim();
@@ -2396,6 +2622,36 @@ const buildDockerTooltipContent = (ct) => {
         }
     });
     return $content;
+};
+
+const refreshDockerPreviewTooltipContent = (changedNames = null) => {
+    const names = changedNames instanceof Set
+        ? Array.from(changedNames)
+        : (Array.isArray(changedNames) ? changedNames : Object.keys(dockerRuntimeInfoByName || {}));
+    names.forEach((name) => {
+        const runtimeEntry = getDockerRuntimeContainerInfo(name);
+        const shortId = String(runtimeEntry?.shortId || '').trim();
+        if (!runtimeEntry || !shortId) {
+            return;
+        }
+        const triggerId = `folder-preview-${shortId}`;
+        $('[id^="folder-preview-"]').filter((_, node) => String(node?.id || '') === triggerId).each((_, node) => {
+            const $trigger = $(node);
+            $trigger.data('fvTooltipLazyBuilt', false);
+            if ($trigger.data('fvTooltipsterInitialized') !== true || typeof $trigger.tooltipster !== 'function') {
+                return;
+            }
+            try {
+                const instance = $trigger.tooltipster('instance');
+                if (instance && typeof instance.content === 'function') {
+                    instance.content(buildDockerTooltipContent(runtimeEntry));
+                    $trigger.data('fvTooltipLazyBuilt', true);
+                }
+            } catch (_error) {
+                // Leave the tooltip invalidated so functionBefore rebuilds it on the next open.
+            }
+        });
+    });
 };
 
 const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
@@ -3010,10 +3266,10 @@ const fetchDockerPinnedFolderPrefs = async () => {
             retryDelayMs: 220
         });
     } else {
-        response = parseJsonPayloadSafe(await $.get(url).promise());
+        response = await pluginRequestClient.getJson(url);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to confirm Docker pinned folders.');
-    return utils.normalizePrefs(response?.prefs || {});
+    return normalizeDockerPrefsResponse(response);
 };
 let dockerPinnedFolderServerReconcileTimer = null;
 let dockerPinnedFolderServerReconcileGeneration = 0;
@@ -3044,6 +3300,15 @@ const queueDockerPinnedFolderServerReconcile = (reason = 'post-render', delayMs 
     }, safeDelay);
 };
 const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            pinnedFolderIds: nextPinnedIds
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
@@ -3053,7 +3318,7 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
     if (request && typeof request.postJson === 'function') {
         try {
             response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3062,7 +3327,7 @@ const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
         }
     }
     if (!response) {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertDockerPrefsSaveResponse(response, 'Failed to save Docker pinned folders.');
     const confirmedPrefs = await fetchDockerPinnedFolderPrefs();
@@ -3189,6 +3454,16 @@ const normalizeDockerManualFolderOrder = (nextOrder, folders = globalFolders, pr
 };
 const persistDockerFolderManualOrder = async (nextOrder) => {
     const normalizedOrder = normalizeDockerManualFolderOrder(nextOrder);
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            sortMode: 'manual',
+            manualOrder: normalizedOrder
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
@@ -3200,7 +3475,7 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
     if (request && typeof request.postJson === 'function') {
         try {
             return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3208,8 +3483,7 @@ const persistDockerFolderManualOrder = async (nextOrder) => {
             // works if the runtime request wrapper is temporarily unavailable.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
 };
 const persistDockerFolderRecord = async (folderId, folderPayload) => {
     const id = String(folderId || '').trim();
@@ -3225,7 +3499,7 @@ const persistDockerFolderRecord = async (folderId, folderPayload) => {
     if (request && typeof request.postJson === 'function') {
         try {
             return await request.postJson('/plugins/folderview.plus/server/update.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -3233,8 +3507,7 @@ const persistDockerFolderRecord = async (folderId, folderPayload) => {
             // if the runtime request wrapper is temporarily unavailable.
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/update.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson('/plugins/folderview.plus/server/update.php', payload);
 };
 const applyDockerFolderMenuOrderToDom = (orderedIds) => {
     if (!Array.isArray(orderedIds) || orderedIds.length <= 0) {
@@ -3831,6 +4104,8 @@ const dockerExpandedStateController = runtimeStateObserverModule && typeof runti
         type: 'docker',
         storageKey: DOCKER_EXPANDED_STATE_KEY,
         storageWriter: dockerStorageWriter,
+        preferenceCoordinator: dockerPrefsCoordinator,
+        readPrefs: () => folderTypePrefs || {},
         syncDelayMs: DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,
         normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
         readServerMap: () => folderTypePrefs?.expandedFolderState || {},
@@ -4031,47 +4306,30 @@ const scheduleDockerPostRenderPolish = (folderIds = []) => {
 const normalizeDockerPageViewMode = (value) => (
     typeof utils.normalizeRuntimePageViewMode === 'function'
         ? utils.normalizeRuntimePageViewMode(value)
-        : (['host', 'command', 'tree-explorer', 'orbit'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
+        : (['host', 'command'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview')
 );
 
 const resolveDockerPageViewMode = (prefs = folderTypePrefs) => normalizeDockerPageViewMode(
     utils.normalizePrefs(prefs || {}).pageViewMode
 );
 
+let dockerRuntimeActionBarApi = null;
+const applyDockerRuntimeToolbarFilterState = () => dockerRuntimeActionBarApi?.applyFilterState();
+const renderDockerRuntimeActionBar = (mode = resolveDockerPageViewMode()) => dockerRuntimeActionBarApi?.sync(mode);
+
 const syncDockerAddFolderButtonVisibility = (mode = 'folderview') => {
-    const resolvedMode = normalizeDockerPageViewMode(mode);
-    const existing = document.getElementById('fvplus-docker-add-folder-btn');
-    if (resolvedMode !== 'folderview') {
-        if (existing) {
-            existing.remove();
-        }
-        return;
-    }
-    if (existing) {
-        return;
-    }
-    const table = document.querySelector('table#docker_containers');
-    if (!table || typeof table.insertAdjacentHTML !== 'function') {
-        return;
-    }
-    table.insertAdjacentHTML(
-        'afterend',
-        '<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">'
-    );
-    if (typeof $('body').i18n === 'function') {
-        $('body').i18n();
-    }
-    if (typeof $('[type="button"]').i18n === 'function') {
-        $('[type="button"]').i18n();
-    }
+    dockerRuntimeActionBarApi?.sync(normalizeDockerPageViewMode(mode));
 };
 
 const fetchDockerBootstrapPrefs = async () => {
-    const response = await $.get(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${Date.now()}`).promise();
-    const parsed = parseJsonPayloadSafe(response);
-    const nextPrefs = applyDockerPinnedFolderPrefsOverride(parsed?.prefs || {});
+    const parsed = await pluginRequestClient.getJson('/plugins/folderview.plus/server/prefs.php', {
+        data: { type: 'docker', _: Date.now() },
+        cache: false
+    });
+    const nextPrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(parsed));
     folderTypePrefs = nextPrefs;
     applyRuntimePrefs(nextPrefs);
+    queueDockerRuntimePrivacyServerReconcile(nextPrefs);
     return nextPrefs;
 };
 
@@ -4092,11 +4350,35 @@ const ensureDockerBootstrapPrefs = (options = {}) => {
     return dockerBootstrapPrefsPromise;
 };
 
-const rebuildDockerFolderReqForHostRender = () => {
-    folderReq = buildDockerFolderReq({
-        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-    });
+const ensureDockerFolderReqForHostRender = (options = {}) => {
+    const hasReusableBundle = folderReq
+        && folderReq.consumed !== true
+        && Array.isArray(folderReq.render)
+        && folderReq.render.length >= 4;
+    if (options?.forceRefresh === true || !hasReusableBundle) {
+        folderReq = buildDockerFolderReq({
+            liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+        });
+    }
     return folderReq;
+};
+
+const resolveDockerBootstrapPrefsFromRequestBundle = async (requestBundle) => {
+    const prefsRequest = requestBundle?.render?.[3];
+    if (!prefsRequest) {
+        return ensureDockerBootstrapPrefs();
+    }
+    try {
+        const payload = await Promise.resolve(prefsRequest);
+        const parsed = typeof payload === 'string' ? parseJsonPayloadSafe(payload) : payload;
+        const nextPrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(parsed || {}));
+        folderTypePrefs = nextPrefs;
+        applyRuntimePrefs(nextPrefs);
+        queueDockerRuntimePrivacyServerReconcile(nextPrefs);
+        return nextPrefs;
+    } catch (_error) {
+        return ensureDockerBootstrapPrefs();
+    }
 };
 
 const unmountDockerCommandView = () => {
@@ -4106,43 +4388,195 @@ const unmountDockerCommandView = () => {
     }
 };
 
-const unmountDockerTreeExplorer = () => {
-    const treeExplorerApi = getDockerTreeExplorerApi();
-    if (treeExplorerApi && typeof treeExplorerApi.unmount === 'function') {
-        treeExplorerApi.unmount();
+const readDockerContainerNameFromHostRow = (row) => {
+    if (!(row instanceof HTMLElement)) {
+        return '';
     }
+    const rawId = String(row.id || '').trim();
+    if (rawId.startsWith('ct-')) {
+        const nameFromId = rawId.slice(3).trim();
+        if (nameFromId) {
+            return nameFromId;
+        }
+    }
+    return String($(row).find('td.ct-name .appname').first().text() || '').trim();
 };
 
-const unmountDockerOrbitView = () => {
-    const orbitViewApi = getDockerOrbitViewApi();
-    if (orbitViewApi && typeof orbitViewApi.unmount === 'function') {
-        orbitViewApi.unmount();
+const normalizeDockerNativeHostOrder = (payload) => {
+    const parsed = typeof payload === 'string' ? parseJsonPayloadSafe(payload) : payload;
+    const values = parsed && typeof parsed === 'object' ? Object.values(parsed) : [];
+    const seen = new Set();
+    return values
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => {
+            if (!entry || folderRegex.test(entry) || seen.has(entry)) {
+                return false;
+            }
+            seen.add(entry);
+            return true;
+        });
+};
+
+const restoreDockerNativeHostList = async (requestBundle = null) => {
+    const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
+    if (!(tbody instanceof HTMLElement)) {
+        return { restoredRows: 0, removedFolders: 0 };
     }
+
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const folderRows = allRows.filter((row) => row instanceof HTMLElement && row.classList.contains('folder'));
+    const containerRows = allRows.filter((row) => (
+        row instanceof HTMLElement
+        && !row.classList.contains('folder')
+        && (row.id.startsWith('ct-') || row.classList.contains('folder-element') || !!row.querySelector('td.ct-name .appname'))
+    ));
+    const rowsByName = new Map();
+    const duplicateRows = [];
+    const unnamedRows = [];
+    containerRows.forEach((row) => {
+        const name = readDockerContainerNameFromHostRow(row);
+        if (!name) {
+            unnamedRows.push(row);
+            return;
+        }
+        if (rowsByName.has(name)) {
+            const existingRow = rowsByName.get(name);
+            const existingIsNativeDirectRow = existingRow?.parentElement === tbody;
+            const currentIsNativeDirectRow = row.parentElement === tbody;
+            if (currentIsNativeDirectRow && !existingIsNativeDirectRow) {
+                duplicateRows.push(existingRow);
+                rowsByName.set(name, row);
+            } else {
+                duplicateRows.push(row);
+            }
+            return;
+        }
+        rowsByName.set(name, row);
+    });
+
+    let nativeOrder = [];
+    try {
+        const orderPayload = requestBundle?.render?.[1]
+            ? await Promise.resolve(requestBundle.render[1])
+            : null;
+        nativeOrder = normalizeDockerNativeHostOrder(orderPayload);
+    } catch (_error) {
+        nativeOrder = [];
+    }
+
+    const orderedRows = [];
+    nativeOrder.forEach((name) => {
+        const row = rowsByName.get(name);
+        if (!row) {
+            return;
+        }
+        orderedRows.push(row);
+        rowsByName.delete(name);
+    });
+    containerRows.forEach((row) => {
+        const name = readDockerContainerNameFromHostRow(row);
+        if (name && rowsByName.get(name) === row) {
+            orderedRows.push(row);
+            rowsByName.delete(name);
+        }
+    });
+    unnamedRows.forEach((row) => orderedRows.push(row));
+
+    orderedRows.forEach((row) => {
+        Array.from(row.classList).forEach((className) => {
+            if (/^folder-.+-element$/.test(className)) {
+                row.classList.remove(className);
+            }
+        });
+        row.classList.remove(
+            'folder-element',
+            'fv-nested-hidden',
+            'fv-folder-focus-hidden',
+            'fv-toolbar-filter-hidden'
+        );
+        row.classList.add('sortable');
+        row.style.removeProperty('display');
+        $(row).children('td').children('i.fa-arrows-v').remove();
+    });
+
+    const fragment = document.createDocumentFragment();
+    orderedRows.forEach((row) => fragment.appendChild(row));
+    duplicateRows.forEach((row) => row.remove());
+    folderRows.forEach((row) => row.remove());
+    tbody.appendChild(fragment);
+    document.body.classList.remove('fv-folder-focus-active');
+    if (folderobserver) {
+        folderobserver.disconnect();
+        folderobserver = undefined;
+    }
+    refreshDockerRuntimeSortableRows();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('host-list-restore', 0);
+    appendDockerRequestBundleTrace('host-list-restored', {
+        restoredRows: orderedRows.length,
+        removedFolders: folderRows.length,
+        removedDuplicateRows: duplicateRows.length,
+        nativeOrderCount: nativeOrder.length
+    });
+    return {
+        restoredRows: orderedRows.length,
+        removedFolders: folderRows.length,
+        removedDuplicateRows: duplicateRows.length
+    };
 };
 
 const unmountDockerIsolatedViews = (exceptMode = '') => {
     if (exceptMode !== 'command') {
         unmountDockerCommandView();
     }
-    if (exceptMode !== 'tree-explorer') {
-        unmountDockerTreeExplorer();
-    }
-    if (exceptMode !== 'orbit') {
-        unmountDockerOrbitView();
-    }
 };
 
-const queueDockerRuntimeRenderForPageViewMode = () => {
-    Promise.resolve()
-        .then(() => ensureDockerBootstrapPrefs({ forceRefresh: true }))
+const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
+    const widthBootstrapGeneration = beginDockerRuntimeWidthBootstrap();
+    dockerRuntimeWidthState.pendingRenderGeneration = widthBootstrapGeneration;
+    const releaseWidthBootstrap = () => {
+        if (dockerRuntimeWidthState.pendingRenderGeneration === widthBootstrapGeneration) {
+            dockerRuntimeWidthState.pendingRenderGeneration = 0;
+        }
+        completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
+            stabilize: false,
+            reflow: false
+        });
+    };
+    const requestBundle = ensureDockerFolderReqForHostRender({
+        forceRefresh: options?.forceRefresh === true
+    });
+    const appliedPrefs = options?.preferAppliedPrefs === true
+        && lastAppliedRuntimePrefs
+        && typeof lastAppliedRuntimePrefs === 'object'
+        ? Promise.resolve(lastAppliedRuntimePrefs)
+        : resolveDockerBootstrapPrefsFromRequestBundle(requestBundle);
+    return Promise.resolve()
+        .then(() => appliedPrefs)
         .then((prefs) => {
             const mode = resolveDockerPageViewMode(prefs);
             if (mode === 'host') {
                 unmountDockerIsolatedViews();
+                requestBundle.consumed = true;
+                releaseWidthBootstrap();
                 markDockerFatalBannerStep('Docker host list mode active');
                 recordDockerFatalBannerAction('Docker host list mode active');
+                return Promise.resolve(restoreDockerNativeHostList(requestBundle))
+                    .catch((error) => {
+                        appendDockerRequestBundleTrace('host-list-restore-failed', {
+                            message: String(error?.message || error || 'Unknown Host list restoration error')
+                        });
+                    })
+                    .finally(() => {
+                        dockerHostLoadOwnsLoadingUi = false;
+                        activeDockerRenderSuppressLoadingUi = false;
+                        nextDockerRenderSuppressLoadingUi = false;
+                        hideDockerRuntimeLoadingOverlay();
+                        hideDockerRuntimeLoadingRow();
+                    });
             } else if (mode === 'command') {
                 unmountDockerIsolatedViews('command');
+                releaseWidthBootstrap();
                 markDockerFatalBannerStep('Docker command view active');
                 recordDockerFatalBannerAction('Docker command view active');
                 const commandViewApi = getDockerCommandViewApi();
@@ -4154,56 +4588,105 @@ const queueDockerRuntimeRenderForPageViewMode = () => {
                 markDockerFatalBannerStep('Docker command view unavailable, falling back to host list');
                 recordDockerFatalBannerAction('Docker command view unavailable');
                 return;
-            } else if (mode === 'tree-explorer') {
-                unmountDockerIsolatedViews('tree-explorer');
-                markDockerFatalBannerStep('Docker tree explorer active');
-                recordDockerFatalBannerAction('Docker tree explorer active');
-                const treeExplorerApi = getDockerTreeExplorerApi();
-                if (treeExplorerApi && typeof treeExplorerApi.mount === 'function') {
-                    return treeExplorerApi.mount({
-                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
-                    });
-                }
-                markDockerFatalBannerStep('Docker tree explorer unavailable, falling back to host list');
-                recordDockerFatalBannerAction('Docker tree explorer unavailable');
-                return;
-            } else if (mode === 'orbit') {
-                unmountDockerIsolatedViews('orbit');
-                markDockerFatalBannerStep('Docker orbit view active');
-                recordDockerFatalBannerAction('Docker orbit view active');
-                const orbitViewApi = getDockerOrbitViewApi();
-                if (orbitViewApi && typeof orbitViewApi.mount === 'function') {
-                    return orbitViewApi.mount({
-                        suppressLoadingUi: isDockerHostUpdateSyncSuspended()
-                    });
-                }
-                markDockerFatalBannerStep('Docker orbit view unavailable, falling back to host list');
-                recordDockerFatalBannerAction('Docker orbit view unavailable');
-                return;
             }
             unmountDockerIsolatedViews();
-            rebuildDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
         })
         .catch(() => {
             unmountDockerIsolatedViews();
-            rebuildDockerFolderReqForHostRender();
+            ensureDockerFolderReqForHostRender();
             dockerHostLoadOwnsLoadingUi = true;
             queueCreateFoldersRender();
-        });
+        })
+        .finally(() => renderDockerRuntimeActionBar(resolveDockerPageViewMode()));
 };
+
+const saveDockerRuntimeToolbarPrefs = async (patch, currentPrefs) => {
+    if (dockerPrefsCoordinator) {
+        return dockerPrefsCoordinator.save('docker', patch, {
+            currentPrefs,
+            immediate: true
+        });
+    }
+    const response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', {
+        type: 'docker',
+        prefs: JSON.stringify(patch || {})
+    });
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker view preferences.');
+    return utils.normalizePrefs(response?.prefs || currentPrefs || {});
+};
+const dockerRuntimeActionBarModule = window.FolderViewPlusDockerRuntimeActionBar;
+if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createApi === 'function') {
+    dockerRuntimeActionBarApi = dockerRuntimeActionBarModule.createApi({
+        window,
+        document,
+        utils,
+        escapeHtml,
+        normalizePageViewMode: normalizeDockerPageViewMode,
+        resolvePageViewMode: resolveDockerPageViewMode,
+        getPrefs: () => folderTypePrefs || {},
+        setPrefs: (prefs) => { folderTypePrefs = utils.normalizePrefs(prefs || {}); },
+        applyPrefs: (prefs) => applyRuntimePrefs(prefs),
+        savePrefs: saveDockerRuntimeToolbarPrefs,
+        refreshRuntimeView: () => {
+            queueLoadlistRefresh({ suppressLoadingUi: true });
+            return Promise.resolve();
+        },
+        getFolders: () => globalFolders || {},
+        getScopedContainers: (id) => getScopedRuntimeContainersForFolder(id, true),
+        readFolderIdFromRow,
+        readFolderOwnerFromRow,
+        getFolderAncestors,
+        getFolderDescendants,
+        applyFocusedFolderState: () => applyDockerFocusedFolderState(),
+        getFocusedFolderId: () => dockerFocusedFolderId,
+        clearFocusedFolder: () => {
+            dockerRuntimeStateStore.set({ focusedFolderId: '' });
+            dockerFocusedFolderId = '';
+        },
+        scheduleWidthReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
+        buildFolderHierarchy,
+        expandFolderBranch,
+        collapseFolderBranch,
+        createFolder: () => createFolderBtn(),
+        showError: (message) => swal({
+            title: 'FolderView action failed',
+            text: escapeHtml(String(message || 'The action could not be completed.')),
+            type: 'error',
+            html: true,
+            confirmButtonText: 'OK'
+        })
+    });
+}
 window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlusDockerRuntimeInternals || {}, {
     buildDockerIsolatedViewDeps,
     getDockerCommandViewApi,
-    getDockerTreeExplorerApi,
-    getDockerOrbitViewApi,
+    restoreDockerNativeHostList,
     fetchDockerBootstrapPrefs,
     ensureDockerBootstrapPrefs,
     unmountDockerIsolatedViews,
-    queueDockerRuntimeRenderForPageViewMode
+    queueDockerRuntimeRenderForPageViewMode,
+    summarizeDockerRuntimeToolbarState: () => dockerRuntimeActionBarApi?.summarize() || {},
+    applyDockerRuntimeToolbarFilterState,
+    renderDockerRuntimeActionBar,
+    setDockerRuntimePageViewMode: (mode) => dockerRuntimeActionBarApi?.setPageViewMode(mode)
 });
-const syncDockerVisibleFoldersFromRuntimeCache = () => {
+const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
+    const changedSet = changedNames instanceof Set
+        ? changedNames
+        : (Array.isArray(changedNames) ? new Set(changedNames.map((name) => String(name || '').trim()).filter(Boolean)) : null);
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (runtimeInfoApi && previewActionsApi && typeof runtimeInfoApi.buildRuntimeContainerEntry === 'function' && typeof previewActionsApi.syncDockerRuntimeRows === 'function') {
+        const runtimeRows = {};
+        const names = changedSet ? Array.from(changedSet) : Object.keys(dockerRuntimeInfoByName || {});
+        names.forEach((name) => {
+            runtimeRows[name] = runtimeInfoApi.buildRuntimeContainerEntry(name);
+        });
+        previewActionsApi.syncDockerRuntimeRows(runtimeRows, changedSet);
+    }
+    let patchedFolderCount = 0;
     Object.entries(globalFolders || {}).forEach(([id, folder]) => {
         if (!folder || typeof folder !== 'object') {
             return;
@@ -4211,18 +4694,33 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
         const runtimeContainers = folderHasChildren(id)
             ? buildRuntimeContainerMapForFolder(id, true)
             : getFolderRuntimeContainers(folder);
+        if (changedSet && !Object.keys(runtimeContainers).some((name) => changedSet.has(name))) {
+            return;
+        }
         folder.runtimeContainers = runtimeContainers;
-        syncDockerFolderMemberRows(id, runtimeContainers);
+        syncDockerFolderMemberRows(id, runtimeContainers, changedSet);
         if (folderHasChildren(id)) {
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
         } else {
-            syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
+            syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedSet);
         }
         updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
+        patchedFolderCount += 1;
     });
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    applyDockerRuntimeToolbarFilterState();
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    refreshDockerPreviewTooltipContent(changedSet);
+    dockerRuntimeStateStore.set({
+        rowReconciliation: {
+            mode: changedSet ? 'incremental' : 'full-cache-sync',
+            changedRows: changedSet ? changedSet.size : Object.keys(dockerRuntimeInfoByName || {}).length,
+            patchedFolders: patchedFolderCount,
+            capturedAt: new Date().toISOString()
+        }
+    });
     queueDockerSupportBundlePageSnapshot('runtime-sync');
 };
 
@@ -4230,13 +4728,60 @@ const readDockerListViewMode = () => ($.cookie('docker_listview_mode') == 'advan
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_ID = 'fvplus-docker-runtime-privacy-toggle';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID = 'fvplus-docker-runtime-privacy-shell';
 const DOCKER_RUNTIME_PRIVACY_TOGGLE_FALLBACK_HOST_ID = 'fvplus-docker-runtime-toolbar-controls';
+const DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID = 'fvplus-docker-runtime-privacy-menu-button';
+const DOCKER_RUNTIME_PRIVACY_MENU_ID = 'fvplus-docker-runtime-privacy-menu';
+const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus.runtime.privacy.docker.v1';
+const DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS = Object.freeze([
+    Object.freeze({ key: 'privacyMaskNames', label: 'Mask names and icons', i18nKey: 'docker.privacy.mask-names' }),
+    Object.freeze({ key: 'privacyMaskLocalIps', label: 'Mask LAN IPs', i18nKey: 'docker.privacy.mask-lan-ips' }),
+    Object.freeze({ key: 'privacyMaskPorts', label: 'Mask ports', i18nKey: 'docker.privacy.mask-ports' }),
+    Object.freeze({ key: 'privacyMaskVolumePaths', label: 'Mask volume paths', i18nKey: 'docker.privacy.mask-volume-paths' }),
+    Object.freeze({ key: 'privacyMaskImageRegistry', label: 'Mask image registries', i18nKey: 'docker.privacy.mask-image-registries' }),
+    Object.freeze({ key: 'privacyMaskPublicIps', label: 'Mask public IPs', i18nKey: 'docker.privacy.mask-public-ips' }),
+    Object.freeze({ key: 'privacyMaskInterfaces', label: 'Mask network interfaces', i18nKey: 'docker.privacy.mask-network-interfaces' }),
+    Object.freeze({ key: 'privacyMaskExternalUrls', label: 'Mask external URLs', i18nKey: 'docker.privacy.mask-external-urls' })
+]);
+const DOCKER_RUNTIME_PRIVACY_OPTION_KEYS = new Set(DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS.map((option) => option.key));
 const DOCKER_LEGACY_HOST_BOOTSTRAP_RENDER_COMPAT = false;
 let dockerRuntimePrivacyToggleMountQueued = false;
 let dockerRuntimePrivacyPersistPromise = null;
 let dockerRuntimePrivacyPendingEnabled = null;
 let dockerRuntimePrivacyPersistedPrefs = null;
+let dockerRuntimePrivacyServerReconcileTimer = null;
+let dockerRuntimePrivacyStorageSyncBound = false;
+let dockerRuntimePrivacyMenuOpen = false;
+let dockerRuntimePrivacyMenuEventsBound = false;
 
-const readDockerRuntimePrivacyMode = () => utils.normalizePrefs(folderTypePrefs || {}).dashboard?.privacyMode === true;
+const readStoredDockerRuntimePrivacyMode = () => {
+    try {
+        const raw = String(window.localStorage?.getItem(DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY) ?? '').trim().toLowerCase();
+        if (['1', 'true', 'on'].includes(raw)) {
+            return true;
+        }
+        if (['0', 'false', 'off'].includes(raw)) {
+            return false;
+        }
+    } catch (_error) {
+    }
+    return null;
+};
+
+const writeStoredDockerRuntimePrivacyMode = (enabled) => {
+    try {
+        window.localStorage?.setItem(DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY, enabled === true ? '1' : '0');
+    } catch (_error) {
+    }
+};
+
+const resolveDockerRuntimePrivacyMode = (prefs = null) => {
+    const stored = readStoredDockerRuntimePrivacyMode();
+    if (stored !== null) {
+        return stored;
+    }
+    return utils.normalizePrefs(prefs || folderTypePrefs || {}).dashboard?.privacyMode === true;
+};
+
+const readDockerRuntimePrivacyMode = () => resolveDockerRuntimePrivacyMode(folderTypePrefs);
 
 const buildDockerRuntimePrivacyPrefsPayload = (enabled, prefsOverride = null) => {
     const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
@@ -4251,6 +4796,20 @@ const buildDockerRuntimePrivacyPrefsPayload = (enabled, prefsOverride = null) =>
 
 const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) => {
     const nextPrefs = buildDockerRuntimePrivacyPrefsPayload(enabled, prefsOverride);
+    if (dockerPrefsCoordinator) {
+        const prefs = await dockerPrefsCoordinator.save('docker', {
+            dashboard: {
+                privacyMode: enabled === true
+            }
+        }, {
+            currentPrefs: nextPrefs,
+            immediate: true
+        });
+        if (prefs.dashboard?.privacyMode !== (enabled === true)) {
+            throw new Error('Docker privacy mode did not persist.');
+        }
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'docker',
         prefs: JSON.stringify({
@@ -4258,17 +4817,79 @@ const persistDockerRuntimePrivacyMode = async (enabled, prefsOverride = null) =>
         })
     };
     const request = window.FolderViewPlusRequest;
+    let response = null;
     if (request && typeof request.postJson === 'function') {
         try {
-            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+            response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
         }
     }
-    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
-    return parseJsonPayloadSafe(response);
+    if (!response) {
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy mode.');
+    if (!response?.prefs || typeof response.prefs !== 'object' || Array.isArray(response.prefs)) {
+        throw new Error('Docker privacy mode save returned no preferences.');
+    }
+    const savedPrefs = utils.normalizePrefs(response.prefs);
+    if (savedPrefs.dashboard?.privacyMode !== (enabled === true)) {
+        throw new Error('Docker privacy mode did not persist.');
+    }
+    return {
+        ...response,
+        prefs: savedPrefs
+    };
+};
+
+const queueDockerRuntimePrivacyServerReconcile = (prefsOverride = null, delayMs = 420) => {
+    const stored = readStoredDockerRuntimePrivacyMode();
+    if (stored === null) {
+        return;
+    }
+    const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
+    if (current.dashboard?.privacyMode === stored) {
+        return;
+    }
+    if (dockerRuntimePrivacyServerReconcileTimer) {
+        clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
+    }
+    dockerRuntimePrivacyServerReconcileTimer = setTimeout(async () => {
+        dockerRuntimePrivacyServerReconcileTimer = null;
+        const targetStored = readStoredDockerRuntimePrivacyMode();
+        if (targetStored === null || current.dashboard?.privacyMode === targetStored) {
+            return;
+        }
+        if (dockerRuntimePrivacyPersistPromise || dockerRuntimePrivacyPendingEnabled !== null) {
+            queueDockerRuntimePrivacyServerReconcile(folderTypePrefs, 700);
+            return;
+        }
+        try {
+            const response = await persistDockerRuntimePrivacyMode(targetStored, current);
+            folderTypePrefs = utils.normalizePrefs(response.prefs);
+            dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+            applyRuntimePrefs(folderTypePrefs);
+        } catch (_error) {
+            // Browser state remains authoritative. The next hydrated Docker
+            // bootstrap retries server reconciliation.
+        }
+    }, Math.max(0, Number(delayMs) || 0));
+};
+
+const bindDockerRuntimePrivacyStorageSync = () => {
+    if (dockerRuntimePrivacyStorageSyncBound || typeof window?.addEventListener !== 'function') {
+        return;
+    }
+    dockerRuntimePrivacyStorageSyncBound = true;
+    window.addEventListener('storage', (event) => {
+        if (String(event?.key || '') !== DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY) {
+            return;
+        }
+        applyRuntimePrefs(folderTypePrefs);
+        queueDockerRuntimePrivacyServerReconcile(folderTypePrefs, 120);
+    });
 };
 
 const findDockerRuntimeListViewToggleAnchor = () => {
@@ -4344,11 +4965,146 @@ const resolveDockerRuntimePrivacyToggleMount = () => {
     };
 };
 
+const setDockerRuntimePrivacyMenuOpen = (open, options = {}) => {
+    dockerRuntimePrivacyMenuOpen = open === true;
+    const button = document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID);
+    const menu = document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_ID);
+    button?.setAttribute('aria-expanded', dockerRuntimePrivacyMenuOpen ? 'true' : 'false');
+    button?.classList.toggle('is-open', dockerRuntimePrivacyMenuOpen);
+    if (menu) {
+        menu.hidden = !dockerRuntimePrivacyMenuOpen;
+    }
+    if (dockerRuntimePrivacyMenuOpen && options.focusFirst === true) {
+        menu?.querySelector('input[type="checkbox"]')?.focus();
+    }
+};
+
+const bindDockerRuntimePrivacyMenuEvents = () => {
+    if (dockerRuntimePrivacyMenuEventsBound || typeof document?.addEventListener !== 'function') {
+        return;
+    }
+    dockerRuntimePrivacyMenuEventsBound = true;
+    document.addEventListener('click', (event) => {
+        if (!dockerRuntimePrivacyMenuOpen) {
+            return;
+        }
+        const shell = document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID);
+        if (!shell?.contains(event.target)) {
+            setDockerRuntimePrivacyMenuOpen(false);
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape' || !dockerRuntimePrivacyMenuOpen) {
+            return;
+        }
+        setDockerRuntimePrivacyMenuOpen(false);
+        document.getElementById(DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID)?.focus();
+    });
+};
+
+const buildDockerRuntimePrivacyMenuOptionsHtml = (prefs = null) => {
+    const dashboard = utils.normalizePrefs(prefs || folderTypePrefs || {}).dashboard || {};
+    return DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS.map((option) => `
+        <label class="fvplus-docker-runtime-privacy-option">
+            <input
+                type="checkbox"
+                data-fvplus-privacy-option="${escapeHtml(option.key)}"
+                ${dashboard[option.key] !== false ? 'checked' : ''}
+            >
+            <span>${escapeHtml(dockerT(option.i18nKey, option.label))}</span>
+        </label>
+    `).join('');
+};
+
+const persistDockerRuntimePrivacyMaskPreference = async (key, enabled, prefsOverride = null) => {
+    if (!DOCKER_RUNTIME_PRIVACY_OPTION_KEYS.has(key)) {
+        throw new Error('Unknown Docker privacy option.');
+    }
+    const current = utils.normalizePrefs(prefsOverride || folderTypePrefs || {});
+    const nextPrefs = utils.normalizePrefs({
+        ...current,
+        dashboard: {
+            ...(current.dashboard || {}),
+            [key]: enabled === true
+        }
+    });
+    if (dockerPrefsCoordinator) {
+        const savedPrefs = await dockerPrefsCoordinator.save('docker', {
+            dashboard: {
+                [key]: enabled === true
+            }
+        }, {
+            currentPrefs: nextPrefs,
+            immediate: true
+        });
+        return utils.normalizePrefs(savedPrefs || nextPrefs);
+    }
+    const payload = {
+        type: 'docker',
+        prefs: JSON.stringify({
+            dashboard: {
+                [key]: enabled === true
+            }
+        })
+    };
+    const request = window.FolderViewPlusRequest;
+    let response = null;
+    if (request && typeof request.postJson === 'function') {
+        response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+            retries: 0,
+            retryDelayMs: 260
+        });
+    } else {
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
+    }
+    assertDockerPrefsSaveResponse(response, 'Failed to save Docker privacy option.');
+    const savedPrefs = utils.normalizePrefs(response?.prefs || nextPrefs);
+    if (savedPrefs.dashboard?.[key] !== (enabled === true)) {
+        throw new Error('Docker privacy option did not persist.');
+    }
+    return savedPrefs;
+};
+
+const setDockerRuntimePrivacyMaskPreference = async (key, enabled) => {
+    if (!DOCKER_RUNTIME_PRIVACY_OPTION_KEYS.has(key)) {
+        return;
+    }
+    const current = utils.normalizePrefs(folderTypePrefs || {});
+    folderTypePrefs = utils.normalizePrefs({
+        ...current,
+        dashboard: {
+            ...(current.dashboard || {}),
+            [key]: enabled === true
+        }
+    });
+    applyRuntimePrefs(folderTypePrefs);
+    try {
+        folderTypePrefs = await persistDockerRuntimePrivacyMaskPreference(key, enabled, folderTypePrefs);
+        dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+        applyRuntimePrefs(folderTypePrefs);
+    } catch (error) {
+        applyRuntimePrefs(folderTypePrefs);
+        swal({
+            title: 'Privacy option sync pending',
+            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not sync this privacy option.'))}<br>The change remains active and will retry through the preference outbox.`,
+            type: 'warning',
+            html: true,
+            confirmButtonText: 'OK'
+        });
+    }
+};
+
 const renderDockerRuntimePrivacyToggle = () => {
     const mount = resolveDockerRuntimePrivacyToggleMount();
     if (!mount?.host) {
         return;
     }
+    document.querySelectorAll('.fvplus-docker-runtime-toggle-cluster').forEach((host) => {
+        if (host !== mount.host) {
+            host.classList.remove('fvplus-docker-runtime-toggle-cluster');
+        }
+    });
+    mount.host.classList.toggle('fvplus-docker-runtime-toggle-cluster', Boolean(mount.anchor));
     let shell = document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID);
     if (shell && shell.parentElement !== mount.host) {
         shell.remove();
@@ -4368,10 +5124,33 @@ const renderDockerRuntimePrivacyToggle = () => {
     }
     const enabled = readDockerRuntimePrivacyMode();
     const savePending = dockerRuntimePrivacyPersistPromise !== null;
+    const menuOptionsHtml = buildDockerRuntimePrivacyMenuOptionsHtml(folderTypePrefs);
     shell.innerHTML = `
-        <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
+        <span class="fvplus-docker-runtime-toggle-label">${escapeHtml(dockerT('docker.privacy.label', 'Privacy'))}</span>
         <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
+        <button
+            id="${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}"
+            class="fvplus-docker-runtime-privacy-menu-button${dockerRuntimePrivacyMenuOpen ? ' is-open' : ''}"
+            type="button"
+            aria-label="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
+            aria-haspopup="dialog"
+            aria-expanded="${dockerRuntimePrivacyMenuOpen ? 'true' : 'false'}"
+            aria-controls="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
+            title="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
+        ><i class="fa fa-sliders" aria-hidden="true"></i><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
+        <div
+            id="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
+            class="fvplus-docker-runtime-privacy-menu"
+            role="dialog"
+            aria-label="${escapeHtml(dockerT('docker.privacy.dialog-label', 'Docker privacy options'))}"
+            ${dockerRuntimePrivacyMenuOpen ? '' : 'hidden'}
+        >
+            <div class="fvplus-docker-runtime-privacy-menu-heading">${escapeHtml(dockerT('docker.privacy.title', 'Privacy mode'))}</div>
+            <div class="fvplus-docker-runtime-privacy-menu-help">${escapeHtml(dockerT('docker.privacy.description', 'Choose what is hidden while Privacy is enabled.'))}</div>
+            <div class="fvplus-docker-runtime-privacy-menu-options">${menuOptionsHtml}</div>
+        </div>
     `;
+    bindDockerRuntimePrivacyMenuEvents();
     const $input = $(`#${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}`);
     if (!$input.length) {
         return;
@@ -4379,14 +5158,25 @@ const renderDockerRuntimePrivacyToggle = () => {
     if (typeof $input.switchButton === 'function') {
         $input.switchButton({
             labels_placement: 'right',
-            off_label: $.i18n('off'),
-            on_label: $.i18n('on'),
+            off_label: '',
+            on_label: '',
             checked: enabled
         });
     }
     $input.off('change.fvDockerRuntimePrivacy').on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyChange() {
         void setDockerRuntimePrivacyMode($(this).is(':checked'));
     });
+    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}`).off('click.fvDockerRuntimePrivacy').on('click.fvDockerRuntimePrivacy', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setDockerRuntimePrivacyMenuOpen(!dockerRuntimePrivacyMenuOpen);
+    });
+    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_ID} input[data-fvplus-privacy-option]`)
+        .off('change.fvDockerRuntimePrivacy')
+        .on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyOptionChange() {
+            const key = String($(this).attr('data-fvplus-privacy-option') || '');
+            void setDockerRuntimePrivacyMaskPreference(key, $(this).is(':checked'));
+        });
 };
 
 const queueDockerRuntimePrivacyToggleMount = () => {
@@ -4419,6 +5209,7 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
                 const response = await persistDockerRuntimePrivacyMode(targetEnabled, folderTypePrefs);
                 folderTypePrefs = utils.normalizePrefs(response?.prefs || buildDockerRuntimePrivacyPrefsPayload(targetEnabled));
                 dockerRuntimePrivacyPersistedPrefs = folderTypePrefs;
+                writeStoredDockerRuntimePrivacyMode(targetEnabled);
                 applyRuntimePrefs(folderTypePrefs);
                 queueDockerRuntimePrivacyToggleMount();
             }
@@ -4433,14 +5224,12 @@ const flushDockerRuntimePrivacyModePersistence = async () => {
 const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
     const nextEnabled = enabled === true;
     const previousPrefs = getDockerRuntimePersistedPrefs();
-    let basePrefs = previousPrefs;
-    if (options.persist !== false) {
-        try {
-            basePrefs = await fetchDockerBootstrapPrefs();
-        } catch (_error) {
-            basePrefs = previousPrefs;
-        }
+    const basePrefs = previousPrefs;
+    if (dockerRuntimePrivacyServerReconcileTimer) {
+        clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
+        dockerRuntimePrivacyServerReconcileTimer = null;
     }
+    writeStoredDockerRuntimePrivacyMode(nextEnabled);
     const basePrivacyMode = utils.normalizePrefs(basePrefs || {}).dashboard?.privacyMode === true;
     if (basePrivacyMode === nextEnabled && dockerRuntimePrivacyPendingEnabled === null && !dockerRuntimePrivacyPersistPromise) {
         folderTypePrefs = basePrefs;
@@ -4459,14 +5248,14 @@ const setDockerRuntimePrivacyMode = async (enabled, options = {}) => {
         await flushDockerRuntimePrivacyModePersistence();
     } catch (error) {
         dockerRuntimePrivacyPendingEnabled = null;
-        folderTypePrefs = previousPrefs;
-        dockerRuntimePrivacyPersistedPrefs = previousPrefs;
+        folderTypePrefs = buildDockerRuntimePrivacyPrefsPayload(nextEnabled, previousPrefs);
         applyRuntimePrefs(folderTypePrefs);
         queueDockerRuntimePrivacyToggleMount();
+        queueDockerRuntimePrivacyServerReconcile(previousPrefs, 1200);
         swal({
-            title: 'Privacy toggle save failed',
-            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not save the Docker privacy toggle.'))}<br>Reverted to the previous state.`,
-            type: 'error',
+            title: 'Privacy sync pending',
+            text: `${escapeHtml(String(error?.message || 'FolderView Plus could not sync the Docker privacy toggle.'))}<br>The setting is saved in this browser and server synchronization will retry.`,
+            type: 'warning',
             html: true,
             confirmButtonText: 'OK'
         });
@@ -4557,9 +5346,12 @@ const startDockerListViewModeObserver = () => {
     dockerListViewModeObserverBound = true;
 };
 
-const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
-    const requestPromise = fullInfoPromise && typeof fullInfoPromise.then === 'function'
-        ? fullInfoPromise
+const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoSource = null) => {
+    const suppliedRequest = typeof fullInfoSource === 'function'
+        ? fullInfoSource()
+        : fullInfoSource;
+    const requestPromise = suppliedRequest && typeof suppliedRequest.then === 'function'
+        ? suppliedRequest
         : createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
             source: 'runtime-info-full',
             label: 'Docker runtime details',
@@ -4596,6 +5388,12 @@ const bindDockerPostUpdateRenderReconcile = () => {
 function bindDockerHostOpenDockerPatch() {
     getDockerRuntimeReconcileApi()?.bindHostOpenDockerPatch?.();
 }
+const bindDockerLifecycleEventControlPatch = () => {
+    getDockerRuntimeReconcileApi()?.bindLifecycleEventControlPatch?.();
+};
+const bindDockerContainerContextStatePatch = () => {
+    getDockerRuntimeReconcileApi()?.bindDockerContainerContextStatePatch?.();
+};
 const armDockerPostUpdateRuntimeReconcileWindow = (durationMs = 0, options = {}) => {
     return getDockerRuntimeReconcileApi()?.armPostUpdateRuntimeReconcileWindow?.(durationMs, options) || 0;
 };
@@ -4608,6 +5406,10 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
+    const widthBootstrapGeneration = dockerRuntimeWidthState.pendingRenderGeneration
+        || beginDockerRuntimeWidthBootstrap();
+    dockerRuntimeWidthState.pendingRenderGeneration = 0;
+    let foldersRenderedSuccessfully = false;
     setDockerFatalBannerPhase('bootstrap-data');
     try {
     ensureDockerExpandedStateLifecycleHooks();
@@ -4620,6 +5422,7 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     const requestBundle = (folderReq && typeof folderReq === 'object') ? folderReq : { render: [], fullInfo: null, generation: dockerBootstrapGeneration };
+    requestBundle.consumed = true;
     const renderRequests = Array.isArray(requestBundle.render) ? requestBundle.render : [];
     const renderGeneration = Number(requestBundle.generation || dockerBootstrapGeneration || 0);
     dockerRuntimeLastRenderGeneration = renderGeneration;
@@ -4641,6 +5444,7 @@ const createFolders = async () => {
     if (!isDockerHostUpdateSyncSuspended() && syncDockerHostRowUpdateStatesFromDom()) {
         containersInfo = { ...dockerRuntimeInfoByName };
     }
+    folders = reconcileDockerMemberIdentities(folders, containersInfo);
     let order = readDockerHostOrderFromDom();
     let prefsResponse = {};
     try {
@@ -4648,7 +5452,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
+    folderTypePrefs = applyDockerPinnedFolderPrefsOverride(normalizeDockerPrefsResponse(prefsResponse));
     resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
@@ -4656,6 +5460,7 @@ const createFolders = async () => {
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
+    queueDockerRuntimePrivacyServerReconcile(folderTypePrefs);
     primeDockerRuntimeAppWidthBeforeRender(folders);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
     lastLiveRefreshStateEntityCount = Object.keys(containersStateInfo || {}).length;
@@ -4705,7 +5510,7 @@ const createFolders = async () => {
     if(folderDebugMode) { // This is the existing folderDebugMode, not FOLDER_VIEW_DEBUG_MODE
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: folderDebugMode (existing) is TRUE. Preparing debug JSON download.');
         const debugData = JSON.stringify({
-            version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
             folders,
             unraidOrder,
             originalOrder: order,
@@ -4755,11 +5560,9 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
-
     // Draw the folders in the order
     dockerPerf.begin('createFolders.renderOrdered');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders in order.');
-    let orderedFolderRenderCount = 0;
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Loop iteration: key=${key}, container=${container}`);
@@ -4785,8 +5588,6 @@ const createFolders = async () => {
                 foldersDone[id] = folders[id];
                 delete folders[id];
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
-                orderedFolderRenderCount += 1;
-                await yieldDockerRenderLoop(orderedFolderRenderCount, order.length);
             } else {
                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolders: Folder ${id} (from order) not found in folders data.`);
             }
@@ -4800,7 +5601,6 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
     // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
-    let remainingFolderRenderCount = 0;
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
         // Add the folder on top of the array
@@ -4820,8 +5620,6 @@ const createFolders = async () => {
         foldersDone[id] = folders[id];
         delete folders[id];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Remaining folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
-        remainingFolderRenderCount += 1;
-        await yieldDockerRenderLoop(remainingFolderRenderCount, remainingFolders.length);
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
@@ -4901,6 +5699,8 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+    applyDockerRuntimeToolbarFilterState();
+    renderDockerRuntimeActionBar(resolveDockerPageViewMode());
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
@@ -4912,6 +5712,7 @@ const createFolders = async () => {
     markDockerFatalBannerStep('Docker folders rendered');
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
+    foldersRenderedSuccessfully = true;
     } catch (error) {
     reportDockerFatalRuntimeError(error, {
         phase: error?.fvplusPhase || 'bootstrap-data',
@@ -4921,6 +5722,9 @@ const createFolders = async () => {
     } finally {
     dockerHostLoadOwnsLoadingUi = false;
     activeDockerRenderSuppressLoadingUi = false;
+    completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
+        stabilize: foldersRenderedSuccessfully
+    });
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
@@ -5291,6 +6095,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Starting loop to process ${combinedContainers.length} combinedContainers.`);
+    const hiddenPreviewSet = new Set(Array.isArray(folder?.hiddenPreviewMembers) ? folder.hiddenPreviewMembers : []);
     for (const container_name_in_folder of combinedContainers) {
 
         const ct = containersInfo[container_name_in_folder];
@@ -5421,6 +6226,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
+            if (!hiddenPreviewSet.has(container_name_in_folder)) {
             const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
@@ -5793,6 +6599,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if ($targetForAppend.length) {
                 appendDockerPreviewActionButtons($targetForAppend, folder.settings, ct.info.Name, ct.info.Shell, previewWebuiUrl);
             }
+            }
 
             upToDate = upToDate && !newFolder[container_name_in_folder].update;
             if (newFolder[container_name_in_folder].state) {
@@ -5856,6 +6663,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting folder status indicators based on aggregate states. managerTypes:`, Array.from(managerTypes));
     renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed);
+    $(`tr.folder-id-${id} .folder-appname`).toggleClass(
+        'orange-text fv-folder-update-ready',
+        folder.settings?.folder_update_highlight === true && upToDate === false
+    );
     const total = Object.entries(folder.containers).length;
     if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
         $(`tr.folder-id-${id}`).remove();
@@ -6030,17 +6841,17 @@ const appendDockerPreviewActionButtons = ($target, settings = {}, containerName 
     }
 };
 
-const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
+const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
-        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
+        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers, changedNames);
     }
 };
 
-const syncDockerFolderMemberRows = (id, runtimeContainers) => {
+const syncDockerFolderMemberRows = (id, runtimeContainers, changedNames = null) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.syncDockerFolderMemberRows === 'function') {
-        previewActionsApi.syncDockerFolderMemberRows(id, runtimeContainers);
+        previewActionsApi.syncDockerFolderMemberRows(id, runtimeContainers, changedNames);
     }
 };
 
@@ -7088,6 +7899,8 @@ window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     getDockerHostGuardsApi()?.noteHookInvocation?.('window.loadlist', { note: 'invoked' });
     bindDockerHostOpenDockerPatch();
+    bindDockerLifecycleEventControlPatch();
+    bindDockerContainerContextStatePatch();
     bindDockerListViewModeCookieHook();
     loadedFolder = false;
     dockerHostLoadOwnsLoadingUi = true;
@@ -7097,9 +7910,7 @@ window.loadlist = () => {
         hostSyncSuspended: isDockerHostUpdateSyncSuspended(),
         liveUpdateStatus: isDockerHostUpdateSyncSuspended()
     });
-    folderReq = buildDockerFolderReq({
-        liveUpdateStatus: isDockerHostUpdateSyncSuspended()
-    });
+    folderReq = ensureDockerFolderReqForHostRender();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
 
     if (typeof window.loadlist_original === 'function') {
@@ -7151,7 +7962,7 @@ bindDockerSettingsPinSyncListener();
 
 // Get the number of CPU, nneded for a right display of the load
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Requesting CPU count.');
-$.get('/plugins/folderview.plus/server/cpu.php').promise().then((data) => {
+pluginRequestClient.getText('/plugins/folderview.plus/server/cpu.php').then((data) => {
     cpus = parseInt(data);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] CPU count received: ${cpus}. Attaching SSE listener for dockerload.`);
     // Attach to the scoket and process the data
@@ -7293,14 +8104,14 @@ let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let dockerCommandViewApi = null;
-let dockerTreeExplorerApi = null;
-let dockerOrbitViewApi = null;
 let dockerBootstrapPrefsPromise = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let lastLiveRefreshStateEntityCount = 0;
+let lastDockerRuntimeSnapshotToken = '';
+let lastDockerRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
 let lastDockerOrderReconciliation = { available: false };
 let dockerBootstrapGeneration = 0;
 let dockerHostLoadOwnsLoadingUi = false;
@@ -7316,7 +8127,6 @@ const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
-const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
 const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
 const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
@@ -7450,43 +8260,145 @@ const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now(), option
     return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}${liveUpdateQuery}&nocache=1&_=${cacheBust || Date.now()}`;
 };
 
-const fetchDockerStateSignature = async (options = {}) => {
+const rememberDockerRuntimeSnapshot = (snapshot) => {
+    if (snapshot?.snapshotToken) {
+        lastDockerRuntimeSnapshotToken = String(snapshot.snapshotToken);
+    }
+    if (snapshot?.revisions && typeof snapshot.revisions === 'object') {
+        lastDockerRuntimeSnapshotRevisions = {
+            folder: Math.max(0, Number(snapshot.revisions.folder) || 0),
+            prefs: Math.max(0, Number(snapshot.revisions.prefs) || 0)
+        };
+    }
+};
+
+const dockerRuntimeSnapshotConfigMatches = (snapshot) => {
+    if (!lastDockerRuntimeSnapshotToken || !snapshot?.revisions) {
+        return true;
+    }
+    return Math.max(0, Number(snapshot.revisions.folder) || 0) === lastDockerRuntimeSnapshotRevisions.folder
+        && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastDockerRuntimeSnapshotRevisions.prefs;
+};
+
+const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
     const liveUpdateStatus = options?.liveUpdateStatus === true;
-    const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
-        liveUpdateStatus
-    })).promise();
-    const parsed = parseJsonPayloadSafe(payload);
-    return buildDockerStateSignature(parsed, true);
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
+        const parsed = await pluginRequestClient.getJson(buildDockerRuntimeInfoUrl('state', Date.now(), {
+            liveUpdateStatus
+        }), { cache: false });
+        return {
+            notModified: buildDockerStateSignature(parsed, true) === lastLiveRefreshStateSignature,
+            snapshotToken: '',
+            runtimeSignature: buildDockerStateSignature(parsed, true)
+        };
+    }
+    const payload = await pluginRequestClient.getJson(runtimeSnapshotApi.buildUrl('docker', 'check', {
+        since: lastDockerRuntimeSnapshotToken,
+        liveUpdateStatus,
+        forceRefresh: true
+    }), { cache: false });
+    return runtimeSnapshotApi.parsePayload(payload);
 };
 
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
     const liveUpdateStatus = options?.liveUpdateStatus === true;
+    const preserveGroupedDom = options?.preserveGroupedDom === true;
+    let fallbackReason = 'request-error';
     const fallbackToLoadlist = () => {
+        if (preserveGroupedDom) {
+            dockerRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'incremental-retry',
+                    reason: fallbackReason,
+                    preservedGroupedDom: true,
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            return;
+        }
         queueLoadlistRefresh({ suppressLoadingUi: true });
     };
     const applyStatePayload = async () => {
-        const payload = await $.get(buildDockerRuntimeInfoUrl('state', Date.now(), {
-            liveUpdateStatus
-        })).promise();
-        const parsed = parseJsonPayloadSafe(payload);
+        const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
+        const payload = await pluginRequestClient.getJson(useSnapshot
+            ? runtimeSnapshotApi.buildUrl('docker', 'state', {
+                liveUpdateStatus,
+                forceRefresh: true
+            })
+            : buildDockerRuntimeInfoUrl('state', Date.now(), { liveUpdateStatus }), { cache: false });
+        const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
+        const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0) {
+            fallbackReason = 'empty-runtime-payload';
             throw new Error('Docker runtime state payload was empty.');
         }
-        dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+        const configurationChanged = snapshot && !dockerRuntimeSnapshotConfigMatches(snapshot);
+        if (configurationChanged && !preserveGroupedDom) {
+            fallbackReason = 'configuration-changed';
+            return false;
+        }
+        if (configurationChanged) {
+            dockerRuntimeStateStore.set({
+                deferredConfigurationRebuild: {
+                    reason: 'lifecycle-runtime-refresh',
+                    folderRevision: Math.max(0, Number(snapshot?.revisions?.folder) || 0),
+                    prefsRevision: Math.max(0, Number(snapshot?.revisions?.prefs) || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
+        }
+        const previousRuntimeInfo = dockerRuntimeInfoByName;
+        const nextRuntimeInfo = normalizeDockerRuntimeInfoMap(parsed, previousRuntimeInfo);
+        const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
+            ? runtimeSnapshotApi.diffRuntimeRows('docker', previousRuntimeInfo, nextRuntimeInfo)
+            : {
+                changed: Object.keys(nextRuntimeInfo),
+                structuralChanged: Object.keys(previousRuntimeInfo || {}).length !== Object.keys(nextRuntimeInfo).length,
+                hasChanges: true
+            };
+        dockerRuntimeInfoByName = nextRuntimeInfo;
         const nextSignature = buildDockerStateSignature(parsed, true);
         if (nextSignature) {
             lastLiveRefreshStateSignature = nextSignature;
             lastLiveRefreshStateEntityCount = Object.keys(parsed).length;
         }
-        syncDockerVisibleFoldersFromRuntimeCache();
+        if (snapshot) {
+            rememberDockerRuntimeSnapshot(snapshot);
+        }
+        if (rowDiff.structuralChanged) {
+            fallbackReason = 'transient-runtime-structure';
+            dockerRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'structural-fallback',
+                    changedRows: Number(rowDiff.changed?.length || 0),
+                    addedRows: Number(rowDiff.added?.length || 0),
+                    removedRows: Number(rowDiff.removed?.length || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            return false;
+        }
+        if (rowDiff.hasChanges) {
+            syncDockerVisibleFoldersFromRuntimeCache(rowDiff.changed);
+        }
         return true;
     };
     try {
-        await applyStatePayload();
+        const applied = await applyStatePayload();
+        if (applied !== true) {
+            fallbackToLoadlist();
+            return false;
+        }
         if (followupDelayMs > 0) {
             window.setTimeout(() => {
-                Promise.resolve(applyStatePayload()).catch(() => fallbackToLoadlist());
+                Promise.resolve(applyStatePayload())
+                    .then((followupApplied) => {
+                        if (followupApplied !== true) {
+                            fallbackToLoadlist();
+                        }
+                    })
+                    .catch(() => fallbackToLoadlist());
             }, followupDelayMs);
         }
         return true;
@@ -7527,17 +8439,6 @@ const waitForDockerRenderFrame = () => new Promise((resolve) => {
     window.setTimeout(resolve, 0);
 });
 
-const yieldDockerRenderLoop = async (processedCount, totalCount) => {
-    if (
-        processedCount <= 0
-        || processedCount >= totalCount
-        || processedCount % DOCKER_RENDER_YIELD_BATCH_SIZE !== 0
-    ) {
-        return;
-    }
-    await waitForDockerRenderFrame();
-};
-
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
         clearInterval(liveRefreshTimer);
@@ -7553,21 +8454,22 @@ const runLiveRefreshTick = () => {
     liveRefreshInFlight = true;
     Promise.resolve()
         .then(async () => {
-            let nextSignature = '';
+            let check = null;
             try {
-                nextSignature = await fetchDockerStateSignature({
+                check = await fetchDockerRuntimeSnapshotCheck({
                     liveUpdateStatus: isDockerHostUpdateSyncSuspended()
                 });
             } catch (_error) {
-                nextSignature = '';
+                check = null;
             }
-            if (!nextSignature) {
+            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                 queueLoadlistRefresh();
                 return;
             }
-            if (nextSignature !== lastLiveRefreshStateSignature) {
-                lastLiveRefreshStateSignature = nextSignature;
-                queueLoadlistRefresh();
+            if (check.notModified !== true) {
+                await refreshDockerRuntimeStateInPlace({
+                    liveUpdateStatus: isDockerHostUpdateSyncSuspended()
+                });
             }
         })
         .finally(() => {
@@ -7629,16 +8531,32 @@ const applyRuntimePrefs = (prefs) => {
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
-    const dockerPrivacyMode = normalized?.dashboard?.privacyMode === true;
+    const dockerPrivacyMode = resolveDockerRuntimePrivacyMode(normalized);
     $('body').toggleClass('fvplus-privacy-docker-runtime', dockerPrivacyMode);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-container-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskContainerIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-local-ips', dockerPrivacyMode && normalized?.dashboard?.privacyMaskLocalIps !== false);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-ports', dockerPrivacyMode && normalized?.dashboard?.privacyMaskPorts !== false);
+    window.FolderViewPlusRuntimePrivacy?.apply('docker', dockerPrivacyMode, normalized?.dashboard || {});
     refreshDockerRuntimePrivacyPortMappings();
     queueDockerRuntimePrivacyToggleMount();
     scheduleLiveRefresh(normalized);
 };
+
+const bindDockerRuntimePreferenceSync = () => {
+    if (!dockerPrefsCoordinator || typeof dockerPrefsCoordinator.subscribe !== 'function') {
+        return;
+    }
+    dockerPrefsCoordinator.subscribe((snapshot) => {
+        if (snapshot?.type !== 'docker' || !snapshot?.prefs) {
+            return;
+        }
+        const nextPrefs = applyDockerPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        folderTypePrefs = nextPrefs;
+        applyRuntimePrefs(nextPrefs);
+    });
+};
+bindDockerRuntimePreferenceSync();
 
 window.toggleDockerRuntimeWidthDebug = (enabled = true) => setDockerRuntimeWidthDebugEnabled(enabled);
 window.getDockerRuntimeWidthDebugSnapshot = () => {
@@ -7660,12 +8578,6 @@ window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 function buildDockerFolderReq(options = {}) {
     const cacheBust = Date.now();
     const liveUpdateStatus = options?.liveUpdateStatus === true || isDockerHostUpdateSyncSuspended();
-    const safePrefsReq = createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
-        source: 'prefs',
-        label: 'Docker preferences',
-        allowFallback: true,
-        fallbackValue: JSON.stringify({ ok: false, prefs: {} })
-    });
     const generation = ++dockerBootstrapGeneration;
     appendDockerRequestBundleTrace('buildDockerFolderReq', {
         currentPage: String(location?.pathname || ''),
@@ -7674,44 +8586,86 @@ function buildDockerFolderReq(options = {}) {
         liveUpdateStatus,
         hostSyncSuspended: isDockerHostUpdateSyncSuspended()
     });
+    const legacyRenderFactories = [
+        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
+            source: 'folders',
+            label: 'Docker folder definitions'
+        }),
+        () => createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
+            source: 'folder-order',
+            label: 'Docker folder order'
+        }),
+        () => createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust, { liveUpdateStatus }), {
+            source: 'runtime-info-state',
+            label: 'Docker runtime state'
+        }),
+        () => createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
+            source: 'prefs',
+            label: 'Docker preferences',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({ ok: false, prefs: {} })
+        })
+    ];
+    const legacyFullInfoFactory = () => createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('full', cacheBust), {
+        source: 'runtime-info-full',
+        label: 'Docker runtime details',
+        allowFallback: true,
+        fallbackValue: JSON.stringify({}),
+        fallbackTitle: 'Docker runtime details were partially unavailable',
+        fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
+        fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
+    });
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
+        return {
+            generation,
+            consumed: false,
+            render: legacyRenderFactories.map((factory) => factory()),
+            fullInfo: legacyFullInfoFactory
+        };
+    }
+    const stateSnapshotRequest = createDockerRuntimeRequest(runtimeSnapshotApi.buildUrl('docker', 'state', {
+        cacheBust,
+        liveUpdateStatus,
+        forceRefresh: true
+    }), {
+        source: 'runtime-snapshot-state',
+        label: 'Docker runtime snapshot'
+    });
+    const rememberSnapshot = (snapshot) => {
+        rememberDockerRuntimeSnapshot(snapshot);
+    };
     return {
         generation,
-        render: [
-            createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
-                source: 'folders',
-                label: 'Docker folder definitions'
-            }),
-            createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
-                source: 'folder-order',
-                label: 'Docker folder order'
-            }),
-            createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust, {
-                liveUpdateStatus
+        consumed: false,
+        render: runtimeSnapshotApi.createProjectedBundle(
+            stateSnapshotRequest,
+            ['folders', 'order', 'runtime', 'prefsResponse'],
+            { onSnapshot: rememberSnapshot, fallbackFactories: legacyRenderFactories }
+        ),
+        fullInfo: () => runtimeSnapshotApi.projectRequest(
+            createDockerRuntimeRequest(runtimeSnapshotApi.buildUrl('docker', 'full', {
+                cacheBust: Date.now(),
+                forceRefresh: true
             }), {
-                source: 'runtime-info-state',
-                label: 'Docker runtime state'
+                source: 'runtime-snapshot-full',
+                label: 'Docker runtime detail snapshot'
             }),
-            safePrefsReq
-        ],
-        fullInfo: createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('full', cacheBust), {
-            source: 'runtime-info-full',
-            label: 'Docker runtime details',
-            allowFallback: true,
-            fallbackValue: JSON.stringify({}),
-            fallbackTitle: 'Docker runtime details were partially unavailable',
-            fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
-            fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
-        })
+            'runtime',
+            legacyFullInfoFactory
+        )
     };
 }
 
 // Prime requests for environments where loadlist isn't called first.
-folderReq = buildDockerFolderReq();
+folderReq = ensureDockerFolderReqForHostRender();
 markDockerFatalBannerStep('Docker request bundle primed');
 bindDockerHostOpenDockerPatch();
+bindDockerLifecycleEventControlPatch();
+bindDockerContainerContextStatePatch();
 bindDockerUpdateActionClickCapture();
 bindDockerPostUpdateRenderReconcile();
 startDockerListViewModeObserver();
+bindDockerRuntimePrivacyStorageSync();
 queueDockerRuntimePrivacyToggleMount();
 
 if (FOLDER_VIEW_DEBUG_MODE) {
@@ -7775,7 +8729,10 @@ const scheduleFolderViewPlusDockerStartOrderSync = () => {
             }).catch(() => {});
             return;
         }
-        $.post('/plugins/folderview.plus/server/sync_order.php', payload);
+        pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', payload, {
+            retries: 0,
+            timeoutMs: 8000
+        }).catch(() => {});
     }, 250);
 };
 

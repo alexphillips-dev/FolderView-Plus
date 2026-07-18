@@ -6,6 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'vm';
+$fvplusI18nNamespaces = ['vm'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -49,6 +50,11 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.privacy.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>

@@ -56,6 +56,9 @@ const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
     getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
     loadlist: deps.loadlist || (() => {}),
     queueLoadlistRefresh: deps.queueLoadlistRefresh || (() => {}),
+    requestClient: deps.requestClient || {
+        postJson: async () => ({ ok: true })
+    },
     refreshDockerRuntimeState: deps.refreshDockerRuntimeState || (() => {}),
     suspendDockerHostUpdateSync: deps.suspendDockerHostUpdateSync || (() => 0),
     eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
@@ -109,7 +112,7 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
     assert.equal(source.actions[0].params.mode, 'safe');
 });
 
-test('docker folder update dialog callback preserves host loadlist and schedules runtime refresh follow-up', async () => {
+test('docker folder update dialog callback preserves grouped rows and schedules runtime refresh follow-up', async () => {
     const openDockerCalls = [];
     let loadlistCalls = 0;
     const queuedRefreshCalls = [];
@@ -197,23 +200,23 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.deepEqual(suspendCalls, [120000]);
     assert.deepEqual(queuedRefreshCalls, []);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 
     folderEvents.dispatchEvent(new Event('docker-post-folders-creation'));
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 
-    assert.equal(loadlistCalls, 1);
+    assert.equal(loadlistCalls, 0);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 });
 
@@ -305,20 +308,6 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
         const parentId = normalizeFolderParentId(currentFolders[candidateId]?.parentId || currentFolders[candidateId]?.parent_id || '');
         return parentId === String(folderId || '').trim();
     });
-    const $ = Object.assign(
-        () => ({
-            show: () => {},
-            hide: () => {}
-        }),
-        {
-            post: (url, payload) => ({
-                promise: async () => {
-                    syncCalls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
-        }
-    );
     const actionsApi = createActionsApi({
         window: {
             prompt: () => promptResponses.shift(),
@@ -327,7 +316,12 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
         },
         getGlobalFolders: () => currentFolders,
         getFolderChildren,
-        $,
+        requestClient: {
+            postJson: async (url, payload) => {
+                syncCalls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
+        },
         generateDockerFolderCloneId: () => {
             const nextId = generatedIds.shift();
             assert.ok(nextId, 'expected deterministic clone id');
@@ -375,13 +369,11 @@ test('docker branch delete helper deletes descendants before deleting the root f
     const calls = [];
     const actionsApi = createActionsApi({
         getFolderDescendants: () => ['childA', 'childB', 'grandChild'],
-        $: {
-            post: (url, payload) => ({
-                promise: async () => {
-                    calls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
+        requestClient: {
+            postJson: async (url, payload) => {
+                calls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
         }
     });
 
@@ -397,13 +389,11 @@ test('docker branch delete helper deletes descendants before deleting the root f
 test('docker branch clone rollback helper deletes partial clones in reverse order before syncing order', async () => {
     const calls = [];
     const actionsApi = createActionsApi({
-        $: {
-            post: (url, payload) => ({
-                promise: async () => {
-                    calls.push({ url, payload: cloneJson(payload) });
-                    return {};
-                }
-            })
+        requestClient: {
+            postJson: async (url, payload) => {
+                calls.push({ url, payload: cloneJson(payload) });
+                return { ok: true };
+            }
         }
     });
 

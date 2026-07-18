@@ -17,6 +17,31 @@ function ensureThirdPartyIconsDirExists(): string {
     return $baseDir;
 }
 
+function thirdPartyIconAssetPackStatus(): array {
+    global $sourceDir;
+    $baseDir = thirdPartyIconsBaseDir();
+    $metadataPath = rtrim((string)$sourceDir, '/\\') . '/icon-asset-pack.json';
+    $metadata = [];
+    if (is_file($metadataPath)) {
+        $decoded = json_decode((string)@file_get_contents($metadataPath), true);
+        if (is_array($decoded)) {
+            $metadata = $decoded;
+        }
+    }
+    $version = trim((string)($metadata['version'] ?? ''));
+    $contentSha256 = strtolower(trim((string)($metadata['contentSha256'] ?? '')));
+    $entries = is_dir($baseDir) ? array_values(array_diff((array)@scandir($baseDir), ['.', '..'])) : [];
+    $ready = is_dir($baseDir) && is_readable($baseDir) && count($entries) > 0;
+    return [
+        'ready' => $ready,
+        'version' => $version !== '' ? $version : ($ready ? 'development' : ''),
+        'fileCount' => max(0, (int)($metadata['fileCount'] ?? 0)),
+        'sourceBytes' => max(0, (int)($metadata['sourceBytes'] ?? 0)),
+        'contentSha256' => preg_match('/^[a-f0-9]{64}$/', $contentSha256) ? $contentSha256 : '',
+        'linked' => is_link($baseDir)
+    ];
+}
+
 function thirdPartyIconCacheDir(): string {
     $path = '/tmp/folderview.plus-cache/third-party-icons';
     if (!is_dir($path)) {
@@ -461,7 +486,8 @@ try {
 
     if ($action === 'list_folders') {
         fvplus_json_ok([
-            'folders' => listThirdPartyFolders()
+            'folders' => listThirdPartyFolders(),
+            'assetPack' => thirdPartyIconAssetPackStatus()
         ]);
         exit;
     }
@@ -471,7 +497,8 @@ try {
         $result = listThirdPartyIconsInFolder($folder);
         fvplus_json_ok([
             'folder' => $result['folder'],
-            'icons' => $result['icons']
+            'icons' => $result['icons'],
+            'assetPack' => thirdPartyIconAssetPackStatus()
         ]);
         exit;
     }
@@ -480,7 +507,8 @@ try {
         $result = listThirdPartyIconIndex();
         fvplus_json_ok([
             'folders' => $result['folders'] ?? [],
-            'icons' => $result['icons'] ?? []
+            'icons' => $result['icons'] ?? [],
+            'assetPack' => thirdPartyIconAssetPackStatus()
         ]);
         exit;
     }

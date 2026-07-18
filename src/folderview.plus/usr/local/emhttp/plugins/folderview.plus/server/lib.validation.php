@@ -62,6 +62,15 @@ if (!function_exists('fvplus_assert_folder_payload_shape')) {
         if (array_key_exists('containers', $payload)) {
             fvplus_validation_assert_list_of_scalarish($payload['containers'], 'containers', 5000);
         }
+        if (array_key_exists('hiddenPreviewMembers', $payload)) {
+            fvplus_validation_assert_list_of_scalarish($payload['hiddenPreviewMembers'], 'hiddenPreviewMembers', 5000);
+        }
+        if (array_key_exists('hidden_preview', $payload)) {
+            fvplus_validation_assert_list_of_scalarish($payload['hidden_preview'], 'hidden_preview', 5000);
+        }
+        if (array_key_exists('memberIdentities', $payload) && !is_array($payload['memberIdentities'])) {
+            throw new RuntimeException('Invalid folder payload: memberIdentities must be an object.');
+        }
         if (array_key_exists('settings', $payload) && !is_array($payload['settings'])) {
             throw new RuntimeException('Invalid folder payload: settings must be an object.');
         }

@@ -26,7 +26,11 @@
             return {
                 Name: memberName,
                 Icon: entry?.icon || entry?.Icon || '',
-                Label: undefined
+                Label: undefined,
+                Identity: {
+                    kind: 'vm',
+                    uuid: String(entry?.uuid || entry?.UUID || entry?.id || '').trim()
+                }
             };
         };
 

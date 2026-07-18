@@ -4,6 +4,7 @@
 
     const folderContract = window.FolderViewPlusFolderContract || null;
     const runtimeJquery = window.jQuery || window.$ || null;
+    const pluginRequestClient = window.FolderViewPlusRequest || null;
 
     /**
      * @template T
@@ -179,17 +180,18 @@
         }
         const style = $folderRow[0].style;
         const overrides = getFolderStatusColorOverrides(settings);
+        const locked = settings?.status_color_lock === true || settings?.statusColorLock === true;
         style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
         style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
         style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
-        if (overrides.started) {
-            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
+        if (overrides.started || locked) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started || getFolderStatusColors(settings).started, locked ? 'important' : '');
         }
-        if (overrides.paused) {
-            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
+        if (overrides.paused || locked) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused || getFolderStatusColors(settings).paused, locked ? 'important' : '');
         }
-        if (overrides.stopped) {
-            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
+        if (overrides.stopped || locked) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped || getFolderStatusColors(settings).stopped, locked ? 'important' : '');
         }
     };
 
@@ -243,9 +245,14 @@
         return Math.max(1, Math.min(4, parsed));
     };
 
+    const normalizeFolderPreviewOverflow = (settings = {}) => {
+        const normalized = String(settings?.preview_overflow ?? settings?.previewOverflow ?? '').trim().toLowerCase();
+        return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
+    };
+
     const isCompactMultiRowPreview = (settings = {}) => {
         const normalizedRows = normalizeFolderPreviewRowLimit(settings);
-        return normalizedRows === 0 || normalizedRows > 1;
+        return normalizeFolderPreviewOverflow(settings) !== 'default' || normalizedRows === 0 || normalizedRows > 1;
     };
 
     const normalizePreviewHoverAnimation = (settings = {}) => {
@@ -272,7 +279,17 @@
         previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
         previewNode.style.removeProperty('--fvplus-preview-row-limit');
         previewNode.style.removeProperty('--fvplus-preview-max-height');
-        previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+        previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow', 'fv-preview-overflow-expand', 'fv-preview-overflow-scroll');
+        const overflowMode = normalizeFolderPreviewOverflow(settings);
+        previewNode.dataset.previewOverflow = overflowMode;
+        if (overflowMode === 'expand_row') {
+            previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow', 'fv-preview-overflow-expand');
+            return;
+        }
+        if (overflowMode === 'scroll') {
+            previewNode.classList.add('fv-preview-overflow-scroll');
+            return;
+        }
         const normalizedRows = normalizeFolderPreviewRowLimit(settings);
         if (normalizedRows === 0) {
             previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
@@ -316,7 +333,9 @@
         const addDividers = settings?.preview_vertical_bars === true;
         const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
         $preview.empty();
-        rowSlices.forEach((slice) => {
+        const addRowSeparators = settings?.preview_row_separator === true || settings?.previewRowSeparator === true;
+        const rowSeparatorColor = settings?.preview_row_separator_color || settings?.previewRowSeparatorColor || barsColor;
+        rowSlices.forEach((slice, rowIndex) => {
             const $row = runtimeJquery ? runtimeJquery('<div class="folder-preview-row"></div>') : null;
             if (!$row || !$row.length) {
                 return;
@@ -328,6 +347,13 @@
                 }
             });
             $preview.append($row);
+            if (addRowSeparators && rowIndex < rowSlices.length - 1) {
+                const $separator = runtimeJquery('<div class="folder-preview-row-separator" aria-hidden="true"></div>');
+                if (rowSeparatorColor) {
+                    $separator.css('border-color', rowSeparatorColor);
+                }
+                $preview.append($separator);
+            }
         });
     };
 
@@ -851,20 +877,27 @@
             const label = trimDiagnostic(requestOptions.label || source || url);
             const allowFallback = requestOptions.allowFallback === true;
             const fallbackValue = requestOptions.fallbackValue;
-            return runtimeJquery.get(url).promise().then(
-                (data, _textStatus, jqXHR) => {
+            const requestPromise = method.toUpperCase() === 'POST'
+                ? pluginRequestClient?.postText?.(url, requestOptions.data || {}, requestOptions)
+                : pluginRequestClient?.getText?.(url, requestOptions);
+            if (!requestPromise || typeof requestPromise.then !== 'function') {
+                return Promise.reject(new Error('FolderView Plus request client is unavailable.'));
+            }
+            return requestPromise.then(
+                (data) => {
                     recordRequest({
                         method,
                         url,
                         source,
                         outcome: 'ok',
-                        status: trimDiagnostic(jqXHR?.status || ''),
                         detail
                     });
                     return data;
                 },
-                (jqXHR, textStatus, errorThrown) => {
-                    const error = buildRequestError(label, url, jqXHR, textStatus, errorThrown, requestOptions);
+                (requestError) => {
+                    const error = requestError instanceof Error
+                        ? requestError
+                        : buildRequestError(label, url, requestError?.jqXHR, requestError?.textStatus, requestError?.errorThrown, requestOptions);
                     recordRequest({
                         method,
                         url,
@@ -944,6 +977,7 @@
         applyPreviewBorderStyle,
         getPreviewRowLimitValue,
         normalizeFolderPreviewRowLimit,
+        normalizeFolderPreviewOverflow,
         normalizePreviewHoverAnimation,
         getPreviewHoverAnimationClass,
         isCompactMultiRowPreview,

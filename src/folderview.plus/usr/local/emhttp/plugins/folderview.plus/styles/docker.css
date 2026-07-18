@@ -154,13 +154,22 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     margin: 0 0 0.45rem 0;
 }
 
+/* Keep the native Docker view controls close to both the page title and table. */
+.ToggleViewMode.fvplus-docker-runtime-toggle-cluster {
+    min-height: 1.85rem;
+    margin-top: -0.7rem;
+    margin-bottom: 0.3rem;
+}
+
 .fvplus-docker-runtime-toggle-shell {
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
     margin-left: 0.7rem;
+    position: relative;
     white-space: nowrap;
     vertical-align: middle;
+    overflow: visible;
 }
 
 .fvplus-docker-runtime-toggle-shell.is-inline-cluster {
@@ -179,6 +188,122 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     text-transform: uppercase;
     color: var(--fvplus-theme-foreground);
     opacity: 0.88;
+}
+
+.fvplus-docker-runtime-toggle-shell .switch-button-label {
+    display: none !important;
+}
+
+.fvplus-docker-runtime-privacy-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.22rem;
+    width: fit-content !important;
+    min-width: 0 !important;
+    min-height: 1.85rem;
+    margin: 0;
+    padding: 0.18rem 0 !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-theme-foreground);
+    font: inherit;
+    line-height: 1;
+    opacity: 0.88;
+    cursor: pointer;
+    appearance: none;
+}
+
+.fvplus-docker-runtime-privacy-menu-button:hover,
+.fvplus-docker-runtime-privacy-menu-button:focus-visible,
+.fvplus-docker-runtime-privacy-menu-button.is-open {
+    outline: none;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fvplus-runtime-menu-hover-fg, var(--fvplus-theme-foreground));
+    opacity: 1;
+}
+
+.fvplus-docker-runtime-privacy-menu-button .fa-chevron-down {
+    font-size: 0.68em;
+    transition: transform 120ms ease;
+}
+
+.fvplus-docker-runtime-privacy-menu-button.is-open .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.fvplus-docker-runtime-privacy-menu {
+    position: absolute;
+    z-index: 10060;
+    top: calc(100% + 0.55rem);
+    right: 0;
+    width: min(17rem, calc(100vw - 1.5rem));
+    max-height: min(30rem, calc(100vh - 3rem));
+    padding: 0.65rem;
+    overflow-y: auto;
+    white-space: normal;
+    font-size: 1.2rem;
+    color: var(--fvplus-runtime-menu-fg, var(--fvplus-theme-foreground));
+    background: var(--fvplus-runtime-menu-bg, rgba(18, 18, 19, 0.985));
+    border: 1px solid var(--fvplus-runtime-menu-border, rgba(255, 255, 255, 0.18));
+    border-radius: 8px;
+    box-shadow: var(--fvplus-runtime-menu-shadow, 0 18px 34px rgba(0, 0, 0, 0.42));
+    box-sizing: border-box;
+    backdrop-filter: blur(12px);
+}
+
+.fvplus-docker-runtime-privacy-menu[hidden] {
+    display: none !important;
+}
+
+.fvplus-docker-runtime-privacy-menu-heading {
+    color: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.fvplus-docker-runtime-privacy-menu-help {
+    margin-top: 0.18rem;
+    color: var(--fvplus-runtime-menu-muted, rgba(168, 176, 188, 0.92));
+    font-size: inherit;
+    line-height: 1.3;
+}
+
+.fvplus-docker-runtime-privacy-menu-options {
+    display: grid;
+    gap: 0.16rem;
+    margin-top: 0.52rem;
+}
+
+.fvplus-docker-runtime-privacy-option {
+    display: flex;
+    align-items: center;
+    gap: 0.48rem;
+    min-height: 1.8rem;
+    margin: 0;
+    padding: 0.22rem 0.34rem;
+    border-radius: 5px;
+    color: inherit;
+    font-size: inherit;
+    line-height: 1.2;
+    cursor: pointer;
+    user-select: none;
+}
+
+.fvplus-docker-runtime-privacy-option:hover,
+.fvplus-docker-runtime-privacy-option:focus-within {
+    background: var(--fvplus-runtime-menu-hover-bg, rgba(128, 128, 128, 0.16));
+}
+
+.fvplus-docker-runtime-privacy-option input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 0;
+    accent-color: var(--fv-editor-accent, #ff9a3c);
+    cursor: pointer;
 }
 
 /* --- General Folder Styles --- */
@@ -314,18 +439,14 @@ td.ct-name.folder-name > .folder-name-sub > .folder-outer {
 
 body.fvplus-privacy-docker-runtime-mask-names #docker_list td.ct-name img.img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_view td.ct-name img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview img.img,
+body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview img.img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_list .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview .folder-img,
 body.fvplus-privacy-docker-runtime-mask-names .preview-img > .folder-img,
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-member-menu-icon,
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-card-title-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-node-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-card-title-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-child-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-member-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-folder-icon,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-member-icon {
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-icon {
     filter: blur(0.4rem);
 }
 
@@ -338,15 +459,27 @@ body.fvplus-privacy-docker-runtime-mask-names #docker_view .folder-preview .appn
 body.fvplus-privacy-docker-runtime-mask-names .preview-actual-name,
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-member-menu-name,
 body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-card-title,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-pill,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-node-copy,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-detail-title,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-child-copy,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-tree-explorer-member-pill,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-folder-title,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-member-name,
-body.fvplus-privacy-docker-runtime-mask-names .fv-docker-orbit-inspector-title {
+body.fvplus-privacy-docker-runtime-mask-names .fv-docker-command-member-pill {
     filter: blur(0.28rem);
+}
+
+body.fvplus-privacy-docker-runtime-mask-container-ips #docker_list tr.folder-element > td:nth-child(4) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-container-ips #docker_view tr.folder-element > td:nth-child(4) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_list tr.folder-element > td:nth-child(5) .docker_readmore,
+body.fvplus-privacy-docker-runtime-mask-ports #docker_view tr.folder-element > td:nth-child(5) .docker_readmore {
+    filter: blur(0.28rem);
+    user-select: none;
+}
+
+.fvplus-privacy-lan-ip-value,
+.fvplus-privacy-lan-port-value {
+    display: inline-block;
+}
+
+body.fvplus-privacy-docker-runtime-mask-local-ips .fvplus-privacy-lan-ip-value,
+body.fvplus-privacy-docker-runtime-mask-ports .fvplus-privacy-lan-port-value {
+    filter: blur(0.28rem);
+    user-select: none;
 }
 
 td.ct-name.folder-name {
@@ -492,6 +625,30 @@ tr.folder.fv-parent-expanded div.folder-preview {
     justify-content: flex-start;
     min-height: var(--fvplus-preview-row-height);
     padding: 0;
+}
+
+.folder-preview-row-separator {
+    flex: 0 0 auto;
+    width: calc(100% - 16px);
+    height: 0;
+    margin: 1px 8px;
+    border-top: 1px solid;
+    opacity: 0.58;
+    pointer-events: none;
+}
+
+.folder-preview.fv-preview-overflow-scroll {
+    display: block;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin;
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-overflow-scroll .folder-preview-row {
+    width: max-content;
+    min-width: 100%;
+    overflow: visible;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
@@ -1297,5 +1454,249 @@ div.folder-preview-4 span.outer {
 
     td.updatecolumn.folder-update .advanced {
         display: none !important;
+    }
+}
+/* Sensitive-value privacy classes preserve source text, making toggles instant and reversible. */
+body.fvplus-privacy-docker-sensitive-volumePaths .fvplus-sensitive-volume-path,
+body.fvplus-privacy-docker-sensitive-imageRegistry .fvplus-sensitive-image-registry,
+body.fvplus-privacy-docker-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-docker-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-docker-sensitive-externalUrls .fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-vmDiskPaths .fvplus-sensitive-vm-disk-path,
+body.fvplus-privacy-vm-sensitive-macAddresses .fvplus-sensitive-mac-address,
+body.fvplus-privacy-vm-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-vm-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-vm-sensitive-externalUrls .fvplus-sensitive-external-url {
+    filter: blur(7px) !important;
+    user-select: none !important;
+}
+
+body.fvplus-privacy-docker-sensitive-externalUrls a.fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
+    pointer-events: none !important;
+}
+
+/* Docker page action bar: FolderView controls, scoped filters, view switcher, and tools. */
+.fvplus-docker-action-bar {
+    position: relative;
+    clear: both;
+    float: none !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    flex: 0 0 100%;
+    gap: 0.65rem 1rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0.9rem 0 0.35rem;
+    padding: 0;
+    color: var(--fvplus-theme-foreground);
+}
+
+.fvplus-docker-action-primary,
+.fvplus-docker-action-secondary {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.fvplus-docker-action-secondary {
+    margin-left: auto;
+}
+
+.fvplus-docker-action-button {
+    box-sizing: border-box;
+    min-width: 0 !important;
+    min-height: 30px;
+    margin: 0 !important;
+    padding: 0.38rem 0.62rem !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(128, 128, 128, 0.48) !important;
+    border-radius: 5px !important;
+    background: rgba(128, 128, 128, 0.08) !important;
+    color: inherit !important;
+    font: inherit;
+    font-size: 1.05rem !important;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: none !important;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.fvplus-docker-action-button:hover,
+.fvplus-docker-action-button:focus-visible {
+    border-color: rgba(255, 154, 60, 0.72) !important;
+    background: rgba(255, 154, 60, 0.1) !important;
+    color: #ff9a3c !important;
+    outline: none;
+}
+
+.fvplus-docker-action-button.is-active {
+    border-color: rgba(255, 154, 60, 0.76) !important;
+    background: rgba(255, 154, 60, 0.14) !important;
+    color: #ff9a3c !important;
+}
+
+.fvplus-docker-action-button:disabled,
+.fvplus-docker-action-bar.is-busy .fvplus-docker-action-button {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+.fvplus-docker-action-count {
+    min-width: 1.45em;
+    height: 1.45em;
+    padding: 0 0.28em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(128, 128, 128, 0.22);
+    font-size: 0.92em;
+    font-variant-numeric: tabular-nums;
+}
+
+.fvplus-docker-action-separator {
+    width: 1px;
+    height: 23px;
+    margin: 0 0.15rem;
+    background: rgba(128, 128, 128, 0.38);
+}
+
+.fvplus-docker-action-menu-shell {
+    position: relative;
+    display: inline-flex;
+}
+
+.fvplus-docker-action-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    z-index: 10050;
+    width: max-content;
+    min-width: 210px;
+    max-width: min(310px, calc(100vw - 24px));
+    padding: 0.36rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.12rem;
+    border: 1px solid rgba(128, 128, 128, 0.48);
+    border-radius: 7px;
+    background: var(--fvplus-runtime-menu-bg, #1d1d1f);
+    color: var(--fvplus-theme-foreground);
+    box-shadow: 0 9px 24px rgba(0, 0, 0, 0.32);
+    overflow-x: hidden;
+    overflow-y: auto;
+    visibility: hidden;
+}
+
+.fvplus-docker-action-menu.is-open {
+    display: flex;
+}
+
+.fvplus-docker-action-menu.is-open.is-positioned {
+    visibility: visible;
+}
+
+.fvplus-docker-action-menu-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 31px;
+    margin: 0 !important;
+    padding: 0.46rem 0.58rem !important;
+    display: grid !important;
+    grid-template-columns: 1.35rem minmax(0, 1fr) 1rem;
+    align-items: center;
+    gap: 0.42rem;
+    border: 0 !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    color: inherit !important;
+    font: inherit;
+    font-size: 1.08rem !important;
+    line-height: 1.2;
+    text-align: left;
+    text-transform: none;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.fvplus-docker-action-menu-item:hover,
+.fvplus-docker-action-menu-item:focus-visible,
+.fvplus-docker-action-menu-item.is-selected {
+    background: rgba(255, 154, 60, 0.12) !important;
+    color: #ff9a3c !important;
+    outline: none;
+}
+
+.fvplus-docker-action-menu-item:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+.fvplus-docker-action-menu-item .fvplus-docker-action-menu-check {
+    visibility: hidden;
+}
+
+.fvplus-docker-action-menu-item.is-selected .fvplus-docker-action-menu-check {
+    visibility: visible;
+}
+
+.fvplus-docker-action-menu-divider {
+    height: 1px;
+    margin: 0.28rem 0.2rem;
+    background: rgba(128, 128, 128, 0.32);
+}
+
+#docker_list > tr.fv-toolbar-filter-hidden {
+    display: none !important;
+}
+
+@media (max-width: 1180px) {
+    .fvplus-docker-action-secondary {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 700px) {
+    .fvplus-docker-action-bar,
+    .fvplus-docker-action-primary,
+    .fvplus-docker-action-secondary {
+        align-items: stretch;
+    }
+
+    .fvplus-docker-action-primary,
+    .fvplus-docker-action-secondary {
+        width: 100%;
+    }
+
+    .fvplus-docker-action-button {
+        flex: 1 1 auto;
+    }
+
+    .fvplus-docker-action-menu-shell {
+        flex: 1 1 auto;
+    }
+
+    .fvplus-docker-action-menu-shell > .fvplus-docker-action-button {
+        width: 100%;
+    }
+
+    .fvplus-docker-action-separator {
+        display: none;
     }
 }

@@ -56,7 +56,8 @@ const fail = (message) => {
   process.exit(1);
 };
 
-const blockMatch = plg.match(new RegExp(`^###${version}\\s*$([\\s\\S]*?)(?=^###|\\Z)`, 'm'));
+const versionHeading = '^###[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}\\s*$';
+const blockMatch = plg.match(new RegExp(`^###${version}\\s*$([\\s\\S]*?)(?=${versionHeading}|\\Z)`, 'm'));
 if (!blockMatch) {
   fail(`Missing CHANGES block for version ${version}.`);
 }

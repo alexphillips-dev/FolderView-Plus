@@ -8,6 +8,7 @@ This folder holds project documentation that does not need to stay at the reposi
 - [SUPPORT_POLICY.md](SUPPORT_POLICY.md)
 - [THEME_GUIDE.md](THEME_GUIDE.md)
 - [THEME_API_CONTRACT.md](THEME_API_CONTRACT.md)
+- [TRANSLATING.md](TRANSLATING.md)
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Architecture

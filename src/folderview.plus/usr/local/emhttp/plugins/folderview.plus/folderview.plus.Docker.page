@@ -6,6 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'docker';
+$fvplusI18nNamespaces = ['docker'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -37,7 +38,9 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script>
     $(document).ready(() => {
         folderi18n = () => {
-            $(`<input id="fvplus-docker-add-folder-btn" type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">`).insertAfter('table#docker_containers');
+            if (!document.getElementById('fvplus-docker-action-bar')) {
+                $(`<div id="fvplus-docker-action-bar" class="fvplus-docker-action-bar" aria-label="FolderView actions"></div>`).insertAfter('table#docker_containers');
+            }
             $('body').i18n();
             $('[type="button"]').i18n();
         }
@@ -53,6 +56,11 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.privacy.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.preview-model.js')?>"></script>
@@ -69,15 +77,12 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.command-view.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.action-bar.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script defer src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.js')?>"></script>
 
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.command-view.css')?>">
-<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.tree-explorer.css')?>">
-<link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.orbit-view.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/docker.css')?>">
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php') ?>

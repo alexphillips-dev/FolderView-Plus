@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "en",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Add a custom action",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "User script",
+    "editor.actions.control-members": "Control selected folder members.",
+    "editor.actions.run-user-script": "Run a task from the User Scripts plugin.",
+    "editor.members.toggle-preview-help": "Keep this member in the folder but hide it from the collapsed preview",
+    "editor.members.visible": "Visible",
+    "editor.members.auto-included": "Auto-included by regex or label",
+    "editor.members.drag-reorder": "Drag to reorder",
+    "editor.members.move-up": "Move up",
+    "editor.members.move-down": "Move down"
+}

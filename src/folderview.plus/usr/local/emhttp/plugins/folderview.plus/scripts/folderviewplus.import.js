@@ -1,3 +1,12 @@
+const importT = (key, fallback = '', ...params) => {
+    if (window.FolderViewPlusI18n?.t) {
+        return window.FolderViewPlusI18n.t(key, fallback, ...params);
+    }
+    return String(fallback || key).replace(/\$(\d+)/g, (match, index) => (
+        params[Number(index) - 1] === undefined ? match : String(params[Number(index) - 1])
+    ));
+};
+
 const closeImportApplyProgressDialog = () => {
     const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
@@ -294,6 +303,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
     const counts = $('#import-preview-counts');
+    const changeDetailsLabel = $('#import-change-details-label');
+    const trustLabel = $('#import-trust-label');
+    const modeChoices = dialog.find('[data-import-mode-option]');
     const previewFirstToggle = $('#import-preview-first-toggle');
     const reviewAckRow = $('#import-review-ack-row');
     const reviewAck = $('#import-review-ack');
@@ -303,6 +315,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
     let currentDryRunOnly = false;
     let currentTrustInfo = { level: 'trusted', label: 'Trusted', reason: '' };
+    let dialogLayoutObserver = null;
+    let dialogLayoutFrame = 0;
     const isPreviewFirstEnabled = () => (
         previewFirstToggle.length ? previewFirstToggle.prop('checked') === true : true
     );
@@ -319,9 +333,113 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             reviewAck.prop('checked', enabled === true);
         }
     };
+    const syncModeChoiceUi = () => {
+        const activeMode = normalizeImportMode(modeSelect.val());
+        modeChoices.each((_, element) => {
+            const button = $(element);
+            const selected = String(button.attr('data-import-mode-option') || '') === activeMode;
+            button.toggleClass('is-selected', selected).attr('aria-pressed', selected ? 'true' : 'false');
+        });
+    };
     const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
         .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
         .first();
+    const applyImportDialogButtonSkin = (element) => {
+        if (!element?.style) return;
+        element.style.setProperty('border', '1px solid color-mix(in srgb, var(--fvplus-settings-text-primary) 28%, transparent)', 'important');
+        element.style.setProperty('background', 'var(--fvplus-settings-surface-strong)', 'important');
+        element.style.setProperty('color', 'var(--fvplus-settings-text-primary)', 'important');
+        element.style.setProperty('box-shadow', 'var(--fvplus-settings-button-shadow)', 'important');
+    };
+    const getImportDialogWidths = () => {
+        const shellWidth = Math.min(566, Math.max(320, Math.floor(window.innerWidth - 16)));
+        const contentWidth = Math.min(520, Math.max(280, shellWidth - 46));
+        return { shellWidth, contentWidth };
+    };
+    const getImportDialogShell = () => {
+        try {
+            const widget = dialog.dialog('widget');
+            if (widget?.length) return widget;
+        } catch (_error) {
+            // The widget is not available until jQuery UI finishes initialization.
+        }
+        return dialog.closest('.ui-dialog');
+    };
+    const enforceImportTextMinimum = (dialogShell) => {
+        const rootFontSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+        const minimumFontSize = rootFontSize * 1.2;
+        dialogShell
+            .find('.ui-dialog-title, #import-preview-dialog, #import-preview-dialog *, .ui-dialog-buttonpane button')
+            .each((_, element) => {
+                if (
+                    !element?.style
+                    || String(element.tagName || '').toLowerCase() === 'i'
+                    || element.classList?.contains('import-mode-choice-badge')
+                ) return;
+                const renderedFontSize = Number.parseFloat(window.getComputedStyle(element).fontSize);
+                if (Number.isFinite(renderedFontSize) && renderedFontSize + 0.01 < minimumFontSize) {
+                    element.style.setProperty('font-size', '1.2rem', 'important');
+                }
+            });
+    };
+    const applyImportDialogLayout = () => {
+        const { shellWidth, contentWidth } = getImportDialogWidths();
+        const dialogShell = getImportDialogShell();
+        if (dialog.hasClass('ui-dialog-content') && Number(dialog.dialog('option', 'width')) !== shellWidth) {
+            dialog.dialog('option', 'width', shellWidth);
+        }
+        if (dialogShell[0]?.style) {
+            dialogShell[0].style.setProperty('width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('max-width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('min-width', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('inline-size', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('max-inline-size', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('min-inline-size', `${shellWidth}px`, 'important');
+            dialogShell[0].style.setProperty('box-sizing', 'border-box', 'important');
+        }
+        if (dialog[0]?.style) {
+            dialog[0].style.setProperty('row-gap', '0.55rem', 'important');
+        }
+        dialog.children().each((_, element) => {
+            if (!element?.style) return;
+            element.style.setProperty('width', `${contentWidth}px`, 'important');
+            element.style.setProperty('max-width', 'calc(100vw - 2.5rem)', 'important');
+            element.style.setProperty('min-width', '0', 'important');
+            element.style.setProperty('margin-left', 'auto', 'important');
+            element.style.setProperty('margin-right', 'auto', 'important');
+            element.style.setProperty('justify-self', 'center', 'important');
+            element.style.setProperty('box-sizing', 'border-box', 'important');
+        });
+        dialog.find('.import-disclosures > .import-disclosure, .import-disclosure-body, .import-mode-choice, #import-preview-diff, #import-preview-selection')
+            .each((_, element) => {
+                if (!element?.style) return;
+                element.style.setProperty('width', '100%', 'important');
+                element.style.setProperty('max-width', '100%', 'important');
+                element.style.setProperty('min-width', '0', 'important');
+                element.style.setProperty('box-sizing', 'border-box', 'important');
+            });
+        enforceImportTextMinimum(dialogShell);
+    };
+    const queueImportDialogLayout = () => {
+        if (dialogLayoutFrame) return;
+        dialogLayoutFrame = window.requestAnimationFrame(() => {
+            dialogLayoutFrame = 0;
+            applyImportDialogLayout();
+            dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+        });
+    };
+    const startImportDialogLayoutLock = () => {
+        dialogLayoutObserver?.disconnect();
+        dialogLayoutObserver = null;
+        const dialogShell = getImportDialogShell();
+        if (typeof window.ResizeObserver !== 'function' || !dialogShell[0]) return;
+        dialogLayoutObserver = new window.ResizeObserver(() => {
+            const { shellWidth } = getImportDialogWidths();
+            const actualWidth = Math.round(dialogShell[0].getBoundingClientRect().width);
+            if (actualWidth !== shellWidth) queueImportDialogLayout();
+        });
+        dialogLayoutObserver.observe(dialogShell[0]);
+    };
     const getImportRiskInfo = (selectedOperations) => {
         const deletes = Array.isArray(selectedOperations?.deletes) ? selectedOperations.deletes.length : 0;
         if (deletes > 0) {
@@ -351,7 +469,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const riskInfo = getImportRiskInfo(selectedOperations);
         const requireAck = currentDryRunOnly !== true && (previewFirstEnabled === true || riskInfo.requiresReview === true);
         if (reviewAckRow.length) {
-            reviewAckRow.toggle(requireAck);
+            reviewAckRow.css('display', requireAck ? 'flex' : 'none');
+            reviewAckRow.attr('aria-hidden', requireAck ? 'false' : 'true');
             reviewAckRow.attr('title', riskInfo.requiresReview ? `${riskInfo.label} requires review before apply.` : '');
         }
         if (!requireAck) {
@@ -379,27 +498,46 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const selectedUpdates = selectedOperations.upserts.length;
         const selectedDeletes = selectedOperations.deletes.length;
 
-        if (selectedCount === 0) {
-            result.text('No operations selected yet. Use the checkboxes below to include at least one change.');
-        } else if (currentDryRunOnly) {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected. Dry run is ON, so no folder changes will be applied.`);
-        } else if (selectedOperations.deletes.length > 0) {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected, including ${selectedOperations.deletes.length} delete${selectedOperations.deletes.length === 1 ? '' : 's'}. Review acknowledgement is required before apply.`);
-        } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected from an untrusted or incomplete export. Review acknowledgement is required before apply.`);
-        } else {
-            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected and ready to apply.`);
-        }
         const riskInfo = getImportRiskInfo(selectedOperations);
+        let statusMessage = '';
+        let statusLevel = 'normal';
+        if (selectedCount === 0) {
+            statusMessage = 'Select at least one change to continue.';
+            statusLevel = 'warning';
+        } else if (currentDryRunOnly) {
+            statusMessage = 'Preview only is enabled. No changes will be saved.';
+            statusLevel = 'info';
+        } else if (selectedDeletes > 0) {
+            statusMessage = `${selectedDeletes} folder${selectedDeletes === 1 ? '' : 's'} will be deleted. Review and confirm below.`;
+            statusLevel = 'warning';
+        } else if (currentTrustInfo.level && currentTrustInfo.level !== 'trusted') {
+            statusMessage = 'This export could not be fully validated. Review and confirm below.';
+            statusLevel = 'warning';
+        }
+
+        result
+            .removeClass('is-info is-warning')
+            .addClass(statusLevel === 'normal' ? '' : `is-${statusLevel}`)
+            .text(statusMessage)
+            .toggle(statusMessage !== '');
 
         counts.html(`
-            <span class="import-count-chip is-create">Create: ${selectedCreates}/${currentOperations.creates.length}</span>
-            <span class="import-count-chip is-update">Update: ${selectedUpdates}/${currentOperations.upserts.length}</span>
-            <span class="import-count-chip is-delete">Delete: ${selectedDeletes}/${currentOperations.deletes.length}</span>
-            <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
-            <span class="import-count-chip is-dryrun">Dry run: ${currentDryRunOnly ? 'ON' : 'OFF'}</span>
-            <span class="import-count-chip is-risk-${escapeHtml(riskInfo.level)}">Risk: ${escapeHtml(riskInfo.label)}</span>
+            <div class="import-summary-total">
+                <strong>${selectedCount}</strong>
+                <span>${escapeHtml(currentDryRunOnly
+                    ? importT('import.summary.planned-change', selectedCount === 1 ? 'planned change in preview' : 'planned changes in preview', selectedCount)
+                    : importT('import.summary.folder-change', selectedCount === 1 ? 'folder change' : 'folder changes', selectedCount))}</span>
+            </div>
+            <div class="import-summary-breakdown">
+                <span class="is-create"><i class="fa fa-plus" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.new', '$1 new', selectedCreates))}</span>
+                <span class="is-update"><i class="fa fa-refresh" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.update', `$1 update${selectedUpdates === 1 ? '' : 's'}`, selectedUpdates))}</span>
+                <span class="is-delete"><i class="fa fa-trash" aria-hidden="true"></i> ${escapeHtml(importT('import.summary.delete', `$1 delete${selectedDeletes === 1 ? '' : 's'}`, selectedDeletes))}</span>
+                ${riskInfo.level === 'normal' ? '' : `<span class="is-risk"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ${escapeHtml(riskInfo.label)}</span>`}
+            </div>
         `);
+        changeDetailsLabel.text(selectedCount > 0
+            ? importT('import.review.count', `Review $1 planned change${selectedCount === 1 ? '' : 's'}`, selectedCount)
+            : importT('import.review.title', 'Review planned changes'));
         syncImportSafetyUi();
     };
     const refreshPresetControls = () => {
@@ -460,11 +598,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         <option value="skip">Skip existing (only add new)</option>
     `);
 
-    if (!$('#import-mode-help').length) {
-        modeSelect.after('<div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>');
-    }
     if (!$('#import-dry-run-row').length) {
-        $('#import-mode-help').after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
+        modeSelect.after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
     }
     // Safety default: keep dry-run disabled unless a user preset explicitly turns it on.
     $('#import-dry-run-only').prop('checked', false);
@@ -491,6 +626,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         renderOperationSelection(updateSelectionSummary);
         renderImportDiffTable(diffRows, { resetPage: true });
         previewText.val(formatImportSummary(summary));
+        syncModeChoiceUi();
 
         const metaItems = [
             { label: 'Type', value: type },
@@ -509,6 +645,10 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         meta.html(metaItems.map((item) => (
             `<span class="preview-meta-item ${escapeHtml(String(item.className || '').trim())}" title="${escapeHtml(String(item.title || '').trim())}"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
         )).join(''));
+        trustLabel
+            .removeClass('is-trust-trusted is-trust-legacy is-trust-untrusted')
+            .addClass(`is-trust-${trust.level}`)
+            .text(trust.label);
         if (trust.reason && trust.level !== 'trusted') {
             result.attr('title', trust.reason);
         } else {
@@ -519,6 +659,12 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     };
 
     utils.bindEventOnce(modeSelect, 'change.fvimport', () => {
+        renderPreview();
+    });
+    utils.bindEventOnce(modeChoices, 'click.fvimportmode', (event) => {
+        const requestedMode = normalizeImportMode($(event.currentTarget).attr('data-import-mode-option'));
+        if (requestedMode === normalizeImportMode(modeSelect.val())) return;
+        modeSelect.val(requestedMode);
         renderPreview();
     });
     utils.bindEventOnce($('#import-dry-run-only'), 'change.fvimport', () => {
@@ -533,6 +679,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
     utils.bindEventOnce(reviewAck, 'change.fvimportsafety', () => {
         syncImportSafetyUi();
+    });
+    utils.bindEventOnce($(window), 'resize.fvimportdialog', () => {
+        queueImportDialogLayout();
     });
     utils.bindEventOnce(presetSelect, 'change.fvimportpreset', () => {
         const selectedId = String(presetSelect.val() || '');
@@ -605,22 +754,56 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
 
     refreshPresetControls();
+    $('#import-preview-kind').text(type === 'docker'
+        ? importT('import.kind.docker-folder', 'Docker folder')
+        : importT('import.kind.vm-folder', 'VM folder'));
     renderPreview();
 
-    const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
+    const modalWidth = getImportDialogWidths().shellWidth;
+    const modalMaxHeight = Math.max(480, Math.floor(window.innerHeight - 24));
     dialog.dialog({
-        title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
+        title: type === 'docker'
+            ? importT('import.dialog.docker-title', 'Import Docker Folders')
+            : importT('import.dialog.vm-title', 'Import VM Folders'),
         resizable: false,
         width: modalWidth,
+        maxHeight: modalMaxHeight,
         modal: true,
         dialogClass: 'fv-import-preview-modal',
         closeText: '',
         show: { effect: 'fade', duration: 120 },
         hide: { effect: 'fade', duration: 120 },
         open: () => {
+            const dialogShell = dialog.closest('.ui-dialog');
+            const buttonPane = dialogShell.find('.ui-dialog-buttonpane');
+            const applyButton = getImportApplyButton();
+            applyButton.addClass('fv-import-apply-button').html(`<i class="fa fa-check" aria-hidden="true"></i> ${escapeHtml(importT('import.actions.apply', 'Apply import'))}`);
+            const dialogButtons = buttonPane.find('button');
+            dialogButtons.addClass('fv-import-dialog-button');
+            dialogButtons.not(applyButton).addClass('fv-import-cancel-button');
+            dialogButtons.each((_, element) => applyImportDialogButtonSkin(element));
+            dialogShell.find('.ui-dialog-titlebar-close').each((_, element) => {
+                element.style.setProperty('display', 'none', 'important');
+            });
+            startImportDialogLayoutLock();
+            applyImportDialogLayout();
+            window.requestAnimationFrame(() => {
+                applyImportDialogLayout();
+                dialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+            });
+            window.setTimeout(queueImportDialogLayout, 150);
+            window.setTimeout(queueImportDialogLayout, 500);
             syncImportSafetyUi();
         },
-        close: () => resolve(dialogResult),
+        close: () => {
+            dialogLayoutObserver?.disconnect();
+            dialogLayoutObserver = null;
+            if (dialogLayoutFrame) {
+                window.cancelAnimationFrame(dialogLayoutFrame);
+                dialogLayoutFrame = 0;
+            }
+            resolve(dialogResult);
+        },
         buttons: {
             'Apply Import': function() {
                 const mode = modeSelect.val();
@@ -652,80 +835,37 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const pauseImportApplyChunk = () => new Promise((resolve) => {
-    window.setTimeout(resolve, IMPORT_APPLY_CHUNK_PAUSE_MS);
-});
-
-const runImportChunked = async (items, runner) => {
-    const list = Array.isArray(items) ? items : [];
-    for (let start = 0; start < list.length; start += IMPORT_APPLY_CHUNK_SIZE) {
-        const end = Math.min(start + IMPORT_APPLY_CHUNK_SIZE, list.length);
-        for (let index = start; index < end; index += 1) {
-            await runner(list[index], index);
-        }
-        if (end < list.length) {
-            await pauseImportApplyChunk();
-        }
-    }
-};
-
 const applyImportOperations = async (type, operations, onProgress = null) => {
     const resolvedType = normalizeManagedType(type);
     const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
     const upserts = Array.isArray(operations?.upserts) ? operations.upserts : [];
     const creates = Array.isArray(operations?.creates) ? operations.creates : [];
-    const currentFolders = getFolderMap(resolvedType);
-    const totalSteps = deletes.length + upserts.length + creates.length + (resolvedType === 'docker' ? 1 : 0);
-    let completed = 0;
-    const emit = (label) => {
+    const totalSteps = deletes.length + upserts.length + creates.length;
+    const emit = (completed, label) => {
         if (typeof onProgress === 'function') {
             onProgress({ completed, total: totalSteps, label: String(label || '') });
         }
     };
-
-    await runImportChunked(deletes, async (id) => {
-        const folderName = String(currentFolders[id]?.name || id || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id });
-        completed += 1;
-        emit(`Deleted ${folderName}`);
-    });
-
-    await runImportChunked(upserts, async (item) => {
-        const folderName = String(item?.folder?.name || currentFolders[item?.id]?.name || item?.id || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/update.php', {
-            type: resolvedType,
-            id: item.id,
-            content: JSON.stringify(item.folder)
-        });
-        completed += 1;
-        emit(`Updated ${folderName}`);
-    });
-
-    await runImportChunked(creates, async (item) => {
-        const folderName = String(item?.folder?.name || 'folder');
-        await apiPostText('/plugins/folderview.plus/server/create.php', {
-            type: resolvedType,
-            content: JSON.stringify(item.folder)
-        });
-        completed += 1;
-        emit(`Created ${folderName}`);
-    });
-
-    if (resolvedType === 'docker') {
-        await syncDockerOrder();
-        completed += 1;
-        emit('Synced Docker folder order');
+    if (totalSteps <= 0) {
+        return { completed: 0, total: 0 };
     }
+
+    emit(0, `Applying ${totalSteps} folder change${totalSteps === 1 ? '' : 's'} in one transaction...`);
+    const result = await requestFolderBatchMutation(resolvedType, { deletes, upserts, creates });
+    emit(totalSteps, `Applied ${totalSteps} folder change${totalSteps === 1 ? '' : 's'}`);
 
     recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
         deletes: deletes.length,
         updates: upserts.length,
-        creates: creates.length
+        creates: creates.length,
+        transport: 'atomic-batch',
+        serverDurationMs: Number(result.durationMs) || 0
     });
 
     return {
-        completed,
+        ...result,
+        completed: totalSteps,
         total: totalSteps
     };
 };

@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "nl",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Setup-assistent",
+    "wizard.welcome.kicker": "FolderView Plus Setup-assistent",
+    "wizard.welcome.title": "Organiseer je Docker containers en VMs in mappen.",
+    "wizard.welcome.description": "FolderView Plus helpt bij het groeperen van gerelateerde apps, het bekijken van wijzigingen voordat ze worden toegepast, en eventueel het automatisch georganiseerd houden van toekomstige apps.",
+    "wizard.welcome.begin": "Begin Setup",
+    "wizard.welcome.skip": "Wizard overslaan",
+    "wizard.welcome.group-title": "Groeperen van gerelateerde apps",
+    "wizard.welcome.group-description": "Houd media, downloads, hulpprogramma's, thuisautomatisering en andere apps samen.",
+    "wizard.welcome.preview-title": "Vooraf bekijken voordat toepassen",
+    "wizard.welcome.preview-description": "Je zult mappen, toewijzingen, regels en instellingen controleren voordat er iets verandert.",
+    "wizard.welcome.automatic-title": "Blijf automatisch georganiseerd",
+    "wizard.welcome.automatic-description": "Optionele startregels kunnen toekomstige apps die overeenkomen in de juiste mappen plaatsen.",
+    "wizard.navigation.next": "Volgende",
+    "wizard.navigation.back": "Terug",
+    "wizard.navigation.begin": "Begin Setup",
+    "wizard.navigation.run-preview": "Voorbeeld uitvoeren",
+    "wizard.navigation.apply": "Instellingen toepassen",
+    "wizard.navigation.show-details": "Details weergeven",
+    "wizard.navigation.hide-details": "Details verbergen",
+    "wizard.navigation.close": "Sluiten",
+    "wizard.navigation.review": "Beoordeling",
+    "wizard.navigation.go-to": "Ga naar $1",
+    "wizard.progress.step": "Stap $1 van $2",
+    "wizard.impact.live": "Live impact voor deze stap"
+}

@@ -61,8 +61,10 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
@@ -74,6 +76,8 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/read.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/read_info.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/create.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/delete.php"
@@ -90,15 +94,10 @@ for required_entry in "${REQUIRED_ARCHIVE_ENTRIES[@]}"; do
   fi
 done
 
-ICON_ARCHIVE_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -E '^usr/local/emhttp/plugins/folderview.plus/images/(third-party-icons|custom)/' || true)"
+ICON_ARCHIVE_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -E '^usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/' || true)"
 if [[ -n "${ICON_ARCHIVE_ENTRIES}" ]]; then
-  ICON_ARCHIVE_FILES="$(printf '%s\n' "${ICON_ARCHIVE_ENTRIES}" | grep -Ev '/$' || true)"
-  INVALID_ICON_ENTRIES="$(printf '%s\n' "${ICON_ARCHIVE_FILES}" | grep -Ev '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
-  if [[ -n "${INVALID_ICON_ENTRIES}" ]]; then
-    echo "ERROR: Archive contains non-icon files in icon asset directories:" >&2
-    echo "${INVALID_ICON_ENTRIES}" >&2
-    exit 1
-  fi
+  echo "ERROR: Core plugin archive must not contain the versioned third-party icon library." >&2
+  exit 1
 fi
 
 TMP_DIR="$(mktemp -d "${ROOT_DIR}/.tmp-install-smoke.XXXXXX")"
@@ -134,8 +133,10 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.bulk-assignment.shared.js"
   "scripts/folderviewplus.bulk-assignment.js"
   "scripts/folderviewplus.runtime-actions.js"
+  "scripts/folderviewplus.runtime-snapshot.js"
   "scripts/folderviewplus.wizard.js"
   "scripts/folderviewplus.import.js"
+  "scripts/install_icon_asset_pack.sh"
   "scripts/docker.runtime.hierarchy.js"
   "scripts/docker.runtime.actions.js"
   "scripts/folder.settings-transfer.js"
@@ -152,6 +153,8 @@ REQUIRED_FILES=(
   "server/apply_folder_settings.php"
   "server/read.php"
   "server/read_info.php"
+  "server/runtime_snapshot.php"
+  "server/lib.runtime-snapshot.php"
   "server/create.php"
   "server/update.php"
   "server/delete.php"

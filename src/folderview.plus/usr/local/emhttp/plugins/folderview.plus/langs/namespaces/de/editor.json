@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "de",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Fügen Sie eine benutzerdefinierte Aktion hinzu",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Benutzerskript",
+    "editor.actions.control-members": "Kontrolliere ausgewählte Ordnermitglieder.",
+    "editor.actions.run-user-script": "Führen Sie eine Aufgabe über das User Scripts-Plugin aus.",
+    "editor.members.toggle-preview-help": "Behalte dieses Mitglied im Ordner, aber verstecke es in der zusammengeklappten Vorschau",
+    "editor.members.visible": "Sichtbar",
+    "editor.members.auto-included": "Automatisch eingefügt durch regex oder Label",
+    "editor.members.drag-reorder": "Zum Neuanordnen ziehen",
+    "editor.members.move-up": "Bewegen Sie sich nach oben",
+    "editor.members.move-down": "Bewegen Sie sich nach unten"
+}

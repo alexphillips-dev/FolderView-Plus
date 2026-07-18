@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "pl",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Asystent konfiguracyjny",
+    "wizard.welcome.kicker": "FolderView Plus Asystent konfiguracyjny",
+    "wizard.welcome.title": "Organizuj swoje Docker pojemniki i VMs w folderach.",
+    "wizard.welcome.description": "FolderView Plus pomaga grupować powiązane aplikacje, podglądać zmiany przed ich zastosowaniem i opcjonalnie automatycznie utrzymywać porządek w przyszłych aplikacjach.",
+    "wizard.welcome.begin": "Rozpocznij konfigurację",
+    "wizard.welcome.skip": "Pomiń kreatora",
+    "wizard.welcome.group-title": "Grupuj powiązane aplikacje",
+    "wizard.welcome.group-description": "Trzymaj razem media, pobrane pliki, narzędzia, automatyzację domową i inne aplikacje.",
+    "wizard.welcome.preview-title": "Podgląd przed zastosowaniem",
+    "wizard.welcome.preview-description": "Zobaczysz foldery, przypisania, reguły i ustawienia zanim cokolwiek się zmieni.",
+    "wizard.welcome.automatic-title": "Pozostań zorganizowany automatycznie",
+    "wizard.welcome.automatic-description": "Opcjonalne reguły startowe mogą umieszczać przyszłe pasujące aplikacje we właściwych folderach.",
+    "wizard.navigation.next": "Dalej",
+    "wizard.navigation.back": "Wstecz",
+    "wizard.navigation.begin": "Rozpocznij konfigurację",
+    "wizard.navigation.run-preview": "Uruchom podgląd",
+    "wizard.navigation.apply": "Zastosuj konfigurację",
+    "wizard.navigation.show-details": "Pokaż szczegóły",
+    "wizard.navigation.hide-details": "Ukryj szczegóły",
+    "wizard.navigation.close": "Zamknij",
+    "wizard.navigation.review": "Przegląd",
+    "wizard.navigation.go-to": "Przejdź do $1",
+    "wizard.progress.step": "Krok $1 z $2",
+    "wizard.impact.live": "Bezpośredni wpływ dla tego kroku"
+}

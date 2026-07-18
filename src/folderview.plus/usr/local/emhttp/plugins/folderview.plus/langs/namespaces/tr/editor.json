@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "tr",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Özel bir eylem ekle",
+    "editor.actions.standard": "Standart",
+    "editor.actions.user-script": "Kullanıcı betiği",
+    "editor.actions.control-members": "Seçili klasör üyelerini kontrol et.",
+    "editor.actions.run-user-script": "User Scripts eklentisinden bir görev çalıştır.",
+    "editor.members.toggle-preview-help": "Bu üyeyi klasörde tut ama daraltılmış önizlemeden gizle.",
+    "editor.members.visible": "Görünür",
+    "editor.members.auto-included": "regex veya etiket tarafından otomatik dahil edilir",
+    "editor.members.drag-reorder": "Yeniden sıralamak için sürükle",
+    "editor.members.move-up": "Yukarı taşı",
+    "editor.members.move-down": "Aşağı taşı"
+}

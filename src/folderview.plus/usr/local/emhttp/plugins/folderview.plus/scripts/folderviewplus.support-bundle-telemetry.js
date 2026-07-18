@@ -320,12 +320,18 @@
         const getRequestErrorDiagnosticsSnapshot = typeof deps.getRequestErrorDiagnosticsSnapshot === 'function'
             ? deps.getRequestErrorDiagnosticsSnapshot
             : (() => ({ count: 0, last: null, samples: [] }));
+        const getStandardRequestDiagnosticsSnapshot = typeof deps.getStandardRequestDiagnosticsSnapshot === 'function'
+            ? deps.getStandardRequestDiagnosticsSnapshot
+            : (() => ({ count: 0, failures: 0, retries: 0, entries: [] }));
         const collectFolderEditorDebugDiagnostics = typeof deps.collectFolderEditorDebugDiagnostics === 'function'
             ? deps.collectFolderEditorDebugDiagnostics
             : (() => null);
         const collectThemeTelemetrySnapshot = typeof deps.collectThemeTelemetrySnapshot === 'function'
             ? deps.collectThemeTelemetrySnapshot
             : (() => null);
+        const getLocalizationDiagnosticsSnapshot = typeof deps.getLocalizationDiagnosticsSnapshot === 'function'
+            ? deps.getLocalizationDiagnosticsSnapshot
+            : (() => ({ requestedLocale: 'en', resolvedLocale: 'en', activeLocale: 'en', initialized: false }));
         const readClientDiagnosticsStorageRecord = typeof deps.readClientDiagnosticsStorageRecord === 'function'
             ? deps.readClientDiagnosticsStorageRecord
             : (() => null);
@@ -345,6 +351,7 @@
             localStorageAvailable: false,
             sessionStorageAvailable: false,
             dockerListViewModeCookie: null,
+            nativeOrganizer: { available: false },
             folderEditorDebug: {
                 launchPresent: false,
                 bootstrapPresent: false,
@@ -393,6 +400,11 @@
                 'requestErrors',
                 getRequestErrorDiagnosticsSnapshot()
             );
+            existingUiTelemetry.requestActivity = uiRedactor.sanitizeValue(
+                'uiTelemetry.requestActivity',
+                'requestActivity',
+                getStandardRequestDiagnosticsSnapshot()
+            );
             existingUiTelemetry.browserConsoleErrors = uiRedactor.sanitizeValue(
                 'uiTelemetry.browserConsoleErrors',
                 'browserConsoleErrors',
@@ -412,6 +424,11 @@
                 collectFolderEditorDebugDiagnostics()
             );
             existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
+            existingUiTelemetry.localization = uiRedactor.sanitizeValue(
+                'uiTelemetry.localization',
+                'localization',
+                getLocalizationDiagnosticsSnapshot()
+            );
             payload.uiTelemetry = existingUiTelemetry;
             payload.redactionManifest.privacySelfCheck = buildUiTelemetryPrivacySelfCheck(
                 existingUiTelemetry,

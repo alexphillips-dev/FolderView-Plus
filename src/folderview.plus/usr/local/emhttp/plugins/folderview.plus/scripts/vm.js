@@ -1,6 +1,9 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const pluginRequestClient = window.FolderViewPlusRequest || null;
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
@@ -47,6 +50,9 @@ const normalizeFolderPreviewRowLimit = typeof runtimeShared.normalizeFolderPrevi
         }
         return Math.max(1, Math.min(4, parsed));
     });
+const normalizeFolderPreviewOverflow = typeof runtimeShared.normalizeFolderPreviewOverflow === 'function'
+    ? runtimeShared.normalizeFolderPreviewOverflow
+    : ((settings = {}) => ['expand_row', 'scroll'].includes(settings?.preview_overflow) ? settings.preview_overflow : 'default');
 const isCompactMultiRowPreview = typeof runtimeShared.isCompactMultiRowPreview === 'function'
     ? runtimeShared.isCompactMultiRowPreview
     : ((settings = {}) => {
@@ -162,7 +168,14 @@ const utils = window.FolderViewPlusUtils || {
             privacyMaskNames: true,
             privacyMaskContainerIps: true,
             privacyMaskLocalIps: true,
-            privacyMaskPorts: true
+            privacyMaskPorts: true,
+            privacyMaskVolumePaths: true,
+            privacyMaskImageRegistry: true,
+            privacyMaskVmDiskPaths: true,
+            privacyMaskMacAddresses: true,
+            privacyMaskPublicIps: true,
+            privacyMaskInterfaces: true,
+            privacyMaskExternalUrls: true
         },
         health: {
             cardsEnabled: true,
@@ -205,6 +218,39 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/'/g, '&#39;');
     }
 };
+const reconcileVmMemberIdentities = (folders, runtimeInfo) => {
+    if (!memberIdentityModule || typeof memberIdentityModule.reconcileFolders !== 'function') {
+        return folders;
+    }
+    const result = memberIdentityModule.reconcileFolders('vm', folders, runtimeInfo);
+    const patches = result?.patches && typeof result.patches === 'object' ? result.patches : {};
+    if (Object.keys(patches).length > 0 && typeof window.FolderViewPlusRequest?.postJson === 'function') {
+        window.FolderViewPlusRequest.postJson('/plugins/folderview.plus/server/reconcile_member_identities.php', {
+            type: 'vm',
+            patches: JSON.stringify(patches)
+        }, { retries: 0 }).catch((error) => {
+            console.warn('folderview.plus: VM member identity reconciliation could not be persisted.', error);
+        });
+    }
+    window.FolderViewPlusMemberIdentityDiagnostics = {
+        ...(window.FolderViewPlusMemberIdentityDiagnostics || {}),
+        vm: result?.diagnostics || {}
+    };
+    return result?.folders || folders;
+};
+const vmPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoordinator({
+    normalizePrefs: utils.normalizePrefs,
+    request: window.FolderViewPlusRequest
+}) || null;
+const normalizeVmPrefsResponse = (response = {}) => {
+    const normalized = utils.normalizePrefs({
+        ...(response?.prefs || {}),
+        _metadata: response?.metadata || response?.prefs?._metadata || {}
+    });
+    return vmPrefsCoordinator
+        ? vmPrefsCoordinator.reconcile('vm', normalized)
+        : normalized;
+};
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const vmFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
@@ -234,7 +280,7 @@ const vmRuntimeDiagnostics = createVmRuntimeDiagnosticsBridge
         reportFatalError: () => {},
         reportDegradedState: () => {},
         inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
-        createRequest: (url) => $.get(url).promise()
+        createRequest: (url) => window.FolderViewPlusRequest.getText(url)
     });
 const markVmFatalBannerStep = (step) => vmRuntimeDiagnostics.markStep(step);
 const setVmFatalBannerPhase = (phase) => vmRuntimeDiagnostics.setPhase(phase);
@@ -410,7 +456,12 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
         return;
     }
 
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const overflowMode = normalizeFolderPreviewOverflow(settings);
+    if (overflowMode === 'scroll') {
+        finalizePreviewRows($preview, [wrappers], settings);
+        return;
+    }
+    const rowLimit = overflowMode === 'expand_row' ? 0 : normalizeFolderPreviewRowLimit(settings);
     const addDividers = settings?.preview_vertical_bars === true;
     const previewElement = $preview.get(0);
     const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
@@ -566,6 +617,8 @@ const vmExpandedStateController = runtimeStateObserverModule && typeof runtimeSt
         type: 'vm',
         storageKey: VM_EXPANDED_STATE_KEY,
         storageWriter: vmStorageWriter,
+        preferenceCoordinator: vmPrefsCoordinator,
+        readPrefs: () => folderTypePrefs || {},
         syncDelayMs: VM_EXPANDED_STATE_SYNC_DELAY_MS,
         normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
         readServerMap: () => folderTypePrefs?.expandedFolderState || {},
@@ -879,12 +932,21 @@ const fetchVmPinnedFolderPrefs = async () => {
             retryDelayMs: 220
         });
     } else {
-        response = parseJsonPayloadSafe(await $.get(url).promise());
+        response = await pluginRequestClient.getJson(url);
     }
     assertVmPrefsSaveResponse(response, 'Failed to confirm VM pinned folders.');
-    return utils.normalizePrefs(response?.prefs || {});
+    return normalizeVmPrefsResponse(response);
 };
 const persistVmPinnedFolderIds = async (nextPinnedIds) => {
+    if (vmPrefsCoordinator) {
+        const prefs = await vmPrefsCoordinator.save('vm', {
+            pinnedFolderIds: nextPinnedIds
+        }, {
+            currentPrefs: folderTypePrefs,
+            immediate: true
+        });
+        return { ok: true, prefs };
+    }
     const payload = {
         type: 'vm',
         prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
@@ -894,7 +956,7 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
     if (request && typeof request.postJson === 'function') {
         try {
             response = await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
-                retries: 1,
+                retries: 0,
                 retryDelayMs: 260
             });
         } catch (_error) {
@@ -903,7 +965,7 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
         }
     }
     if (!response) {
-        response = parseJsonPayloadSafe(await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise());
+        response = await pluginRequestClient.postJson('/plugins/folderview.plus/server/prefs.php', payload);
     }
     assertVmPrefsSaveResponse(response, 'Failed to save VM pinned folders.');
     const confirmedPrefs = await fetchVmPinnedFolderPrefs();
@@ -1078,16 +1140,7 @@ const parseJsonPayloadSafe = (payload) => {
 };
 
 const postVmJsonWithFallback = async (url, payload, options = {}) => {
-    const request = window.FolderViewPlusRequest;
-    if (request && typeof request.postJson === 'function') {
-        try {
-            return await request.postJson(url, payload, options);
-        } catch (_error) {
-            // Fall through to the legacy POST path if the request client is not ready.
-        }
-    }
-    const response = await $.post(url, payload).promise();
-    return parseJsonPayloadSafe(response);
+    return pluginRequestClient.postJson(url, payload, options);
 };
 
 const normalizeVmStateToken = (entry, fromStateMode = false) => {
@@ -1510,6 +1563,8 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const vmInfo = JSON.parse(prom[2]);
+    vmRuntimeInfoByName = normalizeVmRuntimeInfoMap(vmInfo, vmRuntimeInfoByName);
+    folders = reconcileVmMemberIdentities(folders, vmInfo);
     let order = Object.values(JSON.parse(prom[3]));
     let prefsResponse = {};
     try {
@@ -1517,7 +1572,7 @@ const createFolders = async () => {
     } catch (error) {
         prefsResponse = {};
     }
-    folderTypePrefs = applyVmPinnedFolderPrefsOverride(prefsResponse?.prefs || {});
+    folderTypePrefs = applyVmPinnedFolderPrefsOverride(normalizeVmPrefsResponse(prefsResponse));
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     const folderDepthById = buildFolderDepthById(folders);
@@ -1541,10 +1596,12 @@ const createFolders = async () => {
     // debug mode, download the debug json file
     if(folderDebugMode) {
         const debugData = JSON.stringify({
-            version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
+            version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
             folders,
             unraidOrder,
-            originalOrder: JSON.parse(await $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise()),
+            originalOrder: await pluginRequestClient.getJson('/plugins/folderview.plus/server/read_unraid_order.php', {
+                data: { type: 'vm' }
+            }),
             newOnes,
             order,
             vmInfo
@@ -1866,16 +1923,19 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         case 1:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
             };
             break;
         case 2:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.hand:last`);
             };
             break;
         case 3:
             addPreview = (id, autostart) => {
                 $(`tr.folder-id-${id} div.folder-preview`).append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $(`tr.folder-id-${id} div.folder-preview > span.inner:last`);
             };
             break;
         case 4:
@@ -1886,11 +1946,13 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                     lstSpan = $(`tr.folder-id-${id} div.folder-preview > span.outer:last`);
                 }
                 lstSpan.append($('<span class="inner"></span>'));
-                lstSpan.children('span.inner:last').append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`))
+                const $inner = lstSpan.children('span.inner:last');
+                $inner.append($(`tr.folder-id-${id} div.folder-storage > tr > td.vm-name > span.outer > span.inner > a:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                return $inner;
             };
             break;
         default:
-            addPreview = (id) => { };
+            addPreview = () => $();
             break;
     }
 
@@ -1905,6 +1967,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
 
+    const hiddenPreviewSet = new Set(Array.isArray(folder?.hiddenPreviewMembers) ? folder.hiddenPreviewMembers : []);
     // loop over the containers
     for (const container of combinedMembers) {
 
@@ -1968,7 +2031,11 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                 vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
             
-            addPreview(id, ct.autostart);
+            if (!hiddenPreviewSet.has(container)) {
+            const $previewMember = addPreview(id, ct.autostart);
+            if ($previewMember && $previewMember.length) {
+                $previewMember.attr('data-fv-runtime-name', container);
+            }
             $(`tr.folder-id-${id} div.folder-preview span.inner > a`).css("width", folder.settings.preview_text_width || '');
 
             // element to set the preview options
@@ -1993,6 +2060,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
                     sel = element;
                 }
                 sel.append($(`<span class="folder-element-custom-btn folder-element-logs"><a href="#" onclick="openTerminal('log', '${container}', '${ct.logs}')"><i class="fa fa-bars" aria-hidden="true"></i></a></span>`));
+            }
             }
 
             // set the status of the folder
@@ -2290,7 +2358,7 @@ const rmFolder = (id) => {
     async (c) => {
         if (!c) { setTimeout(loadlist); return; }
         $('div.spinner.fixed').show('slow');
-        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'vm', id: id }).promise();
+        await pluginRequestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'vm', id });
         loadedFolder = false;
         setTimeout(loadlist, 500)
     });
@@ -2475,9 +2543,10 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                         type: 'error',
                         html: true,
                         confirmButtonText: 'Ok'
-                    }, queueLoadlistRefresh);
+                    }, () => { void refreshVmRuntimeStateInPlace(); });
                 } else {
-                    queueLoadlistRefresh();
+                    await refreshVmRuntimeStateInPlace();
+                    window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
                 }
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
@@ -2633,11 +2702,11 @@ const cloneVmFolderFromMenu = async (id) => {
         };
         $('div.spinner.fixed').show('slow');
         try {
-            await $.post('/plugins/folderview.plus/server/create.php', {
+            await pluginRequestClient.postJson('/plugins/folderview.plus/server/create.php', {
                 type: 'vm',
                 content: JSON.stringify(clonePayload)
-            }).promise();
-            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' }).promise();
+            });
+            await pluginRequestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' });
             queueLoadlistRefresh();
         } finally {
             $('div.spinner.fixed').hide('slow');
@@ -2749,7 +2818,7 @@ const pasteVmFolderSettingsFromMenu = async (id) => {
                     targetIds: JSON.stringify([id]),
                     settings: JSON.stringify(clipboardEntry.payload)
                 }, {
-                    retries: 1,
+                    retries: 0,
                     retryDelayMs: 260
                 });
                 swal.close();
@@ -3095,12 +3164,15 @@ let folderDebugMode  = false;
 let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
+let vmRuntimeInfoByName = {};
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+let lastVmRuntimeSnapshotToken = '';
+let lastVmRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -3135,10 +3207,224 @@ const queueLoadlistRefresh = () => {
     }, delayMs);
 };
 
-const fetchVmStateSignature = async () => {
-    const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=vm&mode=state').promise();
-    const parsed = parseJsonPayloadSafe(payload);
-    return buildVmStateSignature(parsed, true);
+const fetchVmRuntimeSnapshotCheck = async () => {
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function') {
+        const parsed = await pluginRequestClient.getJson('/plugins/folderview.plus/server/read_info.php', {
+            data: { type: 'vm', mode: 'state' },
+            cache: false
+        });
+        const signature = buildVmStateSignature(parsed, true);
+        return {
+            notModified: signature === lastLiveRefreshStateSignature,
+            snapshotToken: '',
+            runtimeSignature: signature
+        };
+    }
+    const payload = await pluginRequestClient.getJson(runtimeSnapshotApi.buildUrl('vm', 'check', {
+        since: lastVmRuntimeSnapshotToken,
+        forceRefresh: true
+    }), { cache: false });
+    return runtimeSnapshotApi.parsePayload(payload);
+};
+
+const rememberVmRuntimeSnapshot = (snapshot) => {
+    if (snapshot?.snapshotToken) {
+        lastVmRuntimeSnapshotToken = String(snapshot.snapshotToken);
+    }
+    if (snapshot?.revisions && typeof snapshot.revisions === 'object') {
+        lastVmRuntimeSnapshotRevisions = {
+            folder: Math.max(0, Number(snapshot.revisions.folder) || 0),
+            prefs: Math.max(0, Number(snapshot.revisions.prefs) || 0)
+        };
+    }
+};
+
+const vmRuntimeSnapshotConfigMatches = (snapshot) => {
+    if (!lastVmRuntimeSnapshotToken || !snapshot?.revisions) {
+        return true;
+    }
+    return Math.max(0, Number(snapshot.revisions.folder) || 0) === lastVmRuntimeSnapshotRevisions.folder
+        && Math.max(0, Number(snapshot.revisions.prefs) || 0) === lastVmRuntimeSnapshotRevisions.prefs;
+};
+
+const normalizeVmRuntimeInfoMap = (source, previousMap = null) => {
+    const rawMap = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+    const previous = previousMap && typeof previousMap === 'object' && !Array.isArray(previousMap) ? previousMap : {};
+    const normalized = {};
+    Object.entries(rawMap).forEach(([name, entry]) => {
+        const safeName = String(name || entry?.name || '').trim();
+        if (!safeName || !entry || typeof entry !== 'object') {
+            return;
+        }
+        normalized[safeName] = {
+            ...(previous[safeName] || {}),
+            ...entry,
+            name: safeName,
+            uuid: String(entry.uuid || previous[safeName]?.uuid || '').trim(),
+            state: String(entry.state || previous[safeName]?.state || 'unknown').trim().toLowerCase(),
+            autostart: entry.autostart === true
+        };
+    });
+    return normalized;
+};
+
+const getVmRuntimeStateMeta = (entry = {}) => {
+    const state = String(entry?.state || 'unknown').trim().toLowerCase();
+    if (state === 'running') {
+        return { state, key: 'started', icon: 'fa-play', className: 'started' };
+    }
+    if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') {
+        return { state, key: 'paused', icon: 'fa-pause', className: 'paused' };
+    }
+    return { state, key: 'stopped', icon: 'fa-square', className: 'stopped' };
+};
+
+const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
+    if (!$surface || !$surface.length) {
+        return;
+    }
+    const meta = getVmRuntimeStateMeta(entry);
+    const label = typeof $.i18n === 'function' ? String($.i18n(meta.key) || meta.key) : meta.key;
+    const $outer = $surface.hasClass('outer') ? $surface : $surface.find('span.outer').first();
+    const $scope = $outer.length ? $outer : $surface;
+    const $state = $scope.find('span.state').first();
+    const $icon = $state.length ? $state.prevAll('i.fa').first() : $scope.find('i[id^="load-"], i.folder-load-status-vm').first();
+    $scope.add($scope.find('span.hand, span.inner, a')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
+    $surface.attr('data-fv-runtime-state', meta.state);
+    if ($icon.length) {
+        $icon.removeClass('fa-play fa-pause fa-square started paused stopped running shutoff pmsuspended unknown')
+            .addClass(`fa ${meta.icon} ${meta.className}`);
+    }
+    if ($state.length) {
+        $state.text(` ${label}`).removeClass('started paused stopped').addClass(meta.className);
+    }
+    $scope.toggleClass('autostart', entry?.autostart === true);
+};
+
+const findVmRuntimeRowsByName = (name) => {
+    const safeName = String(name || '').trim();
+    if (!safeName) {
+        return $();
+    }
+    return $('#kvm_list tr').not('.folder').filter(function matchVmRuntimeRow() {
+        return String($(this).find('td.vm-name span.outer span.inner a').first().text() || '').trim() === safeName;
+    });
+};
+
+const updateVmFolderRuntimeSummary = (id, folder) => {
+    const names = Object.keys(folder?.containers || {});
+    const entries = names.map((name) => vmRuntimeInfoByName[name]).filter(Boolean);
+    let started = 0;
+    let paused = 0;
+    let stopped = 0;
+    let autostart = 0;
+    let autostartStarted = 0;
+    entries.forEach((entry) => {
+        const meta = getVmRuntimeStateMeta(entry);
+        if (meta.className === 'started') started += 1;
+        else if (meta.className === 'paused') paused += 1;
+        else stopped += 1;
+        if (entry.autostart === true) {
+            autostart += 1;
+            if (meta.className !== 'stopped') autostartStarted += 1;
+        }
+        const current = folder.containers[entry.name] && typeof folder.containers[entry.name] === 'object'
+            ? folder.containers[entry.name]
+            : {};
+        folder.containers[entry.name] = { ...current, id: entry.uuid || current.id || '', state: entry.state, autostart: entry.autostart === true };
+    });
+    const total = entries.length;
+    const $folderRow = $(`tr.folder-id-${id}`);
+    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderState = $folderRow.find('span.folder-state');
+    const aggregate = started > 0
+        ? { count: started, key: 'started', icon: 'fa-play', className: 'started' }
+        : (paused > 0
+            ? { count: paused, key: 'paused', icon: 'fa-pause', className: 'paused' }
+            : { count: stopped, key: 'stopped', icon: 'fa-square', className: 'stopped' });
+    $folderIcon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${aggregate.icon} ${aggregate.className} folder-load-status`);
+    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
+        .text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`)
+        .addClass(`fv-folder-state-${aggregate.className}`);
+    $folderRow.removeClass('no-autostart autostart-off autostart-partial autostart-full');
+    if (autostart === 0) $folderRow.addClass('no-autostart');
+    else if (autostartStarted === 0) $folderRow.addClass('autostart-off');
+    else if (autostartStarted < autostart) $folderRow.addClass('autostart-partial');
+    else $folderRow.addClass('autostart-full');
+    $(`#folder-${id}-auto`).prop('checked', autostart > 0);
+    const expanded = folder?.status?.expanded === true;
+    folder.status = { started, paused, stopped, autostart, autostartStarted, expanded };
+};
+
+const syncVmRuntimeRows = (changedNames) => {
+    const changedSet = changedNames instanceof Set ? changedNames : new Set(Array.isArray(changedNames) ? changedNames : []);
+    changedSet.forEach((name) => {
+        const entry = vmRuntimeInfoByName[name];
+        if (!entry) return;
+        findVmRuntimeRowsByName(name).each((_, row) => syncVmRuntimeStateSurface($(row), entry));
+        $('[data-fv-runtime-name]').filter(function matchVmPreviewMember() {
+            return String($(this).attr('data-fv-runtime-name') || '') === name;
+        }).each((_, node) => syncVmRuntimeStateSurface($(node), entry));
+    });
+    let patchedFolders = 0;
+    Object.entries(globalFolders || {}).forEach(([id, folder]) => {
+        const names = Object.keys(folder?.containers || {});
+        if (!names.some((name) => changedSet.has(name))) return;
+        updateVmFolderRuntimeSummary(id, folder);
+        patchedFolders += 1;
+    });
+    renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    refreshVmFolderQuickActionStates();
+    applyVmFocusedFolderState();
+    vmRuntimeStateStore.set({
+        rowReconciliation: {
+            mode: 'incremental',
+            changedRows: changedSet.size,
+            patchedFolders,
+            capturedAt: new Date().toISOString()
+        }
+    });
+    scheduleVmZebraRefresh(0);
+};
+
+const refreshVmRuntimeStateInPlace = async () => {
+    try {
+        const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
+        const payload = await pluginRequestClient.getJson(useSnapshot
+            ? runtimeSnapshotApi.buildUrl('vm', 'state', { forceRefresh: true })
+            : '/plugins/folderview.plus/server/read_info.php?type=vm&mode=state&nocache=1', { cache: false });
+        const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
+        const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
+        if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !vmRuntimeSnapshotConfigMatches(snapshot))) {
+            queueLoadlistRefresh();
+            return false;
+        }
+        const nextRuntimeInfo = normalizeVmRuntimeInfoMap(parsed, vmRuntimeInfoByName);
+        const rowDiff = runtimeSnapshotApi && typeof runtimeSnapshotApi.diffRuntimeRows === 'function'
+            ? runtimeSnapshotApi.diffRuntimeRows('vm', vmRuntimeInfoByName, nextRuntimeInfo)
+            : { changed: Object.keys(nextRuntimeInfo), structuralChanged: true, hasChanges: true };
+        vmRuntimeInfoByName = nextRuntimeInfo;
+        lastLiveRefreshStateSignature = buildVmStateSignature(parsed, true);
+        if (snapshot) rememberVmRuntimeSnapshot(snapshot);
+        if (rowDiff.structuralChanged) {
+            vmRuntimeStateStore.set({
+                rowReconciliation: {
+                    mode: 'structural-fallback',
+                    changedRows: Number(rowDiff.changed?.length || 0),
+                    addedRows: Number(rowDiff.added?.length || 0),
+                    removedRows: Number(rowDiff.removed?.length || 0),
+                    capturedAt: new Date().toISOString()
+                }
+            });
+            queueLoadlistRefresh();
+            return false;
+        }
+        if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
+        return true;
+    } catch (_error) {
+        queueLoadlistRefresh();
+        return false;
+    }
 };
 
 const clearLiveRefreshTimer = () => {
@@ -3156,19 +3442,18 @@ const runLiveRefreshTick = () => {
     liveRefreshInFlight = true;
     Promise.resolve()
         .then(async () => {
-            let nextSignature = '';
+            let check = null;
             try {
-                nextSignature = await fetchVmStateSignature();
+                check = await fetchVmRuntimeSnapshotCheck();
             } catch (_error) {
-                nextSignature = '';
+                check = null;
             }
-            if (!nextSignature) {
+            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                 queueLoadlistRefresh();
                 return;
             }
-            if (nextSignature !== lastLiveRefreshStateSignature) {
-                lastLiveRefreshStateSignature = nextSignature;
-                queueLoadlistRefresh();
+            if (check.notModified !== true) {
+                await refreshVmRuntimeStateInPlace();
             }
         })
         .finally(() => {
@@ -3385,8 +3670,22 @@ const applyRuntimePrefs = (prefs) => {
     const vmPrivacyMode = normalized?.dashboard?.privacyMode === true;
     $('body').toggleClass('fvplus-privacy-vm-runtime', vmPrivacyMode);
     $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
+    window.FolderViewPlusRuntimePrivacy?.apply('vm', vmPrivacyMode, normalized?.dashboard || {});
     scheduleLiveRefresh(normalized);
 };
+const bindVmRuntimePreferenceSync = () => {
+    if (!vmPrefsCoordinator || typeof vmPrefsCoordinator.subscribe !== 'function') {
+        return;
+    }
+    vmPrefsCoordinator.subscribe((snapshot) => {
+        if (snapshot?.type !== 'vm' || !snapshot?.prefs) {
+            return;
+        }
+        folderTypePrefs = applyVmPinnedFolderPrefsOverride(utils.normalizePrefs(snapshot.prefs));
+        applyRuntimePrefs(folderTypePrefs);
+    });
+};
+bindVmRuntimePreferenceSync();
 window.getVmRuntimePerfTelemetrySnapshot = () => {
     if (!vmPerfTelemetry || typeof vmPerfTelemetry.snapshot !== 'function') {
         return {};
@@ -3397,36 +3696,49 @@ window.getVmRuntimeStateSnapshot = () => vmRuntimeStateStore.getState();
 
 function buildVmFolderReq() {
     const cacheBust = Date.now();
-    const safePrefsReq = createVmRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=vm&_=${cacheBust}`, {
-        source: 'prefs',
-        label: 'VM preferences',
-        allowFallback: true,
-        fallbackValue: JSON.stringify({ ok: false, prefs: {} })
-    });
-    return [
-        // Get the folders
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read.php?type=vm', {
+    const legacyFactories = [
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read.php?type=vm', {
             source: 'folders',
             label: 'VM folder definitions'
         }),
-        // Get the order as unraid sees it
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=vm', {
             source: 'folder-order',
             label: 'VM folder order'
         }),
-        // Get the info on VMs, needed for autostart and started
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=vm', {
             source: 'runtime-info',
             label: 'VM runtime info'
         }),
-        // Get the order that is shown in the webui
-        createVmRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {
+        () => createVmRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=vm', {
             source: 'host-order',
             label: 'VM host order'
         }),
-        // Get sort and auto-assignment preferences
-        safePrefsReq
+        () => createVmRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=vm&_=${cacheBust}`, {
+            source: 'prefs',
+            label: 'VM preferences',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({ ok: false, prefs: {} })
+        })
     ];
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.createProjectedBundle !== 'function') {
+        return legacyFactories.map((factory) => factory());
+    }
+    const snapshotRequest = createVmRuntimeRequest(runtimeSnapshotApi.buildUrl('vm', 'full', {
+        cacheBust
+    }), {
+        source: 'runtime-snapshot-full',
+        label: 'VM runtime snapshot'
+    });
+    return runtimeSnapshotApi.createProjectedBundle(
+        snapshotRequest,
+        ['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'],
+        {
+            onSnapshot: (snapshot) => {
+                rememberVmRuntimeSnapshot(snapshot);
+            },
+            fallbackFactories: legacyFactories
+        }
+    );
 }
 
 // Prime requests for environments where loadlist isn't called first.

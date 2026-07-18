@@ -10,6 +10,6 @@ fvplus_json_try(function (): array {
         throw new RuntimeException('Missing required parameters.');
     }
 
-    updateFolder($type, $content, $id);
-    return [];
+    $metadata = updateFolder($type, $content, $id, $_POST['expectedRevision'] ?? '');
+    return ['metadata' => $metadata];
 });

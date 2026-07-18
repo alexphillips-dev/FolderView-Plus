@@ -18,6 +18,9 @@ test('browser smoke includes Docker diagnostics and loadlist rebuild coverage', 
     assert.match(browserSmoke, /const runDockerPreviewStatusSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
     assert.match(browserSmoke, /const runDashboardAdvancedPreviewSmoke = async \(page,\s*\{\s*browserName,\s*url\s*\}\) => \{/);
     assert.match(browserSmoke, /const runNativeOrganizerDiagnosticsSmoke = async \(page,\s*\{\s*browserName,\s*settingsUrl\s*\}\) => \{/);
+    assert.match(browserSmoke, /optionalStatePresent: organizerCard\?\.classList\.contains\('is-info'\) === true/);
+    assert.match(browserSmoke, /checkAgainPresent: Boolean\(organizerCard\?\.querySelector/);
+    assert.match(browserSmoke, /organizerIssueCountPresent === true/);
     assert.match(browserSmoke, /const pageKey = 'fv\.support\.bundle\.docker\.page\.v1';/);
     assert.match(browserSmoke, /const requestKey = 'fv\.support\.bundle\.docker\.requestBundleTrace\.v1';/);
     assert.match(browserSmoke, /const bulkKey = 'fv\.support\.bundle\.docker\.bulkUpdateTrace\.v1';/);

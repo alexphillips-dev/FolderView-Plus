@@ -4155,6 +4155,25 @@ table.sortable td:nth-child(3) {
     text-align: center;
 }
 
+table.sortable th:nth-child(4),
+table.sortable td:nth-child(4) {
+    width: 150px;
+    text-align: center;
+}
+
+.fv-member-preview-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45em;
+    color: var(--fv-editor-text-primary);
+    cursor: pointer;
+}
+
+.fv-member-preview-toggle input:disabled + span {
+    opacity: 0.48;
+}
+
 .item {
     height: 4.35em;
     border-bottom: 1px solid var(--fv-editor-block-border);

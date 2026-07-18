@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "zh-Hans",
+        "namespace": "dashboard"
+    },
+    "dashboard.folder.toggle-members": "切换文件夹成员"
+}

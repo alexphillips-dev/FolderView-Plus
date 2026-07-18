@@ -33,10 +33,11 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
     assert.match(vmJs, /const confirmedPrefs = await fetchVmPinnedFolderPrefs\(\);/);
     assert.match(vmJs, /throw new Error\('VM pinned folders did not persist\.'\);/);
     assert.match(vmJs, /rememberVmPinnedFolderIdsOverride\(nextPinned\);/);
-    assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(prefsResponse\?\.prefs \|\| \{\}\);/);
-    assert.match(vmJs, /const cacheBust = Date\.now\(\);\s*const safePrefsReq = createVmRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=vm&_=\$\{cacheBust\}`/s);
-    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, queueLoadlistRefresh\);\s*\} else \{\s*queueLoadlistRefresh\(\);\s*\}\s*\} finally \{/s);
-    assert.doesNotMatch(vmJs, /}, queueLoadlistRefresh\);\s*}\s*queueLoadlistRefresh\(\);\s*} finally \{/s);
+    assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(normalizeVmPrefsResponse\(prefsResponse\)\);/);
+    assert.match(vmJs, /const cacheBust = Date\.now\(\);[\s\S]*?const snapshotRequest = createVmRuntimeRequest\(runtimeSnapshotApi\.buildUrl\('vm', 'full', \{[\s\S]*?cacheBust[\s\S]*?\}\)/);
+    assert.match(vmJs, /createProjectedBundle\([\s\S]*?\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
+    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, \(\) => \{ void refreshVmRuntimeStateInPlace\(\); \}\);\s*\} else \{\s*await refreshVmRuntimeStateInPlace\(\);/s);
+    assert.doesNotMatch(vmJs, /if \(errors\.length > 0\)[\s\S]{0,800}queueLoadlistRefresh\(\)/);
 });
 
 test('vm page reloads when settings changes vm pinned folders', () => {

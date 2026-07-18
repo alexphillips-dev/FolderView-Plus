@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ru",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Настройки поиска",
+    "settings.search.label": "Настройки поиска",
+    "settings.search.clear-label": "Очистить поиск настроек",
+    "settings.search.clear-title": "Очистить поиск",
+    "settings.search.scope": "Область",
+    "settings.search.scope-help": "Выберите, охватывает ли Расширенный поиск эту вкладку или все вкладки Расширенного поиска",
+    "settings.search.scope-label": "Область поиска расширенных настроек",
+    "settings.search.scope-current": "Текущая вкладка",
+    "settings.search.scope-all": "Все расширенные",
+    "settings.header.plugin-settings": "Настройки плагина",
+    "settings.mode.title": "Режим настроек",
+    "settings.mode.basic-label": "Использовать основной режим настроек",
+    "settings.mode.advanced-label": "Использовать расширенный режим настроек",
+    "settings.wizard.title": "Запустить помощник по настройке",
+    "settings.tabs.basic": "Основной",
+    "settings.tabs.advanced": "Расширенный",
+    "settings.tabs.wizard": "Мастер",
+    "settings.privacy.title": "Режим конфиденциальности",
+    "settings.privacy.mask-names": "Скрывать имена и иконки",
+    "settings.privacy.mask-lan-ips": "Скрывать LAN IPs",
+    "settings.privacy.mask-ports": "Маскирование портов",
+    "settings.privacy.lan-help": "LAN IP маскирование применяется к IP части Docker страницы LAN IP:СТОЛБЕЦ ПОРТА. Используйте Маскирование портов для части порта."
+}

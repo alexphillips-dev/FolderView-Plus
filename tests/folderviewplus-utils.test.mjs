@@ -5,6 +5,27 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const utils = require('../src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 
+test('normalizePrefs preserves transient configuration revision metadata for stale-save protection', () => {
+    const prefs = utils.normalizePrefs({
+        sortMode: 'manual',
+        _metadata: {
+            schemaVersion: 1,
+            type: 'docker',
+            folderRevision: 4,
+            prefsRevision: 7,
+            updatedAt: '2026-07-15T12:00:00+00:00'
+        }
+    });
+
+    assert.deepEqual(prefs._metadata, {
+        schemaVersion: 1,
+        type: 'docker',
+        folderRevision: 4,
+        prefsRevision: 7,
+        updatedAt: '2026-07-15T12:00:00+00:00'
+    });
+});
+
 test('buildFullExportPayload includes schema metadata and folders', () => {
     const payload = utils.buildFullExportPayload({
         type: 'docker',
@@ -348,6 +369,13 @@ test('normalizePrefs provides dashboard defaults', () => {
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -375,6 +403,13 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -386,6 +421,8 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         }
     });
     assert.equal(matrix.dashboard.layout, 'compactmatrix');
+    const embossed = utils.normalizePrefs({ dashboard: { layout: 'embossed' } });
+    assert.equal(embossed.dashboard.layout, 'embossed');
     const legacy = utils.normalizePrefs({
         dashboard: {
             layout: 'legacy'
@@ -401,7 +438,7 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
 });
 
 test('utils exports shared dashboard metadata and runtime-safe escaping helpers', () => {
-    assert.deepEqual(utils.DASHBOARD_LAYOUT_OPTIONS, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    assert.deepEqual(utils.DASHBOARD_LAYOUT_OPTIONS, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']);
     assert.equal(utils.DASHBOARD_LAYOUT_LABELS.legacy, 'Legacy');
     assert.deepEqual(utils.DASHBOARD_OVERFLOW_OPTIONS, ['default', 'expand_row', 'scroll']);
     assert.equal(utils.normalizeDashboardOverflowMode('expand_row'), 'expand_row');
@@ -665,15 +702,15 @@ test('normalizePrefs supports theme compatibility mode and sanitizes invalid val
     });
     assert.equal(commandViewMode.pageViewMode, 'command');
 
-    const treeExplorerMode = utils.normalizePrefs({
+    const removedTreeExplorerMode = utils.normalizePrefs({
         pageViewMode: 'TREE-EXPLORER'
     });
-    assert.equal(treeExplorerMode.pageViewMode, 'tree-explorer');
+    assert.equal(removedTreeExplorerMode.pageViewMode, 'folderview');
 
-    const orbitMode = utils.normalizePrefs({
+    const removedOrbitMode = utils.normalizePrefs({
         pageViewMode: 'ORBIT'
     });
-    assert.equal(orbitMode.pageViewMode, 'orbit');
+    assert.equal(removedOrbitMode.pageViewMode, 'folderview');
 
     const folderViewMode = utils.normalizePrefs({
         pageViewMode: 'folderview'

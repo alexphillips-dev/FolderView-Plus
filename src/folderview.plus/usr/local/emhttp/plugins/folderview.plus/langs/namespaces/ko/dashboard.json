@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ko",
+        "namespace": "dashboard"
+    },
+    "dashboard.folder.toggle-members": "폴더 구성원 전환"
+}

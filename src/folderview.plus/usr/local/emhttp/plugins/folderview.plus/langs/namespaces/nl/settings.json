@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "nl",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Zoekinstellingen",
+    "settings.search.label": "Zoekinstellingen",
+    "settings.search.clear-label": "Zoekinstellingen wissen",
+    "settings.search.clear-title": "Zoeken wissen",
+    "settings.search.scope": "Bereik",
+    "settings.search.scope-help": "Kies of Geavanceerd zoeken deze tab of alle Geavanceerde tabbladen omvat",
+    "settings.search.scope-label": "Bereik geavanceerde instellingen zoeken",
+    "settings.search.scope-current": "Huidige tab",
+    "settings.search.scope-all": "Alle geavanceerde",
+    "settings.header.plugin-settings": "Plugin-instellingen",
+    "settings.mode.title": "Instellingsmodus",
+    "settings.mode.basic-label": "Gebruik basisinstellingsmodus",
+    "settings.mode.advanced-label": "Gebruik geavanceerde instellingsmodus",
+    "settings.wizard.title": "Hulp bij installatie uitvoeren",
+    "settings.tabs.basic": "Basis",
+    "settings.tabs.advanced": "Geavanceerd",
+    "settings.tabs.wizard": "Wizard",
+    "settings.privacy.title": "Privacy-modus",
+    "settings.privacy.mask-names": "Masker namen en pictogrammen",
+    "settings.privacy.mask-lan-ips": "Masker LAN IPs",
+    "settings.privacy.mask-ports": "Poorten maskeren",
+    "settings.privacy.lan-help": "LAN IP maskering is van toepassing op het IP gedeelte van de Docker pagina's LAN IP:POORT kolom. Gebruik Poorten maskeren voor het poortgedeelte."
+}

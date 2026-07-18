@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "uk",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Додати користувацьку дію",
+    "editor.actions.standard": "Стандартний",
+    "editor.actions.user-script": "Скрипт користувача",
+    "editor.actions.control-members": "Контролювати обраних учасників папки.",
+    "editor.actions.run-user-script": "Запустити завдання з плагіна User Scripts.",
+    "editor.members.toggle-preview-help": "Залишити цього учасника в папці, але приховати його у згорнутому перегляді",
+    "editor.members.visible": "Видимий",
+    "editor.members.auto-included": "Автоматично включено regex або міткою",
+    "editor.members.drag-reorder": "Перетягніть для зміни порядку",
+    "editor.members.move-up": "Перемістити вгору",
+    "editor.members.move-down": "Перемістити вниз"
+}

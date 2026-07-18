@@ -13,6 +13,7 @@ const requestScript = fs.readFileSync(requestScriptPath, 'utf8');
 
 const createJQueryMock = (plan = []) => {
     const ajaxSetupCalls = [];
+    const ajaxPrefilters = [];
     const ajaxCalls = [];
     let callCount = 0;
 
@@ -66,16 +67,18 @@ const createJQueryMock = (plan = []) => {
     return {
         $: {
             ajaxSetup: (payload) => ajaxSetupCalls.push(payload),
+            ajaxPrefilter: (handler) => ajaxPrefilters.push(handler),
             ajax
         },
         getCallCount: () => callCount,
         getAjaxSetupCalls: () => ajaxSetupCalls,
+        getAjaxPrefilters: () => ajaxPrefilters,
         getAjaxCalls: () => ajaxCalls
     };
 };
 
 const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
-    const { $, getCallCount, getAjaxSetupCalls, getAjaxCalls } = createJQueryMock(plan);
+    const { $, getCallCount, getAjaxSetupCalls, getAjaxPrefilters, getAjaxCalls } = createJQueryMock(plan);
     const storage = new Map();
     if (token) {
         storage.set('fv.request.token', token);
@@ -101,7 +104,9 @@ const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
         JSON,
         Promise,
         String,
-        Number
+        Number,
+        URL,
+        URLSearchParams
     };
     context.window.$ = $;
     context.window.document = context.document;
@@ -114,18 +119,23 @@ const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
         api: context.window.FolderViewPlusRequest,
         getCallCount,
         getAjaxSetupCalls,
+        getAjaxPrefilters,
         getAjaxCalls
     };
 };
 
-test('request client configures ajax headers with token', () => {
-    const { api, getAjaxSetupCalls } = loadRequestClient({ token: 'abc123' });
+test('request client scopes compatibility headers to plugin-owned URLs', () => {
+    const { api, getAjaxSetupCalls, getAjaxPrefilters } = loadRequestClient({ token: 'abc123' });
     assert.ok(api);
-    const setupCalls = getAjaxSetupCalls();
-    assert.ok(setupCalls.length >= 1);
-    const lastHeaders = setupCalls[setupCalls.length - 1]?.headers || {};
-    assert.equal(lastHeaders['X-FV-Request'], '1');
-    assert.equal(lastHeaders['X-FV-Token'], 'abc123');
+    assert.equal(getAjaxSetupCalls().length, 0);
+    assert.equal(getAjaxPrefilters().length, 1);
+    const pluginOptions = { url: '/plugins/folderview.plus/server/read.php', headers: {} };
+    const hostOptions = { url: '/plugins/dynamix.vm.manager/include/VMajax.php', headers: {} };
+    getAjaxPrefilters()[0](pluginOptions);
+    getAjaxPrefilters()[0](hostOptions);
+    assert.equal(pluginOptions.headers['X-FV-Request'], '1');
+    assert.equal(pluginOptions.headers['X-FV-Token'], 'abc123');
+    assert.deepEqual(hostOptions.headers, {});
 });
 
 test('request client generates trace IDs and sends them on mutation payload + headers', async () => {
@@ -201,6 +211,26 @@ test('request client surfaces backend JSON error details in thrown message', asy
     assert.equal(getCallCount(), 1);
 });
 
+test('request client preserves HTTP status and response details for conflict recovery', async () => {
+    const { api } = loadRequestClient({
+        plan: [{
+            type: 'error',
+            textStatus: 'error',
+            jqXHR: {
+                status: 409,
+                statusText: 'Conflict',
+                responseJSON: { ok: false, error: 'Stale revision.' },
+                responseText: '{"ok":false,"error":"Stale revision."}'
+            }
+        }]
+    });
+
+    await assert.rejects(
+        () => api.postJson('/plugins/folderview.plus/server/prefs.php', { type: 'docker' }, { retries: 0 }),
+        (error) => error.status === 409 && error.httpStatus === 409 && error.response?.error === 'Stale revision.'
+    );
+});
+
 test('request client appends mutation markers to POST payload for guard compatibility', async () => {
     const { api, getAjaxCalls } = loadRequestClient({
         token: 'tok-123',
@@ -217,4 +247,51 @@ test('request client appends mutation markers to POST payload for guard compatib
     assert.equal(call.method, 'POST');
     assert.equal(call.data._fv_request, '1');
     assert.equal(call.data.token, 'tok-123');
+});
+
+test('request client retries reads but never replays mutations by default', async () => {
+    const readClient = loadRequestClient({
+        plan: [
+            { type: 'error', status: 503, statusText: 'Service Unavailable' },
+            { type: 'success', data: '{"ok":true}' }
+        ]
+    });
+    assert.equal((await readClient.api.getJson('/plugins/folderview.plus/server/read.php')).ok, true);
+    assert.equal(readClient.getCallCount(), 2);
+
+    const mutationClient = loadRequestClient({
+        plan: [
+            { type: 'error', status: 503, statusText: 'Service Unavailable' },
+            { type: 'success', data: '{"ok":true}' }
+        ]
+    });
+    await assert.rejects(
+        () => mutationClient.api.postJson('/plugins/folderview.plus/server/update.php', { type: 'docker' }),
+        /HTTP 503/
+    );
+    assert.equal(mutationClient.getCallCount(), 1);
+});
+
+test('request client builds encoded URLs and exposes bounded sanitized diagnostics', async () => {
+    const { api } = loadRequestClient({
+        plan: [{ type: 'success', data: '{"ok":true}' }]
+    });
+    const url = api.buildUrl('/plugins/folderview.plus/server/read.php', {
+        type: 'docker',
+        name: 'Media Server',
+        tags: ['one', 'two']
+    });
+    assert.match(url, /^\/plugins\/folderview\.plus\/server\/read\.php\?/);
+    assert.match(url, /name=Media\+Server/);
+    assert.match(url, /tags=one&tags=two/);
+
+    await api.getJson(`${url}&secret=do-not-export`);
+    const diagnostics = api.diagnostics();
+    assert.equal(diagnostics.length, 1);
+    assert.equal(diagnostics[0].endpoint, '/plugins/folderview.plus/server/read.php');
+    assert.equal(diagnostics[0].outcome, 'ok');
+    assert.equal(diagnostics[0].attempts, 1);
+    assert.doesNotMatch(JSON.stringify(diagnostics), /do-not-export/);
+    api.clearDiagnostics();
+    assert.equal(api.diagnostics().length, 0);
 });

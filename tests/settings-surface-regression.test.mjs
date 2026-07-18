@@ -101,17 +101,43 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_BUDGET_MS = Object\.freeze\(\{/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 15 \* 60 \* 1000;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_RECENT_WINDOW = 3;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_REPEAT_THRESHOLD = 2;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_EXTREME_MULTIPLIER = 3;/);
     assert.match(diagnosticsJs, /const resolvePerformanceDiagnosticsBudgetMs = \(bucket, type = 'global'\) =>/);
-    assert.match(diagnosticsJs, /overBudget:\s*hasBudget \? maxMs > resolvedBudgetMs : false/);
+    assert.match(diagnosticsJs, /overBudget:\s*repeatedOverBudget \|\| extremeOverBudget/);
+    assert.match(diagnosticsJs, /coldLoad:\s*row\?\.details\?\.coldLoad === true/);
     assert.match(diagnosticsJs, /const buildPerformanceBudgetDiagnosticsSummaryCard = \(\) => \{/);
     assert.match(diagnosticsJs, /label:\s*'Performance Budgets'/);
-    assert.match(diagnosticsJs, /cards\.push\(performanceBudgetCard\);/);
-    assert.match(diagnosticsJs, /<th>Budget<\/th>/);
+    assert.match(diagnosticsJs, /const advisoryCards = performanceBudgetCard \? \[performanceBudgetCard\] : \[\];/);
+    assert.match(diagnosticsJs, /const optionalCards = \[nativeOrganizerCard, localizationCard\]\.filter\(Boolean\);/);
+    assert.match(diagnosticsJs, /label: 'Performance advisories'/);
+    assert.match(diagnosticsJs, /label: 'Optional integrations'/);
+    assert.match(diagnosticsJs, /const retestPerformanceDiagnostics = async \(\) => \{/);
+    assert.match(diagnosticsJs, /window\.FolderViewPlusRefreshCoreData/);
+    assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = refreshCoreData;/);
+    assert.match(settingsJs, /coldLoad: settingsUiState\.initialized !== true/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-sections\s*\{/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-core\s*\{\s*grid-column:\s*1 \/ -1;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-advisory\s*\{\s*grid-column:\s*span 1;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional\s*\{\s*grid-column:\s*span 2;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional > \.fv-diagnostics-card-grid\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section-head strong\s*\{[\s\S]*?font-size:\s*1\.3rem;/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane-head strong\s*\{[\s\S]*?font-size:\s*1\.3rem;/);
+    assert.match(settingsPage, /class="fv-diagnostics-lane-head is-support"[\s\S]*?>Share with support<\/strong>/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane-head\.is-support > strong\s*\{\s*color:\s*var\(--fvplus-settings-chip-info\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);
+    assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsActionCards = \(actions\) =>/);
     assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
     assert.match(diagnosticsJs, /const buildNativeOrganizerDiagnosticsSummaryCard = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /Native organizer sync status is waiting for the Docker page/);
+    assert.match(diagnosticsJs, /info:\s*Object\.freeze\(\{ label: 'Optional'/);
+    assert.match(diagnosticsJs, /const checkNativeOrganizerDiagnostics = async \(\) =>/);
+    assert.match(diagnosticsJs, /actionKey = 'check_native_organizer'/);
+    assert.match(diagnosticsJs, /status:\s*'info',[\s\S]{0,240}Optional native organizer integration is unavailable/);
     assert.match(diagnosticsJs, /nativeOrganizerCard/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
@@ -134,6 +160,9 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
+    assert.match(supportBundleBrowserJs, /nativeOrganizerSource/);
+    assert.match(supportBundleBrowserJs, /failureCategory: normalizeEnum\(nativeOrganizerSource\.failureCategory, NATIVE_ORGANIZER_FAILURE_CATEGORIES\)/);
+    assert.match(diagnosticsJs, /nativeOrganizer: NATIVE_ORGANIZER_STATUS_STORAGE_KEY/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);
     assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);
@@ -205,20 +234,15 @@ test('settings bootstrap verifies visible content after ready and recovers blank
     assert.match(settingsJs, /recoverBlankSettingsSurface\('post-ready-late'\)/);
 });
 
-test('folder health section uses the simplified summary-card layout', () => {
-    assert.match(settingsPage, /Simple folder health snapshot/);
-    assert.match(settingsJs, /folder-health-card-headline/);
-    assert.match(settingsJs, /buildCleanHealthCardHtml/);
-    assert.match(settingsJs, /folder-health-stat-grid/);
-    assert.match(settingsJs, /folder-health-issue-row/);
-    assert.match(settingsJs, /folder-health-filter-row/);
-    assert.match(settingsCss, /\.folder-health-card-headline/);
-    assert.match(settingsCss, /\.folder-health-stat-grid/);
-    assert.match(settingsCss, /\.folder-health-issue-row/);
-    assert.match(settingsCss, /\.folder-health-filter-row/);
-    assert.doesNotMatch(settingsJs, /folder-health-metrics/);
-    assert.doesNotMatch(settingsCss, /\.folder-health-pill-row/);
-    assert.doesNotMatch(settingsCss, /\.folder-health-metrics/);
+test('advanced diagnostics omits the retired simple folder health snapshot', () => {
+    assert.doesNotMatch(settingsPage, /Simple folder health snapshot/);
+    assert.doesNotMatch(settingsPage, /data-fv-section="folder-health"/);
+    assert.doesNotMatch(settingsPage, /id="folder-health-content"/);
+    assert.doesNotMatch(settingsJs, /renderFolderHealthCards/);
+    assert.doesNotMatch(settingsJs, /buildCleanHealthCardHtml/);
+    assert.doesNotMatch(settingsJs, /data-fv-health-(?:filter|action)/);
+    assert.doesNotMatch(settingsCss, /\.folder-health-(?:card|grid|empty|filter|actions|stat|issue)/);
+    assert.doesNotMatch(settingsSectionsJs, /'folder-health'/);
 });
 
 test('advanced settings no longer render quick profile preset strip', () => {
@@ -379,9 +403,9 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
 });
 
 test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
-    const suggestedFixesIndex = settingsPage.indexOf('<strong>Suggested fixes</strong>');
+    const suggestedFixesIndex = settingsPage.indexOf('>Suggested fixes</strong>');
     const diagnosticsSummaryIndex = settingsPage.indexOf('id="fv-diagnostics-summary"');
-    const shareWithSupportIndex = settingsPage.indexOf('<strong>Share with support</strong>');
+    const shareWithSupportIndex = settingsPage.indexOf('>Share with support</strong>');
     assert.match(settingsPage, /<div class="fv-diagnostics-module-wrap">/);
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
     assert.ok(suggestedFixesIndex >= 0, 'suggested fixes module is missing');

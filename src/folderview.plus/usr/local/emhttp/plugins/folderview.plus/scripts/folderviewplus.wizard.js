@@ -1,6 +1,15 @@
 // FolderView Plus setup assistant module.
 // Extracted from folderviewplus.js to keep core settings runtime easier to maintain.
 
+const setupAssistantT = (key, fallback = '', ...params) => {
+    if (window.FolderViewPlusI18n?.t) {
+        return window.FolderViewPlusI18n.t(key, fallback, ...params);
+    }
+    return String(fallback || key).replace(/\$(\d+)/g, (match, index) => (
+        params[Number(index) - 1] === undefined ? match : String(params[Number(index) - 1])
+    ));
+};
+
 const createSetupAssistantImportPlan = () => ({
     include: false,
     mode: 'merge',
@@ -1708,27 +1717,9 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
     }
 
     if (step === 'import' || step === 'review') {
-        const includeTypes = [];
-        for (const type of ['docker', 'vm']) {
-            const plan = setupAssistantState.importPlans[type];
-            if (!plan) {
-                continue;
-            }
-            if (plan.include === true) {
-                includeTypes.push(type);
-                if (!plan.parsed) {
-                    blockers.push(`${type.toUpperCase()} import is enabled but no file is selected.`);
-                }
-                if (plan.parsed?.legacy === true) {
-                    warnings.push(`${type.toUpperCase()} import uses legacy format. Review diff before apply.`);
-                }
-                const planWarnings = Array.isArray(plan.warnings) ? plan.warnings : [];
-                warnings.push(...planWarnings.map((message) => `${type.toUpperCase()}: ${message}`));
-            }
-        }
-        if (setupAssistantState.route === 'migrate' && includeTypes.length === 0) {
-            blockers.push('Migrate route requires at least one enabled import.');
-        }
+        const importValidation = validateSetupAssistantImportPlans(setupAssistantState.importPlans);
+        blockers.push(...importValidation.blockers);
+        warnings.push(...importValidation.warnings);
     }
 
     if (step === 'templates' || step === 'review') {
@@ -1801,10 +1792,6 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
     blockers.forEach((message) => {
         if (/no file is selected/i.test(message)) {
             addHint('Use "Select Docker/VM export" and keep Include enabled only for files you want to apply.');
-            return;
-        }
-        if (/requires at least one enabled import/i.test(message)) {
-            addHint('For migrate flow, enable at least one Docker or VM import plan before continuing.');
             return;
         }
         if (/between 0 and 100/i.test(message)) {
@@ -2087,9 +2074,14 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
         };
     }
 
-    for (const folderId of changedFolderIds) {
-        await saveFolderRecord(resolvedType, folderId, nextFolders[folderId]);
-    }
+    await requestFolderBatchMutation(resolvedType, {
+        deletes: [],
+        creates: [],
+        upserts: changedFolderIds.map((folderId) => ({
+            id: folderId,
+            folder: nextFolders[folderId]
+        }))
+    });
     await refreshType(resolvedType);
     return {
         enabled: true,
@@ -2127,6 +2119,7 @@ const applySetupAssistantTemplatesForType = async (type) => {
             .filter(Boolean)
     );
     const createdNames = [];
+    const creates = [];
     for (const blueprint of plan.selectedBlueprints) {
         const folderName = String(blueprint?.name || '').trim();
         if (!folderName) {
@@ -2138,14 +2131,12 @@ const applySetupAssistantTemplatesForType = async (type) => {
         }
         existingNames.add(normalizedName);
         const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
-        await apiPostText('/plugins/folderview.plus/server/create.php', {
-            type: resolvedType,
-            content: JSON.stringify(payload)
-        });
+        creates.push({ folder: payload });
         createdNames.push(folderName);
     }
 
     if (createdNames.length > 0) {
+        await requestFolderBatchMutation(resolvedType, { deletes: [], upserts: [], creates });
         await refreshType(resolvedType);
     }
 
@@ -2469,13 +2460,13 @@ const renderSetupAssistantWelcomeStep = () => {
             <section class="fv-setup-welcome-hero">
                 <div class="fv-setup-welcome-mark" aria-hidden="true"><i class="fa fa-folder-open-o"></i></div>
                 <div class="fv-setup-welcome-copy">
-                    <p class="fv-setup-welcome-kicker">FolderView Plus Setup Assistant</p>
-                    <h3>Organize your Docker containers and VMs into folders.</h3>
-                    <p>FolderView Plus helps group related apps, preview changes before they are applied, and optionally keep future apps organized automatically.</p>
+                    <p class="fv-setup-welcome-kicker">${escapeHtml(setupAssistantT('wizard.welcome.kicker', 'FolderView Plus Setup Assistant'))}</p>
+                    <h3>${escapeHtml(setupAssistantT('wizard.welcome.title', 'Organize your Docker containers and VMs into folders.'))}</h3>
+                    <p>${escapeHtml(setupAssistantT('wizard.welcome.description', 'FolderView Plus helps group related apps, preview changes before they are applied, and optionally keep future apps organized automatically.'))}</p>
                     ${detectedHtml}
                     <div class="fv-setup-welcome-actions">
-                        <button type="button" id="fv-setup-begin" class="fv-setup-primary-action"><i class="fa fa-arrow-right"></i> Begin Setup</button>
-                        <button type="button" id="fv-setup-close-welcome"><i class="fa fa-times"></i> Skip wizard</button>
+                        <button type="button" id="fv-setup-begin" class="fv-setup-primary-action"><i class="fa fa-arrow-right"></i> ${escapeHtml(setupAssistantT('wizard.welcome.begin', 'Begin Setup'))}</button>
+                        <button type="button" id="fv-setup-close-welcome"><i class="fa fa-times"></i> ${escapeHtml(setupAssistantT('wizard.welcome.skip', 'Skip wizard'))}</button>
                     </div>
                 </div>
             </section>
@@ -2483,18 +2474,18 @@ const renderSetupAssistantWelcomeStep = () => {
             <section class="fv-setup-welcome-benefits" aria-label="What FolderView Plus can do">
                 <article>
                     <i class="fa fa-th-large" aria-hidden="true"></i>
-                    <h4>Group related apps</h4>
-                    <p>Keep media, downloads, utilities, home automation, and other apps together.</p>
+                    <h4>${escapeHtml(setupAssistantT('wizard.welcome.group-title', 'Group related apps'))}</h4>
+                    <p>${escapeHtml(setupAssistantT('wizard.welcome.group-description', 'Keep media, downloads, utilities, home automation, and other apps together.'))}</p>
                 </article>
                 <article>
                     <i class="fa fa-list-alt" aria-hidden="true"></i>
-                    <h4>Preview before applying</h4>
-                    <p>You will review folders, assignments, rules, and settings before anything changes.</p>
+                    <h4>${escapeHtml(setupAssistantT('wizard.welcome.preview-title', 'Preview before applying'))}</h4>
+                    <p>${escapeHtml(setupAssistantT('wizard.welcome.preview-description', 'You will review folders, assignments, rules, and settings before anything changes.'))}</p>
                 </article>
                 <article>
                     <i class="fa fa-magic" aria-hidden="true"></i>
-                    <h4>Stay organized automatically</h4>
-                    <p>Optional starter rules can place future matching apps into the right folders.</p>
+                    <h4>${escapeHtml(setupAssistantT('wizard.welcome.automatic-title', 'Stay organized automatically'))}</h4>
+                    <p>${escapeHtml(setupAssistantT('wizard.welcome.automatic-description', 'Optional starter rules can place future matching apps into the right folders.'))}</p>
                 </article>
             </section>
             <section class="fv-setup-welcome-orientation" aria-label="Setup assistant overview">
@@ -3721,8 +3712,12 @@ const renderSetupAssistant = () => {
     const mobileSidebarSummaryOpen = setupAssistantState.mobileSidebarSummaryOpen === true;
     const focusModeEnabled = true;
     const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
-    const nextButtonLabel = step === 'welcome' ? 'Begin Setup' : 'Next';
-    const applyButtonLabel = setupAssistantState.dryRunOnly ? 'Run preview' : 'Apply setup';
+    const nextButtonLabel = step === 'welcome'
+        ? setupAssistantT('wizard.navigation.begin', 'Begin Setup')
+        : setupAssistantT('wizard.navigation.next', 'Next');
+    const applyButtonLabel = setupAssistantState.dryRunOnly
+        ? setupAssistantT('wizard.navigation.run-preview', 'Run preview')
+        : setupAssistantT('wizard.navigation.apply', 'Apply setup');
     const restoredBanner = setupAssistantState.draftRestored && step !== 'welcome'
         ? `
             <div class="fv-setup-draft-banner">
@@ -3738,8 +3733,8 @@ const renderSetupAssistant = () => {
             data-fv-focus-mode="${focusModeEnabled ? '1' : '0'}"
             data-fv-active-step="${escapeHtml(step)}">
             <aside class="fv-setup-assistant-sidebar">
-                <h3 id="fv-setup-assistant-title">Setup Assistant</h3>
-                <p class="fv-setup-muted">Step ${setupAssistantState.step + 1} of ${stepSequence.length}</p>
+                <h3 id="fv-setup-assistant-title">${escapeHtml(setupAssistantT('wizard.title', 'Setup Assistant'))}</h3>
+                <p class="fv-setup-muted">${escapeHtml(setupAssistantT('wizard.progress.step', 'Step $1 of $2', setupAssistantState.step + 1, stepSequence.length))}</p>
                 <ol class="fv-setup-step-list">
                     ${stepSequence.map((stepKey, index) => {
                         const statusEntry = stepStatusMap[index] || { status: 'ok', blockers: [], warnings: [] };
@@ -3755,7 +3750,7 @@ const renderSetupAssistant = () => {
                             <button type="button"
                                 class="fv-setup-step-jump"
                                 data-fv-setup-step-jump="${index}"
-                                aria-label="Go to ${escapeHtml(setupAssistantStepLabel(stepKey))}"
+                                aria-label="${escapeHtml(setupAssistantT('wizard.navigation.go-to', 'Go to $1', setupAssistantStepLabel(stepKey)))}"
                                 ${hasStatusHint ? `title="${escapeHtml(statusHint)}"` : ''}
                                 ${canMove ? '' : 'disabled'}>
                                 <span class="fv-setup-step-index">${index + 1}</span>
@@ -3772,7 +3767,9 @@ const renderSetupAssistant = () => {
                     aria-expanded="${mobileSidebarSummaryOpen ? 'true' : 'false'}"
                     aria-controls="fv-setup-sidebar-summary"
                     ${canMove ? '' : 'disabled'}>
-                    <i class="fa fa-sliders"></i> ${mobileSidebarSummaryOpen ? 'Hide details' : 'Show details'}
+                    <i class="fa fa-sliders"></i> ${escapeHtml(mobileSidebarSummaryOpen
+                        ? setupAssistantT('wizard.navigation.hide-details', 'Hide details')
+                        : setupAssistantT('wizard.navigation.show-details', 'Show details'))}
                 </button>
                 ${renderSetupAssistantSidebarSummary(impactSummary)}
             </aside>
@@ -3780,7 +3777,7 @@ const renderSetupAssistant = () => {
                 <header class="fv-setup-assistant-head">
                     <h4>${escapeHtml(setupAssistantStepLabel(step))}</h4>
                     <div class="fv-setup-head-actions">
-                        <button type="button" id="fv-setup-close" aria-keyshortcuts="Escape" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> Close</button>
+                        <button type="button" id="fv-setup-close" aria-keyshortcuts="Escape" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> ${escapeHtml(setupAssistantT('wizard.navigation.close', 'Close'))}</button>
                     </div>
                 </header>
                 <div class="fv-setup-assistant-body">
@@ -3790,16 +3787,16 @@ const renderSetupAssistant = () => {
                     ${renderSetupAssistantValidationBox(stepValidation)}
                 </div>
                 <div class="fv-setup-step-delta" aria-live="polite" aria-atomic="true">
-                    <span class="fv-setup-muted">Live impact for this step</span>
+                    <span class="fv-setup-muted">${escapeHtml(setupAssistantT('wizard.impact.live', 'Live impact for this step'))}</span>
                     <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="step-delta">
                         ${stepDeltaHtml}
                     </div>
                 </div>
                 <footer class="fv-setup-assistant-foot">
                     <div class="fv-setup-foot-left">
-                        <button type="button" id="fv-setup-prev" aria-keyshortcuts="Alt+ArrowLeft" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
+                        <button type="button" id="fv-setup-prev" aria-keyshortcuts="Alt+ArrowLeft" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> ${escapeHtml(setupAssistantT('wizard.navigation.back', 'Back'))}</button>
                         <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>${escapeHtml(nextButtonLabel)} <i class="fa fa-arrow-right"></i></button>
-                        <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
+                        <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> ${escapeHtml(setupAssistantT('wizard.navigation.review', 'Review'))}</button>
                     </div>
                     <div class="fv-setup-foot-right">
                         <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> ${escapeHtml(applyButtonLabel)}</button>

@@ -65,7 +65,7 @@ fi
 
 NOTES_BLOCK="$(awk -v version="${VERSION}" '
   BEGIN { capture = 0 }
-  /^###/ {
+  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
     if (capture) {
       exit
     }

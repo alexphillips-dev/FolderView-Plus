@@ -21,6 +21,9 @@
         const modernEditorEnabled = deps.modernEditorEnabled === true;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
         const getIncludedMemberNames = typeof deps.getIncludedMemberNames === 'function' ? deps.getIncludedMemberNames : (() => []);
+        const getPreviewMemberNames = typeof deps.getPreviewMemberNames === 'function'
+            ? deps.getPreviewMemberNames
+            : getIncludedMemberNames;
         const getMemberMapByName = typeof deps.getMemberMapByName === 'function' ? deps.getMemberMapByName : (() => new Map());
         const getAllMembers = typeof deps.getAllMembers === 'function' ? deps.getAllMembers : (() => []);
         const normalizePreviewRowLimit = typeof deps.normalizePreviewRowLimit === 'function' ? deps.normalizePreviewRowLimit : (() => 1);
@@ -101,6 +104,7 @@
                 shouldUpdate: () => modernEditorEnabled,
                 getForm,
                 getIncludedMemberNames,
+                getPreviewMemberNames,
                 getMemberMapByName,
                 getAllMembers,
                 normalizePreviewRowLimit,
@@ -183,6 +187,7 @@
             $('[constraint*="context_graph-"]').hide();
             $('[constraint*="border-color"]').hide();
             $('[constraint*="bars-color"]').hide();
+            $('[constraint*="preview-row-separator-color"]').hide();
             $('[constraint*="accent-color"]').hide();
 
             if (String(form.context?.value) === '2') {
@@ -193,6 +198,9 @@
             }
             if (form.preview_vertical_bars?.checked === true) {
                 $('[constraint*="bars-color"]').show();
+            }
+            if (form.preview_row_separator?.checked === true) {
+                $('[constraint*="preview-row-separator-color"]').show();
             }
             if (form.folder_accent_enabled?.checked === true) {
                 $('[constraint*="accent-color"]').show();
@@ -207,6 +215,7 @@
                 .toggleClass('fv-preview-disabled', String(form.preview?.value) === '0')
                 .toggleClass('fv-preview-border-enabled', form.preview_border?.checked === true)
                 .toggleClass('fv-preview-bars-enabled', form.preview_vertical_bars?.checked === true)
+                .toggleClass('fv-preview-row-separators-enabled', form.preview_row_separator?.checked === true)
                 .toggleClass('fv-chevron-boxed', normalizeDropdownStyle(form.dropdown_style?.value) === 'boxed');
             $('.fv-section-shell[data-section-shell="preview"]').toggleClass('is-preview-disabled', String(form.preview?.value) === '0');
             $('.fv-section-shell[data-section-shell="chevron"]').toggleClass('is-boxed', normalizeDropdownStyle(form.dropdown_style?.value) === 'boxed');

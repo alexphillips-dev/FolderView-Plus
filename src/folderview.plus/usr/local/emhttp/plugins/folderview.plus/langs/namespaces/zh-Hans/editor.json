@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "zh-Hans",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "添加自定义操作",
+    "editor.actions.standard": "标准",
+    "editor.actions.user-script": "用户脚本",
+    "editor.actions.control-members": "控制所选文件夹成员。",
+    "editor.actions.run-user-script": "从User Scripts插件运行任务。",
+    "editor.members.toggle-preview-help": "保留此成员在文件夹中，但从折叠预览中隐藏它",
+    "editor.members.visible": "可见",
+    "editor.members.auto-included": "由regex或标签自动包含",
+    "editor.members.drag-reorder": "拖动以重新排序",
+    "editor.members.move-up": "上移",
+    "editor.members.move-down": "下移"
+}

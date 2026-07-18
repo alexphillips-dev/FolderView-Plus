@@ -831,6 +831,7 @@ const quickCreateStarterTemplates = async (type) => {
             Object.values(getFolderMap(resolvedType) || {}).map((folder) => String(folder?.name || '').trim().toLowerCase()).filter((name) => name !== '')
         );
         const createdNames = [];
+        const creates = [];
         let skippedCount = 0;
 
         for (const blueprint of selectedBlueprints) {
@@ -845,14 +846,12 @@ const quickCreateStarterTemplates = async (type) => {
             }
             existingNames.add(normalizedName);
             const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
-            await apiPostText('/plugins/folderview.plus/server/create.php', {
-                type: resolvedType,
-                content: JSON.stringify(payload)
-            });
+            creates.push({ folder: payload });
             createdNames.push(folderName);
         }
 
         if (createdNames.length > 0) {
+            await requestFolderBatchMutation(resolvedType, { deletes: [], upserts: [], creates });
             await refreshType(resolvedType);
         }
 

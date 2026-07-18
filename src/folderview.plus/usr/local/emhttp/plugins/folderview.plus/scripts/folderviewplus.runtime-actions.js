@@ -47,9 +47,9 @@
         const applyImportOperations = typeof deps.applyImportOperations === 'function'
             ? deps.applyImportOperations
             : (async () => {});
-        const saveFolderRecord = typeof deps.saveFolderRecord === 'function'
-            ? deps.saveFolderRecord
-            : (async () => {});
+        const requestFolderBatchMutation = typeof deps.requestFolderBatchMutation === 'function'
+            ? deps.requestFolderBatchMutation
+            : (async () => ({}));
         const ensureRuntimeConflictActionAllowed = typeof deps.ensureRuntimeConflictActionAllowed === 'function'
             ? deps.ensureRuntimeConflictActionAllowed
             : (() => true);
@@ -470,13 +470,17 @@
             let backup = null;
             try {
                 backup = await createBackup(resolvedType, `before-tree-integrity-repair-${Date.now()}`);
-                for (const id of toRepair) {
-                    const folder = folders[id];
-                    await saveFolderRecord(resolvedType, id, {
-                        ...folder,
-                        parentId: ''
-                    });
-                }
+                await requestFolderBatchMutation(resolvedType, {
+                    deletes: [],
+                    creates: [],
+                    upserts: toRepair.map((id) => ({
+                        id,
+                        folder: {
+                            ...folders[id],
+                            parentId: ''
+                        }
+                    }))
+                });
                 await refreshType(resolvedType);
                 if (backup?.name) {
                     await offerUndoAction(resolvedType, backup, 'Tree integrity repair');

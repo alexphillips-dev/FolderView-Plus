@@ -2,7 +2,12 @@ const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
+const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
+const compareLocalizedText = (left, right, options = {}) => (
+    window.FolderViewPlusI18n?.compare?.(left, right, options)
+    ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
+);
 const resolveThemeCompatibilityMode = (value) => {
     if (themeResolver && typeof themeResolver.normalizeThemeCompatibilityMode === 'function') {
         return themeResolver.normalizeThemeCompatibilityMode(value);
@@ -434,6 +439,16 @@ if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
 } else {
     setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'ok');
 }
+if (
+    !prefsStoreModule
+    || window.FolderViewPlusPrefsStoreModuleLoaded !== true
+    || typeof prefsStoreModule.getDefaultCoordinator !== 'function'
+) {
+    bootstrapMissingModules.push('folderviewplus.prefs-store.js');
+    setFatalBannerModuleStatus('folderviewplus.prefs-store.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.prefs-store.js', 'ok');
+}
 if (window.FolderViewPlusWizardModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.wizard.js');
     setFatalBannerModuleStatus('folderviewplus.wizard.js', 'missing');
@@ -474,16 +489,6 @@ let pluginVersion = '0.0.0';
 let prefsByType = {
     docker: utils.normalizePrefs({}),
     vm: utils.normalizePrefs({})
-};
-const runtimePrefsSaveStateByType = {
-    docker: {
-        revision: 0,
-        lastCommittedPrefs: utils.normalizePrefs({})
-    },
-    vm: {
-        revision: 0,
-        lastCommittedPrefs: utils.normalizePrefs({})
-    }
 };
 let infoByType = {
     docker: {},
@@ -663,8 +668,6 @@ let backupCompareDiffPagingState = {
     page: 1,
     pageSize: 120
 };
-const IMPORT_APPLY_CHUNK_SIZE = 20;
-const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';
 let latestPrefsBackupByType = {
@@ -740,6 +743,7 @@ const settingsUiState = {
     controlsInitialized: false,
     mode: 'basic',
     query: '',
+    basicSearchQuery: '',
     sections: [],
     baselineByInputId: new Map(),
     activeSectionKey: '',
@@ -752,6 +756,11 @@ const settingsUiState = {
         diagnostics: ''
     },
     searchAllAdvanced: false,
+    searchIndex: [],
+    searchIndexRevision: 0,
+    searchResultCache: null,
+    searchDebounceTimer: null,
+    activeSearchMatches: [],
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
@@ -1405,7 +1414,7 @@ const persistActiveAdvancedSection = (sectionKey) => {
 
 const setAdvancedTab = (tab, persist = true) => {
     settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
-    if (settingsUiState.mode === 'advanced') {
+    if (settingsUiState.mode === 'advanced' && settingsUiState.searchAllAdvanced !== true) {
         const nextQuery = readActiveAdvancedSearchQuery();
         settingsUiState.query = nextQuery;
         const searchInput = $('#fv-settings-search');
@@ -1594,6 +1603,7 @@ const buildSettingsSections = (options = {}) => {
     settingsUiState.sections = sections;
     settingsSectionRegistrySignature = signature;
     invalidateTrackedSettingsInputs();
+    invalidateSettingsSearchIndex();
     return true;
 };
 
@@ -1666,14 +1676,348 @@ const getSectionSearchAliases = (section) => {
     return Array.isArray(aliases) ? aliases.join(' ') : '';
 };
 
-const getSectionSearchHaystack = (section) => [
-    section?.key || '',
-    section?.title || '',
-    getSectionSearchAliases(section),
-    ...(Array.isArray(section?.nodes) ? section.nodes.map((node) => node.textContent || '') : [])
-]
-    .join(' ')
-    .toLowerCase();
+const SETTINGS_SEARCH_DEBOUNCE_MS = 90;
+const SETTINGS_SEARCH_FIELD_SELECTOR = [
+    '[data-fv-search-item]',
+    '.setting-toggle',
+    '.setting-select',
+    '.setting-inline-number',
+    '.setting-button-row',
+    '.fv-rule-builder-field',
+    '.bulk-row',
+    '.backup-compare-row',
+    '.schedule-row',
+    '.fv-theme-import-row',
+    'label'
+].join(',');
+const SETTINGS_SEARCH_CONTEXT_SELECTOR = [
+    '.settings-mini-card',
+    '.settings-privacy-section',
+    '.fv-rule-stage',
+    '.fv-recovery-stage',
+    '.fv-operations-stage',
+    '.bulk-stage-heading',
+    '.rules-header',
+    'summary'
+].join(',');
+const SETTINGS_SEARCH_PRIVATE_SELECTOR = [
+    'tbody',
+    'option',
+    'pre',
+    '[role="listbox"]',
+    '[data-fv-search-private]',
+    '[id$="-list"]',
+    '[id$="-output"]',
+    '[id$="-suggestions"]',
+    '[id$="-preview"]',
+    '[id$="-result"]',
+    '[id$="-summary"]',
+    '[id$="-status"]',
+    '[id$="-detail"]',
+    '.fv-rule-list',
+    '.bulk-items-list',
+    '.fv-activity-feed-list',
+    '.diagnostics-output',
+    '.status-line'
+].join(',');
+
+const normalizeSettingsSearchText = (value) => String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const tokenizeSettingsSearchQuery = (query) => Array.from(new Set(
+    normalizeSettingsSearchText(query).split(' ').filter(Boolean)
+));
+
+const matchesSettingsSearchTokens = (text, tokens) => (
+    tokens.length > 0 && tokens.every((token) => text.includes(token))
+);
+
+const invalidateSettingsSearchIndex = () => {
+    settingsUiState.searchIndex = [];
+    settingsUiState.searchIndexRevision += 1;
+    settingsUiState.searchResultCache = null;
+};
+
+const getPrivacySafeSettingsSearchText = (element) => {
+    if (!(element instanceof Element)) {
+        return '';
+    }
+    const clone = element.cloneNode(true);
+    if (clone instanceof Element) {
+        clone.querySelectorAll([
+            SETTINGS_SEARCH_PRIVATE_SELECTOR,
+            'input',
+            'select',
+            'textarea',
+            'script',
+            'style'
+        ].join(',')).forEach((node) => node.remove());
+    }
+    const parts = [clone.textContent || ''];
+    const attributeNodes = [element, ...Array.from(element.querySelectorAll('[aria-label], [title], [placeholder], [data-fv-search]'))];
+    for (const node of attributeNodes) {
+        if (node !== element && node.closest?.(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
+            continue;
+        }
+        for (const attribute of ['aria-label', 'title', 'placeholder', 'data-fv-search']) {
+            const value = String(node.getAttribute?.(attribute) || '').trim();
+            if (value) {
+                parts.push(value);
+            }
+        }
+    }
+    return normalizeSettingsSearchText(parts.join(' '));
+};
+
+const getSettingsSearchFieldTarget = (control) => {
+    if (!(control instanceof Element)) {
+        return null;
+    }
+    const field = control.closest(SETTINGS_SEARCH_FIELD_SELECTOR);
+    return field instanceof Element ? field : control;
+};
+
+const addSettingsSearchIndexEntry = (entries, seenTargets, section, target, kind = 'field') => {
+    if (!(target instanceof Element) || seenTargets.has(target)) {
+        return;
+    }
+    if (target.closest(SETTINGS_SEARCH_PRIVATE_SELECTOR)) {
+        return;
+    }
+    const text = normalizeSettingsSearchText([
+        section.key,
+        section.title,
+        getPrivacySafeSettingsSearchText(target)
+    ].join(' '));
+    if (!text) {
+        return;
+    }
+    seenTargets.add(target);
+    entries.push({
+        sectionKey: section.key,
+        section,
+        target,
+        kind,
+        text
+    });
+};
+
+const buildSettingsSearchIndex = () => {
+    if (settingsUiState.searchIndex.length > 0) {
+        return settingsUiState.searchIndex;
+    }
+    const entries = [];
+    for (const section of settingsUiState.sections) {
+        const seenTargets = new Set();
+        for (const sectionNode of section.nodes || []) {
+            if (!(sectionNode instanceof Element)) {
+                continue;
+            }
+            const controls = [];
+            if (sectionNode.matches?.('input, select, textarea, button')) {
+                controls.push(sectionNode);
+            }
+            controls.push(...Array.from(sectionNode.querySelectorAll('input, select, textarea, button')));
+            for (const control of controls) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, getSettingsSearchFieldTarget(control), 'field');
+            }
+
+            const fields = [];
+            if (sectionNode.matches?.(SETTINGS_SEARCH_FIELD_SELECTOR)) {
+                fields.push(sectionNode);
+            }
+            fields.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_FIELD_SELECTOR)));
+            for (const field of fields) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, field, 'field');
+            }
+
+            const contexts = [];
+            if (sectionNode.matches?.(SETTINGS_SEARCH_CONTEXT_SELECTOR)) {
+                contexts.push(sectionNode);
+            }
+            contexts.push(...Array.from(sectionNode.querySelectorAll(SETTINGS_SEARCH_CONTEXT_SELECTOR)));
+            for (const context of contexts) {
+                addSettingsSearchIndexEntry(entries, seenTargets, section, context, 'context');
+            }
+        }
+        const sectionText = normalizeSettingsSearchText([
+            section.key,
+            section.title,
+            getSectionSearchAliases(section)
+        ].join(' '));
+        if (sectionText) {
+            entries.push({
+                sectionKey: section.key,
+                section,
+                target: section.heading,
+                kind: 'section',
+                text: sectionText
+            });
+        }
+    }
+    settingsUiState.searchIndex = entries;
+    return entries;
+};
+
+const getScopedSettingsSearchSections = () => settingsUiState.sections.filter((section) => {
+    if (settingsUiState.mode === 'basic') {
+        return isBasicWorkspaceSection(section);
+    }
+    if (isBasicWorkspaceSection(section)) {
+        return false;
+    }
+    return settingsUiState.searchAllAdvanced === true || section.advancedGroup === settingsUiState.advancedTab;
+});
+
+const reduceSettingsSearchMatchesToSpecificTargets = (matches) => matches.filter((entry, index) => (
+    !matches.some((candidate, candidateIndex) => (
+        candidateIndex !== index
+        && candidate.sectionKey === entry.sectionKey
+        && entry.target !== candidate.target
+        && entry.target.contains(candidate.target)
+    ))
+));
+
+const getSettingsSearchEvaluation = () => {
+    const tokens = tokenizeSettingsSearchQuery(settingsUiState.query);
+    const cacheKey = [
+        settingsUiState.searchIndexRevision,
+        settingsUiState.mode,
+        settingsUiState.advancedTab,
+        settingsUiState.searchAllAdvanced ? 'all' : 'current',
+        tokens.join('|')
+    ].join(':');
+    if (settingsUiState.searchResultCache?.key === cacheKey) {
+        return settingsUiState.searchResultCache.value;
+    }
+    if (tokens.length === 0) {
+        const empty = { tokens, matches: [], sectionKeys: new Set(), total: 0 };
+        settingsUiState.searchResultCache = { key: cacheKey, value: empty };
+        return empty;
+    }
+
+    const scopedSections = getScopedSettingsSearchSections();
+    const scopedKeys = new Set(scopedSections.map((section) => section.key));
+    const index = buildSettingsSearchIndex();
+    const matches = [];
+    for (const section of scopedSections) {
+        const sectionEntries = index.filter((entry) => entry.sectionKey === section.key);
+        const fieldMatches = sectionEntries.filter((entry) => (
+            entry.kind !== 'section' && matchesSettingsSearchTokens(entry.text, tokens)
+        ));
+        if (fieldMatches.length > 0) {
+            matches.push(...reduceSettingsSearchMatchesToSpecificTargets(fieldMatches));
+            continue;
+        }
+        const sectionMatch = sectionEntries.find((entry) => (
+            entry.kind === 'section' && matchesSettingsSearchTokens(entry.text, tokens)
+        ));
+        if (sectionMatch) {
+            matches.push(sectionMatch);
+        }
+    }
+    const uniqueMatches = matches.filter((entry, indexValue) => (
+        matches.findIndex((candidate) => candidate.target === entry.target) === indexValue
+        && scopedKeys.has(entry.sectionKey)
+    ));
+    const value = {
+        tokens,
+        matches: uniqueMatches,
+        sectionKeys: new Set(uniqueMatches.map((entry) => entry.sectionKey)),
+        total: uniqueMatches.length
+    };
+    settingsUiState.searchResultCache = { key: cacheKey, value };
+    return value;
+};
+
+const restoreSearchOpenedDetails = () => {
+    document.querySelectorAll('details[data-fv-search-opened="1"]').forEach((details) => {
+        details.open = false;
+        delete details.dataset.fvSearchOpened;
+    });
+};
+
+const ensureSettingsSearchEmptyState = () => {
+    let emptyState = document.getElementById('fv-settings-search-empty');
+    if (emptyState instanceof HTMLElement) {
+        return emptyState;
+    }
+    emptyState = document.createElement('div');
+    emptyState.id = 'fv-settings-search-empty';
+    emptyState.className = 'fv-settings-search-empty';
+    emptyState.hidden = true;
+    emptyState.innerHTML = `
+        <i class="fa fa-search" aria-hidden="true"></i>
+        <div>
+            <strong>No settings found</strong>
+            <span>Try fewer words, another Advanced scope, or reset the search.</span>
+        </div>
+        <button type="button" data-fv-clear-settings-search><i class="fa fa-times" aria-hidden="true"></i> Reset search</button>
+    `;
+    const topbar = document.getElementById('fv-settings-topbar');
+    topbar?.insertAdjacentElement('afterend', emptyState);
+    return emptyState;
+};
+
+const renderSettingsSearchFeedback = (evaluation) => {
+    const hasQuery = tokenizeSettingsSearchQuery(settingsUiState.query).length > 0;
+    const total = Number(evaluation?.total || 0);
+    const status = document.getElementById('fv-settings-search-status');
+    const clearButton = document.getElementById('fv-settings-clear-search');
+    if (status) {
+        status.textContent = hasQuery
+            ? (total === 0 ? 'No settings found' : `${total} ${total === 1 ? 'setting' : 'settings'} found`)
+            : '';
+        status.title = total > 0 ? 'Press Enter to jump to the first matching setting' : '';
+    }
+    if (clearButton instanceof HTMLButtonElement) {
+        clearButton.hidden = !hasQuery;
+    }
+    const emptyState = ensureSettingsSearchEmptyState();
+    emptyState.hidden = !(hasQuery && total === 0);
+};
+
+const syncSettingsSearchMatchPresentation = () => {
+    document.querySelectorAll('.fv-setting-search-match').forEach((element) => {
+        element.classList.remove('fv-setting-search-match');
+    });
+    restoreSearchOpenedDetails();
+    const evaluation = getSettingsSearchEvaluation();
+    settingsUiState.activeSearchMatches = evaluation.matches.filter((entry) => entry.target?.isConnected);
+    for (const entry of settingsUiState.activeSearchMatches) {
+        entry.target.classList.add('fv-setting-search-match');
+        const details = entry.target.closest('details');
+        if (details instanceof HTMLDetailsElement && !details.open) {
+            details.open = true;
+            details.dataset.fvSearchOpened = '1';
+        }
+    }
+    renderSettingsSearchFeedback(evaluation);
+};
+
+const focusFirstSettingsSearchMatch = () => {
+    const firstMatch = settingsUiState.activeSearchMatches.find((entry) => entry.target?.isConnected);
+    if (!firstMatch) {
+        return false;
+    }
+    const target = firstMatch.target;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const focusTarget = target.matches('input, select, textarea, button, summary')
+        ? target
+        : target.querySelector('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), summary');
+    if (focusTarget instanceof HTMLElement) {
+        window.setTimeout(() => focusTarget.focus({ preventScroll: true }), 180);
+    } else if (target instanceof HTMLElement) {
+        target.tabIndex = -1;
+        window.setTimeout(() => target.focus({ preventScroll: true }), 180);
+    }
+    return true;
+};
 
 const sectionContainsSelector = (section, selector) => {
     const nodes = Array.isArray(section?.nodes) ? section.nodes : [];
@@ -1721,7 +2065,7 @@ const getVisibleSections = () => settingsUiState.sections.filter((section) => {
     if (!query) {
         return true;
     }
-    return getSectionSearchHaystack(section).includes(query);
+    return getSettingsSearchEvaluation().sectionKeys.has(section.key);
 });
 
 const renderAdvancedNav = () => {
@@ -1858,17 +2202,18 @@ const applySettingsSectionVisibility = () => {
     }
 
     renderAdvancedNav();
-    const searchScopeToggle = $('#fv-search-all-advanced');
-    if (searchScopeToggle.length) {
+    const searchScopeSelect = $('#fv-settings-search-scope');
+    if (searchScopeSelect.length) {
         const enabled = settingsUiState.mode === 'advanced';
-        searchScopeToggle.prop('disabled', !enabled);
-        searchScopeToggle.prop('checked', settingsUiState.searchAllAdvanced === true);
-        searchScopeToggle.closest('.fv-search-scope').toggleClass('is-disabled', !enabled);
+        searchScopeSelect.prop('disabled', !enabled);
+        searchScopeSelect.val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
+        searchScopeSelect.closest('.fv-search-scope').toggleClass('is-disabled', !enabled);
     }
     const modeButtons = $('.fv-mode-btn');
     modeButtons.removeClass('is-active');
     modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
     $('#fv-settings-topbar').attr('data-fv-mode', settingsUiState.mode);
+    syncSettingsSearchMatchPresentation();
     refreshSectionApplyModeBadges();
 };
 
@@ -1884,7 +2229,7 @@ const syncSectionJumpOptions = () => {
         settingsUiState.activeSectionKey = visibleSections[0]?.key || '';
     }
     const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
-    if (activeSection?.advanced) {
+    if (activeSection?.advanced && !(settingsUiState.query && settingsUiState.searchAllAdvanced)) {
         setAdvancedTab(activeSection.advancedGroup);
     }
     persistActiveAdvancedSection(settingsUiState.activeSectionKey);
@@ -1923,11 +2268,13 @@ const setSettingsMode = (mode, { persistServer = false } = {}) => {
             setAdvancedTab(activeSection.advancedGroup);
         }
         settingsUiState.query = readActiveAdvancedSearchQuery();
-        const searchInput = $('#fv-settings-search');
-        if (searchInput.length) {
-            searchInput.val(settingsUiState.query);
-        }
         void ensureAdvancedDataLoaded();
+    } else {
+        settingsUiState.query = normalizedFilter(settingsUiState.basicSearchQuery);
+    }
+    const searchInput = $('#fv-settings-search');
+    if (searchInput.length) {
+        searchInput.val(settingsUiState.query);
     }
     persistTableUiState();
     applySettingsSectionVisibility();
@@ -1995,15 +2342,45 @@ const setSettingsSearchQuery = (query) => {
     settingsUiState.query = normalizedFilter(query);
     if (settingsUiState.mode === 'advanced') {
         writeActiveAdvancedSearchQuery(settingsUiState.query);
+    } else {
+        settingsUiState.basicSearchQuery = settingsUiState.query;
     }
+    settingsUiState.searchResultCache = null;
     persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
 };
 
+const scheduleSettingsSearchQuery = (query, { immediate = false } = {}) => {
+    if (settingsUiState.searchDebounceTimer !== null) {
+        window.clearTimeout(settingsUiState.searchDebounceTimer);
+        settingsUiState.searchDebounceTimer = null;
+    }
+    if (immediate) {
+        setSettingsSearchQuery(query);
+        return;
+    }
+    settingsUiState.searchDebounceTimer = window.setTimeout(() => {
+        settingsUiState.searchDebounceTimer = null;
+        setSettingsSearchQuery(query);
+    }, SETTINGS_SEARCH_DEBOUNCE_MS);
+};
+
+const clearSettingsSearch = ({ focus = true } = {}) => {
+    const input = document.getElementById('fv-settings-search');
+    if (input instanceof HTMLInputElement) {
+        input.value = '';
+    }
+    scheduleSettingsSearchQuery('', { immediate: true });
+    if (focus && input instanceof HTMLInputElement) {
+        input.focus();
+    }
+};
+
 const setSearchAllAdvanced = (enabled) => {
     settingsUiState.searchAllAdvanced = enabled === true;
+    settingsUiState.searchResultCache = null;
     writeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0', { delayMs: 60, idle: true });
     persistTableUiState();
     if (settingsUiState.mode === 'advanced') {
@@ -2300,27 +2677,52 @@ const initSettingsControls = () => {
             <div class="fv-settings-inline">
                 <div class="fv-settings-left" aria-label="Plugin settings title">
                     <h2 class="fv-settings-title">FolderView Plus</h2>
-                    <span class="fv-settings-subtitle">Plugin settings</span>
+                    <span class="fv-settings-subtitle" data-i18n="settings.header.plugin-settings">Plugin settings</span>
                 </div>
                 <div class="fv-settings-right">
                     <div class="fv-settings-search-block">
                         <div class="fv-settings-search-wrap">
-                            <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                            <i class="fa fa-search fv-settings-search-icon" aria-hidden="true"></i>
+                            <input type="search" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings" data-i18n="[placeholder]settings.search.placeholder;[aria-label]settings.search.label" aria-controls="fv-settings-root" aria-describedby="fv-settings-search-status" autocomplete="off" spellcheck="false" enterkeyhint="search">
+                            <button type="button" id="fv-settings-clear-search" class="fv-settings-clear-search" aria-label="Clear settings search" title="Clear search" data-i18n="[aria-label]settings.search.clear-label;[title]settings.search.clear-title" hidden><i class="fa fa-times" aria-hidden="true"></i></button>
                         </div>
-                        <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
-                            <input type="checkbox" id="fv-search-all-advanced">
-                            Search all advanced
-                        </label>
+                        <div class="fv-settings-search-meta">
+                            <span id="fv-settings-search-status" class="fv-settings-search-status" role="status" aria-live="polite" aria-atomic="true"></span>
+                            <label class="fv-search-scope" for="fv-settings-search-scope" title="Choose whether Advanced search covers this tab or every Advanced tab" data-i18n="[title]settings.search.scope-help">
+                                <span data-i18n="settings.search.scope">Scope</span>
+                                <select id="fv-settings-search-scope" aria-label="Advanced settings search scope" data-i18n="[aria-label]settings.search.scope-label">
+                                    <option value="current" data-i18n="settings.search.scope-current">Current tab</option>
+                                    <option value="all" data-i18n="settings.search.scope-all">All advanced</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
-                    <span class="fv-mode-toggle" title="Settings mode">
-                        <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
-                        <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
+                    <span class="fv-mode-toggle" title="Settings mode" data-i18n="[title]settings.mode.title">
+                        <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode" data-i18n="settings.tabs.basic;[aria-label]settings.mode.basic-label">Basic</button>
+                        <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode" data-i18n="settings.tabs.advanced;[aria-label]settings.mode.advanced-label">Advanced</button>
                     </span>
-                    <button type="button" id="fv-run-wizard" title="Run setup assistant"><i class="fa fa-magic"></i> Wizard</button>
+                    <button type="button" id="fv-run-wizard" title="Run setup assistant" data-i18n="[title]settings.wizard.title"><i class="fa fa-magic"></i> <span data-i18n="settings.tabs.wizard">Wizard</span></button>
                 </div>
             </div>
         `;
     controls.html(topbarHtml);
+    window.FolderViewPlusI18n?.translate(controls.get(0));
+
+    if (diagnosticsPrefsCoordinator && controls.attr('data-fv-prefs-sync-listener-bound') !== '1') {
+        controls.attr('data-fv-prefs-sync-listener-bound', '1');
+        window.addEventListener('fvplus:prefs-save-state', (event) => {
+            const type = normalizeManagedType(event?.detail?.type);
+            const snapshot = diagnosticsPrefsCoordinator.getSnapshot(type);
+            const previousRevision = Number(prefsByType[type]?._metadata?.prefsRevision || 0);
+            const nextRevision = Number(snapshot?.prefs?._metadata?.prefsRevision || 0);
+            if (snapshot?.prefs) {
+                prefsByType[type] = utils.normalizePrefs(snapshot.prefs);
+            }
+            if (settingsUiState.initialized && nextRevision > previousRevision) {
+                scheduleTableRender(type);
+            }
+        });
+    }
 
     if (!$('#fv-advanced-nav').length) {
         $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" style="display:none"></div>');
@@ -2330,11 +2732,30 @@ const initSettingsControls = () => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode, { persistServer: true });
     });
-    $('#fv-settings-search').off('input.fvui').on('input.fvui', (event) => {
-        setSettingsSearchQuery($(event.currentTarget).val());
+    $('#fv-settings-search')
+        .off('input.fvui keydown.fvui')
+        .on('input.fvui', (event) => {
+            scheduleSettingsSearchQuery($(event.currentTarget).val());
+        })
+        .on('keydown.fvui', (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                clearSettingsSearch();
+                return;
+            }
+            if (event.key === 'Enter' && settingsUiState.query) {
+                event.preventDefault();
+                focusFirstSettingsSearchMatch();
+            }
+        });
+    $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
+        clearSettingsSearch();
     });
-    $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
-        setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
+    $(document).off('click.fvsettingssearchclear', '[data-fv-clear-settings-search]').on('click.fvsettingssearchclear', '[data-fv-clear-settings-search]', () => {
+        clearSettingsSearch();
+    });
+    $('#fv-settings-search-scope').off('change.fvui').on('change.fvui', (event) => {
+        setSearchAllAdvanced(String($(event.currentTarget).val() || '') === 'all');
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
@@ -2373,31 +2794,6 @@ const initSettingsControls = () => {
         const type = String($(event.currentTarget).attr('data-type') || '');
         const preset = String($(event.currentTarget).attr('data-preset') || '');
         applyRegexPreset(type, preset);
-    });
-
-    $(document).off('click.fvhealthfilter', '[data-fv-health-filter]').on('click.fvhealthfilter', '[data-fv-health-filter]', (event) => {
-        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
-        const mode = String($(event.currentTarget).attr('data-fv-health-filter') || 'all');
-        setHealthFolderFilter(type, mode);
-    });
-
-    $(document).off('click.fvhealthaction', '[data-fv-health-action]').on('click.fvhealthaction', '[data-fv-health-action]', (event) => {
-        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
-        const action = String($(event.currentTarget).attr('data-fv-health-action') || '');
-        if (action === 'jump-table') {
-            const mode = String($(event.currentTarget).attr('data-fv-health-mode') || 'all');
-            setHealthFolderFilter(type, mode);
-            setSettingsMode('basic', { persistServer: true });
-            scrollToSectionKey(type === 'vm' ? 'vms' : 'docker');
-            return;
-        }
-        if (action === 'scan-conflicts') {
-            setSettingsMode('advanced', { persistServer: true });
-            setAdvancedTab('automation');
-            scrollToSectionKey('conflict-inspector');
-            void runConflictInspector(type);
-            return;
-        }
     });
 
     $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
@@ -2493,7 +2889,7 @@ const initSettingsControls = () => {
         });
 
     $('#fv-settings-search').val(settingsUiState.query || '');
-    $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+    $('#fv-settings-search-scope').val(settingsUiState.searchAllAdvanced === true ? 'all' : 'current');
     renderOperationsWorkspace();
     syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
@@ -2511,6 +2907,9 @@ const initSettingsControls = () => {
 const refreshSettingsUx = (options = {}) => {
     const renderSecondaryWorkspaces = options.renderSecondaryWorkspaces !== false;
     const sectionsRebuilt = buildSettingsSections({ force: options.rebuildSections === true });
+    if (!sectionsRebuilt) {
+        invalidateSettingsSearchIndex();
+    }
     syncCompactMobileLayoutClass();
     refreshMobileTreeReorderModeClasses();
     if (sectionsRebuilt || options.normalizeSections === true) {
@@ -2592,6 +2991,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
 
     settingsUiState.mode = 'basic';
     settingsUiState.query = '';
+    settingsUiState.basicSearchQuery = '';
     settingsUiState.searchAllAdvanced = false;
     settingsUiState.activeSectionKey = 'docker';
     try {
@@ -2602,7 +3002,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         root.style.opacity = '1';
         $('#fv-settings-topbar').show();
         $('#fv-settings-search').val('');
-        $('#fv-search-all-advanced').prop('checked', false);
+        $('#fv-settings-search-scope').val('current');
         removeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, { idle: true });
         writeSettingsStorage(UI_MODE_STORAGE_KEY, 'basic', { delayMs: 20, idle: true });
         buildSettingsSections({ force: true });
@@ -2955,7 +3355,7 @@ const renderFolderDefaultsPanel = (type) => {
 
     const folders = getFolderMap(resolvedType);
     const entries = Object.entries(folders).sort((left, right) => (
-        String(left?.[1]?.name || left?.[0] || '').localeCompare(String(right?.[1]?.name || right?.[0] || ''))
+        compareLocalizedText(left?.[1]?.name || left?.[0] || '', right?.[1]?.name || right?.[0] || '')
     ));
     const defaults = getFolderDefaultsForType(resolvedType);
     const previousValue = String(select.val() || '').trim();
@@ -3479,9 +3879,7 @@ const getSettingsHealthApi = (() => {
             return cachedApi;
         }
         cachedApi = settingsHealthModule.createApi({
-            $,
             utils,
-            escapeHtml,
             formatBytesShort,
             getPrefsByType: (type) => prefsByType[type === 'vm' ? 'vm' : 'docker'] || {},
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -3490,10 +3888,7 @@ const getSettingsHealthApi = (() => {
             deriveFolderStatusKey,
             evaluateDockerFolderHealth,
             valueIsTruthy,
-            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all',
-            getHealthMetrics: (type) => healthMetricsByType[type === 'vm' ? 'vm' : 'docker'] || null,
-            getFolderMap: (type) => getFolderMap(type),
-            getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders)
+            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all'
         });
         return cachedApi;
     };
@@ -3621,8 +4016,7 @@ const getBulkAssignmentApi = (() => {
             trackDiagnosticsEvent,
             offerUndoAction,
             showError,
-            requestAnimationFrameRef: window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : null,
-            setTimeoutRef: window.setTimeout ? window.setTimeout.bind(window) : null
+            requestAnimationFrameRef: window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : null
         });
         return cachedApi;
     };
@@ -3659,7 +4053,7 @@ const getSettingsRuntimeActionsApi = (() => {
             getPluginVersion: () => pluginVersion,
             selectJsonFile,
             applyImportOperations,
-            saveFolderRecord,
+            requestFolderBatchMutation,
             ensureRuntimeConflictActionAllowed,
             TREE_INTEGRITY_DEPTH_WARN_LEVEL,
             setRuntimePreviewOutput: (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args),
@@ -4133,6 +4527,7 @@ const buildTableUiStatePayload = () => ({
     },
     advancedSearch: {
         byTab: normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab),
+        basicQuery: normalizedFilter(settingsUiState.basicSearchQuery),
         query: normalizedFilter(settingsUiState.query),
         searchAll: settingsUiState.searchAllAdvanced === true
     }
@@ -4188,6 +4583,7 @@ const restoreTableUiState = () => {
         settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
             sourceAdvancedSearch.byTab || sourceAdvancedSearch.queryByTab || {}
         );
+        settingsUiState.basicSearchQuery = normalizedFilter(sourceAdvancedSearch.basicQuery);
         if (typeof sourceAdvancedSearch.query === 'string') {
             settingsUiState.query = normalizedFilter(sourceAdvancedSearch.query);
         } else if (settingsUiState.mode === 'advanced') {
@@ -4377,7 +4773,7 @@ const getSortedBackupsForType = (type) => {
         if (leftTime !== rightTime) {
             return rightTime - leftTime;
         }
-        return String(right?.name || '').localeCompare(String(left?.name || ''));
+        return compareLocalizedText(right?.name || '', left?.name || '');
     });
 };
 
@@ -4807,12 +5203,7 @@ const recordFatalBannerRequestResult = (method, url, source, outcome, error = nu
 
 const apiGetText = async (url, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.getText === 'function') {
-            const response = await requestClient.getText(url, options);
-            recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
-            return response;
-        }
-        const response = await $.get(url, options?.data).promise();
+        const response = await requestClient.getText(url, options);
         recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
         return response;
     } catch (error) {
@@ -4831,44 +5222,9 @@ const apiGetText = async (url, options = {}) => {
     }
 };
 
-const buildMutationRequestPayload = (data = {}) => {
-    const token = getOptionalRequestToken();
-    if (typeof FormData !== 'undefined' && data instanceof FormData) {
-        if (!data.has('_fv_request')) {
-            data.append('_fv_request', '1');
-        }
-        if (token && !data.has('token')) {
-            data.append('token', token);
-        }
-        return data;
-    }
-    if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
-        if (!data.has('_fv_request')) {
-            data.set('_fv_request', '1');
-        }
-        if (token && !data.has('token')) {
-            data.set('token', token);
-        }
-        return data;
-    }
-    const payload = data && typeof data === 'object' ? { ...data } : {};
-    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
-        payload._fv_request = '1';
-    }
-    if (token && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
-        payload.token = token;
-    }
-    return payload;
-};
-
 const apiPostText = async (url, data = {}, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.postText === 'function') {
-            const response = await requestClient.postText(url, data, options);
-            recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
-            return response;
-        }
-        const response = await $.post(url, buildMutationRequestPayload(data)).promise();
+        const response = await requestClient.postText(url, data, options);
         recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
         return response;
     } catch (error) {
@@ -4889,12 +5245,7 @@ const apiPostText = async (url, data = {}, options = {}) => {
 
 const apiGetJson = async (url, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.getJson === 'function') {
-            const response = await requestClient.getJson(url, options);
-            recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
-            return response;
-        }
-        const response = parseJsonResponse(await $.get(url, options?.data).promise());
+        const response = await requestClient.getJson(url, options);
         recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
         return response;
     } catch (error) {
@@ -4915,12 +5266,7 @@ const apiGetJson = async (url, options = {}) => {
 
 const apiPostJson = async (url, data = {}, options = {}) => {
     try {
-        if (requestClient && typeof requestClient.postJson === 'function') {
-            const response = await requestClient.postJson(url, data, options);
-            recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
-            return response;
-        }
-        const response = parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
+        const response = await requestClient.postJson(url, data, options);
         recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
         return response;
     } catch (error) {
@@ -4937,6 +5283,25 @@ const apiPostJson = async (url, data = {}, options = {}) => {
         });
         throw error;
     }
+};
+
+const requestFolderBatchMutation = async (type, operations) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeOperations = operations && typeof operations === 'object' && !Array.isArray(operations)
+        ? operations
+        : {};
+    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
+        type: resolvedType,
+        operations: JSON.stringify({
+            deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
+            upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
+            creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : []
+        })
+    });
+    if (!response?.ok || !response?.result) {
+        throw new Error(response?.error || 'Folder batch transaction failed.');
+    }
+    return response.result;
 };
 
 const fetchPluginVersion = async () => {
@@ -4965,37 +5330,30 @@ const fetchCurrentUpdateNotes = async () => apiGetJson('/plugins/folderview.plus
 const UPDATE_NOTES_CATEGORY_META = {
     feature: {
         label: 'Feature Update',
-        headline: 'This update includes new features and enhancements.',
         className: 'is-feature'
     },
     bugfix: {
         label: 'Bug Fix Update',
-        headline: 'This update includes bug fixes and quality improvements.',
         className: 'is-bugfix'
     },
     security: {
         label: 'Security Update',
-        headline: 'This update includes security hardening and safety improvements.',
         className: 'is-security'
     },
     performance: {
         label: 'Performance Update',
-        headline: 'This update includes performance and reliability improvements.',
         className: 'is-performance'
     },
     ui: {
         label: 'UI/UX Update',
-        headline: 'This update includes UI and usability improvements.',
         className: 'is-ui'
     },
     maintenance: {
         label: 'Maintenance Update',
-        headline: 'This update includes maintenance and quality improvements.',
         className: 'is-maintenance'
     },
     mixed: {
         label: 'Mixed Update',
-        headline: 'This update includes features, fixes, and quality improvements.',
         className: 'is-mixed'
     }
 };
@@ -5005,6 +5363,31 @@ const normalizeUpdateNotesCategoryId = (value) => {
     return Object.prototype.hasOwnProperty.call(UPDATE_NOTES_CATEGORY_META, normalized)
         ? normalized
         : 'bugfix';
+};
+
+const stripUpdateNotesLineDecoration = (line) => String(line || '')
+    .trim()
+    .replace(/^#{1,6}\s+/, '')
+    .replace(/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i, '')
+    .trim();
+
+const buildUpdateNotesHeadline = (lines, version = '') => {
+    const normalizedLines = Array.isArray(lines)
+        ? lines.map((line) => String(line || '').trim()).filter((line) => line !== '' && line !== '...')
+        : [];
+    const heading = normalizedLines.find((line) => /^#{1,6}\s+\S/.test(line));
+    if (heading) {
+        return stripUpdateNotesLineDecoration(heading);
+    }
+    const preferredLine = normalizedLines.find((line) => !/^(?:Quality|Test|Maintenance):\s*/i.test(line));
+    const actualLine = stripUpdateNotesLineDecoration(preferredLine || normalizedLines[0] || '');
+    if (actualLine) {
+        return actualLine;
+    }
+    const safeVersion = String(version || '').trim();
+    return safeVersion
+        ? `Release notes are unavailable for FolderView Plus ${safeVersion}.`
+        : 'Release notes are unavailable for this installed version.';
 };
 
 const getUpdateNotesSeenVersion = () => {
@@ -5183,7 +5566,6 @@ const showUpdateNotesPanel = ({
     const categoryId = normalizeUpdateNotesCategoryId(category);
     const categoryMeta = UPDATE_NOTES_CATEGORY_META[categoryId] || UPDATE_NOTES_CATEGORY_META.bugfix;
     const resolvedCategoryLabel = String(categoryLabel || '').trim() || categoryMeta.label;
-    const resolvedHeadline = String(headline || '').trim() || categoryMeta.headline;
     const normalizedSourceVersion = String(sourceVersion || '').trim();
     const fallbackNote = (
         usedFallback === true
@@ -5199,6 +5581,7 @@ const showUpdateNotesPanel = ({
             .filter((line) => line !== '' && line !== '...')
             .map((line) => line.replace(/^[-*]\s*/, ''))
         : [];
+    const resolvedHeadline = String(headline || '').trim() || buildUpdateNotesHeadline(normalizedLines, version);
     const listHtml = normalizedLines.length
         ? normalizedLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')
         : `<li>${escapeHtml(resolvedHeadline)}</li>`;
@@ -6979,7 +7362,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         ? utils.normalizeDashboardLayout
         : ((value) => {
             const normalized = String(value || '').trim().toLowerCase();
-            return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+            return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized) ? normalized : 'classic';
         });
     return {
         layout: normalizeLayout(dashboard.layout),
@@ -6991,6 +7374,13 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         privacyMaskContainerIps: dashboard.privacyMaskContainerIps !== false,
         privacyMaskLocalIps: dashboard.privacyMaskLocalIps !== false,
         privacyMaskPorts: dashboard.privacyMaskPorts !== false,
+        privacyMaskVolumePaths: dashboard.privacyMaskVolumePaths !== false,
+        privacyMaskImageRegistry: dashboard.privacyMaskImageRegistry !== false,
+        privacyMaskVmDiskPaths: dashboard.privacyMaskVmDiskPaths !== false,
+        privacyMaskMacAddresses: dashboard.privacyMaskMacAddresses !== false,
+        privacyMaskPublicIps: dashboard.privacyMaskPublicIps !== false,
+        privacyMaskInterfaces: dashboard.privacyMaskInterfaces !== false,
+        privacyMaskExternalUrls: dashboard.privacyMaskExternalUrls !== false,
         previewContext: dashboard.previewContext === 'advanced' ? 'advanced' : 'native',
         previewTrigger: dashboard.previewTrigger === 'hover' ? 'hover' : 'click',
         previewGraph: Math.max(0, Math.min(4, Number(dashboard.previewGraph) || 1)),
@@ -7027,13 +7417,23 @@ const renderDashboardControls = (type) => {
     $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
     $(`#${type}-dashboard-privacy-mask-names`).prop('checked', dashboard.privacyMaskNames !== false);
     if (type === 'docker') {
-        $('#docker-dashboard-privacy-mask-container-ips').prop('checked', dashboard.privacyMaskContainerIps !== false);
-        $('#docker-dashboard-privacy-mask-local-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
+        $('#docker-dashboard-privacy-mask-lan-ips').prop('checked', dashboard.privacyMaskLocalIps !== false);
         $('#docker-dashboard-privacy-mask-ports').prop('checked', dashboard.privacyMaskPorts !== false);
+        $('#docker-dashboard-privacy-mask-volume-paths').prop('checked', dashboard.privacyMaskVolumePaths !== false);
+        $('#docker-dashboard-privacy-mask-image-registry').prop('checked', dashboard.privacyMaskImageRegistry !== false);
+        $('#docker-dashboard-privacy-mask-public-ips').prop('checked', dashboard.privacyMaskPublicIps !== false);
+        $('#docker-dashboard-privacy-mask-interfaces').prop('checked', dashboard.privacyMaskInterfaces !== false);
+        $('#docker-dashboard-privacy-mask-external-urls').prop('checked', dashboard.privacyMaskExternalUrls !== false);
         $('#docker-dashboard-preview-context').val(dashboard.previewContext);
         $('#docker-dashboard-preview-trigger').val(dashboard.previewTrigger);
         $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
         $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
+    } else {
+        $('#vm-dashboard-privacy-mask-disk-paths').prop('checked', dashboard.privacyMaskVmDiskPaths !== false);
+        $('#vm-dashboard-privacy-mask-mac-addresses').prop('checked', dashboard.privacyMaskMacAddresses !== false);
+        $('#vm-dashboard-privacy-mask-public-ips').prop('checked', dashboard.privacyMaskPublicIps !== false);
+        $('#vm-dashboard-privacy-mask-interfaces').prop('checked', dashboard.privacyMaskInterfaces !== false);
+        $('#vm-dashboard-privacy-mask-external-urls').prop('checked', dashboard.privacyMaskExternalUrls !== false);
     }
     syncDashboardDependentFields(type);
 };
@@ -7048,7 +7448,7 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-page-view-mode`).val(
         typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(prefs.pageViewMode)
-            : (['host', 'command', 'tree-explorer'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
+            : (['host', 'command'].includes(String(prefs.pageViewMode || '').trim().toLowerCase()) ? String(prefs.pageViewMode || '').trim().toLowerCase() : 'folderview')
     );
     $(`#${type}-theme-compat-mode`).val(resolveThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
@@ -7333,10 +7733,6 @@ const enhanceViewOrganizationWorkspace = (type) => {
 
     updateViewOrganizationGuidance(resolvedType);
 };
-
-const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
-const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
-const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
@@ -8117,16 +8513,35 @@ const buildNativeDockerOrganizerStatusHtml = (status = null) => {
     const updated = Math.max(0, Number(source.updated) || 0);
     const synced = created + updated;
     const reason = String(source.reason || '').trim();
+    const failureCategory = String(source.failureCategory || '').trim().toLowerCase();
+    const failureLabels = {
+        fetch_unavailable: 'Browser fetch support unavailable',
+        network: 'GraphQL network request unavailable',
+        authentication: 'GraphQL authentication rejected',
+        endpoint_unavailable: 'GraphQL endpoint not found',
+        http_error: 'GraphQL HTTP error',
+        schema_unsupported: 'Docker Organizer schema not exposed',
+        graphql_error: 'GraphQL organizer request rejected',
+        invalid_response: 'Unexpected GraphQL response',
+        aborted: 'Organizer check interrupted',
+        unknown: 'Unclassified organizer result'
+    };
+    const failureLabel = failureLabels[failureCategory] || '';
+    const requestedFailure = source.requested === true
+        && source.organizerApiAvailable === true
+        && reason === 'sync_failed';
     const headline = source.ok === true
         ? (source.skipped === true
             ? 'Native organizer sync was skipped safely.'
             : `Native organizer synced ${synced} folder change${synced === 1 ? '' : 's'}.`)
-        : 'Native organizer sync is unavailable right now.';
+        : (requestedFailure
+            ? 'The requested native organizer sync did not complete.'
+            : 'Optional native organizer integration is unavailable.');
     const detail = source.ok === true
         ? `${synced} changed, checked ${checkedAt}${reason ? ` (${reason})` : ''}.`
-        : `${reason || 'GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
+        : `${failureLabel || 'Optional GraphQL organizer API unavailable'}, checked ${checkedAt}.`;
     return `
-        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : 'is-warning'}">
+        <div class="fv-recovery-empty-state ${source.ok === true ? 'is-ok' : (requestedFailure ? 'is-warning' : 'is-info')}">
             <strong>${escapeHtml(headline)}</strong>
             <span>${escapeHtml(detail)}</span>
         </div>
@@ -8165,15 +8580,19 @@ const syncNativeDockerOrganizerFromSettings = async () => {
     try {
         const result = await nativeOrganizerModule.syncDockerOrganizer(dockers, {
             force: true,
+            explicit: true,
             source: 'settings'
         });
         renderNativeDockerOrganizerStatus(result);
+        const requestedFailure = result?.requested === true
+            && result?.organizerApiAvailable === true
+            && result?.reason === 'sync_failed';
         showToastMessage({
-            title: result.ok ? 'Native organizer checked' : 'Native organizer skipped',
+            title: result.ok ? 'Native organizer checked' : (requestedFailure ? 'Native organizer sync failed' : 'Native organizer unavailable'),
             message: result.ok
                 ? `Created ${Number(result.created) || 0}, updated ${Number(result.updated) || 0}.`
-                : String(result.reason || 'GraphQL organizer API unavailable.'),
-            level: result.ok ? 'success' : 'warning'
+                : 'The optional organizer API is unavailable or the requested sync could not complete.',
+            level: result.ok ? 'success' : (requestedFailure ? 'warning' : 'info')
         });
         return result.ok === true;
     } catch (error) {
@@ -8707,9 +9126,6 @@ const renderSettingsSecondarySurfaces = (type) => {
     if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
     }
-    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
-        renderFolderHealthCards();
-    }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
     enforceNoHorizontalOverflow();
@@ -8743,9 +9159,6 @@ const renderActiveAdvancedSecondarySurfaces = () => {
     }
     if (shouldRefreshSecondaryAdvancedGroup('startup')) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
-    }
-    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
-        renderFolderHealthCards();
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
@@ -8917,7 +9330,8 @@ const refreshType = async (type) => {
     markFatalBannerStep(`Rendered ${type} settings table`);
     recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
         folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
-        infoCount: Object.keys(info || {}).length
+        infoCount: Object.keys(info || {}).length,
+        coldLoad: settingsUiState.initialized !== true
     });
     return {
         hasErrors: degradedReasons.length > 0,
@@ -9131,7 +9545,8 @@ const refreshCoreData = async () => {
     }
     recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
         dockerFolders: Object.keys(getFolderMap('docker')).length,
-        vmFolders: Object.keys(getFolderMap('vm')).length
+        vmFolders: Object.keys(getFolderMap('vm')).length,
+        coldLoad: settingsUiState.initialized !== true
     });
     return {
         degradedReasons
@@ -9149,6 +9564,8 @@ const refreshAll = async () => {
         ]
     };
 };
+
+window.FolderViewPlusRefreshCoreData = refreshCoreData;
 
 const downloadType = async (type, id) => {
     let resolvedType;
@@ -9309,9 +9726,7 @@ const importType = async (type) => {
     }
 
     let transactionBackup = null;
-    const operationCount = countImportOperations(operations);
-    const syncStepCount = resolvedType === 'docker' ? 1 : 0;
-    const progressTotal = Math.max(3, operationCount + syncStepCount + 2);
+    const progressTotal = 3;
     let progressOpen = false;
     const setProgress = (completed, label) => {
         updateImportApplyProgressDialog({
@@ -9328,14 +9743,14 @@ const importType = async (type) => {
         transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
         setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
 
-        await applyImportOperations(resolvedType, operations, ({ completed, label }) => {
-            setProgress(1 + completed, label || 'Applying import operations...');
+        await applyImportOperations(resolvedType, operations, ({ completed, total, label }) => {
+            const batchComplete = Number(total) > 0 && Number(completed) >= Number(total);
+            setProgress(batchComplete ? 2 : 1, label || 'Applying import transaction...');
         });
 
-        setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+        setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
         setProgress(progressTotal, 'Import complete.');
-        await new Promise((resolve) => setTimeout(resolve, 180));
         closeImportApplyProgressDialog();
         progressOpen = false;
 
@@ -9412,8 +9827,7 @@ const clearType = (type, id) => {
         }
 
         const deleteIds = id ? [id] : Object.keys(getFolderMap(resolvedType));
-        const syncStepCount = resolvedType === 'docker' ? 1 : 0;
-        const progressTotal = Math.max(3, deleteIds.length + syncStepCount + 2);
+        const progressTotal = 3;
         let progressOpen = false;
         const operationTitle = id
             ? `Deleting ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`
@@ -9463,38 +9877,33 @@ const clearType = (type, id) => {
                 deletedCount: 0
             });
 
-            let completed = 1;
             const foldersBeforeDelete = getFolderMap(resolvedType);
             let deletedCount = 0;
-            for (const currentId of deleteIds) {
-                const currentName = foldersBeforeDelete[currentId]?.name || currentId;
-                setProgress(completed, `Deleting ${currentName}`, {
-                    current: `Removing folder: ${currentName}`,
-                    deletedCount
+            if (deleteIds.length > 0) {
+                const currentLabel = id
+                    ? `Removing folder: ${foldersBeforeDelete[id]?.name || id}`
+                    : `Removing ${deleteIds.length} folders in one transaction.`;
+                setProgress(1, id ? `Deleting ${folderName || id}` : `Deleting ${deleteIds.length} folders`, {
+                    current: currentLabel,
+                    deletedCount: 0
                 });
-                await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId });
-                completed += 1;
-                deletedCount += 1;
-                setProgress(completed, `Deleted ${currentName}`, {
-                    current: `Removed folder: ${currentName}`,
-                    deletedCount
+                const result = await requestFolderBatchMutation(resolvedType, {
+                    deletes: deleteIds,
+                    upserts: [],
+                    creates: []
                 });
-            }
-
-            if (resolvedType === 'docker') {
-                setProgress(completed, 'Syncing Docker folder order...', {
-                    current: 'Removing deleted folders from Docker order.',
-                    deletedCount
-                });
-                await syncDockerOrder();
-                completed += 1;
-                setProgress(completed, 'Synced Docker folder order', {
-                    current: 'Docker folder order synced.',
+                deletedCount = Array.isArray(result.deletedIds)
+                    ? result.deletedIds.length
+                    : deleteIds.length;
+                setProgress(2, id ? `Deleted ${folderName || id}` : `Deleted ${deletedCount} folders`, {
+                    current: resolvedType === 'docker'
+                        ? 'Folder configuration and Docker order updated.'
+                        : 'Folder configuration updated.',
                     deletedCount
                 });
             }
 
-            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
+            setProgress(2, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`, {
                 current: 'Refreshing settings table and backups.',
                 deletedCount
             });
@@ -9507,7 +9916,6 @@ const clearType = (type, id) => {
                 remainingLabel: 0,
                 note: 'Cleanup complete. The settings view has been refreshed.'
             });
-            await new Promise((resolve) => setTimeout(resolve, 650));
             closeImportApplyProgressDialog();
             progressOpen = false;
 
@@ -9554,10 +9962,11 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
     if (!partial || typeof partial !== 'object' || Array.isArray(partial)) {
         return current;
     }
-    const next = utils.normalizePrefs({
-        ...current,
-        ...partial
-    });
+    const next = utils.normalizePrefs(
+        prefsStoreModule && typeof prefsStoreModule.mergePatch === 'function'
+            ? prefsStoreModule.mergePatch(current, partial)
+            : { ...current, ...partial }
+    );
     const render = typeof options.render === 'function' ? options.render : null;
     const onCommitted = typeof options.onCommitted === 'function' ? options.onCommitted : null;
     prefsByType[resolvedType] = next;
@@ -9565,7 +9974,10 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
         render(next, current);
     }
     try {
-        const savedPrefs = await postPrefs(resolvedType, partial);
+        const savedPrefs = await postPrefs(resolvedType, partial, {
+            currentPrefs: next,
+            immediate: options.immediate === true
+        });
         prefsByType[resolvedType] = utils.normalizePrefs(savedPrefs);
         if (render) {
             render(prefsByType[resolvedType], next);
@@ -9575,9 +9987,11 @@ const updatePrefsPartial = async (type, patch, options = {}) => {
         }
         return prefsByType[resolvedType];
     } catch (error) {
-        prefsByType[resolvedType] = current;
+        prefsByType[resolvedType] = diagnosticsPrefsCoordinator
+            ? utils.normalizePrefs(diagnosticsPrefsCoordinator.getOptimisticPrefs(resolvedType))
+            : next;
         if (render) {
-            render(current, next);
+            render(prefsByType[resolvedType], next);
         }
         throw error;
     }
@@ -9943,23 +10357,8 @@ const toggleFolderPin = async (type, folderId) => {
     }
 };
 
-const getRuntimePrefsSaveState = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    if (!runtimePrefsSaveStateByType[resolvedType] || typeof runtimePrefsSaveStateByType[resolvedType] !== 'object') {
-        runtimePrefsSaveStateByType[resolvedType] = {
-            revision: 0,
-            lastCommittedPrefs: utils.normalizePrefs(prefsByType[resolvedType] || {})
-        };
-    }
-    if (!runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs) {
-        runtimePrefsSaveStateByType[resolvedType].lastCommittedPrefs = utils.normalizePrefs(prefsByType[resolvedType] || {});
-    }
-    return runtimePrefsSaveStateByType[resolvedType];
-};
-
 const changeRuntimePref = async (type, key, value) => {
     const current = utils.normalizePrefs(prefsByType[type]);
-    const runtimeSaveState = getRuntimePrefsSaveState(type);
     const next = {
         ...current
     };
@@ -9978,7 +10377,7 @@ const changeRuntimePref = async (type, key, value) => {
     } else if (key === 'pageViewMode') {
         next.pageViewMode = typeof utils.normalizeRuntimePageViewMode === 'function'
             ? utils.normalizeRuntimePageViewMode(value)
-            : (['host', 'command', 'tree-explorer'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
+            : (['host', 'command'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
     } else if (key === 'themeCompatibilityMode') {
         next.themeCompatibilityMode = resolveThemeCompatibilityMode(value);
     } else {
@@ -9988,30 +10387,18 @@ const changeRuntimePref = async (type, key, value) => {
     if (key === 'liveRefreshEnabled' || key === 'lazyPreviewEnabled') {
         syncRuntimeDependentFields(type);
     }
-    prefsByType[type] = utils.normalizePrefs(next);
-    renderRuntimeControls(type);
-    const requestRevision = runtimeSaveState.revision + 1;
-    runtimeSaveState.revision = requestRevision;
-
     try {
-        const savedPrefs = await postPrefs(type, { [key]: next[key] });
-        runtimeSaveState.lastCommittedPrefs = utils.normalizePrefs(savedPrefs);
-        if (requestRevision !== runtimeSaveState.revision) {
-            return;
-        }
-        prefsByType[type] = runtimeSaveState.lastCommittedPrefs;
-        renderRuntimeControls(type);
-        if (key === 'themeCompatibilityMode') {
-            applySettingsResolvedThemeTokens(`pref-${type}`);
-            queueSettingsThemeAwareReflow(`theme-compat-${type}`);
-        }
+        await updatePrefsPartial(type, { [key]: next[key] }, {
+            render: () => renderRuntimeControls(type),
+            onCommitted: () => {
+                if (key === 'themeCompatibilityMode') {
+                    applySettingsResolvedThemeTokens(`pref-${type}`);
+                    queueSettingsThemeAwareReflow(`theme-compat-${type}`);
+                }
+            }
+        });
     } catch (error) {
-        if (requestRevision !== runtimeSaveState.revision) {
-            return;
-        }
-        prefsByType[type] = utils.normalizePrefs(runtimeSaveState.lastCommittedPrefs || current);
-        renderRuntimeControls(type);
-        showError('Runtime preference save failed', error);
+        showError('Runtime preference sync pending', error);
     }
 };
 
@@ -10027,7 +10414,7 @@ const changeDashboardPref = async (type, key, value) => {
             ? utils.normalizeDashboardLayout
             : ((layoutValue) => {
                 const normalized = String(layoutValue || '').trim().toLowerCase();
-                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized) ? normalized : 'classic';
             });
         nextDashboard.layout = normalizeLayout(value);
     } else if (key === 'expandToggle') {
@@ -10046,18 +10433,21 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.privacyMaskLocalIps = value === true;
     } else if (key === 'privacyMaskPorts' && type === 'docker') {
         nextDashboard.privacyMaskPorts = value === true;
+    } else if (key.startsWith('privacyMask')) {
+        nextDashboard[key] = value === true;
     } else {
         return;
     }
 
-    const next = {
-        ...current,
-        dashboard: nextDashboard
-    };
-
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        renderDashboardControls(type);
+        await updatePrefsPartial(type, {
+            dashboard: {
+                [key]: nextDashboard[key]
+            }
+        }, {
+            render: () => renderDashboardControls(type),
+            immediate: key.startsWith('privacyMask')
+        });
     } catch (error) {
         renderDashboardControls(type);
         showError('Dashboard preference save failed', error);
@@ -11036,17 +11426,17 @@ const applyRuleSimulatorAssignments = (type) => {
 
             try {
                 backup = await createBackup(resolvedType, 'before-rule-preview-assign');
+                const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
+                    type: resolvedType,
+                    assignments: JSON.stringify(Array.from(byFolder.entries()).map(([folderId, items]) => ({ folderId, items })))
+                });
+                if (!response?.ok || !response?.result) {
+                    throw new Error(response?.error || 'Rule preview assignment transaction failed.');
+                }
+                const batchResults = Array.isArray(response.result.results) ? response.result.results : [];
+                const resultByFolder = new Map(batchResults.map((result) => [String(result?.folderId || '').trim(), result]));
                 for (const [folderId, items] of byFolder.entries()) {
-                    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
-                        type: resolvedType,
-                        folderId,
-                        items: JSON.stringify(items)
-                    });
-                    if (!response?.ok) {
-                        failed.push(...items.map((item) => `${item}: ${response?.error || 'request failed'}`));
-                        continue;
-                    }
-                    const result = response.result || {};
+                    const result = resultByFolder.get(folderId) || {};
                     assignedCount += Array.isArray(result.assigned) ? result.assigned.length : 0;
                     skippedInvalidCount += Array.isArray(result.skippedInvalid) ? result.skippedInvalid.length : 0;
                     const assignedSet = new Set((Array.isArray(result.assigned) ? result.assigned : []).map((item) => String(item || '').trim()));

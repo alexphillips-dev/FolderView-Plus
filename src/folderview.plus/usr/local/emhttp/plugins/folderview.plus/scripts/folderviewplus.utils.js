@@ -23,7 +23,7 @@
     const PRIVACY_MODE_PREFS_SCHEMA = 3;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
-    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command', 'tree-explorer', 'orbit'];
+    const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -60,6 +60,13 @@
         privacyMaskContainerIps: true,
         privacyMaskLocalIps: true,
         privacyMaskPorts: true,
+        privacyMaskVolumePaths: true,
+        privacyMaskImageRegistry: true,
+        privacyMaskVmDiskPaths: true,
+        privacyMaskMacAddresses: true,
+        privacyMaskPublicIps: true,
+        privacyMaskInterfaces: true,
+        privacyMaskExternalUrls: true,
         previewContext: 'native',
         previewTrigger: 'click',
         previewGraph: 1,
@@ -70,14 +77,15 @@
         remaining: 'after',
         batches: []
     };
-    const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']);
     const DASHBOARD_LAYOUT_LABELS = Object.freeze({
         classic: 'Classic',
         legacy: 'Legacy',
         fullwidth: 'Full Width',
         accordion: 'Accordion',
         inset: 'Inset',
-        compactmatrix: 'Compact Matrix'
+        compactmatrix: 'Compact Matrix',
+        embossed: 'Embossed'
     });
     const DASHBOARD_OVERFLOW_OPTIONS = Object.freeze(['default', 'expand_row', 'scroll']);
     const RUNTIME_ACTIONS_BY_TYPE = {
@@ -625,6 +633,14 @@
 
     const normalizePrefs = (prefs) => {
         const incoming = isPlainObject(prefs) ? prefs : {};
+        const incomingMetadata = isPlainObject(incoming._metadata) ? incoming._metadata : {};
+        const metadata = {
+            schemaVersion: Math.max(0, Number.parseInt(String(incomingMetadata.schemaVersion ?? '0'), 10) || 0),
+            type: String(incomingMetadata.type || '').trim(),
+            folderRevision: Math.max(0, Number.parseInt(String(incomingMetadata.folderRevision ?? '0'), 10) || 0),
+            prefsRevision: Math.max(0, Number.parseInt(String(incomingMetadata.prefsRevision ?? '0'), 10) || 0),
+            updatedAt: String(incomingMetadata.updatedAt || '').trim()
+        };
         const sortMode = FOLDER_SORT_MODES.includes(incoming.sortMode) ? incoming.sortMode : 'created';
         const manualOrder = Array.isArray(incoming.manualOrder) ? incoming.manualOrder.filter((id) => typeof id === 'string' && id !== '') : [];
         const autoRulesRaw = Array.isArray(incoming.autoRules) ? incoming.autoRules : [];
@@ -808,6 +824,13 @@
             privacyMaskPorts: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'privacyMaskPorts')
                 ? DEFAULT_DASHBOARD_PREFS.privacyMaskPorts
                 : incomingDashboard.privacyMaskPorts !== false,
+            privacyMaskVolumePaths: incomingDashboard.privacyMaskVolumePaths !== false,
+            privacyMaskImageRegistry: incomingDashboard.privacyMaskImageRegistry !== false,
+            privacyMaskVmDiskPaths: incomingDashboard.privacyMaskVmDiskPaths !== false,
+            privacyMaskMacAddresses: incomingDashboard.privacyMaskMacAddresses !== false,
+            privacyMaskPublicIps: incomingDashboard.privacyMaskPublicIps !== false,
+            privacyMaskInterfaces: incomingDashboard.privacyMaskInterfaces !== false,
+            privacyMaskExternalUrls: incomingDashboard.privacyMaskExternalUrls !== false,
             previewContext: normalizeDashboardPreviewContext(incomingDashboard.previewContext),
             previewTrigger: normalizeDashboardPreviewTrigger(incomingDashboard.previewTrigger),
             previewGraph: clampNumber(incomingDashboard.previewGraph, 0, 4, DEFAULT_DASHBOARD_PREFS.previewGraph),
@@ -917,6 +940,7 @@
         };
 
         return {
+            _metadata: metadata,
             sortMode,
             manualOrder,
             pinnedFolderIds,

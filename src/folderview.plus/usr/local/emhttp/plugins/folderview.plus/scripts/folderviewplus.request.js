@@ -1,16 +1,77 @@
 (() => {
     const DEFAULT_TOKEN_STORAGE_KEY = 'fv.request.token';
     const DEFAULT_TIMEOUT_MS = 15000;
-    const DEFAULT_RETRIES = 1;
+    const DEFAULT_GET_RETRIES = 1;
+    const DEFAULT_MUTATION_RETRIES = 0;
     const DEFAULT_RETRY_DELAY_MS = 220;
+    const MAX_DIAGNOSTICS = 100;
     const RETRYABLE_STATUS_CODES = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
     const TRACE_HEADER_NAME = 'X-FV-Trace';
     const TRACE_PAYLOAD_KEY = '_fv_trace';
+    const requestDiagnostics = [];
+    let securityPrefilterConfigured = false;
 
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
     const newTraceId = () => {
         const rand = Math.random().toString(16).slice(2, 10);
         return `fv-${Date.now().toString(36)}-${rand}`;
+    };
+
+    const sanitizeDiagnosticUrl = (url) => {
+        const raw = String(url || '').trim();
+        if (!raw) {
+            return '';
+        }
+        try {
+            return new URL(raw, window.location?.origin || 'http://localhost').pathname;
+        } catch (_error) {
+            return raw.split(/[?#]/, 1)[0].slice(0, 240);
+        }
+    };
+
+    const recordDiagnostic = (entry = {}) => {
+        requestDiagnostics.push({
+            at: new Date().toISOString(),
+            method: String(entry.method || 'GET').toUpperCase(),
+            endpoint: sanitizeDiagnosticUrl(entry.url),
+            outcome: String(entry.outcome || 'unknown'),
+            status: Math.max(0, Number(entry.status) || 0),
+            durationMs: Math.max(0, Number(entry.durationMs) || 0),
+            attempts: Math.max(1, Number(entry.attempts) || 1),
+            traceId: String(entry.traceId || '').slice(0, 96)
+        });
+        if (requestDiagnostics.length > MAX_DIAGNOSTICS) {
+            requestDiagnostics.splice(0, requestDiagnostics.length - MAX_DIAGNOSTICS);
+        }
+    };
+
+    const getDiagnostics = () => requestDiagnostics.map((entry) => ({ ...entry }));
+    const clearDiagnostics = () => {
+        requestDiagnostics.splice(0, requestDiagnostics.length);
+    };
+
+    const buildUrl = (url, query = {}) => {
+        const raw = String(url || '').trim();
+        if (!raw) {
+            throw new Error('Request URL is required.');
+        }
+        const hashIndex = raw.indexOf('#');
+        const hash = hashIndex >= 0 ? raw.slice(hashIndex) : '';
+        const withoutHash = hashIndex >= 0 ? raw.slice(0, hashIndex) : raw;
+        const separator = withoutHash.includes('?') ? '&' : '?';
+        const params = new URLSearchParams();
+        Object.entries(query && typeof query === 'object' ? query : {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') {
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach((item) => params.append(key, String(item)));
+                return;
+            }
+            params.set(key, String(value));
+        });
+        const encoded = params.toString();
+        return encoded ? `${withoutHash}${separator}${encoded}${hash}` : raw;
     };
 
     const isMetaTag = (node) => (
@@ -97,25 +158,52 @@
     };
 
     const configureSecurityHeaders = ({ tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY } = {}) => {
-        if (!window.$ || typeof window.$.ajaxSetup !== 'function') {
+        if (securityPrefilterConfigured || !window.$ || typeof window.$.ajaxPrefilter !== 'function') {
             return;
         }
-        window.$.ajaxSetup({
-            headers: buildHeaders({}, tokenStorageKey)
+        securityPrefilterConfigured = true;
+        window.$.ajaxPrefilter((options = {}) => {
+            const endpoint = sanitizeDiagnosticUrl(options.url);
+            if (!endpoint.startsWith('/plugins/folderview.plus/')) {
+                return;
+            }
+            options.headers = buildHeaders(options.headers || {}, tokenStorageKey);
         });
     };
 
-    const toAjaxPromise = (options) => new Promise((resolve, reject) => {
+    const toAjaxPromise = (options, signal = null, onRequest = null) => new Promise((resolve, reject) => {
         if (!window.$ || typeof window.$.ajax !== 'function') {
             reject(new Error('jQuery.ajax is not available.'));
             return;
         }
 
-        window.$.ajax(options)
+        const request = window.$.ajax(options);
+        if (typeof onRequest === 'function') {
+            onRequest(request);
+        }
+        const abortRequest = () => {
+            if (request && typeof request.abort === 'function') {
+                request.abort();
+            }
+        };
+        if (signal?.aborted === true) {
+            abortRequest();
+        } else if (signal && typeof signal.addEventListener === 'function') {
+            signal.addEventListener('abort', abortRequest, { once: true });
+        }
+        const cleanup = () => {
+            if (signal && typeof signal.removeEventListener === 'function') {
+                signal.removeEventListener('abort', abortRequest);
+            }
+        };
+
+        request
             .done((data, textStatus, jqXHR) => {
+                cleanup();
                 resolve({ data, textStatus, jqXHR });
             })
             .fail((jqXHR, textStatus, errorThrown) => {
+                cleanup();
                 reject({ jqXHR, textStatus, errorThrown });
             });
     });
@@ -196,7 +284,12 @@
         if (traceId) {
             pieces.push(`(trace: ${traceId})`);
         }
-        return new Error(pieces.join(' '));
+        const formatted = new Error(pieces.join(' '));
+        formatted.status = status;
+        formatted.httpStatus = status;
+        formatted.traceId = traceId;
+        formatted.response = error?.jqXHR?.responseJSON || null;
+        return formatted;
     };
 
     const request = async ({
@@ -204,50 +297,105 @@
         url,
         data = undefined,
         timeoutMs = DEFAULT_TIMEOUT_MS,
-        retries = DEFAULT_RETRIES,
+        retries = null,
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        cache = undefined,
+        processData = undefined,
+        contentType = undefined,
+        dataType = undefined,
+        xhr = undefined,
+        signal = null,
+        onRequest = null
     }) => {
         if (!url) {
             throw new Error('Request URL is required.');
         }
-        const safeRetries = Math.max(0, Number(retries) || 0);
-        const safeTimeoutMs = Math.max(1000, Number(timeoutMs) || DEFAULT_TIMEOUT_MS);
-        let lastError = null;
-
         const normalizedMethod = String(method || 'GET').toUpperCase();
+        const defaultRetries = ['GET', 'HEAD'].includes(normalizedMethod)
+            ? DEFAULT_GET_RETRIES
+            : DEFAULT_MUTATION_RETRIES;
+        const safeRetries = retries === null || retries === undefined
+            ? defaultRetries
+            : Math.max(0, Number(retries) || 0);
+        const safeTimeoutMs = Math.max(1000, Number(timeoutMs) || DEFAULT_TIMEOUT_MS);
+        const startedAt = Date.now();
+        let lastError = null;
+        let attempts = 0;
         const token = getOptionalRequestToken(tokenStorageKey);
         const traceId = newTraceId();
         const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId);
 
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
+            attempts = attempt + 1;
             try {
-                const response = await toAjaxPromise({
+                const ajaxOptions = {
                     url,
                     method: normalizedMethod,
                     data: payload,
                     timeout: safeTimeoutMs,
                     headers: buildHeaders(headers, tokenStorageKey, token, traceId)
-                });
+                };
+                if (typeof cache === 'boolean') ajaxOptions.cache = cache;
+                if (typeof processData === 'boolean') ajaxOptions.processData = processData;
+                if (contentType !== undefined) ajaxOptions.contentType = contentType;
+                if (dataType !== undefined) ajaxOptions.dataType = dataType;
+                if (typeof xhr === 'function') ajaxOptions.xhr = xhr;
+                const response = await toAjaxPromise(ajaxOptions, signal, onRequest);
                 response.traceId = traceId;
+                recordDiagnostic({
+                    method: normalizedMethod,
+                    url,
+                    outcome: 'ok',
+                    status: response?.jqXHR?.status,
+                    durationMs: Date.now() - startedAt,
+                    attempts,
+                    traceId
+                });
                 return response;
             } catch (error) {
                 lastError = error;
                 const shouldRetry = attempt < safeRetries && shouldRetryError(error);
                 if (!shouldRetry) {
-                    throw formatAjaxError(error, url, traceId);
+                    const formatted = formatAjaxError(error, url, traceId);
+                    formatted.method = normalizedMethod;
+                    formatted.attempts = attempts;
+                    formatted.retryable = shouldRetryError(error);
+                    recordDiagnostic({
+                        method: normalizedMethod,
+                        url,
+                        outcome: String(error?.textStatus || '').toLowerCase() === 'abort' ? 'aborted' : 'error',
+                        status: error?.jqXHR?.status,
+                        durationMs: Date.now() - startedAt,
+                        attempts,
+                        traceId
+                    });
+                    throw formatted;
                 }
                 await wait((attempt + 1) * retryDelayMs);
             }
         }
 
-        throw formatAjaxError(lastError, url, traceId);
+        const formatted = formatAjaxError(lastError, url, traceId);
+        formatted.method = normalizedMethod;
+        formatted.attempts = attempts;
+        formatted.retryable = shouldRetryError(lastError);
+        recordDiagnostic({
+            method: normalizedMethod,
+            url,
+            outcome: 'error',
+            status: lastError?.jqXHR?.status,
+            durationMs: Date.now() - startedAt,
+            attempts,
+            traceId
+        });
+        throw formatted;
     };
 
     const parseJsonStrict = (payload, url) => {
         if (typeof payload === 'string') {
-            const trimmed = payload.trim();
+            const trimmed = payload.replace(/^\uFEFF/, '').trim();
             if (!trimmed) {
                 throw new Error(`JSON response from ${url} was empty.`);
             }
@@ -266,10 +414,12 @@
     const getText = async (url, {
         data = undefined,
         timeoutMs = DEFAULT_TIMEOUT_MS,
-        retries = DEFAULT_RETRIES,
+        retries = null,
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        cache = undefined,
+        signal = null
     } = {}) => {
         const response = await request({
             method: 'GET',
@@ -279,17 +429,20 @@
             retries,
             retryDelayMs,
             headers,
-            tokenStorageKey
+            tokenStorageKey,
+            cache,
+            signal
         });
         return response.data;
     };
 
     const postText = async (url, data = {}, {
         timeoutMs = DEFAULT_TIMEOUT_MS,
-        retries = DEFAULT_RETRIES,
+        retries = null,
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        signal = null
     } = {}) => {
         const response = await request({
             method: 'POST',
@@ -299,7 +452,8 @@
             retries,
             retryDelayMs,
             headers,
-            tokenStorageKey
+            tokenStorageKey,
+            signal
         });
         return response.data;
     };
@@ -307,10 +461,12 @@
     const getJson = async (url, {
         data = undefined,
         timeoutMs = DEFAULT_TIMEOUT_MS,
-        retries = DEFAULT_RETRIES,
+        retries = null,
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        cache = undefined,
+        signal = null
     } = {}) => {
         const response = await request({
             method: 'GET',
@@ -320,17 +476,20 @@
             retries,
             retryDelayMs,
             headers,
-            tokenStorageKey
+            tokenStorageKey,
+            cache,
+            signal
         });
         return parseJsonStrict(response.data, url);
     };
 
     const postJson = async (url, data = {}, {
         timeoutMs = DEFAULT_TIMEOUT_MS,
-        retries = DEFAULT_RETRIES,
+        retries = null,
         retryDelayMs = DEFAULT_RETRY_DELAY_MS,
         headers = {},
-        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        signal = null
     } = {}) => {
         const response = await request({
             method: 'POST',
@@ -340,19 +499,117 @@
             retries,
             retryDelayMs,
             headers,
-            tokenStorageKey
+            tokenStorageKey,
+            signal
         });
         return parseJsonStrict(response.data, url);
+    };
+
+    const uploadJson = async (url, formData, {
+        timeoutMs = 30000,
+        headers = {},
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        signal = null,
+        onProgress = null,
+        onRequest = null
+    } = {}) => {
+        const response = await request({
+            method: 'POST',
+            url,
+            data: formData,
+            timeoutMs,
+            retries: 0,
+            headers,
+            tokenStorageKey,
+            cache: false,
+            processData: false,
+            contentType: false,
+            dataType: 'text',
+            signal,
+            onRequest,
+            xhr: () => {
+                const xhr = window.$?.ajaxSettings?.xhr?.();
+                if (xhr?.upload && typeof onProgress === 'function') {
+                    xhr.upload.addEventListener('progress', (event) => {
+                        if (event?.lengthComputable === true) {
+                            onProgress(Number(event.loaded || 0), Number(event.total || 0));
+                        }
+                    });
+                }
+                return xhr;
+            }
+        });
+        return parseJsonStrict(response.data, url);
+    };
+
+    const sendKeepalive = (url, data = {}, {
+        headers = {},
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY
+    } = {}) => {
+        if (!url) {
+            return false;
+        }
+        const startedAt = Date.now();
+        const token = getOptionalRequestToken(tokenStorageKey);
+        const traceId = newTraceId();
+        const markedPayload = addMutationPayloadMarkers('POST', data, token, traceId);
+        const body = (
+            (typeof FormData !== 'undefined' && markedPayload instanceof FormData)
+            || (typeof URLSearchParams !== 'undefined' && markedPayload instanceof URLSearchParams)
+        ) ? markedPayload : new URLSearchParams(Object.entries(markedPayload || {}).map(([key, value]) => [key, String(value)]));
+        try {
+            if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+                const accepted = navigator.sendBeacon(url, body);
+                recordDiagnostic({
+                    method: 'POST', url, outcome: accepted ? 'queued' : 'rejected',
+                    durationMs: Date.now() - startedAt, attempts: 1, traceId
+                });
+                if (accepted) {
+                    return true;
+                }
+            }
+        } catch (_error) {
+            // Continue to the fetch keepalive fallback.
+        }
+        if (typeof window.fetch !== 'function') {
+            recordDiagnostic({ method: 'POST', url, outcome: 'unavailable', durationMs: 0, attempts: 1, traceId });
+            return false;
+        }
+        try {
+            window.fetch(url, {
+                method: 'POST',
+                body,
+                keepalive: true,
+                credentials: 'same-origin',
+                headers: buildHeaders(headers, tokenStorageKey, token, traceId)
+            }).then((response) => {
+                recordDiagnostic({
+                    method: 'POST', url, outcome: response?.ok ? 'ok' : 'error', status: response?.status,
+                    durationMs: Date.now() - startedAt, attempts: 1, traceId
+                });
+            }).catch(() => {
+                recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId });
+            });
+            return true;
+        } catch (_error) {
+            recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId });
+            return false;
+        }
     };
 
     window.FolderViewPlusRequest = Object.freeze({
         configureSecurityHeaders,
         newTraceId,
+        buildUrl,
         request,
         getText,
         postText,
         getJson,
-        postJson
+        postJson,
+        uploadJson,
+        sendKeepalive,
+        diagnostics: getDiagnostics,
+        clearDiagnostics
     });
 
     configureSecurityHeaders();

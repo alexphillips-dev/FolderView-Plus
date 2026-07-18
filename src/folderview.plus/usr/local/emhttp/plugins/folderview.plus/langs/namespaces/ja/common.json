@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ja",
+        "namespace": "common"
+    },
+    "common.labels.optional": "任意",
+    "common.badges.recommended": "推奨",
+    "common.badges.can-delete": "削除可能"
+}

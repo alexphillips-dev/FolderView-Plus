@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "zh-Hans",
+        "namespace": "common"
+    },
+    "common.labels.optional": "可选",
+    "common.badges.recommended": "推荐",
+    "common.badges.can-delete": "可以删除"
+}

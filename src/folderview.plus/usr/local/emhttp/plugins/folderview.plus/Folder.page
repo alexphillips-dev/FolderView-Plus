@@ -11,6 +11,7 @@ Markdown="false"
     }
 </script>
 <?php
+$fvplusI18nNamespaces = ['editor'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -28,7 +29,8 @@ $folderEditorBootstrapContext = [
     'requestedId' => '',
     'resolvedId' => '',
     'resolvedBy' => '',
-    'folder' => null
+    'folder' => null,
+    'metadata' => null
 ];
 try {
     $folderEditorCookieRaw = trim((string)($_COOKIE['fv_folder_editor_bootstrap'] ?? ''));
@@ -46,6 +48,7 @@ try {
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorTypePrefs = readTypePrefs($folderEditorPageType);
+    $folderEditorTypePrefs['_metadata'] = readConfigMetadata($folderEditorPageType, true);
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
     $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
@@ -65,6 +68,7 @@ try {
         $folderEditorBootstrapContext = resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
         $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
     }
+    $folderEditorBootstrapContext['metadata'] = readConfigMetadata($folderEditorPageType, true);
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'modern';
@@ -76,7 +80,8 @@ try {
         'requestedId' => '',
         'resolvedId' => '',
         'resolvedBy' => '',
-        'folder' => null
+        'folder' => null,
+        'metadata' => null
     ];
 }
 ?>
@@ -488,6 +493,8 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.member-identity.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.preview-model.js')?>"></script>
@@ -790,6 +797,15 @@ try {
                     </blockquote>
                 </div>
             </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4 docker">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="folder-update-highlight">Orange folder name on member update:</dt>
+                        <dd><input class="basic-switch" name="folder_update_highlight" type="checkbox" style="display: none;" /></dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="folder-update-highlight-tooltip">Highlight the folder title separately when at least one Docker member has an update available.</p></blockquote>
+                </div>
+            </li>
             <li constraint="preview-1 preview-3 preview-4">
                 <div class="basic">
                     <dl>
@@ -808,14 +824,14 @@ try {
             <li constraint="preview-1 preview-2 preview-3 preview-4">
                 <div class="basic">
                     <dl>
-                        <dt>Preview rows:</dt>
+                        <dt data-i18n="preview-rows">Preview rows:</dt>
                         <dd>
                             <select name="preview_rows">
-                                <option value="1" selected>1 row</option>
-                                <option value="2">2 rows</option>
-                                <option value="3">3 rows</option>
-                                <option value="4">4 rows</option>
-                                <option value="0">Unlimited</option>
+                                <option value="1" selected data-i18n="preview-rows-one">1 row</option>
+                                <option value="2" data-i18n="preview-rows-two">2 rows</option>
+                                <option value="3" data-i18n="preview-rows-three">3 rows</option>
+                                <option value="4" data-i18n="preview-rows-four">4 rows</option>
+                                <option value="0" data-i18n="preview-rows-unlimited">Unlimited</option>
                             </select>
                         </dd>
                     </dl>
@@ -824,6 +840,21 @@ try {
                             Controls how many rows of compact preview cards are shown in the main Docker row before the rest stay behind the folder overflow path.
                         </p>
                     </blockquote>
+                </div>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-overflow">Preview overflow:</dt>
+                        <dd>
+                            <select name="preview_overflow">
+                                <option value="default" selected data-i18n="preview-overflow-limit">Use row limit</option>
+                                <option value="expand_row" data-i18n="preview-overflow-expand">Expand to show all</option>
+                                <option value="scroll" data-i18n="preview-overflow-scroll">Horizontal scroll</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="preview-overflow-tooltip">Choose whether extra preview members follow the row limit, expand the folder row, or remain in a single horizontally scrollable row.</p></blockquote>
                 </div>
             </li>
             <li constraint="preview-1 preview-2">
@@ -1001,6 +1032,25 @@ try {
                                     The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
                                 </p>
                             </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt data-i18n="preview-row-separators">Preview row separators:</dt>
+                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" onchange="updateForm()" /></dd>
+                    </dl>
+                    <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
+                </div>
+                <ul constraint="preview-row-separator-color" style="display: none;">
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt data-i18n="preview-row-separator-color">Row separator color:</dt>
+                                <dd><input type="color" name="preview_row_separator_color" value="#555555" style="height:28px;vertical-align:middle;"></dd>
+                            </dl>
                         </div>
                     </li>
                 </ul>
@@ -1224,6 +1274,14 @@ try {
                     The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
                 </p>
             </blockquote>
+        </div>
+
+        <div class="basic">
+            <dl>
+                <dt data-i18n="status-color-lock">Lock status colors:</dt>
+                <dd><input class="basic-switch" name="status_color_lock" type="checkbox" style="display: none;" /></dd>
+            </dl>
+            <blockquote class="inline_help"><p data-i18n="status-color-lock-tooltip">Keep this folder's selected status colors authoritative when themes or host styles change.</p></blockquote>
         </div>
 
         <div class="basic">
@@ -1486,7 +1544,7 @@ try {
             <dl>
                 <dt>​</dt>
                 <dd>
-                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-i18n="[html]custom-action" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> Add a custom action</button>
+                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1548,6 +1606,9 @@ try {
                                 <th data-i18n="table-included">
                                     Included
                                 </th>
+                                <th data-i18n="table-show-in-preview">
+                                    Show in preview
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1592,15 +1653,15 @@ try {
                 <fieldset class="fv-action-type-field is-wide">
                     <legend data-i18n="custom-actions-type">Type:</legend>
                     <select name="action_type" class="fv-action-type-select" tabindex="-1" aria-hidden="true">
-                        <option value="0" data-i18n="custom-actions-type-0">Standard</option>
-                        <option value="1" data-i18n="custom-actions-type-1">Custom</option>
+                        <option value="0" data-i18n="editor.actions.standard">Standard</option>
+                        <option value="1" data-i18n="editor.actions.user-script">User script</option>
                     </select>
                     <div class="fv-action-type-options" role="radiogroup" aria-label="Action type">
                         <button type="button" class="fv-action-type-option" data-action-type="0" role="radio" aria-checked="true">
-                            <i class="fa fa-cogs" aria-hidden="true"></i><span><strong data-i18n="custom-actions-type-0">Standard</strong><small>Control selected folder members.</small></span>
+                            <i class="fa fa-cogs" aria-hidden="true"></i><span><strong data-i18n="editor.actions.standard">Standard</strong><small data-i18n="editor.actions.control-members">Control selected folder members.</small></span>
                         </button>
                         <button type="button" class="fv-action-type-option" data-action-type="1" role="radio" aria-checked="false">
-                            <i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong>User Script</strong><small>Run a task from the User Scripts plugin.</small></span>
+                            <i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong data-i18n="editor.actions.user-script">User Script</strong><small data-i18n="editor.actions.run-user-script">Run a task from the User Scripts plugin.</small></span>
                         </button>
                     </div>
                 </fieldset>

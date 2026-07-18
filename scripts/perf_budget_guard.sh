@@ -29,6 +29,31 @@ if (!Number.isFinite(maxGrowthPct) || maxGrowthPct < 0) {
 
 const growthFactor = 1 + maxGrowthPct / 100;
 
+const walkPackagedFiles = (root) => {
+  const result = [];
+  const queue = [root];
+  while (queue.length) {
+    const current = queue.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) queue.push(fullPath);
+      else if (entry.isFile()) result.push(fullPath);
+    }
+  }
+  return result;
+};
+
+const packagedFiles = walkPackagedFiles(pluginDir);
+const thirdPartyIconRoot = path.join(pluginDir, 'images', 'third-party-icons');
+const thirdPartyIconFiles = packagedFiles.filter((file) => file.startsWith(thirdPartyIconRoot + path.sep));
+const thirdPartyIconBytes = thirdPartyIconFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const coreSourceFiles = packagedFiles.filter((file) => !file.startsWith(thirdPartyIconRoot + path.sep));
+const coreSourceBytes = coreSourceFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const nonRuntimeSourceFiles = thirdPartyIconFiles.filter((file) => /\.(?:psd|xcf|ai|sketch)$/i.test(file));
+const nonRuntimeSourceBytes = nonRuntimeSourceFiles.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const packageBudget = Number.parseInt(process.env.FVPLUS_MAX_PACKAGE_BYTES || '30000000', 10);
+const thirdPartyIconBudget = Number.parseInt(process.env.FVPLUS_MAX_THIRD_PARTY_ICON_BYTES || '75000000', 10);
+
 const envInt = (name, fallback) => {
   const raw = process.env[name];
   if (!raw) return fallback;
@@ -484,6 +509,15 @@ if (baseline) {
 
 runAbsoluteBudgetChecks();
 
+if (!Number.isFinite(packageBudget) || coreSourceBytes > packageBudget) {
+  console.error(`ERROR: Core plugin source exceeds budget (${coreSourceBytes} > ${packageBudget}).`);
+  failed = true;
+}
+if (!Number.isFinite(thirdPartyIconBudget) || thirdPartyIconBytes > thirdPartyIconBudget) {
+  console.error(`ERROR: Third-party icon assets exceed budget (${thirdPartyIconBytes} > ${thirdPartyIconBudget}).`);
+  failed = true;
+}
+
 if (missingBaselineMetrics.length > 0) {
   const uniqueMissing = [...new Set(missingBaselineMetrics)].sort();
   const message = `Missing baseline metric(s): ${uniqueMissing.join(', ')}`;
@@ -502,5 +536,8 @@ if (failed) {
 const baselineStatus = baseline ? path.basename(baselineFile) : 'not configured';
 console.log(
   `Performance budget guard passed: JS ${totalJs}B (${totalJsGzip}B gzip), CSS ${totalCss}B (${totalCssGzip}B gzip), ratchet baseline ${baselineStatus}.`
+);
+console.log(
+  `Core source inventory: ${coreSourceFiles.length} files / ${coreSourceBytes}B; versioned icon-pack source ${thirdPartyIconFiles.length} files / ${thirdPartyIconBytes}B; excluded non-runtime icon sources ${nonRuntimeSourceFiles.length} files / ${nonRuntimeSourceBytes}B.`
 );
 NODE

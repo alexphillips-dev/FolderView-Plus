@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "cs",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Nastavení vyhledávání",
+    "settings.search.label": "Nastavení vyhledávání",
+    "settings.search.clear-label": "Vymazat vyhledávání nastavení",
+    "settings.search.clear-title": "Vymazat vyhledávání",
+    "settings.search.scope": "Rozsah",
+    "settings.search.scope-help": "Vyberte, zda má Pokročilé vyhledávání pokrývat tuto kartu nebo všechny karty Pokročilé",
+    "settings.search.scope-label": "Rozšířená nastavení rozsahu vyhledávání",
+    "settings.search.scope-current": "Aktuální karta",
+    "settings.search.scope-all": "Všechny pokročilé",
+    "settings.header.plugin-settings": "Nastavení pluginu",
+    "settings.mode.title": "Režim nastavení",
+    "settings.mode.basic-label": "Použijte režim základního nastavení",
+    "settings.mode.advanced-label": "Použijte režim pokročilého nastavení",
+    "settings.wizard.title": "Spusťte průvodce nastavením",
+    "settings.tabs.basic": "Základní",
+    "settings.tabs.advanced": "Pokročilé",
+    "settings.tabs.wizard": "Čaroděj",
+    "settings.privacy.title": "Režim soukromí",
+    "settings.privacy.mask-names": "Jména a ikony masek",
+    "settings.privacy.mask-lan-ips": "Maska LAN IPs",
+    "settings.privacy.mask-ports": "Porty masky",
+    "settings.privacy.lan-help": "Maskování LAN IP se vztahuje na část IP na stránce Docker ve sloupci LAN IP:PORT. Pro část portu použijte masky portů."
+}

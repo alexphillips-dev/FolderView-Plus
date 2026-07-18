@@ -234,7 +234,7 @@
                 const pendingNames = Array.from(dockerHostUpdatePendingNames);
                 dockerHostUpdatePendingNames.clear();
                 if (syncDockerHostRowUpdateStatesFromDom(pendingNames)) {
-                    syncDockerVisibleFoldersFromRuntimeCache();
+                    syncDockerVisibleFoldersFromRuntimeCache(pendingNames);
                 }
             }, 36);
         };

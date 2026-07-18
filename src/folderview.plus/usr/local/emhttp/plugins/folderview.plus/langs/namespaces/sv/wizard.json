@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "sv",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Installationsassistent",
+    "wizard.welcome.kicker": "FolderView Plus Installationsassistent",
+    "wizard.welcome.title": "Organisera dina Docker behållare och VMs i mappar.",
+    "wizard.welcome.description": "FolderView Plus hjälper till att gruppera relaterade appar, förhandsgranska ändringar innan de tillämpas, och hålla framtida appar organiserade automatiskt om så önskas.",
+    "wizard.welcome.begin": "Börja installationen",
+    "wizard.welcome.skip": "Hoppa över guiden",
+    "wizard.welcome.group-title": "Gruppera relaterade appar",
+    "wizard.welcome.group-description": "Håll media, nedladdningar, verktyg, hemautomatisering och andra appar tillsammans.",
+    "wizard.welcome.preview-title": "Förhandsgranska innan du tillämpar",
+    "wizard.welcome.preview-description": "Du kommer att granska mappar, tilldelningar, regler och inställningar innan något ändras.",
+    "wizard.welcome.automatic-title": "Håll dig organiserad automatiskt",
+    "wizard.welcome.automatic-description": "Valfria startregler kan placera framtida matchande appar i rätt mappar.",
+    "wizard.navigation.next": "Nästa",
+    "wizard.navigation.back": "Tillbaka",
+    "wizard.navigation.begin": "Börja installationen",
+    "wizard.navigation.run-preview": "Kör förhandsgranskning",
+    "wizard.navigation.apply": "Tillämpa installation",
+    "wizard.navigation.show-details": "Visa detaljer",
+    "wizard.navigation.hide-details": "Dölj detaljer",
+    "wizard.navigation.close": "Stäng",
+    "wizard.navigation.review": "Granska",
+    "wizard.navigation.go-to": "Gå till $1",
+    "wizard.progress.step": "Steg $1 av $2",
+    "wizard.impact.live": "Direkt påverkan för detta steg"
+}

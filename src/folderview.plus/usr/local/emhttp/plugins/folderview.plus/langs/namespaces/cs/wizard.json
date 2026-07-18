@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "cs",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Setup Assistant",
+    "wizard.welcome.kicker": "FolderView Plus Asistent nastavení",
+    "wizard.welcome.title": "Uspořádejte své Docker kontejnery a VMs do složek.",
+    "wizard.welcome.description": "FolderView Plus pomáhá seskupovat související aplikace, zobrazovat náhled změn před jejich použitím a volitelně udržovat budoucí aplikace organizovány automaticky.",
+    "wizard.welcome.begin": "Zahajte nastavení",
+    "wizard.welcome.skip": "Přeskočit průvodce",
+    "wizard.welcome.group-title": "Seskupit související aplikace",
+    "wizard.welcome.group-description": "Udržujte média, stažené soubory, nástroje, domácí automatizaci a další aplikace pohromadě.",
+    "wizard.welcome.preview-title": "Náhled před aplikací",
+    "wizard.welcome.preview-description": "Než se cokoliv změní, zkontrolujete složky, přiřazení, pravidla a nastavení.",
+    "wizard.welcome.automatic-title": "Zůstaňte organizováni automaticky",
+    "wizard.welcome.automatic-description": "Volitelná spouštěcí pravidla mohou umístit budoucí odpovídající aplikace do správných složek.",
+    "wizard.navigation.next": "Další",
+    "wizard.navigation.back": "Zpět",
+    "wizard.navigation.begin": "Zahajte nastavení",
+    "wizard.navigation.run-preview": "Spustit náhled",
+    "wizard.navigation.apply": "Použít nastavení",
+    "wizard.navigation.show-details": "Zobrazit podrobnosti",
+    "wizard.navigation.hide-details": "Skrýt detaily",
+    "wizard.navigation.close": "Zavřít",
+    "wizard.navigation.review": "Recenze",
+    "wizard.navigation.go-to": "Přejít na $1",
+    "wizard.progress.step": "Krok $1 z $2",
+    "wizard.impact.live": "Live impact for this step"
+}

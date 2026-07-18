@@ -25,6 +25,7 @@ const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const requestClientJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
@@ -70,10 +71,16 @@ test('native organizer sync is best-effort and represented in diagnostics', () =
     assert.match(nativeOrganizerJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
     assert.match(nativeOrganizerJs, /const writeStatus = \(status = \{\}\) => \{/);
     assert.match(nativeOrganizerJs, /root\.localStorage\?\.setItem\?\.\(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON\.stringify\(lastStatus\)\)/);
-    assert.match(nativeOrganizerJs, /catch \(error\) \{[\s\S]*reason: String\(error\?\.message \|\| error \|\| 'organizer_sync_failed'\)/);
+    assert.match(nativeOrganizerJs, /const sanitizeFailure = \(error, stage = 'unknown'\) => \{/);
+    assert.match(nativeOrganizerJs, /failureCategory: failure\.failureCategory/);
+    assert.match(nativeOrganizerJs, /failureStage: failure\.failureStage/);
+    assert.match(nativeOrganizerJs, /httpStatus: failure\.httpStatus/);
+    assert.doesNotMatch(nativeOrganizerJs, /reason:\s*String\(error\?\.message/);
     assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
     assert.match(libDiagnosticsPhp, /'clientModule'\s*=>\s*'folderviewplus\.native-organizer\.js'/);
+    assert.match(libDiagnosticsPhp, /'statusSchemaVersion'\s*=>\s*2/);
+    assert.match(libDiagnosticsPhp, /'capabilityQuery'\s*=>/);
     assert.match(libDiagnosticsPhp, /'nativeOrganizer'\s*=>\s*diagnosticsBuildNativeOrganizerStatus\(\)/);
 });
 
@@ -203,8 +210,9 @@ test('folder editor supports unicode names and secure guarded create/update post
     }
     assert.equal(folderNameControlCharRegex.test("Bad\u0000Name"), true);
     assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
-    assert.match(folderIconApiJs, /payload\._fv_request = '1';/);
-    assert.match(folderIconApiJs, /'X-FV-Request': '1'/);
+    assert.match(folderIconApiJs, /requestClient\.postJson\(url, data, \{ retries: 0 \}\)/);
+    assert.match(requestClientJs, /'X-FV-Request': '1'/);
+    assert.match(requestClientJs, /payload\._fv_request = '1';/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
 });
@@ -214,9 +222,9 @@ test('request guard allows explicit mutation header fallback when token bypass i
     assert.match(libPhp, /\$_POST\['_fv_request'\] \?\? \$_GET\['_fv_request'\] \?\? ''/);
     assert.match(libPhp, /\$tokenRequiredForBypass = \$tokenMode !== 'off' && getConfiguredRequestToken\(\) !== '';/);
     assert.match(libPhp, /hasExplicitMutationRequestHeader\(\) && \(\$tokenValidated \|\| !\$tokenRequiredForBypass\)/);
-    assert.match(folderViewPlusJs, /const buildMutationRequestPayload = \(data = \{\}\) =>/);
-    assert.match(folderViewPlusJs, /payload\._fv_request = '1';/);
-    assert.match(folderViewPlusJs, /\$\.post\(url, buildMutationRequestPayload\(data\)\)/);
+    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = ''\) =>/);
+    assert.match(requestClientJs, /payload\._fv_request = '1';/);
+    assert.match(folderViewPlusJs, /requestClient\.postJson\(url, data, options\)/);
 });
 
 test('external links and popup actions enforce noopener protections', () => {
@@ -250,7 +258,7 @@ test('docker advanced popup uses delegated actions instead of inline handlers', 
     assert.match(dockerJs, /class="fv-runtime-action" data-action="console"/);
     assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-action'/);
     assert.match(dockerJs, /const actionMap = new Set\(\['start', 'resume', 'stop', 'pause', 'restart'\]\);/);
-    assert.match(dockerJs, /eventControl\(\{ action, container: containerId \}, 'loadlist'\);/);
+    assert.match(dockerJs, /const refreshTarget = getDockerRuntimeReconcileApi\(\)\?\.getLifecycleRefreshCallbackName\?\.\(\) \|\| 'loadlist';\s*eventControl\(\{ action, container: containerId \}, refreshTarget\);/);
     assert.match(dockerJs, /openTerminal\('docker', actionContainerName, String\(\$link\.attr\('data-shell-value'\)/);
     assert.match(dockerJs, /class="fv-runtime-toggle-info-list" data-show="\.info-ports-more"/);
     assert.match(dockerJs, /\$content\.on\('click', '\.fv-runtime-toggle-info-list'/);

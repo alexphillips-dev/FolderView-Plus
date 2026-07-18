@@ -315,6 +315,30 @@ tr.folder.fv-parent-expanded div.folder-preview {
     padding: 1px 0 1px 8px;
 }
 
+.folder-preview-row-separator {
+    flex: 0 0 auto;
+    width: calc(100% - 16px);
+    height: 0;
+    margin: 1px 8px;
+    border-top: 1px solid;
+    opacity: 0.58;
+    pointer-events: none;
+}
+
+.folder-preview.fv-preview-overflow-scroll {
+    display: block;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: thin;
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-overflow-scroll .folder-preview-row {
+    width: max-content;
+    min-width: 100%;
+    overflow: visible;
+}
+
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
     min-height: 0;
     margin: 0;
@@ -423,4 +447,23 @@ div.folder-preview-4 span.outer{
         overflow-x: auto;
         overflow-y: hidden;
     }
+}
+/* Sensitive-value privacy classes preserve source text, making toggles instant and reversible. */
+body.fvplus-privacy-docker-sensitive-volumePaths .fvplus-sensitive-volume-path,
+body.fvplus-privacy-docker-sensitive-imageRegistry .fvplus-sensitive-image-registry,
+body.fvplus-privacy-docker-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-docker-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-docker-sensitive-externalUrls .fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-vmDiskPaths .fvplus-sensitive-vm-disk-path,
+body.fvplus-privacy-vm-sensitive-macAddresses .fvplus-sensitive-mac-address,
+body.fvplus-privacy-vm-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-vm-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-vm-sensitive-externalUrls .fvplus-sensitive-external-url {
+    filter: blur(7px) !important;
+    user-select: none !important;
+}
+
+body.fvplus-privacy-docker-sensitive-externalUrls a.fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
+    pointer-events: none !important;
 }

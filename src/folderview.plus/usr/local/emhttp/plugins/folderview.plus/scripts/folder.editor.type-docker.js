@@ -123,7 +123,19 @@
                 ComposeProject: getComposeProjectFromLabels(labels),
                 State: state,
                 RawState: state,
-                UpdateAvailable: manager === 'dockerman' && updated === false
+                UpdateAvailable: manager === 'dockerman' && updated === false,
+                Identity: {
+                    kind: 'docker',
+                    containerId: String(entry?.shortId || entry?.id || entry?.Id || '').replace(/^sha256:/i, '').slice(0, 64),
+                    image: String(entry?.info?.Config?.Image || entry?.Image || '').trim(),
+                    imageId: String(entry?.shortImageId || entry?.ImageID || '').replace(/^sha256:/i, '').slice(0, 64),
+                    composeProject: String(entry?.composeProject || labels['com.docker.compose.project'] || '').trim(),
+                    template: String(labels['net.unraid.docker.template'] || labels['net.unraid.docker.xml'] || '').trim(),
+                    mountDestinations: (Array.isArray(entry?.Mounts) ? entry.Mounts : [])
+                        .map((mount) => String(mount?.Destination || mount?.destination || '').trim())
+                        .filter(Boolean)
+                        .sort()
+                }
             };
         };
 

@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "es",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Configuración de búsqueda",
+    "settings.search.label": "Configuración de búsqueda",
+    "settings.search.clear-label": "Borrar búsqueda de configuración",
+    "settings.search.clear-title": "Borrar búsqueda",
+    "settings.search.scope": "Alcance",
+    "settings.search.scope-help": "Elija si la búsqueda avanzada cubre esta pestaña o todas las pestañas avanzadas",
+    "settings.search.scope-label": "Alcance de la búsqueda en configuración avanzada",
+    "settings.search.scope-current": "Pestaña actual",
+    "settings.search.scope-all": "Todas avanzadas",
+    "settings.header.plugin-settings": "Configuración del complemento",
+    "settings.mode.title": "Modo de configuración",
+    "settings.mode.basic-label": "Usar modo de configuración básico",
+    "settings.mode.advanced-label": "Usar modo de configuración avanzado",
+    "settings.wizard.title": "Ejecutar asistente de configuración",
+    "settings.tabs.basic": "Básico",
+    "settings.tabs.advanced": "Avanzado",
+    "settings.tabs.wizard": "Asistente",
+    "settings.privacy.title": "Modo de privacidad",
+    "settings.privacy.mask-names": "Enmascarar nombres e íconos",
+    "settings.privacy.mask-lan-ips": "Enmascarar LAN IPs",
+    "settings.privacy.mask-ports": "Enmascarar puertos",
+    "settings.privacy.lan-help": "LAN IP el enmascaramiento se aplica a la IP parte de la columna LAN IP:PUERTO de la página Docker. Use Enmascarar puertos para la parte del puerto."
+}

@@ -20,8 +20,22 @@
     $folderVersion = 1.0;
     $configDir = "/boot/config/plugins/folderview.plus";
     $sourceDir = "/usr/local/emhttp/plugins/folderview.plus";
+    if (PHP_SAPI === 'cli') {
+        $testConfigDir = trim((string)getenv('FVPLUS_TEST_CONFIG_DIR'));
+        $testSourceDir = trim((string)getenv('FVPLUS_TEST_SOURCE_DIR'));
+        if ($testConfigDir !== '') {
+            $configDir = $testConfigDir;
+        }
+        if ($testSourceDir !== '') {
+            $sourceDir = $testSourceDir;
+        }
+    }
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
     $fvplusHostDependencyStatus = [];
+
+    if (!class_exists('FVPlusConfigConflictException')) {
+        class FVPlusConfigConflictException extends RuntimeException {}
+    }
 
     function fvplus_register_host_dependency_status(string $key, string $path, bool $loaded, string $detail = ''): void {
         global $fvplusHostDependencyStatus;
@@ -350,6 +364,9 @@
     const FVPLUS_RUNTIME_PREFS_SCHEMA = 3;
     const FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
     const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
+    const FVPLUS_CONFIG_METADATA_SCHEMA_VERSION = 1;
+    const FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS = 10;
+    const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
@@ -359,6 +376,9 @@
     const FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES = 65536;
     const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
     const FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES = 1048576;
+    const FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES = 8388608;
+    const FVPLUS_MAX_FOLDER_BATCH_OPERATIONS = 500;
+    const FVPLUS_MAX_BULK_ASSIGN_BATCH_ITEMS = 5000;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
     const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
@@ -971,6 +991,7 @@
         if (!isTrustedMutationContext() && !$headerValidated) {
             throw new RuntimeException('Blocked by request guard.');
         }
+        acquireConfigMutationLock();
     }
 
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
@@ -1033,6 +1054,9 @@
     }
 
     function fvplus_get_api_error_status(Throwable $error): int {
+        if ($error instanceof FVPlusConfigConflictException) {
+            return 409;
+        }
         if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
             return 400;
         }
@@ -1188,6 +1212,54 @@
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
         $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
         $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
+        $normalized['hiddenPreviewMembers'] = array_values(array_intersect(
+            $normalized['containers'],
+            array_slice(normalizeFolderMembers($normalized['hiddenPreviewMembers'] ?? ($normalized['hidden_preview'] ?? [])), 0, 5000)
+        ));
+        unset($normalized['hidden_preview']);
+        $rawMemberIdentities = is_array($normalized['memberIdentities'] ?? null)
+            ? $normalized['memberIdentities']
+            : (is_array($normalized['member_identities'] ?? null) ? $normalized['member_identities'] : []);
+        $normalizedMemberIdentities = [];
+        foreach ($normalized['containers'] as $memberName) {
+            if (!is_array($rawMemberIdentities[$memberName] ?? null)) {
+                continue;
+            }
+            $rawIdentity = $rawMemberIdentities[$memberName];
+            $kind = strtolower(trim((string)($rawIdentity['kind'] ?? 'docker'))) === 'vm' ? 'vm' : 'docker';
+            if ($kind === 'vm') {
+                $uuid = truncateUtf8String(trim((string)($rawIdentity['uuid'] ?? ($rawIdentity['id'] ?? ''))), 128);
+                if ($uuid !== '') {
+                    $normalizedMemberIdentities[$memberName] = ['kind' => 'vm', 'uuid' => $uuid];
+                }
+                continue;
+            }
+            $mountDestinations = [];
+            $rawMountDestinations = $rawIdentity['mountDestinations'] ?? ($rawIdentity['mount_destinations'] ?? []);
+            if (is_array($rawMountDestinations)) {
+                foreach ($rawMountDestinations as $rawDestination) {
+                    $destination = truncateUtf8String(trim((string)$rawDestination), 512);
+                    if ($destination !== '' && !in_array($destination, $mountDestinations, true)) {
+                        $mountDestinations[] = $destination;
+                    }
+                }
+                sort($mountDestinations, SORT_NATURAL | SORT_FLAG_CASE);
+            }
+            $identity = [
+                'kind' => 'docker',
+                'containerId' => truncateUtf8String(trim((string)($rawIdentity['containerId'] ?? ($rawIdentity['container_id'] ?? ($rawIdentity['id'] ?? '')))), 64),
+                'image' => truncateUtf8String(trim((string)($rawIdentity['image'] ?? ($rawIdentity['Image'] ?? ''))), 512),
+                'imageId' => truncateUtf8String(trim((string)($rawIdentity['imageId'] ?? ($rawIdentity['image_id'] ?? ($rawIdentity['shortImageId'] ?? '')))), 64),
+                'composeProject' => truncateUtf8String(trim((string)($rawIdentity['composeProject'] ?? ($rawIdentity['compose_project'] ?? ''))), 256),
+                'template' => truncateUtf8String(trim((string)($rawIdentity['template'] ?? '')), 512),
+                'mountDestinations' => $mountDestinations
+            ];
+            if ($identity['containerId'] !== '' || $identity['image'] !== '' || $identity['imageId'] !== '') {
+                $normalizedMemberIdentities[$memberName] = $identity;
+            }
+        }
+        $normalized['memberIdentities'] = $normalizedMemberIdentities;
+        unset($normalized['member_identities']);
         $rawParentId = $normalized['parentId'] ?? ($normalized['parent_id'] ?? ($normalized['parent'] ?? ''));
         $normalized['parentId'] = truncateUtf8String(trim((string)$rawParentId), 64);
         unset($normalized['parent_id'], $normalized['parent']);
@@ -1209,6 +1281,16 @@
             $normalized['preview_rows'],
             $normalized['previewRows']
         );
+        $previewOverflow = strtolower(trim((string)($normalized['settings']['preview_overflow'] ?? ($normalized['settings']['previewOverflow'] ?? 'default'))));
+        $normalized['settings']['preview_overflow'] = in_array($previewOverflow, ['default', 'expand_row', 'scroll'], true) ? $previewOverflow : 'default';
+        $normalized['settings']['previewOverflow'] = $normalized['settings']['preview_overflow'];
+        $normalized['settings']['preview_row_separator'] = filter_var(
+            $normalized['settings']['preview_row_separator'] ?? ($normalized['settings']['previewRowSeparator'] ?? false),
+            FILTER_VALIDATE_BOOLEAN
+        );
+        $normalized['settings']['previewRowSeparator'] = $normalized['settings']['preview_row_separator'];
+        $separatorColor = trim((string)($normalized['settings']['preview_row_separator_color'] ?? '#afa89e'));
+        $normalized['settings']['preview_row_separator_color'] = preg_match('/^#[0-9a-f]{6}$/i', $separatorColor) ? strtolower($separatorColor) : '#afa89e';
         $rawPreviewHideNestedItems = $normalized['settings']['preview_hide_nested_items']
             ?? ($normalized['settings']['previewHideNestedItems']
                 ?? ($normalized['preview_hide_nested_items']
@@ -1503,7 +1585,7 @@
         if ($version === '') {
             return [];
         }
-        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###|\z)/ms';
+        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms';
         if (!preg_match($pattern, $content, $match)) {
             return [];
         }
@@ -1515,7 +1597,7 @@
     }
 
     function extractLatestChangesBlock(string $content): array {
-        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $match)) {
+        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $match)) {
             return [];
         }
         $version = trim((string)($match[1] ?? ''));
@@ -1530,7 +1612,7 @@
     }
 
     function extractChangesEntries(string $content): array {
-        if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
+        if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###\s*[0-9][0-9A-Za-z._-]*\s*$|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
             return [];
         }
         $entries = [];
@@ -1666,8 +1748,7 @@
         if (trim($text) === '') {
             return [
                 'id' => 'bugfix',
-                'label' => 'Bug Fix Update',
-                'headline' => 'This update includes bug fixes and quality improvements.'
+                'label' => 'Bug Fix Update'
             ];
         }
 
@@ -1708,8 +1789,7 @@
         if ($topScore > 0 && $secondScore > 0 && abs($topScore - $secondScore) <= 1) {
             return [
                 'id' => 'mixed',
-                'label' => 'Mixed Update',
-                'headline' => 'This update includes features, fixes, and quality improvements.'
+                'label' => 'Mixed Update'
             ];
         }
 
@@ -1726,29 +1806,76 @@
             'maintenance' => 'Maintenance Update',
             'mixed' => 'Mixed Update'
         ];
-        $headlines = [
-            'feature' => 'This update includes new features and enhancements.',
-            'bugfix' => 'This update includes bug fixes and quality improvements.',
-            'security' => 'This update includes security hardening and safety improvements.',
-            'performance' => 'This update includes performance and reliability improvements.',
-            'ui' => 'This update includes UI and usability improvements.',
-            'maintenance' => 'This update includes maintenance and quality improvements.',
-            'mixed' => 'This update includes features, fixes, and quality improvements.'
-        ];
-
         return [
             'id' => $topCategory,
-            'label' => (string)$labels[$topCategory],
-            'headline' => (string)$headlines[$topCategory]
+            'label' => (string)$labels[$topCategory]
         ];
+    }
+
+    function stripChangesLineDecoration(string $line): string {
+        $cleaned = trim($line);
+        $cleaned = preg_replace('/^#{1,6}\s+/', '', $cleaned);
+        $cleaned = preg_replace('/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i', '', (string)$cleaned);
+        return trim((string)$cleaned);
+    }
+
+    function buildChangesHeadline(array $lines, string $version = ''): string {
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if (preg_match('/^#{1,6}\s+\S/', $trimmed)) {
+                $heading = stripChangesLineDecoration($trimmed);
+                if ($heading !== '') {
+                    return $heading;
+                }
+            }
+        }
+
+        $fallbackLines = [];
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '' || $trimmed === '...') {
+                continue;
+            }
+            $cleaned = stripChangesLineDecoration($trimmed);
+            if ($cleaned === '') {
+                continue;
+            }
+            $fallbackLines[] = $cleaned;
+            if (!preg_match('/^(?:Quality|Test|Maintenance):\s*/i', $trimmed)) {
+                return $cleaned;
+            }
+        }
+
+        if (count($fallbackLines) > 0) {
+            return (string)$fallbackLines[0];
+        }
+
+        $safeVersion = trim($version);
+        return $safeVersion !== ''
+            ? "Release notes are unavailable for FolderView Plus {$safeVersion}."
+            : 'Release notes are unavailable for this installed version.';
+    }
+
+    function filterChangesDetailLines(array $lines): array {
+        $details = [];
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '' || preg_match('/^#{1,6}\s+\S/', $trimmed)) {
+                continue;
+            }
+            $details[] = $trimmed;
+        }
+        return $details;
     }
 
     function readCurrentVersionChangeSummary(int $maxLines = 14): array {
         $summary = readChangesSummaryForVersion(readInstalledVersion(), $maxLines, false);
-        $category = classifyChangesCategory((array)($summary['lines'] ?? []));
+        $releaseLines = (array)($summary['lines'] ?? []);
+        $category = classifyChangesCategory($releaseLines);
         $summary['category'] = (string)($category['id'] ?? 'bugfix');
         $summary['categoryLabel'] = (string)($category['label'] ?? 'Bug Fix Update');
-        $summary['headline'] = (string)($category['headline'] ?? 'This update includes bug fixes and quality improvements.');
+        $summary['headline'] = buildChangesHeadline($releaseLines, (string)($summary['version'] ?? ''));
+        $summary['lines'] = filterChangesDetailLines($releaseLines);
         return $summary;
     }
 
@@ -1758,6 +1885,71 @@
         }
         $decoded = @json_decode((string)@file_get_contents($path), true);
         return is_array($decoded) ? $decoded : null;
+    }
+
+    function getConfigMutationLockPath(): string {
+        global $configDir;
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        return "$configDir/.config-mutation.lock";
+    }
+
+    function acquireConfigMutationLock(): void {
+        if (is_resource($GLOBALS['fvplus_config_mutation_lock_handle'] ?? null)) {
+            return;
+        }
+        $handle = @fopen(getConfigMutationLockPath(), 'c+');
+        if (!is_resource($handle)) {
+            throw new RuntimeException('Unable to open the configuration mutation lock.');
+        }
+        $startedAt = microtime(true);
+        $locked = false;
+        while ((microtime(true) - $startedAt) <= FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS) {
+            if (@flock($handle, LOCK_EX | LOCK_NB)) {
+                $locked = true;
+                break;
+            }
+            usleep(25000);
+        }
+        if (!$locked) {
+            @fclose($handle);
+            throw new RuntimeException('FolderView Plus configuration is busy. Please retry the action.');
+        }
+        $GLOBALS['fvplus_config_mutation_lock_handle'] = $handle;
+        register_shutdown_function(static function (): void {
+            $active = $GLOBALS['fvplus_config_mutation_lock_handle'] ?? null;
+            if (!is_resource($active)) {
+                return;
+            }
+            @flock($active, LOCK_UN);
+            @fclose($active);
+            $GLOBALS['fvplus_config_mutation_lock_handle'] = null;
+        });
+    }
+
+    function releaseConfigMutationLock(): void {
+        $handle = $GLOBALS['fvplus_config_mutation_lock_handle'] ?? null;
+        if (!is_resource($handle)) {
+            return;
+        }
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+        $GLOBALS['fvplus_config_mutation_lock_handle'] = null;
+    }
+
+    function withConfigMutationLock(callable $callback) {
+        $alreadyHeld = is_resource($GLOBALS['fvplus_config_mutation_lock_handle'] ?? null);
+        if (!$alreadyHeld) {
+            acquireConfigMutationLock();
+        }
+        try {
+            return $callback();
+        } finally {
+            if (!$alreadyHeld) {
+                releaseConfigMutationLock();
+            }
+        }
     }
 
     function getLastGoodJsonPath(string $path): string {
@@ -1821,6 +2013,191 @@
             // Keep recovery best-effort.
         }
         return $decoded;
+    }
+
+    function getConfigMetadataPath(string $type): string {
+        global $configDir;
+        $safeType = ensureType($type);
+        return "$configDir/$safeType.metadata.json";
+    }
+
+    function configMetadataTimestampFromPath(string $path): string {
+        $mtime = is_file($path) ? (int)@filemtime($path) : 0;
+        return $mtime > 0 ? gmdate('c', $mtime) : '';
+    }
+
+    function configMetadataHashFromPath(string $path): string {
+        if (!is_file($path)) {
+            return '';
+        }
+        $hash = @hash_file('sha256', $path);
+        return is_string($hash) ? strtolower(trim($hash)) : '';
+    }
+
+    function defaultConfigMetadata(string $type): array {
+        $safeType = ensureType($type);
+        $folderPath = getFolderFilePath($safeType);
+        $prefsPath = getTypePrefsPath($safeType);
+        $now = gmdate('c');
+        return [
+            'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
+            'type' => $safeType,
+            'createdAt' => $now,
+            'updatedAt' => $now,
+            'folderRevision' => is_file($folderPath) ? 1 : 0,
+            'prefsRevision' => is_file($prefsPath) ? 1 : 0,
+            'folderUpdatedAt' => configMetadataTimestampFromPath($folderPath),
+            'prefsUpdatedAt' => configMetadataTimestampFromPath($prefsPath),
+            'folderSha256' => configMetadataHashFromPath($folderPath),
+            'prefsSha256' => configMetadataHashFromPath($prefsPath),
+            'externalChangeCount' => 0,
+            'lastExternalChangeAt' => ''
+        ];
+    }
+
+    function normalizeConfigMetadata($value, string $type): array {
+        $safeType = ensureType($type);
+        $incoming = is_array($value) ? $value : [];
+        $defaults = defaultConfigMetadata($safeType);
+        $createdAt = normalizeIsoTimestamp($incoming['createdAt'] ?? '');
+        if ($createdAt === '') {
+            $createdAt = (string)$defaults['createdAt'];
+        }
+        $updatedAt = normalizeIsoTimestamp($incoming['updatedAt'] ?? '');
+        if ($updatedAt === '') {
+            $updatedAt = (string)$defaults['updatedAt'];
+        }
+        return [
+            'schemaVersion' => FVPLUS_CONFIG_METADATA_SCHEMA_VERSION,
+            'type' => $safeType,
+            'createdAt' => $createdAt,
+            'updatedAt' => $updatedAt,
+            'folderRevision' => max(0, (int)($incoming['folderRevision'] ?? $defaults['folderRevision'])),
+            'prefsRevision' => max(0, (int)($incoming['prefsRevision'] ?? $defaults['prefsRevision'])),
+            'folderUpdatedAt' => normalizeIsoTimestamp($incoming['folderUpdatedAt'] ?? ''),
+            'prefsUpdatedAt' => normalizeIsoTimestamp($incoming['prefsUpdatedAt'] ?? ''),
+            'folderSha256' => strtolower(trim((string)($incoming['folderSha256'] ?? ''))),
+            'prefsSha256' => strtolower(trim((string)($incoming['prefsSha256'] ?? ''))),
+            'externalChangeCount' => max(0, (int)($incoming['externalChangeCount'] ?? 0)),
+            'lastExternalChangeAt' => normalizeIsoTimestamp($incoming['lastExternalChangeAt'] ?? '')
+        ];
+    }
+
+    function writeConfigMetadata(string $type, array $metadata): array {
+        $safeType = ensureType($type);
+        $normalized = normalizeConfigMetadata($metadata, $safeType);
+        writeJsonObjectWithLastGood(getConfigMetadataPath($safeType), $normalized);
+        return $normalized;
+    }
+
+    function readConfigMetadata(string $type, bool $reconcile = true): array {
+        $safeType = ensureType($type);
+        return withConfigMutationLock(static function () use ($safeType, $reconcile): array {
+            $path = getConfigMetadataPath($safeType);
+            $decoded = readJsonObjectFile($path);
+            $recovered = false;
+            if (!is_array($decoded)) {
+                $decoded = recoverJsonObjectFromLastGood($path);
+                $recovered = is_array($decoded);
+            }
+            $metadata = normalizeConfigMetadata($decoded, $safeType);
+            $changed = $recovered || !is_array($decoded) || jsonObjectsDiffer($decoded, $metadata);
+
+            if ($reconcile) {
+                $now = gmdate('c');
+                $targets = [
+                    'folder' => getFolderFilePath($safeType),
+                    'prefs' => getTypePrefsPath($safeType)
+                ];
+                foreach ($targets as $kind => $targetPath) {
+                    $hashKey = $kind . 'Sha256';
+                    $revisionKey = $kind . 'Revision';
+                    $updatedKey = $kind . 'UpdatedAt';
+                    $actualHash = configMetadataHashFromPath($targetPath);
+                    $storedHash = strtolower(trim((string)($metadata[$hashKey] ?? '')));
+                    if (is_array($decoded) && $storedHash !== $actualHash) {
+                        $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
+                        $metadata['externalChangeCount'] = max(0, (int)$metadata['externalChangeCount']) + 1;
+                        $metadata['lastExternalChangeAt'] = $now;
+                        $changed = true;
+                    }
+                    if ($storedHash !== $actualHash) {
+                        $metadata[$hashKey] = $actualHash;
+                        $metadata[$updatedKey] = configMetadataTimestampFromPath($targetPath);
+                        $changed = true;
+                    }
+                }
+                if ($changed) {
+                    $metadata['updatedAt'] = $now;
+                }
+            }
+
+            if ($changed) {
+                return writeConfigMetadata($safeType, $metadata);
+            }
+            return $metadata;
+        });
+    }
+
+    function commitConfigMetadataWrite(string $type, string $kind, string $targetPath, array $metadata): array {
+        $safeType = ensureType($type);
+        if (!in_array($kind, ['folder', 'prefs'], true)) {
+            throw new RuntimeException('Unsupported configuration metadata kind.');
+        }
+        $now = gmdate('c');
+        $revisionKey = $kind . 'Revision';
+        $updatedKey = $kind . 'UpdatedAt';
+        $hashKey = $kind . 'Sha256';
+        $metadata = normalizeConfigMetadata($metadata, $safeType);
+        $metadata[$revisionKey] = max(0, (int)$metadata[$revisionKey]) + 1;
+        $metadata[$updatedKey] = $now;
+        $metadata[$hashKey] = configMetadataHashFromPath($targetPath);
+        $metadata['updatedAt'] = $now;
+        return writeConfigMetadata($safeType, $metadata);
+    }
+
+    function rebuildConfigMetadata(string $type): array {
+        $safeType = ensureType($type);
+        return withConfigMutationLock(static function () use ($safeType): array {
+            $path = getConfigMetadataPath($safeType);
+            $decoded = readJsonObjectFile($path);
+            if (!is_array($decoded)) {
+                $decoded = readJsonObjectFile(getLastGoodJsonPath($path));
+            }
+            $previous = normalizeConfigMetadata($decoded, $safeType);
+            $rebuilt = defaultConfigMetadata($safeType);
+            $rebuilt['createdAt'] = (string)($previous['createdAt'] ?? $rebuilt['createdAt']);
+            $rebuilt['folderRevision'] = max(1, (int)($previous['folderRevision'] ?? 0) + 1);
+            $rebuilt['prefsRevision'] = max(1, (int)($previous['prefsRevision'] ?? 0) + 1);
+            $rebuilt['externalChangeCount'] = max(0, (int)($previous['externalChangeCount'] ?? 0)) + 1;
+            $rebuilt['lastExternalChangeAt'] = gmdate('c');
+            $rebuilt['updatedAt'] = gmdate('c');
+            return writeConfigMetadata($safeType, $rebuilt);
+        });
+    }
+
+    function assertExpectedConfigRevision(string $type, string $kind, $expectedRevision): array {
+        $safeType = ensureType($type);
+        $metadata = readConfigMetadata($safeType, true);
+        $raw = trim((string)$expectedRevision);
+        if ($raw === '') {
+            return $metadata;
+        }
+        if (!ctype_digit($raw)) {
+            throw new RuntimeException('Invalid expected configuration revision.');
+        }
+        $key = $kind === 'prefs' ? 'prefsRevision' : 'folderRevision';
+        $expected = (int)$raw;
+        $current = max(0, (int)($metadata[$key] ?? 0));
+        if ($expected !== $current) {
+            throw new FVPlusConfigConflictException(sprintf(
+                'This %s configuration changed in another page or browser tab (expected revision %d, current revision %d). Refresh before saving again.',
+                $kind === 'prefs' ? 'preferences' : 'folder',
+                $expected,
+                $current
+            ));
+        }
+        return $metadata;
     }
 
     function getThemeWorkspacePath(): string {
@@ -2208,11 +2585,13 @@
             'types' => [
                 'docker' => [
                     'folders' => readRawFolderMap('docker'),
-                    'prefs' => readTypePrefs('docker')
+                    'prefs' => readTypePrefs('docker'),
+                    'configurationMetadata' => readConfigMetadata('docker', true)
                 ],
                 'vm' => [
                     'folders' => readRawFolderMap('vm'),
-                    'prefs' => readTypePrefs('vm')
+                    'prefs' => readTypePrefs('vm'),
+                    'configurationMetadata' => readConfigMetadata('vm', true)
                 ]
             ],
             'themeWorkspace' => readThemeWorkspace()
@@ -2926,9 +3305,13 @@
 
     function writeRawFolderMap(string $type, array $folders): void {
         $type = ensureType($type);
-        $path = getFolderFilePath($type);
-        $normalized = normalizeFolderMapPayload($folders);
-        writeJsonObjectWithLastGood($path, $normalized);
+        withConfigMutationLock(static function () use ($type, $folders): void {
+            $path = getFolderFilePath($type);
+            $metadata = readConfigMetadata($type, true);
+            $normalized = normalizeFolderMapPayload($folders);
+            writeJsonObjectWithLastGood($path, $normalized);
+            commitConfigMetadataWrite($type, 'folder', $path, $metadata);
+        });
     }
 
     function reorderFoldersByIdList(string $type, array $orderedIds): array {
@@ -3082,13 +3465,12 @@
         return $applyPinnedOrder($folders);
     }
 
-    function syncManualOrderWithFolders(string $type, array $folders): void {
-        $prefs = readTypePrefs($type);
+    function reconcileManualOrderPrefs(array $prefs, array $folders): array {
         if (($prefs['sortMode'] ?? 'created') !== 'manual') {
-            return;
+            return $prefs;
         }
         $order = [];
-        foreach ($prefs['manualOrder'] as $id) {
+        foreach ((array)($prefs['manualOrder'] ?? []) as $id) {
             if (array_key_exists($id, $folders)) {
                 $order[] = $id;
             }
@@ -3098,9 +3480,15 @@
                 $order[] = $id;
             }
         }
-        if ($order !== ($prefs['manualOrder'] ?? [])) {
-            $prefs['manualOrder'] = $order;
-            writeTypePrefs($type, $prefs);
+        $prefs['manualOrder'] = $order;
+        return $prefs;
+    }
+
+    function syncManualOrderWithFolders(string $type, array $folders): void {
+        $prefs = readTypePrefs($type);
+        $nextPrefs = reconcileManualOrderPrefs($prefs, $folders);
+        if ($nextPrefs !== $prefs) {
+            writeTypePrefs($type, $nextPrefs);
         }
     }
 
@@ -3493,6 +3881,7 @@
             'type' => $type,
             'mode' => 'full',
             'reason' => $reason,
+            'configurationMetadata' => readConfigMetadata($type, true),
             'folders' => $folders,
             'prefs' => $prefs
         ];
@@ -3514,6 +3903,37 @@
             'count' => $folderCount,
             'pruned' => $pruned,
             'skipped' => false
+        ];
+    }
+
+    function createCoalescedPrefsBackupSnapshot(string $type, int $windowSeconds = 3): array {
+        $type = ensureType($type);
+        $windowSeconds = max(0, min(30, $windowSeconds));
+        if ($windowSeconds > 0) {
+            foreach (listBackupSnapshots($type) as $snapshot) {
+                if ((string)($snapshot['reason'] ?? '') !== 'before-prefs-update') {
+                    continue;
+                }
+                try {
+                    $path = getBackupSnapshotPath($type, (string)($snapshot['name'] ?? ''));
+                    $ageSeconds = max(0, time() - (int)@filemtime($path));
+                    if ($ageSeconds <= $windowSeconds) {
+                        return [
+                            ...$snapshot,
+                            'pruned' => [],
+                            'skipped' => false,
+                            'coalesced' => true
+                        ];
+                    }
+                } catch (Throwable $err) {
+                    // Continue to a new checkpoint when the recent entry is unreadable.
+                }
+                break;
+            }
+        }
+        return [
+            ...createBackupSnapshot($type, 'before-prefs-update'),
+            'coalesced' => false
         ];
     }
 
@@ -3584,6 +4004,9 @@
             'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
             'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
             'count' => count($folders),
+            'configurationMetadata' => is_array($decoded['configurationMetadata'] ?? null)
+                ? normalizeConfigMetadata($decoded['configurationMetadata'], $type)
+                : null,
             'prefs' => $prefs,
             'folders' => $folders
         ];
@@ -4625,101 +5048,212 @@
         return $result;
     }
 
-    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+    function bulkAssignItemsToFolders(string $type, array $assignments): array {
         $type = ensureType($type);
-        $folderId = trim($folderId);
-        if ($folderId === '') {
-            throw new RuntimeException('Folder ID is required.');
+        if (count($assignments) <= 0) {
+            throw new RuntimeException('At least one folder assignment is required.');
         }
-
-        $folders = readRawFolderMap($type);
-        if (!array_key_exists($folderId, $folders)) {
-            throw new RuntimeException('Target folder not found.');
+        if (count($assignments) > FVPLUS_MAX_FOLDER_BATCH_OPERATIONS) {
+            throw new RuntimeException('Bulk assignment exceeds the maximum target folder count.');
         }
 
         $validSet = array_fill_keys(array_keys(readInfo($type)), true);
-        foreach ($folders as $folder) {
-            foreach (normalizeFolderMembers($folder['containers'] ?? []) as $memberName) {
-                $safeMemberName = trim((string)$memberName);
-                if ($safeMemberName !== '') {
-                    $validSet[$safeMemberName] = true;
-                }
+        $normalizedByFolder = [];
+        $skippedByFolder = [];
+        $targetByItem = [];
+        $requestedItemCount = 0;
+        foreach ($assignments as $assignment) {
+            if (!is_array($assignment)) {
+                throw new RuntimeException('Bulk assignment entries must be objects.');
             }
-        }
-        $requested = [];
-        $skippedInvalid = [];
-        foreach ($items as $item) {
-            $name = trim((string)$item);
-            if ($name === '' || isset($requested[$name])) {
-                continue;
+            $folderId = trim((string)($assignment['folderId'] ?? ''));
+            $items = $assignment['items'] ?? null;
+            if ($folderId === '' || strlen($folderId) > 128) {
+                throw new RuntimeException('Bulk assignment contains an invalid folder ID.');
             }
-            if (preg_match('/[\x00-\x1F\x7F]/u', $name)) {
-                $skippedInvalid[] = $name;
-                continue;
+            if (!is_array($items)) {
+                throw new RuntimeException('Bulk assignment items must be an array.');
             }
-            // Keep migration compatibility: allow names already known in runtime data
-            // or present in existing folder mappings. Also allow unknown names from UI
-            // when they are sane-length printable strings.
-            if (!isset($validSet[$name])) {
-                $len = strlen($name);
-                if ($len < 1 || $len > 255) {
-                    $skippedInvalid[] = $name;
+            if (!array_key_exists($folderId, $normalizedByFolder)) {
+                $normalizedByFolder[$folderId] = [];
+                $skippedByFolder[$folderId] = [];
+            }
+            foreach ($items as $item) {
+                $name = trim((string)$item);
+                if ($name === '' || isset($normalizedByFolder[$folderId][$name])) {
                     continue;
                 }
+                $requestedItemCount++;
+                if ($requestedItemCount > FVPLUS_MAX_BULK_ASSIGN_BATCH_ITEMS) {
+                    throw new RuntimeException('Bulk assignment exceeds the maximum item count.');
+                }
+                $invalid = preg_match('/[\x00-\x1F\x7F]/u', $name) === 1;
+                if (!$invalid && !isset($validSet[$name])) {
+                    $len = strlen($name);
+                    $invalid = $len < 1 || $len > 255;
+                }
+                if ($invalid) {
+                    $skippedByFolder[$folderId][] = $name;
+                    continue;
+                }
+                $existingTarget = (string)($targetByItem[$name] ?? '');
+                if ($existingTarget !== '' && $existingTarget !== $folderId) {
+                    throw new RuntimeException("Bulk assignment item '$name' targets more than one folder.");
+                }
+                $targetByItem[$name] = $folderId;
+                $normalizedByFolder[$folderId][$name] = true;
             }
-            $requested[$name] = true;
         }
-        $itemNames = array_keys($requested);
-        if (empty($itemNames)) {
+
+        return withConfigMutationLock(static function () use ($type, $normalizedByFolder, $skippedByFolder, $targetByItem): array {
+            $startedAt = microtime(true);
+            $originalFolders = readRawFolderMap($type);
+            foreach (array_keys($normalizedByFolder) as $folderId) {
+                if (!array_key_exists($folderId, $originalFolders)) {
+                    throw new RuntimeException("Bulk assignment target folder '$folderId' was not found.");
+                }
+            }
+
+            $nextFolders = $originalFolders;
+            $removedFrom = [];
+            $changedFolderIds = [];
+            if (count($targetByItem) > 0) {
+                foreach ($nextFolders as $id => &$folder) {
+                    $members = normalizeFolderMembers($folder['containers'] ?? []);
+                    $nextMembers = [];
+                    foreach ($members as $member) {
+                        if (isset($targetByItem[$member])) {
+                            if (!isset($removedFrom[$member])) {
+                                $removedFrom[$member] = [];
+                            }
+                            $removedFrom[$member][] = $id;
+                            continue;
+                        }
+                        $nextMembers[] = $member;
+                    }
+                    $folder['containers'] = $nextMembers;
+                }
+                unset($folder);
+
+                foreach ($normalizedByFolder as $folderId => $requested) {
+                    $targetMembers = normalizeFolderMembers($nextFolders[$folderId]['containers'] ?? []);
+                    foreach (array_keys($requested) as $name) {
+                        if (!in_array($name, $targetMembers, true)) {
+                            $targetMembers[] = $name;
+                        }
+                    }
+                    $nextFolders[$folderId]['containers'] = $targetMembers;
+                }
+
+                foreach ($nextFolders as $folderId => $folder) {
+                    $beforeMembers = normalizeFolderMembers($originalFolders[$folderId]['containers'] ?? []);
+                    $afterMembers = normalizeFolderMembers($folder['containers'] ?? []);
+                    if ($beforeMembers !== $afterMembers) {
+                        $changedFolderIds[] = $folderId;
+                    }
+                }
+            }
+
+            $folderWriteCommitted = false;
+            if (count($changedFolderIds) > 0) {
+                try {
+                    writeRawFolderMap($type, $nextFolders);
+                    $folderWriteCommitted = true;
+                    if ($type === 'docker') {
+                        syncContainerOrder('docker');
+                    }
+                } catch (Throwable $error) {
+                    $rollbackErrors = [];
+                    if ($folderWriteCommitted) {
+                        try {
+                            writeRawFolderMap($type, $originalFolders);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'folders: ' . $rollbackError->getMessage();
+                        }
+                        if ($type === 'docker') {
+                            try {
+                                syncContainerOrder('docker');
+                            } catch (Throwable $rollbackError) {
+                                $rollbackErrors[] = 'Docker order: ' . $rollbackError->getMessage();
+                            }
+                        }
+                    }
+                    $rollbackDetail = count($rollbackErrors) > 0
+                        ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
+                        : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                    throw new RuntimeException('Bulk assignment transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
+                }
+            }
+
+            $results = [];
+            $assignedCount = 0;
+            $skippedInvalidCount = 0;
+            foreach ($normalizedByFolder as $folderId => $requested) {
+                $assigned = array_keys($requested);
+                $skippedInvalid = array_values($skippedByFolder[$folderId] ?? []);
+                $assignedCount += count($assigned);
+                $skippedInvalidCount += count($skippedInvalid);
+                $removedForTarget = [];
+                foreach ($assigned as $name) {
+                    if (isset($removedFrom[$name])) {
+                        $removedForTarget[$name] = $removedFrom[$name];
+                    }
+                }
+                $results[] = [
+                    'folderId' => $folderId,
+                    'assigned' => $assigned,
+                    'removedFrom' => $removedForTarget,
+                    'count' => count($assigned),
+                    'skippedInvalid' => $skippedInvalid
+                ];
+            }
+
+            $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+            try {
+                appendDiagnosticsHistoryEvent('folder_batch_assignment', $type, [
+                    'targetFolderCount' => count($normalizedByFolder),
+                    'assignedCount' => $assignedCount,
+                    'skippedInvalidCount' => $skippedInvalidCount,
+                    'changedFolderCount' => count($changedFolderIds),
+                    'durationMs' => $durationMs,
+                    'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+                ], 'ok', 'server');
+            } catch (Throwable $error) {
+                // Keep the committed assignment successful if diagnostics logging fails.
+            }
+
             return [
                 'type' => $type,
-                'folderId' => $folderId,
-                'assigned' => [],
-                'removedFrom' => [],
-                'count' => 0,
-                'skippedInvalid' => $skippedInvalid
+                'results' => $results,
+                'assignedCount' => $assignedCount,
+                'skippedInvalidCount' => $skippedInvalidCount,
+                'changedFolderIds' => $changedFolderIds,
+                'changedFolderCount' => count($changedFolderIds),
+                'dockerOrderSynced' => $type === 'docker' && count($changedFolderIds) > 0,
+                'durationMs' => $durationMs,
+                'metadata' => readConfigMetadata($type, false)
             ];
-        }
+        });
+    }
 
-        $removedFrom = [];
-        foreach ($folders as $id => &$folder) {
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            $nextMembers = [];
-            foreach ($members as $member) {
-                if (in_array($member, $itemNames, true)) {
-                    if (!isset($removedFrom[$member])) {
-                        $removedFrom[$member] = [];
-                    }
-                    $removedFrom[$member][] = $id;
-                    continue;
-                }
-                $nextMembers[] = $member;
-            }
-            $folder['containers'] = $nextMembers;
-        }
-        unset($folder);
-
-        $targetMembers = normalizeFolderMembers($folders[$folderId]['containers'] ?? []);
-        foreach ($itemNames as $name) {
-            if (!in_array($name, $targetMembers, true)) {
-                $targetMembers[] = $name;
-            }
-        }
-        $folders[$folderId]['containers'] = $targetMembers;
-
-        writeRawFolderMap($type, $folders);
-        syncManualOrderWithFolders($type, $folders);
-        if ($type === 'docker') {
-            syncContainerOrder('docker');
-        }
-
+    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+        $type = ensureType($type);
+        $folderId = trim($folderId);
+        $batch = bulkAssignItemsToFolders($type, [[
+            'folderId' => $folderId,
+            'items' => $items
+        ]]);
+        $result = is_array($batch['results'][0] ?? null) ? $batch['results'][0] : [];
         return [
             'type' => $type,
             'folderId' => $folderId,
-            'assigned' => $itemNames,
-            'removedFrom' => $removedFrom,
-            'count' => count($itemNames),
-            'skippedInvalid' => $skippedInvalid
+            'assigned' => array_values((array)($result['assigned'] ?? [])),
+            'removedFrom' => (array)($result['removedFrom'] ?? []),
+            'count' => (int)($result['count'] ?? 0),
+            'skippedInvalid' => array_values((array)($result['skippedInvalid'] ?? [])),
+            'changedFolderIds' => array_values((array)($batch['changedFolderIds'] ?? [])),
+            'durationMs' => (int)($batch['durationMs'] ?? 0),
+            'metadata' => (array)($batch['metadata'] ?? [])
         ];
     }
 
@@ -5159,12 +5693,15 @@
         }
     }
 
-    function updateFolder(string $type, string $content, string $id = '') : void {
+    function updateFolder(string $type, string $content, string $id = '', $expectedRevision = '') : array {
         $type = ensureType($type);
         if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
             throw new RuntimeException('Folder payload exceeds raw upload limit.');
         }
         $isCreate = empty($id);
+        if (!$isCreate) {
+            assertExpectedConfigRevision($type, 'folder', $expectedRevision);
+        }
         if (empty($id)) {
             $id = generateId();
         }
@@ -5210,6 +5747,301 @@
         } catch (Throwable $err) {
             // Keep update flow non-fatal.
         }
+        return readConfigMetadata($type, false);
+    }
+
+    function applyFolderBatchOperations(string $type, array $operations): array {
+        $type = ensureType($type);
+        $deletes = $operations['deletes'] ?? [];
+        $upserts = $operations['upserts'] ?? [];
+        $creates = $operations['creates'] ?? [];
+        if (!is_array($deletes) || !is_array($upserts) || !is_array($creates)) {
+            throw new RuntimeException('Batch operations must contain delete, update, and create arrays.');
+        }
+        $operationCount = count($deletes) + count($upserts) + count($creates);
+        if ($operationCount <= 0) {
+            throw new RuntimeException('No folder operations were provided.');
+        }
+        if ($operationCount > FVPLUS_MAX_FOLDER_BATCH_OPERATIONS) {
+            throw new RuntimeException('Folder batch exceeds the maximum operation count.');
+        }
+
+        $normalizedDeletes = [];
+        foreach ($deletes as $rawId) {
+            $id = trim((string)$rawId);
+            if ($id === '' || strlen($id) > 128) {
+                throw new RuntimeException('Batch delete contains an invalid folder ID.');
+            }
+            $normalizedDeletes[] = $id;
+        }
+
+        $normalizeBatchFolder = static function ($rawEntry, bool $requiresId): array {
+            if (!is_array($rawEntry)) {
+                throw new RuntimeException('Batch folder operation must be an object.');
+            }
+            $id = $requiresId ? trim((string)($rawEntry['id'] ?? '')) : '';
+            if ($requiresId && ($id === '' || strlen($id) > 128)) {
+                throw new RuntimeException('Batch update contains an invalid folder ID.');
+            }
+            $folder = $rawEntry['folder'] ?? null;
+            if (!is_array($folder)) {
+                throw new RuntimeException('Batch folder operation is missing a valid folder payload.');
+            }
+            fvplus_assert_folder_payload_shape($folder);
+            $rawPreview = json_encode($folder, JSON_UNESCAPED_SLASHES);
+            if (!is_string($rawPreview) || strlen($rawPreview) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
+                throw new RuntimeException('Batch folder payload exceeds the raw upload limit.');
+            }
+            $normalized = normalizeFolderContentPayload($folder);
+            $normalizedPreview = json_encode($normalized, JSON_UNESCAPED_SLASHES);
+            if (!is_string($normalizedPreview) || strlen($normalizedPreview) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
+                throw new RuntimeException('Batch folder payload is too large after normalization.');
+            }
+            return [
+                'id' => $id,
+                'folder' => $normalized
+            ];
+        };
+
+        $normalizedUpserts = [];
+        foreach ($upserts as $entry) {
+            $normalizedUpserts[] = $normalizeBatchFolder($entry, true);
+        }
+        $normalizedCreates = [];
+        foreach ($creates as $entry) {
+            $normalizedCreates[] = $normalizeBatchFolder($entry, false);
+        }
+
+        return withConfigMutationLock(static function () use (
+            $type,
+            $normalizedDeletes,
+            $normalizedUpserts,
+            $normalizedCreates,
+            $operationCount
+        ): array {
+            $startedAt = microtime(true);
+            $originalFolders = readRawFolderMap($type);
+            $originalPrefs = readTypePrefs($type);
+            $nextFolders = $originalFolders;
+            $deletedIds = [];
+            $updatedIds = [];
+            $createdIds = [];
+            $now = gmdate('c');
+
+            foreach ($normalizedDeletes as $id) {
+                if (!array_key_exists($id, $nextFolders)) {
+                    continue;
+                }
+                $deletedParentId = normalizeFolderParentIdValue($nextFolders[$id]['parentId'] ?? '');
+                unset($nextFolders[$id]);
+                foreach ($nextFolders as &$folder) {
+                    if (!is_array($folder)) {
+                        continue;
+                    }
+                    $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
+                    if ($parentId === $id) {
+                        $folder['parentId'] = $deletedParentId;
+                    }
+                }
+                unset($folder);
+                $deletedIds[] = $id;
+            }
+
+            foreach ($normalizedUpserts as $entry) {
+                $id = (string)$entry['id'];
+                $nextFolder = (array)$entry['folder'];
+                $existingFolder = is_array($nextFolders[$id] ?? null)
+                    ? normalizeFolderContentPayload((array)$nextFolders[$id])
+                    : null;
+                $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
+                if (is_array($existingFolder)) {
+                    $existingCreatedAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
+                    if ($existingCreatedAt !== '') {
+                        $createdAt = $existingCreatedAt;
+                    }
+                }
+                if ($createdAt === '') {
+                    $createdAt = $now;
+                }
+                $nextFolder['createdAt'] = $createdAt;
+                $nextFolder['updatedAt'] = $now;
+                $nextFolders[$id] = $nextFolder;
+                $updatedIds[] = $id;
+            }
+
+            foreach ($normalizedCreates as $entry) {
+                do {
+                    $id = generateId();
+                } while (array_key_exists($id, $nextFolders));
+                $nextFolder = (array)$entry['folder'];
+                $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
+                $nextFolder['createdAt'] = $createdAt !== '' ? $createdAt : $now;
+                $nextFolder['updatedAt'] = $now;
+                $nextFolders[$id] = $nextFolder;
+                $createdIds[] = $id;
+            }
+
+            $nextFolders = normalizeFolderParentLinks($nextFolders);
+            $nextPrefs = reconcileManualOrderPrefs($originalPrefs, $nextFolders);
+            $folderWriteCommitted = false;
+            $prefsWriteCommitted = false;
+            try {
+                writeRawFolderMap($type, $nextFolders);
+                $folderWriteCommitted = true;
+                if ($nextPrefs !== $originalPrefs) {
+                    writeTypePrefs($type, $nextPrefs);
+                    $prefsWriteCommitted = true;
+                }
+                if ($type === 'docker') {
+                    syncContainerOrder($type);
+                }
+            } catch (Throwable $error) {
+                $rollbackErrors = [];
+                if ($folderWriteCommitted) {
+                    try {
+                        writeRawFolderMap($type, $originalFolders);
+                    } catch (Throwable $rollbackError) {
+                        $rollbackErrors[] = 'folders: ' . $rollbackError->getMessage();
+                    }
+                    if ($prefsWriteCommitted) {
+                        try {
+                            writeTypePrefs($type, $originalPrefs);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'preferences: ' . $rollbackError->getMessage();
+                        }
+                    }
+                    if ($type === 'docker') {
+                        try {
+                            syncContainerOrder($type);
+                        } catch (Throwable $rollbackError) {
+                            $rollbackErrors[] = 'Docker order: ' . $rollbackError->getMessage();
+                        }
+                    }
+                }
+                $rollbackDetail = count($rollbackErrors) > 0
+                    ? ' Automatic rollback had errors (' . implode('; ', $rollbackErrors) . ').'
+                    : ($folderWriteCommitted ? ' Automatic rollback restored the original configuration.' : ' No configuration write was committed.');
+                throw new RuntimeException('Folder batch transaction failed: ' . $error->getMessage() . $rollbackDetail, 0, $error);
+            }
+
+            $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+            try {
+                appendDiagnosticsHistoryEvent('folder_batch_mutation', $type, [
+                    'requestedCount' => $operationCount,
+                    'deletedCount' => count($deletedIds),
+                    'updatedCount' => count($updatedIds),
+                    'createdCount' => count($createdIds),
+                    'folderCount' => count($nextFolders),
+                    'durationMs' => $durationMs,
+                    'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+                ], 'ok', 'server');
+            } catch (Throwable $err) {
+                // Keep the committed transaction successful if diagnostics logging fails.
+            }
+
+            return [
+                'requestedCount' => $operationCount,
+                'deletedIds' => $deletedIds,
+                'updatedIds' => $updatedIds,
+                'createdIds' => $createdIds,
+                'folderCount' => count($nextFolders),
+                'dockerOrderSynced' => $type === 'docker',
+                'durationMs' => $durationMs,
+                'metadata' => readConfigMetadata($type, false)
+            ];
+        });
+    }
+
+    function applyFolderMemberIdentityPatches(string $type, array $patches): array {
+        $type = ensureType($type);
+        $fileData = readRawFolderMap($type);
+        $changedFolderIds = [];
+        $renameCount = 0;
+        $identityCount = 0;
+        foreach ($patches as $rawFolderId => $rawPatch) {
+            $folderId = truncateUtf8String(trim((string)$rawFolderId), 64);
+            if ($folderId === '' || !is_array($rawPatch) || !is_array($fileData[$folderId] ?? null)) {
+                continue;
+            }
+            $folder = normalizeFolderContentPayload((array)$fileData[$folderId]);
+            $renames = is_array($rawPatch['renames'] ?? null) ? $rawPatch['renames'] : [];
+            foreach ($renames as $rawOldName => $rawNewName) {
+                $oldName = truncateUtf8String(trim((string)$rawOldName), 512);
+                $newName = truncateUtf8String(trim((string)$rawNewName), 512);
+                if ($oldName === '' || $newName === '' || $oldName === $newName) {
+                    continue;
+                }
+                $oldIndex = array_search($oldName, $folder['containers'], true);
+                if ($oldIndex === false || in_array($newName, $folder['containers'], true)) {
+                    continue;
+                }
+                $folder['containers'][$oldIndex] = $newName;
+                $folder['hiddenPreviewMembers'] = array_map(static function ($name) use ($oldName, $newName) {
+                    return $name === $oldName ? $newName : $name;
+                }, normalizeFolderMembers($folder['hiddenPreviewMembers'] ?? []));
+                foreach ($folder['actions'] as &$action) {
+                    if (!is_array($action)) {
+                        continue;
+                    }
+                    foreach (['containers', 'conatiners'] as $targetKey) {
+                        if (!is_array($action[$targetKey] ?? null)) {
+                            continue;
+                        }
+                        $action[$targetKey] = array_map(static function ($name) use ($oldName, $newName) {
+                            return trim((string)$name) === $oldName ? $newName : trim((string)$name);
+                        }, $action[$targetKey]);
+                    }
+                }
+                unset($action);
+                if (is_array($folder['memberIdentities'][$oldName] ?? null)) {
+                    $folder['memberIdentities'][$newName] = $folder['memberIdentities'][$oldName];
+                    unset($folder['memberIdentities'][$oldName]);
+                }
+                $renameCount++;
+            }
+            $incomingIdentities = is_array($rawPatch['memberIdentities'] ?? null) ? $rawPatch['memberIdentities'] : [];
+            foreach ($folder['containers'] as $memberName) {
+                if (!is_array($incomingIdentities[$memberName] ?? null)) {
+                    continue;
+                }
+                $candidate = normalizeFolderContentPayload([
+                    'containers' => [$memberName],
+                    'memberIdentities' => [$memberName => $incomingIdentities[$memberName]]
+                ]);
+                $identity = $candidate['memberIdentities'][$memberName] ?? null;
+                if (!is_array($identity)) {
+                    continue;
+                }
+                if (($folder['memberIdentities'][$memberName] ?? null) !== $identity) {
+                    $folder['memberIdentities'][$memberName] = $identity;
+                    $identityCount++;
+                }
+            }
+            $nextFolder = normalizeFolderContentPayload($folder);
+            if (jsonObjectsDiffer($fileData[$folderId], $nextFolder)) {
+                $nextFolder['updatedAt'] = gmdate('c');
+                $fileData[$folderId] = $nextFolder;
+                $changedFolderIds[] = $folderId;
+            }
+        }
+        if (count($changedFolderIds) > 0) {
+            writeRawFolderMap($type, $fileData);
+            try {
+                appendDiagnosticsHistoryEvent('member_identity_reconcile', $type, [
+                    'folderIds' => $changedFolderIds,
+                    'renameCount' => $renameCount,
+                    'identityCount' => $identityCount
+                ], 'ok', 'runtime');
+            } catch (Throwable $err) {
+                // Keep automatic reconciliation non-fatal.
+            }
+        }
+        return [
+            'changedFolderIds' => $changedFolderIds,
+            'renameCount' => $renameCount,
+            'identityCount' => $identityCount,
+            'metadata' => readConfigMetadata($type, true)
+        ];
     }
 
     function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {

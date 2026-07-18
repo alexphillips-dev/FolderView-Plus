@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "it",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Assistente di Configurazione",
+    "wizard.welcome.kicker": "FolderView Plus Assistente di Configurazione",
+    "wizard.welcome.title": "Organizza i tuoi contenitori Docker e VMs in cartelle.",
+    "wizard.welcome.description": "FolderView Plus aiuta a raggruppare app correlate, a visualizzare le modifiche prima che vengano applicate e, facoltativamente, a mantenere organizzate automaticamente le app future.",
+    "wizard.welcome.begin": "Inizia Configurazione",
+    "wizard.welcome.skip": "Salta procedura guidata",
+    "wizard.welcome.group-title": "Raggruppa app correlate",
+    "wizard.welcome.group-description": "Mantieni insieme media, download, utility, domotica e altre app.",
+    "wizard.welcome.preview-title": "Anteprima prima dell'applicazione",
+    "wizard.welcome.preview-description": "Revisionerai cartelle, assegnazioni, regole e impostazioni prima che avvengano modifiche.",
+    "wizard.welcome.automatic-title": "Rimani organizzato automaticamente",
+    "wizard.welcome.automatic-description": "Le regole iniziali facoltative possono collocare le app future corrispondenti nelle cartelle corrette.",
+    "wizard.navigation.next": "Avanti",
+    "wizard.navigation.back": "Indietro",
+    "wizard.navigation.begin": "Inizia Configurazione",
+    "wizard.navigation.run-preview": "Esegui anteprima",
+    "wizard.navigation.apply": "Applica configurazione",
+    "wizard.navigation.show-details": "Mostra dettagli",
+    "wizard.navigation.hide-details": "Nascondi dettagli",
+    "wizard.navigation.close": "Chiudi",
+    "wizard.navigation.review": "Revisione",
+    "wizard.navigation.go-to": "Vai a $1",
+    "wizard.progress.step": "Passo $1 di $2",
+    "wizard.impact.live": "Impatto live per questo passo"
+}

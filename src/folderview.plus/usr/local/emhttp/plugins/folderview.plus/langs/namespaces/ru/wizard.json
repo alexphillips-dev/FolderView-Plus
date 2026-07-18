@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ru",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Помощник настройки",
+    "wizard.welcome.kicker": "FolderView Plus Помощник настройки",
+    "wizard.welcome.title": "Организуйте ваши Docker контейнеры и VMs в папки.",
+    "wizard.welcome.description": "FolderView Plus помогает группировать связанные приложения, просматривать изменения перед их применением и, при желании, автоматически поддерживать порядок новых приложений.",
+    "wizard.welcome.begin": "Начать настройку",
+    "wizard.welcome.skip": "Пропустить мастер",
+    "wizard.welcome.group-title": "Группировка связанных приложений",
+    "wizard.welcome.group-description": "Сохраняйте вместе медиа, загрузки, утилиты, приложения для домашней автоматизации и другие.",
+    "wizard.welcome.preview-title": "Просмотр перед применением",
+    "wizard.welcome.preview-description": "Вы сможете просмотреть папки, назначения, правила и настройки перед внесением изменений.",
+    "wizard.welcome.automatic-title": "Автоматическое поддержание порядка",
+    "wizard.welcome.automatic-description": "Необязательные начальные правила могут размещать будущие подходящие приложения в правильные папки.",
+    "wizard.navigation.next": "Далее",
+    "wizard.navigation.back": "Назад",
+    "wizard.navigation.begin": "Начать настройку",
+    "wizard.navigation.run-preview": "Запустить предварительный просмотр",
+    "wizard.navigation.apply": "Применить настройку",
+    "wizard.navigation.show-details": "Показать подробности",
+    "wizard.navigation.hide-details": "Скрыть детали",
+    "wizard.navigation.close": "Закрыть",
+    "wizard.navigation.review": "Обзор",
+    "wizard.navigation.go-to": "Перейти к $1",
+    "wizard.progress.step": "Шаг $1 из $2",
+    "wizard.impact.live": "Прямое воздействие на этом шаге"
+}

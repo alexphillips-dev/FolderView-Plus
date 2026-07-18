@@ -1,0 +1,10 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ro",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Opțional",
+    "common.badges.recommended": "Recomandat",
+    "common.badges.can-delete": "Se poate șterge"
+}

@@ -67,7 +67,6 @@
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
                 : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
-        const queueDockerListRefresh = typeof deps.queueLoadlistRefresh === 'function' ? deps.queueLoadlistRefresh : (() => {});
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;
@@ -178,18 +177,11 @@
             writeDockerBulkUpdateTrace('dialogCallback', {
                 reconcileWindowMs: DOCKER_DIALOG_POST_RENDER_RECONCILE_WINDOW_MS
             });
-            try {
-                refreshDockerList();
-            } catch (error) {
-                debugWarn('[FV3_DEBUG] Docker dialog refresh: host loadlist refresh failed.', error);
-                writeDockerBulkUpdateTrace('dialogCallbackLoadlistFailed', {
-                    message: String(error?.message || 'loadlist failed')
-                });
-            }
             defer(() => {
                 Promise.resolve(refreshDockerRuntimeState({
                     followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
-                    liveUpdateStatus: true
+                    liveUpdateStatus: true,
+                    preserveGroupedDom: true
                 })).catch((error) => {
                     debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime state refresh failed.', error);
                     writeDockerBulkUpdateTrace('dialogCallbackRuntimeRefreshFailed', {
@@ -207,20 +199,14 @@
                     });
                     Promise.resolve(refreshDockerRuntimeState({
                         followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,
-                        liveUpdateStatus: true
+                        liveUpdateStatus: true,
+                        preserveGroupedDom: true
                     })).catch((error) => {
                         debugWarn('[FV3_DEBUG] Docker dialog refresh: runtime-state backstop failed.', error);
                         writeDockerBulkUpdateTrace('backstopRefreshFailed', {
                             delayMs,
                             message: String(error?.message || 'runtime-state backstop failed')
                         });
-                        try {
-                            queueDockerListRefresh({ suppressLoadingUi: true });
-                        } catch (_queueError) {
-                            try {
-                                refreshDockerList();
-                            } catch (_refreshError) {}
-                        }
                     });
                 }, delayMs);
             });
@@ -260,33 +246,11 @@
             openDockerDialog('update_container ' + containersToUpdate, title, '', getDockerDialogRefreshCallbackName());
         };
 
-        const parseJsonPayloadSafe = (payload) => {
-            if (!payload) {
-                return {};
-            }
-            if (typeof payload === 'string') {
-                try {
-                    return JSON.parse(payload);
-                } catch (_error) {
-                    return {};
-                }
-            }
-            if (typeof payload === 'object') {
-                return payload;
-            }
-            return {};
-        };
-
         const postJsonWithFallback = async (url, payload, options = {}) => {
-            if (requestClient && typeof requestClient.postJson === 'function') {
-                try {
-                    return await requestClient.postJson(url, payload, options);
-                } catch (_error) {
-                    // Fall through to the legacy jQuery path if the request client is not ready.
-                }
+            if (!requestClient || typeof requestClient.postJson !== 'function') {
+                throw new Error('FolderView Plus request client is unavailable.');
             }
-            const response = await jq.post(url, payload).promise();
-            return parseJsonPayloadSafe(response);
+            return requestClient.postJson(url, payload, options);
         };
 
         const summarizeFolderActionCounts = (containersMap) => {
@@ -375,7 +339,7 @@
                 }
                 getSpinner()?.show('slow');
                 debugLog(`[FV3_DEBUG] rmFolder (id: ${id}): Calling delete API.`);
-                await jq.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id }).promise();
+                await requestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'docker', id });
                 debugLog(`[FV3_DEBUG] rmFolder (id: ${id}): Delete API call finished. Reloading list.`);
                 defer(refreshDockerList, 500);
             });
@@ -416,7 +380,7 @@
             const deleteIds = [...getFolderDescendants(id)].reverse();
             deleteIds.push(id);
             for (const deleteId of deleteIds) {
-                await jq.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId }).promise();
+                await requestClient.postJson('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId });
             }
         };
 
@@ -862,7 +826,7 @@
                             targetIds: JSON.stringify([id]),
                             settings: JSON.stringify(clipboardEntry.payload)
                         }, {
-                            retries: 1,
+                            retries: 0,
                             retryDelayMs: 260
                         });
                         swal.close();
@@ -928,12 +892,12 @@
             if (safeFolderId) {
                 request.id = safeFolderId;
             }
-            await jq.post(
+            await requestClient.postJson(
                 safeFolderId
                     ? '/plugins/folderview.plus/server/update.php'
                     : '/plugins/folderview.plus/server/create.php',
                 request
-            ).promise();
+            );
         };
 
         const persistDockerFolderClonePayload = typeof deps.persistDockerFolderClonePayload === 'function'
@@ -946,17 +910,17 @@
                 : [];
             for (const createdId of ids.slice().reverse()) {
                 try {
-                    await jq.post('/plugins/folderview.plus/server/delete.php', {
+                    await requestClient.postJson('/plugins/folderview.plus/server/delete.php', {
                         type: 'docker',
                         id: createdId
-                    }).promise();
+                    });
                 } catch (_error) {
                     // Best-effort rollback only.
                 }
             }
             if (ids.length > 0) {
                 try {
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                 } catch (_error) {
                     // Best-effort rollback only.
                 }
@@ -985,7 +949,7 @@
                 getSpinner()?.show('slow');
                 try {
                     await persistDockerFolderClonePayload(clonePayload);
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                     refreshDockerList();
                 } finally {
                     getSpinner()?.hide('slow');
@@ -1049,7 +1013,7 @@
                         await persistDockerFolderClonePayload(clonePayload, cloneId);
                         createdIds.push(cloneId);
                     }
-                    await jq.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+                    await requestClient.postJson('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
                     refreshDockerList();
                 } catch (error) {
                     await rollbackClonedDockerFolders(createdIds);

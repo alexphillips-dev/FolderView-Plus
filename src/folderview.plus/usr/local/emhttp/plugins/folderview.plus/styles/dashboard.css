@@ -25,6 +25,7 @@
     --fvplus-dashboard-layout-accordion: #ffd36c;
     --fvplus-dashboard-layout-inset: #8ddf9f;
     --fvplus-dashboard-layout-compactmatrix: #7ce4ff;
+    --fvplus-dashboard-layout-embossed: #d7b7ff;
     --fvplus-dashboard-warning: #ffbe5c;
     --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
     --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
@@ -275,6 +276,22 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 
 .fv-dashboard-layout-quick[data-fv-layout="compactmatrix"] {
     color: var(--fvplus-dashboard-layout-compactmatrix);
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="embossed"] {
+    color: var(--fvplus-dashboard-layout-embossed);
+}
+
+tbody.fv-dashboard-layout-embossed .folder-showcase-outer > span.outer,
+tbody.fv-dashboard-layout-embossed .folder-showcase {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(0, 0, 0, 0.16));
+    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.08), inset -1px -1px 0 rgba(0, 0, 0, 0.42), 0 3px 9px rgba(0, 0, 0, 0.2);
+}
+
+tbody.fv-dashboard-layout-embossed .folder-showcase-outer > span.outer {
+    margin-bottom: 7px;
 }
 
 .fv-dashboard-expand-toggle-btn {
@@ -684,4 +701,23 @@ body.fvplus-performance-mode .tooltipster-content {
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */
 .orange-text.blue-text {
     color: var(--color-orange, #f0a30a);
+}
+/* Sensitive-value privacy classes preserve source text, making toggles instant and reversible. */
+body.fvplus-privacy-docker-sensitive-volumePaths .fvplus-sensitive-volume-path,
+body.fvplus-privacy-docker-sensitive-imageRegistry .fvplus-sensitive-image-registry,
+body.fvplus-privacy-docker-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-docker-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-docker-sensitive-externalUrls .fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-vmDiskPaths .fvplus-sensitive-vm-disk-path,
+body.fvplus-privacy-vm-sensitive-macAddresses .fvplus-sensitive-mac-address,
+body.fvplus-privacy-vm-sensitive-publicIps .fvplus-sensitive-public-ip,
+body.fvplus-privacy-vm-sensitive-interfaces .fvplus-sensitive-interface,
+body.fvplus-privacy-vm-sensitive-externalUrls .fvplus-sensitive-external-url {
+    filter: blur(7px) !important;
+    user-select: none !important;
+}
+
+body.fvplus-privacy-docker-sensitive-externalUrls a.fvplus-sensitive-external-url,
+body.fvplus-privacy-vm-sensitive-externalUrls a.fvplus-sensitive-external-url {
+    pointer-events: none !important;
 }

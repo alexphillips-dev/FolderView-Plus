@@ -1,0 +1,8 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "fr",
+        "namespace": "dashboard"
+    },
+    "dashboard.folder.toggle-members": "Basculer les membres du dossier"
+}

@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "tr",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Arama ayarları",
+    "settings.search.label": "Arama ayarları",
+    "settings.search.clear-label": "Ayarları aramayı temizle",
+    "settings.search.clear-title": "Aramayı temizle",
+    "settings.search.scope": "Kapsam",
+    "settings.search.scope-help": "Gelişmiş aramanın bu sekmeyi mi yoksa tüm Gelişmiş sekmeleri mi kapsayacağını seçin",
+    "settings.search.scope-label": "Gelişmiş ayarlar arama kapsamı",
+    "settings.search.scope-current": "Geçerli sekme",
+    "settings.search.scope-all": "Tüm gelişmiş",
+    "settings.header.plugin-settings": "Eklenti ayarları",
+    "settings.mode.title": "Ayar modu",
+    "settings.mode.basic-label": "Temel ayar modunu kullan",
+    "settings.mode.advanced-label": "Gelişmiş ayar modunu kullan",
+    "settings.wizard.title": "Kurulum sihirbazını çalıştır",
+    "settings.tabs.basic": "Temel",
+    "settings.tabs.advanced": "Gelişmiş",
+    "settings.tabs.wizard": "Sihirbaz",
+    "settings.privacy.title": "Gizlilik modu",
+    "settings.privacy.mask-names": "İsimleri ve simgeleri gizle",
+    "settings.privacy.mask-lan-ips": "LAN IPs gizle",
+    "settings.privacy.mask-ports": "Portları maskele",
+    "settings.privacy.lan-help": "LAN IP maskelenmesi, Docker sayfasının LAN IP:PORT sütununun IP kısmına uygulanır. Port kısmı için Portları maskelemeyi kullanın."
+}

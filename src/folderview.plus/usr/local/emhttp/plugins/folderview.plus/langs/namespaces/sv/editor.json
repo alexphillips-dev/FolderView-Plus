@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "sv",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Lägg till en anpassad åtgärd",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Användarskript",
+    "editor.actions.control-members": "Kontrollera valda mappmedlemmar.",
+    "editor.actions.run-user-script": "Kör en uppgift från User Scripts-tillägget.",
+    "editor.members.toggle-preview-help": "Behåll denna medlem i mappen men dölj den från den kollapsade förhandsvisningen",
+    "editor.members.visible": "Synlig",
+    "editor.members.auto-included": "Automatiskt inkluderad av regex eller etikett",
+    "editor.members.drag-reorder": "Dra för att ändra ordning",
+    "editor.members.move-up": "Flytta upp",
+    "editor.members.move-down": "Flytta ner"
+}

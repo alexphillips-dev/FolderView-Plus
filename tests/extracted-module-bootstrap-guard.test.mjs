@@ -48,7 +48,11 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         dockerRuntimeDiagnosticsJs,
         dockerRuntimeReconcileJs
     ]) {
-        assert.match(source, /const fallbackWindow = typeof globalThis !== 'undefined'/);
+        assert.ok(
+            /const fallbackWindow = typeof globalThis !== 'undefined'/.test(source)
+                || !/(?:deps\.window|window\.)/.test(source),
+            'modules that access a browser window must define a safe global fallback'
+        );
         assert.doesNotMatch(source, /deps\.window \|\| root/);
         assert.doesNotMatch(source, /root\.location/);
     }

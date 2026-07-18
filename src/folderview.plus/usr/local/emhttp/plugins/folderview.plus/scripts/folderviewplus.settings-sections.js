@@ -24,7 +24,6 @@ const ADVANCED_SECTION_KEYS = new Set([
     'docker-start-order',
     'backups',
     'change-history',
-    'folder-health',
     'diagnostics',
     'conflict-inspector'
 ]);
@@ -50,7 +49,6 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'docker-start-order': 'instant',
     backups: 'instant',
     'change-history': 'instant',
-    'folder-health': 'instant',
     diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
@@ -62,7 +60,6 @@ const ADVANCED_GROUP_BY_SECTION = {
     'change-history': 'recovery',
     'runtime-actions': 'operations',
     'docker-start-order': 'startup',
-    'folder-health': 'diagnostics',
     'diagnostics': 'diagnostics'
 };
 const ADVANCED_MODULE_STALE_MS = 1000 * 60 * 2;
@@ -136,13 +133,6 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
         'issue report',
         'health check',
         'copy diagnostics'
-    ]),
-    'folder-health': Object.freeze([
-        'health cards',
-        'stopped folders',
-        'empty folders',
-        'updates status',
-        'conflict status'
     ]),
     'theme-workspace': Object.freeze([
         'theme fallback',

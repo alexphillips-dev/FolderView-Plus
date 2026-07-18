@@ -48,21 +48,13 @@
         const win = deps.window || fallbackWindow;
         const doc = deps.document || win?.document || null;
         const $ = deps.$ || win?.jQuery || win?.$;
+        const requestClient = deps.requestClient || win?.FolderViewPlusRequest || null;
         const swal = typeof deps.swal === 'function'
             ? deps.swal
             : (typeof win?.swal === 'function' ? win.swal.bind(win) : (() => {}));
         const folderIconApi = deps.folderIconApi && typeof deps.folderIconApi === 'object' ? deps.folderIconApi : null;
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : fallbackAsArray;
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : fallbackEscapeHtml;
-        const parseJsonPayload = typeof deps.parseJsonPayload === 'function'
-            ? deps.parseJsonPayload
-            : ((value) => {
-                try {
-                    return typeof value === 'string' ? JSON.parse(value.replace(/^\uFEFF/, '')) : value;
-                } catch (_error) {
-                    return null;
-                }
-            });
         const paginateItems = typeof deps.paginateItems === 'function' ? deps.paginateItems : fallbackPaginateItems;
         const filterIconItems = typeof deps.filterIconItems === 'function' ? deps.filterIconItems : fallbackFilterIconItems;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
@@ -134,6 +126,7 @@
         let thirdPartyFilterSheetOpen = false;
         let thirdPartyAdvancedMode = false;
         let thirdPartyPackActionsOpen = false;
+        let thirdPartyAssetPackStatus = null;
         let customIconEntries = [];
         let customIconStats = null;
         let customIconHealth = null;
@@ -1640,10 +1633,17 @@
         };
 
         const loadThirdPartyFolders = async () => {
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_folders' }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_folders' }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to load third-party icon folders.'));
+            }
+            thirdPartyAssetPackStatus = payload.assetPack && typeof payload.assetPack === 'object'
+                ? payload.assetPack
+                : null;
+            if (thirdPartyAssetPackStatus && thirdPartyAssetPackStatus.ready === false) {
+                throw new Error('The versioned icon asset pack is unavailable. Reinstall or update FolderView Plus to restore it.');
             }
             thirdPartyIconFolders = asArray(payload.folders).map((entry) => ({
                 name: String(entry?.name || '').trim(),
@@ -1656,8 +1656,9 @@
         };
 
         const loadThirdPartyIconIndex = async () => {
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_index' }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_index' }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to build icon index.'));
             }
@@ -1680,8 +1681,9 @@
                 renderThirdPartyIconGrid();
                 return;
             }
-            const response = await $.get(thirdPartyIconApiPath, { action: 'list_icons', folder }).promise();
-            const payload = parseJsonPayload(response);
+            const payload = await requestClient.getJson(thirdPartyIconApiPath, {
+                data: { action: 'list_icons', folder }
+            });
             if (!payload || payload.ok !== true) {
                 throw new Error(String(payload?.error || 'Failed to load icons for selected folder.'));
             }
@@ -1719,10 +1721,10 @@
 
         const loadBuiltInIcons = async () => {
             try {
-                const response = await $.get(builtInIconManifestPath).promise();
-                const payload = (typeof response === 'string')
-                    ? JSON.parse(response.replace(/^\uFEFF/, ''))
-                    : response;
+                const payload = await requestClient.getJson(builtInIconManifestPath, {
+                    cache: true,
+                    retries: 1
+                });
                 builtInIcons = folderIconApi && typeof folderIconApi.normalizeBuiltInIconManifest === 'function'
                     ? folderIconApi.normalizeBuiltInIconManifest(payload)
                     : asArray(payload);

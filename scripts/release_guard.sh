@@ -9,6 +9,7 @@ PRIMARY_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
 CA_TEMPLATE_FILE="${PRIMARY_CA_TEMPLATE_FILE}"
 PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 SERVER_DIR="${PLUGIN_SRC_DIR}/server"
+ICON_ASSET_PACK_GUARD="${ROOT_DIR}/scripts/icon_asset_pack_guard.sh"
 ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
@@ -57,6 +58,7 @@ fi
 
 VERSION="$(sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 MD5_ENTITY="$(sed -n 's/^<!ENTITY md5 "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
+ICON_PACK_URL_ENTITY="$(sed -n 's/^<!ENTITY iconPackURL "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 
 if [[ -z "${VERSION}" ]]; then
   echo "ERROR: Could not parse version entity from folderview.plus.plg" >&2
@@ -66,6 +68,13 @@ fi
 if [[ -z "${MD5_ENTITY}" ]]; then
   echo "ERROR: Could not parse md5 entity from folderview.plus.plg" >&2
   exit 1
+fi
+if [[ ! -x "${ICON_ASSET_PACK_GUARD}" && ! -f "${ICON_ASSET_PACK_GUARD}" ]]; then
+  echo "ERROR: Missing icon asset-pack guard: ${ICON_ASSET_PACK_GUARD}" >&2
+  exit 1
+fi
+if [[ "${FVPLUS_ICON_ASSET_PACK_GUARDED:-0}" != "1" ]]; then
+  bash "${ICON_ASSET_PACK_GUARD}"
 fi
 
 PLUGIN_TAG_COMPACT="$(
@@ -144,6 +153,11 @@ if [[ "${EXPECTED_PLUGIN_BRANCH}" =~ ^(main|dev)$ ]]; then
   EXPECTED_ARCHIVE_URL="https://raw.githubusercontent.com/&github;/${EXPECTED_PLUGIN_BRANCH}/archive/&name;-&version;.txz"
   if [[ "${ARCHIVE_URL_TEMPLATE}" != "${EXPECTED_ARCHIVE_URL}" ]]; then
     echo "ERROR: archive URL branch mismatch. expected=${EXPECTED_ARCHIVE_URL}, found=${ARCHIVE_URL_TEMPLATE}" >&2
+    exit 1
+  fi
+  EXPECTED_ICON_PACK_URL="https://raw.githubusercontent.com/&github;/${EXPECTED_PLUGIN_BRANCH}/asset-packs/folderview.plus-icons-&iconPackVersion;.txz"
+  if [[ "${ICON_PACK_URL_ENTITY}" != "${EXPECTED_ICON_PACK_URL}" ]]; then
+    echo "ERROR: icon asset-pack URL branch mismatch. expected=${EXPECTED_ICON_PACK_URL}, found=${ICON_PACK_URL_ENTITY}" >&2
     exit 1
   fi
 fi
@@ -337,6 +351,10 @@ fi
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
 ARCHIVE_FILES_ONLY="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -Ev '/$' || true)"
+if grep -q '^usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/' <<< "${ARCHIVE_LIST_NORMALIZED}"; then
+  echo "ERROR: Core plugin archive still embeds the versioned third-party icon library." >&2
+  exit 1
+fi
 
 ARCHIVE_FILE_COUNT="$(printf '%s\n' "${ARCHIVE_FILES_ONLY}" | sed '/^$/d' | wc -l | tr -d '[:space:]')"
 if [[ -z "${ARCHIVE_FILE_COUNT}" || "${ARCHIVE_FILE_COUNT}" -gt "${MAX_ARCHIVE_FILE_COUNT}" ]]; then
@@ -358,7 +376,12 @@ if [[ -n "${DANGEROUS_ARCHIVE_FILES}" ]]; then
 fi
 
 ALLOWED_ARCHIVE_EXTENSIONS='page|php|js|css|png|jpg|jpeg|gif|webp|svg|bmp|ico|avif|json|md|txt|woff|woff2|ttf|eot|otf|map'
-UNEXPECTED_ARCHIVE_FILES="$(printf '%s\n' "${ARCHIVE_FILES_ONLY}" | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" || true)"
+UNEXPECTED_ARCHIVE_FILES="$(
+  printf '%s\n' "${ARCHIVE_FILES_ONLY}" \
+    | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" \
+    | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh' \
+    || true
+)"
 if [[ -n "${UNEXPECTED_ARCHIVE_FILES}" ]]; then
   echo "ERROR: Archive contains files with unexpected extensions:" >&2
   echo "${UNEXPECTED_ARCHIVE_FILES}" >&2
@@ -387,6 +410,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
@@ -397,6 +421,8 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 )
@@ -882,6 +908,7 @@ READ_ONLY_ENDPOINTS=(
   "read_info.php"
   "read_order.php"
   "read_unraid_order.php"
+  "runtime_snapshot.php"
   "third_party_icons.php"
   "update_check.php"
   "update_notes.php"
@@ -909,7 +936,7 @@ fi
 
 CURRENT_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
   BEGIN { capture = 0 }
-  /^###/ {
+  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
     if (capture) {
       exit
     }
@@ -1017,7 +1044,7 @@ fi
 
 PREVIOUS_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
   BEGIN { seen_current = 0; capture_previous = 0 }
-  /^###/ {
+  /^###[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}[[:space:]]*$/ {
     if (!seen_current) {
       if ($0 ~ "^###" version "[[:space:]]*$") {
         seen_current = 1

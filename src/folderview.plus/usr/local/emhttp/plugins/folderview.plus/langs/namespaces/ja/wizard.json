@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "ja",
+        "namespace": "wizard"
+    },
+    "wizard.title": "セットアップアシスタント",
+    "wizard.welcome.kicker": "FolderView Plus セットアップアシスタント",
+    "wizard.welcome.title": "Docker のコンテナと VMs をフォルダーに整理します。",
+    "wizard.welcome.description": "FolderView Plus は関連するアプリをグループ化し、適用前に変更をプレビューし、将来のアプリを自動的に整理しておくこともできます。",
+    "wizard.welcome.begin": "セットアップ開始",
+    "wizard.welcome.skip": "ウィザードをスキップ",
+    "wizard.welcome.group-title": "関連するアプリをグループ化",
+    "wizard.welcome.group-description": "メディア、ダウンロード、ユーティリティ、ホームオートメーション、その他のアプリをまとめておきます。",
+    "wizard.welcome.preview-title": "適用前にプレビュー",
+    "wizard.welcome.preview-description": "フォルダー、割り当て、ルール、設定を変更する前に確認できます。",
+    "wizard.welcome.automatic-title": "自動的に整理を維持",
+    "wizard.welcome.automatic-description": "オプションの初期ルールで、将来の一致するアプリを正しいフォルダーに配置できます。",
+    "wizard.navigation.next": "次へ",
+    "wizard.navigation.back": "戻る",
+    "wizard.navigation.begin": "セットアップ開始",
+    "wizard.navigation.run-preview": "プレビューを実行",
+    "wizard.navigation.apply": "セットアップを適用",
+    "wizard.navigation.show-details": "詳細を表示",
+    "wizard.navigation.hide-details": "詳細を隠す",
+    "wizard.navigation.close": "閉じる",
+    "wizard.navigation.review": "レビュー",
+    "wizard.navigation.go-to": "$1 に移動",
+    "wizard.progress.step": "ステップ $1 / $2",
+    "wizard.impact.live": "このステップのライブインパクト"
+}

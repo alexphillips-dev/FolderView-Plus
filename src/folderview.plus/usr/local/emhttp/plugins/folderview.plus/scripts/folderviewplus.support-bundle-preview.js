@@ -25,7 +25,7 @@
         }),
         uiTelemetry: Object.freeze({
             label: 'Browser/UI telemetry',
-            detail: 'Client perf samples, request-error telemetry, folder editor bootstrap debug, and theme telemetry.'
+            detail: 'Client perf samples, sanitized request activity and errors, folder editor bootstrap debug, and theme telemetry.'
         }),
         healthAndHistory: Object.freeze({
             label: 'Health and history',

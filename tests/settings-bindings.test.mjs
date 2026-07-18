@@ -10,6 +10,7 @@ const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plu
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const libPrefsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const settingsChromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
@@ -40,6 +41,16 @@ const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const settingsChrome = fs.readFileSync(settingsChromePath, 'utf8');
+
+test('settings topbar keeps search adjacent to mode controls without a save-status badge', () => {
+    assert.doesNotMatch(settingsChrome, /fv-prefs-save-status/);
+    assert.match(settingsChrome, /fv-settings-search-block[\s\S]*fv-mode-toggle/);
+    assert.doesNotMatch(script, /renderPreferenceSaveStatus|fv-prefs-save-status/);
+    assert.doesNotMatch(settingsCss, /\.fv-prefs-save-status|fvplus-pref-save-spin/);
+    assert.match(script, /data-fv-prefs-sync-listener-bound/);
+    assert.match(script, /window\.addEventListener\('fvplus:prefs-save-state'/);
+});
 
 test('settings page onclick handlers are exported on window', () => {
     const handlers = [
@@ -129,8 +140,8 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.doesNotMatch(page, /id="vm-page-view-mode"/);
     assert.match(page, /Docker page view/);
     assert.match(page, /<option value="command">Command view<\/option>/);
-    assert.match(page, /<option value="tree-explorer">Tree explorer<\/option>/);
-    assert.match(page, /<option value="orbit">Orbit view<\/option>/);
+    assert.doesNotMatch(page, /<option value="tree-explorer">/);
+    assert.doesNotMatch(page, /<option value="orbit">/);
     const dockerSortRowStart = page.indexOf('<div class="sort-row">');
     const dockerSortRowEnd = page.indexOf('<div id="docker-quick-filters"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
@@ -151,16 +162,15 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
     assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
-    assert.match(script, /const runtimePrefsSaveStateByType = \{/);
-    assert.match(script, /const getRuntimePrefsSaveState = \(type\) => \{/);
-    assert.match(script, /const requestRevision = runtimeSaveState\.revision \+ 1;/);
-    assert.match(script, /if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}/);
-    assert.match(script, /runtimeSaveState\.lastCommittedPrefs = utils\.normalizePrefs\(savedPrefs\);/);
+    assert.match(page, /folderviewplus\.prefs-store\.js/);
+    assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
+    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
+    assert.match(script, /showError\('Runtime preference sync pending', error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
-    assert.match(script, /prefsByType\[type\] = utils\.normalizePrefs\(next\);\s*renderRuntimeControls\(type\);/);
-    assert.match(script, /catch \(error\) \{\s*if \(requestRevision !== runtimeSaveState\.revision\) \{\s*return;\s*\}[\s\S]*showError\('Runtime preference save failed', error\);/);
+    assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
+    assert.doesNotMatch(script, /requestRevision !== runtimeSaveState\.revision/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
-    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command', 'tree-explorer', 'orbit'\]/);
+    assert.match(libPrefsPhp, /function normalizeRuntimePageViewMode\(\$value\): string \{[\s\S]*\['folderview', 'host', 'command'\]/);
 });
 
 test('settings runtime honors explicit launch overrides for advanced rules workspace deep links', () => {
@@ -196,17 +206,27 @@ test('import preview dialog stays outside section-collapse visibility controls',
     assert.match(runtimeScript, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
 });
 
-test('import preview layout includes user-facing summary cards and collapsible raw details', () => {
+test('import preview layout provides a compact progressive-disclosure flow', () => {
+    assert.match(page, /class="import-primary-panel"/);
+    assert.match(page, /data-import-mode-option="merge"/);
+    assert.match(page, /data-import-mode-option="skip"/);
+    assert.match(page, /data-import-mode-option="replace"/);
     assert.match(page, /id="import-preview-counts"/);
-    assert.match(page, /class="import-top-grid"/);
-    assert.match(page, /class="import-preview-card import-selection-card"/);
-    assert.match(page, /id="import-preset-select"/);
-    assert.match(page, /id="import-preset-save"/);
-    assert.match(page, /id="import-preset-default"/);
-    assert.match(page, /id="import-preset-delete"/);
+    assert.match(page, /class="import-disclosures"/);
+    assert.match(page, /class="import-disclosure import-review-details"/);
+    assert.match(page, /class="import-disclosure import-secondary-options"/);
+    assert.match(page, /class="import-disclosure import-source-details"/);
+    assert.match(page, /id="import-review-ack-row" class="import-review-ack"/);
+    assert.match(page, /<strong[^>]*>Safety options<\/strong>/);
+    assert.doesNotMatch(page, /id="import-preset-(?:select|save|default|delete)"/);
     assert.match(page, /id="import-summary-details"/);
+    assert.doesNotMatch(page, /class="import-top-grid"/);
     assert.match(runtimeScript, /const counts = \$\('#import-preview-counts'\);/);
-    assert.match(runtimeScript, /result\.text\(`\$\{selectedCount\} operation/);
+    assert.match(runtimeScript, /const modeChoices = dialog\.find\('\[data-import-mode-option\]'\);/);
+    assert.match(runtimeScript, /const syncModeChoiceUi = \(\) => \{/);
+    assert.match(runtimeScript, /changeDetailsLabel\.text\(selectedCount > 0/);
+    assert.doesNotMatch(runtimeScript, /What happens when you continue/);
+    assert.doesNotMatch(page, /class="import-preview-journey"/);
     assert.match(script, /saveCustomImportPresetForType/);
     assert.match(script, /setDefaultImportPresetIdForType/);
 });
@@ -216,10 +236,10 @@ test('import preview requires acknowledgement for destructive or untrusted appli
     assert.match(runtimeScript, /level:\s*'destructive'[\s\S]*requiresReview:\s*true/);
     assert.match(runtimeScript, /currentTrustInfo\.level && currentTrustInfo\.level !== 'trusted'/);
     assert.match(runtimeScript, /const requireAck = currentDryRunOnly !== true && \(previewFirstEnabled === true \|\| riskInfo\.requiresReview === true\);/);
-    assert.match(runtimeScript, /Risk: \$\{escapeHtml\(riskInfo\.label\)\}/);
+    assert.match(runtimeScript, /class="is-risk"/);
     assert.match(runtimeScript, /const requireAck = dryRunOnly !== true && \(isPreviewFirstEnabled\(\) === true \|\| riskInfo\.requiresReview === true\);/);
-    assert.match(settingsCss, /#import-preview-dialog \.import-count-chip\.is-risk-normal/);
-    assert.match(settingsCss, /#import-preview-dialog \.import-count-chip\.is-risk-untrusted,\s*#import-preview-dialog \.import-count-chip\.is-risk-destructive/);
+    assert.match(settingsCss, /\.import-summary-breakdown \.is-risk/);
+    assert.match(settingsCss, /\.import-review-ack\s*\{[\s\S]*?cursor:\s*pointer/);
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {
@@ -232,7 +252,7 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(importScript, /note = ''/);
     assert.match(importScript, /overlay\.show\(\);/);
     assert.match(importScript, /overlay\.hide\(\);/);
-    assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
+    assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, total, label \}\) =>/);
 });
 
 test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {
@@ -302,7 +322,7 @@ test('operations workspace exposes native Docker organizer sync controls', () =>
     assert.match(script, /const nativeOrganizerModule = window\.FolderViewPlusNativeOrganizer \|\| null;/);
     assert.match(script, /const buildNativeDockerOrganizerStatusHtml = \(status = null\) => \{/);
     assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\('Sync native Docker organizer'\)\) \{/);
-    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*source:\s*'settings'/);
+    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*explicit:\s*true,\s*source:\s*'settings'/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*refreshNativeDockerOrganizerStatus[\s\S]*syncNativeDockerOrganizerFromSettings[\s\S]*\}\);/);
 });
 
@@ -333,7 +353,7 @@ test('basic folder pin toggle persists quickly and broadcasts runtime refresh', 
     assert.match(script, /const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv\.folderviewplus\.pinnedFolders\.changed\.v1';/);
     assert.match(script, /const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';/);
     assert.match(script, /const updatePrefsPartial = async \(type, patch, options = \{\}\) => \{/);
-    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial\);/);
+    assert.match(script, /const savedPrefs = await postPrefs\(resolvedType, partial, \{\s*currentPrefs: next,\s*immediate: options\.immediate === true\s*\}\);/);
     assert.match(script, /const broadcastPinnedFolderChange = \(payload = \{\}\) => \{/);
     assert.match(script, /window\.dispatchEvent\(new CustomEvent\(PINNED_FOLDER_CHANGE_EVENT, \{ detail: eventPayload \}\)\);/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ pinnedFolderIds: nextPinned \}, \{/);
@@ -347,7 +367,7 @@ test('instant settings controls use partial prefs updates', () => {
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
-    assert.match(script, /const savedPrefs = await postPrefs\(type, \{ \[key\]: next\[key\] \}\);/);
+    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
 });
 
 test('settings action buttons are explicitly non-submit buttons', () => {
@@ -572,13 +592,6 @@ test('settings mode switches persist the user basic or advanced view choice', ()
     assert.match(script, /if \(!hasLocalModePreference && serverMode && !settingsLaunchOverrides\?\.mode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
     assert.match(script, /if \(hasLocalModePreference && serverMode && serverMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
     assert.match(script, /setSettingsMode\(mode, \{ persistServer: true \}\);/);
-    assert.match(script, /setSettingsMode\('basic', \{ persistServer: true \}\);/);
-    assert.match(script, /setSettingsMode\('advanced', \{ persistServer: true \}\);/);
-});
-
-test('folder health actions can jump into a filtered basic table view', () => {
-    assert.match(script, /const mode = String\(\$\(event\.currentTarget\)\.attr\('data-fv-health-mode'\) \|\| 'all'\);/);
-    assert.match(script, /setHealthFolderFilter\(type, mode\);/);
 });
 
 test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {
@@ -623,7 +636,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const updateBulkPreviewPanel = \(type\) =>/);
     assert.match(script, /const renderBulkChecklist = \(type, visibleNames\) =>/);
     assert.match(script, /const retryFailedBulkItems = async \(type\) =>/);
-    assert.match(script, /const BULK_ASSIGN_CHUNK_SIZE = 40;/);
+    assert.doesNotMatch(script, /const BULK_ASSIGN_CHUNK_SIZE = 40;/);
+    assert.match(script, /in one atomic request/);
     assert.match(script, /const BULK_LIST_RENDER_CHUNK_SIZE = 120;/);
     assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
@@ -632,6 +646,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
-    assert.match(libPhp, /foreach \(\$folders as \$folder\) \{[\s\S]*normalizeFolderMembers\(\$folder\['containers'\] \?\? \[\]\)/);
+    assert.match(libPhp, /function bulkAssignItemsToFolders\(string \$type, array \$assignments\): array/);
+    assert.match(libPhp, /withConfigMutationLock\(static function \(\) use \(\$type, \$normalizedByFolder/);
+    assert.match(libPhp, /writeRawFolderMap\(\$type, \$nextFolders\)/);
     assert.match(libPhp, /'skippedInvalid' => \$skippedInvalid/);
 });

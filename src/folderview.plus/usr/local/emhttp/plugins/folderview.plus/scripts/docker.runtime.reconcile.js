@@ -14,6 +14,12 @@
 
     const DEFAULT_INITIAL_DELAY_MS = 220;
     const DEFAULT_POLL_DELAY_MS = 4000;
+    const DEFAULT_POLL_COUNT = 2;
+    const POST_UPDATE_CALLBACK_WINDOW_MS = 15000;
+    const DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME = '__fvplusDockerPostUpdateRefresh';
+    const DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME = '__fvplusDockerLifecycleRefresh';
+    const DOCKER_LIFECYCLE_REFRESH_DELAYS_MS = Object.freeze([0, 750, 2000]);
+    const DOCKER_LIFECYCLE_ACTIONS = new Set(['start', 'stop', 'pause', 'resume', 'restart']);
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -49,6 +55,9 @@
         const getDockerHostGuardsApi = typeof deps.getDockerHostGuardsApi === 'function'
             ? deps.getDockerHostGuardsApi
             : (() => null);
+        const getDockerRuntimeContainerInfo = typeof deps.getDockerRuntimeContainerInfo === 'function'
+            ? deps.getDockerRuntimeContainerInfo
+            : (() => null);
         const initialDelayMsDefault = Math.max(0, Number(deps.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS) || DEFAULT_INITIAL_DELAY_MS);
         const pollDelayMsDefault = Math.max(0, Number(deps.pollDelayMs ?? DEFAULT_POLL_DELAY_MS) || DEFAULT_POLL_DELAY_MS);
 
@@ -60,6 +69,47 @@
         let dockerPostUpdateRuntimePollTimer = null;
         let dockerPostUpdateRuntimePollPending = false;
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
+        let dockerPostUpdateRuntimePollRemaining = 0;
+        let dockerLifecycleRefreshGeneration = 0;
+        let pendingDockerLifecycleRequest = {};
+
+        const bindDockerContainerContextStatePatch = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return false;
+            }
+            const currentContextBuilder = win.addDockerContainerContext;
+            if (typeof currentContextBuilder !== 'function') {
+                return false;
+            }
+            if (currentContextBuilder.__fvplusDockerRuntimeStatePatched === true) {
+                return true;
+            }
+            const originalContextBuilder = currentContextBuilder;
+            const wrappedContextBuilder = function(...args) {
+                const containerName = String(args?.[0] || '').trim();
+                const runtimeEntry = containerName ? getDockerRuntimeContainerInfo(containerName) : null;
+                const runtimeState = runtimeEntry?.info?.State && typeof runtimeEntry.info.State === 'object'
+                    ? runtimeEntry.info.State
+                    : null;
+                if (runtimeState && typeof runtimeState.Running === 'boolean') {
+                    args[3] = runtimeState.Running;
+                    args[4] = runtimeState.Running && runtimeState.Paused === true;
+                    if (typeof runtimeState.Updated === 'boolean') {
+                        args[5] = runtimeState.Updated === false ? 1 : 0;
+                    }
+                    if (typeof runtimeState.Autostart === 'boolean') {
+                        args[6] = runtimeState.Autostart;
+                    }
+                }
+                return originalContextBuilder.apply(this, args);
+            };
+            try {
+                wrappedContextBuilder.__fvplusDockerRuntimeStatePatched = true;
+                wrappedContextBuilder.__fvplusOriginal = originalContextBuilder;
+            } catch (_error) {}
+            win.addDockerContainerContext = wrappedContextBuilder;
+            return true;
+        };
 
         const clearPostUpdateRuntimePoll = () => {
             if (dockerPostUpdateRuntimePollTimer) {
@@ -72,8 +122,9 @@
         };
 
         const schedulePostUpdateRuntimePoll = (reason = 'post-update-runtime-poll', delayMs = pollDelayMsDefault) => {
-            if (!isDockerHostUpdateSyncSuspended()) {
+            if (!isDockerHostUpdateSyncSuspended() || dockerPostUpdateRuntimePollRemaining <= 0) {
                 clearPostUpdateRuntimePoll();
+                dockerPostUpdateRuntimePollRemaining = 0;
                 return;
             }
             if (dockerPostUpdateRuntimePollTimer || dockerPostUpdateRuntimePollPending) {
@@ -87,15 +138,19 @@
             dockerPostUpdateRuntimePollTimer = schedule(() => {
                 dockerPostUpdateRuntimePollTimer = null;
                 if (!isDockerHostUpdateSyncSuspended()) {
+                    dockerPostUpdateRuntimePollRemaining = 0;
                     return;
                 }
+                dockerPostUpdateRuntimePollRemaining = Math.max(0, dockerPostUpdateRuntimePollRemaining - 1);
                 dockerPostUpdateRuntimePollPending = true;
                 appendDockerBulkUpdateTrace('postUpdateRuntimePoll', {
                     reason: safeReason,
-                    pollDelayMs: dockerPostUpdateRuntimePollIntervalMs
+                    pollDelayMs: dockerPostUpdateRuntimePollIntervalMs,
+                    remainingPolls: dockerPostUpdateRuntimePollRemaining
                 });
                 Promise.resolve(refreshDockerRuntimeStateInPlace({
-                    liveUpdateStatus: true
+                    liveUpdateStatus: true,
+                    preserveGroupedDom: true
                 }))
                     .then((success) => {
                         appendDockerBulkUpdateTrace('postUpdateRuntimePollResult', {
@@ -111,13 +166,40 @@
                     })
                     .finally(() => {
                         dockerPostUpdateRuntimePollPending = false;
-                        if (isDockerHostUpdateSyncSuspended()) {
+                        if (isDockerHostUpdateSyncSuspended() && dockerPostUpdateRuntimePollRemaining > 0) {
                             schedulePostUpdateRuntimePoll('post-update-runtime-poll', dockerPostUpdateRuntimePollIntervalMs);
                         } else {
                             queueDockerSupportBundlePageSnapshot('post-update-runtime-poll-complete', 80);
                         }
                     });
             }, safeDelayMs);
+        };
+
+        const queuePostUpdateRuntimeRefresh = (reason = 'host-update-callback', options = {}) => {
+            const tailPolls = Math.max(0, Number(options?.tailPolls ?? 1) || 0);
+            suspendDockerHostUpdateSync(POST_UPDATE_CALLBACK_WINDOW_MS);
+            dockerPostUpdateRuntimePollRemaining = Math.max(
+                dockerPostUpdateRuntimePollRemaining,
+                1 + tailPolls
+            );
+            clearPostUpdateRuntimePoll();
+            appendDockerBulkUpdateTrace('postUpdateRuntimeRefreshQueued', {
+                reason: String(reason || '').trim() || 'host-update-callback',
+                tailPolls
+            });
+            schedulePostUpdateRuntimePoll(reason, 0);
+        };
+
+        const getPostUpdateRefreshCallbackName = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME;
+            }
+            if (typeof win[DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME] !== 'function') {
+                win[DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME] = () => {
+                    queuePostUpdateRuntimeRefresh('host-update-dialog-callback', { tailPolls: 1 });
+                };
+            }
+            return DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME;
         };
 
         const queuePostUpdateRenderReconcile = (reason = 'docker-post-folders-creation') => {
@@ -144,7 +226,8 @@
                     });
                     return refreshDockerRuntimeStateInPlace({
                         followupDelayMs: 650,
-                        liveUpdateStatus: true
+                        liveUpdateStatus: true,
+                        preserveGroupedDom: true
                     });
                 })
                 .catch(() => {})
@@ -180,13 +263,19 @@
                 0,
                 Number(options?.pollDelayMs ?? pollDelayMsDefault) || 0
             );
+            const pollCount = Math.max(
+                1,
+                Number(options?.pollCount ?? DEFAULT_POLL_COUNT) || DEFAULT_POLL_COUNT
+            );
             appendDockerBulkUpdateTrace('reconcileWindowArmed', {
                 durationMs: Math.max(0, Number(durationMs) || 0),
                 initialDelayMs,
                 pollDelayMs,
-                strategy: 'event-driven-post-render-and-poll'
+                pollCount,
+                strategy: 'event-driven-incremental-with-finite-backstops'
             });
             dockerPostUpdateRuntimePollIntervalMs = pollDelayMs;
+            dockerPostUpdateRuntimePollRemaining = Math.max(dockerPostUpdateRuntimePollRemaining, pollCount);
             schedulePostUpdateRuntimePoll('reconcile-window-armed', initialDelayMs);
             return resolvedUntil;
         };
@@ -260,6 +349,15 @@
                     }
                 });
                 armForHostCommand(args[0], 'host-openDocker');
+                if (isUpdateCommand) {
+                    const previousCallback = String(args?.[3] || '').trim();
+                    args[3] = getPostUpdateRefreshCallbackName();
+                    appendDockerBulkUpdateTrace('hostUpdateRefreshCallbackIntercepted', {
+                        previousCallback: previousCallback || 'none',
+                        replacementCallback: args[3],
+                        containerCount: containerNames.length
+                    });
+                }
                 return originalOpenDocker.apply(this, args);
             };
             try {
@@ -311,6 +409,109 @@
             dockerUpdateActionClickCaptureBound = true;
         };
 
+        const isDockerLifecycleRequest = (request) => {
+            const action = String(request?.action || '').trim().toLowerCase();
+            const container = String(request?.container || '').trim();
+            return DOCKER_LIFECYCLE_ACTIONS.has(action) && container.length > 0;
+        };
+
+        const runDockerLifecycleRefresh = (request = {}) => {
+            const action = String(request?.action || '').trim().toLowerCase();
+            const generation = ++dockerLifecycleRefreshGeneration;
+            appendDockerBulkUpdateTrace('lifecycleRefreshScheduled', {
+                action,
+                strategy: 'incremental-runtime-rows',
+                attempts: DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length
+            });
+            DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.forEach((delayMs, attemptIndex) => {
+                const schedule = typeof win?.setTimeout === 'function'
+                    ? win.setTimeout.bind(win)
+                    : setTimeout;
+                schedule(() => {
+                    if (generation !== dockerLifecycleRefreshGeneration) {
+                        return;
+                    }
+                    Promise.resolve(refreshDockerRuntimeStateInPlace({
+                        liveUpdateStatus: true,
+                        preserveGroupedDom: true
+                    }))
+                        .then((success) => {
+                            appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
+                                action,
+                                attempt: attemptIndex + 1,
+                                delayMs,
+                                success: success === true
+                            });
+                        })
+                        .catch(() => {
+                            appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
+                                action,
+                                attempt: attemptIndex + 1,
+                                delayMs,
+                                success: false
+                            });
+                        });
+                }, delayMs);
+            });
+        };
+
+        const bindLifecycleEventControlPatch = () => {
+            if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
+                return false;
+            }
+            if (typeof win[DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME] !== 'function') {
+                win[DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME] = () => {
+                    runDockerLifecycleRefresh(pendingDockerLifecycleRequest);
+                };
+            }
+            if (typeof win.eventControl !== 'function') {
+                return false;
+            }
+            const currentEventControl = win.eventControl;
+            if (currentEventControl.__fvplusDockerLifecyclePatched === true) {
+                return true;
+            }
+            getDockerHostGuardsApi()?.captureHostHook?.('window.eventControl', currentEventControl, {
+                step: 'Docker lifecycle action hook captured',
+                note: 'captured'
+            });
+            const originalEventControl = currentEventControl;
+            const wrappedEventControl = function(...args) {
+                const request = args?.[0] && typeof args[0] === 'object' ? args[0] : {};
+                const refreshTarget = String(args?.[1] || '').trim();
+                if (
+                    isDockerLifecycleRequest(request)
+                    && (refreshTarget === 'loadlist' || refreshTarget === DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME)
+                ) {
+                    const interceptedHostLoadlist = refreshTarget === 'loadlist';
+                    args[1] = DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME;
+                    const callbackRequest = {
+                        action: String(request.action || '').trim().toLowerCase(),
+                        container: String(request.container || '').trim()
+                    };
+                    pendingDockerLifecycleRequest = callbackRequest;
+                    if (interceptedHostLoadlist) {
+                        appendDockerBulkUpdateTrace('lifecycleLoadlistIntercepted', {
+                            action: callbackRequest.action,
+                            strategy: 'incremental-runtime-rows'
+                        });
+                    }
+                }
+                return originalEventControl.apply(this, args);
+            };
+            try {
+                wrappedEventControl.__fvplusDockerLifecyclePatched = true;
+                wrappedEventControl.__fvplusOriginal = originalEventControl;
+            } catch (_error) {}
+            win.eventControl = wrappedEventControl;
+            getDockerHostGuardsApi()?.noteHookWrapped?.('window.eventControl', {
+                step: 'Docker lifecycle action hook captured',
+                note: 'wrapped'
+            });
+            markDockerFatalBannerStep('Docker lifecycle action hook captured');
+            return true;
+        };
+
         return {
             queuePostUpdateRenderReconcile,
             bindPostUpdateRenderReconcile,
@@ -318,13 +519,23 @@
             bindHostOpenDockerPatch,
             armPostUpdateRuntimeReconcileWindow,
             handleUpdateActionClickCapture,
-            bindUpdateActionClickCapture
+            bindUpdateActionClickCapture,
+            bindDockerContainerContextStatePatch,
+            isDockerLifecycleRequest,
+            runDockerLifecycleRefresh,
+            bindLifecycleEventControlPatch,
+            getLifecycleRefreshCallbackName: () => DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME
         };
     };
 
     return {
         DEFAULT_INITIAL_DELAY_MS,
         DEFAULT_POLL_DELAY_MS,
+        DEFAULT_POLL_COUNT,
+        POST_UPDATE_CALLBACK_WINDOW_MS,
+        DOCKER_POST_UPDATE_REFRESH_CALLBACK_NAME,
+        DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME,
+        DOCKER_LIFECYCLE_REFRESH_DELAYS_MS,
         createApi
     };
 }));

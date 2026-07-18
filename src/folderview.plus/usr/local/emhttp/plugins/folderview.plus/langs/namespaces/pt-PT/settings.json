@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "pt-PT",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Definições de pesquisa",
+    "settings.search.label": "Definições de pesquisa",
+    "settings.search.clear-label": "Limpar pesquisa de definições",
+    "settings.search.clear-title": "Limpar pesquisa",
+    "settings.search.scope": "âmbito",
+    "settings.search.scope-help": "Escolha se a pesquisa avançada cobre este separador ou todos os separadores Avançados",
+    "settings.search.scope-label": "Âmbito de pesquisa das definições avançadas",
+    "settings.search.scope-current": "Separador atual",
+    "settings.search.scope-all": "Todos os avançados",
+    "settings.header.plugin-settings": "Definições do plugin",
+    "settings.mode.title": "Modo de definições",
+    "settings.mode.basic-label": "Usar modo de definições básico",
+    "settings.mode.advanced-label": "Usar modo de definições avançado",
+    "settings.wizard.title": "Executar assistente de configuração",
+    "settings.tabs.basic": "Básico",
+    "settings.tabs.advanced": "Avançado",
+    "settings.tabs.wizard": "Assistente",
+    "settings.privacy.title": "Modo de privacidade",
+    "settings.privacy.mask-names": "Ocultar nomes e ícones",
+    "settings.privacy.mask-lan-ips": "Ocultar LAN IPs",
+    "settings.privacy.mask-ports": "Portos de máscara",
+    "settings.privacy.lan-help": "LAN IP a máscara aplica-se à porção IP da coluna LAN IP:PORT da página Docker. Use Portos de máscara para a porção de porto."
+}

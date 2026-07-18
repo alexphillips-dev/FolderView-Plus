@@ -21,7 +21,7 @@ const serverLibPhp = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 
 test('folder editor exposes preview row limit control and persists the setting', () => {
     assert.match(folderPage, /<select name="preview_rows">/);
-    assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
+    assert.match(folderPage, /<option value="0"[^>]*>Unlimited<\/option>/);
     assert.match(folderPage, /<li constraint="preview-1 preview-2 preview-3 preview-4 docker">[\s\S]*<select name="preview_status">/);
     assert.match(folderPage, /<option value="none">Hide status<\/option>/);
     assert.match(folderPage, /name="preview_hide_nested_items"/);

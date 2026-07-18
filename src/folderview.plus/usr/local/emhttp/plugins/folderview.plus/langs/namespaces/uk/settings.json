@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.07.17.4",
+        "locale": "uk",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Налаштування пошуку",
+    "settings.search.label": "Налаштування пошуку",
+    "settings.search.clear-label": "Очистити пошук у налаштуваннях",
+    "settings.search.clear-title": "Очистити пошук",
+    "settings.search.scope": "Область",
+    "settings.search.scope-help": "Виберіть, чи розширений пошук охоплює цю вкладку або всі розширені вкладки",
+    "settings.search.scope-label": "Область пошуку розширених налаштувань",
+    "settings.search.scope-current": "Поточна вкладка",
+    "settings.search.scope-all": "Всі розширені",
+    "settings.header.plugin-settings": "Налаштування плагіна",
+    "settings.mode.title": "Режим налаштувань",
+    "settings.mode.basic-label": "Використовувати базовий режим налаштувань",
+    "settings.mode.advanced-label": "Використовувати розширений режим налаштувань",
+    "settings.wizard.title": "Запустити помічника налаштувань",
+    "settings.tabs.basic": "Базовий",
+    "settings.tabs.advanced": "Розширений",
+    "settings.tabs.wizard": "Майстер",
+    "settings.privacy.title": "Режим конфіденційності",
+    "settings.privacy.mask-names": "Приховати імена та значки",
+    "settings.privacy.mask-lan-ips": "Приховати LAN IPs",
+    "settings.privacy.mask-ports": "Маскувати порти",
+    "settings.privacy.lan-help": "LAN IP маскування застосовується до IP частини Docker колонки LAN IP сторінки:PORT. Використовуйте Маскувати порти для частини порту."
+}

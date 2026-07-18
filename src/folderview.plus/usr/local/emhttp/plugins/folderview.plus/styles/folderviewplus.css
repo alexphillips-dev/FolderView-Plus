@@ -5987,7 +5987,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-card-section-head strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.08rem;
+    font-size: 1.3rem;
 }
 
 .fv-diagnostics-card-section-head span {
@@ -6239,7 +6239,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-lane-head strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.06rem;
+    font-size: 1.3rem;
+}
+
+.fv-diagnostics-lane-head.is-support > strong {
+    color: var(--fvplus-settings-chip-info);
 }
 
 .fv-diagnostics-action-list {

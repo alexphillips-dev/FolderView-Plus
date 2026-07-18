@@ -123,6 +123,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-advisory\s*\{\s*grid-column:\s*span 1;/);
     assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional\s*\{\s*grid-column:\s*span 2;/);
     assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional > \.fv-diagnostics-card-grid\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section-head strong\s*\{[\s\S]*?font-size:\s*1\.3rem;/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane-head strong\s*\{[\s\S]*?font-size:\s*1\.3rem;/);
+    assert.match(settingsPage, /class="fv-diagnostics-lane-head is-support"[\s\S]*?>Share with support<\/strong>/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane-head\.is-support > strong\s*\{\s*color:\s*var\(--fvplus-settings-chip-info\);/);
     assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);
     assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);

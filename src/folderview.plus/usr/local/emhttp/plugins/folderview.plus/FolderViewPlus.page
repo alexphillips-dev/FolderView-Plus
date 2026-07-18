@@ -1722,7 +1722,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </div>
                 <div class="fv-diagnostics-lane">
-                    <div class="fv-diagnostics-lane-head">
+                    <div class="fv-diagnostics-lane-head is-support">
                         <strong data-i18n="diagnostics.support.title">Share with support</strong>
                         <span class="rules-help" data-i18n="diagnostics.support.description">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
                     </div>

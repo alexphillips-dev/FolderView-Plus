@@ -9366,7 +9366,8 @@ const refreshType = async (type) => {
     markFatalBannerStep(`Rendered ${type} settings table`);
     recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
         folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
-        infoCount: Object.keys(info || {}).length
+        infoCount: Object.keys(info || {}).length,
+        coldLoad: settingsUiState.initialized !== true
     });
     return {
         hasErrors: degradedReasons.length > 0,
@@ -9580,7 +9581,8 @@ const refreshCoreData = async () => {
     }
     recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
         dockerFolders: Object.keys(getFolderMap('docker')).length,
-        vmFolders: Object.keys(getFolderMap('vm')).length
+        vmFolders: Object.keys(getFolderMap('vm')).length,
+        coldLoad: settingsUiState.initialized !== true
     });
     return {
         degradedReasons
@@ -9598,6 +9600,8 @@ const refreshAll = async () => {
         ]
     };
 };
+
+window.FolderViewPlusRefreshCoreData = refreshCoreData;
 
 const downloadType = async (type, id) => {
     let resolvedType;

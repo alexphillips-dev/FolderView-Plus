@@ -147,6 +147,11 @@ const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
         label: 'Check again',
         icon: 'fa-refresh',
         handler: 'checkNativeOrganizerDiagnostics()'
+    }),
+    retest_performance: Object.freeze({
+        label: 'Retest performance',
+        icon: 'fa-clock-o',
+        handler: 'retestPerformanceDiagnostics()'
     })
 });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
@@ -154,6 +159,10 @@ const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
 let activityFeedAutoClearTimer = null;
 let activityCenterHistoryExpanded = false;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
+const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 15 * 60 * 1000;
+const PERF_DIAGNOSTICS_RECENT_WINDOW = 3;
+const PERF_DIAGNOSTICS_REPEAT_THRESHOLD = 2;
+const PERF_DIAGNOSTICS_EXTREME_MULTIPLIER = 3;
 const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
     refresh: Object.freeze({ docker: 1500, vm: 1500 }),
     import: Object.freeze({ docker: 5000, vm: 5000 }),
@@ -322,15 +331,23 @@ const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = 
     if (!Number.isFinite(duration) || duration < 0) {
         return;
     }
+    const capturedAt = Date.now();
     target.push({
-        at: Date.now(),
+        at: capturedAt,
         durationMs: Number(duration.toFixed(2)),
         details: details && typeof details === 'object' ? details : {}
     });
+    const retentionCutoff = capturedAt - PERF_DIAGNOSTICS_SAMPLE_TTL_MS;
+    for (let index = target.length - 1; index >= 0; index -= 1) {
+        const sampleAt = Number(target[index]?.at);
+        if (Number.isFinite(sampleAt) && sampleAt > 0 && sampleAt < retentionCutoff) {
+            target.splice(index, 1);
+        }
+    }
     if (target.length > PERF_DIAGNOSTICS_SAMPLE_LIMIT) {
         target.splice(0, target.length - PERF_DIAGNOSTICS_SAMPLE_LIMIT);
     }
-    performanceDiagnosticsState.updatedAt = Date.now();
+    performanceDiagnosticsState.updatedAt = capturedAt;
     renderPerformanceDiagnostics();
 };
 
@@ -343,13 +360,22 @@ const resolvePerformanceDiagnosticsBudgetMs = (bucket, type = 'global') => {
 };
 
 const summarizePerformanceDiagnosticsSamples = (samples, budgetMs = null) => {
-    const list = Array.isArray(samples) ? samples : [];
+    const now = Date.now();
+    const retentionCutoff = now - PERF_DIAGNOSTICS_SAMPLE_TTL_MS;
+    const list = (Array.isArray(samples) ? samples : []).filter((row) => {
+        const sampleAt = Number(row?.at);
+        return !Number.isFinite(sampleAt) || sampleAt <= 0 || sampleAt >= retentionCutoff;
+    });
     if (!list.length) {
         return null;
     }
-    const durations = list
-        .map((row) => Number(row?.durationMs))
-        .filter((value) => Number.isFinite(value) && value >= 0);
+    const normalizedSamples = list
+        .map((row) => ({
+            durationMs: Number(row?.durationMs),
+            coldLoad: row?.details?.coldLoad === true
+        }))
+        .filter((row) => Number.isFinite(row.durationMs) && row.durationMs >= 0);
+    const durations = normalizedSamples.map((row) => row.durationMs);
     if (!durations.length) {
         return null;
     }
@@ -357,13 +383,55 @@ const summarizePerformanceDiagnosticsSamples = (samples, budgetMs = null) => {
     const resolvedBudgetMs = Number(budgetMs);
     const hasBudget = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0;
     const maxMs = Number(Math.max(...durations).toFixed(2));
+    const sortedDurations = [...durations].sort((left, right) => left - right);
+    const medianIndex = Math.floor(sortedDurations.length / 2);
+    const medianMs = sortedDurations.length % 2 === 0
+        ? (sortedDurations[medianIndex - 1] + sortedDurations[medianIndex]) / 2
+        : sortedDurations[medianIndex];
+    const p95Index = Math.max(0, Math.ceil(sortedDurations.length * 0.95) - 1);
+    const warmSamples = normalizedSamples.filter((row) => row.coldLoad !== true);
+    const recentWarmSamples = warmSamples.slice(-PERF_DIAGNOSTICS_RECENT_WINDOW);
+    const recentWarmDurations = recentWarmSamples.map((row) => row.durationMs);
+    const recentAverageMs = recentWarmDurations.length > 0
+        ? recentWarmDurations.reduce((sum, value) => sum + value, 0) / recentWarmDurations.length
+        : null;
+    const recentOverBudgetCount = hasBudget
+        ? recentWarmDurations.filter((value) => value > resolvedBudgetMs).length
+        : 0;
+    const repeatedOverBudget = hasBudget
+        && recentWarmDurations.length >= PERF_DIAGNOSTICS_REPEAT_THRESHOLD
+        && recentOverBudgetCount >= PERF_DIAGNOSTICS_REPEAT_THRESHOLD;
+    const extremeOverBudget = hasBudget
+        && recentWarmDurations.some((value) => value >= resolvedBudgetMs * PERF_DIAGNOSTICS_EXTREME_MULTIPLIER);
+    const latestWarmDuration = recentWarmDurations.length > 0
+        ? recentWarmDurations[recentWarmDurations.length - 1]
+        : null;
+    const coldLoadCount = normalizedSamples.filter((row) => row.coldLoad === true).length;
+    const isolatedOverBudget = hasBudget && (
+        normalizedSamples.some((row) => row.durationMs > resolvedBudgetMs)
+        || recentOverBudgetCount > 0
+    );
     return {
         count: durations.length,
         lastMs: Number(durations[durations.length - 1].toFixed(2)),
         avgMs: Number((total / durations.length).toFixed(2)),
         maxMs,
+        medianMs: Number(medianMs.toFixed(2)),
+        p95Ms: Number(sortedDurations[p95Index].toFixed(2)),
+        recentAverageMs: Number.isFinite(recentAverageMs) ? Number(recentAverageMs.toFixed(2)) : null,
+        recentSampleCount: recentWarmDurations.length,
+        recentOverBudgetCount,
+        coldLoadCount,
+        warmSampleCount: warmSamples.length,
         budgetMs: hasBudget ? Number(resolvedBudgetMs.toFixed(2)) : null,
-        overBudget: hasBudget ? maxMs > resolvedBudgetMs : false
+        latestOverBudget: hasBudget && Number.isFinite(latestWarmDuration) ? latestWarmDuration > resolvedBudgetMs : false,
+        repeatedOverBudget,
+        extremeOverBudget,
+        isolatedOverBudget,
+        overBudget: repeatedOverBudget || extremeOverBudget,
+        evaluation: repeatedOverBudget || extremeOverBudget
+            ? 'follow-up'
+            : (isolatedOverBudget ? 'observed' : 'within-budget')
     };
 };
 
@@ -421,7 +489,11 @@ const renderPerformanceDiagnostics = () => {
         }
         const resolvedBudgetMs = Number(summary.budgetMs || budgetMs);
         const budgetLabel = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0 ? `${resolvedBudgetMs}ms` : '-';
-        const statusLabel = summary.overBudget ? 'Over budget' : 'OK';
+        const statusLabel = summary.overBudget
+            ? `Follow up · ${summary.recentOverBudgetCount}/${summary.recentSampleCount} recent`
+            : (summary.isolatedOverBudget
+                ? `${summary.coldLoadCount > 0 && summary.warmSampleCount <= 0 ? 'Cold load' : 'Observed'} · needs repetition`
+                : 'Within budget');
         return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${diagnosticsEscapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
     };
     const rows = [
@@ -438,7 +510,7 @@ const renderPerformanceDiagnostics = () => {
         ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
         : 'Not yet sampled';
     host.html(`
-        <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
+        <div class="fv-perf-summary-note">Recent UI operation timings from the last 15 minutes. Cold loads are observed but do not trigger a warning by themselves.</div>
         <table class="fv-perf-table">
             <thead>
                 <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th><th>Budget</th></tr>
@@ -1289,6 +1361,8 @@ const buildThemeDiagnosticsSummaryCard = () => {
             ? `Effective mode: ${appliedMode}.`
             : 'Theme compatibility checks did not report any warnings.',
         count: warnings.length,
+        freshness: `Theme checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
+        technicalDetails: warnings,
         recommendedAction: status === 'warning' ? 'run_theme_self_heal' : ''
     };
 };
@@ -1332,9 +1406,20 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
         failureStage ? `stage ${failureStage.replace(/_/g, ' ')}` : ''
     ].filter(Boolean).join('; ');
     const actionKey = 'check_native_organizer';
+    const finalizeNativeOrganizerCard = (card) => ({
+        ...card,
+        freshness: browserStatus?.checkedAt
+            ? `Checked ${formatCheckedAtLabel(browserStatus.checkedAt)}`
+            : 'Not tested in this browser session',
+        technicalDetails: [
+            reason ? `Result: ${reason.replace(/_/g, ' ')}` : '',
+            source ? `Source: ${source}` : '',
+            safeFailureDetail ? `Probe detail: ${safeFailureDetail}` : ''
+        ].filter(Boolean)
+    });
 
     if (!browserStatus) {
-        return {
+        return finalizeNativeOrganizerCard({
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'info',
@@ -1343,10 +1428,10 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
             count: 0,
             meta: 'Optional integration',
             actionKey
-        };
+        });
     }
     if (browserStatus.ok === true && browserStatus.skipped !== true) {
-        return {
+        return finalizeNativeOrganizerCard({
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'healthy',
@@ -1356,10 +1441,10 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
             detail: `Last sync ${checkedAt}${source ? ` from ${source}` : ''}.`,
             count: 0,
             actionKey
-        };
+        });
     }
     if (organizerApiAvailable && ['capability_available', 'already_synced', 'no_organizer_views'].includes(reason)) {
-        return {
+        return finalizeNativeOrganizerCard({
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'healthy',
@@ -1369,7 +1454,7 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
             detail: `Capability checked ${checkedAt || 'recently'}${source ? ` from ${source}` : ''}.`,
             count: 0,
             actionKey
-        };
+        });
     }
     const unavailable = reason === 'graphql_unavailable'
         || reason === 'fetch_unavailable'
@@ -1379,21 +1464,21 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
         || apiAvailable !== true
         || organizerApiAvailable !== true;
     if (unavailable) {
-        return {
+        return finalizeNativeOrganizerCard({
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'info',
             headline: apiAvailable && reason === 'organizer_unsupported'
                 ? 'Native Docker Organizer is not exposed by this Unraid API.'
                 : 'Optional native organizer integration is unavailable.',
-            detail: `${safeFailureDetail ? `${safeFailureDetail}. ` : ''}FolderView Plus continues normally. Checked ${checkedAt || 'recently'}.`,
+            detail: 'FolderView Plus is unaffected and continues normally.',
             count: 0,
             meta: 'Optional integration',
             actionKey
-        };
+        });
     }
     if (requested && organizerApiAvailable) {
-        return {
+        return finalizeNativeOrganizerCard({
             key: 'nativeOrganizer',
             label: 'Native Docker Organizer',
             status: 'warning',
@@ -1401,9 +1486,9 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
             detail: `${safeFailureDetail || 'The organizer mutation was not completed'}. FolderView Plus data was not affected.`,
             count: 1,
             actionKey
-        };
+        });
     }
-    return {
+    return finalizeNativeOrganizerCard({
         key: 'nativeOrganizer',
         label: 'Native Docker Organizer',
         status: 'info',
@@ -1412,7 +1497,7 @@ const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
         count: 0,
         meta: 'Optional integration',
         actionKey
-    };
+    });
 };
 
 const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
@@ -1421,40 +1506,66 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         ? telemetry.settings
         : {};
     const entries = [
-        { label: 'Docker refresh', summary: settingsTelemetry.refresh?.docker },
-        { label: 'VM refresh', summary: settingsTelemetry.refresh?.vm },
-        { label: 'Docker import', summary: settingsTelemetry.import?.docker },
-        { label: 'VM import', summary: settingsTelemetry.import?.vm },
-        { label: 'Wizard apply', summary: settingsTelemetry.wizardApply },
-        { label: 'Settings bootstrap', summary: settingsTelemetry.settingsBootstrap },
-        { label: 'Diagnostics refresh', summary: settingsTelemetry.diagnosticsRefresh }
+        { key: 'docker-refresh', group: 'settings-load', label: 'Docker refresh', summary: settingsTelemetry.refresh?.docker },
+        { key: 'vm-refresh', group: 'settings-load', label: 'VM refresh', summary: settingsTelemetry.refresh?.vm },
+        { key: 'docker-import', group: 'docker-import', label: 'Docker import', summary: settingsTelemetry.import?.docker },
+        { key: 'vm-import', group: 'vm-import', label: 'VM import', summary: settingsTelemetry.import?.vm },
+        { key: 'wizard-apply', group: 'wizard-apply', label: 'Wizard apply', summary: settingsTelemetry.wizardApply },
+        { key: 'settings-bootstrap', group: 'settings-load', label: 'Settings bootstrap', summary: settingsTelemetry.settingsBootstrap },
+        { key: 'diagnostics-refresh', group: 'diagnostics-refresh', label: 'Diagnostics refresh', summary: settingsTelemetry.diagnosticsRefresh }
     ].filter((entry) => entry.summary && typeof entry.summary === 'object');
     if (!entries.length) {
         return null;
     }
     const overBudget = entries.filter((entry) => entry.summary.overBudget === true);
+    const observed = entries.filter((entry) => entry.summary.isolatedOverBudget === true && entry.summary.overBudget !== true);
+    const advisoryGroups = new Set(overBudget.map((entry) => entry.group));
     const slowest = entries.reduce((current, entry) => {
-        const maxMs = Number(entry.summary.maxMs);
-        const currentMaxMs = Number(current?.summary?.maxMs);
-        if (!Number.isFinite(maxMs)) {
+        const durationMs = Number(entry.summary.recentAverageMs ?? entry.summary.maxMs);
+        const currentDurationMs = Number(current?.summary?.recentAverageMs ?? current?.summary?.maxMs);
+        if (!Number.isFinite(durationMs)) {
             return current;
         }
-        if (!current || !Number.isFinite(currentMaxMs) || maxMs > currentMaxMs) {
+        if (!current || !Number.isFinite(currentDurationMs) || durationMs > currentDurationMs) {
             return entry;
         }
         return current;
     }, null);
+    const measuredAt = telemetry.updatedAt ? formatCheckedAtLabel(telemetry.updatedAt) : 'this page session';
+    const technicalDetails = entries.map((entry) => {
+        const summary = entry.summary;
+        const recentAverage = Number(summary.recentAverageMs);
+        const averageLabel = Number.isFinite(recentAverage) ? `${recentAverage.toFixed(0)}ms recent average` : `${Number(summary.avgMs).toFixed(0)}ms session average`;
+        const budgetLabel = Number.isFinite(Number(summary.budgetMs)) ? `${Number(summary.budgetMs).toFixed(0)}ms target` : 'no target';
+        const recentLabel = summary.recentSampleCount > 0
+            ? `${summary.recentOverBudgetCount}/${summary.recentSampleCount} recent warm samples over target`
+            : `${summary.coldLoadCount || 0} cold-load sample${summary.coldLoadCount === 1 ? '' : 's'}`;
+        return `${entry.label}: ${Number(summary.lastMs).toFixed(0)}ms latest, ${averageLabel}, ${budgetLabel}, ${recentLabel}.`;
+    });
+    const hasWarning = advisoryGroups.size > 0;
+    const hasObservation = observed.length > 0;
+    const slowestDuration = Number(slowest?.summary?.recentAverageMs ?? slowest?.summary?.maxMs);
+    const slowestBudget = Number(slowest?.summary?.budgetMs);
     return {
         key: 'performanceBudget',
         label: 'Performance Budgets',
-        status: overBudget.length > 0 ? 'warning' : 'healthy',
-        headline: overBudget.length > 0
-            ? `${overBudget.length} UI operation${overBudget.length === 1 ? '' : 's'} exceeded the local budget.`
-            : 'Recent UI timings are within budget.',
-        detail: slowest
-            ? `Slowest sample: ${slowest.label} ${Number(slowest.summary.maxMs).toFixed(0)}ms.`
-            : 'No slow operation samples were recorded.',
-        count: overBudget.length
+        status: hasWarning ? 'warning' : (hasObservation ? 'info' : 'healthy'),
+        badgeLabel: hasObservation && !hasWarning ? 'Observed' : '',
+        headline: hasWarning
+            ? `${advisoryGroups.size} repeated performance ${advisoryGroups.size === 1 ? 'advisory needs' : 'advisories need'} follow-up.`
+            : (hasObservation
+                ? 'A cold or isolated slow sample was observed.'
+                : 'Recent UI timings are within budget.'),
+        detail: hasWarning && slowest
+            ? `${slowest.label} is averaging ${slowestDuration.toFixed(0)}ms${Number.isFinite(slowestBudget) ? ` against a ${slowestBudget.toFixed(0)}ms target` : ''}.`
+            : (hasObservation
+                ? 'No warning was raised because the slowdown has not repeated across warm measurements.'
+                : 'No repeated performance slowdown was detected.'),
+        count: advisoryGroups.size,
+        meta: hasWarning ? 'Repeated slowdown' : (hasObservation ? 'Observation only' : 'No extra action needed'),
+        freshness: `Measured ${measuredAt}`,
+        technicalDetails,
+        actionKey: 'retest_performance'
     };
 };
 
@@ -1546,13 +1657,34 @@ const renderDiagnosticsActionCards = (actions) => {
 };
 
 const buildDiagnosticsCardMetaHtml = (card, status, countValue) => {
+    let primaryMeta = 'No extra action needed';
     if (Number.isFinite(countValue) && countValue > 0) {
-        return `${countValue} related issue${countValue === 1 ? '' : 's'}`;
+        primaryMeta = `${countValue} related issue${countValue === 1 ? '' : 's'}`;
+    } else if (status === 'info') {
+        primaryMeta = String(card?.meta || 'Informational only');
+    } else if (card?.meta) {
+        primaryMeta = String(card.meta);
     }
-    if (status === 'info') {
-        return diagnosticsEscapeHtml(String(card?.meta || 'Informational only'));
+    const freshness = String(card?.freshness || '').trim();
+    return [
+        `<span>${diagnosticsEscapeHtml(primaryMeta)}</span>`,
+        freshness ? `<span><i class="fa fa-clock-o" aria-hidden="true"></i>${diagnosticsEscapeHtml(freshness)}</span>` : ''
+    ].filter(Boolean).join('');
+};
+
+const buildDiagnosticsCardDetailsHtml = (card) => {
+    const details = Array.isArray(card?.technicalDetails)
+        ? card.technicalDetails.map((detail) => String(detail || '').trim()).filter(Boolean)
+        : [];
+    if (!details.length) {
+        return '';
     }
-    return 'No extra action needed';
+    return `
+        <details class="fv-diagnostics-card-details">
+            <summary>Technical details</summary>
+            <ul>${details.map((detail) => `<li>${diagnosticsEscapeHtml(detail)}</li>`).join('')}</ul>
+        </details>
+    `;
 };
 
 const buildDiagnosticsCardActionHtml = (card) => {
@@ -1565,6 +1697,54 @@ const buildDiagnosticsCardActionHtml = (card) => {
                 <i class="fa ${config.icon}" aria-hidden="true"></i> ${diagnosticsEscapeHtml(config.label)}
             </button>
         </div>
+    `;
+};
+
+const buildDiagnosticsCardHtml = (card) => {
+    const status = normalizeDiagnosticsStatus(card?.status);
+    const config = DIAGNOSTICS_STATUS_CONFIG[status];
+    const badgeLabel = String(card?.badgeLabel || config.label).trim() || config.label;
+    const countValue = Number(card?.count);
+    return `
+        <div class="fv-diagnostics-card is-${status}" data-fv-diagnostics-card="${diagnosticsEscapeHtml(String(card?.key || 'status'))}">
+            <div class="fv-diagnostics-card-top">
+                <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(card?.label || card?.key || 'Status'))}</span>
+                <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(badgeLabel)}</span>
+            </div>
+            <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
+            <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
+            <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(card, status, countValue)}</div>
+            ${buildDiagnosticsCardDetailsHtml(card)}
+            ${buildDiagnosticsCardActionHtml(card)}
+        </div>
+    `;
+};
+
+const buildDiagnosticsCardSectionHtml = ({ key, label, description, cards }) => {
+    const safeCards = Array.isArray(cards) ? cards.filter(Boolean) : [];
+    if (!safeCards.length) {
+        return '';
+    }
+    const healthyCount = safeCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'healthy').length;
+    const followUpCount = safeCards.filter((card) => ['warning', 'error'].includes(normalizeDiagnosticsStatus(card?.status))).length;
+    const sectionSummary = key === 'core'
+        ? `${healthyCount}/${safeCards.length} healthy`
+        : (followUpCount > 0
+            ? `${followUpCount} ${followUpCount === 1 ? 'needs' : 'need'} follow-up`
+            : (key === 'advisory' && healthyCount === safeCards.length
+                ? `${healthyCount}/${safeCards.length} within target`
+                : `${safeCards.length} ${key === 'optional' ? 'notice' : 'observation'}${safeCards.length === 1 ? '' : 's'}`));
+    return `
+        <section class="fv-diagnostics-card-section is-${diagnosticsEscapeHtml(key)}${healthyCount === safeCards.length ? ' is-all-healthy' : ''}">
+            <div class="fv-diagnostics-card-section-head">
+                <div>
+                    <strong>${diagnosticsEscapeHtml(label)}</strong>
+                    <span>${diagnosticsEscapeHtml(description)}</span>
+                </div>
+                <span class="fv-diagnostics-card-section-summary">${diagnosticsEscapeHtml(sectionSummary)}</span>
+            </div>
+            <div class="fv-diagnostics-card-grid">${safeCards.map((card) => buildDiagnosticsCardHtml(card)).join('')}</div>
+        </section>
     `;
 };
 
@@ -1588,7 +1768,6 @@ const renderDiagnosticsSummary = (diagnostics) => {
 
         const status = normalizeDiagnosticsStatus(themeCard.status);
         const config = DIAGNOSTICS_STATUS_CONFIG[status];
-        const countValue = Number(themeCard.count);
         const themeCheckedAt = formatCheckedAtLabel(lastThemeDiagnostics?.generatedAt);
         summaryHost.html(`
             <div class="fv-diagnostics-overview is-${status}">
@@ -1599,17 +1778,13 @@ const renderDiagnosticsSummary = (diagnostics) => {
                     <span class="fv-diagnostics-pill">Theme checked ${diagnosticsEscapeHtml(themeCheckedAt)}</span>
                 </div>
             </div>
-            <div class="fv-diagnostics-card-grid">
-                <div class="fv-diagnostics-card is-${status}">
-                    <div class="fv-diagnostics-card-top">
-                        <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(themeCard.label || themeCard.key || 'Theme'))}</span>
-                        <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
-                    </div>
-                    <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(themeCard.headline || 'No summary available.'))}</div>
-                    <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(themeCard.detail || ''))}</div>
-                    <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(themeCard, status, countValue)}</div>
-                    ${buildDiagnosticsCardActionHtml(themeCard)}
-                </div>
+            <div class="fv-diagnostics-card-sections">
+                ${buildDiagnosticsCardSectionHtml({
+                    key: 'core',
+                    label: 'Core health',
+                    description: 'Configuration and runtime checks that affect normal plugin operation.',
+                    cards: [themeCard]
+                })}
             </div>
         `);
         renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions({ summary: { recommendedActions: [] } }));
@@ -1617,62 +1792,74 @@ const renderDiagnosticsSummary = (diagnostics) => {
     }
 
     const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
-    const cards = Array.isArray(summary.cards) ? [...summary.cards] : [];
+    const checkedAt = formatCheckedAtLabel(diagnostics.checkedAt);
+    const coreCards = (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
+        ...card,
+        freshness: String(card?.freshness || '').trim() || `Health check ${checkedAt}`
+    }));
     const nativeOrganizerCard = buildNativeOrganizerDiagnosticsSummaryCard(diagnostics);
     const performanceBudgetCard = buildPerformanceBudgetDiagnosticsSummaryCard();
-    if (nativeOrganizerCard) {
-        cards.push(nativeOrganizerCard);
-    }
-    if (performanceBudgetCard) {
-        cards.push(performanceBudgetCard);
-    }
     if (themeCard) {
-        cards.push(themeCard);
+        coreCards.push(themeCard);
     }
-
-    const nativeOrganizerWarningCount = nativeOrganizerCard?.status === 'warning' ? 1 : 0;
-    const nativeOrganizerErrorCount = nativeOrganizerCard?.status === 'error' ? 1 : 0;
-    const performanceBudgetWarningCount = performanceBudgetCard?.status === 'warning' ? 1 : 0;
-    const performanceBudgetErrorCount = performanceBudgetCard?.status === 'error' ? 1 : 0;
-    const themeWarningCount = themeCard?.status === 'warning' ? 1 : 0;
-    const themeErrorCount = themeCard?.status === 'error' ? 1 : 0;
-    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount + nativeOrganizerErrorCount + performanceBudgetErrorCount;
-    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount + nativeOrganizerWarningCount + performanceBudgetWarningCount;
+    const advisoryCards = performanceBudgetCard ? [performanceBudgetCard] : [];
+    const optionalCards = nativeOrganizerCard ? [nativeOrganizerCard] : [];
+    const coreErrorCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'error').length;
+    const coreWarningCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'warning').length;
+    const coreHealthyCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'healthy').length;
+    const advisoryWarningCount = advisoryCards.filter((card) => ['warning', 'error'].includes(normalizeDiagnosticsStatus(card?.status))).length;
+    const errorCount = coreErrorCount;
+    const warningCount = coreWarningCount + advisoryWarningCount;
     const overallStatus = normalizeDiagnosticsStatus(
-        errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : summary.status)
+        errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : 'healthy')
     );
     const overallConfig = DIAGNOSTICS_STATUS_CONFIG[overallStatus];
-    const checkedAt = formatCheckedAtLabel(diagnostics.checkedAt);
     const totalIssues = Number(summary.totalIssues) || 0;
-    const overallHeadline = themeCard?.status === 'warning' && totalIssues <= 0 && (Number(summary.warningCount) || 0) <= 0
-        ? 'Plugin is healthy, but theme follow-up is recommended.'
-        : String(summary.headline || 'Diagnostics summary is ready.');
-    const overallDetail = themeCard?.status === 'warning' && totalIssues <= 0 && (Number(summary.warningCount) || 0) <= 0
-        ? String(themeCard.headline || summary.detail || 'Review the theme warning and apply self-heal if needed.')
-        : String(summary.detail || 'Review the cards below for the current plugin state.');
+    const overallHeadline = coreErrorCount > 0
+        ? 'Core plugin health needs attention.'
+        : (coreWarningCount > 0 ? 'Core plugin health needs follow-up.' : 'Core plugin health is good.');
+    const detailParts = [];
+    if (coreErrorCount > 0 || coreWarningCount > 0) {
+        detailParts.push(String(summary.detail || 'Review the core health cards below.'));
+    } else {
+        detailParts.push('No actionable configuration, storage, update, icon, or theme issue was detected.');
+    }
+    if (advisoryWarningCount > 0) {
+        detailParts.push(`${advisoryWarningCount} performance ${advisoryWarningCount === 1 ? 'advisory needs' : 'advisories need'} follow-up.`);
+    } else if (performanceBudgetCard?.status === 'info') {
+        detailParts.push('An isolated performance observation is being watched but does not affect core health.');
+    }
+    if (optionalCards.length > 0) {
+        detailParts.push(`${optionalCards.length} optional integration ${optionalCards.length === 1 ? 'notice is' : 'notices are'} informational only.`);
+    }
+    const overallDetail = detailParts.join(' ');
     const pills = [
-        totalIssues > 0 ? `${totalIssues} issue${totalIssues === 1 ? '' : 's'}` : '',
-        errorCount > 0 ? `${errorCount} error card${errorCount === 1 ? '' : 's'}` : '',
-        warningCount > 0 ? `${warningCount} warning card${warningCount === 1 ? '' : 's'}` : '',
+        `${coreHealthyCount}/${coreCards.length} core checks healthy`,
+        totalIssues > 0 ? `${totalIssues} core issue${totalIssues === 1 ? '' : 's'}` : '',
+        advisoryWarningCount > 0 ? `${advisoryWarningCount} performance ${advisoryWarningCount === 1 ? 'advisory' : 'advisories'}` : '',
+        optionalCards.length > 0 ? `${optionalCards.length} optional ${optionalCards.length === 1 ? 'notice' : 'notices'}` : '',
         `Checked ${checkedAt}`
     ].filter(Boolean);
-    const cardsHtml = cards.map((card) => {
-        const status = normalizeDiagnosticsStatus(card?.status);
-        const config = DIAGNOSTICS_STATUS_CONFIG[status];
-        const countValue = Number(card?.count);
-        return `
-            <div class="fv-diagnostics-card is-${status}">
-                <div class="fv-diagnostics-card-top">
-                    <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(card?.label || card?.key || 'Status'))}</span>
-                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</span>
-                </div>
-                <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
-                <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
-                <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(card, status, countValue)}</div>
-                ${buildDiagnosticsCardActionHtml(card)}
-            </div>
-        `;
-    }).join('');
+    const cardSectionsHtml = [
+        buildDiagnosticsCardSectionHtml({
+            key: 'core',
+            label: 'Core health',
+            description: 'Configuration and runtime checks that affect normal plugin operation.',
+            cards: coreCards
+        }),
+        buildDiagnosticsCardSectionHtml({
+            key: 'advisory',
+            label: 'Performance advisories',
+            description: 'Repeated warm measurements can request follow-up; isolated and cold-load samples remain informational.',
+            cards: advisoryCards
+        }),
+        buildDiagnosticsCardSectionHtml({
+            key: 'optional',
+            label: 'Optional integrations',
+            description: 'Availability notices here do not change core plugin health.',
+            cards: optionalCards
+        })
+    ].filter(Boolean).join('');
 
     summaryHost.html(`
         <div class="fv-diagnostics-overview is-${overallStatus}">
@@ -1681,7 +1868,7 @@ const renderDiagnosticsSummary = (diagnostics) => {
             <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(overallDetail)}</div>
             <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${diagnosticsEscapeHtml(pill)}</span>`).join('')}</div>
         </div>
-        <div class="fv-diagnostics-card-grid">${cardsHtml}</div>
+        <div class="fv-diagnostics-card-sections">${cardSectionsHtml}</div>
     `);
 
     renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions(diagnostics));
@@ -1710,6 +1897,28 @@ const runDiagnostics = async () => {
         });
     } catch (error) {
         diagnosticsShowError('Diagnostics failed', error);
+    }
+};
+
+const retestPerformanceDiagnostics = async () => {
+    const buttons = Array.from(document.querySelectorAll('[data-fv-diagnostics-card-action="retest_performance"]'));
+    buttons.forEach((button) => { button.disabled = true; });
+    try {
+        if (typeof window.FolderViewPlusRefreshCoreData !== 'function') {
+            throw new Error('The Settings performance refresh is not available yet.');
+        }
+        await window.FolderViewPlusRefreshCoreData();
+        renderPerformanceDiagnostics();
+        renderDiagnosticsSummary(lastDiagnostics);
+        void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
+        diagnosticsShowToastMessage({
+            title: 'Performance retest complete',
+            message: 'The health summary now reflects the latest warm Settings measurement.'
+        });
+    } catch (error) {
+        diagnosticsShowError('Performance retest failed', error);
+    } finally {
+        buttons.forEach((button) => { button.disabled = false; });
     }
 };
 
@@ -2197,6 +2406,7 @@ Object.assign(window, {
     performanceDiagnosticsState,
     perfNowMs,
     recordPerformanceDiagnosticsSample,
+    summarizePerformanceDiagnosticsSamples,
     renderPerformanceDiagnostics,
     recordRequestErrorTelemetry,
     getRequestErrorDiagnosticsSnapshot,
@@ -2235,6 +2445,7 @@ Object.assign(window, {
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
+    retestPerformanceDiagnostics,
     checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
@@ -2273,6 +2484,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
+    retestPerformanceDiagnostics,
     checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
@@ -2293,6 +2505,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     copyFolderEditorDebugDiagnostics,
     perfNowMs,
     recordPerformanceDiagnosticsSample,
+    summarizePerformanceDiagnosticsSamples,
     renderPerformanceDiagnostics,
     recordRequestErrorTelemetry,
     getRequestErrorDiagnosticsSnapshot,

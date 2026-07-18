@@ -67,7 +67,6 @@
                 ? win.FolderViewPlusFolderSettingsTransfer.createApi({ window: win })
                 : null);
         const refreshDockerList = typeof deps.loadlist === 'function' ? deps.loadlist : (() => {});
-        const queueDockerListRefresh = typeof deps.queueLoadlistRefresh === 'function' ? deps.queueLoadlistRefresh : (() => {});
         const refreshDockerRuntimeState = typeof deps.refreshDockerRuntimeState === 'function'
             ? deps.refreshDockerRuntimeState
             : refreshDockerList;

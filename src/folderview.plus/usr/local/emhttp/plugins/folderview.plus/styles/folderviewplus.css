@@ -6135,6 +6135,67 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.75rem;
 }
 
+.fv-diagnostics-card-sections {
+    display: grid;
+    gap: 1rem;
+}
+
+.fv-diagnostics-card-section {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.fv-diagnostics-card-section + .fv-diagnostics-card-section {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-diagnostics-card-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.fv-diagnostics-card-section-head > div {
+    display: grid;
+    gap: 0.16rem;
+}
+
+.fv-diagnostics-card-section-head strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.08rem;
+}
+
+.fv-diagnostics-card-section-head span {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-diagnostics-card-section-summary {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-muted);
+    color: var(--fvplus-settings-text-primary) !important;
+    font-size: 0.94rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fv-diagnostics-card-section.is-advisory > .fv-diagnostics-card-grid,
+.fv-diagnostics-card-section.is-optional > .fv-diagnostics-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.fv-diagnostics-card-section.is-core.is-all-healthy .fv-diagnostics-card {
+    padding-block: 0.62rem;
+}
+
+.fv-diagnostics-card-section.is-optional .fv-diagnostics-card {
+    background: var(--fvplus-settings-surface-muted);
+}
+
 .fv-diagnostics-card {
     display: grid;
     gap: 0.35rem;
@@ -6181,8 +6242,56 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-diagnostics-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
     font-size: 0.96rem;
     color: var(--fvplus-settings-text-dim);
+}
+
+.fv-diagnostics-card-meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.fv-diagnostics-card-details {
+    margin-top: 0.15rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-diagnostics-card-details > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--fvplus-settings-text-primary);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.fv-diagnostics-card-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fv-diagnostics-card-details > summary::before {
+    content: "\f0da";
+    font-family: FontAwesome;
+    color: var(--fvplus-settings-text-dim);
+}
+
+.fv-diagnostics-card-details[open] > summary::before {
+    content: "\f0d7";
+}
+
+.fv-diagnostics-card-details > ul {
+    display: grid;
+    gap: 0.28rem;
+    margin: 0.45rem 0 0 1.15rem;
+    padding: 0;
 }
 
 .fv-diagnostics-overview.is-healthy,
@@ -6466,6 +6575,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .fv-diagnostics-card-grid {
         grid-template-columns: 1fr;
+    }
+
+    .fv-diagnostics-card-section-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fv-diagnostics-card-section-summary {
+        align-self: flex-start;
     }
 
     .fv-diagnostics-module-wrap > .rules-panel {

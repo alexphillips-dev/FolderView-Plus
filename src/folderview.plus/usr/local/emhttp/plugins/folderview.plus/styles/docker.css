@@ -154,6 +154,13 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     margin: 0 0 0.45rem 0;
 }
 
+/* Keep the native Docker view controls close to both the page title and table. */
+.ToggleViewMode.fvplus-docker-runtime-toggle-cluster {
+    min-height: 1.85rem;
+    margin-top: -0.7rem;
+    margin-bottom: 0.3rem;
+}
+
 .fvplus-docker-runtime-toggle-shell {
     display: inline-flex;
     align-items: center;

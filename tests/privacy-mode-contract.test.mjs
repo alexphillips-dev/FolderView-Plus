@@ -147,6 +147,8 @@ test('docker privacy mode formats port mappings without raw IPs when masks are e
 
 test('docker runtime privacy toggle stays in sync with saved dashboard privacy prefs', () => {
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-label\s*\{[\s\S]*?font-size:\s*1\.1rem;/);
+    assert.match(dockerCss, /\.ToggleViewMode\.fvplus-docker-runtime-toggle-cluster\s*\{[\s\S]*?margin-top:\s*-0\.7rem;[\s\S]*?margin-bottom:\s*0\.3rem;/);
+    assert.match(dockerJs, /mount\.host\.classList\.toggle\('fvplus-docker-runtime-toggle-cluster', Boolean\(mount\.anchor\)\);/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID = 'fvplus-docker-runtime-privacy-menu-button';/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MENU_ID = 'fvplus-docker-runtime-privacy-menu';/);
     for (const [key, label] of [

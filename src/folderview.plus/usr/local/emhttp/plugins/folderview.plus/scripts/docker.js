@@ -5099,6 +5099,12 @@ const renderDockerRuntimePrivacyToggle = () => {
     if (!mount?.host) {
         return;
     }
+    document.querySelectorAll('.fvplus-docker-runtime-toggle-cluster').forEach((host) => {
+        if (host !== mount.host) {
+            host.classList.remove('fvplus-docker-runtime-toggle-cluster');
+        }
+    });
+    mount.host.classList.toggle('fvplus-docker-runtime-toggle-cluster', Boolean(mount.anchor));
     let shell = document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID);
     if (shell && shell.parentElement !== mount.host) {
         shell.remove();

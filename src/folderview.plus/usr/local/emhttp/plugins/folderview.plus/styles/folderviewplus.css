@@ -3148,198 +3148,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     background: var(--fvplus-settings-chip-empty-bg);
 }
 
-.folder-health-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.85rem;
-}
-
-.folder-health-card {
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 12px;
-    background: var(--fvplus-settings-surface-panel);
-    padding: 0.95rem 1rem;
-    display: grid;
-    gap: 0.8rem;
-}
-
-.folder-health-card.is-warning {
-    border-color: var(--fvplus-settings-chip-warning-border);
-}
-
-.folder-health-card.is-danger {
-    border-color: var(--fvplus-settings-chip-danger-border);
-}
-
-.folder-health-card.is-healthy {
-    border-color: var(--fvplus-settings-chip-success-border);
-}
-
-.folder-health-card.is-compact {
-    gap: 0.68rem;
-    padding: 0.8rem 0.88rem;
-}
-
-.folder-health-card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.folder-health-card-label {
-    color: var(--fvplus-settings-text-muted);
-    font-size: 0.98rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.folder-health-card-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.32rem;
-    padding: 0.2rem 0.52rem;
-    border-radius: 999px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    background: var(--fvplus-settings-surface-strong);
-    font-size: 0.92rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.folder-health-card.is-healthy .folder-health-card-badge {
-    color: var(--fvplus-settings-chip-success);
-    background: var(--fvplus-settings-chip-success-bg);
-    border-color: var(--fvplus-settings-chip-success-border);
-}
-
-.folder-health-card.is-warning .folder-health-card-badge {
-    color: var(--fvplus-settings-chip-warning);
-    background: var(--fvplus-settings-chip-warning-bg);
-    border-color: var(--fvplus-settings-chip-warning-border);
-}
-
-.folder-health-card.is-danger .folder-health-card-badge {
-    color: var(--fvplus-settings-chip-danger);
-    background: var(--fvplus-settings-chip-danger-bg);
-    border-color: var(--fvplus-settings-chip-danger-border);
-}
-
-.folder-health-card-headline {
-    color: var(--fvplus-settings-text-primary);
-    font-size: 1.16rem;
-    font-weight: 700;
-    line-height: 1.25;
-}
-
-.folder-health-card-detail {
-    color: var(--fvplus-settings-text-muted);
-    line-height: 1.45;
-    max-width: 58ch;
-}
-
-.folder-health-stat-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-}
-
-.folder-health-stat-card {
-    display: grid;
-    gap: 0.18rem;
-    min-height: 62px;
-    padding: 0.58rem 0.68rem;
-    border-radius: 10px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    background: var(--fvplus-settings-surface-strong);
-}
-
-.folder-health-stat-label {
-    color: var(--fvplus-settings-text-muted);
-    font-size: 0.88rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.folder-health-stat-value {
-    color: var(--fvplus-settings-text-primary);
-    font-size: 1.28rem;
-    font-weight: 800;
-    line-height: 1.1;
-}
-
-.folder-health-issue-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.42rem;
-}
-
-.folder-health-issue-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.24rem 0.58rem;
-    border-radius: 999px;
-    border: 1px solid var(--fvplus-settings-warning-border);
-    background: var(--fvplus-settings-warning-soft);
-    color: var(--fvplus-settings-title-accent);
-    font-size: 0.94rem;
-    font-weight: 700;
-}
-
-.folder-health-filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.folder-health-filter {
-    min-width: 0;
-    padding: 0.18rem 0.5rem;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 999px;
-    background: var(--fvplus-settings-surface-muted);
-    color: var(--fvplus-settings-text-primary);
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-}
-
-.folder-health-filter.is-active {
-    border-color: var(--fvplus-settings-accent);
-    background: var(--fvplus-settings-accent-soft);
-    color: var(--fvplus-settings-text-primary);
-}
-
-.folder-health-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin: 0.05rem 0 0 0;
-}
-
-.folder-health-actions > button {
-    min-width: 0;
-}
-
-@media (max-width: 720px) {
-    .folder-health-stat-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.folder-health-empty {
-    border: 1px dashed var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
-    padding: 0.8rem 0.9rem;
-    color: var(--fvplus-settings-text-muted);
-    font-size: 1rem;
-    background: var(--fvplus-settings-surface-panel);
-}
-
 .rules-panel {
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
@@ -11687,8 +11495,6 @@ h2[data-fv-section].fv-search-match {
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
-    .folder-health-filter,
-    .folder-health-actions > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
     .fv-rule-card-actions > button,
@@ -11746,8 +11552,6 @@ h2[data-fv-section].fv-search-match {
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
-    .folder-health-filter,
-    .folder-health-actions > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
     .fv-rule-card-actions > button,
@@ -11793,8 +11597,6 @@ h2[data-fv-section].fv-search-match {
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
-    .folder-health-filter,
-    .folder-health-actions > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
     .fv-rule-card-actions > button,
@@ -11849,8 +11651,6 @@ h2[data-fv-section].fv-search-match {
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
-    .folder-health-filter,
-    .folder-health-actions > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
     .fv-rule-card-actions > button,
@@ -11903,8 +11703,6 @@ h2[data-fv-section].fv-search-match {
     .fv-tree-undo-actions > button,
     .setting-button-row > button,
     .setting-button-row-compact > button,
-    .folder-health-filter,
-    .folder-health-actions > button,
     .fv-rule-builder-actions > button,
     .fv-rule-selection-actions > button,
     .fv-rule-card-actions > button,
@@ -11943,7 +11741,6 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root :is(
-    .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
     .fv-mini-action-btn.is-active,
     [data-fv-rules-source-toggle].is-active,

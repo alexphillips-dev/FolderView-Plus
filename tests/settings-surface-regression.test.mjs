@@ -111,7 +111,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const buildPerformanceBudgetDiagnosticsSummaryCard = \(\) => \{/);
     assert.match(diagnosticsJs, /label:\s*'Performance Budgets'/);
     assert.match(diagnosticsJs, /const advisoryCards = performanceBudgetCard \? \[performanceBudgetCard\] : \[\];/);
-    assert.match(diagnosticsJs, /const optionalCards = nativeOrganizerCard \? \[nativeOrganizerCard\] : \[\];/);
+    assert.match(diagnosticsJs, /const optionalCards = \[nativeOrganizerCard, localizationCard\]\.filter\(Boolean\);/);
     assert.match(diagnosticsJs, /label: 'Performance advisories'/);
     assert.match(diagnosticsJs, /label: 'Optional integrations'/);
     assert.match(diagnosticsJs, /const retestPerformanceDiagnostics = async \(\) => \{/);
@@ -121,7 +121,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(settingsCss, /\.fv-diagnostics-card-sections\s*\{/);
     assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-advisory > \.fv-diagnostics-card-grid/);
     assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);
-    assert.match(diagnosticsJs, /<th>Budget<\/th>/);
+    assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsActionCards = \(actions\) =>/);
     assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
@@ -227,20 +227,15 @@ test('settings bootstrap verifies visible content after ready and recovers blank
     assert.match(settingsJs, /recoverBlankSettingsSurface\('post-ready-late'\)/);
 });
 
-test('folder health section uses the simplified summary-card layout', () => {
-    assert.match(settingsPage, /Simple folder health snapshot/);
-    assert.match(settingsJs, /folder-health-card-headline/);
-    assert.match(settingsJs, /buildCleanHealthCardHtml/);
-    assert.match(settingsJs, /folder-health-stat-grid/);
-    assert.match(settingsJs, /folder-health-issue-row/);
-    assert.match(settingsJs, /folder-health-filter-row/);
-    assert.match(settingsCss, /\.folder-health-card-headline/);
-    assert.match(settingsCss, /\.folder-health-stat-grid/);
-    assert.match(settingsCss, /\.folder-health-issue-row/);
-    assert.match(settingsCss, /\.folder-health-filter-row/);
-    assert.doesNotMatch(settingsJs, /folder-health-metrics/);
-    assert.doesNotMatch(settingsCss, /\.folder-health-pill-row/);
-    assert.doesNotMatch(settingsCss, /\.folder-health-metrics/);
+test('advanced diagnostics omits the retired simple folder health snapshot', () => {
+    assert.doesNotMatch(settingsPage, /Simple folder health snapshot/);
+    assert.doesNotMatch(settingsPage, /data-fv-section="folder-health"/);
+    assert.doesNotMatch(settingsPage, /id="folder-health-content"/);
+    assert.doesNotMatch(settingsJs, /renderFolderHealthCards/);
+    assert.doesNotMatch(settingsJs, /buildCleanHealthCardHtml/);
+    assert.doesNotMatch(settingsJs, /data-fv-health-(?:filter|action)/);
+    assert.doesNotMatch(settingsCss, /\.folder-health-(?:card|grid|empty|filter|actions|stat|issue)/);
+    assert.doesNotMatch(settingsSectionsJs, /'folder-health'/);
 });
 
 test('advanced settings no longer render quick profile preset strip', () => {

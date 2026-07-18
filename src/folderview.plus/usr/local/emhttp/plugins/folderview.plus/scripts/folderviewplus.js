@@ -2796,31 +2796,6 @@ const initSettingsControls = () => {
         applyRegexPreset(type, preset);
     });
 
-    $(document).off('click.fvhealthfilter', '[data-fv-health-filter]').on('click.fvhealthfilter', '[data-fv-health-filter]', (event) => {
-        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
-        const mode = String($(event.currentTarget).attr('data-fv-health-filter') || 'all');
-        setHealthFolderFilter(type, mode);
-    });
-
-    $(document).off('click.fvhealthaction', '[data-fv-health-action]').on('click.fvhealthaction', '[data-fv-health-action]', (event) => {
-        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
-        const action = String($(event.currentTarget).attr('data-fv-health-action') || '');
-        if (action === 'jump-table') {
-            const mode = String($(event.currentTarget).attr('data-fv-health-mode') || 'all');
-            setHealthFolderFilter(type, mode);
-            setSettingsMode('basic', { persistServer: true });
-            scrollToSectionKey(type === 'vm' ? 'vms' : 'docker');
-            return;
-        }
-        if (action === 'scan-conflicts') {
-            setSettingsMode('advanced', { persistServer: true });
-            setAdvancedTab('automation');
-            scrollToSectionKey('conflict-inspector');
-            void runConflictInspector(type);
-            return;
-        }
-    });
-
     $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
         const tab = String($(event.currentTarget).attr('data-fv-advanced-tab') || '');
         setAdvancedTab(tab);
@@ -3904,9 +3879,7 @@ const getSettingsHealthApi = (() => {
             return cachedApi;
         }
         cachedApi = settingsHealthModule.createApi({
-            $,
             utils,
-            escapeHtml,
             formatBytesShort,
             getPrefsByType: (type) => prefsByType[type === 'vm' ? 'vm' : 'docker'] || {},
             getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
@@ -3915,10 +3888,7 @@ const getSettingsHealthApi = (() => {
             deriveFolderStatusKey,
             evaluateDockerFolderHealth,
             valueIsTruthy,
-            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all',
-            getHealthMetrics: (type) => healthMetricsByType[type === 'vm' ? 'vm' : 'docker'] || null,
-            getFolderMap: (type) => getFolderMap(type),
-            getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders)
+            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all'
         });
         return cachedApi;
     };
@@ -7764,10 +7734,6 @@ const enhanceViewOrganizationWorkspace = (type) => {
     updateViewOrganizationGuidance(resolvedType);
 };
 
-const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
-const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
-const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
-
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
 const RULE_SIMPLE_KINDS = Object.freeze(['name_contains', 'name_starts_with', 'image_contains', 'compose_project_equals']);
@@ -9160,9 +9126,6 @@ const renderSettingsSecondarySurfaces = (type) => {
     if (resolvedType === 'docker' && shouldRefreshSecondaryAdvancedGroup('startup')) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
     }
-    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
-        renderFolderHealthCards();
-    }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });
     enforceNoHorizontalOverflow();
@@ -9196,9 +9159,6 @@ const renderActiveAdvancedSecondarySurfaces = () => {
     }
     if (shouldRefreshSecondaryAdvancedGroup('startup')) {
         renderDockerStartOrderWorkspace({ preservePreview: true });
-    }
-    if (shouldRefreshSecondaryAdvancedGroup('diagnostics')) {
-        renderFolderHealthCards();
     }
     renderFirstRunQuickPathPanel();
     refreshSettingsUx({ renderSecondaryWorkspaces: false });

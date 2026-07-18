@@ -592,13 +592,6 @@ test('settings mode switches persist the user basic or advanced view choice', ()
     assert.match(script, /if \(!hasLocalModePreference && serverMode && !settingsLaunchOverrides\?\.mode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
     assert.match(script, /if \(hasLocalModePreference && serverMode && serverMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
     assert.match(script, /setSettingsMode\(mode, \{ persistServer: true \}\);/);
-    assert.match(script, /setSettingsMode\('basic', \{ persistServer: true \}\);/);
-    assert.match(script, /setSettingsMode\('advanced', \{ persistServer: true \}\);/);
-});
-
-test('folder health actions can jump into a filtered basic table view', () => {
-    assert.match(script, /const mode = String\(\$\(event\.currentTarget\)\.attr\('data-fv-health-mode'\) \|\| 'all'\);/);
-    assert.match(script, /setHealthFolderFilter\(type, mode\);/);
 });
 
 test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {

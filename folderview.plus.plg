@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.15">
-<!ENTITY md5 "b1a515330aa2a0cd1fe644df4374782d">
+<!ENTITY version "2026.07.18.01">
+<!ENTITY md5 "83ebd18214b0bb839e558e829076f5f2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.18.01
+## 2026.07.18.01
+- UI/UX: Removed the Simple folder health snapshot from Advanced > Diagnostics so the tab focuses on the primary diagnostics and support workflow.
+- Quality: Removed the retired snapshot renderer, quick-filter actions, section registry metadata, and dedicated styles without changing the health metrics used by the Basic folder tables.
+- Tests: Added regression coverage that prevents the removed diagnostics snapshot and its orphaned UI hooks from returning.
+
 
 ###2026.07.17.15
 ## 2026.07.17.15

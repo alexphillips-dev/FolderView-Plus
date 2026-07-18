@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "pl",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Ustawienia wyszukiwania",
+    "settings.search.label": "Ustawienia wyszukiwania",
+    "settings.search.clear-label": "Wyczyść wyszukiwanie ustawień",
+    "settings.search.clear-title": "Wyczyść wyszukiwanie",
+    "settings.search.scope": "Zakres",
+    "settings.search.scope-help": "Wybierz, czy Zaawansowane wyszukiwanie obejmuje tę kartę, czy wszystkie karty Zaawansowane",
+    "settings.search.scope-label": "Zakres wyszukiwania zaawansowanych ustawień",
+    "settings.search.scope-current": "Bieżąca karta",
+    "settings.search.scope-all": "Wszystkie zaawansowane",
+    "settings.header.plugin-settings": "Ustawienia wtyczki",
+    "settings.mode.title": "Tryb ustawień",
+    "settings.mode.basic-label": "Użyj trybu podstawowych ustawień",
+    "settings.mode.advanced-label": "Użyj trybu zaawansowanych ustawień",
+    "settings.wizard.title": "Uruchom kreatora konfiguracji",
+    "settings.tabs.basic": "Podstawowy",
+    "settings.tabs.advanced": "Zaawansowany",
+    "settings.tabs.wizard": "Kreator",
+    "settings.privacy.title": "Tryb prywatności",
+    "settings.privacy.mask-names": "Maskuj nazwy i ikony",
+    "settings.privacy.mask-lan-ips": "Maskuj LAN IPs",
+    "settings.privacy.mask-ports": "Maskuj porty",
+    "settings.privacy.lan-help": "LAN IP maskowanie dotyczy IP części Docker strony LAN IP kolumny:PORT. Użyj Maskuj porty dla części portu."
 }

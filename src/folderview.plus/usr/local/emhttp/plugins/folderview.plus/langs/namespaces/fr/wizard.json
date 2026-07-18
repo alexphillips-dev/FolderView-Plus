@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "fr",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "Assistant de configuration",
+    "wizard.welcome.kicker": "FolderView Plus Assistant de configuration",
+    "wizard.welcome.title": "Organisez vos Docker conteneurs et VMs dans des dossiers.",
+    "wizard.welcome.description": "FolderView Plus aide à regrouper les applications liées, à prévisualiser les modifications avant qu'elles ne soient appliquées et, facultativement, à garder les futures applications organisées automatiquement.",
+    "wizard.welcome.begin": "Commencer la configuration",
+    "wizard.welcome.skip": "Ignorer l'assistant",
+    "wizard.welcome.group-title": "Regrouper les applications liées",
+    "wizard.welcome.group-description": "Regroupez les médias, les téléchargements, les utilitaires, l'automatisation de la maison et d'autres applications.",
+    "wizard.welcome.preview-title": "Prévisualiser avant d'appliquer",
+    "wizard.welcome.preview-description": "Vous examinerez les dossiers, les affectations, les règles et les paramètres avant que quoi que ce soit ne change.",
+    "wizard.welcome.automatic-title": "Rester organisé automatiquement",
+    "wizard.welcome.automatic-description": "Des règles de départ facultatives peuvent placer les futures applications correspondantes dans les bons dossiers.",
+    "wizard.navigation.next": "Suivant",
+    "wizard.navigation.back": "Retour",
+    "wizard.navigation.begin": "Commencer la configuration",
+    "wizard.navigation.run-preview": "Exécuter la prévisualisation",
+    "wizard.navigation.apply": "Appliquer la configuration",
+    "wizard.navigation.show-details": "Afficher les détails",
+    "wizard.navigation.hide-details": "Masquer les détails",
+    "wizard.navigation.close": "Fermer",
+    "wizard.navigation.review": "Revue",
+    "wizard.navigation.go-to": "Aller à $1",
+    "wizard.progress.step": "Étape $1 sur $2",
+    "wizard.impact.live": "Impact en direct pour cette étape"
 }

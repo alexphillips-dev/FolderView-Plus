@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.17.14">
-<!ENTITY md5 "2226f767d57cc06bc62b790f842f4929">
+<!ENTITY version "2026.07.17.15">
+<!ENTITY md5 "b1a515330aa2a0cd1fe644df4374782d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,19 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.17.15
+## 2026.07.17.15
+- Localization: Completed all 17 non-English language catalogs with all 373 current messages across the legacy catalog and eight modern UI namespaces.
+- Localization: Czech, German, Spanish, French, Italian, Japanese, Korean, Dutch, Polish, Brazilian Portuguese, European Portuguese, Romanian, Russian, Swedish, Turkish, Ukrainian, and Simplified Chinese now load at 100% coverage without English fallback for cataloged UI.
+- Localization: Kept Brazilian and European Portuguese as independent regional translations while generic Portuguese now resolves to the complete European Portuguese catalog.
+- Localization: Added locale-correct one, few, and many forms for Czech, Polish, Romanian, Russian, and Ukrainian import summaries.
+- Diagnostics: Localization health now reports every shipped language as current, complete, and reviewed against catalog version `2026.07.17.4`.
+- Quality: Complete translation coverage now counts valid present messages even when established technical labels such as Docker, WebUI, or Compose correctly remain unchanged.
+- Quality: Strengthened localization validation to reject incomplete “complete” catalogs, stale source revisions, unaccepted catalogs, translation-workflow artifacts, and missing plural forms.
+- Quality: Audited destructive import, replace, delete, backup, confirmation, placeholder, link, markup, and technical-name wording before shipping the completed catalogs.
+- Translation workflow: Updated project policy so structurally validated, maintainer-accepted translations can ship without requiring an unavailable external native-speaker review.
+
 
 ###2026.07.17.14
 ## 2026.07.17.14

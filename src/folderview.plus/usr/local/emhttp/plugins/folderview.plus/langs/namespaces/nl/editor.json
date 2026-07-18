@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "nl",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Een aangepaste actie toevoegen",
+    "editor.actions.standard": "Standaard",
+    "editor.actions.user-script": "Gebruikersscript",
+    "editor.actions.control-members": "Beheer geselecteerde mapleden.",
+    "editor.actions.run-user-script": "Een taak uitvoeren vanuit de User Scripts plug-in.",
+    "editor.members.toggle-preview-help": "Houd dit lid in de map maar verberg het in de ingeklapte weergave",
+    "editor.members.visible": "Zichtbaar",
+    "editor.members.auto-included": "Automatisch inbegrepen door regex of label",
+    "editor.members.drag-reorder": "Sleep om opnieuw te rangschikken",
+    "editor.members.move-up": "Omhoog verplaatsen",
+    "editor.members.move-down": "Omlaag verplaatsen"
 }

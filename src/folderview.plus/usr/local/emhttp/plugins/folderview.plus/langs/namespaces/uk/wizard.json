@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "uk",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "Помічник налаштування",
+    "wizard.welcome.kicker": "FolderView Plus Помічник налаштування",
+    "wizard.welcome.title": "Організуйте ваші Docker контейнери та VMs у папки.",
+    "wizard.welcome.description": "FolderView Plus допомагає групувати пов’язані додатки, переглянути зміни перед їх застосуванням і, за бажанням, автоматично підтримувати організацію майбутніх додатків.",
+    "wizard.welcome.begin": "Почати налаштування",
+    "wizard.welcome.skip": "Пропустити майстра",
+    "wizard.welcome.group-title": "Групуйте пов’язані додатки",
+    "wizard.welcome.group-description": "Тримайте разом медіа, завантаження, утиліти, додатки для автоматизації будинку та інші додатки.",
+    "wizard.welcome.preview-title": "Перегляньте перед застосуванням",
+    "wizard.welcome.preview-description": "Ви переглянете папки, призначення, правила та налаштування перед будь-якими змінами.",
+    "wizard.welcome.automatic-title": "Автоматично залишайтеся організованими",
+    "wizard.welcome.automatic-description": "Опційні початкові правила можуть розміщувати майбутні відповідні додатки у правильні папки.",
+    "wizard.navigation.next": "Далі",
+    "wizard.navigation.back": "Назад",
+    "wizard.navigation.begin": "Почати налаштування",
+    "wizard.navigation.run-preview": "Запустити перегляд",
+    "wizard.navigation.apply": "Застосувати налаштування",
+    "wizard.navigation.show-details": "Показати деталі",
+    "wizard.navigation.hide-details": "Приховати деталі",
+    "wizard.navigation.close": "Закрити",
+    "wizard.navigation.review": "Огляд",
+    "wizard.navigation.go-to": "Перейти до $1",
+    "wizard.progress.step": "Крок $1 з $2",
+    "wizard.impact.live": "Живий вплив для цього кроку"
 }

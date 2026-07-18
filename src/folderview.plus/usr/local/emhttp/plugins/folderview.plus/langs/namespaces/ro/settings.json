@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ro",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Setări de căutare",
+    "settings.search.label": "Setări de căutare",
+    "settings.search.clear-label": "Curăță căutarea setărilor",
+    "settings.search.clear-title": "Curăță căutarea",
+    "settings.search.scope": "Domeniu",
+    "settings.search.scope-help": "Alege dacă Căutarea avansată se aplică doar acestei file sau tuturor filelor avansate",
+    "settings.search.scope-label": "Domeniul de căutare a setărilor avansate",
+    "settings.search.scope-current": "Fila curentă",
+    "settings.search.scope-all": "Toate avansate",
+    "settings.header.plugin-settings": "Setări plugin",
+    "settings.mode.title": "Mod setări",
+    "settings.mode.basic-label": "Folosește modul de setări de bază",
+    "settings.mode.advanced-label": "Folosește modul de setări avansate",
+    "settings.wizard.title": "Rulează asistentul de configurare",
+    "settings.tabs.basic": "De bază",
+    "settings.tabs.advanced": "Avansat",
+    "settings.tabs.wizard": "Expert",
+    "settings.privacy.title": "Mod confidențialitate",
+    "settings.privacy.mask-names": "Maschează numele și pictogramele",
+    "settings.privacy.mask-lan-ips": "Maschează LAN IPs",
+    "settings.privacy.mask-ports": "Porturi de mască",
+    "settings.privacy.lan-help": "LAN IP mascarea se aplică porțiunii IP din coloana LAN IP:PORT a paginii Docker. Folosiți Porturi de mască pentru porțiunea de port."
 }

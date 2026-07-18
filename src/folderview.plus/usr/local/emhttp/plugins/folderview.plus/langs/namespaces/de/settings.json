@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "de",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Sucheinstellungen",
+    "settings.search.label": "Sucheinstellungen",
+    "settings.search.clear-label": "Einstellungssuche löschen",
+    "settings.search.clear-title": "Suche löschen",
+    "settings.search.scope": "Umfang",
+    "settings.search.scope-help": "Wählen Sie, ob die erweiterte Suche diese Registerkarte oder alle erweiterten Registerkarten abdeckt",
+    "settings.search.scope-label": "Suchbereich der erweiterten Einstellungen",
+    "settings.search.scope-current": "Aktuelle Registerkarte",
+    "settings.search.scope-all": "Alles fortgeschritten",
+    "settings.header.plugin-settings": "Plugin-Einstellungen",
+    "settings.mode.title": "Einstellungsmodus",
+    "settings.mode.basic-label": "Verwenden Sie den Grundeinstellungsmodus",
+    "settings.mode.advanced-label": "Verwenden Sie den erweiterten Einstellungsmodus",
+    "settings.wizard.title": "Führen Sie den Setup-Assistenten aus",
+    "settings.tabs.basic": "Einfach",
+    "settings.tabs.advanced": "Fortgeschritten",
+    "settings.tabs.wizard": "Zauberer",
+    "settings.privacy.title": "Datenschutzmodus",
+    "settings.privacy.mask-names": "Maskieren Sie Namen und Symbole",
+    "settings.privacy.mask-lan-ips": "Maske LAN IPs",
+    "settings.privacy.mask-ports": "Maskenanschlüsse",
+    "settings.privacy.lan-help": "Die LAN IP-Maskierung gilt für den IP-Teil der LAN IP:PORT-Spalte der Docker-Seite. Verwenden Sie Mask-Ports für den Port-Teil."
 }

@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "fr",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Paramètres de recherche",
+    "settings.search.label": "Paramètres de recherche",
+    "settings.search.clear-label": "Effacer la recherche de paramètres",
+    "settings.search.clear-title": "Effacer la recherche",
+    "settings.search.scope": "Portée",
+    "settings.search.scope-help": "Choisissez si la recherche avancée couvre cet onglet ou tous les onglets avancés",
+    "settings.search.scope-label": "Portée de la recherche des paramètres avancés",
+    "settings.search.scope-current": "Onglet actuel",
+    "settings.search.scope-all": "Tous les avancés",
+    "settings.header.plugin-settings": "Paramètres du plugin",
+    "settings.mode.title": "Mode des paramètres",
+    "settings.mode.basic-label": "Utiliser le mode de paramètres de base",
+    "settings.mode.advanced-label": "Utiliser le mode de paramètres avancés",
+    "settings.wizard.title": "Exécuter l'assistant de configuration",
+    "settings.tabs.basic": "Basique",
+    "settings.tabs.advanced": "Avancé",
+    "settings.tabs.wizard": "Assistant",
+    "settings.privacy.title": "Mode confidentialité",
+    "settings.privacy.mask-names": "Masquer les noms et les icônes",
+    "settings.privacy.mask-lan-ips": "Masquer LAN IPs",
+    "settings.privacy.mask-ports": "Masquer les ports",
+    "settings.privacy.lan-help": "LAN IP le masquage s'applique à la partie IP de la colonne LAN IP:PORT de la page Docker. Utilisez Masquer les ports pour la partie port."
 }

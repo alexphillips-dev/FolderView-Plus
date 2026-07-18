@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ko",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "검색 설정",
+    "settings.search.label": "검색 설정",
+    "settings.search.clear-label": "설정 검색 지우기",
+    "settings.search.clear-title": "검색 지우기",
+    "settings.search.scope": "범위",
+    "settings.search.scope-help": "고급 검색이 이 탭만 또는 모든 고급 탭을 포함할지 선택",
+    "settings.search.scope-label": "고급 설정 검색 범위",
+    "settings.search.scope-current": "현재 탭",
+    "settings.search.scope-all": "모든 고급",
+    "settings.header.plugin-settings": "플러그인 설정",
+    "settings.mode.title": "설정 모드",
+    "settings.mode.basic-label": "기본 설정 모드 사용",
+    "settings.mode.advanced-label": "고급 설정 모드 사용",
+    "settings.wizard.title": "설정 도우미 실행",
+    "settings.tabs.basic": "기본",
+    "settings.tabs.advanced": "고급",
+    "settings.tabs.wizard": "마법사",
+    "settings.privacy.title": "개인 정보 보호 모드",
+    "settings.privacy.mask-names": "이름 및 아이콘 마스크",
+    "settings.privacy.mask-lan-ips": "마스크 LAN IPs",
+    "settings.privacy.mask-ports": "포트 마스킹",
+    "settings.privacy.lan-help": "LAN IP 마스킹은 Docker 페이지의 LAN IP:PORT 열의 IP 부분에 적용됩니다. 포트 부분에는 포트 마스킹을 사용하십시오."
 }

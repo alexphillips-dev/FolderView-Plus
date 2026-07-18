@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "pl",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Dodaj niestandardową akcję",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Skrypt użytkownika",
+    "editor.actions.control-members": "Kontroluj wybranych członków folderu.",
+    "editor.actions.run-user-script": "Uruchom zadanie z wtyczki User Scripts.",
+    "editor.members.toggle-preview-help": "Zachowaj tego członka w folderze, ale ukryj go w podglądzie zwiniętym",
+    "editor.members.visible": "Widoczny",
+    "editor.members.auto-included": "Automatycznie uwzględnione przez regex lub etykietę",
+    "editor.members.drag-reorder": "Przeciągnij, aby zmienić kolejność",
+    "editor.members.move-up": "Przenieś w górę",
+    "editor.members.move-down": "Przenieś w dół"
 }

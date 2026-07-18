@@ -1,14 +1,14 @@
 {
     "@metadata": {
         "authors": [],
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "direction": "ltr",
         "last-reviewed": "2026-07-17",
         "last-updated": "2026-07-17",
         "locale": "en",
         "native-name": "English",
         "reviewed": true,
-        "source-revision": "2026.07.17.3",
+        "source-revision": "2026.07.17.4",
         "status": "source",
         "translated-messages": 373,
         "total-source-messages": 373

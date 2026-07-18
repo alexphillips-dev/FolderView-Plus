@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ja",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "カスタムアクションを追加",
+    "editor.actions.standard": "標準",
+    "editor.actions.user-script": "ユーザースクリプト",
+    "editor.actions.control-members": "選択したフォルダメンバーを制御します。",
+    "editor.actions.run-user-script": "User Scriptsプラグインからタスクを実行します。",
+    "editor.members.toggle-preview-help": "このメンバーをフォルダ内に保持しますが、折りたたまれたプレビューからは非表示にします",
+    "editor.members.visible": "表示",
+    "editor.members.auto-included": "regexまたはラベルによって自動的に含まれる",
+    "editor.members.drag-reorder": "順序を変更するにはドラッグ",
+    "editor.members.move-up": "上に移動",
+    "editor.members.move-down": "下に移動"
 }

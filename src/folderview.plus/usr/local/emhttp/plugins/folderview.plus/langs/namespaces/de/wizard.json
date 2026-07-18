@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "de",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "Setup-Assistent",
+    "wizard.welcome.kicker": "FolderView Plus Setup-Assistent",
+    "wizard.welcome.title": "Organisieren Sie Ihre Docker-Container und VMs in Ordnern.",
+    "wizard.welcome.description": "FolderView Plus hilft dabei, verwandte Apps zu gruppieren, Änderungen in der Vorschau anzuzeigen, bevor sie angewendet werden, und optional zukünftige Apps automatisch zu organisieren.",
+    "wizard.welcome.begin": "Beginnen Sie mit der Einrichtung",
+    "wizard.welcome.skip": "Assistent überspringen",
+    "wizard.welcome.group-title": "Gruppenbezogene Apps",
+    "wizard.welcome.group-description": "Halten Sie Medien, Downloads, Dienstprogramme, Heimautomatisierung und andere Apps zusammen.",
+    "wizard.welcome.preview-title": "Vorschau vor der Bewerbung",
+    "wizard.welcome.preview-description": "Sie überprüfen Ordner, Zuweisungen, Regeln und Einstellungen, bevor sich etwas ändert.",
+    "wizard.welcome.automatic-title": "Bleiben Sie automatisch organisiert",
+    "wizard.welcome.automatic-description": "Durch optionale Starterregeln können zukünftige passende Apps in den richtigen Ordnern abgelegt werden.",
+    "wizard.navigation.next": "Als nächstes",
+    "wizard.navigation.back": "Zurück",
+    "wizard.navigation.begin": "Beginnen Sie mit der Einrichtung",
+    "wizard.navigation.run-preview": "Vorschau ausführen",
+    "wizard.navigation.apply": "Setup anwenden",
+    "wizard.navigation.show-details": "Details anzeigen",
+    "wizard.navigation.hide-details": "Details ausblenden",
+    "wizard.navigation.close": "Schließen",
+    "wizard.navigation.review": "Rezension",
+    "wizard.navigation.go-to": "Gehe zu $1",
+    "wizard.progress.step": "Schritt $1 von $2",
+    "wizard.impact.live": "Live-Auswirkungen für diesen Schritt"
 }

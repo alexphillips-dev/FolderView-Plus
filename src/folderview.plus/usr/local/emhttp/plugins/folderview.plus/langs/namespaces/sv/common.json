@@ -1,7 +1,10 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "sv",
         "namespace": "common"
-    }
+    },
+    "common.labels.optional": "Valfritt",
+    "common.badges.recommended": "Rekommenderat",
+    "common.badges.can-delete": "Kan raderas"
 }

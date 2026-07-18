@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ru",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Добавить пользовательское действие",
+    "editor.actions.standard": "Стандартный",
+    "editor.actions.user-script": "Скрипт пользователя",
+    "editor.actions.control-members": "Управление выбранными элементами папки.",
+    "editor.actions.run-user-script": "Запустить задачу из плагина User Scripts.",
+    "editor.members.toggle-preview-help": "Сохранить этот элемент в папке, но скрыть его из свернутого предварительного просмотра",
+    "editor.members.visible": "Видимый",
+    "editor.members.auto-included": "Автоматически включено regex или меткой",
+    "editor.members.drag-reorder": "Перетащите для изменения порядка",
+    "editor.members.move-up": "Переместить вверх",
+    "editor.members.move-down": "Переместить вниз"
 }

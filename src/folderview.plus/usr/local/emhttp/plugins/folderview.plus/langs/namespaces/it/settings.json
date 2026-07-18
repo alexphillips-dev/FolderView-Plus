@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "it",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Impostazioni di ricerca",
+    "settings.search.label": "Impostazioni di ricerca",
+    "settings.search.clear-label": "Cancella ricerca impostazioni",
+    "settings.search.clear-title": "Cancella ricerca",
+    "settings.search.scope": "Ambito",
+    "settings.search.scope-help": "Scegli se la ricerca avanzata copre questa scheda o tutte le schede Avanzate",
+    "settings.search.scope-label": "Ambito ricerca impostazioni avanzate",
+    "settings.search.scope-current": "Scheda corrente",
+    "settings.search.scope-all": "Tutte le schede avanzate",
+    "settings.header.plugin-settings": "Impostazioni plugin",
+    "settings.mode.title": "Modalità impostazioni",
+    "settings.mode.basic-label": "Usa modalità impostazioni base",
+    "settings.mode.advanced-label": "Usa modalità impostazioni avanzata",
+    "settings.wizard.title": "Esegui assistente di configurazione",
+    "settings.tabs.basic": "Base",
+    "settings.tabs.advanced": "Avanzata",
+    "settings.tabs.wizard": "Assistente",
+    "settings.privacy.title": "Modalità privacy",
+    "settings.privacy.mask-names": "Maschera nomi e icone",
+    "settings.privacy.mask-lan-ips": "Maschera LAN IPs",
+    "settings.privacy.mask-ports": "Maschera porte",
+    "settings.privacy.lan-help": "LAN IP la mascheratura si applica alla IP parte della colonna LAN IP della pagina Docker:PORT. Usa Maschera porte per la parte della porta."
 }

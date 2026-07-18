@@ -1,7 +1,10 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "cs",
         "namespace": "common"
-    }
+    },
+    "common.labels.optional": "Volitelné",
+    "common.badges.recommended": "Doporučeno",
+    "common.badges.can-delete": "Lze smazat"
 }

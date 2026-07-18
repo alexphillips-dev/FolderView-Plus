@@ -27,15 +27,15 @@ test('regional locale resolution distinguishes Simplified Chinese and Portuguese
     assert.deepEqual(resolutions.zhCN.fallbackChain, ['zh-CN', 'zh-Hans', 'en']);
     assert.equal(resolutions.zhTW.resolved, 'en', 'Traditional Chinese must not silently use Simplified Chinese');
     assert.deepEqual(resolutions.zhTW.fallbackChain, ['zh-TW', 'zh-Hant', 'en']);
-    assert.equal(resolutions.pt.resolved, 'en', 'untranslated Portuguese must use the English fallback');
+    assert.equal(resolutions.pt.resolved, 'pt-PT', 'generic Portuguese should use the complete European Portuguese catalog');
     assert.ok(resolutions.pt.fallbackChain.includes('pt-PT'));
-    assert.equal(resolutions.pt.requestedStatus, 'placeholder');
-    assert.equal(resolutions.ptBR.requestedStatus, 'placeholder');
+    assert.equal(resolutions.pt.requestedStatus, 'complete');
+    assert.equal(resolutions.ptBR.requestedStatus, 'complete');
 });
 
 test('catalog report exposes honest legacy and namespace coverage for every registered locale', () => {
     const report = runRegistryPhp('fvplus_i18n_catalog_report()');
-    assert.equal(report.catalogVersion, '2026.07.17.3');
+    assert.equal(report.catalogVersion, '2026.07.17.4');
     assert.ok(report.sourceMessageCount > 350);
     assert.equal(report.namespaceCount, 9);
     assert.equal(report.extraction.candidateCount, 1596);
@@ -43,23 +43,28 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.equal(Object.keys(report.locales).length, 18);
     assert.equal(report.locales.en.coveragePercent, 100);
     assert.equal(report.locales.en.reviewedAgainstCurrentSource, true);
-    assert.equal(report.locales.es.status, 'partial');
-    assert.equal(report.locales.es.namespaces.settings.translated, 0);
-    assert.ok(report.locales.es.potentiallyStaleMessages > 0);
-    assert.equal(report.locales['pt-BR'].translatedMessages, 0);
-    assert.equal(report.locales['zh-Hans'].status, 'partial');
+    for (const row of Object.values(report.locales)) {
+        assert.equal(row.coveragePercent, 100);
+        assert.equal(row.missingMessages, 0);
+        assert.equal(row.reviewedAgainstCurrentSource, true);
+        assert.equal(row.potentiallyStaleMessages, 0);
+    }
+    assert.equal(report.locales.es.status, 'complete');
+    assert.equal(report.locales.es.namespaces.settings.translated, report.locales.es.namespaces.settings.total);
+    assert.equal(report.locales['pt-BR'].translatedMessages, report.sourceMessageCount);
+    assert.equal(report.locales['zh-Hans'].status, 'complete');
 });
 
 test('runtime pages can request a compact catalog report without scanning every locale', () => {
     const report = runRegistryPhp("fvplus_i18n_catalog_report(['en', 'es'])");
     assert.deepEqual(Object.keys(report.locales), ['en', 'es']);
     assert.equal(report.locales.en.coveragePercent, 100);
-    assert.equal(report.locales.es.status, 'partial');
+    assert.equal(report.locales.es.status, 'complete');
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
     assert.match(loader, /fvplus_i18n_catalog_report\(\['en', \$requestedLocale, \$resolvedLocale\]\)/);
 });
 
-test('all registered locales have namespace scaffolds and placeholders contain no copied English payload', () => {
+test('all registered locales have complete namespace catalogs', () => {
     const registry = runRegistryPhp('fvplus_i18n_registry()');
     const namespaceNames = fs.readdirSync(path.join(langsRoot, 'namespaces/en'))
         .filter((file) => file.endsWith('.json'))
@@ -68,9 +73,8 @@ test('all registered locales have namespace scaffolds and placeholders contain n
         for (const namespaceName of namespaceNames) {
             assert.equal(fs.existsSync(path.join(langsRoot, 'namespaces', locale, namespaceName)), true, `${locale}/${namespaceName}`);
         }
-        if (entry.status !== 'placeholder') continue;
-        const catalog = JSON.parse(fs.readFileSync(path.join(langsRoot, `${locale}.json`), 'utf8'));
-        assert.deepEqual(Object.keys(catalog), ['@metadata'], `${locale} placeholder must not copy English strings`);
+        assert.ok(['source', 'complete'].includes(entry.status), `${locale} must be ready to ship`);
+        assert.equal(entry.reviewed, true, `${locale} must be maintainer accepted`);
     }
 });
 

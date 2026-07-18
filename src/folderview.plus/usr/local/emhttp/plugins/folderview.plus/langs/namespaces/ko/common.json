@@ -1,7 +1,10 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ko",
         "namespace": "common"
-    }
+    },
+    "common.labels.optional": "선택 사항",
+    "common.badges.recommended": "권장",
+    "common.badges.can-delete": "삭제할 수 있음"
 }

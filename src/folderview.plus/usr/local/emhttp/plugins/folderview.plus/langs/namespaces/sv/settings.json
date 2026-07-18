@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "sv",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "Sökinställningar",
+    "settings.search.label": "Sökinställningar",
+    "settings.search.clear-label": "Rensa inställningssökning",
+    "settings.search.clear-title": "Rensa sökning",
+    "settings.search.scope": "Område",
+    "settings.search.scope-help": "Välj om avancerad sökning ska omfatta denna flik eller alla avancerade flikar",
+    "settings.search.scope-label": "Avancerad sökningsomfång",
+    "settings.search.scope-current": "Aktuell flik",
+    "settings.search.scope-all": "Alla avancerade",
+    "settings.header.plugin-settings": "Plugin-inställningar",
+    "settings.mode.title": "Inställningsläge",
+    "settings.mode.basic-label": "Använd grundläggande inställningsläge",
+    "settings.mode.advanced-label": "Använd avancerat inställningsläge",
+    "settings.wizard.title": "Kör installationsassistent",
+    "settings.tabs.basic": "Grundläggande",
+    "settings.tabs.advanced": "Avancerad",
+    "settings.tabs.wizard": "Guiden",
+    "settings.privacy.title": "Integritetsläge",
+    "settings.privacy.mask-names": "Dölj namn och ikoner",
+    "settings.privacy.mask-lan-ips": "Dölj LAN IPs",
+    "settings.privacy.mask-ports": "Maskerar portar",
+    "settings.privacy.lan-help": "LAN IP maskering gäller för IP delen av Docker sidans LAN IP:PORT-kolumn. Använd Maskerar portar för portdelen."
 }

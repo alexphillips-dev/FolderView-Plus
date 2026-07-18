@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ro",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Adaugă o acțiune personalizată",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Script utilizator",
+    "editor.actions.control-members": "Controlează membrii selectați ai folderului.",
+    "editor.actions.run-user-script": "Rulează o sarcină din pluginul User Scripts.",
+    "editor.members.toggle-preview-help": "Păstrează acest membru în folder, dar ascunde-l din previzualizarea restrânsă",
+    "editor.members.visible": "Vizibil",
+    "editor.members.auto-included": "Inclus automat de regex sau etichetă",
+    "editor.members.drag-reorder": "Trage pentru a reordona",
+    "editor.members.move-up": "Mută în sus",
+    "editor.members.move-down": "Mută în jos"
 }

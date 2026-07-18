@@ -1,30 +1,30 @@
 <?php
 
 if (!defined('FVPLUS_I18N_CATALOG_VERSION')) {
-    define('FVPLUS_I18N_CATALOG_VERSION', '2026.07.17.3');
+    define('FVPLUS_I18N_CATALOG_VERSION', '2026.07.17.4');
 }
 
 if (!function_exists('fvplus_i18n_registry')) {
     function fvplus_i18n_registry(): array {
         return [
             'en' => ['name' => 'English', 'nativeName' => 'English', 'direction' => 'ltr', 'status' => 'source', 'reviewed' => true],
-            'cs' => ['name' => 'Czech', 'nativeName' => 'Čeština', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'de' => ['name' => 'German', 'nativeName' => 'Deutsch', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false],
-            'es' => ['name' => 'Spanish', 'nativeName' => 'Español', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false],
-            'fr' => ['name' => 'French', 'nativeName' => 'Français', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false],
-            'it' => ['name' => 'Italian', 'nativeName' => 'Italiano', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false],
-            'ja' => ['name' => 'Japanese', 'nativeName' => '日本語', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'ko' => ['name' => 'Korean', 'nativeName' => '한국어', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'nl' => ['name' => 'Dutch', 'nativeName' => 'Nederlands', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'pl' => ['name' => 'Polish', 'nativeName' => 'Polski', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false],
-            'pt-BR' => ['name' => 'Portuguese (Brazil)', 'nativeName' => 'Português (Brasil)', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'pt-PT' => ['name' => 'Portuguese (Portugal)', 'nativeName' => 'Português (Portugal)', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'ro' => ['name' => 'Romanian', 'nativeName' => 'Română', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'ru' => ['name' => 'Russian', 'nativeName' => 'Русский', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'sv' => ['name' => 'Swedish', 'nativeName' => 'Svenska', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'tr' => ['name' => 'Turkish', 'nativeName' => 'Türkçe', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'uk' => ['name' => 'Ukrainian', 'nativeName' => 'Українська', 'direction' => 'ltr', 'status' => 'placeholder', 'reviewed' => false],
-            'zh-Hans' => ['name' => 'Chinese (Simplified)', 'nativeName' => '简体中文', 'direction' => 'ltr', 'status' => 'partial', 'reviewed' => false]
+            'cs' => ['name' => 'Czech', 'nativeName' => 'Čeština', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'de' => ['name' => 'German', 'nativeName' => 'Deutsch', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'es' => ['name' => 'Spanish', 'nativeName' => 'Español', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'fr' => ['name' => 'French', 'nativeName' => 'Français', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'it' => ['name' => 'Italian', 'nativeName' => 'Italiano', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'ja' => ['name' => 'Japanese', 'nativeName' => '日本語', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'ko' => ['name' => 'Korean', 'nativeName' => '한국어', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'nl' => ['name' => 'Dutch', 'nativeName' => 'Nederlands', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'pl' => ['name' => 'Polish', 'nativeName' => 'Polski', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'pt-BR' => ['name' => 'Portuguese (Brazil)', 'nativeName' => 'Português (Brasil)', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'pt-PT' => ['name' => 'Portuguese (Portugal)', 'nativeName' => 'Português (Portugal)', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'ro' => ['name' => 'Romanian', 'nativeName' => 'Română', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'ru' => ['name' => 'Russian', 'nativeName' => 'Русский', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'sv' => ['name' => 'Swedish', 'nativeName' => 'Svenska', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'tr' => ['name' => 'Turkish', 'nativeName' => 'Türkçe', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'uk' => ['name' => 'Ukrainian', 'nativeName' => 'Українська', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'zh-Hans' => ['name' => 'Chinese (Simplified)', 'nativeName' => '简体中文', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true]
         ];
     }
 }
@@ -204,7 +204,7 @@ if (!function_exists('fvplus_i18n_catalog_report')) {
                 $translated = 0;
                 foreach ($namespaceSource as $key => $sourceValue) {
                     $translatedValue = $catalog[$key] ?? null;
-                    if (is_string($translatedValue) && $translatedValue !== '' && ($locale === 'en' || $translatedValue !== $sourceValue)) {
+                    if (is_string($translatedValue) && $translatedValue !== '') {
                         $translated++;
                         $loadedMessages[$key] = $translatedValue;
                     }

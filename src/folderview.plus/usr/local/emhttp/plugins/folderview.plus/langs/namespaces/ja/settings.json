@@ -1,7 +1,29 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ja",
         "namespace": "settings"
-    }
+    },
+    "settings.search.placeholder": "検索設定",
+    "settings.search.label": "検索設定",
+    "settings.search.clear-label": "設定検索をクリア",
+    "settings.search.clear-title": "検索をクリア",
+    "settings.search.scope": "範囲",
+    "settings.search.scope-help": "詳細検索がこのタブのみを対象にするか、すべての詳細タブを対象にするか選択してください",
+    "settings.search.scope-label": "詳細設定検索の範囲",
+    "settings.search.scope-current": "現在のタブ",
+    "settings.search.scope-all": "すべての詳細",
+    "settings.header.plugin-settings": "プラグイン設定",
+    "settings.mode.title": "設定モード",
+    "settings.mode.basic-label": "基本設定モードを使用",
+    "settings.mode.advanced-label": "詳細設定モードを使用",
+    "settings.wizard.title": "設定アシスタントを実行",
+    "settings.tabs.basic": "基本",
+    "settings.tabs.advanced": "詳細",
+    "settings.tabs.wizard": "ウィザード",
+    "settings.privacy.title": "プライバシーモード",
+    "settings.privacy.mask-names": "名前とアイコンをマスク",
+    "settings.privacy.mask-lan-ips": "LAN IPs をマスク",
+    "settings.privacy.mask-ports": "ポートをマスクする",
+    "settings.privacy.lan-help": "LAN IP のマスキングは、Docker ページの LAN IP:PORT 列の IP 部分に適用されます。ポート部分には「ポートをマスク」を使用してください。"
 }

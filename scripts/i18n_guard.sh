@@ -84,6 +84,7 @@ const hasBalancedPluralSyntax = (value) => {
   const ends = (source.match(/}}/g) || []).length;
   return starts === 0 || ends >= starts;
 };
+const localesRequiringThreePluralForms = new Set(['cs', 'pl', 'ro', 'ru', 'uk']);
 const payloadFingerprint = (messages) => JSON.stringify(Object.fromEntries(Object.entries(messages).sort(([a], [b]) => a.localeCompare(b))));
 
 if (!rootFiles.includes('en.json')) {
@@ -135,6 +136,9 @@ for (const file of rootFiles) {
   if (metadata.status === 'complete' && metadata['source-revision'] !== base.metadata?.['source-revision']) {
     fail(`${file} claims complete status against a stale source revision.`);
   }
+  if (metadata.status === 'complete' && metadata.reviewed !== true) {
+    fail(`${file} complete locale must be accepted for shipping.`);
+  }
 
   const namespaceFiles = localeNamespaceFiles(locale);
   const namespaceNames = namespaceFiles.map((namespaceFile) => path.basename(namespaceFile));
@@ -166,6 +170,16 @@ for (const file of rootFiles) {
       continue;
     }
     if (!hasBalancedPluralSyntax(value)) fail(`${file} key "${key}" has invalid plural syntax.`);
+    if (/[⟦⟧]|FVSEP|FVPROTECT/.test(value)) {
+      fail(`${file} key "${key}" contains a translation-workflow artifact.`);
+    }
+    if (localesRequiringThreePluralForms.has(locale) && value.includes('{{PLURAL:')) {
+      for (const expression of value.match(/\{\{PLURAL:[^}]+}}/g) || []) {
+        if (expression.split('|').length - 1 < 3) {
+          fail(`${file} key "${key}" needs one, few, and many plural forms for ${locale}.`);
+        }
+      }
+    }
     if (!Object.prototype.hasOwnProperty.call(base.messages, key)) continue;
     const sourceParams = messageParameters(base.messages[key]);
     const localeParams = messageParameters(value);
@@ -190,23 +204,34 @@ for (const file of rootFiles) {
   }
   if (!duplicateOf) seenFingerprints.set(fingerprint, file);
 
-  const translated = locale === 'en'
-    ? baseKeys.length
-    : baseKeys.filter((key) => catalog.messages[key] && catalog.messages[key] !== base.messages[key]).length;
+  const translated = baseKeys.filter((key) => (
+    Object.prototype.hasOwnProperty.call(catalog.messages, key)
+    && typeof catalog.messages[key] === 'string'
+    && catalog.messages[key] !== ''
+  )).length;
   if (metadata['total-source-messages'] !== baseKeys.length) {
     fail(`${file} total-source-messages is ${metadata['total-source-messages']}; expected ${baseKeys.length}.`);
   }
   if (metadata.status === 'source' && metadata['translated-messages'] !== baseKeys.length) {
     fail(`${file} source locale must report ${baseKeys.length} translated messages.`);
   }
+  if (metadata.status === 'complete' && metadata['translated-messages'] !== translated) {
+    fail(`${file} translated-messages is ${metadata['translated-messages']}; measured ${translated}.`);
+  }
+  if (metadata.status === 'complete' && translated !== baseKeys.length) {
+    fail(`${file} claims complete status but contains ${translated}/${baseKeys.length} source messages.`);
+  }
   if (metadata.status === 'partial' && metadata['translated-messages'] !== translated) {
     fail(`${file} translated-messages is ${metadata['translated-messages']}; measured ${translated}.`);
   }
   const modernTotal = Object.keys(base.messages).filter((key) => !Object.prototype.hasOwnProperty.call(readJson(path.join(langDir, 'en.json')), key)).length;
   const legacySource = readJson(path.join(langDir, 'en.json'));
-  const modernTranslated = locale === 'en'
-    ? modernTotal
-    : Object.keys(catalog.messages).filter((key) => !Object.prototype.hasOwnProperty.call(legacySource, key) && catalog.messages[key] !== base.messages[key]).length;
+  const modernTranslated = Object.keys(catalog.messages).filter((key) => (
+    !Object.prototype.hasOwnProperty.call(legacySource, key)
+    && Object.prototype.hasOwnProperty.call(base.messages, key)
+    && typeof catalog.messages[key] === 'string'
+    && catalog.messages[key] !== ''
+  )).length;
   coverageRows.push({
     locale,
     status: metadata.status,

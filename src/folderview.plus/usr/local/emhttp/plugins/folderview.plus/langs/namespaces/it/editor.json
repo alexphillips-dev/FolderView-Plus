@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "it",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Aggiungi un'azione personalizzata",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Script utente",
+    "editor.actions.control-members": "Controlla i membri della cartella selezionati.",
+    "editor.actions.run-user-script": "Esegui un'attività dal plugin User Scripts.",
+    "editor.members.toggle-preview-help": "Mantieni questo membro nella cartella ma nascondilo dall'anteprima compressa",
+    "editor.members.visible": "Visibile",
+    "editor.members.auto-included": "Incluso automaticamente da regex o etichetta",
+    "editor.members.drag-reorder": "Trascina per riordinare",
+    "editor.members.move-up": "Sposta su",
+    "editor.members.move-down": "Sposta giù"
 }

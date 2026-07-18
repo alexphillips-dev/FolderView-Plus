@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "cs",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "Přidejte vlastní akci",
+    "editor.actions.standard": "Standardní",
+    "editor.actions.user-script": "Uživatelský skript",
+    "editor.actions.control-members": "Ovládejte vybrané členy složky.",
+    "editor.actions.run-user-script": "Spusťte úlohu z pluginu User Scripts.",
+    "editor.members.toggle-preview-help": "Nechte tohoto člena ve složce, ale skryjte ho z přehledu ve stavu složky",
+    "editor.members.visible": "Viditelné",
+    "editor.members.auto-included": "Automaticky zahrnuto regex nebo štítkem",
+    "editor.members.drag-reorder": "Přetažením změníte pořadí",
+    "editor.members.move-up": "Posuňte se nahoru",
+    "editor.members.move-down": "Posuňte se dolů"
 }

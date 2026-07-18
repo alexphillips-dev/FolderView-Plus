@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "zh-Hans",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "设置助手",
+    "wizard.welcome.kicker": "FolderView Plus 设置助手",
+    "wizard.welcome.title": "将您的 Docker 容器和 VMs 组织到文件夹中。",
+    "wizard.welcome.description": "FolderView Plus 可以帮助分组相关应用，预览更改效果，并可选择自动保持未来应用的有序。",
+    "wizard.welcome.begin": "开始设置",
+    "wizard.welcome.skip": "跳过向导",
+    "wizard.welcome.group-title": "分组相关应用",
+    "wizard.welcome.group-description": "将媒体、下载、实用工具、家庭自动化及其他应用放在一起。",
+    "wizard.welcome.preview-title": "应用前预览",
+    "wizard.welcome.preview-description": "在任何更改发生之前，您将查看文件夹、分配、规则和设置。",
+    "wizard.welcome.automatic-title": "自动保持有序",
+    "wizard.welcome.automatic-description": "可选的启动规则可以将未来匹配的应用放入正确的文件夹。",
+    "wizard.navigation.next": "下一步",
+    "wizard.navigation.back": "返回",
+    "wizard.navigation.begin": "开始设置",
+    "wizard.navigation.run-preview": "运行预览",
+    "wizard.navigation.apply": "应用设置",
+    "wizard.navigation.show-details": "显示详情",
+    "wizard.navigation.hide-details": "隐藏详情",
+    "wizard.navigation.close": "关闭",
+    "wizard.navigation.review": "审核",
+    "wizard.navigation.go-to": "前往 $1",
+    "wizard.progress.step": "第 $1 步，共 $2 步",
+    "wizard.impact.live": "此步骤的实时影响"
 }

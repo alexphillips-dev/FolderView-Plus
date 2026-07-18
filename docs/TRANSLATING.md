@@ -1,6 +1,6 @@
 # Translating FolderView Plus
 
-FolderView Plus uses English as its source catalog and falls back to English whenever a translation is missing. A locale is only presented as complete after its messages have been reviewed by a person who can judge the language in context.
+FolderView Plus uses English as its source catalog and falls back to English whenever a translation is missing. A locale is presented as complete after every current source message is translated, the automated language contracts pass, and the project maintainer accepts it for shipping. Native-speaker feedback remains welcome, but it is not required to ship or retain a complete catalog.
 
 ## Catalog layout
 
@@ -15,7 +15,7 @@ Message keys describe meaning instead of copying English wording. New keys shoul
 ## Translation status
 
 - `source`: authoritative English source.
-- `complete`: every current source message is translated and human reviewed.
+- `complete`: every current source message is translated, structurally validated, and maintainer accepted for shipping.
 - `partial`: useful translations exist, but English fallback remains visible for missing or stale messages.
 - `placeholder`: no reviewed translation is currently shipped. The runtime deliberately loads English instead of an English-copy locale file.
 
@@ -88,9 +88,9 @@ FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Traditi
 1. Update the English source and increment the catalog version.
 2. Run the guards and review newly missing translations.
 3. Translate with UI context or screenshots available.
-4. Use machine translation only as a draft.
-5. Have a human reviewer verify terminology, plural forms, layout, and potentially destructive actions.
-6. Update locale metadata and registry status only after review.
+4. Machine-assisted translation may be used, but preserve product terms, parameters, markup, and locale-specific plural forms.
+5. Run the structural guards and review high-risk wording such as destructive actions, imports, restores, and deletion choices before maintainer acceptance.
+6. Update locale metadata and registry status only after every source key is present and the catalog is accepted for shipping.
 
 The repository is prepared for a Weblate project using the component masks and review controls in [TRANSLATION_PLATFORM.md](TRANSLATION_PLATFORM.md). JSON pull requests remain supported so the project is not dependent on an external translation service.
 

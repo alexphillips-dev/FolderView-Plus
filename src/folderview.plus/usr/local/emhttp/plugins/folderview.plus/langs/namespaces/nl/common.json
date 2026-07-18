@@ -1,7 +1,10 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "nl",
         "namespace": "common"
-    }
+    },
+    "common.labels.optional": "Optioneel",
+    "common.badges.recommended": "Aanbevolen",
+    "common.badges.can-delete": "Kan verwijderen"
 }

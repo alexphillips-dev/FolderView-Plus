@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ro",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "Asistent de configurare",
+    "wizard.welcome.kicker": "FolderView Plus Asistent de configurare",
+    "wizard.welcome.title": "Organizează-ți containerele Docker și VMs în foldere.",
+    "wizard.welcome.description": "FolderView Plus ajută la gruparea aplicațiilor conexe, previzualizarea modificărilor înainte de aplicare și, opțional, păstrarea automată a aplicațiilor viitoare organizate.",
+    "wizard.welcome.begin": "Începe configurarea",
+    "wizard.welcome.skip": "Sari peste expert",
+    "wizard.welcome.group-title": "Gruparea aplicațiilor conexe",
+    "wizard.welcome.group-description": "Păstrează împreună aplicațiile media, descărcări, utilitare, automatizare acasă și altele.",
+    "wizard.welcome.preview-title": "Previzualizare înainte de aplicare",
+    "wizard.welcome.preview-description": "Vei revizui folderele, atribuțiile, regulile și setările înainte ca vreo modificare să fie aplicată.",
+    "wizard.welcome.automatic-title": "Rămâi organizat automat",
+    "wizard.welcome.automatic-description": "Regulile opționale de pornire pot plasa automat aplicațiile viitoare potrivite în folderele corecte.",
+    "wizard.navigation.next": "Următorul",
+    "wizard.navigation.back": "Înapoi",
+    "wizard.navigation.begin": "Începe configurarea",
+    "wizard.navigation.run-preview": "Execută previzualizarea",
+    "wizard.navigation.apply": "Aplică configurarea",
+    "wizard.navigation.show-details": "Arată detalii",
+    "wizard.navigation.hide-details": "Ascunde detalii",
+    "wizard.navigation.close": "Închide",
+    "wizard.navigation.review": "Recenzie",
+    "wizard.navigation.go-to": "Mergi la $1",
+    "wizard.progress.step": "Pasul $1 din $2",
+    "wizard.impact.live": "Impact live pentru acest pas"
 }

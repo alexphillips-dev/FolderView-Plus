@@ -1,7 +1,31 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "tr",
         "namespace": "wizard"
-    }
+    },
+    "wizard.title": "Kurulum Yardımcısı",
+    "wizard.welcome.kicker": "FolderView Plus Kurulum Yardımcısı",
+    "wizard.welcome.title": "Docker konteynerlerinizi ve VMs klasörlere düzenleyin.",
+    "wizard.welcome.description": "FolderView Plus ilgili uygulamaları gruplamanıza, değişiklikleri uygulanmadan önce önizlemenize ve isteğe bağlı olarak gelecekteki uygulamaları otomatik olarak düzenli tutmanıza yardımcı olur.",
+    "wizard.welcome.begin": "Kuruluma Başla",
+    "wizard.welcome.skip": "Sihirbazı atla",
+    "wizard.welcome.group-title": "İlgili uygulamaları grupla",
+    "wizard.welcome.group-description": "Medya, indirmeler, araçlar, ev otomasyonu ve diğer uygulamaları bir arada tutun.",
+    "wizard.welcome.preview-title": "Uygulamadan önce önizle",
+    "wizard.welcome.preview-description": "Klasörleri, atamaları, kuralları ve ayarları herhangi bir değişiklik olmadan önce gözden geçireceksiniz.",
+    "wizard.welcome.automatic-title": "Otomatik olarak düzenli kal",
+    "wizard.welcome.automatic-description": "İsteğe bağlı başlangıç kuralları, gelecekteki eşleşen uygulamaları doğru klasörlere yerleştirebilir.",
+    "wizard.navigation.next": "İleri",
+    "wizard.navigation.back": "Geri",
+    "wizard.navigation.begin": "Kuruluma Başla",
+    "wizard.navigation.run-preview": "Önizlemeyi çalıştır",
+    "wizard.navigation.apply": "Kurulumu uygula",
+    "wizard.navigation.show-details": "Detayları göster",
+    "wizard.navigation.hide-details": "Ayrıntıları gizle",
+    "wizard.navigation.close": "Kapat",
+    "wizard.navigation.review": "İnceleme",
+    "wizard.navigation.go-to": "$1 öğesine git",
+    "wizard.progress.step": "$2 adımın $1. adımı",
+    "wizard.impact.live": "Bu adım için canlı etki"
 }

@@ -1,7 +1,18 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "ko",
         "namespace": "editor"
-    }
+    },
+    "editor.actions.add-custom": "사용자 정의 동작 추가",
+    "editor.actions.standard": "표준",
+    "editor.actions.user-script": "사용자 스크립트",
+    "editor.actions.control-members": "선택한 폴더 구성원을 제어합니다.",
+    "editor.actions.run-user-script": "User Scripts 플러그인에서 작업 실행",
+    "editor.members.toggle-preview-help": "이 구성원을 폴더에 유지하되 축소된 미리보기에서 숨깁니다.",
+    "editor.members.visible": "표시",
+    "editor.members.auto-included": "regex 또는 레이블에 의해 자동 포함",
+    "editor.members.drag-reorder": "순서 변경하려면 드래그",
+    "editor.members.move-up": "위로 이동",
+    "editor.members.move-down": "아래로 이동"
 }

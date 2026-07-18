@@ -1,7 +1,8 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "de",
         "namespace": "dashboard"
-    }
+    },
+    "dashboard.folder.toggle-members": "Ordnermitglieder umschalten"
 }

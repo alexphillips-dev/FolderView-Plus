@@ -1,7 +1,10 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.17.3",
+        "catalog-version": "2026.07.17.4",
         "locale": "it",
         "namespace": "common"
-    }
+    },
+    "common.labels.optional": "Opzionale",
+    "common.badges.recommended": "Consigliato",
+    "common.badges.can-delete": "Può eliminare"
 }

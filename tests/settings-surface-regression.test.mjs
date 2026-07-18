@@ -119,7 +119,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = refreshCoreData;/);
     assert.match(settingsJs, /coldLoad: settingsUiState\.initialized !== true/);
     assert.match(settingsCss, /\.fv-diagnostics-card-sections\s*\{/);
-    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-advisory > \.fv-diagnostics-card-grid/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-core\s*\{\s*grid-column:\s*1 \/ -1;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-advisory\s*\{\s*grid-column:\s*span 1;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional\s*\{\s*grid-column:\s*span 2;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-optional > \.fv-diagnostics-card-grid\s*\{\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/);
     assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);
     assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);

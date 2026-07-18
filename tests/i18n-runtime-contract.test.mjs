@@ -116,7 +116,7 @@ test('locale catalogs expose consistent versioned metadata and unique English ke
     }
 
     assert.ok(englishKeys.size > 300, 'expected the namespaced modern UI catalog to be included');
-    for (const file of fs.readdirSync(langsRoot).filter((name) => /^[a-z]{2}\.json$/.test(name))) {
+    for (const file of fs.readdirSync(langsRoot).filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))) {
         const catalog = readJson(path.join(langsRoot, file));
         assert.equal(catalog['@metadata']['catalog-version'], catalogVersion, `${file} catalog version`);
         assert.equal(catalog['@metadata']['total-source-messages'], englishKeys.size, `${file} source total`);
@@ -152,6 +152,7 @@ test('runtime loads English fallback for a regional locale and reports missing k
     assert.deepEqual(Array.from(runtime.api.snapshot().recentMissingKeys), ['missing.key']);
     assert.equal(runtime.dispatchedEvents.at(-1).type, 'folderviewplus:i18n-ready');
     assert.ok(runtime.getTranslatedDomCount() >= 1);
+    assert.ok(runtime.api.compare('Folder 2', 'Folder 10') < 0, 'locale comparison should use numeric collation');
 
     const pseudo = runtime.api.usePseudoLocale('ar-XB');
     assert.equal(pseudo.activeLocale, 'ar-XB');

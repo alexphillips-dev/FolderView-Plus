@@ -64,6 +64,7 @@ const dockerUpdateFlowReports = [];
 const dockerPreviewStatusReports = [];
 const dashboardAdvancedPreviewReports = [];
 const nativeOrganizerDiagnosticsReports = [];
+const localizationReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -1407,6 +1408,46 @@ const runBrowserSmoke = async (browserName, browserType) => {
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
         await waitForSettingsShell(page);
 
+        const localizationReport = await page.evaluate(() => {
+            const api = window.FolderViewPlusI18n;
+            if (!api || typeof api.usePseudoLocale !== 'function') {
+                return { available: false };
+            }
+            const source = api.snapshot();
+            const expanded = api.usePseudoLocale('en-XA');
+            const expandedState = {
+                lang: document.documentElement.lang,
+                dir: document.documentElement.dir,
+                translatedNodeCount: document.querySelectorAll('[data-i18n]').length,
+                horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)
+            };
+            const rtl = api.usePseudoLocale('ar-XB');
+            const rtlState = {
+                lang: document.documentElement.lang,
+                dir: document.documentElement.dir,
+                translatedNodeCount: document.querySelectorAll('[data-i18n]').length,
+                horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)
+            };
+            api.restoreLocale();
+            return { available: true, source, expanded, rtl, expandedState, rtlState };
+        });
+        if (localizationReport.available) {
+            if (localizationReport.expandedState.lang !== 'en-XA' || localizationReport.expandedState.dir !== 'ltr') {
+                throw new Error(`Expanded pseudo-locale did not apply correctly: ${JSON.stringify(localizationReport.expandedState)}`);
+            }
+            if (localizationReport.rtlState.lang !== 'ar-XB' || localizationReport.rtlState.dir !== 'rtl') {
+                throw new Error(`RTL pseudo-locale did not apply correctly: ${JSON.stringify(localizationReport.rtlState)}`);
+            }
+            await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('en-XA'));
+            const expandedScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-en-xa.png`);
+            await page.screenshot({ path: expandedScreenshotPath, fullPage: true });
+            await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('ar-XB'));
+            const rtlScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-ar-xb.png`);
+            await page.screenshot({ path: rtlScreenshotPath, fullPage: true });
+            await page.evaluate(() => window.FolderViewPlusI18n.restoreLocale());
+            localizationReports.push({ browserName, ...localizationReport, expandedScreenshotPath, rtlScreenshotPath });
+        }
+
         const importButton = page.getByRole('button', { name: /import/i }).first();
         const [chooser] = await Promise.all([
             page.waitForEvent('filechooser', { timeout: timeoutMs }),
@@ -1528,6 +1569,7 @@ try {
         dashboardReports,
         dashboardAdvancedPreviewReports,
         nativeOrganizerDiagnosticsReports,
+        localizationReports,
         folderEditorReports
     };
     const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');

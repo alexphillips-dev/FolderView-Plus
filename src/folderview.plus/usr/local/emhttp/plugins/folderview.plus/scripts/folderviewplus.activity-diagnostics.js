@@ -9,6 +9,9 @@ const diagnosticsPrefsCoordinator = diagnosticsPrefsStoreModule && typeof diagno
     : null;
 const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
 const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
+const diagnosticsT = (key, fallback = '', ...params) => (
+    window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
+);
 const diagnosticsSwal = typeof window.swal === 'function'
     ? window.swal.bind(window)
     : ((options) => {
@@ -485,7 +488,7 @@ const renderPerformanceDiagnostics = () => {
     }
     const renderRow = (label, summary, budgetMs = null) => {
         if (!summary) {
-            return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td colspan="5">No samples yet</td></tr>`;
+            return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td colspan="5">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.no-samples', 'No samples yet'))}</td></tr>`;
         }
         const resolvedBudgetMs = Number(summary.budgetMs || budgetMs);
         const budgetLabel = Number.isFinite(resolvedBudgetMs) && resolvedBudgetMs > 0 ? `${resolvedBudgetMs}ms` : '-';
@@ -510,10 +513,10 @@ const renderPerformanceDiagnostics = () => {
         ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
         : 'Not yet sampled';
     host.html(`
-        <div class="fv-perf-summary-note">Recent UI operation timings from the last 15 minutes. Cold loads are observed but do not trigger a warning by themselves.</div>
+        <div class="fv-perf-summary-note">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.note', 'Recent UI operation timings from the last 15 minutes. Cold loads are observed but do not trigger a warning by themselves.'))}</div>
         <table class="fv-perf-table">
             <thead>
-                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th><th>Budget</th></tr>
+                <tr><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.operation', 'Operation'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.samples', 'Samples'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.last', 'Last'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.average', 'Avg'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.maximum', 'Max'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.budget', 'Budget'))}</th></tr>
             </thead>
             <tbody>${rows}</tbody>
         </table>
@@ -977,10 +980,10 @@ const renderActivityFeed = () => {
         latest.html(`
             <div class="fv-activity-latest-icon is-info"><i class="fa fa-history" aria-hidden="true"></i></div>
             <div class="fv-activity-latest-copy">
-                <strong>No activity yet</strong>
-                <span>Folder changes, backups, imports, and recovery actions will appear here.</span>
+                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-title', 'No activity yet'))}</strong>
+                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.empty-description', 'Folder changes, backups, imports, and recovery actions will appear here.'))}</span>
             </div>
-            <span class="fv-activity-latest-time">Ready</span>
+            <span class="fv-activity-latest-time">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.activity.ready', 'Ready'))}</span>
         `);
         latest.addClass('is-empty').removeClass('is-fresh is-error is-warning is-success is-info');
         panel.show();
@@ -1139,7 +1142,7 @@ const renderAdvancedModuleStatus = (moduleKey) => {
         const message = String(status.message || 'Refresh failed.');
         host.classList.remove('is-info');
         host.classList.add('is-error');
-        host.innerHTML = `${diagnosticsEscapeHtml(config.label)} failed: ${diagnosticsEscapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${diagnosticsEscapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
+        host.innerHTML = `${diagnosticsEscapeHtml(config.label)} failed: ${diagnosticsEscapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${diagnosticsEscapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> ${diagnosticsEscapeHtml(diagnosticsT('diagnostics.actions.retry', 'Retry'))}</button>`;
         host.style.display = '';
         return;
     }
@@ -1233,13 +1236,13 @@ const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostic
         summaryHost.html(`
             <div class="fv-recovery-empty-state">
                 <strong>No recent ${diagnosticsEscapeHtml(typeLabel)} changes found.</strong>
-                <span>Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.</span>
+                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.refresh-description', 'Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.'))}</span>
             </div>
         `);
         listHost.html(`
             <div class="fv-recovery-empty-state">
-                <strong>No timeline entries yet.</strong>
-                <span>Recent change cards will appear here for the selected recovery source.</span>
+                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.empty-title', 'No timeline entries yet.'))}</strong>
+                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.history.empty-description', 'Recent change cards will appear here for the selected recovery source.'))}</span>
             </div>
         `);
         return;
@@ -1569,6 +1572,75 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
     };
 };
 
+const buildLocalizationDiagnosticsSummaryCard = () => {
+    const snapshot = window.FolderViewPlusI18n?.snapshot?.();
+    if (!snapshot || typeof snapshot !== 'object') {
+        return null;
+    }
+    const requestedLocale = String(snapshot.requestedLocale || 'en');
+    const resolvedLocale = String(snapshot.resolvedLocale || 'en');
+    const report = snapshot.requestedLocaleReport && typeof snapshot.requestedLocaleReport === 'object'
+        ? snapshot.requestedLocaleReport
+        : (snapshot.activeLocaleReport && typeof snapshot.activeLocaleReport === 'object' ? snapshot.activeLocaleReport : null);
+    const coverage = Math.max(0, Math.min(100, Number(report?.coveragePercent) || 0));
+    const translated = Math.max(0, Number(report?.translatedMessages) || 0);
+    const total = Math.max(0, Number(report?.totalSourceMessages) || Number(snapshot.catalogSummary?.sourceMessageCount) || 0);
+    const missing = Math.max(0, Number(report?.missingMessages) || (total - translated));
+    const stale = Math.max(0, Number(report?.potentiallyStaleMessages) || 0);
+    const isSource = resolvedLocale === 'en' && requestedLocale === 'en';
+    const usesFallback = requestedLocale !== resolvedLocale;
+    const reviewedCurrent = report?.reviewedAgainstCurrentSource === true;
+    const status = snapshot.loadErrors?.length > 0 ? 'warning' : (isSource || (coverage === 100 && reviewedCurrent) ? 'healthy' : 'info');
+    let headline = diagnosticsT('diagnostics.localization.healthy', 'The active language catalog is current.');
+    if (snapshot.loadErrors?.length > 0) {
+        headline = diagnosticsT('diagnostics.localization.load-error', 'One or more language catalogs could not be loaded.');
+    } else if (usesFallback) {
+        headline = diagnosticsT('diagnostics.localization.fallback', '$1 is using the $2 fallback.', requestedLocale, resolvedLocale);
+    } else if (!reviewedCurrent) {
+        headline = diagnosticsT('diagnostics.localization.review-needed', '$1 is partially translated and needs human review.', requestedLocale);
+    }
+    const detail = isSource
+        ? diagnosticsT('diagnostics.localization.source-detail', '$1 source messages across $2 namespaces are loaded.', total, Number(snapshot.catalogSummary?.namespaceCount) || 0)
+        : diagnosticsT('diagnostics.localization.coverage-detail', '$1% translated: $2 complete, $3 missing.', coverage, translated, missing);
+    const technicalDetails = [
+        diagnosticsT('diagnostics.localization.catalog-version', 'Catalog version: $1', String(snapshot.catalogVersion || 'unknown')),
+        diagnosticsT('diagnostics.localization.requested-resolved', 'Requested: $1; resolved: $2', requestedLocale, resolvedLocale),
+        Number(snapshot.catalogSummary?.extractionCandidateCount) > 0
+            ? diagnosticsT('diagnostics.localization.extraction-debt', '$1 legacy UI string candidates still need explicit catalog bindings.', snapshot.catalogSummary.extractionCandidateCount)
+            : '',
+        stale > 0 ? diagnosticsT('diagnostics.localization.stale', '$1 translated messages may predate the current English source.', stale) : '',
+        snapshot.missingKeyCount > 0 ? diagnosticsT('diagnostics.localization.runtime-missing', '$1 missing keys were observed in this page session.', snapshot.missingKeyCount) : '',
+        ...(Array.isArray(snapshot.loadErrors)
+            ? snapshot.loadErrors.map((entry) => `${entry.locale || 'unknown'}/${entry.namespace || 'catalog'}: ${entry.error || 'load failed'}`)
+            : []),
+        ...Object.entries(snapshot.localeCoverage || {})
+            .filter(([locale]) => locale !== 'en')
+            .sort(([left], [right]) => window.FolderViewPlusI18n?.compare?.(left, right) ?? left.localeCompare(right))
+            .map(([locale, localeReport]) => diagnosticsT(
+                'diagnostics.localization.locale-row',
+                '$1: $2% translated, $3, review $4.',
+                locale,
+                Number(localeReport?.coveragePercent) || 0,
+                String(localeReport?.status || 'placeholder'),
+                localeReport?.reviewedAgainstCurrentSource === true ? 'current' : 'needed'
+            ))
+    ].filter(Boolean);
+    return {
+        key: 'localization',
+        label: diagnosticsT('diagnostics.localization.label', 'Localization'),
+        status,
+        badgeLabel: isSource ? diagnosticsT('diagnostics.localization.source', 'Source') : `${coverage}%`,
+        headline,
+        detail,
+        count: snapshot.loadErrors?.length || 0,
+        meta: isSource
+            ? diagnosticsT('diagnostics.localization.current', 'Current source catalog')
+            : diagnosticsT('diagnostics.localization.progress', '$1 of $2 messages', translated, total),
+        freshness: diagnosticsT('diagnostics.localization.ready', 'Catalog loaded $1', formatCheckedAtLabel(snapshot.readyAt)),
+        technicalDetails
+    };
+};
+
 const resolveDiagnosticsRecommendedActions = (diagnostics) => {
     const summary = diagnostics?.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
     const actions = Array.isArray(summary.recommendedActions) ? [...summary.recommendedActions] : [];
@@ -1610,8 +1682,8 @@ const renderDiagnosticsActionCards = (actions) => {
     if (!Array.isArray(actions) || actions.length === 0) {
         actionHost.html(`
             <div class="fv-diagnostics-empty-state is-compact">
-                <strong>No repair actions are recommended right now.</strong>
-                <span>The current health check does not suggest any one-click fixes.</span>
+                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.fixes.none-title', 'No repair actions are recommended right now.'))}</strong>
+                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.fixes.none-description', 'The current health check does not suggest any one-click fixes.'))}</span>
             </div>
         `);
         return;
@@ -1681,7 +1753,7 @@ const buildDiagnosticsCardDetailsHtml = (card) => {
     }
     return `
         <details class="fv-diagnostics-card-details">
-            <summary>Technical details</summary>
+            <summary>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.cards.technical-details', 'Technical details'))}</summary>
             <ul>${details.map((detail) => `<li>${diagnosticsEscapeHtml(detail)}</li>`).join('')}</ul>
         </details>
     `;
@@ -1758,8 +1830,8 @@ const renderDiagnosticsSummary = (diagnostics) => {
         if (!themeCard) {
             summaryHost.html(`
                 <div class="fv-diagnostics-empty-state">
-                    <strong>Run health check to inspect the plugin state.</strong>
-                    <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+                    <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.summary.empty-title', 'Run health check to inspect the plugin state.'))}</strong>
+                    <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.summary.empty-description', 'The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.'))}</span>
                 </div>
             `);
             renderDiagnosticsActionCards([]);
@@ -1772,8 +1844,8 @@ const renderDiagnosticsSummary = (diagnostics) => {
         summaryHost.html(`
             <div class="fv-diagnostics-overview is-${status}">
                 <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</div>
-                <div class="fv-diagnostics-overview-headline">Theme diagnostics are live before a full health check.</div>
-                <div class="fv-diagnostics-overview-detail">Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.</div>
+                <div class="fv-diagnostics-overview-headline">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.theme.live-title', 'Theme diagnostics are live before a full health check.'))}</div>
+                <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.theme.live-description', 'Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.'))}</div>
                 <div class="fv-diagnostics-overview-meta">
                     <span class="fv-diagnostics-pill">Theme checked ${diagnosticsEscapeHtml(themeCheckedAt)}</span>
                 </div>
@@ -1799,11 +1871,12 @@ const renderDiagnosticsSummary = (diagnostics) => {
     }));
     const nativeOrganizerCard = buildNativeOrganizerDiagnosticsSummaryCard(diagnostics);
     const performanceBudgetCard = buildPerformanceBudgetDiagnosticsSummaryCard();
+    const localizationCard = buildLocalizationDiagnosticsSummaryCard();
     if (themeCard) {
         coreCards.push(themeCard);
     }
     const advisoryCards = performanceBudgetCard ? [performanceBudgetCard] : [];
-    const optionalCards = nativeOrganizerCard ? [nativeOrganizerCard] : [];
+    const optionalCards = [nativeOrganizerCard, localizationCard].filter(Boolean);
     const coreErrorCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'error').length;
     const coreWarningCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'warning').length;
     const coreHealthyCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'healthy').length;

@@ -15,6 +15,8 @@
         direction: 'ltr',
         requestedDirection: 'ltr',
         catalogVersion: 'unknown',
+        catalogReport: null,
+        registry: {},
         namespaces: ['legacy'],
         loadedCatalogs: [],
         loadErrors: [],
@@ -154,6 +156,13 @@
     const formatDate = (value, options = {}) => formatter('DateTimeFormat', options).format(value instanceof Date ? value : new Date(value));
     const formatRelativeTime = (value, unit, options = {}) => formatter('RelativeTimeFormat', options).format(value, unit);
     const formatList = (values, options = {}) => formatter('ListFormat', options).format(Array.isArray(values) ? values : []);
+    const compare = (left, right, options = {}) => {
+        try {
+            return formatter('Collator', { sensitivity: 'base', numeric: true, ...options }).compare(String(left ?? ''), String(right ?? ''));
+        } catch (_error) {
+            return String(left ?? '').localeCompare(String(right ?? ''));
+        }
+    };
 
     const pseudoAccentMap = Object.freeze({
         A: 'Å', B: 'Ɓ', C: 'Ç', D: 'Ð', E: 'Ë', F: 'Ƒ', G: 'Ĝ', H: 'Ħ', I: 'Ï', J: 'Ĵ', K: 'Ķ', L: 'Ļ', M: 'Ṁ',
@@ -210,13 +219,41 @@
         return snapshot();
     };
 
-    const snapshot = () => ({
+    const snapshot = () => {
+        const localeRows = state.catalogReport?.locales && typeof state.catalogReport.locales === 'object'
+            ? state.catalogReport.locales
+            : {};
+        const activeReport = localeRows[state.resolvedLocale]
+            || localeRows[state.requestedLocale]
+            || localeRows.en
+            || null;
+        const requestedReport = localeRows[state.requestedLocale] || null;
+        return ({
         requestedLocale: state.requestedLocale,
         resolvedLocale: state.resolvedLocale,
         activeLocale: state.activeLocale,
         fallbackChain: state.fallbackChain.slice(),
         direction: state.direction,
         catalogVersion: state.catalogVersion,
+        catalogSummary: state.catalogReport ? {
+            sourceMessageCount: Number(state.catalogReport.sourceMessageCount) || 0,
+            namespaceCount: Number(state.catalogReport.namespaceCount) || 0,
+            localeCount: Object.keys(localeRows).length,
+            extractionCandidateCount: Number(state.catalogReport.extraction?.candidateCount) || 0,
+            largestUnextractedSurfaces: { ...(state.catalogReport.extraction?.largestSurfaces || {}) }
+        } : null,
+        activeLocaleReport: activeReport ? { ...activeReport } : null,
+        requestedLocaleReport: requestedReport ? { ...requestedReport } : null,
+        localeCoverage: Object.fromEntries(Object.entries(localeRows).map(([locale, report]) => [locale, {
+            status: String(report?.status || 'placeholder'),
+            reviewed: report?.reviewed === true,
+            reviewedAgainstCurrentSource: report?.reviewedAgainstCurrentSource === true,
+            translatedMessages: Number(report?.translatedMessages) || 0,
+            totalSourceMessages: Number(report?.totalSourceMessages) || 0,
+            missingMessages: Number(report?.missingMessages) || 0,
+            coveragePercent: Number(report?.coveragePercent) || 0,
+            potentiallyStaleMessages: Number(report?.potentiallyStaleMessages) || 0
+        }])),
         namespaces: state.namespaces.slice(),
         loadedCatalogs: state.loadedCatalogs.map((entry) => ({ ...entry })),
         loadErrors: state.loadErrors.map((entry) => ({ ...entry })),
@@ -224,7 +261,8 @@
         recentMissingKeys: Array.from(state.missingKeys),
         initialized: state.initialized,
         readyAt: state.readyAt
-    });
+        });
+    };
 
     const loadCatalog = async (asset) => {
         const locale = normalizeLocale(asset?.locale || 'en');
@@ -263,6 +301,10 @@
         state.direction = localeDirection(state.requestedLocale, config.direction || '');
         state.requestedDirection = state.direction;
         state.catalogVersion = String(config.catalogVersion || 'unknown');
+        state.catalogReport = config.catalogReport && typeof config.catalogReport === 'object'
+            ? config.catalogReport
+            : null;
+        state.registry = config.registry && typeof config.registry === 'object' ? config.registry : {};
         state.namespaces = Array.isArray(config.namespaces) ? config.namespaces.map(String) : ['legacy'];
         setDocumentLocale(state.requestedLocale, state.direction);
         try {
@@ -304,6 +346,7 @@
         formatDate,
         formatRelativeTime,
         formatList,
+        compare,
         snapshot,
         usePseudoLocale,
         restoreLocale

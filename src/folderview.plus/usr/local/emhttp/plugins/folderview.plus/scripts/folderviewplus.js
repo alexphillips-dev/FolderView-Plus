@@ -4,6 +4,10 @@ const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
+const compareLocalizedText = (left, right, options = {}) => (
+    window.FolderViewPlusI18n?.compare?.(left, right, options)
+    ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
+);
 const resolveThemeCompatibilityMode = (value) => {
     if (themeResolver && typeof themeResolver.normalizeThemeCompatibilityMode === 'function') {
         return themeResolver.normalizeThemeCompatibilityMode(value);
@@ -3376,7 +3380,7 @@ const renderFolderDefaultsPanel = (type) => {
 
     const folders = getFolderMap(resolvedType);
     const entries = Object.entries(folders).sort((left, right) => (
-        String(left?.[1]?.name || left?.[0] || '').localeCompare(String(right?.[1]?.name || right?.[0] || ''))
+        compareLocalizedText(left?.[1]?.name || left?.[0] || '', right?.[1]?.name || right?.[0] || '')
     ));
     const defaults = getFolderDefaultsForType(resolvedType);
     const previousValue = String(select.val() || '').trim();
@@ -4799,7 +4803,7 @@ const getSortedBackupsForType = (type) => {
         if (leftTime !== rightTime) {
             return rightTime - leftTime;
         }
-        return String(right?.name || '').localeCompare(String(left?.name || ''));
+        return compareLocalizedText(right?.name || '', left?.name || '');
     });
 };
 

@@ -174,7 +174,7 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|translate)\(\s*['"]([^'"]+)['"]/g;
+  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|translate)\(\s*['"]([^'"]+)['"]/g;
   while ((match = applicationWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;
@@ -247,6 +247,28 @@ if (hardcodedRegressions.length > 0) {
   process.exit(1);
 }
 const hardcodedTotal = Object.values(hardcodedCounts).reduce((sum, count) => sum + Number(count || 0), 0);
+const extractionReportPath = path.join(langDir, 'extraction-report.json');
+let extractionReport;
+try {
+  extractionReport = JSON.parse(fs.readFileSync(extractionReportPath, 'utf8'));
+} catch (error) {
+  console.error(`ERROR: Missing or invalid localization extraction report ${extractionReportPath}: ${error.message}`);
+  process.exit(1);
+}
+const englishRoot = JSON.parse(fs.readFileSync(path.join(langDir, 'en.json'), 'utf8'));
+const catalogVersion = String(englishRoot?.['@metadata']?.['catalog-version'] || '');
+if (String(extractionReport?.['catalog-version'] || '') !== catalogVersion) {
+  console.error(`ERROR: Localization extraction report catalog version does not match ${catalogVersion}.`);
+  process.exit(1);
+}
+if (Number(extractionReport?.['candidate-count']) !== hardcodedTotal) {
+  console.error(`ERROR: Localization extraction report has ${Number(extractionReport?.['candidate-count']) || 0} candidates; measured ${hardcodedTotal}.`);
+  process.exit(1);
+}
+if (Number(extractionReport?.['catalog-message-count']) !== localeKeys.size) {
+  console.error(`ERROR: Localization extraction report has ${Number(extractionReport?.['catalog-message-count']) || 0} catalog messages; measured ${localeKeys.size}.`);
+  process.exit(1);
+}
 
 console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${catalogFiles.length} English catalog file(s), ${referencedKeys.size} unique keys referenced, ${hardcodedTotal} baselined hard-coded candidate(s).`);
 NODE

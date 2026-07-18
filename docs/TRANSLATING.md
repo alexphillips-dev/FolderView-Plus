@@ -7,7 +7,7 @@ FolderView Plus uses English as its source catalog and falls back to English whe
 - `src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/en.json` contains legacy messages.
 - `src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/en/` contains feature-oriented modern messages.
 - `src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/<locale>.json` contains existing non-English legacy translations.
-- Future modern translations belong under `langs/namespaces/<locale>/<namespace>.json`.
+- Modern translation scaffolds live under `langs/namespaces/<locale>/<namespace>.json`; add reviewed messages to the existing locale file instead of copying English into it.
 - `langs/registry.php` records the native language name, direction, and review status used by the runtime loader.
 
 Message keys describe meaning instead of copying English wording. New keys should use a feature namespace, for example `docker.privacy.mask-lan-ips` or `wizard.navigation.review`. Do not rename a key solely because the English sentence was edited.
@@ -75,9 +75,13 @@ FolderViewPlusI18n.restoreLocale()
 
 Test Docker, VMs, Dashboard, Settings Basic and Advanced, the Setup Assistant, import dialogs, diagnostics, and the modern folder editor. Look for clipping, fixed-width controls, incorrect icon placement, English strings, and broken keyboard or screen-reader labels.
 
+The repository browser smoke run also activates `en-XA` and `ar-XB`, verifies language and direction state, and saves full-page screenshots for expansion and RTL review.
+
 ## Regional locales
 
 Locale names follow BCP 47. Add a regional file only when the language actually differs, such as `pt-BR`, `pt-PT`, `zh-Hans`, or `zh-Hant`. The loader resolves the most specific available locale, then its base language, then English.
+
+FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Traditional Chinese requests deliberately fall back to English until a reviewed `zh-Hant` catalog exists; they must never silently receive Simplified Chinese text.
 
 ## Review workflow
 
@@ -88,4 +92,8 @@ Locale names follow BCP 47. Add a regional file only when the language actually 
 5. Have a human reviewer verify terminology, plural forms, layout, and potentially destructive actions.
 6. Update locale metadata and registry status only after review.
 
-Crowdin or Weblate can be added later without changing runtime message keys. JSON contributions remain supported so the project is not dependent on an external translation service.
+The repository is prepared for a Weblate project using the component masks and review controls in [TRANSLATION_PLATFORM.md](TRANSLATION_PLATFORM.md). JSON pull requests remain supported so the project is not dependent on an external translation service.
+
+## Coverage and extraction debt
+
+Diagnostics reports legacy and modern namespace coverage separately, whether a locale was reviewed against the current English source, and the count of translations that may be stale. It also reports the heuristic hard-coded UI candidate count from `langs/extraction-report.json`. Catalog coverage and extraction coverage are different: a locale can translate every catalog key while untranslated hard-coded UI still remains. The guards reject stale extraction-report totals and any new hard-coded-string regression.

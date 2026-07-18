@@ -2427,6 +2427,8 @@
     function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array $redactor): array {
         $requestedLocale = fvplus_i18n_normalize_locale((string)($_SESSION['locale'] ?? 'en'));
         $localeResolution = fvplus_i18n_resolve_locale($requestedLocale);
+        $catalogReport = fvplus_i18n_catalog_report();
+        $localeCoverage = is_array($catalogReport['locales'] ?? null) ? $catalogReport['locales'] : [];
         return [
             'bundleType' => 'FolderViewPlusSupportBundle',
             'bundleVersion' => 2,
@@ -2444,7 +2446,15 @@
                 'fallbackChain' => array_values(is_array($localeResolution['fallbackChain'] ?? null) ? $localeResolution['fallbackChain'] : [$requestedLocale, 'en']),
                 'direction' => (string)($localeResolution['direction'] ?? 'ltr'),
                 'catalogVersion' => FVPLUS_I18N_CATALOG_VERSION,
-                'status' => (string)($localeResolution['status'] ?? 'source')
+                'status' => (string)($localeResolution['status'] ?? 'source'),
+                'requestedStatus' => (string)($localeResolution['requestedStatus'] ?? 'unregistered'),
+                'sourceMessageCount' => (int)($catalogReport['sourceMessageCount'] ?? 0),
+                'namespaceCount' => (int)($catalogReport['namespaceCount'] ?? 0),
+                'extractionCandidateCount' => (int)($catalogReport['extraction']['candidateCount'] ?? 0),
+                'localeCount' => count($localeCoverage),
+                'activeLocaleCoverage' => is_array($localeCoverage[$localeResolution['resolved'] ?? 'en'] ?? null)
+                    ? $localeCoverage[$localeResolution['resolved'] ?? 'en']
+                    : null
             ],
             'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics)
         ];

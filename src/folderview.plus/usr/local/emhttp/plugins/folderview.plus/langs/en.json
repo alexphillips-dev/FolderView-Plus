@@ -1,17 +1,17 @@
 {
     "@metadata": {
         "authors": [],
-        "catalog-version": "2026.07.17.2",
+        "catalog-version": "2026.07.17.3",
         "direction": "ltr",
         "last-reviewed": "2026-07-17",
         "last-updated": "2026-07-17",
         "locale": "en",
         "native-name": "English",
         "reviewed": true,
-        "source-revision": "2026.07.17.2",
+        "source-revision": "2026.07.17.3",
         "status": "source",
-        "translated-messages": 336,
-        "total-source-messages": 336
+        "translated-messages": 373,
+        "total-source-messages": 373
     },
     "add-folder": "Add Folder",
     "up-to-date": "up-to-date",

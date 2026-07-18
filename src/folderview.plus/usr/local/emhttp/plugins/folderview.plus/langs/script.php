@@ -24,7 +24,7 @@
     foreach ($requestedNamespaces as $namespace) {
         $namespacePath = "/plugins/folderview.plus/langs/namespaces/en/$namespace.json";
         $namespaceSourcePath = "/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/en/$namespace.json";
-        if (is_file($namespaceSourcePath)) {
+        if (is_file($namespaceSourcePath) && fvplus_i18n_catalog_file_has_messages($namespaceSourcePath)) {
             $localeAssets[] = [
                 'locale' => 'en',
                 'namespace' => $namespace,
@@ -40,7 +40,7 @@
         ];
         foreach ($requestedNamespaces as $namespace) {
             $namespaceSourcePath = "/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/$resolvedLocale/$namespace.json";
-            if (is_file($namespaceSourcePath)) {
+            if (is_file($namespaceSourcePath) && fvplus_i18n_catalog_file_has_messages($namespaceSourcePath)) {
                 $localeAssets[] = [
                     'locale' => $resolvedLocale,
                     'namespace' => $namespace,
@@ -49,14 +49,18 @@
             }
         }
     }
+    $catalogReport = in_array('diagnostics', $requestedNamespaces, true)
+        ? fvplus_i18n_catalog_report()
+        : fvplus_i18n_catalog_report(['en', $requestedLocale, $resolvedLocale]);
     $i18nBootstrap = [
         'requestedLocale' => $requestedLocale,
         'resolvedLocale' => $resolvedLocale,
         'fallbackChain' => $localeResolution['fallbackChain'] ?? [$requestedLocale, 'en'],
         'direction' => $localeResolution['direction'] ?? 'ltr',
         'catalogVersion' => FVPLUS_I18N_CATALOG_VERSION,
+        'catalogReport' => $catalogReport,
         'namespaces' => $requestedNamespaces,
-        'registry' => fvplus_i18n_public_registry(),
+        'registry' => fvplus_i18n_public_registry($catalogReport),
         'assets' => $localeAssets
     ];
 ?>

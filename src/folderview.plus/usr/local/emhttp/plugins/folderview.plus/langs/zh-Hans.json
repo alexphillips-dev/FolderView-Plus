@@ -1,17 +1,17 @@
 {
     "@metadata": {
         "authors": [],
-        "catalog-version": "2026.07.17.2",
+        "catalog-version": "2026.07.17.3",
         "direction": "ltr",
         "last-reviewed": null,
         "last-updated": "2023-11-30",
-        "locale": "zh",
-        "native-name": "中文",
+        "locale": "zh-Hans",
+        "native-name": "简体中文",
         "reviewed": false,
         "source-revision": "2023.11.29",
         "status": "partial",
         "translated-messages": 149,
-        "total-source-messages": 336
+        "total-source-messages": 373
     },
     "add-folder": "添加文件夹",
     "up-to-date": "最新",

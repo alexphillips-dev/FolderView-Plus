@@ -93,7 +93,10 @@ if (!rootFiles.includes('en.json')) {
 
 const base = buildCatalog('en');
 const baseKeys = Object.keys(base.messages).sort();
+const baseCatalogVersion = String(base.metadata?.['catalog-version'] || '');
+const englishNamespaces = localeNamespaceFiles('en').map((file) => path.basename(file));
 if (baseKeys.length === 0) fail('English source catalog has no messages.');
+if (!baseCatalogVersion) fail('English source catalog has no catalog-version.');
 
 for (const [key, value] of Object.entries(base.messages)) {
   if (typeof value !== 'string') fail(`English key "${key}" must map to a string.`);
@@ -114,6 +117,9 @@ for (const file of rootFiles) {
     if (!Object.prototype.hasOwnProperty.call(metadata, key)) fail(`${file} metadata is missing "${key}".`);
   }
   if (metadata.locale !== locale) fail(`${file} metadata locale must be "${locale}".`);
+  if (String(metadata['catalog-version'] || '') !== baseCatalogVersion) {
+    fail(`${file} catalog-version is ${metadata['catalog-version'] || '(missing)'}; expected ${baseCatalogVersion}.`);
+  }
   if (!allowedStatuses.has(String(metadata.status || ''))) fail(`${file} has invalid translation status "${metadata.status}".`);
   if (!allowedDirections.has(String(metadata.direction || ''))) fail(`${file} has invalid direction "${metadata.direction}".`);
   if (typeof metadata.reviewed !== 'boolean') fail(`${file} metadata reviewed must be boolean.`);
@@ -128,6 +134,27 @@ for (const file of rootFiles) {
   }
   if (metadata.status === 'complete' && metadata['source-revision'] !== base.metadata?.['source-revision']) {
     fail(`${file} claims complete status against a stale source revision.`);
+  }
+
+  const namespaceFiles = localeNamespaceFiles(locale);
+  const namespaceNames = namespaceFiles.map((namespaceFile) => path.basename(namespaceFile));
+  const missingNamespaces = englishNamespaces.filter((namespace) => !namespaceNames.includes(namespace));
+  if (missingNamespaces.length > 0) {
+    fail(`${file} is missing namespace scaffold(s): ${missingNamespaces.join(', ')}`);
+  }
+  for (const namespaceFile of namespaceFiles) {
+    const namespaceCatalog = readJson(namespaceFile);
+    const namespaceMetadata = namespaceCatalog['@metadata'];
+    const expectedNamespace = path.basename(namespaceFile, '.json');
+    if (!namespaceMetadata || typeof namespaceMetadata !== 'object' || Array.isArray(namespaceMetadata)) {
+      fail(`${namespaceFile} requires an @metadata object.`);
+      continue;
+    }
+    if (namespaceMetadata.locale !== locale) fail(`${namespaceFile} metadata locale must be "${locale}".`);
+    if (namespaceMetadata.namespace !== expectedNamespace) fail(`${namespaceFile} metadata namespace must be "${expectedNamespace}".`);
+    if (String(namespaceMetadata['catalog-version'] || '') !== baseCatalogVersion) {
+      fail(`${namespaceFile} catalog-version is ${namespaceMetadata['catalog-version'] || '(missing)'}; expected ${baseCatalogVersion}.`);
+    }
   }
 
   const extra = Object.keys(catalog.messages).filter((key) => !Object.prototype.hasOwnProperty.call(base.messages, key));
@@ -175,7 +202,21 @@ for (const file of rootFiles) {
   if (metadata.status === 'partial' && metadata['translated-messages'] !== translated) {
     fail(`${file} translated-messages is ${metadata['translated-messages']}; measured ${translated}.`);
   }
-  coverageRows.push({ locale, status: metadata.status, translated, total: baseKeys.length, loadedKeys: Object.keys(catalog.messages).length });
+  const modernTotal = Object.keys(base.messages).filter((key) => !Object.prototype.hasOwnProperty.call(readJson(path.join(langDir, 'en.json')), key)).length;
+  const legacySource = readJson(path.join(langDir, 'en.json'));
+  const modernTranslated = locale === 'en'
+    ? modernTotal
+    : Object.keys(catalog.messages).filter((key) => !Object.prototype.hasOwnProperty.call(legacySource, key) && catalog.messages[key] !== base.messages[key]).length;
+  coverageRows.push({
+    locale,
+    status: metadata.status,
+    translated,
+    total: baseKeys.length,
+    loadedKeys: Object.keys(catalog.messages).length,
+    modernTranslated,
+    modernTotal,
+    stale: locale !== 'en' && metadata['source-revision'] !== base.metadata?.['source-revision']
+  });
 }
 
 if (failed) process.exit(1);
@@ -184,7 +225,7 @@ for (const warning of warnings.slice(0, 30)) console.log(`WARN: ${warning}`);
 if (warnings.length > 30) console.log(`WARN: ${warnings.length - 30} additional translation review warning(s) omitted.`);
 for (const row of coverageRows) {
   const percent = row.total > 0 ? Math.round((row.translated / row.total) * 100) : 0;
-  console.log(`  ${row.locale.padEnd(7)} ${String(row.status).padEnd(11)} ${String(row.translated).padStart(3)}/${row.total} (${String(percent).padStart(3)}%) ${row.loadedKeys} loaded key(s)`);
+  console.log(`  ${row.locale.padEnd(7)} ${String(row.status).padEnd(11)} ${String(row.translated).padStart(3)}/${row.total} (${String(percent).padStart(3)}%) modern ${row.modernTranslated}/${row.modernTotal}${row.stale ? ' STALE-SOURCE' : ''}`);
 }
 console.log(`i18n guard passed: ${rootFiles.length} locale file(s), ${baseKeys.length} aggregate English keys, metadata and message contracts valid.`);
 NODE

@@ -11,6 +11,10 @@ let hiddenPreviewMembers = new Set();
 const folderEditorT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
 );
+const compareFolderEditorText = (left, right, options = {}) => (
+    window.FolderViewPlusI18n?.compare?.(left, right, options)
+    ?? String(left ?? '').localeCompare(String(right ?? ''), undefined, options)
+);
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
@@ -3678,7 +3682,7 @@ const startFolderEditorRuntime = async () => {
         }
     }
 
-    choose.sort((a, b) => a.Name.localeCompare(b.Name));
+    choose.sort((a, b) => compareFolderEditorText(a.Name, b.Name));
     await bindIconPickerEvents();
 
     updateList();
@@ -4902,7 +4906,7 @@ const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
             parentName
         };
     })
-    .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
+    .sort((left, right) => compareFolderEditorText(left.name, right.name, { sensitivity: 'base' }));
 
 function getMemberBulkMoveTargets() {
     return getFolderSettingsApplyTargets();

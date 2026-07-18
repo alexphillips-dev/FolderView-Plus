@@ -115,6 +115,21 @@ test('switching Docker page views rebuilds native rows before FolderView renders
     assert.equal(prefs.pageViewMode, 'folderview');
 });
 
+test('Host list restores native container rows from FolderView storage', () => {
+    assert.match(dockerJs, /const restoreDockerNativeHostList = async \(requestBundle = null\) => \{/);
+    assert.match(dockerJs, /const allRows = Array\.from\(tbody\.querySelectorAll\('tr'\)\)/);
+    assert.match(dockerJs, /const folderRows = allRows\.filter[\s\S]*row\.classList\.contains\('folder'\)/);
+    assert.match(dockerJs, /const currentIsNativeDirectRow = row\.parentElement === tbody;[\s\S]*rowsByName\.set\(name, row\)/);
+    assert.match(dockerJs, /normalizeDockerNativeHostOrder\(orderPayload\)/);
+    assert.match(dockerJs, /row\.classList\.remove\([\s\S]*'folder-element',[\s\S]*'fv-nested-hidden',[\s\S]*'fv-folder-focus-hidden',[\s\S]*'fv-toolbar-filter-hidden'/);
+    assert.match(dockerJs, /row\.classList\.add\('sortable'\);[\s\S]*row\.style\.removeProperty\('display'\)/);
+    assert.match(dockerJs, /orderedRows\.forEach\(\(row\) => fragment\.appendChild\(row\)\);[\s\S]*folderRows\.forEach\(\(row\) => row\.remove\(\)\);[\s\S]*tbody\.appendChild\(fragment\)/);
+    assert.match(dockerJs, /if \(mode === 'host'\) \{[\s\S]*Promise\.resolve\(restoreDockerNativeHostList\(requestBundle\)\)/);
+    assert.match(dockerJs, /host-list-restore-failed[\s\S]*dockerHostLoadOwnsLoadingUi = false;[\s\S]*hideDockerRuntimeLoadingOverlay\(\);[\s\S]*hideDockerRuntimeLoadingRow\(\)/);
+    assert.match(dockerJs, /appendDockerRequestBundleTrace\('host-list-restored'/);
+    assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{[\s\S]*pageViewMode: resolveDockerPageViewMode\(\)/);
+});
+
 test('action menus use viewport-aware fixed positioning and support dismissal plus keyboard navigation', () => {
     assert.match(dockerCss, /\.fvplus-docker-action-menu \{[\s\S]*position: fixed/);
     assert.match(dockerCss, /\.fvplus-docker-action-menu\.is-open\.is-positioned \{[\s\S]*visibility: visible/);

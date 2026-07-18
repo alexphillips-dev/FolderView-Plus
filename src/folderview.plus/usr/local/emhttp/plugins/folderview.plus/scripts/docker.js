@@ -914,6 +914,7 @@ const getDockerCommandViewApi = () => {
 const buildDockerDiagnosticsCorrelationContext = () => ({
     currentPage: String(location?.pathname || ''),
     listViewMode: readDockerListViewMode(),
+    pageViewMode: resolveDockerPageViewMode(),
     renderGeneration: dockerRuntimeLastRenderGeneration,
     requestGeneration: Number(folderReq?.generation || 0),
     traceSessionId: dockerDiagnosticsTraceSessionId,
@@ -4387,6 +4388,143 @@ const unmountDockerCommandView = () => {
     }
 };
 
+const readDockerContainerNameFromHostRow = (row) => {
+    if (!(row instanceof HTMLElement)) {
+        return '';
+    }
+    const rawId = String(row.id || '').trim();
+    if (rawId.startsWith('ct-')) {
+        const nameFromId = rawId.slice(3).trim();
+        if (nameFromId) {
+            return nameFromId;
+        }
+    }
+    return String($(row).find('td.ct-name .appname').first().text() || '').trim();
+};
+
+const normalizeDockerNativeHostOrder = (payload) => {
+    const parsed = typeof payload === 'string' ? parseJsonPayloadSafe(payload) : payload;
+    const values = parsed && typeof parsed === 'object' ? Object.values(parsed) : [];
+    const seen = new Set();
+    return values
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => {
+            if (!entry || folderRegex.test(entry) || seen.has(entry)) {
+                return false;
+            }
+            seen.add(entry);
+            return true;
+        });
+};
+
+const restoreDockerNativeHostList = async (requestBundle = null) => {
+    const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
+    if (!(tbody instanceof HTMLElement)) {
+        return { restoredRows: 0, removedFolders: 0 };
+    }
+
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const folderRows = allRows.filter((row) => row instanceof HTMLElement && row.classList.contains('folder'));
+    const containerRows = allRows.filter((row) => (
+        row instanceof HTMLElement
+        && !row.classList.contains('folder')
+        && (row.id.startsWith('ct-') || row.classList.contains('folder-element') || !!row.querySelector('td.ct-name .appname'))
+    ));
+    const rowsByName = new Map();
+    const duplicateRows = [];
+    const unnamedRows = [];
+    containerRows.forEach((row) => {
+        const name = readDockerContainerNameFromHostRow(row);
+        if (!name) {
+            unnamedRows.push(row);
+            return;
+        }
+        if (rowsByName.has(name)) {
+            const existingRow = rowsByName.get(name);
+            const existingIsNativeDirectRow = existingRow?.parentElement === tbody;
+            const currentIsNativeDirectRow = row.parentElement === tbody;
+            if (currentIsNativeDirectRow && !existingIsNativeDirectRow) {
+                duplicateRows.push(existingRow);
+                rowsByName.set(name, row);
+            } else {
+                duplicateRows.push(row);
+            }
+            return;
+        }
+        rowsByName.set(name, row);
+    });
+
+    let nativeOrder = [];
+    try {
+        const orderPayload = requestBundle?.render?.[1]
+            ? await Promise.resolve(requestBundle.render[1])
+            : null;
+        nativeOrder = normalizeDockerNativeHostOrder(orderPayload);
+    } catch (_error) {
+        nativeOrder = [];
+    }
+
+    const orderedRows = [];
+    nativeOrder.forEach((name) => {
+        const row = rowsByName.get(name);
+        if (!row) {
+            return;
+        }
+        orderedRows.push(row);
+        rowsByName.delete(name);
+    });
+    containerRows.forEach((row) => {
+        const name = readDockerContainerNameFromHostRow(row);
+        if (name && rowsByName.get(name) === row) {
+            orderedRows.push(row);
+            rowsByName.delete(name);
+        }
+    });
+    unnamedRows.forEach((row) => orderedRows.push(row));
+
+    orderedRows.forEach((row) => {
+        Array.from(row.classList).forEach((className) => {
+            if (/^folder-.+-element$/.test(className)) {
+                row.classList.remove(className);
+            }
+        });
+        row.classList.remove(
+            'folder-element',
+            'fv-nested-hidden',
+            'fv-folder-focus-hidden',
+            'fv-toolbar-filter-hidden'
+        );
+        row.classList.add('sortable');
+        row.style.removeProperty('display');
+        $(row).children('td').children('i.fa-arrows-v').remove();
+    });
+
+    const fragment = document.createDocumentFragment();
+    orderedRows.forEach((row) => fragment.appendChild(row));
+    duplicateRows.forEach((row) => row.remove());
+    folderRows.forEach((row) => row.remove());
+    tbody.appendChild(fragment);
+    document.body.classList.remove('fv-folder-focus-active');
+    if (folderobserver) {
+        folderobserver.disconnect();
+        folderobserver = undefined;
+    }
+    refreshDockerRuntimeSortableRows();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('host-list-restore', 0);
+    appendDockerRequestBundleTrace('host-list-restored', {
+        restoredRows: orderedRows.length,
+        removedFolders: folderRows.length,
+        removedDuplicateRows: duplicateRows.length,
+        nativeOrderCount: nativeOrder.length
+    });
+    return {
+        restoredRows: orderedRows.length,
+        removedFolders: folderRows.length,
+        removedDuplicateRows: duplicateRows.length
+    };
+};
+
 const unmountDockerIsolatedViews = (exceptMode = '') => {
     if (exceptMode !== 'command') {
         unmountDockerCommandView();
@@ -4423,6 +4561,19 @@ const queueDockerRuntimeRenderForPageViewMode = (options = {}) => {
                 releaseWidthBootstrap();
                 markDockerFatalBannerStep('Docker host list mode active');
                 recordDockerFatalBannerAction('Docker host list mode active');
+                return Promise.resolve(restoreDockerNativeHostList(requestBundle))
+                    .catch((error) => {
+                        appendDockerRequestBundleTrace('host-list-restore-failed', {
+                            message: String(error?.message || error || 'Unknown Host list restoration error')
+                        });
+                    })
+                    .finally(() => {
+                        dockerHostLoadOwnsLoadingUi = false;
+                        activeDockerRenderSuppressLoadingUi = false;
+                        nextDockerRenderSuppressLoadingUi = false;
+                        hideDockerRuntimeLoadingOverlay();
+                        hideDockerRuntimeLoadingRow();
+                    });
             } else if (mode === 'command') {
                 unmountDockerIsolatedViews('command');
                 releaseWidthBootstrap();
@@ -4511,6 +4662,7 @@ if (dockerRuntimeActionBarModule && typeof dockerRuntimeActionBarModule.createAp
 window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlusDockerRuntimeInternals || {}, {
     buildDockerIsolatedViewDeps,
     getDockerCommandViewApi,
+    restoreDockerNativeHostList,
     fetchDockerBootstrapPrefs,
     ensureDockerBootstrapPrefs,
     unmountDockerIsolatedViews,

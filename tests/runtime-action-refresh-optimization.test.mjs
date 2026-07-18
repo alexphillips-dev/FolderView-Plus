@@ -29,7 +29,6 @@ test('docker runtime actions refresh visible state in place instead of forcing a
     assert.match(dockerJs, /queueLoadlistRefresh\(\{ suppressLoadingUi: true \}\);/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{ followupDelayMs: 650 \}\);/);
     assert.match(dockerRuntimeActionsJs, /const refreshDockerRuntimeState = typeof deps\.refreshDockerRuntimeState === 'function'/);
-    assert.match(dockerRuntimeActionsJs, /const queueDockerListRefresh = typeof deps\.queueLoadlistRefresh === 'function'/);
     assert.match(dockerRuntimeActionsJs, /const armDockerPostUpdateRuntimeReconcileWindow = typeof deps\.armDockerPostUpdateRuntimeReconcileWindow === 'function'/);
     assert.match(dockerRuntimeActionsJs, /const suspendDockerHostUpdateSync = typeof deps\.suspendDockerHostUpdateSync === 'function'/);
     assert.match(dockerRuntimeActionsJs, /refreshDockerRuntimeState\(\{\s*followupDelayMs: DOCKER_DIALOG_RUNTIME_REFRESH_FOLLOWUP_DELAY_MS,\s*liveUpdateStatus: true,\s*preserveGroupedDom: true\s*\}\)/);

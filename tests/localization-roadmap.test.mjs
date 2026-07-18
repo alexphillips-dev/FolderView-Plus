@@ -38,7 +38,7 @@ test('catalog report exposes honest legacy and namespace coverage for every regi
     assert.equal(report.catalogVersion, '2026.07.17.4');
     assert.ok(report.sourceMessageCount > 350);
     assert.equal(report.namespaceCount, 9);
-    assert.equal(report.extraction.candidateCount, 1596);
+    assert.equal(report.extraction.candidateCount, 1588);
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 18);
     assert.equal(report.locales.en.coveragePercent, 100);

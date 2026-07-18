@@ -1,5 +1,5 @@
 <?php
-require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php');
 
 emitNoCachePageHeaders();

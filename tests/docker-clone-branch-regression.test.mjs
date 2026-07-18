@@ -112,7 +112,7 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
     assert.equal(source.actions[0].params.mode, 'safe');
 });
 
-test('docker folder update dialog callback preserves host loadlist and schedules runtime refresh follow-up', async () => {
+test('docker folder update dialog callback preserves grouped rows and schedules runtime refresh follow-up', async () => {
     const openDockerCalls = [];
     let loadlistCalls = 0;
     const queuedRefreshCalls = [];
@@ -200,23 +200,23 @@ test('docker folder update dialog callback preserves host loadlist and schedules
     assert.deepEqual(suspendCalls, [120000]);
     assert.deepEqual(queuedRefreshCalls, []);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 
     folderEvents.dispatchEvent(new Event('docker-post-folders-creation'));
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 
     await Promise.resolve(windowContext.__fvplusDockerDialogRefresh());
 
-    assert.equal(loadlistCalls, 1);
+    assert.equal(loadlistCalls, 0);
     assert.deepEqual(runtimeRefreshCalls, [
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true },
-        { followupDelayMs: 650, liveUpdateStatus: true }
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true },
+        { followupDelayMs: 650, liveUpdateStatus: true, preserveGroupedDom: true }
     ]);
 });
 

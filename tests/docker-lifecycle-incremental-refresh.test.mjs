@@ -10,6 +10,10 @@ const reconcileModule = require(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js'
 ));
+const hostAdaptersModule = require(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js'
+));
 const dockerRuntimeSource = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
@@ -53,6 +57,13 @@ const createHarness = () => {
             return scheduled.length;
         }
     };
+    const hostAdapter = hostAdaptersModule.createHostAdapter('docker', {
+        window,
+        document: {}
+    });
+    const hostGuards = {
+        wrapHostHook: (name, handler, options = {}) => hostAdapter.wrapHook(name, handler, options)
+    };
     const api = reconcileModule.createApi({
         window,
         document: null,
@@ -63,6 +74,7 @@ const createHarness = () => {
         appendDockerBulkUpdateTrace: (eventType, details = {}) => {
             trace.push({ eventType, details });
         },
+        getDockerHostGuardsApi: () => hostGuards,
         getDockerRuntimeContainerInfo: (name) => runtimeByName[name] || null
     });
     return { api, window, originalEventControl, hostCalls, scheduled, refreshCalls, trace, contextCalls, runtimeByName };

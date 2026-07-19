@@ -22,6 +22,7 @@
     const createApi = (deps = {}) => {
         const win = deps.window || (typeof window !== 'undefined' ? window : null);
         const doc = deps.document || win?.document || null;
+        const hostAdapter = deps.hostAdapter || null;
         const utils = deps.utils || { normalizePrefs: (value) => value || {} };
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
         const normalizePageViewMode = typeof deps.normalizePageViewMode === 'function'
@@ -61,7 +62,9 @@
         let busy = false;
         let menuPositionFrame = 0;
 
-        const getListRows = () => Array.from(doc?.querySelectorAll?.('#docker_list > tr') || []);
+        const getListRows = () => hostAdapter && typeof hostAdapter.queryRows === 'function'
+            ? hostAdapter.queryRows('all')
+            : Array.from(doc?.querySelectorAll?.('#docker_list > tr') || []);
         const isElement = (value) => !win?.Element || value instanceof win.Element;
         const isHtmlElement = (value) => !win?.HTMLElement || value instanceof win.HTMLElement;
         const isUnassignedContainerRow = (row) => {

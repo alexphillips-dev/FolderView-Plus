@@ -19,6 +19,9 @@ const dockerRuntimeInfoModule = require(
 const dockerRuntimeReconcileModule = require(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js')
 );
+const runtimeHostAdaptersModule = require(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js')
+);
 const dockerPreviewActionsJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
     'utf8'
@@ -201,7 +204,7 @@ test('docker runtime observes native update-column mutations and reuses them for
     assert.doesNotMatch(dockerJs, /queueDockerSupportBundlePageSnapshot\('render-complete', 260\);\s*queueDockerPostUpdateRuntimeReconcile\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerHostOpenDockerPatch\(\);\s*bindDockerLifecycleEventControlPatch\(\);\s*bindDockerContainerContextStatePatch\(\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
     assert.match(dockerJs, /if \(!loadedFolder\) \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('loadlist',[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
     assert.match(dockerJs, /const collectDockerSupportBundlePageSnapshot = \(reason = 'runtime-sync'\) => \{[\s\S]*diagnosticsApi\.collectPageSnapshot\(reason\)/);
     assert.match(dockerJs, /const buildDockerDiagnosticsCorrelationContext = \(\) => \(\{/);
     assert.match(dockerJs, /hookStates:\s*getDockerHostGuardsApi\(\)\?\.getHookStates\?\.\(\) \|\| \{\}/);
@@ -214,8 +217,9 @@ test('docker post-update reconcile uses finite incremental polls that preserve t
     assert.match(dockerRuntimeReconcileJs, /refreshDockerRuntimeStateInPlace\(\{\s*liveUpdateStatus: true,\s*preserveGroupedDom: true\s*\}\)/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePoll'/);
     assert.match(dockerRuntimeReconcileJs, /appendDockerBulkUpdateTrace\('postUpdateRuntimePollResult'/);
-    assert.match(dockerRuntimeReconcileJs, /note:\s*isUpdateCommand \? 'update_container invoked' : 'invoked'/);
-    assert.match(dockerRuntimeReconcileJs, /containerNames:\s*containerNames\.slice\(0, 10\)/);
+    assert.match(dockerRuntimeReconcileJs, /describeInvocation:\s*\(args\) => \{/);
+    assert.match(dockerRuntimeReconcileJs, /commandType:\s*isUpdate \? 'update_container' : 'other'/);
+    assert.match(dockerRuntimeReconcileJs, /containerNames:\s*names\.slice\(0, 10\)/);
     assert.doesNotMatch(dockerRuntimeReconcileJs, /note:\s*String\(args\?\.\[0\]/);
     assert.match(dockerRuntimeReconcileJs, /strategy:\s*'event-driven-incremental-with-finite-backstops'/);
     assert.match(dockerRuntimeReconcileJs, /schedulePostUpdateRuntimePoll\('reconcile-window-armed', initialDelayMs\);/);
@@ -241,6 +245,13 @@ test('docker update dialog callbacks replace host loadlist redraws with a bounde
         },
         clearTimeout: (id) => timers.delete(id)
     };
+    const hostAdapter = runtimeHostAdaptersModule.createHostAdapter('docker', {
+        window: win,
+        document: {}
+    });
+    const hostGuards = {
+        wrapHostHook: (name, handler, options = {}) => hostAdapter.wrapHook(name, handler, options)
+    };
     const api = dockerRuntimeReconcileModule.createApi({
         window: win,
         document: {},
@@ -254,6 +265,7 @@ test('docker update dialog callbacks replace host loadlist redraws with a bounde
             refreshCalls.push(options);
             return true;
         },
+        getDockerHostGuardsApi: () => hostGuards,
         initialDelayMs: 10,
         pollDelayMs: 20
     });
@@ -294,7 +306,7 @@ test('docker runtime can stay in host-list mode without rendering FolderView row
     assert.doesNotMatch(dockerJs, /rebuildDockerFolderReqForHostRender/);
     assert.match(dockerJs, /document\.body\.setAttribute\('data-fvplus-docker-page-view', resolveDockerPageViewMode\(normalized\)\);/);
     assert.match(dockerJs, /syncDockerAddFolderButtonVisibility\(resolveDockerPageViewMode\(normalized\)\);/);
-    assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('listview',[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
@@ -475,7 +487,7 @@ test('docker runtime re-syncs folder rows when the Docker basic or advanced cook
     assert.match(dockerJs, /const bindDockerListViewModeCookieHook = \(\) => \{[\s\S]*if \(args\.length >= 2 && String\(args\[0\] \|\| ''\)\.trim\(\) === 'docker_listview_mode'\) \{[\s\S]*emitDockerListViewModeChange\(readDockerListViewMode\(\), 'cookie-write'\);/);
     assert.match(dockerJs, /const syncDockerListViewModeFromCookie = \(source = 'passive'\) => \{[\s\S]*appendDockerRequestBundleTrace\('listViewModeSync'/);
     assert.match(dockerJs, /const startDockerListViewModeObserver = \(\) => \{[\s\S]*bindDockerListViewModeCookieHook\(\);[\s\S]*window\.addEventListener\(DOCKER_LIST_VIEW_MODE_CHANGE_EVENT,\s*\(event\) => \{[\s\S]*syncDockerListViewModeFromCookie\(event\?\.detail\?\.source \|\| 'event'\);[\s\S]*\}\);[\s\S]*window\.addEventListener\('focus', \(\) => syncDockerListViewModeFromCookie\('focus'\)\);[\s\S]*window\.addEventListener\('pageshow', \(\) => syncDockerListViewModeFromCookie\('pageshow'\)\);[\s\S]*document\.addEventListener\('visibilitychange', \(\) => \{[\s\S]*syncDockerListViewModeFromCookie\('visibilitychange'\);/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*bindDockerLifecycleEventControlPatch\(\);[\s\S]*bindDockerListViewModeCookieHook\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('loadlist',[\s\S]*bindDockerHostOpenDockerPatch\(\);[\s\S]*bindDockerLifecycleEventControlPatch\(\);[\s\S]*bindDockerListViewModeCookieHook\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker request bundle primed'\);\s*bindDockerHostOpenDockerPatch\(\);\s*bindDockerLifecycleEventControlPatch\(\);\s*bindDockerContainerContextStatePatch\(\);\s*bindDockerUpdateActionClickCapture\(\);\s*bindDockerPostUpdateRenderReconcile\(\);\s*startDockerListViewModeObserver\(\);/);
 });
 

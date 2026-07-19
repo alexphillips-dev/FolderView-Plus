@@ -49,9 +49,6 @@
         const queueDockerSupportBundlePageSnapshot = typeof deps.queueDockerSupportBundlePageSnapshot === 'function'
             ? deps.queueDockerSupportBundlePageSnapshot
             : (() => {});
-        const markDockerFatalBannerStep = typeof deps.markDockerFatalBannerStep === 'function'
-            ? deps.markDockerFatalBannerStep
-            : (() => {});
         const getDockerHostGuardsApi = typeof deps.getDockerHostGuardsApi === 'function'
             ? deps.getDockerHostGuardsApi
             : (() => null);
@@ -77,15 +74,11 @@
             if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
                 return false;
             }
-            const currentContextBuilder = win.addDockerContainerContext;
-            if (typeof currentContextBuilder !== 'function') {
+            const hostGuards = getDockerHostGuardsApi();
+            if (!hostGuards || typeof hostGuards.wrapHostHook !== 'function') {
                 return false;
             }
-            if (currentContextBuilder.__fvplusDockerRuntimeStatePatched === true) {
-                return true;
-            }
-            const originalContextBuilder = currentContextBuilder;
-            const wrappedContextBuilder = function(...args) {
+            hostGuards.wrapHostHook('addDockerContainerContext', ({ args, invokeOriginal }) => {
                 const containerName = String(args?.[0] || '').trim();
                 const runtimeEntry = containerName ? getDockerRuntimeContainerInfo(containerName) : null;
                 const runtimeState = runtimeEntry?.info?.State && typeof runtimeEntry.info.State === 'object'
@@ -101,13 +94,17 @@
                         args[6] = runtimeState.Autostart;
                     }
                 }
-                return originalContextBuilder.apply(this, args);
-            };
-            try {
-                wrappedContextBuilder.__fvplusDockerRuntimeStatePatched = true;
-                wrappedContextBuilder.__fvplusOriginal = originalContextBuilder;
-            } catch (_error) {}
-            win.addDockerContainerContext = wrappedContextBuilder;
+                return invokeOriginal(...args);
+            }, {
+                legacyAlias: 'addDockerContainerContext_original',
+                captureStep: 'Docker container context hook captured',
+                missingMessage: 'Docker host container context hook was unavailable during bootstrap.',
+                missingDetails: ['window.addDockerContainerContext was not a function when FolderView Plus initialized.'],
+                describeInvocation: (args) => ({
+                    container: String(args?.[0] || '').trim(),
+                    runtimeStateAvailable: !!getDockerRuntimeContainerInfo(String(args?.[0] || '').trim())?.info?.State
+                })
+            });
             return true;
         };
 
@@ -317,37 +314,14 @@
             if (dockerHostOpenDockerPatchBound || !win || typeof win !== 'object') {
                 return;
             }
-            if (typeof win.openDocker !== 'function') {
-                getDockerHostGuardsApi()?.reportMissingHook?.('window.openDocker', 'Docker host openDocker hook was unavailable during bootstrap.', {
-                    phase: 'hook-install',
-                    category: 'host-hook-missing',
-                    detailLabel: 'Missing host hooks',
-                    details: ['window.openDocker was not a function when FolderView Plus initialized.']
-                });
+            const hostGuards = getDockerHostGuardsApi();
+            if (!hostGuards || typeof hostGuards.wrapHostHook !== 'function') {
                 return;
             }
-            const currentOpenDocker = win.openDocker;
-            getDockerHostGuardsApi()?.captureHostHook?.('window.openDocker', currentOpenDocker, {
-                step: 'Docker openDocker hook captured',
-                note: 'captured'
-            });
-            if (currentOpenDocker && currentOpenDocker.__fvplusDockerUpdatePatched === true) {
-                dockerHostOpenDockerPatchBound = true;
-                return;
-            }
-            const originalOpenDocker = currentOpenDocker;
-            const wrappedOpenDocker = function(...args) {
+            hostGuards.wrapHostHook('openDocker', ({ args, invokeOriginal }) => {
                 const rawCommand = String(args?.[0] || '').trim();
                 const isUpdateCommand = isDockerHostUpdateCommand(rawCommand);
                 const containerNames = parseHostUpdateContainerNames(rawCommand);
-                getDockerHostGuardsApi()?.noteHookInvocation?.('window.openDocker', {
-                    note: isUpdateCommand ? 'update_container invoked' : 'invoked',
-                    details: {
-                        commandType: isUpdateCommand ? 'update_container' : 'other',
-                        containerCount: containerNames.length,
-                        containerNames: containerNames.slice(0, 10)
-                    }
-                });
                 armForHostCommand(args[0], 'host-openDocker');
                 if (isUpdateCommand) {
                     const previousCallback = String(args?.[3] || '').trim();
@@ -358,19 +332,24 @@
                         containerCount: containerNames.length
                     });
                 }
-                return originalOpenDocker.apply(this, args);
-            };
-            try {
-                wrappedOpenDocker.__fvplusDockerUpdatePatched = true;
-                wrappedOpenDocker.__fvplusOriginal = originalOpenDocker;
-            } catch (_error) {}
-            win.openDocker = wrappedOpenDocker;
-            dockerHostOpenDockerPatchBound = true;
-            getDockerHostGuardsApi()?.noteHookWrapped?.('window.openDocker', {
-                step: 'Docker openDocker hook captured',
-                note: 'wrapped'
+                return invokeOriginal(...args);
+            }, {
+                legacyAlias: 'openDocker_original',
+                captureStep: 'Docker openDocker hook captured',
+                missingMessage: 'Docker host openDocker hook was unavailable during bootstrap.',
+                missingDetails: ['window.openDocker was not a function when FolderView Plus initialized.'],
+                describeInvocation: (args) => {
+                    const command = String(args?.[0] || '').trim();
+                    const isUpdate = isDockerHostUpdateCommand(command);
+                    const names = parseHostUpdateContainerNames(command);
+                    return {
+                        commandType: isUpdate ? 'update_container' : 'other',
+                        containerCount: names.length,
+                        containerNames: names.slice(0, 10)
+                    };
+                }
             });
-            markDockerFatalBannerStep('Docker openDocker hook captured');
+            dockerHostOpenDockerPatchBound = true;
         };
 
         const shouldArmFromClick = (target) => {
@@ -467,16 +446,11 @@
             if (typeof win.eventControl !== 'function') {
                 return false;
             }
-            const currentEventControl = win.eventControl;
-            if (currentEventControl.__fvplusDockerLifecyclePatched === true) {
-                return true;
+            const hostGuards = getDockerHostGuardsApi();
+            if (!hostGuards || typeof hostGuards.wrapHostHook !== 'function') {
+                return false;
             }
-            getDockerHostGuardsApi()?.captureHostHook?.('window.eventControl', currentEventControl, {
-                step: 'Docker lifecycle action hook captured',
-                note: 'captured'
-            });
-            const originalEventControl = currentEventControl;
-            const wrappedEventControl = function(...args) {
+            hostGuards.wrapHostHook('eventControl', ({ args, invokeOriginal }) => {
                 const request = args?.[0] && typeof args[0] === 'object' ? args[0] : {};
                 const refreshTarget = String(args?.[1] || '').trim();
                 if (
@@ -497,18 +471,18 @@
                         });
                     }
                 }
-                return originalEventControl.apply(this, args);
-            };
-            try {
-                wrappedEventControl.__fvplusDockerLifecyclePatched = true;
-                wrappedEventControl.__fvplusOriginal = originalEventControl;
-            } catch (_error) {}
-            win.eventControl = wrappedEventControl;
-            getDockerHostGuardsApi()?.noteHookWrapped?.('window.eventControl', {
-                step: 'Docker lifecycle action hook captured',
-                note: 'wrapped'
+                return invokeOriginal(...args);
+            }, {
+                legacyAlias: 'eventControl_original',
+                captureStep: 'Docker lifecycle action hook captured',
+                missingMessage: 'Docker host eventControl hook was unavailable during bootstrap.',
+                missingDetails: ['window.eventControl was not a function when FolderView Plus initialized.'],
+                describeInvocation: (args) => ({
+                    action: String(args?.[0]?.action || '').trim(),
+                    hasContainer: String(args?.[0]?.container || '').trim().length > 0,
+                    refreshTarget: String(args?.[1] || '').trim()
+                })
             });
-            markDockerFatalBannerStep('Docker lifecycle action hook captured');
             return true;
         };
 

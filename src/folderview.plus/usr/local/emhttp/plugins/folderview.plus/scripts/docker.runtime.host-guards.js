@@ -12,6 +12,8 @@
 }(typeof window !== 'undefined' ? window : {}, function dockerRuntimeHostGuardsFactory(fallbackWindow) {
     'use strict';
 
+    const hostAdapterModule = fallbackWindow.FolderViewPlusRuntimeHostAdapters || null;
+
     const DEFAULT_REQUIRED_SELECTORS = Object.freeze([
         { label: 'Docker table shell', selector: 'table#docker_containers' },
         { label: 'Docker table body', selector: 'tbody#docker_list' },
@@ -32,6 +34,11 @@
         const requiredSelectors = Array.isArray(deps.requiredSelectors) && deps.requiredSelectors.length > 0
             ? deps.requiredSelectors
             : DEFAULT_REQUIRED_SELECTORS;
+        const hostAdapter = deps.adapter || (
+            hostAdapterModule && typeof hostAdapterModule.getOrCreate === 'function'
+                ? hostAdapterModule.getOrCreate('docker', { window: win, document: doc })
+                : null
+        );
 
         /** @type {Record<string, { available: boolean, wrapped: boolean, callCount: number, observationStatus: string, notes: string[], lastSeenAt: string | null, lastInvokedAt: string | null, lastInvocation: Record<string, unknown> | null }>} */
         const hookStates = Object.create(null);
@@ -54,6 +61,9 @@
         };
 
         const collectHostPageStructureIssues = () => {
+            if (hostAdapter && typeof hostAdapter.collectStructureIssues === 'function') {
+                return hostAdapter.collectStructureIssues();
+            }
             const missing = [];
             requiredSelectors.forEach((entry) => {
                 if (!entry || !entry.selector) {
@@ -167,14 +177,47 @@
 
         const getHookStates = () => JSON.parse(JSON.stringify(hookStates));
 
+        const wrapHostHook = (name, handler, options = {}) => {
+            if (!hostAdapter || typeof hostAdapter.wrapHook !== 'function') {
+                throw new Error('Docker host adapter hook wrapping is unavailable.');
+            }
+            const safeName = String(name || '').trim();
+            return hostAdapter.wrapHook(safeName, handler, {
+                legacyAlias: options.legacyAlias,
+                onCapture: (original) => captureHostHook(`window.${safeName}`, original, {
+                    step: options.captureStep || `Docker ${safeName} hook captured`,
+                    note: 'captured'
+                }),
+                onMissing: () => reportMissingHook(`window.${safeName}`, options.missingMessage || `Docker host ${safeName} hook was unavailable during bootstrap.`, {
+                    phase: options.phase || 'hook-install',
+                    category: 'host-hook-missing',
+                    detailLabel: 'Missing host hooks',
+                    details: options.missingDetails || [`window.${safeName} was not a function when FolderView Plus initialized.`]
+                }),
+                onWrapped: () => noteHookWrapped(`window.${safeName}`, {
+                    step: options.captureStep || `Docker ${safeName} hook captured`,
+                    note: 'wrapped'
+                }),
+                onInvoke: (_hookName, args) => noteHookInvocation(`window.${safeName}`, {
+                    note: 'invoked',
+                    details: typeof options.describeInvocation === 'function'
+                        ? options.describeInvocation(args)
+                        : { argumentCount: args.length }
+                })
+            });
+        };
+
         return {
+            adapter: hostAdapter,
             ensureHostPageStructure,
             collectHostPageStructureIssues,
             captureHostHook,
             reportMissingHook,
             noteHookWrapped,
             noteHookInvocation,
-            getHookStates
+            getHookStates,
+            wrapHostHook,
+            getAdapterSnapshot: () => hostAdapter?.getSnapshot?.() || null
         };
     };
 

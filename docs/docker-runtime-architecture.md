@@ -4,6 +4,9 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 ## Runtime Modules
 
+- `scripts/runtime.host-adapter.js`
+  - Defines the versioned Docker and VM host-page contracts.
+  - Owns host table/body/row discovery, structure validation, row observation, and idempotent global hook wrapping.
 - `scripts/docker.runtime.shared.js`
   - `createRuntimeStateStore`: single source of truth for runtime UI state.
   - `createAsyncActionBoundary`: normalized async error handling and user-safe messaging.
@@ -17,7 +20,8 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 ## Runtime Ownership
 
-- `docker.js` keeps orchestration and Unraid integration behavior.
+- `docker.js` keeps Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter.
+- `docker.runtime.host-guards.js` is the Docker diagnostics facade over the shared adapter; it does not implement a second hook or selector system.
 - Shared modules own reusable primitives so feature logic is testable without large-file rewrites.
 - Store-backed state currently includes:
   - `focusedFolderId`
@@ -28,6 +32,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
 ## Guardrails
 
 - New shared module is loaded in `folderview.plus.Docker.page` before `docker.modules.js` and `docker.js`.
+- Unraid lifecycle globals (`loadlist`, `listview`, `openDocker`, `eventControl`, and `addDockerContainerContext`) are wrapped idempotently by the adapter, with compatibility aliases retained for host/plugin interoperability.
 - Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
 
@@ -35,6 +40,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 - Architecture contract tests:
   - `tests/docker-runtime-shared-architecture.test.mjs`
+  - `tests/runtime-host-adapter.test.mjs`
   - `tests/docker-folder-row-quick-actions.test.mjs`
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
 - Perf telemetry snapshot is exposed as:

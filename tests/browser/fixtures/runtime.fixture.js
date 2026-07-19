@@ -12,6 +12,7 @@
     let prefs = { pageViewMode: 'folderview', hideEmptyFolders: false, health: { warnStoppedPercent: 60 } };
     const events = [];
     let refreshCount = 0;
+    const hostAdapter = window.FolderViewPlusRuntimeHostAdapters.getOrCreate('docker', { window, document });
 
     const normalizePrefs = (value = {}) => ({
         pageViewMode: ['host', 'command'].includes(String(value.pageViewMode || '')) ? value.pageViewMode : 'folderview',
@@ -31,6 +32,7 @@
     const api = window.FolderViewPlusDockerRuntimeActionBar.createApi({
         window,
         document,
+        hostAdapter,
         utils: { normalizePrefs },
         escapeHtml: (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -69,6 +71,46 @@
         events,
         getPrefs: () => ({ ...prefs }),
         getRefreshCount: () => refreshCount,
+        exerciseHostAdapters: () => {
+            const vmShell = document.createElement('section');
+            vmShell.innerHTML = '<table id="kvm_table"><thead><tr><th>Name</th></tr></thead><tbody id="kvm_list"><tr class="sortable" data-name="fixture-vm"><td class="vm-name">Fixture VM</td></tr></tbody></table>';
+            document.body.appendChild(vmShell);
+            const vmAdapter = window.FolderViewPlusRuntimeHostAdapters.createHostAdapter('vm', { window, document });
+            const vmStructure = vmAdapter.ensureStructure({ throwOnError: false });
+            const vmSnapshot = vmAdapter.getSnapshot();
+            vmShell.remove();
+
+            const calls = [];
+            const hookWindow = {
+                document,
+                loadlist: (...args) => calls.push(['original', ...args])
+            };
+            const hookAdapter = window.FolderViewPlusRuntimeHostAdapters.createHostAdapter('docker', {
+                window: hookWindow,
+                document
+            });
+            const firstWrapper = hookAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
+                calls.push(['first-handler', ...args]);
+                return invokeOriginal(...args);
+            }, { legacyAlias: 'loadlist_original' });
+            const secondWrapper = hookAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
+                calls.push(['second-handler', ...args]);
+                return invokeOriginal(...args);
+            }, { legacyAlias: 'loadlist_original' });
+            hookWindow.loadlist('refresh');
+            const hookSnapshot = hookAdapter.getSnapshot();
+            hookAdapter.restoreHook('loadlist');
+            return {
+                dockerSnapshot: hostAdapter.getSnapshot(),
+                dockerNames: hostAdapter.queryRows('item').map((row) => hostAdapter.getRowIdentity(row)),
+                vmStructure,
+                vmSnapshot,
+                hookSnapshot,
+                wrapperReused: firstWrapper === secondWrapper,
+                restored: hookWindow.loadlist === hookWindow.loadlist_original,
+                calls
+            };
+        },
         syncRepeatedly: (count = 5) => {
             for (let index = 0; index < count; index += 1) api.sync();
         },
@@ -85,6 +127,10 @@
                 eventControl: (...args) => calls.push(args),
                 addDockerContainerContext: () => ({})
             };
+            const lifecycleHostAdapter = window.FolderViewPlusRuntimeHostAdapters.createHostAdapter('docker', {
+                window: fixtureWindow,
+                document
+            });
             const reconcile = window.FolderViewPlusDockerRuntimeReconcile.createApi({
                 window: fixtureWindow,
                 document,
@@ -93,14 +139,22 @@
                     return true;
                 },
                 waitForDockerRenderFrame: async () => {},
-                appendDockerBulkUpdateTrace: () => true
+                appendDockerBulkUpdateTrace: () => true,
+                getDockerHostGuardsApi: () => ({
+                    wrapHostHook: (name, handler, options = {}) => lifecycleHostAdapter.wrapHook(name, handler, options)
+                })
             });
             reconcile.bindLifecycleEventControlPatch();
             fixtureWindow.eventControl({ action: 'start', container: 'plex' }, 'loadlist');
             const callbackName = calls[0]?.[1] || '';
             fixtureWindow[callbackName]?.();
             await new Promise((resolve) => setTimeout(resolve, 40));
-            return { callbackName, lifecycleRefreshes, calls: calls.length };
+            return {
+                callbackName,
+                lifecycleRefreshes,
+                calls: calls.length,
+                adapterSnapshot: lifecycleHostAdapter.getSnapshot()
+            };
         }
     };
 })();

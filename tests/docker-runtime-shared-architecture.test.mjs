@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
@@ -41,6 +42,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const snapshotIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
+    const hostAdapterIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
     const runtimeInfoIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.info.js');
     const previewActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
@@ -61,6 +63,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(snapshotIndex >= 0, 'runtime snapshot client include is missing');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
+    assert.ok(hostAdapterIndex >= 0, 'shared host adapter script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
     assert.ok(runtimeInfoIndex >= 0, 'docker runtime info script include is missing');
     assert.ok(previewActionsIndex >= 0, 'docker preview actions script include is missing');
@@ -86,6 +89,8 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before docker.runtime.shared.js');
     assert.ok(sharedIndex < modulesIndex, 'shared runtime must load before docker.modules.js');
     assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');
+    assert.ok(hostAdapterIndex < hostGuardsIndex, 'shared host adapter must load before Docker host guards');
+    assert.ok(hostAdapterIndex < runtimeIndex, 'shared host adapter must load before docker.js');
     assert.ok(modulesIndex < runtimeInfoIndex, 'docker.modules.js must load before docker.runtime.info.js');
     assert.ok(runtimeInfoIndex < previewActionsIndex, 'docker.runtime.info.js must load before docker.runtime.preview-actions.js');
     assert.ok(previewActionsIndex < runtimeHierarchyIndex, 'docker preview action helpers must load before docker.runtime.hierarchy.js');
@@ -103,6 +108,18 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(commandViewCssIndex < dockerCssIndex, 'docker command-view stylesheet must load before docker.css');
     assert.doesNotMatch(dockerPage, /docker\.runtime\.(?:tree-explorer|orbit-view)\.js/);
     assert.doesNotMatch(dockerPage, /docker\.(?:tree-explorer|orbit-view)\.css/);
+});
+
+test('docker runtime uses the shared host adapter as its Unraid integration boundary', () => {
+    assert.match(runtimeHostAdapterJs, /const CONTRACTS = Object\.freeze\(\{/);
+    assert.match(runtimeHostAdapterJs, /type: 'docker'/);
+    assert.match(runtimeHostAdapterJs, /allowedHooks: \['loadlist', 'listview', 'openDocker', 'eventControl', 'addDockerContainerContext'\]/);
+    assert.match(dockerJs, /const runtimeHostAdapters = window\.FolderViewPlusRuntimeHostAdapters \|\| null;/);
+    assert.match(dockerJs, /const dockerHostAdapter = runtimeHostAdapters\?\.getOrCreate\?\.\('docker'/);
+    assert.match(dockerJs, /adapter:\s*dockerHostAdapter/);
+    assert.match(dockerJs, /window\.getDockerHostAdapterSnapshot =/);
+    assert.doesNotMatch(dockerRuntimeReconcileJs, /__fvplusDockerRuntimeStatePatched/);
+    assert.match(dockerRuntimeReconcileJs, /wrapHostHook\('addDockerContainerContext'/);
 });
 
 test('native organizer helper exposes best-effort GraphQL sync contract', () => {

@@ -120,7 +120,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(dockerJs, /fvplus-privacy-lan-ip-value/);
     assert.match(dockerJs, /fvplus-privacy-lan-port-value/);
     assert.match(dockerJs, /decorateDockerRuntimeLanEndpointValues\(\);/);
-    assert.match(dockerJs, /dockerRuntimeResizerObserver = new MutationObserver\(\(\) => \{\s*decorateDockerRuntimeLanEndpointValues\(\);/);
+    assert.match(dockerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{\s*decorateDockerRuntimeLanEndpointValues\(\);/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime/);
     assert.match(vmCss, /body\.fvplus-privacy-vm-runtime-mask-names/);
     assert.match(dashboardCss, /body\.fvplus-privacy-docker-dashboard/);

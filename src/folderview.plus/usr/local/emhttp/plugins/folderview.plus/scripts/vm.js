@@ -5,6 +5,7 @@ const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
+const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -318,6 +319,16 @@ if (
     setVmFatalBannerModuleStatus('folderviewplus.request.js', 'ok', 'request client ready');
 }
 if (
+    window.FolderViewPlusRuntimeHostAdaptersModuleLoaded !== true
+    || !runtimeHostAdapters
+    || typeof runtimeHostAdapters.getOrCreate !== 'function'
+) {
+    vmBootstrapMissingModules.push('runtime.host-adapter.js');
+    setVmFatalBannerModuleStatus('runtime.host-adapter.js', 'missing', 'shared host adapter unavailable');
+} else {
+    setVmFatalBannerModuleStatus('runtime.host-adapter.js', 'ok', 'VM host adapter ready');
+}
+if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
@@ -338,46 +349,27 @@ if (vmBootstrapMissingModules.length > 0) {
     }
     throw error;
 }
-const VM_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze([
-    { label: 'VM table shell', selector: 'table#kvm_table' },
-    { label: 'VM table body', selector: 'tbody#kvm_list' },
-    { label: 'VM header row', selector: '#kvm_table > thead > tr' }
-]);
-const collectVmHostPageStructureIssues = () => {
-    const missing = [];
-    VM_HOST_PAGE_REQUIRED_SELECTORS.forEach((entry) => {
-        if (!entry || !entry.selector) {
-            return;
-        }
-        if (!document.querySelector(entry.selector)) {
-            missing.push(`${entry.label}: ${entry.selector}`);
-        }
-    });
-    return missing;
-};
+const vmHostAdapter = runtimeHostAdapters?.getOrCreate?.('vm', { window, document }) || null;
 const ensureVmHostPageStructure = () => {
-    const missing = collectVmHostPageStructureIssues();
-    if (missing.length <= 0) {
-        setVmFatalBannerModuleStatus('host-page-structure', 'ok', 'expected VM host selectors detected');
-        return;
+    if (!vmHostAdapter || typeof vmHostAdapter.ensureStructure !== 'function') {
+        throw new Error('VM host adapter unavailable');
     }
-    setVmFatalBannerModuleStatus('host-page-structure', 'missing', missing.join(' | '));
-    const error = new Error(`Expected VM host page selectors were not found: ${missing.join(', ')}`);
-    error.fvplusPhase = 'host-dom';
-    error.fvplusCategory = 'host-page-structure';
-    reportVmFatalRuntimeError(error, {
-        title: 'VM page structure changed',
-        message: 'FolderView Plus expected the standard Unraid VM table markup, but required host page elements were missing.',
-        code: 'FVPLUS-VM-DOM-001',
-        phase: 'host-dom',
-        category: 'host-page-structure',
-        detailLabel: 'Missing selectors',
-        details: missing
+    vmHostAdapter.ensureStructure({
+        onValid: () => setVmFatalBannerModuleStatus('host-page-structure', 'ok', 'expected VM host selectors detected'),
+        onInvalid: (error, missing) => {
+            setVmFatalBannerModuleStatus('host-page-structure', 'missing', missing.join(' | '));
+            reportVmFatalRuntimeError(error, {
+                title: 'VM page structure changed',
+                message: 'FolderView Plus expected the standard Unraid VM table markup, but required host page elements were missing.',
+                code: 'FVPLUS-VM-DOM-001',
+                phase: 'host-dom',
+                category: 'host-page-structure',
+                detailLabel: 'Missing selectors',
+                details: missing
+            });
+            if (fatalBanner) error.fvplusBannerShown = true;
+        }
     });
-    if (fatalBanner) {
-        error.fvplusBannerShown = true;
-    }
-    throw error;
 };
 markVmFatalBannerStep('VM runtime modules resolved');
 ensureVmHostPageStructure();
@@ -1246,8 +1238,8 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
         }
     }
 
-    const table = document.querySelector('#kvm_list')?.closest('table');
-    const host = table?.parentElement || document.querySelector('#kvm_list')?.parentElement;
+    const table = vmHostAdapter?.getTable?.();
+    const host = table?.parentElement || vmHostAdapter?.getPrimaryBody?.()?.parentElement;
     if (!host) {
         return;
     }
@@ -1268,7 +1260,7 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
 };
 
 const showVmRuntimeLoadingRow = () => {
-    const tbody = $('tbody#kvm_list');
+    const tbody = $(vmHostAdapter?.getPrimaryBody?.() || []);
     if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
         return;
     }
@@ -1276,7 +1268,7 @@ const showVmRuntimeLoadingRow = () => {
 };
 
 const hideVmRuntimeLoadingRow = () => {
-    $('tbody#kvm_list tr.fv-runtime-loading-row').remove();
+    vmHostAdapter?.getBodies?.().forEach((body) => $(body).find('tr.fv-runtime-loading-row').remove());
 };
 
 const VM_NATIVE_DETAIL_ROW_SELECTOR = 'tr[id^="name-"]:not([child-id])';
@@ -1487,7 +1479,7 @@ const adoptVmNativeDetailRows = (rows = []) => {
 };
 
 const ensureVmNativeDetailRowObserver = () => {
-    const tbody = document.querySelector('tbody#kvm_list');
+    const tbody = vmHostAdapter?.getPrimaryBody?.();
     if (!(tbody instanceof HTMLTableSectionElement)) {
         return;
     }
@@ -1500,7 +1492,7 @@ const ensureVmNativeDetailRowObserver = () => {
         vmNativeDetailRowObserverHost = null;
     }
     vmNativeDetailRowObserverHost = tbody;
-    vmNativeDetailRowObserver = new MutationObserver((mutations) => {
+    const disconnect = vmHostAdapter.observeRows(({ records: mutations }) => {
         if (vmNativeDetailAdoptionSuspendDepth > 0) {
             return;
         }
@@ -1515,12 +1507,12 @@ const ensureVmNativeDetailRowObserver = () => {
         if (detailRows.length > 0) {
             adoptVmNativeDetailRows(detailRows);
         }
-    });
-    vmNativeDetailRowObserver.observe(tbody, { childList: true });
+    }, { subtree: false });
+    vmNativeDetailRowObserver = { disconnect };
 };
 
 const ensureVmNativeDetailInteractionHooks = () => {
-    const table = document.getElementById('kvm_table');
+    const table = vmHostAdapter?.getTable?.();
     if (!(table instanceof HTMLTableElement) || vmNativeToggleClickHost === table) {
         return;
     }
@@ -3703,6 +3695,7 @@ window.getVmRuntimePerfTelemetrySnapshot = () => {
     }
     return vmPerfTelemetry.snapshot();
 };
+window.getVmHostAdapterSnapshot = () => vmHostAdapter?.getSnapshot?.() || null;
 window.getVmRuntimePerformancePolicySnapshot = () => ({
     ...(vmRuntimePerformanceProfile || {}),
     deferredPreviewQueue: vmDeferredPreviewController.snapshot()
@@ -3760,23 +3753,12 @@ function buildVmFolderReq() {
 folderReq = buildVmFolderReq();
 markVmFatalBannerStep('VM request bundle primed');
 
-// Patching the original function to make sure the containers are rendered before insering the folder
-window.loadlist_original = loadlist;
-if (typeof window.loadlist_original !== 'function') {
-    reportVmDegradedRuntimeState('VM host loadlist hook was unavailable during bootstrap.', {
-        phase: 'hook-install',
-        category: 'host-hook-missing',
-        detailLabel: 'Missing host hooks',
-        details: ['window.loadlist was not a function when FolderView Plus initialized.']
-    });
-} else {
-    markVmFatalBannerStep('VM loadlist hook captured');
-}
-window.loadlist = (x) => {
+// Route the Unraid host lifecycle through the same adapter contract as Docker.
+vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
     loadedFolder = false;
     folderReq = buildVmFolderReq();
-    if (typeof loadlist_original === 'function') {
-        loadlist_original(x);
+    if (typeof window.loadlist_original === 'function') {
+        return invokeOriginal(...args);
     } else {
         reportVmDegradedRuntimeState('VM host loadlist hook was unavailable when the runtime tried to refresh.', {
             phase: 'loadlist',
@@ -3785,7 +3767,19 @@ window.loadlist = (x) => {
             details: ['window.loadlist_original was not callable during a VM runtime refresh.']
         });
     }
-};
+    return undefined;
+}, {
+    legacyAlias: 'loadlist_original',
+    onCapture: () => markVmFatalBannerStep('VM loadlist hook captured'),
+    onMissing: () => reportVmDegradedRuntimeState('VM host loadlist hook was unavailable during bootstrap.', {
+        phase: 'hook-install',
+        category: 'host-hook-missing',
+        detailLabel: 'Missing host hooks',
+        details: ['window.loadlist was not a function when FolderView Plus initialized.']
+    }),
+    onWrapped: () => markVmFatalBannerStep('VM loadlist hook wrapped'),
+    onInvoke: () => recordVmFatalBannerAction('VM host loadlist invoked')
+});
 
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';

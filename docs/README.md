@@ -14,6 +14,7 @@ This folder holds project documentation that does not need to stay at the reposi
 ## Architecture
 
 - [docker-runtime-architecture.md](docker-runtime-architecture.md)
+- [runtime-host-adapter.md](runtime-host-adapter.md)
 - [vm-runtime-architecture.md](vm-runtime-architecture.md)
 - [visual-runtime-contract.md](visual-runtime-contract.md)
 

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.05">
-<!ENTITY md5 "6b3493d8107bab984eda8ea3a9c80b7a">
+<!ENTITY version "2026.07.19.06">
+<!ENTITY md5 "0eb0a47d05a5198c54ee2303d34bdc58">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.06
+# FolderView Plus 2026.07.19.06
+- Refactor: Add one shared, immutable host-adapter contract for Docker and VM table discovery, row classification, structure validation, row observation, and Unraid lifecycle integration.
+- Reliability: Make Docker and VM host hooks idempotent so repeated initialization updates the active handler without stacking wrappers, while preserving original function context, arguments, return values, and compatibility aliases.
+- Reliability: Route Docker list/view refreshes, update dialogs, lifecycle actions, container context menus, action-bar row discovery, and VM load/detail-row handling through the common adapter boundary.
+- Diagnostics: Add Docker and VM host-adapter snapshots with host structure issues, native and folder row counts, observer ownership, hook availability, invocation counts, and timestamps.
+- Test: Add Node and fixture-browser coverage for both host contracts, DOM discovery, row identity, observer batching/disposal, hook restoration, lifecycle forwarding, and missing-host structure failures.
+- Regression guard: Prevent Docker or VM runtimes from reintroducing independent selector preflights, direct lifecycle wrappers, duplicate observer ownership, or legacy wrapper markers.
+- Docs: Document the host-adapter ownership boundary, compatibility behavior, diagnostics APIs, and runtime include order.
+
 
 ###2026.07.19.05
 # FolderView Plus 2026.07.19.05

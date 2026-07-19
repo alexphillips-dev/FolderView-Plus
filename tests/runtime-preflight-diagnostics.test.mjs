@@ -12,6 +12,7 @@ const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const hostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 
 test('server lib safely loads host dependencies and exposes runtime preflight helpers', () => {
     assert.match(libPhp, /function fvplus_safe_require_once\(string \$key, string \$path\): bool/);
@@ -46,18 +47,21 @@ test('docker and vm pages seed runtime preflight into the fatal-banner context a
 });
 
 test('docker and vm runtimes report host-page structure drift explicitly', () => {
+    assert.match(hostAdapterJs, /Docker table shell', selector: 'table#docker_containers'/);
+    assert.match(hostAdapterJs, /Docker table body', selector: 'tbody#docker_list'/);
+    assert.match(hostAdapterJs, /VM table shell', selector: 'table#kvm_table'/);
+    assert.match(hostAdapterJs, /VM table body', selector: 'tbody#kvm_list'/);
+    assert.match(dockerPage, /scripts\/runtime\.host-adapter\.js/);
+    assert.match(vmPage, /scripts\/runtime\.host-adapter\.js/);
     assert.match(dockerJs, /const dockerHostGuardsModule = window\.FolderViewPlusDockerHostGuards \|\| null;/);
-    assert.match(dockerJs, /const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object\.freeze\(\s*dockerHostGuardsModule\?\.DEFAULT_REQUIRED_SELECTORS \|\| \[/);
-    assert.match(dockerJs, /Docker table shell', selector: 'table#docker_containers'/);
-    assert.match(dockerJs, /Docker table body', selector: 'tbody#docker_list'/);
+    assert.match(dockerJs, /runtimeHostAdapters\?\.getOrCreate\?\.\('docker'/);
     assert.match(dockerJs, /const ensureDockerHostPageStructure = \(\) =>/);
     assert.match(dockerJs, /hostGuardsApi\.ensureHostPageStructure\(\);/);
     assert.match(dockerJs, /markDockerFatalBannerStep\('Docker host page signature verified'\);/);
 
-    assert.match(vmJs, /const VM_HOST_PAGE_REQUIRED_SELECTORS = Object\.freeze\(\[/);
-    assert.match(vmJs, /VM table shell', selector: 'table#kvm_table'/);
-    assert.match(vmJs, /VM table body', selector: 'tbody#kvm_list'/);
+    assert.match(vmJs, /runtimeHostAdapters\?\.getOrCreate\?\.\('vm'/);
     assert.match(vmJs, /const ensureVmHostPageStructure = \(\) =>/);
+    assert.match(vmJs, /vmHostAdapter\.ensureStructure\(\{/);
     assert.match(vmJs, /code: 'FVPLUS-VM-DOM-001'/);
     assert.match(vmJs, /category: 'host-page-structure'/);
     assert.match(vmJs, /markVmFatalBannerStep\('VM host page signature verified'\);/);

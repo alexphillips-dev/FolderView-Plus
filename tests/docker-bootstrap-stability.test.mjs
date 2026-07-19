@@ -26,7 +26,7 @@ test('Docker bootstrap reuses its coherent request bundle instead of issuing a s
     assert.match(dockerJs, /resolveDockerBootstrapPrefsFromRequestBundle\(requestBundle\)/);
     assert.doesNotMatch(dockerJs, /ensureDockerBootstrapPrefs\(\{ forceRefresh: true \}\)/);
     assert.doesNotMatch(dockerJs, /rebuildDockerFolderReqForHostRender/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('loadlist',[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
     assert.match(dockerJs, /\/\/ Prime requests for environments where loadlist isn't called first\.[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);/);
 });
 
@@ -46,7 +46,8 @@ test('Docker folder construction suppresses intermediate width measurements and 
     assert.match(dockerJs, /const beginDockerRuntimeWidthBootstrap = \(\) =>/);
     assert.match(dockerJs, /const completeDockerRuntimeWidthBootstrap = \(generation, options = \{\}\) =>/);
     assert.match(dockerJs, /if \(isDockerRuntimeWidthBootstrapActive\(\)\) \{\s*dockerRuntimeWidthState\.deferredReason/);
-    assert.match(dockerJs, /dockerRuntimeResizerObserver = new MutationObserver\(\(\) => \{[\s\S]*isDockerRuntimeWidthBootstrapActive\(\)[\s\S]*resizerBindPending = true/);
+    assert.match(dockerJs, /const disconnect = dockerHostAdapter\.observeRows\(\(\) => \{[\s\S]*isDockerRuntimeWidthBootstrapActive\(\)[\s\S]*resizerBindPending = true/);
+    assert.match(dockerJs, /dockerRuntimeResizerObserver = \{ disconnect \};/);
     assert.match(dockerJs, /bindDockerRuntimeColumnResizers\(\{ scheduleReflow: false \}\);[\s\S]*runDockerRuntimeWidthReflow\('bootstrap-stable', \{[\s\S]*force: true,[\s\S]*minimumDelta: DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX/);
     assert.match(dockerJs, /const widthBootstrapGeneration = beginDockerRuntimeWidthBootstrap\(\);/);
     assert.match(dockerJs, /dockerRuntimeWidthState\.pendingRenderGeneration = widthBootstrapGeneration;/);
@@ -68,7 +69,7 @@ test('Docker leaves Unraid native rows visible until one uninterrupted folder co
     assert.doesNotMatch(dockerJs, /DockerFolderRenderSnapshot|DockerFolderRenderCommit/);
     assert.doesNotMatch(dockerJs, /fvplus-docker-render-staging|fvplus-docker-render-snapshot/);
     assert.doesNotMatch(dockerCss, /fvplus-docker-render-staging|fvplus-docker-render-snapshot/);
-    assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);[\s\S]*window\.loadlist_original\(\);/);
-    assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*window\.listview_original\(\);[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('loadlist',[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);[\s\S]*invokeOriginal\(\);/);
+    assert.match(dockerJs, /wrapHostHook\?\.\('listview',[\s\S]*invokeOriginal\(\);[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
     assert.match(dockerJs, /const createFolders = async \(\) => \{[\s\S]*dockerPerf\.begin\('createFolders\.total'\);\s*const widthBootstrapGeneration/);
 });

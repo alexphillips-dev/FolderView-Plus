@@ -125,6 +125,23 @@ test('Docker action bar is idempotent and reports fixture counts', async ({ page
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-empty"] .fvplus-docker-action-count').textContent(), '1');
 });
 
+test('Docker and VM host adapters share row, structure, and idempotent hook contracts', async ({ page }) => {
+    await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureRuntime.exerciseHostAdapters());
+    assert.equal(result.dockerSnapshot.structure.valid, true);
+    assert.equal(result.dockerSnapshot.structure.rowCounts.folders, 3);
+    assert.deepEqual(result.dockerNames, ['plex', 'sonarr', 'toolbox', 'orphan']);
+    assert.equal(result.vmStructure.ok, true);
+    assert.equal(result.vmSnapshot.structure.rowCounts.items, 1);
+    assert.equal(result.wrapperReused, true);
+    assert.equal(result.hookSnapshot.hooks.loadlist.callCount, 1);
+    assert.equal(result.restored, true);
+    assert.deepEqual(result.calls, [
+        ['second-handler', 'refresh'],
+        ['original', 'refresh']
+    ]);
+});
+
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.click('[data-fvplus-docker-action="filter-empty"]');

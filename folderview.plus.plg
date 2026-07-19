@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.18.03">
-<!ENTITY md5 "aafc4183749a56aea4c4053cb4f99331">
+<!ENTITY version "2026.07.19.01">
+<!ENTITY md5 "6fbe90f9ef8e333eea9976c5ce66b155">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.01
+# FolderView Plus 2026.07.19.01
+- Fix: Restore Docker container icons and members in collapsed folder previews when Performance mode is enabled. Performance mode no longer rewrites the configured preview style to `None` at render time.
+- Fix: Preserve configured collapsed previews on the VM page and Dashboard as well, while retaining reduced animation, slower refresh cadence, and expansion limits for large installations.
+- Test: Add regression coverage proving Performance mode cannot silently disable collapsed previews on any runtime surface.
+
 
 ###2026.07.18.03
 ## 2026.07.18.03

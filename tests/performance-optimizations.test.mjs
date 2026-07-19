@@ -181,6 +181,37 @@ test('performance mode applies stricter refresh cadence and reduced motion guard
     assert.match(dashboardCss, /body\.fvplus-performance-mode \.folder-showcase/);
 });
 
+test('performance mode preserves configured collapsed previews on every runtime surface', () => {
+    const sliceBetween = (source, startToken, endToken) => {
+        const start = source.indexOf(startToken);
+        const end = source.indexOf(endToken, start + startToken.length);
+        assert.ok(start >= 0 && end > start, `expected ${startToken} before ${endToken}`);
+        return source.slice(start, end);
+    };
+    const dockerCreateFolder = sliceBetween(
+        dockerJs,
+        'const createFolder = (',
+        'const appendDockerPreviewActionButtons ='
+    );
+    const vmCreateFolder = sliceBetween(vmJs, 'const createFolder = (', 'const folderAutostart =');
+    const dashboardDockerCreateFolder = sliceBetween(
+        dashboardJs,
+        'const createFolderDocker = (',
+        'const createFolderVM = ('
+    );
+    const dashboardVmCreateFolder = sliceBetween(
+        dashboardJs,
+        'const createFolderVM = (',
+        'const toggleFolderExpansion ='
+    );
+
+    for (const source of [dockerCreateFolder, vmCreateFolder, dashboardDockerCreateFolder, dashboardVmCreateFolder]) {
+        assert.doesNotMatch(source, /performanceMode[\s\S]*?preview:\s*0/);
+    }
+    assert.match(dockerJs, /const lazyPreviewActive = lazyPreviewEnabled[\s\S]*?preview:\s*0/);
+    assert.match(vmJs, /const lazyPreviewActive = lazyPreviewEnabled[\s\S]*?preview:\s*0/);
+});
+
 test('performance mode limits auto-restored expanded branches on runtime views', () => {
     assert.match(dockerJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);
     assert.match(vmJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);

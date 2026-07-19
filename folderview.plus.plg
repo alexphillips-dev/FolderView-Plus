@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.14">
-<!ENTITY md5 "6b95fc9ef8572d2c4a5d3f41bc91a720">
+<!ENTITY version "2026.07.19.15">
+<!ENTITY md5 "c851ebcc92605ad6e69a80e5b3ea4eba">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.15
+- Docs: Added a complete task-oriented User Guide covering folders, hierarchy, previews, runtime views, actions, rules, imports, backups, start order, performance profiles, privacy, and diagnostics.
+- Docs: Added dedicated Installation and Upgrades guidance for stable and dev branches, same-version update behavior, USB restoration, icon asset-pack recovery, persistent data, downgrades, and destructive uninstall behavior.
+- Docs: Added Migration, Privacy, and Compatibility guides covering FolderView2/3 imports, legacy regex conversion, runtime masks, support-bundle sanitization, supported platforms, host surfaces, themes, and optional integrations.
+- Docs: Expanded troubleshooting for missing icons, blank collapsed previews, native-row bootstrap, repeated reconciliation, view switching, privacy masks, performance, and cached updates.
+- Docs: Added an architecture overview and rebuilt the documentation index so API, storage, runtime, UI, localization, performance, asset-pack, support, security, and contributor references are discoverable.
+- Quality: Corrected GitHub contributor and security guidance to identify `dev` as active development and `main` as the stable release branch, and added a documentation checklist to pull requests.
+- Quality: Extended current-state metadata and documentation guards to verify branch policy, minimum Unraid version, public guide discovery, Docker views, privacy options, architecture coverage, and uninstall disclosure against live repository contracts.
+- Test: Added regression coverage for the new documentation contracts and broken relative links across GitHub-facing Markdown files.
+
 
 ###2026.07.19.14
 - Docs: Corrected Settings persistence guidance after removal of the visible saved indicator and documented the current confirmation and recovery workflow.

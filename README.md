@@ -21,7 +21,7 @@ FolderView Plus is a folder-first organization and management plugin for Unraid.
 - Automate organization with rules, bulk assignment, templates, and Docker start order tools.
 - Protect changes with backups, snapshot compare, restore, delete, and undo workflows.
 
-Quick links: [Install](#install) | [Features](#features) | [Screenshots](#screenshots) | [Getting Started](#getting-started) | [Documentation](#documentation) | [Support](#support)
+Quick links: [Install](#install) | [Update and Uninstall](#update-and-uninstall) | [Features](#features) | [Screenshots](#screenshots) | [Getting Started](#getting-started) | [Documentation](#documentation) | [Support](#support)
 
 ## Screenshots
 
@@ -90,6 +90,14 @@ Requirements:
 - Unraid `7.0.0+`
 - A current major Chrome, Edge, Firefox, or Safari browser
 
+For branch selection, forced reinstall testing, USB restore recovery, icon-pack behavior, and downgrade guidance, see [Installation and Upgrades](docs/INSTALLATION_AND_UPGRADES.md).
+
+## Update and Uninstall
+
+Use `Plugins -> Check for Updates` for normal updates. If Unraid reports that it is not reinstalling the same version, the installed manifest version and selected branch currently match; see [Installation and Upgrades](docs/INSTALLATION_AND_UPGRADES.md) before forcing a test build.
+
+Export the current configuration or create an external backup before uninstalling. The Unraid remove action deletes `/boot/config/plugins/folderview.plus`, including FolderView Plus folders, preferences, backups, uploaded icons, and custom overrides. A normal update preserves that configuration.
+
 ## Getting Started
 
 1. Open `Settings -> FolderView Plus`.
@@ -149,6 +157,11 @@ The plugin uses shared theme tokens for modern dark and light surfaces, while st
 ## Documentation
 
 - [Docs Index](docs/README.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Installation and Upgrades](docs/INSTALLATION_AND_UPGRADES.md)
+- [Migration Guide](docs/MIGRATION_GUIDE.md)
+- [Privacy Guide](docs/PRIVACY.md)
+- [Compatibility](docs/COMPATIBILITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Theme Guide](docs/THEME_GUIDE.md)
 - [Theme API Contract](docs/THEME_API_CONTRACT.md)

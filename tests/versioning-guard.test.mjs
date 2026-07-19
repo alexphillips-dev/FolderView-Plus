@@ -722,6 +722,11 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(docsMetadataGuard, /docs\/current-state\.json/);
     assert.match(docsMetadataGuard, /visibleSavedIndicator/);
     assert.match(docsMetadataGuard, /performance profiles do not match the runtime resolver/);
+    assert.match(docsMetadataGuard, /does not match the current branch model/);
+    assert.match(docsMetadataGuard, /Docker runtime views do not match the action bar/);
+    assert.match(docsMetadataGuard, /Docker privacy options do not match the runtime menu/);
+    assert.match(docsMetadataGuard, /README\.md does not link the public guide/);
+    assert.match(docsMetadataGuard, /must disclose that uninstall deletes the persistent plugin configuration root/);
     assert.match(docsMetadataGuard, /still uses retired current-state terminology/);
     assert.match(docsMetadataGuard, /folderview\.plus\.xml description is missing expected phrase/);
     assert.match(docsMetadataGuard, /Docs metadata guard passed/);

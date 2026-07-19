@@ -4,9 +4,11 @@
 
 | Version | Supported |
 | --- | --- |
-| `main` (current development) | yes |
-| Latest tagged release | yes |
+| Latest tagged release / `main` | yes |
+| `dev` (pre-release testing) | best effort |
 | Older releases | no |
+
+`main` tracks the latest stable release. `dev` contains active development builds and can receive security fixes before the next stable release, but it is not covered by the same stability guarantees.
 
 ## Reporting a Vulnerability
 

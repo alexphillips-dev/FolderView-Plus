@@ -21,10 +21,18 @@ const fail = (message) => {
 };
 
 const rootReadme = read('README.md');
+const docsIndex = read('docs/README.md');
 const troubleshootingDoc = read('docs/TROUBLESHOOTING.md');
+const userGuide = read('docs/USER_GUIDE.md');
+const installationGuide = read('docs/INSTALLATION_AND_UPGRADES.md');
+const privacyGuide = read('docs/PRIVACY.md');
+const compatibilityGuide = read('docs/COMPATIBILITY.md');
+const contributingGuide = read('.github/CONTRIBUTING.md');
+const securityPolicy = read('.github/SECURITY.md');
 const pluginReadme = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md');
 const localeEn = JSON.parse(read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/en.json'));
 const xml = read('folderview.plus.xml');
+const plg = read('folderview.plus.plg');
 const currentState = JSON.parse(read('docs/current-state.json'));
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsSectionsSource = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
@@ -33,6 +41,8 @@ const settingsRuntimeSource = read('src/folderview.plus/usr/local/emhttp/plugins
 const folderActionSource = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const runtimeSharedSource = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const dockerRuntimeSource = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerActionBarSource = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.action-bar.js');
 
 if (currentState.schemaVersion !== 1) {
   fail('docs/current-state.json schemaVersion must be 1.');
@@ -41,12 +51,47 @@ if (currentState.schemaVersion !== 1) {
 const documentationContracts = currentState.documentationContracts || {};
 const featureNames = currentState.featureNames || {};
 const settingsPersistence = currentState.settingsPersistence || {};
+const branchModel = currentState.branchModel || {};
+const platform = currentState.platform || {};
 const performanceProfiles = Array.isArray(currentState.performanceProfiles) ? currentState.performanceProfiles : [];
 const assertStringArray = (value, label) => {
   if (!Array.isArray(value) || value.length === 0 || value.some((entry) => typeof entry !== 'string' || entry.trim() === '')) {
     fail(`docs/current-state.json ${label} must be a non-empty string array.`);
   }
 };
+
+const stableBranch = String(branchModel.stable || '').trim();
+const developmentBranch = String(branchModel.development || '').trim();
+const contributionBase = String(branchModel.contributionBase || '').trim();
+if (!stableBranch || !developmentBranch || !contributionBase) {
+  fail('docs/current-state.json branchModel must define stable, development, and contributionBase.');
+}
+if (!contributingGuide.includes(`branch from \`${contributionBase}\``)
+    || !contributingGuide.includes(`target \`${developmentBranch}\``)
+    || !contributingGuide.includes(`\`${stableBranch}\` is the stable release branch`)) {
+  fail('.github/CONTRIBUTING.md does not match the current branch model.');
+}
+if (!securityPolicy.includes(`\`${stableBranch}\` tracks the latest stable release`)
+    || !securityPolicy.includes(`\`${developmentBranch}\` contains active development builds`)) {
+  fail('.github/SECURITY.md does not match the current branch support model.');
+}
+for (const branch of [stableBranch, developmentBranch]) {
+  const installUrl = `https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg`;
+  if (!installationGuide.includes(installUrl)) {
+    fail(`Installation guide is missing the ${branch} plugin URL.`);
+  }
+}
+
+const minimumUnraidVersion = String(platform.minimumUnraidVersion || '').trim();
+const manifestMinimumMatch = plg.match(/<PLUGIN\b[^>]*\bmin="([^"]+)"/);
+if (!minimumUnraidVersion || !manifestMinimumMatch || manifestMinimumMatch[1] !== minimumUnraidVersion) {
+  fail('docs/current-state.json minimum Unraid version does not match folderview.plus.plg.');
+}
+for (const [relativePath, source] of [['README.md', rootReadme], ['docs/COMPATIBILITY.md', compatibilityGuide]]) {
+  if (!source.includes(minimumUnraidVersion)) {
+    fail(`${relativePath} is missing the current minimum Unraid version.`);
+  }
+}
 
 const descMatch = pluginReadme.match(/<span id="folderviewplus-desc">([^<]+)<\/span>/);
 if (!descMatch) {
@@ -186,6 +231,77 @@ const edgeCaseDoc = read(edgeCaseDocPath);
 const folderActionMentions = edgeCaseDoc.toLowerCase().split(folderActionLabel.toLowerCase()).length - 1;
 if (folderActionMentions < Number(folderActionSurface.edgeCaseMinimumMentions || 1)) {
   fail(`${edgeCaseDocPath} does not consistently use the current ${folderActionLabel} name.`);
+}
+
+const dockerRuntimeViews = Array.isArray(featureNames.dockerRuntimeViews) ? featureNames.dockerRuntimeViews : [];
+const runtimeViewsMatch = dockerActionBarSource.match(/const VIEW_OPTIONS\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\);/);
+if (dockerRuntimeViews.length === 0 || !runtimeViewsMatch) {
+  fail('Could not resolve the documented Docker runtime view contract.');
+}
+const runtimeDockerViews = Array.from(runtimeViewsMatch[1].matchAll(/value:\s*'([^']+)',\s*label:\s*'([^']+)'/g))
+  .map((match) => ({ id: match[1], label: match[2] }));
+if (JSON.stringify(runtimeDockerViews) !== JSON.stringify(dockerRuntimeViews)) {
+  fail('docs/current-state.json Docker runtime views do not match the action bar.');
+}
+for (const view of dockerRuntimeViews) {
+  if (!userGuide.includes(`**${view.label}**`)) {
+    fail(`docs/USER_GUIDE.md is missing the current Docker runtime view: ${view.label}`);
+  }
+}
+
+const dockerPrivacyOptions = Array.isArray(featureNames.dockerPrivacyOptions) ? featureNames.dockerPrivacyOptions : [];
+const privacyOptionsMatch = dockerRuntimeSource.match(/const DOCKER_RUNTIME_PRIVACY_OPTION_DEFINITIONS\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\);/);
+if (dockerPrivacyOptions.length === 0 || !privacyOptionsMatch) {
+  fail('Could not resolve the documented Docker privacy option contract.');
+}
+const runtimePrivacyOptions = Array.from(privacyOptionsMatch[1].matchAll(/key:\s*'([^']+)',\s*label:\s*'([^']+)'/g))
+  .map((match) => ({ key: match[1], label: match[2] }));
+if (JSON.stringify(runtimePrivacyOptions) !== JSON.stringify(dockerPrivacyOptions)) {
+  fail('docs/current-state.json Docker privacy options do not match the runtime menu.');
+}
+for (const option of dockerPrivacyOptions) {
+  if (!privacyGuide.includes(`| ${option.label} |`)) {
+    fail(`docs/PRIVACY.md is missing the current Docker privacy option: ${option.label}`);
+  }
+}
+
+const publicGuides = Array.isArray(documentationContracts.publicGuides) ? documentationContracts.publicGuides : [];
+if (publicGuides.length === 0) {
+  fail('docs/current-state.json must define documentationContracts.publicGuides.');
+}
+for (const guide of publicGuides) {
+  const label = String(guide?.label || '').trim();
+  const guidePath = String(guide?.path || '').trim();
+  if (!label || !guidePath || !fs.existsSync(path.join(root, guidePath))) {
+    fail(`Public guide metadata is incomplete or missing a file: ${guidePath || label || 'unknown'}`);
+  }
+  const docsRelativePath = path.relative('docs', guidePath).split(path.sep).join('/');
+  if (!rootReadme.includes(`[${label}](${guidePath})`)) {
+    fail(`README.md does not link the public guide: ${label}`);
+  }
+  if (!docsIndex.includes(`[${path.basename(guidePath)}](${docsRelativePath})`)) {
+    fail(`docs/README.md does not index the public guide: ${guidePath}`);
+  }
+}
+
+const requiredArchitectureDocs = documentationContracts.requiredArchitectureDocs;
+assertStringArray(requiredArchitectureDocs, 'documentationContracts.requiredArchitectureDocs');
+for (const architecturePath of requiredArchitectureDocs) {
+  if (!fs.existsSync(path.join(root, architecturePath))) {
+    fail(`Required architecture document is missing: ${architecturePath}`);
+  }
+  const docsRelativePath = path.relative('docs', architecturePath).split(path.sep).join('/');
+  if (!docsIndex.includes(`(${docsRelativePath})`)) {
+    fail(`docs/README.md does not index architecture document: ${architecturePath}`);
+  }
+}
+
+if (plg.includes('rm -rf /boot/config/plugins/&name;')) {
+  for (const [relativePath, source] of [['README.md', rootReadme], ['docs/INSTALLATION_AND_UPGRADES.md', installationGuide]]) {
+    if (!source.includes('deletes `/boot/config/plugins/folderview.plus`')) {
+      fail(`${relativePath} must disclose that uninstall deletes the persistent plugin configuration root.`);
+    }
+  }
 }
 
 const retiredTerms = Array.isArray(documentationContracts.retiredTerms) ? documentationContracts.retiredTerms : [];

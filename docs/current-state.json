@@ -1,5 +1,13 @@
 {
   "schemaVersion": 1,
+  "branchModel": {
+    "stable": "main",
+    "development": "dev",
+    "contributionBase": "dev"
+  },
+  "platform": {
+    "minimumUnraidVersion": "7.0.0"
+  },
   "settingsPersistence": {
     "readmeStatement": "Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step.",
     "visibleSavedIndicator": false,
@@ -24,7 +32,22 @@
       "label": "folder action sheet",
       "runtimeToken": "fv-folder-action-sheet",
       "edgeCaseMinimumMentions": 3
-    }
+    },
+    "dockerRuntimeViews": [
+      { "id": "folderview", "label": "FolderView" },
+      { "id": "host", "label": "Host list" },
+      { "id": "command", "label": "Command" }
+    ],
+    "dockerPrivacyOptions": [
+      { "key": "privacyMaskNames", "label": "Mask names and icons" },
+      { "key": "privacyMaskLocalIps", "label": "Mask LAN IPs" },
+      { "key": "privacyMaskPorts", "label": "Mask ports" },
+      { "key": "privacyMaskVolumePaths", "label": "Mask volume paths" },
+      { "key": "privacyMaskImageRegistry", "label": "Mask image registries" },
+      { "key": "privacyMaskPublicIps", "label": "Mask public IPs" },
+      { "key": "privacyMaskInterfaces", "label": "Mask network interfaces" },
+      { "key": "privacyMaskExternalUrls", "label": "Mask external URLs" }
+    ]
   },
   "performanceProfiles": [
     { "id": "standard", "name": "Standard", "uiLabel": "Standard" },
@@ -35,6 +58,7 @@
     "requiredReadmeSections": [
       "## Settings Overview",
       "## Getting Started",
+      "## Update and Uninstall",
       "## Backups and Recovery",
       "## Troubleshooting",
       "## Customization"
@@ -47,6 +71,9 @@
     ],
     "requiredTroubleshootingSections": [
       "## Common Issues",
+      "### Built-In Or Third-Party Icons Are Missing",
+      "### Collapsed Folders Are Blank",
+      "### Privacy Choice Is Not Applied",
       "## Support Bundles",
       "## Paths",
       "## Legacy CSS/JS Overrides"
@@ -57,6 +84,24 @@
       "docs/vm-runtime-architecture.md"
     ],
     "edgeCaseDoc": "docs/edge-cases-test-matrix.md",
+    "publicGuides": [
+      { "label": "User Guide", "path": "docs/USER_GUIDE.md" },
+      { "label": "Installation and Upgrades", "path": "docs/INSTALLATION_AND_UPGRADES.md" },
+      { "label": "Migration Guide", "path": "docs/MIGRATION_GUIDE.md" },
+      { "label": "Privacy Guide", "path": "docs/PRIVACY.md" },
+      { "label": "Compatibility", "path": "docs/COMPATIBILITY.md" },
+      { "label": "Troubleshooting", "path": "docs/TROUBLESHOOTING.md" }
+    ],
+    "requiredArchitectureDocs": [
+      "docs/ARCHITECTURE.md",
+      "docs/api-endpoint-contract.md",
+      "docs/docker-runtime-architecture.md",
+      "docs/durable-storage.md",
+      "docs/runtime-host-adapter.md",
+      "docs/shared-ui-primitives.md",
+      "docs/vm-runtime-architecture.md",
+      "docs/visual-runtime-contract.md"
+    ],
     "retiredTerms": [
       { "term": "saved indicator", "files": ["README.md"] },
       { "term": "quick-actions modal", "files": ["docs/edge-cases-test-matrix.md"] },

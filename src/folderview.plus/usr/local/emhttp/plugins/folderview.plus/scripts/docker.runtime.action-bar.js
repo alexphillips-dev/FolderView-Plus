@@ -174,16 +174,16 @@
         };
 
         const buildActionButtonHtml = ({ action, label, icon, count = null, active = false, disabled = false, title = '' }) => `
-            <button type="button" class="fvplus-docker-action-button${active ? ' is-active' : ''}"
+            <button type="button" class="fvplus-docker-action-button fv-ui-button${active ? ' is-active' : ''}"
                 data-fvplus-docker-action="${escapeHtml(action)}" ${disabled ? 'disabled' : ''}
                 ${title ? `title="${escapeHtml(title)}"` : ''} aria-pressed="${active ? 'true' : 'false'}">
                 <i class="fa ${escapeHtml(icon)}" aria-hidden="true"></i><span>${escapeHtml(label)}</span>
-                ${count === null ? '' : `<span class="fvplus-docker-action-count">${Number(count) || 0}</span>`}
+                ${count === null ? '' : `<span class="fvplus-docker-action-count fv-ui-badge">${Number(count) || 0}</span>`}
             </button>`;
 
         const buildViewMenuHtml = (currentMode) => VIEW_OPTIONS.map((option) => `
             <button type="button" role="menuitemradio" aria-checked="${option.value === currentMode ? 'true' : 'false'}"
-                class="fvplus-docker-action-menu-item${option.value === currentMode ? ' is-selected' : ''}"
+                class="fvplus-docker-action-menu-item fv-ui-button${option.value === currentMode ? ' is-selected' : ''}"
                 data-fvplus-docker-view="${escapeHtml(option.value)}">
                 <i class="fa ${escapeHtml(option.icon)}" aria-hidden="true"></i><span>${escapeHtml(translate(option.i18nKey, option.label))}</span>
                 <i class="fa fa-check fvplus-docker-action-menu-check" aria-hidden="true"></i>
@@ -193,24 +193,24 @@
             const hideEmpty = utils.normalizePrefs(getPrefs() || {}).hideEmptyFolders === true;
             const focusActive = !!String(getFocusedFolderId() || '').trim();
             return `
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="toggle-empty">
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="toggle-empty">
                     <i class="fa ${hideEmpty ? 'fa-eye' : 'fa-eye-slash'}" aria-hidden="true"></i><span>${escapeHtml(hideEmpty ? translate('docker.actions.show-empty', 'Show empty folders') : translate('docker.actions.hide-empty', 'Hide empty folders'))}</span>
                 </button>
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="clear-focus" ${focusActive ? '' : 'disabled'}>
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="clear-focus" ${focusActive ? '' : 'disabled'}>
                     <i class="fa fa-crosshairs" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.clear-focus', 'Clear folder focus'))}</span>
                 </button>
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="refresh">
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="refresh">
                     <i class="fa fa-refresh" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.refresh-state', 'Refresh folder state'))}</span>
                 </button>
                 <span class="fvplus-docker-action-menu-divider" role="separator"></span>
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-route="bulk">
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-route="bulk">
                     <i class="fa fa-tasks" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.bulk-assignment', 'Bulk assignment'))}</span>
                 </button>
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-route="rules">
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-route="rules">
                     <i class="fa fa-code" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.rules-workspace', 'Rules workspace'))}</span>
                 </button>
                 <span class="fvplus-docker-action-menu-divider" role="separator"></span>
-                <button type="button" class="fvplus-docker-action-menu-item" data-fvplus-docker-tool="reset">
+                <button type="button" class="fvplus-docker-action-menu-item fv-ui-button" data-fvplus-docker-tool="reset">
                     <i class="fa fa-undo" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.reset-view', 'Reset view'))}</span>
                 </button>`;
         };
@@ -268,13 +268,13 @@
                 <div class="fvplus-docker-action-secondary">
                     ${buildActionButtonHtml({ action: 'manage-folders', label: translate('docker.actions.manage-folders', 'Manage Folders'), icon: 'fa-folder' })}
                     <span class="fvplus-docker-action-menu-shell">
-                        <button type="button" class="fvplus-docker-action-button${actionMenuOpen === 'view' ? ' is-active' : ''}" data-fvplus-docker-menu="view" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'view' ? 'true' : 'false'}">
+                        <button type="button" class="fvplus-docker-action-button fv-ui-button${actionMenuOpen === 'view' ? ' is-active' : ''}" data-fvplus-docker-menu="view" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'view' ? 'true' : 'false'}">
                             <i class="fa fa-eye" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.view', 'View'))}</span><i class="fa fa-caret-down fvplus-docker-action-menu-caret" aria-hidden="true"></i>
                         </button>
                         <span class="fvplus-docker-action-menu${actionMenuOpen === 'view' ? ' is-open' : ''}" role="menu">${buildViewMenuHtml(resolvedMode)}</span>
                     </span>
                     <span class="fvplus-docker-action-menu-shell">
-                        <button type="button" class="fvplus-docker-action-button${actionMenuOpen === 'tools' ? ' is-active' : ''}" data-fvplus-docker-menu="tools" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'tools' ? 'true' : 'false'}">
+                        <button type="button" class="fvplus-docker-action-button fv-ui-button${actionMenuOpen === 'tools' ? ' is-active' : ''}" data-fvplus-docker-menu="tools" aria-haspopup="menu" aria-expanded="${actionMenuOpen === 'tools' ? 'true' : 'false'}">
                             <i class="fa fa-wrench" aria-hidden="true"></i><span>${escapeHtml(translate('docker.actions.tools', 'Tools'))}</span><i class="fa fa-caret-down fvplus-docker-action-menu-caret" aria-hidden="true"></i>
                         </button>
                         <span class="fvplus-docker-action-menu${actionMenuOpen === 'tools' ? ' is-open' : ''}" role="menu">${buildToolsMenuHtml()}</span>

@@ -85,6 +85,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'import.html');
         } else if (requestUrl.pathname === '/localization') {
             filePath = path.join(fixtureDir, 'localization.html');
+        } else if (requestUrl.pathname === '/ui-primitives') {
+            filePath = path.join(fixtureDir, 'ui-primitives.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -120,6 +122,38 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 const tests = [];
 const test = (name, handler) => tests.push({ name, handler });
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
+
+test('Shared UI primitives provide accessible modal, action, toast, and progress behavior', async ({ page }) => {
+    await page.goto(`${baseUrl}/ui-primitives`, { waitUntil: 'load' });
+    await page.click('[data-fv-ui-action="fixture-action"]');
+    assert.equal(await page.evaluate(() => window.fixtureActionCount), 1);
+
+    await page.evaluate(() => {
+        document.querySelector('#fixture-opener').focus();
+        window.fixtureConfirmPromise = window.fixtureUI.openConfirm();
+    });
+    await page.waitForSelector('.fv-ui-modal[role="dialog"]');
+    assert.equal(await page.locator('.fv-ui-modal').getAttribute('aria-modal'), 'true');
+    assert.equal(await page.locator('[data-fv-ui-action="modal-confirm"]').evaluate((element) => element === document.activeElement), true);
+    await page.click('[data-fv-ui-action="modal-confirm"]');
+    assert.equal(await page.evaluate(() => window.fixtureConfirmPromise), true);
+    assert.equal(await page.locator('#fixture-opener').evaluate((element) => element === document.activeElement), true, 'focus restores to the element active when the modal opened');
+
+    await page.evaluate(() => { window.fixtureAlertPromise = window.fixtureUI.openAlert(); });
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('.fv-ui-modal', { state: 'detached' });
+    await page.evaluate(() => window.fixtureAlertPromise);
+
+    await page.evaluate(() => { window.fixtureUI.showToast(); });
+    assert.equal(await page.locator('.fv-ui-toast.is-success').count(), 1);
+    await page.click('.fv-ui-toast-close');
+
+    await page.evaluate(() => { window.fixtureProgress = window.fixtureUI.showProgress(); });
+    assert.equal(await page.locator('.fv-ui-progress-state progress').getAttribute('value'), '3');
+    assert.equal(await page.locator('[data-fv-ui-progress-label]').textContent(), 'Saving folders');
+    await page.click('[data-fv-ui-action="progress-cancel"]');
+    await page.waitForSelector('.fv-ui-progress-state', { state: 'detached' });
+});
 
 test('Generated localization covers initial, attributed, parameterized, and dynamic UI text', async ({ page }) => {
     const searchKey = surfaceKeyFor('Search built-in icons');

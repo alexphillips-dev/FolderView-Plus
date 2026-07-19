@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "ko",
         "namespace": "common"
     },
     "common.labels.optional": "선택 사항",
     "common.badges.recommended": "권장",
-    "common.badges.can-delete": "삭제할 수 있음"
+    "common.badges.can-delete": "삭제할 수 있음",
+    "common.close": "닫기",
+    "common.cancel": "취소",
+    "common.confirm": "확인",
+    "common.confirm-type": "확인하려면 입력",
+    "common.dismiss": "해제",
+    "common.loading": "로드 중…",
+    "common.notifications": "알림"
 }

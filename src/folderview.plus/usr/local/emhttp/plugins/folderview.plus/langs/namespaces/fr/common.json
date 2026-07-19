@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "fr",
         "namespace": "common"
     },
     "common.labels.optional": "Optionnel",
     "common.badges.recommended": "Recommandé",
-    "common.badges.can-delete": "Peut supprimer"
+    "common.badges.can-delete": "Peut supprimer",
+    "common.close": "Fermer",
+    "common.cancel": "Annuler",
+    "common.confirm": "Confirmer",
+    "common.confirm-type": "Saisissez pour confirmer",
+    "common.dismiss": "Ignorer",
+    "common.loading": "Chargement…",
+    "common.notifications": "Notifications"
 }

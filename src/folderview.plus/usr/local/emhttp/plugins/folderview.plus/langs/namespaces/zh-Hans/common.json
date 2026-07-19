@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "zh-Hans",
         "namespace": "common"
     },
     "common.labels.optional": "可选",
     "common.badges.recommended": "推荐",
-    "common.badges.can-delete": "可以删除"
+    "common.badges.can-delete": "可以删除",
+    "common.close": "关闭",
+    "common.cancel": "取消",
+    "common.confirm": "确认",
+    "common.confirm-type": "输入以确认",
+    "common.dismiss": "忽略",
+    "common.loading": "正在加载…",
+    "common.notifications": "通知"
 }

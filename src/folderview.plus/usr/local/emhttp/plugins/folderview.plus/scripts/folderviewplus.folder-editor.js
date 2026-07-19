@@ -199,6 +199,7 @@ const renderFolderActionButton = (action) => {
     const disabled = String(action.disabledReason || '').trim();
     const classes = [
         'fv-row-quick-action',
+        'fv-ui-button',
         action.danger ? 'is-danger' : ''
     ].filter(Boolean).join(' ');
     return `
@@ -265,7 +266,7 @@ const renderFolderActionSheetDetails = ({ resolvedType, folderId, folderMap, hie
         details.push(['Resources', String(summary.resources || '0 vCPU | 0 GB')]);
     }
     return `
-        <details class="fv-folder-action-sheet-details">
+        <details class="fv-folder-action-sheet-details fv-ui-disclosure">
             <summary><span><i class="fa fa-info-circle" aria-hidden="true"></i> Folder details</span><i class="fa fa-angle-down" aria-hidden="true"></i></summary>
             <dl>
                 ${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
@@ -322,7 +323,7 @@ const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
                         <h2 id="fv-folder-action-sheet-title">${safeFolderName}</h2>
                         <p title="${escapeHtml(pathLabel)}">${escapeHtml(pathLabel)}</p>
                     </div>
-                    <button type="button" class="fv-folder-action-sheet-close" data-close-folder-actions aria-label="Close folder actions"><i class="fa fa-times" aria-hidden="true"></i></button>
+                    <button type="button" class="fv-folder-action-sheet-close fv-ui-button fv-ui-icon-button" data-close-folder-actions aria-label="Close folder actions"><i class="fa fa-times" aria-hidden="true"></i></button>
                 </header>
                 <div class="fv-folder-action-sheet-status" aria-label="Folder status">
                     <span>${summary.membersCount} member${summary.membersCount === 1 ? '' : 's'}</span>

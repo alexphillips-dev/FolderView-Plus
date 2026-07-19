@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "ru",
         "namespace": "common"
     },
     "common.labels.optional": "Необязательно",
     "common.badges.recommended": "Рекомендуется",
-    "common.badges.can-delete": "Можно удалить"
+    "common.badges.can-delete": "Можно удалить",
+    "common.close": "Закрыть",
+    "common.cancel": "Отмена",
+    "common.confirm": "Подтвердить",
+    "common.confirm-type": "Введите для подтверждения",
+    "common.dismiss": "Скрыть",
+    "common.loading": "Загрузка…",
+    "common.notifications": "Уведомления"
 }

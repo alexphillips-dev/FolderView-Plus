@@ -15,10 +15,49 @@
     const createSupportActions = (deps = {}) => {
         const utils = deps.utils || {};
         const swalFn = typeof deps.swal === 'function' ? deps.swal : null;
+        const ui = deps.ui || fallbackWindow?.FolderViewPlusUI || null;
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
         const setUpdateStatus = typeof deps.setUpdateStatus === 'function' ? deps.setUpdateStatus : (() => {});
         const setRollbackStatus = typeof deps.setRollbackStatus === 'function' ? deps.setRollbackStatus : (() => {});
         const updateTools = deps.updateTools || null;
+
+        const notify = ({ title = '', text = '', type = 'info' } = {}) => {
+            if (typeof ui?.alert === 'function') {
+                return ui.alert({
+                    title,
+                    message: text,
+                    tone: type === 'error' ? 'danger' : type
+                });
+            }
+            swalFn?.({ title, text, type });
+            return null;
+        };
+
+        const requestConfirmation = ({
+            title = '', text = '', confirmButtonText = 'Confirm', cancelButtonText = 'Cancel', type = 'warning'
+        } = {}) => {
+            if (typeof ui?.confirm === 'function') {
+                return ui.confirm({
+                    title,
+                    message: text,
+                    confirmLabel: confirmButtonText,
+                    cancelLabel: cancelButtonText,
+                    tone: type === 'error' ? 'danger' : type
+                });
+            }
+            if (!swalFn) return Promise.resolve(false);
+            return new Promise((resolve) => {
+                swalFn({
+                    title,
+                    text,
+                    type,
+                    showCancelButton: true,
+                    confirmButtonText,
+                    cancelButtonText,
+                    showLoaderOnConfirm: true
+                }, (confirmed) => resolve(Boolean(confirmed)));
+            });
+        };
 
         const runScheduledBackupNow = async (type) => {
             const resolvedType = normalizeType(type);
@@ -26,7 +65,7 @@
                 try {
                     await deps.runScheduledBackup(resolvedType);
                     await Promise.all([deps.refreshType(resolvedType), deps.refreshBackups(resolvedType)]);
-                    swalFn?.({
+                    notify({
                         title: 'Scheduler run complete',
                         text: `Scheduled backup check executed for ${resolvedType.toUpperCase()}.`,
                         type: 'success'
@@ -99,7 +138,7 @@
                 });
             }
             setUpdateStatus('Update helper module unavailable.');
-            swalFn?.({
+            notify({
                 title: 'Update helper unavailable',
                 text: 'Reload the page to load update helper scripts.',
                 type: 'warning'
@@ -118,7 +157,7 @@
                 });
             }
             setUpdateStatus('Force-refresh helper unavailable.');
-            swalFn?.({
+            notify({
                 title: 'Force-refresh helper unavailable',
                 text: 'Reload the page to load helper scripts.',
                 type: 'warning'
@@ -131,7 +170,7 @@
                 const checkpoint = await deps.createGlobalRollbackCheckpointApi('manual');
                 const message = checkpoint?.name ? `Created: ${checkpoint.name}` : 'Rollback checkpoint created.';
                 setRollbackStatus(message);
-                swalFn?.({
+                notify({
                     title: 'Rollback checkpoint created',
                     text: message,
                     type: 'success'
@@ -142,36 +181,27 @@
             }
         };
 
-        const rollbackLatestCheckpoint = () => {
-            swalFn?.({
+        const rollbackLatestCheckpoint = async () => {
+            const confirmed = await requestConfirmation({
                 title: 'Rollback plugin settings?',
                 text: 'This restores Docker + VM folders and settings from the previous rollback snapshot.',
                 type: 'warning',
-                showCancelButton: true,
                 confirmButtonText: 'Rollback now',
-                cancelButtonText: 'Cancel',
-                showLoaderOnConfirm: true
-            }, async (confirmed) => {
-                if (!confirmed) {
-                    return;
-                }
-                try {
-                    const restore = await deps.restorePreviousGlobalRollbackCheckpointApi();
-                    await deps.refreshAll();
-                    const target = restore?.targetName || restore?.name || 'previous snapshot';
-                    const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
-                    const status = `Restored ${target}`;
-                    setRollbackStatus(status);
-                    swalFn?.({
-                        title: 'Rollback complete',
-                        text: `${status}${undo}`,
-                        type: 'success'
-                    });
-                } catch (error) {
-                    setRollbackStatus('Rollback failed.');
-                    showError('Rollback failed', error);
-                }
+                cancelButtonText: 'Cancel'
             });
+            if (!confirmed) return;
+            try {
+                const restore = await deps.restorePreviousGlobalRollbackCheckpointApi();
+                await deps.refreshAll();
+                const target = restore?.targetName || restore?.name || 'previous snapshot';
+                const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
+                const status = `Restored ${target}`;
+                setRollbackStatus(status);
+                notify({ title: 'Rollback complete', text: `${status}${undo}`, type: 'success' });
+            } catch (error) {
+                setRollbackStatus('Rollback failed.');
+                showError('Rollback failed', error);
+            }
         };
 
         const fileManager = () => {

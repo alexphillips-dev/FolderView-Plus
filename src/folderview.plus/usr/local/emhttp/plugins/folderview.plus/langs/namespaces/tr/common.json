@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "tr",
         "namespace": "common"
     },
     "common.labels.optional": "İsteğe Bağlı",
     "common.badges.recommended": "Önerilen",
-    "common.badges.can-delete": "Silinebilir"
+    "common.badges.can-delete": "Silinebilir",
+    "common.close": "Kapat",
+    "common.cancel": "İptal",
+    "common.confirm": "Onayla",
+    "common.confirm-type": "Onaylamak için yazın",
+    "common.dismiss": "Bildirimi kapat",
+    "common.loading": "Yükleniyor…",
+    "common.notifications": "Bildirimler"
 }

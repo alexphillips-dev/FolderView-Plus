@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.08">
-<!ENTITY md5 "c8c8a03492f4e27d6b89a5a767d3802c">
+<!ENTITY version "2026.07.19.10">
+<!ENTITY md5 "c1586e4bcf2e8e678003c8fb7031f016">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,20 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.10
+# FolderView Plus 2026.07.19.10
+- Refactor: Add one shared, theme-aware UI primitive layer for Settings, Docker, VM, Dashboard, and the modern folder editor.
+- Feature: Provide reusable modal and action-sheet, confirmation, alert, button and icon button, disclosure, badge, form field and error, dropdown and multiselect, toast and progress, empty-state, and loading-state APIs.
+- Accessibility: Give managed dialogs consistent ARIA semantics, initial focus, keyboard focus trapping, Escape and backdrop policies, nested-dialog ordering, live announcements, body scroll locking, and trigger focus restoration.
+- UI/UX: Standardize neutral button hover and focus behavior, responsive modal sizing, contained scrolling, mobile safe-area handling, status tones, compact badges, and theme-token surfaces without adding new `!important` overrides.
+- Refactor: Route Settings toast/error output and rollback confirmation through the shared UI layer while keeping a compatibility fallback for legacy SweetAlert availability.
+- Refactor: Migrate Diagnostics actions from inline event attributes to delegated UI actions and apply shared buttons, empty states, import disclosure bodies, import badges, folder action-sheet controls, and Docker action-bar controls.
+- Localization: Add and fully translate seven common modal, notification, loading, and confirmation labels across all 18 shipped locale catalogs, increasing each catalog to 1,944 messages.
+- Regression guard: Add a downward-only UI debt budget that prevents first-party `!important` declarations, SweetAlert references, or inline page event handlers from increasing and forbids `!important` inside the primitive stylesheet.
+- Test: Add Node contracts and a real Chromium fixture for every primitive family, delegated actions, confirmation results, modal focus and dismissal, toast lifecycle, and deterministic progress updates.
+- Docs: Document the shared component API, delegated-action pattern, styling rules, accessibility ownership, and incremental migration policy.
+
 
 ###2026.07.19.08
 # FolderView Plus 2026.07.19.08

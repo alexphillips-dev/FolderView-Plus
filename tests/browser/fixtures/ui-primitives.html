@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus UI primitives fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/ui.primitives.css">
+    <style>body { background: #111; color: #eee; font-family: Arial, sans-serif; padding: 1rem; }</style>
+</head>
+<body>
+    <button id="fixture-opener" type="button">Open fixture</button>
+    <div id="fixture-components"></div>
+    <script src="/plugin/scripts/folderviewplus.ui.js"></script>
+    <script>
+        const ui = window.FolderViewPlusUI;
+        document.querySelector('#fixture-components').innerHTML = [
+            ui.button({ label: 'Delegated action', action: 'fixture-action' }),
+            ui.badge({ label: 'Healthy', tone: 'success' }),
+            ui.disclosure({ title: 'Technical details', body: '<p>Details body</p>' }),
+            ui.field({ id: 'fixture-name', label: 'Name', control: '<input id="fixture-name">', error: 'Name is required' }),
+            ui.dropdown({ id: 'fixture-select', options: ['One', 'Two'], value: 'Two' }),
+            ui.emptyState({ title: 'No folders', message: 'Create a folder to begin.' }),
+            ui.loadingState({ label: 'Loading folders', compact: true })
+        ].join('');
+        window.fixtureActionCount = 0;
+        ui.registerAction('fixture-action', () => { window.fixtureActionCount += 1; });
+        window.fixtureUI = {
+            openConfirm: () => ui.confirm({ title: 'Delete folder?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }),
+            openAlert: () => ui.alert({ title: 'Saved', message: 'Folder settings were saved.', tone: 'success' }),
+            showToast: () => ui.toast({ title: 'Complete', message: 'Operation completed.', tone: 'success', durationMs: 0 }),
+            showProgress: () => {
+                const controller = ui.progress({ title: 'Importing', label: 'Preparing', value: 1, max: 4, cancellable: true });
+                controller.update({ label: 'Saving folders', value: 3, detail: '3 of 4 steps complete' });
+                return controller;
+            }
+        };
+    </script>
+</body>
+</html>

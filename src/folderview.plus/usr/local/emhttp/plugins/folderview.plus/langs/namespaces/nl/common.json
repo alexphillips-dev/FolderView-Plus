@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "nl",
         "namespace": "common"
     },
     "common.labels.optional": "Optioneel",
     "common.badges.recommended": "Aanbevolen",
-    "common.badges.can-delete": "Kan verwijderen"
+    "common.badges.can-delete": "Kan verwijderen",
+    "common.close": "Sluiten",
+    "common.cancel": "Annuleren",
+    "common.confirm": "Bevestigen",
+    "common.confirm-type": "Typ om te bevestigen",
+    "common.dismiss": "Negeren",
+    "common.loading": "Laden…",
+    "common.notifications": "Meldingen"
 }

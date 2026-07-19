@@ -1,10 +1,17 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.1",
+        "catalog-version": "2026.07.19.2",
         "locale": "sv",
         "namespace": "common"
     },
     "common.labels.optional": "Valfritt",
     "common.badges.recommended": "Rekommenderat",
-    "common.badges.can-delete": "Kan raderas"
+    "common.badges.can-delete": "Kan raderas",
+    "common.close": "Stäng",
+    "common.cancel": "Avbryt",
+    "common.confirm": "Bekräfta",
+    "common.confirm-type": "Skriv för att bekräfta",
+    "common.dismiss": "Avfärda",
+    "common.loading": "Läser in…",
+    "common.notifications": "Aviseringar"
 }

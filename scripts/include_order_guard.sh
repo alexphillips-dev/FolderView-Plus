@@ -49,6 +49,7 @@ const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((
 const expectedOrder = [
   'folderviewplus.fatal-banner.js',
   'folderviewplus.utils.js',
+  'folderviewplus.ui.js',
   'folderviewplus.request.js',
   'folderviewplus.prefs-store.js',
   'folderviewplus.theme-resolver.js',

@@ -5855,12 +5855,17 @@ const showToastMessage = ({
     actionLabel = '',
     onAction = null
 } = {}) => {
-    void title;
-    void message;
-    void level;
-    void durationMs;
-    void actionLabel;
-    void onAction;
+    if (window.FolderViewPlusUI?.toast) {
+        return window.FolderViewPlusUI.toast({
+            title,
+            message,
+            level: level === 'error' ? 'danger' : level,
+            durationMs,
+            actionLabel,
+            onAction
+        });
+    }
+    return null;
 };
 
 const formatTimestamp = (isoString) => {
@@ -6110,11 +6115,15 @@ const showError = (title, error) => {
         level: 'error',
         durationMs: 7000
     });
-    swal({
-        title,
-        text: message,
-        type: 'error'
-    });
+    if (window.FolderViewPlusUI?.alert) {
+        window.FolderViewPlusUI.alert({
+            title: safeTitle,
+            message,
+            tone: 'danger'
+        });
+        return;
+    }
+    swal({ title, text: message, type: 'error' });
 };
 
 const setImportantStyle = (element, property, value) => {
@@ -11626,6 +11635,7 @@ const settingsSupportActions = settingsActionSupportModule.createSupportActions(
     window,
     $,
     utils,
+    ui: window.FolderViewPlusUI,
     swal,
     withAdvancedOperationLock,
     runScheduledBackup,
@@ -11816,6 +11826,12 @@ settingsActionSupportModule.registerWindowActions(window, {
     exportEnvironmentSnapshot,
     importEnvironmentSnapshot,
 });
+
+if (window.FolderViewPlusUI?.registerAction) {
+    window.FolderViewPlusUI.registerAction('diagnostics-run', () => runDiagnostics());
+    window.FolderViewPlusUI.registerAction('diagnostics-copy-report', () => copyIssueReport());
+    window.FolderViewPlusUI.registerAction('diagnostics-export-bundle', () => exportSupportBundle());
+}
 
 (async () => {
     try {

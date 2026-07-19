@@ -20,7 +20,7 @@
 ###2026.07.19.01
 # FolderView Plus 2026.07.19.01
 - Fix: Restore container icons and member previews inside collapsed Docker folders when Performance mode is enabled. This resolves the blank collapsed rows reported after updating, reinstalling, or restoring FolderView Plus.
-- Root cause: Performance mode was rewriting each folder's runtime preview setting to `None` (`preview: 0`) while the folder was being rendered. The renderer now honors the folder's saved preview style instead of silently replacing it.
+- Fix: Performance mode was rewriting each folder's runtime preview setting to `None` (`preview: 0`) while the folder was being rendered. The renderer now honors the folder's saved preview style instead of silently replacing it.
 - Fix: Apply the same correction to collapsed VM folders and the Dashboard's Docker and VM folder previews so all runtime surfaces behave consistently.
 - Compatibility: Keep Performance mode's intended reduced motion, slower refresh cadence, and expansion limits without suppressing configured preview content. No folder reconfiguration, icon-pack reinstall, or preference migration is required.
 - Test: Add regression coverage across Docker, VM, and both Dashboard render paths proving Performance mode cannot silently disable collapsed previews again.

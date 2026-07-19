@@ -904,32 +904,10 @@ if [[ ! -d "${SERVER_DIR}" ]]; then
   exit 1
 fi
 
-READ_ONLY_ENDPOINTS=(
-  "cpu.php"
-  "read.php"
-  "read_info.php"
-  "read_order.php"
-  "read_unraid_order.php"
-  "runtime_snapshot.php"
-  "third_party_icons.php"
-  "update_check.php"
-  "update_notes.php"
-  "version.php"
-)
-
-while IFS= read -r endpoint_path; do
-  endpoint_name="$(basename "${endpoint_path}")"
-  if [[ "${endpoint_name}" == lib*.php ]]; then
-    continue
-  fi
-  if printf '%s\n' "${READ_ONLY_ENDPOINTS[@]}" | grep -Fxq "${endpoint_name}"; then
-    continue
-  fi
-  if ! grep -q 'requireMutationRequestGuard()' "${endpoint_path}"; then
-    echo "ERROR: Mutating endpoint is missing requireMutationRequestGuard(): ${endpoint_name}" >&2
-    exit 1
-  fi
-done < <(find "${SERVER_DIR}" -maxdepth 1 -type f -name '*.php' | sort)
+API_CONTRACT_NODE_BIN="$(fvplus::resolve_platform_command node)"
+API_CONTRACT_GUARD_PATH="$(fvplus::path_for_command "${API_CONTRACT_NODE_BIN}" "${ROOT_DIR}/scripts/api_contract_guard.mjs")"
+API_CONTRACT_SERVER_PATH="$(fvplus::path_for_command "${API_CONTRACT_NODE_BIN}" "${SERVER_DIR}")"
+"${API_CONTRACT_NODE_BIN}" "${API_CONTRACT_GUARD_PATH}" --server-dir "${API_CONTRACT_SERVER_PATH}"
 
 if ! grep -q "###${VERSION}" "${PLG_FILE}"; then
   echo "ERROR: CHANGES section does not contain an entry for ${VERSION}" >&2

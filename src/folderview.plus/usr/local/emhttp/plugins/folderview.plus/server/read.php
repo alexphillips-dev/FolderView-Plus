@@ -7,6 +7,7 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 try {
+    fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $foldersJson = readFolder($type);
     $metadata = readConfigMetadata($type, true);

@@ -7,6 +7,7 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 try {
+    fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $mode = normalizeReadInfoMode((string)($_GET['mode'] ?? $_REQUEST['mode'] ?? 'full'));
     $nocacheRaw = strtolower(trim((string)($_GET['nocache'] ?? $_REQUEST['nocache'] ?? '0')));

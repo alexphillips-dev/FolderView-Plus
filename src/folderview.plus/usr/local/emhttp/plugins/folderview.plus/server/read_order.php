@@ -5,6 +5,7 @@ header('Content-Type: text/plain');
 emitNoCachePageHeaders();
 
 try {
+    fvplus_enforce_current_api_contract();
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     echo readUserPrefs($type);
 } catch (Throwable $e) {

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "defaults": {
+    "requestContentTypes": ["application/x-www-form-urlencoded", "multipart/form-data"],
+    "responseContentTypes": ["application/json"],
+    "maxRequestBytes": 2097152,
+    "requiredParameters": []
+  },
+  "endpoints": {
+    "apply_folder_settings.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
+      "requiredParameters": ["type", "targetIds", "settings"], "responseType": "json", "auditCategory": "folder.settings"
+    },
+    "backup.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "backup.read",
+      "actionParameter": "action", "defaultAction": "list",
+      "actions": {
+        "list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type"], "auditCategory": "backup.list"},
+        "read": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type", "name"], "auditCategory": "backup.read"},
+        "download": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type", "name"], "responseType": "binary", "responseContentTypes": ["application/json"], "auditCategory": "backup.download"},
+        "download_post": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "responseType": "binary", "responseContentTypes": ["application/json"], "auditCategory": "backup.download"},
+        "create": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.create"},
+        "restore": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "auditCategory": "backup.restore"},
+        "restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore"},
+        "restore_latest_undo": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore"},
+        "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "auditCategory": "backup.delete"},
+        "delete_all": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.delete"},
+        "run_schedule": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "backup.schedule"},
+        "rollback_list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": [], "auditCategory": "recovery.list"},
+        "rollback_checkpoint": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.checkpoint"},
+        "rollback_restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore"},
+        "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore"}
+      }
+    },
+    "batch.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 33554432,
+      "requiredParameters": ["type", "operations"], "responseType": "json", "auditCategory": "folder.batch"
+    },
+    "bulk_assign.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 33554432,
+      "requiredParameters": ["type"], "responseType": "json", "auditCategory": "folder.members"
+    },
+    "bulk_folder_action.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 33554432,
+      "requiredParameters": ["type"], "responseType": "json", "auditCategory": "runtime.bulk-action"
+    },
+    "cpu.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": [], "responseType": "text", "responseContentTypes": ["text/plain"], "auditCategory": "system.cpu"
+    },
+    "create.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 8388608,
+      "requiredParameters": ["type", "content"], "responseType": "json", "auditCategory": "folder.create"
+    },
+    "delete.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
+      "requiredParameters": ["type", "id"], "responseType": "json", "auditCategory": "folder.delete"
+    },
+    "diagnostics.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "diagnostics.read",
+      "actionParameter": "action", "defaultAction": "report",
+      "actions": {
+        "report": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.report"},
+        "support_bundle": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.support-bundle"},
+        "track_event": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["eventType"], "auditCategory": "diagnostics.event"},
+        "sync_docker_order": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "normalize_prefs": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "repair_config_metadata": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "repair_paths": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "repair_missing_custom_icons": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "repair_orphaned_members": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "create_backup": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.backup"}
+      }
+    },
+    "docker_start_order.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "docker.start-order",
+      "actionParameter": "action", "defaultAction": "preview",
+      "actions": {
+        "preview": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "docker.start-order.preview"},
+        "sync": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "docker.start-order.sync"}
+      }
+    },
+    "environment_snapshot.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "maxRequestBytes": 33554432, "responseType": "json", "auditCategory": "environment.snapshot",
+      "actionParameter": "action", "defaultAction": "export",
+      "actions": {
+        "export": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "environment.export"},
+        "preview": {"methods": ["POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["payload"], "auditCategory": "environment.preview"},
+        "apply": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["payload"], "auditCategory": "environment.apply"}
+      }
+    },
+    "migrate_legacy_regex.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
+      "requiredParameters": ["type", "folderId"], "responseType": "json", "auditCategory": "rules.migrate"
+    },
+    "prefs.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "preferences",
+      "methodContracts": {
+        "GET": {"access": "read-only", "requestToken": "none", "requiredParameters": ["type"], "auditCategory": "preferences.read"},
+        "POST": {"access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "preferences.write"}
+      }
+    },
+    "read.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": ["type"], "responseType": "json", "responseContentTypes": ["text/plain"], "auditCategory": "folder.read"
+    },
+    "read_info.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": ["type"], "responseType": "json", "responseContentTypes": ["text/plain"], "auditCategory": "runtime.info"
+    },
+    "read_order.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": ["type"], "responseType": "text", "responseContentTypes": ["text/plain"], "auditCategory": "folder.order"
+    },
+    "read_unraid_order.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": ["type"], "responseType": "text", "responseContentTypes": ["text/plain"], "auditCategory": "host.order"
+    },
+    "reconcile_member_identities.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 8388608,
+      "requiredParameters": ["type", "patches"], "responseType": "json", "auditCategory": "folder.reconcile"
+    },
+    "reorder.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
+      "requiredParameters": ["type", "order"], "responseType": "json", "auditCategory": "folder.reorder"
+    },
+    "runtime_snapshot.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": ["type"], "responseType": "json", "auditCategory": "runtime.snapshot"
+    },
+    "sync_order.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation",
+      "requiredParameters": ["type"], "responseType": "json", "auditCategory": "host.order.sync"
+    },
+    "templates.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "responseType": "json", "auditCategory": "template",
+      "actionParameter": "action", "defaultAction": "list",
+      "actions": {
+        "list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type"], "auditCategory": "template.list"},
+        "create": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "folderId"], "auditCategory": "template.create"},
+        "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "templateId"], "auditCategory": "template.delete"},
+        "apply": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "templateId", "folderId"], "auditCategory": "template.apply"}
+      }
+    },
+    "theme_workspace.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "maxRequestBytes": 8388608, "responseType": "json", "auditCategory": "theme.workspace",
+      "actionParameter": "action", "defaultAction": "read",
+      "actions": {
+        "read": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "theme.read"},
+        "scan_github": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["source"], "auditCategory": "theme.scan"},
+        "import_github": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["source"], "auditCategory": "theme.import"},
+        "activate": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.activate"},
+        "deactivate": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "theme.deactivate"},
+        "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.delete"},
+        "save_customize": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["variables"], "auditCategory": "theme.customize"},
+        "check_updates": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "theme.update-check"},
+        "update_theme": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["themeId"], "auditCategory": "theme.update"}
+      }
+    },
+    "third_party_icons.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0, "responseType": "mixed", "auditCategory": "icons.third-party",
+      "actionParameter": "action", "defaultAction": "list_folders",
+      "actions": {
+        "list_folders": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "responseType": "json", "auditCategory": "icons.third-party.list"},
+        "list_icons": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["folder"], "responseType": "json", "auditCategory": "icons.third-party.list"},
+        "list_index": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "responseType": "json", "auditCategory": "icons.third-party.list"},
+        "file": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["folder", "file"], "responseType": "binary", "responseContentTypes": ["image/*"], "auditCategory": "icons.third-party.file"}
+      }
+    },
+    "update.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "mutation", "maxRequestBytes": 8388608,
+      "requiredParameters": ["type", "content", "id"], "responseType": "json", "auditCategory": "folder.update"
+    },
+    "update_check.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": [], "responseType": "json", "auditCategory": "plugin.update-check"
+    },
+    "update_notes.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": [], "responseType": "json", "auditCategory": "plugin.update-notes"
+    },
+    "upload_custom_icon.php": {
+      "methods": ["GET", "POST"], "access": "mixed", "requestToken": "none", "maxRequestBytes": 8388608, "responseType": "json", "auditCategory": "icons.custom",
+      "actionParameter": "action", "defaultAction": "upload",
+      "actions": {
+        "list": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "icons.custom.list"},
+        "stats": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "icons.custom.stats"},
+        "usage": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "requiredParameters": ["name"], "auditCategory": "icons.custom.usage"},
+        "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["name"], "auditCategory": "icons.custom.delete"},
+        "rename": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["from", "to"], "auditCategory": "icons.custom.rename"},
+        "upload": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "icons.custom.upload"}
+      }
+    },
+    "version.php": {
+      "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
+      "requiredParameters": [], "responseType": "text", "responseContentTypes": ["text/plain"], "auditCategory": "plugin.version"
+    }
+  }
+}

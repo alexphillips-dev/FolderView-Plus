@@ -187,37 +187,13 @@ while IFS= read -r -d '' file; do
   "${NODE_BIN}" --check "${node_target}" >/dev/null
 done < <(find "${PLUGIN_DIR}/scripts" -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
 
-MUTATING_ENDPOINTS=(
-  "create.php"
-  "update.php"
-  "delete.php"
-  "prefs.php"
-  "reorder.php"
-  "sync_order.php"
-  "bulk_assign.php"
-  "bulk_folder_action.php"
-  "apply_folder_settings.php"
-)
-for endpoint in "${MUTATING_ENDPOINTS[@]}"; do
-  file="${PLUGIN_DIR}/server/${endpoint}"
-  if ! grep -q 'requireMutationRequestGuard()' "${file}"; then
-    echo "ERROR: Missing mutation request guard in ${endpoint}" >&2
-    exit 1
-  fi
-done
-
-MULTI_ACTION_ENDPOINTS=(
-  "backup.php"
-  "templates.php"
-  "diagnostics.php"
-)
-for endpoint in "${MULTI_ACTION_ENDPOINTS[@]}"; do
-  file="${PLUGIN_DIR}/server/${endpoint}"
-  if ! grep -q 'requireMutationRequestGuard()' "${file}"; then
-    echo "ERROR: Missing mutation request guard branch in ${endpoint}" >&2
-    exit 1
-  fi
-done
+API_CONTRACT_GUARD_PATH="${ROOT_DIR}/scripts/api_contract_guard.mjs"
+API_CONTRACT_SERVER_PATH="${PLUGIN_DIR}/server"
+if command -v wslpath >/dev/null 2>&1 && command_uses_windows_path_translation "${NODE_BIN}"; then
+  API_CONTRACT_GUARD_PATH="$(wslpath -w "${API_CONTRACT_GUARD_PATH}")"
+  API_CONTRACT_SERVER_PATH="$(wslpath -w "${API_CONTRACT_SERVER_PATH}")"
+fi
+"${NODE_BIN}" "${API_CONTRACT_GUARD_PATH}" --server-dir "${API_CONTRACT_SERVER_PATH}"
 
 echo "Install smoke checks passed:"
 echo "  version: ${VERSION}"

@@ -246,9 +246,8 @@ test('release_guard checks debug flags and mutation endpoint guards', () => {
     assert.match(releaseGuard, /VM_DEBUG_MODE is enabled in vm\.js/);
     assert.match(releaseGuard, /DASHBOARD_DEBUG_MODE is enabled in dashboard\.js/);
     assert.match(releaseGuard, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT/);
-    assert.match(releaseGuard, /READ_ONLY_ENDPOINTS=\(/);
-    assert.match(releaseGuard, /requireMutationRequestGuard\(\)/);
-    assert.match(releaseGuard, /Mutating endpoint is missing requireMutationRequestGuard/);
+    assert.match(releaseGuard, /scripts\/api_contract_guard\.mjs/);
+    assert.match(releaseGuard, /--server-dir "\$\{API_CONTRACT_SERVER_PATH\}"/);
 });
 
 test('release_guard checks target blank and update-notes release contract', () => {
@@ -739,8 +738,7 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
 });
 
 test('standards guard scripts exist with expected core checks', () => {
-    assert.match(apiContractGuard, /API contract guard passed/);
-    assert.match(apiContractGuard, /requireMutationRequestGuard/);
+    assert.match(apiContractGuard, /api_contract_guard\.mjs/);
     assert.match(legacySupportGuard, /Legacy support guard passed/);
     assert.match(legacySupportGuard, /folder\.view2/);
     assert.match(legacySupportGuard, /folder\.view3/);

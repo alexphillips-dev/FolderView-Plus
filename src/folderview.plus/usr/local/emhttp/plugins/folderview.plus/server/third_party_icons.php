@@ -470,6 +470,7 @@ function resolveThirdPartyIconFilePath(string $folder, string $file): string {
 }
 
 try {
+    fvplus_enforce_current_api_contract();
     $action = (string)($_GET['action'] ?? 'list_folders');
 
     if ($action === 'file') {

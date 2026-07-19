@@ -427,6 +427,7 @@
     const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
     const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
 
+    require_once(__DIR__ . '/lib.api-contract.php');
     require_once(__DIR__ . '/lib.preflight.php');
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
@@ -1086,10 +1087,11 @@
         $traceId = getRequestTraceId();
         $transactionId = getRequestTransactionId();
         $line = sprintf(
-            "[%s] [trace:%s] [transaction:%s] %s in %s:%d | %s\n",
+            "[%s] [trace:%s] [transaction:%s] [audit:%s] %s in %s:%d | %s\n",
             $timestamp,
             $traceId,
             $transactionId,
+            fvplus_get_current_api_audit_category() ?: 'unclassified',
             get_class($error),
             (string)$error->getFile(),
             (int)$error->getLine(),
@@ -1100,6 +1102,9 @@
     }
 
     function fvplus_get_api_error_status(Throwable $error): int {
+        if ($error instanceof FVPlusApiContractException) {
+            return max(400, min(599, (int)$error->getCode()));
+        }
         if ($error instanceof FVPlusConfigConflictException) {
             return 409;
         }
@@ -1121,6 +1126,7 @@
 
     function fvplus_json_try(callable $handler): void {
         try {
+            fvplus_enforce_current_api_contract();
             $result = $handler();
             if (is_array($result)) {
                 if (array_key_exists('ok', $result)) {

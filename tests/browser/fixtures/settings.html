@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus Settings fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
+    <style>
+        body { margin: 0; background: #171717; color: #eee; font-family: Arial, sans-serif; }
+        #fv-settings-root { padding: 1rem; }
+        button { min-height: 34px; padding: .3rem .55rem; box-sizing: border-box; font: inherit; }
+        input, select { font: inherit; }
+    </style>
+</head>
+<body>
+    <main id="fv-settings-root" class="fv-theme-safe">
+        <div id="fv-settings-topbar"></div>
+        <section data-fixture-setting="docker"><h2>Docker folders</h2><label>Hide empty folders <input type="checkbox"></label></section>
+        <section data-fixture-setting="privacy"><h2>Privacy mode</h2><label>Mask LAN IPs <input type="checkbox"></label></section>
+    </main>
+    <script src="/plugin/scripts/folderviewplus.chrome.js"></script>
+    <script>
+        document.getElementById('fv-settings-topbar').innerHTML = window.FolderViewPlusSettingsChrome.getTopbarHtml();
+        window.fixtureSettings = { ready: true };
+    </script>
+</body>
+</html>

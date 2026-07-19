@@ -1,0 +1,11 @@
+{
+  "name": "folderview-plus-quality",
+  "private": true,
+  "scripts": {
+    "test:browser-fixtures": "node scripts/fixture_browser_tests.mjs"
+  },
+  "devDependencies": {
+    "jquery": "3.7.1",
+    "playwright": "1.61.1"
+  }
+}

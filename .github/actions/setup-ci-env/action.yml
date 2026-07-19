@@ -23,7 +23,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh') }}
+        key: ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh', 'package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-
           ${{ runner.os }}-fvplus-npm-
@@ -32,7 +32,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh') }}
+        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh', 'package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-
           ${{ runner.os }}-fvplus-playwright-

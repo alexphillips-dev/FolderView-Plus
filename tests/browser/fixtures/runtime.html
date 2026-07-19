@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="fv-request-token" content="fixture-request-token-1234567890">
+    <title>FolderView Plus Docker runtime fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/runtime.shared.css">
+    <link rel="stylesheet" href="/plugin/styles/docker.css">
+    <style>
+        body { margin: 1rem; background: #171717; color: #f3f3f3; font: 16px/1.4 Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #444; padding: .55rem; text-align: left; }
+        tr[hidden] { display: none !important; }
+        .fixture-sensitive { margin-top: 1rem; display: grid; gap: .4rem; }
+    </style>
+</head>
+<body>
+    <main class="canvas">
+        <table id="docker_containers">
+            <thead><tr><th>Application</th><th>Version</th><th>Network</th><th>Container IP</th><th>Container port</th><th>LAN IP:PORT</th></tr></thead>
+            <tbody id="docker_list">
+                <tr class="folder folder-id-media" data-folder-id="media"><td class="ct-name folder-name">Media</td><td colspan="5">1/2 started</td></tr>
+                <tr class="folder-element sortable" data-folder-owner="media" data-name="plex"><td class="ct-name">Plex</td><td>up-to-date</td><td>bridge</td><td>172.17.0.2</td><td>32400/TCP</td><td>10.0.0.10:32400</td></tr>
+                <tr class="folder-element sortable" data-folder-owner="media" data-name="sonarr"><td class="ct-name">Sonarr</td><td>up-to-date</td><td>bridge</td><td>172.17.0.3</td><td>8989/TCP</td><td>10.0.0.10:8989</td></tr>
+                <tr class="folder folder-id-updates" data-folder-id="updates"><td class="ct-name folder-name">Updates</td><td colspan="5">1 update</td></tr>
+                <tr class="folder-element sortable" data-folder-owner="updates" data-name="toolbox"><td class="ct-name">Toolbox</td><td>update ready</td><td>bridge</td><td>172.17.0.4</td><td>8080/TCP</td><td>10.0.0.10:8080</td></tr>
+                <tr class="folder folder-id-empty" data-folder-id="empty"><td class="ct-name folder-name">Empty</td><td colspan="5">0 members</td></tr>
+                <tr class="sortable" data-name="orphan"><td class="ct-name">Orphan</td><td>up-to-date</td><td>bridge</td><td>172.17.0.8</td><td>9000/TCP</td><td>10.0.0.10:9000</td></tr>
+            </tbody>
+        </table>
+        <div class="fixture-sensitive">
+            <span id="fixture-volume">/mnt/user/private/media</span>
+            <span id="fixture-registry">ghcr.io/example/private-image:latest</span>
+            <span id="fixture-public-ip">8.8.8.8</span>
+            <span id="fixture-private-ip">10.0.0.10</span>
+            <span id="fixture-interface">br0</span>
+            <a id="fixture-external-url" href="https://example.com/private/path">External service</a>
+        </div>
+    </main>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/runtime.privacy.js"></script>
+    <script src="/plugin/scripts/folderviewplus.request.js"></script>
+    <script src="/plugin/scripts/docker.runtime.action-bar.js"></script>
+    <script src="/plugin/scripts/docker.runtime.reconcile.js"></script>
+    <script src="/fixtures/runtime.fixture.js"></script>
+</body>
+</html>

@@ -29,10 +29,31 @@ This matrix is the minimum validation target before release packaging.
 | Mobile | iPhone Safari | Yes |
 | Mobile | Android Chrome | Yes |
 
+## Deterministic Browser Fixtures
+
+The required fixture suite loads the shipped Docker runtime, settings chrome, folder editor, import, privacy, and request modules against stable local HTML and API fixtures. It does not require a running Unraid server, so UI regressions fail consistently on pull requests and release builds.
+
+Run the default Chromium pass locally:
+
+```bash
+npm ci --ignore-scripts
+npx playwright install chromium
+npm run test:browser-fixtures
+```
+
+Run the same suite across every required desktop engine:
+
+```bash
+FVPLUS_FIXTURE_BROWSERS=chromium,firefox,webkit npm run test:browser-fixtures
+```
+
+JSON results and failure screenshots are written to `tmp/fixture-browser-artifacts/`.
+
 ## Verification Checklist
 
 1. Run `node --test tests/*.mjs`.
-2. Run `bash scripts/release_guard.sh`.
-3. Run `bash scripts/install_smoke.sh`.
-4. Run `bash scripts/browser_smoke.sh` with runtime URLs configured.
-5. Manually confirm iPhone settings rows and quick-actions modal are artifact-free.
+2. Run `npm run test:browser-fixtures`.
+3. Run `bash scripts/release_guard.sh`.
+4. Run `bash scripts/install_smoke.sh`.
+5. Run `bash scripts/browser_smoke.sh` with runtime URLs configured.
+6. Manually confirm iPhone settings rows and quick-actions modal are artifact-free.

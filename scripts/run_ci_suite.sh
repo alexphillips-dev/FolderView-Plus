@@ -21,7 +21,7 @@ Options:
   --release       Enforce required browser and theme smoke configuration.
   --lane <name>   Run only a specific lane. Supported lanes:
                   lint, tests, workflow-tests, guards, workflow-guards,
-                  docs-guards, browser-smoke, theme-matrix
+                  docs-guards, fixture-browser, browser-smoke, theme-matrix
 EOF
 }
 
@@ -68,6 +68,7 @@ chmod +x \
   scripts/browser_smoke.sh \
   scripts/dead_code_guard.sh \
   scripts/docs_metadata_guard.sh \
+  scripts/fixture_browser_tests.sh \
   scripts/i18n_guard.sh \
   scripts/include_order_guard.sh \
   scripts/install_smoke.sh \
@@ -115,22 +116,27 @@ prepare_playwright() {
     return
   fi
   fvplus::require_commands npm npx
-  "${NPM_BIN}" install --no-save playwright
+  "${NPM_BIN}" ci --ignore-scripts
 
   local browsers_dir="${PLAYWRIGHT_BROWSERS_PATH:-${HOME}/.cache/ms-playwright}"
-  local browsers_cached=0
-  if [[ -d "${browsers_dir}" ]] && find "${browsers_dir}" -mindepth 1 -maxdepth 1 -type d | read -r _; then
-    browsers_cached=1
+  local browser_cache_ready=0
+  if [[ -d "${browsers_dir}" ]] && "${NODE_BIN}" -e "const fs=require('node:fs');const p=require('playwright');process.exit(['chromium','firefox','webkit'].every((name)=>fs.existsSync(p[name].executablePath()))?0:1)"; then
+    browser_cache_ready=1
   fi
 
-  if [[ "${browsers_cached}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
-    printf '[ci-suite] Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
+  if [[ "${browser_cache_ready}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
+    printf '[ci-suite] Matching Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
   elif parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
     "${NPX_BIN}" playwright install --with-deps chromium firefox webkit
   else
     "${NPX_BIN}" playwright install chromium firefox webkit
   fi
   PLAYWRIGHT_READY=1
+}
+
+run_fixture_browser_tests() {
+  prepare_playwright
+  bash scripts/fixture_browser_tests.sh
 }
 
 lint_shell_scripts() {
@@ -231,6 +237,9 @@ run_lane() {
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
       ;;
+    fixture-browser)
+      run_timed_step fixture-browser run_fixture_browser_tests
+      ;;
     browser-smoke)
       run_timed_step browser-smoke run_browser_smoke_if_needed
       ;;
@@ -244,7 +253,7 @@ run_lane() {
 }
 
 if [[ "${#REQUESTED_LANES[@]}" -eq 0 ]]; then
-  REQUESTED_LANES=(lint tests guards browser-smoke theme-matrix)
+  REQUESTED_LANES=(lint tests guards fixture-browser browser-smoke theme-matrix)
 fi
 
 for lane in "${REQUESTED_LANES[@]}"; do

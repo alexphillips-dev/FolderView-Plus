@@ -17,6 +17,11 @@ const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
+const fixtureBrowserShellPath = path.join(repoRoot, 'scripts/fixture_browser_tests.sh');
+const fixtureBrowserNodePath = path.join(repoRoot, 'scripts/fixture_browser_tests.mjs');
+const runtimeBrowserFixturePath = path.join(repoRoot, 'tests/browser/fixtures/runtime.fixture.js');
+const folderEditorBrowserFixturePath = path.join(repoRoot, 'tests/browser/fixtures/folder-editor.html');
+const importBrowserFixturePath = path.join(repoRoot, 'tests/browser/fixtures/import.html');
 const applyBranchProtectionPath = path.join(repoRoot, 'scripts/apply_branch_protection.sh');
 const buildReleaseNotesPath = path.join(repoRoot, 'scripts/build_release_notes.sh');
 const docsMetadataGuardPath = path.join(repoRoot, 'scripts/docs_metadata_guard.sh');
@@ -65,6 +70,11 @@ const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const fixtureBrowserShell = fs.readFileSync(fixtureBrowserShellPath, 'utf8');
+const fixtureBrowserNode = fs.readFileSync(fixtureBrowserNodePath, 'utf8');
+const runtimeBrowserFixture = fs.readFileSync(runtimeBrowserFixturePath, 'utf8');
+const folderEditorBrowserFixture = fs.readFileSync(folderEditorBrowserFixturePath, 'utf8');
+const importBrowserFixture = fs.readFileSync(importBrowserFixturePath, 'utf8');
 const buildReleaseNotes = fs.readFileSync(buildReleaseNotesPath, 'utf8');
 const setupCiEnvAction = fs.readFileSync(setupCiEnvActionPath, 'utf8');
 const applyBranchProtection = fs.readFileSync(applyBranchProtectionPath, 'utf8');
@@ -417,10 +427,11 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /bash scripts\/release_notes_consistency_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/workflow_self_check\.sh/);
     assert.match(runCiSuite, /bash scripts\/browser_smoke\.sh/);
+    assert.match(runCiSuite, /bash scripts\/fixture_browser_tests\.sh/);
     assert.match(runCiSuite, /bash scripts\/theme_matrix_smoke\.sh/);
-    assert.match(runCiSuite, /"\$\{NPM_BIN\}" install --no-save playwright/);
+    assert.match(runCiSuite, /"\$\{NPM_BIN\}" ci --ignore-scripts/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
-    assert.match(runCiSuite, /Playwright browsers already cached/);
+    assert.match(runCiSuite, /Matching Playwright browsers already cached/);
     assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install --with-deps chromium firefox webkit/);
     assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED/);
@@ -439,6 +450,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /node-tests:/);
     assert.match(ciWorkflow, /guard-suite:/);
     assert.match(ciWorkflow, /browser-smoke:/);
+    assert.match(ciWorkflow, /fixture-browser:/);
     assert.match(ciWorkflow, /theme-matrix:/);
     assert.match(ciWorkflow, /release-preview:/);
     assert.match(ciWorkflow, /quality:/);
@@ -449,11 +461,13 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane workflow-guards/);
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane docs-guards/);
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane browser-smoke/);
+    assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
     assert.match(ciWorkflow, /dev-release-preview/);
     assert.match(ciWorkflow, /ci-duration-report/);
     assert.match(ciWorkflow, /actions\/upload-artifact@v4/);
     assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
+    assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
 
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
@@ -463,6 +477,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
+        assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
+        assert.match(workflow, /tmp\/fixture-browser-artifacts/);
         assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
     }
 
@@ -479,6 +495,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
     assert.match(backmergeWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'0'/);
     assert.match(backmergeWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'0'/);
+    assert.match(backmergeWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*'chromium,firefox,webkit'/);
+    assert.match(backmergeWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(backmergeWorkflow, /pull-requests:\s*write/);
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 
@@ -486,6 +504,19 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
     assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh --release/);
     assert.doesNotMatch(releasePrepare, /--beta/);
+});
+
+test('deterministic browser fixtures exercise shipped runtime modules without a live Unraid URL', () => {
+    assert.match(fixtureBrowserShell, /node scripts\/fixture_browser_tests\.mjs/);
+    assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeActionBar/);
+    assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeReconcile/);
+    assert.match(folderEditorBrowserFixture, /folderviewplus\.folder-editor\.js/);
+    assert.match(importBrowserFixture, /folderviewplus\.import\.js/);
+    assert.match(fixtureBrowserNode, /FolderViewPlusRuntimePrivacy/);
+    assert.match(fixtureBrowserNode, /FolderViewPlusRequest\.postJson/);
+    assert.match(fixtureBrowserNode, /Folder action sheet/);
+    assert.match(fixtureBrowserNode, /Import selection/);
+    assert.doesNotMatch(fixtureBrowserNode, /FVPLUS_BROWSER_SMOKE_URL/);
 });
 
 test('release-on-main validates remote raw publish artifacts before publishing releases', () => {
@@ -668,6 +699,7 @@ test('release workflows keep checksum assets and metadata changes', () => {
 test('CI includes shellcheck linting for repository shell scripts', () => {
     assert.match(setupCiEnvAction, /Restore npm cache/);
     assert.match(setupCiEnvAction, /Restore Playwright browser cache/);
+    assert.match(setupCiEnvAction, /package-lock\.json/);
     assert.match(setupCiEnvAction, /Install shellcheck/);
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane lint/);
     assert.match(runCiSuite, /shellcheck -x --source-path=SCRIPTDIR "\$\{file\}"/);

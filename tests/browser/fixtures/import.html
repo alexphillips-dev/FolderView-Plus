@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus import fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
+    <style>body { background: #171717; color: #eee; font-family: Arial, sans-serif; }</style>
+</head>
+<body>
+    <div id="import-preview-selection"></div>
+    <div id="import-apply-progress-overlay" style="display:none"></div>
+    <div id="import-apply-progress-dialog" style="display:none" role="dialog" aria-modal="true" aria-live="polite">
+        <div id="import-apply-progress-kicker"></div>
+        <div id="import-apply-progress-title"></div>
+        <div id="import-apply-progress-state"></div>
+        <div id="import-apply-progress-label"></div>
+        <div id="import-apply-progress-current"></div>
+        <div id="import-apply-progress-step"></div>
+        <div id="import-apply-progress-percent"></div>
+        <div id="import-apply-progress-bar"></div>
+        <div id="import-apply-progress-completed"></div>
+        <div id="import-apply-progress-remaining"></div>
+        <div id="import-apply-progress-total"></div>
+        <div id="import-apply-progress-note"></div>
+    </div>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/fixtures/import.fixture.js"></script>
+    <script src="/plugin/scripts/folderviewplus.import.js"></script>
+    <script>
+        window.fixtureImport = {
+            openProgress: (type, total, options) => openImportApplyProgressDialog(type, total, options),
+            updateProgress: (options) => updateImportApplyProgressDialog(options),
+            closeProgress: () => closeImportApplyProgressDialog(),
+            renderSelection: (operations, folders) => {
+                importSelectionState = buildOperationSelectionState(operations, folders);
+                renderOperationSelection();
+            },
+            filteredSelection: (operations) => filterOperationsBySelection(operations)
+        };
+    </script>
+</body>
+</html>

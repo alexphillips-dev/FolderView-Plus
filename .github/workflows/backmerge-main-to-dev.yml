@@ -62,6 +62,8 @@ jobs:
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
           FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
           FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
+          FVPLUS_FIXTURE_BROWSERS: 'chromium,firefox,webkit'
+          FVPLUS_FIXTURE_BROWSER_ARTIFACT_DIR: ${{ github.workspace }}/tmp/fixture-browser-artifacts
           FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
         run: |
           chmod +x scripts/run_ci_suite.sh
@@ -141,5 +143,6 @@ jobs:
           path: |
             tmp/backmerge-debug/**
             tmp/browser-smoke-artifacts/**
+            tmp/fixture-browser-artifacts/**
             *.log
             scripts/*.log

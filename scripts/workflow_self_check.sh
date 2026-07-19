@@ -33,6 +33,8 @@ for (const relativePath of [
   '.github/workflows/codeql.yml',
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
+  'scripts/fixture_browser_tests.sh',
+  'scripts/fixture_browser_tests.mjs',
   'scripts/build_release_notes.sh',
   'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
@@ -64,6 +66,24 @@ if (!/dev-release-preview/.test(ciWorkflow)) {
 }
 if (!/ci-duration-report/.test(ciWorkflow)) {
   fail('CI workflow must publish a CI duration report artifact.');
+}
+if (!/fixture-browser:/.test(ciWorkflow) || !/--lane fixture-browser/.test(ciWorkflow)) {
+  fail('CI workflow must run the required deterministic fixture browser lane.');
+}
+if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
+  fail('CI workflow must retain deterministic fixture browser artifacts.');
+}
+for (const [name, workflow] of [
+  ['release-main', releaseMainWorkflow],
+  ['release-on-main', releaseOnMainWorkflow],
+  ['backmerge-main-to-dev', backmergeWorkflow]
+]) {
+  if (!/FVPLUS_FIXTURE_BROWSERS:\s*'?chromium,firefox,webkit'?/.test(workflow)) {
+    fail(`${name} must run deterministic fixtures in Chromium, Firefox, and WebKit.`);
+  }
+  if (!/tmp\/fixture-browser-artifacts/.test(workflow)) {
+    fail(`${name} must retain deterministic fixture artifacts on failure.`);
+  }
 }
 
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {

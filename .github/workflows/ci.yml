@@ -84,6 +84,10 @@ jobs:
             browser:
               - 'src/**'
               - 'tests/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'scripts/fixture_browser_tests.sh'
+              - 'scripts/fixture_browser_tests.mjs'
               - 'scripts/browser_smoke.sh'
               - 'scripts/browser_smoke.mjs'
               - 'scripts/run_ci_suite.sh'
@@ -305,6 +309,50 @@ jobs:
             *.log
             scripts/*.log
 
+  fixture-browser:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.needs_browser == 'true'
+    env:
+      FVPLUS_FIXTURE_BROWSERS: chromium,firefox,webkit
+      FVPLUS_FIXTURE_BROWSER_ARTIFACT_DIR: ${{ github.workspace }}/tmp/fixture-browser-artifacts
+    outputs:
+      duration_seconds: ${{ steps.elapsed.outputs.seconds }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Start timer
+        id: started
+        shell: bash
+        run: echo "epoch=$(date +%s)" >> "${GITHUB_OUTPUT}"
+
+      - name: Run required fixture browser suite
+        shell: bash
+        run: |
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh --lane fixture-browser
+
+      - name: Measure duration
+        id: elapsed
+        if: always()
+        shell: bash
+        run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload fixture browser artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-fixture-browser-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: error
+          path: tmp/fixture-browser-artifacts/**
+
   theme-matrix:
     runs-on: ubuntu-latest
     needs: detect-changes
@@ -419,6 +467,7 @@ jobs:
       - node-tests
       - guard-suite
       - browser-smoke
+      - fixture-browser
       - theme-matrix
       - release-preview
 
@@ -439,6 +488,7 @@ jobs:
             echo "| node-tests | ${{ needs.node-tests.result }} | ${{ needs.node-tests.outputs.duration_seconds || 'n/a' }} |"
             echo "| guard-suite | ${{ needs.guard-suite.result }} | ${{ needs.guard-suite.outputs.duration_seconds || 'n/a' }} |"
             echo "| browser-smoke | ${{ needs.browser-smoke.result }} | ${{ needs.browser-smoke.outputs.duration_seconds || 'n/a' }} |"
+            echo "| fixture-browser | ${{ needs.fixture-browser.result }} | ${{ needs.fixture-browser.outputs.duration_seconds || 'n/a' }} |"
             echo "| theme-matrix | ${{ needs.theme-matrix.result }} | ${{ needs.theme-matrix.outputs.duration_seconds || 'n/a' }} |"
             echo "| release-preview | ${{ needs.release-preview.result }} | ${{ needs.release-preview.outputs.duration_seconds || 'n/a' }} |"
             echo
@@ -466,6 +516,7 @@ jobs:
             "node-tests:${{ needs.node-tests.result }}" \
             "guard-suite:${{ needs.guard-suite.result }}" \
             "browser-smoke:${{ needs.browser-smoke.result }}" \
+            "fixture-browser:${{ needs.fixture-browser.result }}" \
             "theme-matrix:${{ needs.theme-matrix.result }}" \
             "release-preview:${{ needs.release-preview.result }}"; do
             job_name="${entry%%:*}"

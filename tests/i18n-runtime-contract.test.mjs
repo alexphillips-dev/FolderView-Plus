@@ -151,7 +151,7 @@ test('runtime loads English fallback for a regional locale and reports missing k
     assert.equal(runtime.api.snapshot().missingKeyCount, 1);
     assert.deepEqual(Array.from(runtime.api.snapshot().recentMissingKeys), ['missing.key']);
     assert.equal(runtime.dispatchedEvents.at(-1).type, 'folderviewplus:i18n-ready');
-    assert.ok(runtime.getTranslatedDomCount() >= 1);
+    assert.equal(runtime.getTranslatedDomCount(), 0, 'runtime must avoid the generic jQuery DOM translator that can retrigger its observer');
     assert.ok(runtime.api.compare('Folder 2', 'Folder 10') < 0, 'locale comparison should use numeric collation');
 
     const pseudo = runtime.api.usePseudoLocale('ar-XB');

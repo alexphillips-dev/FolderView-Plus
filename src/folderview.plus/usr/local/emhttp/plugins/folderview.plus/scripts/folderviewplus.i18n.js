@@ -6,6 +6,7 @@
     }
 
     const MAX_RECENT_MISSING_KEYS = 50;
+    const MAX_DYNAMIC_ROOTS_BEFORE_FULL_SCAN = 80;
     const AUTO_KEY_PREFIX = 'legacy.surface.';
     const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
     const AUTO_IGNORE_SELECTOR = [
@@ -44,6 +45,7 @@
     let translationObserver = null;
     let pendingTranslationRoots = new Set();
     let translationFlushQueued = false;
+    const lastAutoText = new WeakMap();
     const ready = new Promise((resolve, reject) => {
         readyResolve = resolve;
         readyReject = reject;
@@ -172,12 +174,16 @@
         const parent = node?.parentElement;
         if (!parent || isAutoIgnored(parent) || parent.hasAttribute?.('data-i18n')) return false;
         const source = String(node.nodeValue || '');
+        if (lastAutoText.get(node) === source) return false;
         const phrase = normalizeAutoPhrase(source);
         const localized = resolveAutoTranslation(phrase);
         if (!localized || localized === phrase) return false;
         const leading = source.match(/^\s*/)?.[0] || '';
         const trailing = source.match(/\s*$/)?.[0] || '';
-        node.nodeValue = `${leading}${localized}${trailing}`;
+        const output = `${leading}${localized}${trailing}`;
+        if (output === source) return false;
+        lastAutoText.set(node, output);
+        node.nodeValue = output;
         state.autoTranslatedNodeCount += 1;
         return true;
     };
@@ -191,6 +197,7 @@
             const phrase = normalizeAutoPhrase(source);
             const localized = resolveAutoTranslation(phrase);
             if (!localized || localized === source) return;
+            if (element.getAttribute(attribute) === localized) return;
             element.setAttribute(attribute, localized);
             state.autoTranslatedNodeCount += 1;
         });
@@ -228,10 +235,6 @@
             translatableNodes.push(...target.querySelectorAll('[data-i18n]'));
         }
         if (translatableNodes.length === 0) {
-            const $target = typeof root.jQuery === 'function' ? root.jQuery(target) : null;
-            if (typeof $target?.i18n === 'function') {
-                $target.i18n();
-            }
             translateAutoDom(target);
             return;
         }
@@ -248,15 +251,18 @@
                     return;
                 }
                 if (targetName === 'html') {
-                    node.innerHTML = translate(key, node.innerHTML || '');
+                    const localized = translate(key, node.innerHTML || '');
+                    if (node.innerHTML !== localized) node.innerHTML = localized;
                     return;
                 }
                 if (targetName !== 'text') {
                     const fallback = String(node.getAttribute?.(targetName) || '');
-                    node.setAttribute?.(targetName, translate(key, fallback));
+                    const localized = translate(key, fallback);
+                    if (fallback !== localized) node.setAttribute?.(targetName, localized);
                     return;
                 }
-                node.textContent = translate(key, node.textContent || '');
+                const localized = translate(key, node.textContent || '');
+                if (node.textContent !== localized) node.textContent = localized;
             });
         });
         translateAutoDom(target);
@@ -264,12 +270,13 @@
 
     const flushPendingTranslations = () => {
         translationFlushQueued = false;
-        const roots = Array.from(pendingTranslationRoots).filter((candidate, index, all) => (
-            candidate && !all.some((other, otherIndex) => (
-                otherIndex !== index && other?.nodeType === 1 && typeof other.contains === 'function' && other.contains(candidate)
-            ))
-        ));
+        const candidates = Array.from(pendingTranslationRoots).filter(Boolean);
         pendingTranslationRoots.clear();
+        const roots = candidates.length > MAX_DYNAMIC_ROOTS_BEFORE_FULL_SCAN
+            ? [root.document?.body].filter(Boolean)
+            : candidates.filter((candidate, index, all) => !all.some((other, otherIndex) => (
+                otherIndex !== index && other?.nodeType === 1 && typeof other.contains === 'function' && other.contains(candidate)
+            )));
         roots.forEach((target) => translateDom(target));
     };
 
@@ -278,7 +285,11 @@
         pendingTranslationRoots.add(target.nodeType === 3 ? target.parentElement : target);
         if (translationFlushQueued) return;
         translationFlushQueued = true;
-        Promise.resolve().then(flushPendingTranslations);
+        if (typeof root.requestAnimationFrame === 'function') {
+            root.requestAnimationFrame(flushPendingTranslations);
+        } else {
+            root.setTimeout?.(flushPendingTranslations, 0);
+        }
     };
 
     const observeDynamicTranslations = () => {

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.07">
-<!ENTITY md5 "a99cd31b0f1daf12b369c193aa682355">
+<!ENTITY version "2026.07.19.08">
+<!ENTITY md5 "c8c8a03492f4e27d6b89a5a767d3802c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.08
+# FolderView Plus 2026.07.19.08
+- Fix: Stop the localization observer from repeatedly translating its own Settings-page text mutations, which left Settings as one uninitialized long page, kept the browser tab spinner active, and could eventually crash the tab.
+- Reliability: Make explicit text, HTML, and attribute translation idempotent so the runtime only writes to the DOM when the localized value actually differs.
+- Reliability: Track automatically translated text-node output so observer callbacks settle immediately while still allowing later application-driven text changes to be translated.
+- Performance: Replace unbounded microtask translation flushes with one animation-frame batch and collapse very large mutation bursts into one bounded document scan, allowing Settings bootstrap timers and rendering to continue normally.
+- Quality: Remove the generic jQuery DOM translation fallback from observer-driven paths and retain the explicit, generated-surface translator as the single DOM mutation owner.
+- Test: Add a browser stress regression that inserts more than 300 Settings-like localized nodes, verifies initial and dynamic translation, proves a timer heartbeat is not starved, and confirms translation counts stop changing after the UI settles.
+
 
 ###2026.07.19.07
 # FolderView Plus 2026.07.19.07

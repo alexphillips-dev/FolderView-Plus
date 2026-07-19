@@ -157,10 +157,35 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
         document.querySelector('#dynamic-root').append(label);
     });
     await page.waitForFunction((expected) => document.querySelector('#dynamic-label')?.textContent === expected, expectedPage);
+    await page.evaluate(({ key }) => {
+        const fragment = document.createDocumentFragment();
+        const explicit = document.createElement('div');
+        explicit.id = 'dynamic-explicit-label';
+        explicit.setAttribute('data-i18n', key);
+        explicit.textContent = 'Search built-in icons';
+        fragment.append(explicit);
+        for (let index = 0; index < 300; index += 1) {
+            const label = document.createElement('span');
+            label.className = 'settings-localization-stress-label';
+            label.textContent = 'Search built-in icons';
+            fragment.append(label);
+        }
+        document.querySelector('#dynamic-root').append(fragment);
+        window.__localizationHeartbeat = false;
+        setTimeout(() => { window.__localizationHeartbeat = true; }, 25);
+    }, { key: searchKey });
+    await page.waitForFunction((expected) => (
+        window.__localizationHeartbeat === true
+        && document.querySelector('#dynamic-explicit-label')?.textContent === expected
+        && [...document.querySelectorAll('.settings-localization-stress-label')].every((node) => node.textContent === expected)
+    ), expectedSearch);
     const snapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
+    await page.waitForTimeout(150);
+    const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
     assert.equal(snapshot.autoBoundMessageCount, 1564);
-    assert.ok(snapshot.autoTranslatedNodeCount >= 3);
+    assert.ok(snapshot.autoTranslatedNodeCount >= 303);
+    assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
 
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {

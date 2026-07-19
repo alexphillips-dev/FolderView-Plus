@@ -5786,20 +5786,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     dockerPerf.begin(perfKey);
     try {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Entry`, { folder: JSON.parse(JSON.stringify(folder)), id, positionInMainOrder, orderInitialSnapshot: [...liveOrderArray], containersInfoKeys: Object.keys(containersInfo).length, foldersDone: [...foldersDone] });
-    if (dockerRuntimePerformanceProfile?.performanceMode === true && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
-
     // --- Store a snapshot of the live order array AT THE START of this folder's processing ---
     // This snapshot is crucial for correctly calculating `remBefore` based on original positions.
     const orderSnapshotAtFolderStart = [...liveOrderArray];

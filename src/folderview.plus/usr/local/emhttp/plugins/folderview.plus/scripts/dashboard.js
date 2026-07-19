@@ -1625,20 +1625,6 @@ const createFolders = async (types = ['docker', 'vm']) => {
  * @returns the number of element removed before the folder
  */
 const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null, options = {}) => {
-    if (folderTypePrefs?.docker?.performanceMode === true && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
-
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-creation', {detail: {
         folder: folder,
         id: id,
@@ -1945,20 +1931,6 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
  * @returns the number of element removed before the folder
  */
 const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, options = {}) => {
-    if (folderTypePrefs?.vm?.performanceMode === true && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
-
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
         folder: folder,
         id: id,

@@ -394,12 +394,10 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsCss, /#fv-settings-root \.folder-tree-toggle[\s\S]*appearance:\s*none !important/);
     assert.match(settingsCss, /#fv-settings-root \.folder-tree-toggle[\s\S]*box-shadow:\s*none !important/);
     assert.match(settingsCss, /#fv-settings-root \.folder-tree-toggle::before,\s*[\s\S]*#fv-settings-root \.folder-tree-toggle::after[\s\S]*content:\s*none !important/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*left:\s*calc\(env\(safe-area-inset-left\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*right:\s*calc\(env\(safe-area-inset-right\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*top:\s*calc\(env\(safe-area-inset-top\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*bottom:\s*calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-y:\s*auto !important/);
-    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-x:\s*hidden !important/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet-backdrop\s*\{[\s\S]*position:\s*fixed;[\s\S]*place-items:\s*center/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet\s*\{[\s\S]*width:\s*min\(540px,[\s\S]*max-height:[\s\S]*overflow:\s*hidden/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet-body\s*\{[\s\S]*overflow-x:\s*hidden;[\s\S]*overflow-y:\s*auto;[\s\S]*-webkit-overflow-scrolling:\s*touch/);
+    assert.match(settingsCss, /@media \(max-width: 620px\)[\s\S]*\.fv-folder-action-sheet-backdrop[\s\S]*align-items:\s*end;[\s\S]*env\(safe-area-inset-bottom\)/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
     assert.match(settingsJs, /<td class="actions-cell"><span class="folder-actions-group">/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
@@ -407,19 +405,19 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsJs, /const overflowSelector = `\$\{tbodySelector\} \.folder-overflow-btn`;/);
     assert.match(settingsJs, /on\(`click\$\{namespace\}`, overflowSelector/);
     assert.match(settingsJs, /on\(`touchend\$\{namespace\}`, overflowSelector/);
-    assert.match(settingsJs, /\$\('\.sweet-alert'\)\.removeClass\('fv-row-quick-actions-modal'\);/);
-    assert.match(settingsJs, /const modal = \$\('\.sweet-alert:visible'\);/);
-    assert.match(settingsJs, /modal\.addClass\('fv-row-quick-actions-modal'\);/);
+    assert.match(settingsJs, /const closeFolderActionSheet = \(\{ restoreFocus = true \} = \{\}\) =>/);
+    assert.match(settingsJs, /role="dialog" aria-modal="true" aria-labelledby="fv-folder-action-sheet-title"/);
+    assert.match(settingsJs, /document\.addEventListener\('keydown', keydownHandler, true\);/);
     assert.match(settingsJs, /const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;/);
     assert.match(settingsJs, /const orderCellHtml = hideOrderControls[\s\S]*\?\s*''/);
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
     assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*openFolderRowQuickActions[\s\S]*\}\);/);
-    assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);
-    assert.match(settingsJs, /const toggleVmRowDetailsDrawer = \(folderId\) =>/);
-    assert.match(settingsJs, /data-fv-vm-drawer-action/);
-    assert.match(settingsJs, /const runVmRowDrawerAction = async \(action, folderId\) =>/);
-    assert.match(settingsCss, /\.fv-row-details-panel\s*\{/);
-    assert.match(settingsCss, /\.fv-row-details-grid\s*\{/);
+    assert.match(settingsJs, /const buildFolderActionRegistry = \(\{/);
+    assert.match(settingsJs, /label:\s*'Move folder\.\.\.'/);
+    assert.match(settingsJs, /label:\s*branchCollapsed \? 'Expand branch' : 'Collapse branch'/);
+    assert.match(settingsJs, /label:\s*branchPinned \? 'Unpin entire branch' : 'Pin entire branch'/);
+    assert.match(settingsJs, /const renderFolderActionSheetDetails = \(\{/);
+    assert.doesNotMatch(settingsJs, /toggleVmRowDetailsDrawer|data-fv-vm-drawer-action|runVmRowDrawerAction/);
 });
 
 test('nested folder expansion avoids duplicate parent previews and keeps child-only reveal path', () => {
@@ -948,7 +946,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
     assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.match(settingsJs, /syncRuntimeConflictResolutionBanner\(\);/);
-    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*compareBackupSnapshots[\s\S]*copyFolderId[\s\S]*toggleDockerUpdatesFilter[\s\S]*\}\);/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*compareBackupSnapshots[\s\S]*toggleDockerUpdatesFilter[\s\S]*\}\);/);
     assert.match(settingsJs, /const evaluateDockerFolderHealth = \(folder, members, countsByState, updateCount, fallbackWarnThreshold\) =>/);
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
     assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleHealthSeverityFilter[\s\S]*\}\);/);

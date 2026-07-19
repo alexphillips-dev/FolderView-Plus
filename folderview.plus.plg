@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.03">
-<!ENTITY md5 "09219834052f25c572fc3bdfd87587fc">
+<!ENTITY version "2026.07.19.04">
+<!ENTITY md5 "f64670f068f94385cbc68dc4e3c04b68">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.04
+# FolderView Plus 2026.07.19.04
+- UI/UX: Replace the oversized folder More popup with a compact, single-column action sheet shared by Docker and VM folders.
+- UI/UX: Add a concise folder header, live member-state chips, progressive folder details, and a clearly separated delete action without duplicating the table's Edit and Pin controls.
+- Feature: Consolidate Move to root, Move under, and Tree move into one Move folder flow that supports root, inside, before, and after destinations.
+- Feature: Make branch controls context-aware so only the applicable Collapse or Expand action and Pin or Unpin entire branch action is shown.
+- Feature: Consolidate folder and branch exports into one context-aware export action while retaining guided import into the selected folder.
+- Accessibility: Add dialog semantics, initial focus, keyboard focus trapping, Escape dismissal, backdrop dismissal, focus restoration, and descriptive labels.
+- UI/UX: Add a responsive safe-area-aware mobile bottom sheet with contained scrolling and theme-token styling that avoids the previous orange-filled action buttons.
+- Quality: Remove the retired VM-only details drawer, redundant row-level diagnostics actions, stale drawer state, and obsolete popup styling; tree integrity tools remain in Advanced settings.
+- Test: Replace legacy SweetAlert and VM drawer contracts with regression coverage for the unified action sheet, context-aware actions, responsive scrolling, theme tokens, and keyboard behavior.
 
 ###2026.07.19.03
 # FolderView Plus 2026.07.19.03

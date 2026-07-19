@@ -69,46 +69,6 @@ const buildFolderQuickActionSummary = (type, folderId) => {
     return summary;
 };
 
-const renderFolderQuickActionSummaryHtml = (summary) => {
-    if (!summary) {
-        return '';
-    }
-    const statusText = `${summary.countsByState.started} started | ${summary.countsByState.paused} paused | ${summary.countsByState.stopped} stopped`;
-    const rows = [
-        { label: 'Members', value: String(summary.membersCount) },
-        { label: 'Status', value: statusText },
-        {
-            label: 'Rules',
-            value: summary.rulesCount <= 0
-                ? '0'
-                : `${summary.activeRulesCount}/${summary.rulesCount} active`
-        },
-        { label: 'Last changed', value: String(summary.lastChanged || 'Unknown') },
-        { label: 'Pinned', value: summary.pinned ? 'Yes' : 'No' }
-    ];
-    if (summary.type === 'docker') {
-        rows.push({ label: 'Updates', value: `${Number(summary.updatesCount || 0)}` });
-        rows.push({ label: 'Health', value: String(summary.health || 'Unknown') });
-    } else {
-        rows.push({ label: 'Autostart', value: String(summary.autostart || '0/0') });
-        const resourceSeverity = String(summary.resourceSeverity || 'good');
-        const resourceLabel = resourceSeverity === 'critical'
-            ? 'Resources (critical)'
-            : (resourceSeverity === 'warn' ? 'Resources (warn)' : 'Resources');
-        rows.push({ label: resourceLabel, value: String(summary.resources || '0 vCPU | 0 GB') });
-    }
-    return `
-        <div class="fv-row-quick-actions-summary">
-            ${rows.map((row) => `
-                <div class="fv-row-quick-actions-summary-row">
-                    <span>${escapeHtml(row.label)}</span>
-                    <strong>${escapeHtml(row.value)}</strong>
-                </div>
-            `).join('')}
-        </div>
-    `;
-};
-
 const buildSettingsFolderEditorUrl = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
     const params = new URLSearchParams();
@@ -131,20 +91,16 @@ const buildFolderActionRegistry = ({
     resolvedType,
     folderId,
     folder,
-    pinned,
+    branchIds,
+    branchCollapsed,
+    branchPinned,
+    hasChildren,
     hasParent,
     treeMoveAvailable
 }) => {
-    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
-    const treeDisabled = treeMoveAvailable
-        ? ''
-        : 'No valid target folders are available for this move.';
-    const canEdit = typeof openSettingsFolderEditor === 'function';
-    const exportFolder = () => (
-        resolvedType === 'docker'
-            ? downloadDocker(folderId)
-            : downloadVm(folderId)
-    );
+    const isBranch = branchIds.length > 1;
+    const moveAvailable = hasParent || treeMoveAvailable;
+    const branchSize = branchIds.length;
     const deleteFolder = () => (
         resolvedType === 'docker'
             ? clearDocker(folderId)
@@ -153,143 +109,69 @@ const buildFolderActionRegistry = ({
 
     return [
         {
-            title: 'Quick actions',
-            description: 'Common actions for this folder.',
+            title: 'Organize',
             actions: [
                 {
-                    id: 'edit',
-                    label: 'Edit folder',
-                    icon: 'fa-pencil',
-                    primary: true,
-                    closeBeforeRun: true,
-                    disabledReason: canEdit ? '' : 'Folder editor launcher is unavailable on this page.',
-                    run: () => openSettingsFolderEditor(resolvedType, folderId)
-                },
-                {
-                    id: 'pin',
-                    label: pinned ? 'Unpin from top' : 'Pin to top',
-                    icon: pinned ? 'fa-star-o' : 'fa-star',
-                    run: () => toggleFolderPin(resolvedType, folderId)
-                },
-                {
-                    id: 'branchCollapse',
-                    label: 'Collapse branch',
-                    icon: 'fa-compress',
-                    run: () => setFolderBranchCollapse(resolvedType, folderId, true)
-                },
-                {
-                    id: 'branchExpand',
-                    label: 'Expand branch',
-                    icon: 'fa-expand',
-                    run: () => setFolderBranchCollapse(resolvedType, folderId, false)
-                }
-            ]
-        },
-        {
-            title: 'Move and hierarchy',
-            description: 'Change where this folder sits in the tree.',
-            actions: [
-                {
-                    id: 'root',
-                    label: 'Move to root',
-                    icon: 'fa-level-up',
-                    disabledReason: hasParent ? '' : 'This folder is already at the top level.',
-                    run: () => moveFolderToRootQuick(resolvedType, folderId)
-                },
-                {
-                    id: 'under',
-                    label: 'Move under...',
-                    icon: 'fa-level-down',
-                    closeBeforeRun: true,
-                    disabledReason: treeDisabled,
-                    run: () => moveFolderUnderDialog(resolvedType, folderId)
-                },
-                {
-                    id: 'tree',
-                    label: 'Tree move...',
+                    id: 'move',
+                    label: 'Move folder...',
+                    description: 'Move to root, into another folder, or beside it.',
                     icon: 'fa-sitemap',
-                    closeBeforeRun: true,
-                    disabledReason: treeDisabled,
+                    opensDialog: true,
+                    disabledReason: moveAvailable ? '' : 'No other folder or parent location is available.',
                     run: () => openFolderTreeMoveDialog(resolvedType, folderId)
                 },
-                {
-                    id: 'branchPin',
-                    label: 'Pin branch',
+                hasChildren ? {
+                    id: branchCollapsed ? 'branchExpand' : 'branchCollapse',
+                    label: branchCollapsed ? 'Expand branch' : 'Collapse branch',
+                    description: `${branchCollapsed ? 'Show' : 'Hide'} nested folders in this branch.`,
+                    icon: branchCollapsed ? 'fa-expand' : 'fa-compress',
+                    run: () => setFolderBranchCollapse(resolvedType, folderId, !branchCollapsed)
+                } : null,
+                hasChildren ? {
+                    id: branchPinned ? 'branchUnpin' : 'branchPin',
+                    label: branchPinned ? 'Unpin entire branch' : 'Pin entire branch',
+                    description: `${branchPinned ? 'Remove' : 'Keep'} ${branchSize} folders ${branchPinned ? 'from' : 'at'} the pinned area.`,
                     icon: 'fa-thumb-tack',
-                    run: () => setFolderBranchPinned(resolvedType, folderId, true)
-                },
-                {
-                    id: 'branchUnpin',
-                    label: 'Unpin branch',
-                    icon: 'fa-thumb-tack',
-                    run: () => setFolderBranchPinned(resolvedType, folderId, false)
-                }
-            ]
+                    run: () => setFolderBranchPinned(resolvedType, folderId, !branchPinned)
+                } : null
+            ].filter(Boolean)
         },
         {
-            title: 'Branch tools',
-            description: 'Export, import, and validate this folder branch.',
+            title: 'Data',
             actions: [
-                {
-                    id: 'branchExport',
-                    label: 'Export branch',
-                    icon: 'fa-sign-out',
-                    closeBeforeRun: true,
-                    run: () => exportFolderBranch(resolvedType, folderId)
-                },
-                {
-                    id: 'branchImport',
-                    label: 'Import branch here',
-                    icon: 'fa-sign-in',
-                    closeBeforeRun: true,
-                    run: () => importFolderBranch(resolvedType, folderId)
-                },
-                {
-                    id: 'treeScan',
-                    label: 'Scan tree integrity',
-                    icon: 'fa-stethoscope',
-                    closeBeforeRun: true,
-                    run: () => runTreeIntegrityCheck(resolvedType)
-                },
-                {
-                    id: 'treeRepair',
-                    label: 'Repair tree integrity',
-                    icon: 'fa-wrench',
-                    closeBeforeRun: true,
-                    run: () => runTreeIntegrityCheck(resolvedType, { repair: true })
-                }
-            ]
-        },
-        {
-            title: 'Info and diagnostics',
-            description: `Inspect or copy details for this ${typeLabel} folder.`,
-            actions: [
-                {
-                    id: 'copy',
-                    label: 'Copy ID',
-                    icon: 'fa-clipboard',
-                    run: () => copyFolderId(resolvedType, folderId)
-                },
                 {
                     id: 'export',
-                    label: 'Export folder',
+                    label: isBranch ? 'Export branch...' : 'Export folder...',
+                    description: isBranch
+                        ? `Download this folder and its ${branchSize - 1} nested folder${branchSize === 2 ? '' : 's'}.`
+                        : 'Download this folder configuration.',
                     icon: 'fa-download',
-                    closeBeforeRun: true,
-                    run: exportFolder
+                    run: () => (
+                        isBranch
+                            ? exportFolderBranch(resolvedType, folderId)
+                            : (resolvedType === 'docker' ? downloadDocker(folderId) : downloadVm(folderId))
+                    )
+                },
+                {
+                    id: 'import',
+                    label: 'Import into this folder...',
+                    description: 'Preview an import and place its folders under this one.',
+                    icon: 'fa-sign-in',
+                    opensDialog: true,
+                    run: () => importFolderBranch(resolvedType, folderId)
                 }
             ]
         },
         {
-            title: 'Danger zone',
-            description: 'Permanent or disruptive actions.',
+            title: '',
             danger: true,
             actions: [
                 {
                     id: 'delete',
                     label: 'Delete folder',
+                    description: `Remove ${String(folder?.name || folderId)} from FolderView. Members are not deleted.`,
                     icon: 'fa-trash',
                     danger: true,
-                    closeBeforeRun: true,
                     run: deleteFolder
                 }
             ]
@@ -317,7 +199,6 @@ const renderFolderActionButton = (action) => {
     const disabled = String(action.disabledReason || '').trim();
     const classes = [
         'fv-row-quick-action',
-        action.primary ? 'is-primary' : '',
         action.danger ? 'is-danger' : ''
     ].filter(Boolean).join(' ');
     return `
@@ -326,272 +207,216 @@ const renderFolderActionButton = (action) => {
             data-action="${escapeHtml(action.id)}"
             ${disabled ? 'disabled aria-disabled="true"' : ''}
             title="${escapeHtml(disabled || action.label)}">
-            <i class="fa ${escapeHtml(action.icon)}"></i>
-            <span>${escapeHtml(action.label)}</span>
-            ${disabled ? `<small>${escapeHtml(disabled)}</small>` : ''}
+            <span class="fv-folder-action-sheet-action-icon"><i class="fa ${escapeHtml(action.icon)}" aria-hidden="true"></i></span>
+            <span class="fv-folder-action-sheet-action-copy">
+                <strong>${escapeHtml(action.label)}</strong>
+                <small>${escapeHtml(disabled || action.description || '')}</small>
+            </span>
+            ${action.opensDialog ? '<i class="fa fa-angle-right fv-folder-action-sheet-action-chevron" aria-hidden="true"></i>' : ''}
         </button>
     `;
 };
 
 const renderFolderActionGroup = (group) => `
-    <section class="fv-row-quick-action-group${group.danger ? ' is-danger' : ''}">
-        <div class="fv-row-quick-action-group-head">
-            <strong>${escapeHtml(group.title)}</strong>
-            <span>${escapeHtml(group.description || '')}</span>
-        </div>
-        <div class="fv-row-quick-actions-grid">
+    <section class="fv-folder-action-sheet-group${group.danger ? ' is-danger' : ''}">
+        ${group.title ? `<h3>${escapeHtml(group.title)}</h3>` : ''}
+        <div class="fv-folder-action-sheet-action-list">
             ${group.actions.map(renderFolderActionButton).join('')}
         </div>
     </section>
 `;
 
-const setFolderActionModalStatus = (text = '', tone = 'info') => {
-    const host = document.querySelector('#fv-row-quick-action-status');
-    if (!host) {
-        return;
-    }
-    const message = String(text || '').trim();
-    host.textContent = message;
-    host.className = `fv-row-quick-action-status ${message ? 'is-visible' : ''} is-${String(tone || 'info').trim() || 'info'}`;
-};
+let folderActionSheetState = null;
 
-const setFolderActionModalBusy = (button, busy = true) => {
-    if (!(button instanceof HTMLButtonElement)) {
-        return;
-    }
-    button.classList.toggle('is-running', busy);
-    button.disabled = busy || button.getAttribute('aria-disabled') === 'true';
-    const label = button.querySelector('span');
-    if (!label) {
-        return;
-    }
-    if (busy) {
-        button.setAttribute('data-original-label', label.textContent || '');
-        label.textContent = 'Running...';
-        return;
-    }
-    const original = String(button.getAttribute('data-original-label') || '').trim();
-    if (original) {
-        label.textContent = original;
-    }
-    button.removeAttribute('data-original-label');
-};
+const getFolderActionSheetFocusables = (sheet) => Array.from(sheet.querySelectorAll(
+    'button:not(:disabled), details > summary, [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+));
 
-const closeVmRowDetailsDrawer = () => {
-    const current = rowDetailsDrawerByType.vm;
-    if (!current) {
+const closeFolderActionSheet = ({ restoreFocus = true } = {}) => {
+    const state = folderActionSheetState;
+    if (!state) {
         return;
     }
-    const tbodyId = tableIdByType.vm;
-    const tbody = $(`tbody#${tbodyId}`);
-    tbody.find('tr.fv-row-details-drawer').remove();
-    tbody.find('tr.is-details-open').removeClass('is-details-open');
-    rowDetailsDrawerByType.vm = null;
-};
-
-const runVmRowDrawerAction = async (action, folderId) => {
-    const id = String(folderId || '').trim();
-    if (!id) {
-        return;
-    }
-    const handlers = {
-        up: () => moveFolderRow('vm', id, -1),
-        down: () => moveFolderRow('vm', id, 1),
-        pin: () => toggleFolderPin('vm', id),
-        root: () => moveFolderToRootQuick('vm', id),
-        under: () => moveFolderUnderDialog('vm', id),
-        tree: () => openFolderTreeMoveDialog('vm', id),
-        branchCollapse: () => setFolderBranchCollapse('vm', id, true),
-        branchExpand: () => setFolderBranchCollapse('vm', id, false),
-        branchPin: () => setFolderBranchPinned('vm', id, true),
-        branchUnpin: () => setFolderBranchPinned('vm', id, false),
-        branchExport: () => exportFolderBranch('vm', id),
-        branchImport: () => importFolderBranch('vm', id),
-        treeScan: () => runTreeIntegrityCheck('vm'),
-        treeRepair: () => runTreeIntegrityCheck('vm', { repair: true }),
-        copy: () => copyFolderId('vm', id),
-        export: () => downloadVm(id),
-        delete: () => clearVm(id)
-    };
-    if (Object.prototype.hasOwnProperty.call(handlers, action)) {
-        await handlers[action]();
+    document.removeEventListener('keydown', state.keydownHandler, true);
+    state.backdrop.remove();
+    document.body.classList.remove('fv-folder-action-sheet-open');
+    folderActionSheetState = null;
+    if (restoreFocus && state.trigger instanceof HTMLElement && state.trigger.isConnected) {
+        state.trigger.focus({ preventScroll: true });
     }
 };
 
-const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
-    const safeFolderName = escapeHtml(String(folder?.name || folderId || 'VM folder'));
-    const safeFolderId = escapeHtml(String(folderId || ''));
-    const hierarchyMeta = buildFolderHierarchyMeta(getFolderMap('vm'));
-    const hasParent = Boolean(String(hierarchyMeta.parentById?.[String(folderId || '')] || '').trim());
-    const treeMoveAvailable = canFolderUseTreeMove('vm', folderId, hierarchyMeta);
-    const resourceTitle = escapeHtml(String(summary?.resourceThresholds || ''));
-    const chips = summary?.resourceChips && typeof summary.resourceChips === 'object'
-        ? summary.resourceChips
-        : null;
-    const cpuChip = chips?.cpu || { text: '0 vCPU', className: 'is-empty', title: 'CPU total: 0 vCPU' };
-    const memoryChip = chips?.memory || { text: '0 GB RAM', className: 'is-empty', title: 'Memory total: 0 GB' };
-    const storageChip = chips?.storage || { text: '0 B Storage', className: 'is-empty', title: 'Storage total: 0 B' };
-    const statusText = `${summary?.countsByState?.started || 0} started | ${summary?.countsByState?.paused || 0} paused | ${summary?.countsByState?.stopped || 0} stopped`;
-    const detailRows = [
-        ['Members', summary?.membersCount || 0],
-        ['Status', statusText],
-        ['Rules', summary?.rulesCount || 0],
+const renderFolderActionSheetDetails = ({ resolvedType, folderId, folderMap, hierarchyMeta, summary, pinned }) => {
+    const parentId = String(hierarchyMeta.parentById?.[folderId] || '').trim();
+    const parentName = parentId ? String(folderMap[parentId]?.name || parentId) : 'Root level';
+    const ruleText = summary.rulesCount <= 0 ? '0' : `${summary.activeRulesCount}/${summary.rulesCount} active`;
+    const details = [
+        ['Parent', parentName],
+        ['Members', String(summary.membersCount)],
+        ['Rules', ruleText],
         ['Pinned', pinned ? 'Yes' : 'No'],
-        ['Last changed', summary?.lastChanged || 'Unknown'],
-        ['Autostart', summary?.autostart || '0/0']
-    ].map(([label, value]) => (
-        `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
-    )).join('');
-    const actions = [
-        ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', '', true],
-        ['root', 'fa-level-up', 'Move to root', '', hasParent],
-        ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],
-        ['tree', 'fa-sitemap', 'Tree move...', '', treeMoveAvailable],
-        ['branchCollapse', 'fa-compress', 'Collapse branch', '', true],
-        ['branchExpand', 'fa-expand', 'Expand branch', '', true],
-        ['branchPin', 'fa-thumb-tack', 'Pin branch', '', true],
-        ['branchUnpin', 'fa-thumb-tack', 'Unpin branch', '', true],
-        ['branchExport', 'fa-sign-out', 'Export branch', '', true],
-        ['branchImport', 'fa-sign-in', 'Import branch here', '', true],
-        ['treeScan', 'fa-stethoscope', 'Scan tree integrity', '', true],
-        ['treeRepair', 'fa-wrench', 'Repair tree integrity', '', true],
-        ['copy', 'fa-clipboard', 'Copy ID', '', true],
-        ['export', 'fa-download', 'Export', '', true],
-        ['delete', 'fa-trash', 'Delete', ' is-danger', true]
-    ].filter(([, , , , isVisible]) => isVisible === true).map(([action, icon, label, extraClass]) => (
-        `<button type="button" class="fv-row-quick-action${extraClass}" data-fv-vm-drawer-action="${escapeHtml(String(action))}" data-fv-vm-drawer-folder="${safeFolderId}"><i class="fa ${escapeHtml(String(icon))}"></i> ${escapeHtml(String(label))}</button>`
-    )).join('');
-    return `<div class="fv-row-details-panel"><div class="fv-row-details-head"><div class="fv-row-details-title">${safeFolderName}</div><div class="fv-row-details-meta">ID: <code>${safeFolderId}</code></div></div><div class="fv-row-details-grid">${detailRows}</div><div class="fv-row-details-resource"><span class="vm-resource-stack" title="${resourceTitle}"><span class="folder-metric-chip vm-resource-chip is-cpu ${escapeHtml(String(cpuChip.className || 'is-empty'))}" title="${escapeHtml(String(cpuChip.title || ''))}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(cpuChip.text || '0 vCPU'))}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${escapeHtml(String(memoryChip.className || 'is-empty'))}" title="${escapeHtml(String(memoryChip.title || ''))}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(memoryChip.text || '0 GB RAM'))}</span></span><span class="folder-metric-chip vm-resource-chip is-storage ${escapeHtml(String(storageChip.className || 'is-empty'))}" title="${escapeHtml(String(storageChip.title || ''))}"><i class="fa fa-database" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(storageChip.text || '0 B Storage'))}</span></span></span></div><div class="fv-row-details-actions">${actions}</div></div>`;
+        ['Last changed', String(summary.lastChanged || 'Unknown')]
+    ];
+    if (resolvedType === 'docker') {
+        details.push(['Updates', String(Number(summary.updatesCount || 0))]);
+        details.push(['Health', String(summary.health || 'Unknown')]);
+    } else {
+        details.push(['Autostart', String(summary.autostart || '0/0')]);
+        details.push(['Resources', String(summary.resources || '0 vCPU | 0 GB')]);
+    }
+    return `
+        <details class="fv-folder-action-sheet-details">
+            <summary><span><i class="fa fa-info-circle" aria-hidden="true"></i> Folder details</span><i class="fa fa-angle-down" aria-hidden="true"></i></summary>
+            <dl>
+                ${details.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
+                <div class="is-id"><dt>Folder ID</dt><dd><code>${escapeHtml(folderId)}</code><button type="button" class="fv-folder-action-sheet-copy" data-copy-folder-id title="Copy folder ID" aria-label="Copy folder ID"><i class="fa fa-clipboard" aria-hidden="true"></i><span>Copy</span></button></dd></div>
+            </dl>
+        </details>
+    `;
 };
 
-const toggleVmRowDetailsDrawer = (folderId) => {
-    const id = String(folderId || '').trim();
-    if (!id) {
-        return;
-    }
-    const current = rowDetailsDrawerByType.vm;
-    if (current && current.folderId === id) {
-        closeVmRowDetailsDrawer();
-        return;
-    }
-    const tbodyId = tableIdByType.vm;
-    const tbody = $(`tbody#${tbodyId}`);
-    const row = tbody.find(`tr[data-folder-id="${id}"]`).first();
-    if (!row.length) {
-        return;
-    }
-    const folders = getFolderMap('vm');
-    const folder = folders[id];
-    if (!folder) {
-        return;
-    }
-    closeVmRowDetailsDrawer();
-    const summary = buildFolderQuickActionSummary('vm', id);
-    const pinned = isFolderPinned('vm', id);
-    const drawerHtml = buildVmRowDetailsDrawerHtml(id, folder, summary, pinned);
-    const drawerRow = `<tr class="fv-row-details-drawer" data-folder-id="${escapeHtml(id)}"><td colspan="${SETTINGS_TABLE_COLUMN_COUNT}">${drawerHtml}</td></tr>`;
-    row.after(drawerRow);
-    row.addClass('is-details-open');
-    rowDetailsDrawerByType.vm = { folderId: id };
-};
-
-const showFolderRowQuickActions = (type, folderId) => {
+const showFolderRowQuickActions = (type, folderId, { trigger = null } = {}) => {
     const resolvedType = normalizeManagedType(type);
-    if (resolvedType === 'vm') {
-        toggleVmRowDetailsDrawer(folderId);
-        return;
-    }
+    const safeId = String(folderId || '').trim();
     const folderMap = getFolderMap(resolvedType);
-    const folder = folderMap[folderId];
+    const folder = folderMap[safeId];
     if (!folder) {
         return;
     }
-    const summary = buildFolderQuickActionSummary(resolvedType, folderId);
-    const pinned = isFolderPinned(resolvedType, folderId);
+    closeFolderActionSheet({ restoreFocus: false });
+    const summary = buildFolderQuickActionSummary(resolvedType, safeId);
+    const pinned = isFolderPinned(resolvedType, safeId);
     const hierarchyMeta = buildFolderHierarchyMeta(folderMap);
-    const hasParent = Boolean(String(hierarchyMeta.parentById?.[String(folderId || '')] || '').trim());
-    const treeMoveAvailable = canFolderUseTreeMove(resolvedType, folderId, hierarchyMeta);
-    const safeFolderName = escapeHtml(String(folder.name || folderId));
-    const safeFolderId = escapeHtml(String(folderId || ''));
+    const hasParent = Boolean(String(hierarchyMeta.parentById?.[safeId] || '').trim());
+    const children = Array.isArray(hierarchyMeta.childrenById?.[safeId]) ? hierarchyMeta.childrenById[safeId] : [];
+    const hasChildren = children.length > 0;
+    const branchIds = getFolderBranchIds(resolvedType, safeId, hierarchyMeta);
+    const branchParentIds = branchIds.filter((id) => (hierarchyMeta.childrenById?.[id] || []).length > 0);
+    const collapsed = syncCollapsedTreeParentsForType(resolvedType, folderMap, hierarchyMeta);
+    const branchCollapsed = branchParentIds.length > 0 && branchParentIds.every((id) => collapsed.has(id));
+    const pinnedSet = new Set(Array.isArray(prefsByType[resolvedType]?.pinnedFolderIds) ? prefsByType[resolvedType].pinnedFolderIds.map(String) : []);
+    const branchPinned = branchIds.length > 0 && branchIds.every((id) => pinnedSet.has(id));
+    const treeMoveAvailable = canFolderUseTreeMove(resolvedType, safeId, hierarchyMeta);
+    const safeFolderName = escapeHtml(String(folder.name || safeId));
     const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const pathLabel = buildFolderPathLabel(resolvedType, safeId, folderMap, hierarchyMeta);
+    const status = summary.countsByState;
     const actionGroups = buildFolderActionRegistry({
         resolvedType,
-        folderId,
+        folderId: safeId,
         folder,
-        pinned,
+        branchIds,
+        branchCollapsed,
+        branchPinned,
+        hasChildren,
         hasParent,
         treeMoveAvailable
     });
     const html = `
-        <div class="fv-row-quick-actions">
-            <div class="fv-row-quick-actions-top">
-                <div class="fv-row-quick-actions-header">
-                    <div>
-                        <div class="fv-row-quick-actions-title">${safeFolderName}</div>
-                        <div class="fv-row-quick-actions-meta">${typeLabel} folder <span>ID: <code>${safeFolderId}</code></span></div>
+        <div class="fv-folder-action-sheet-backdrop" id="fv-folder-action-sheet-backdrop">
+            <section class="fv-folder-action-sheet" role="dialog" aria-modal="true" aria-labelledby="fv-folder-action-sheet-title">
+                <header class="fv-folder-action-sheet-header">
+                    <span class="fv-folder-action-sheet-folder-icon"><i class="fa fa-folder" aria-hidden="true"></i></span>
+                    <div class="fv-folder-action-sheet-heading">
+                        <span class="fv-folder-action-sheet-eyebrow">${escapeHtml(typeLabel)} folder</span>
+                        <h2 id="fv-folder-action-sheet-title">${safeFolderName}</h2>
+                        <p title="${escapeHtml(pathLabel)}">${escapeHtml(pathLabel)}</p>
                     </div>
-                    <button type="button" class="fv-row-quick-copy-id" data-action="copy" title="Copy folder ID"><i class="fa fa-clipboard"></i></button>
+                    <button type="button" class="fv-folder-action-sheet-close" data-close-folder-actions aria-label="Close folder actions"><i class="fa fa-times" aria-hidden="true"></i></button>
+                </header>
+                <div class="fv-folder-action-sheet-status" aria-label="Folder status">
+                    <span>${summary.membersCount} member${summary.membersCount === 1 ? '' : 's'}</span>
+                    <span class="is-started"><i class="fa fa-play" aria-hidden="true"></i>${status.started}</span>
+                    ${status.paused > 0 ? `<span class="is-paused"><i class="fa fa-pause" aria-hidden="true"></i>${status.paused}</span>` : ''}
+                    <span class="is-stopped"><i class="fa fa-stop" aria-hidden="true"></i>${status.stopped}</span>
                 </div>
-                ${renderFolderQuickActionSummaryHtml(summary)}
-            </div>
-            <div id="fv-row-quick-action-status" class="fv-row-quick-action-status" role="status" aria-live="polite"></div>
-            <div class="fv-row-quick-action-groups">
-                ${actionGroups.map(renderFolderActionGroup).join('')}
-            </div>
+                <div class="fv-folder-action-sheet-body">
+                    ${actionGroups.filter((group) => !group.danger).map(renderFolderActionGroup).join('')}
+                    ${renderFolderActionSheetDetails({ resolvedType, folderId: safeId, folderMap, hierarchyMeta, summary, pinned })}
+                    ${actionGroups.filter((group) => group.danger).map(renderFolderActionGroup).join('')}
+                </div>
+                <div class="fv-folder-action-sheet-live" role="status" aria-live="polite"></div>
+            </section>
         </div>
     `;
-    $('.sweet-alert').removeClass('fv-row-quick-actions-modal');
-    swal({
-        title: '',
-        text: html,
-        html: true,
-        customClass: 'fv-row-quick-actions-modal',
-        confirmButtonText: 'Close'
-    });
-    window.setTimeout(() => {
-        const modal = $('.sweet-alert:visible');
-        modal.addClass('fv-row-quick-actions-modal');
-        modal.scrollTop(0);
-        modal.css({
-            top: '10px',
-            left: '50%',
-            width: 'min(1440px, calc(100vw - 24px))',
-            maxWidth: 'none',
-            marginTop: '0',
-            marginLeft: '0',
-            transform: 'translateX(-50%)'
-        });
-        $('.fv-row-quick-action, .fv-row-quick-copy-id').off('click.fvrowquick').on('click.fvrowquick', async (event) => {
+    document.body.insertAdjacentHTML('beforeend', html);
+    document.body.classList.add('fv-folder-action-sheet-open');
+    const backdrop = document.querySelector('#fv-folder-action-sheet-backdrop');
+    const sheet = backdrop?.querySelector('.fv-folder-action-sheet');
+    if (!backdrop || !sheet) {
+        backdrop?.remove();
+        document.body.classList.remove('fv-folder-action-sheet-open');
+        return;
+    }
+    const keydownHandler = (event) => {
+        if (event.key === 'Escape') {
             event.preventDefault();
-            event.stopPropagation();
-            const button = event.currentTarget;
-            const actionId = String($(button).attr('data-action') || '');
-            const action = findFolderActionById(actionGroups, actionId);
+            closeFolderActionSheet();
+            return;
+        }
+        if (event.key !== 'Tab') {
+            return;
+        }
+        const focusable = getFolderActionSheetFocusables(sheet);
+        if (!focusable.length) {
+            event.preventDefault();
+            return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    };
+    folderActionSheetState = {
+        backdrop,
+        trigger: trigger instanceof HTMLElement ? trigger : null,
+        keydownHandler
+    };
+    document.addEventListener('keydown', keydownHandler, true);
+    backdrop.addEventListener('mousedown', (event) => {
+        if (event.target === backdrop) {
+            closeFolderActionSheet();
+        }
+    });
+    sheet.querySelector('[data-close-folder-actions]')?.addEventListener('click', () => closeFolderActionSheet());
+    sheet.querySelector('[data-copy-folder-id]')?.addEventListener('click', async (event) => {
+        const button = event.currentTarget;
+        const label = button.querySelector('span');
+        try {
+            await copyTextToClipboard(safeId);
+            if (label) {
+                label.textContent = 'Copied';
+            }
+            window.setTimeout(() => {
+                if (label?.isConnected) {
+                    label.textContent = 'Copy';
+                }
+            }, 1400);
+        } catch (error) {
+            showError('Copy failed', error);
+        }
+    });
+    sheet.querySelectorAll('.fv-row-quick-action').forEach((button) => {
+        button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const action = findFolderActionById(actionGroups, button.dataset.action || '');
             if (!action || action.disabledReason) {
                 return;
             }
-            if (action.closeBeforeRun) {
-                swal.close();
-                try {
-                    await Promise.resolve(action.run());
-                } catch (error) {
-                    showError('Action failed', error);
-                }
-                return;
-            }
-            setFolderActionModalBusy(button, true);
-            setFolderActionModalStatus(`${action.label} is running...`, 'info');
+            closeFolderActionSheet({ restoreFocus: false });
             try {
                 await Promise.resolve(action.run());
-                setFolderActionModalStatus(`${action.label} complete.`, 'success');
             } catch (error) {
-                setFolderActionModalStatus(error?.message || 'Action failed.', 'error');
                 showError('Action failed', error);
-            } finally {
-                setFolderActionModalBusy(button, false);
             }
         });
-    }, 0);
+    });
+    window.setTimeout(() => sheet.querySelector('[data-close-folder-actions]')?.focus({ preventScroll: true }), 0);
 };
 
 const openFolderRowQuickActions = (type, folderId, event = null) => {
@@ -601,7 +426,9 @@ const openFolderRowQuickActions = (type, folderId, event = null) => {
     if (event && typeof event.stopPropagation === 'function') {
         event.stopPropagation();
     }
-    showFolderRowQuickActions(type, folderId);
+    showFolderRowQuickActions(type, folderId, {
+        trigger: event?.currentTarget instanceof HTMLElement ? event.currentTarget : null
+    });
 };
 
 const clearRowLongPressState = (type) => {
@@ -621,7 +448,6 @@ const bindRowTouchQuickActions = (type) => {
     const tbodySelector = `tbody#${tableIdByType[resolvedType]}`;
     const namespace = `.fvrowtouch${resolvedType}`;
     const overflowSelector = `${tbodySelector} .folder-overflow-btn`;
-    const vmDrawerActionSelector = `${tbodySelector} [data-fv-vm-drawer-action]`;
 
     $(document).off(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchmove${namespace}`, `${tbodySelector} tr[data-folder-id]`);
@@ -632,7 +458,6 @@ const bindRowTouchQuickActions = (type) => {
     $(document).off(`focusin${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`click${namespace}`, overflowSelector);
     $(document).off(`touchend${namespace}`, overflowSelector);
-    $(document).off(`click${namespace}`, vmDrawerActionSelector);
 
     $(document).on(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
         if (!supportsTouchInput()) {
@@ -677,7 +502,7 @@ const bindRowTouchQuickActions = (type) => {
         if (!folderId) {
             return;
         }
-        showFolderRowQuickActions(resolvedType, folderId);
+        showFolderRowQuickActions(resolvedType, folderId, { trigger: event.currentTarget });
     });
     $(document).on(`mouseenter${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
         const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
@@ -703,7 +528,7 @@ const bindRowTouchQuickActions = (type) => {
             return;
         }
         clearRowLongPressState(resolvedType);
-        showFolderRowQuickActions(resolvedType, folderId);
+        showFolderRowQuickActions(resolvedType, folderId, { trigger: event.currentTarget });
     });
 
     $(document).on(`touchend${namespace}`, overflowSelector, (event) => {
@@ -715,22 +540,7 @@ const bindRowTouchQuickActions = (type) => {
             return;
         }
         clearRowLongPressState(resolvedType);
-        showFolderRowQuickActions(resolvedType, folderId);
-    });
-
-    $(document).on(`click${namespace}`, vmDrawerActionSelector, (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const button = $(event.currentTarget);
-        const action = String(button.attr('data-fv-vm-drawer-action') || '').trim();
-        const folderId = String(button.attr('data-fv-vm-drawer-folder') || '').trim();
-        if (!action || !folderId) {
-            return;
-        }
-        closeVmRowDetailsDrawer();
-        Promise.resolve(runVmRowDrawerAction(action, folderId)).catch((error) => {
-            showError('Action failed', error);
-        });
+        showFolderRowQuickActions(resolvedType, folderId, { trigger: event.currentTarget });
     });
 };
 
@@ -762,26 +572,6 @@ const copyTextToClipboard = async (text) => {
     }
     if (!copied) {
         throw new Error('Clipboard access is unavailable in this browser context.');
-    }
-};
-
-const copyFolderId = async (type, folderId) => {
-    const resolvedType = normalizeManagedType(type);
-    const resolvedId = String(folderId || '').trim();
-    if (!resolvedId) {
-        return;
-    }
-    try {
-        await copyTextToClipboard(resolvedId);
-        swal({
-            title: 'Copied',
-            text: `${resolvedType === 'docker' ? 'Docker' : 'VM'} folder ID copied:\n${resolvedId}`,
-            type: 'success',
-            timer: 1400,
-            showConfirmButton: false
-        });
-    } catch (error) {
-        showError('Copy failed', error);
     }
 };
 
@@ -954,43 +744,45 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
         return;
     }
     const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    if (!canFolderUseTreeMove(resolvedType, sourceId, hierarchyMeta)) {
-        setFolderTreeMoveError(resolvedType, sourceId, 'No valid target folders available.');
-        return;
-    }
+    const hasParent = Boolean(String(hierarchyMeta.parentById?.[sourceId] || '').trim());
     const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta);
-    if (!targetOptions) {
-        setFolderTreeMoveError(resolvedType, sourceId, 'No valid target folders available.');
+    const modeInsideOnly = options?.modeInsideOnly === true;
+    if ((!targetOptions && !hasParent) || (modeInsideOnly && !targetOptions)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'No valid folder locations are available.');
         return;
     }
-    const modeInsideOnly = options?.modeInsideOnly === true;
     const preferredPlacement = modeInsideOnly
         ? 'inside'
         : normalizeTreeMovePlacement(options?.placement || 'inside');
     const placementSelectHtml = modeInsideOnly
         ? '<input type="hidden" id="fv-tree-move-placement" value="inside">'
-        : `<label class="fv-tree-move-field-label" for="fv-tree-move-placement">Placement</label>
-           <select id="fv-tree-move-placement">
-             <option value="inside"${preferredPlacement === 'inside' ? ' selected' : ''}>Inside target</option>
-             <option value="before"${preferredPlacement === 'before' ? ' selected' : ''}>Before target</option>
-             <option value="after"${preferredPlacement === 'after' ? ' selected' : ''}>After target</option>
-           </select>`;
+        : `<div id="fv-tree-move-placement-field">
+             <label class="fv-tree-move-field-label" for="fv-tree-move-placement">Placement</label>
+             <select id="fv-tree-move-placement">
+               <option value="inside"${preferredPlacement === 'inside' ? ' selected' : ''}>Inside target</option>
+               <option value="before"${preferredPlacement === 'before' ? ' selected' : ''}>Before target</option>
+               <option value="after"${preferredPlacement === 'after' ? ' selected' : ''}>After target</option>
+             </select>
+           </div>`;
     const sourceName = escapeHtml(String(folder.name || sourceId));
-    const targetLabel = modeInsideOnly ? 'Move under folder' : 'Target folder';
+    const targetLabel = modeInsideOnly ? 'Move under folder' : 'Destination';
+    const rootOption = (!modeInsideOnly && hasParent)
+        ? '<option value="__root__">Root level</option>'
+        : '';
     swal({
-        title: modeInsideOnly ? 'Move under...' : 'Tree move',
+        title: modeInsideOnly ? 'Move under...' : 'Move folder',
         text: `
             <div class="fv-tree-move-dialog">
                 <div class="fv-tree-move-source">Source: <strong>${sourceName}</strong></div>
                 <label class="fv-tree-move-field-label" for="fv-tree-move-target">${targetLabel}</label>
-                <select id="fv-tree-move-target">${targetOptions}</select>
+                <select id="fv-tree-move-target">${rootOption}${targetOptions}</select>
                 ${placementSelectHtml}
             </div>
         `,
         html: true,
         type: 'warning',
         showCancelButton: true,
-        confirmButtonText: modeInsideOnly ? 'Move under folder' : 'Apply tree move',
+        confirmButtonText: modeInsideOnly ? 'Move under folder' : 'Move folder',
         cancelButtonText: 'Cancel',
         closeOnConfirm: true
     }, (confirmed) => {
@@ -998,11 +790,29 @@ const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
             return;
         }
         const targetId = String($('#fv-tree-move-target').val() || '').trim();
+        if (!modeInsideOnly && targetId === '__root__') {
+            void moveFolderToRootQuick(resolvedType, sourceId);
+            return;
+        }
         const placement = modeInsideOnly
             ? 'inside'
             : normalizeTreeMovePlacement($('#fv-tree-move-placement').val() || preferredPlacement);
         void applyFolderTreeMove(resolvedType, sourceId, targetId, placement);
     });
+    if (!modeInsideOnly) {
+        window.setTimeout(() => {
+            const target = document.querySelector('#fv-tree-move-target');
+            const placementField = document.querySelector('#fv-tree-move-placement-field');
+            if (!(target instanceof HTMLSelectElement) || !(placementField instanceof HTMLElement)) {
+                return;
+            }
+            const syncPlacementVisibility = () => {
+                placementField.hidden = target.value === '__root__';
+            };
+            target.addEventListener('change', syncPlacementVisibility);
+            syncPlacementVisibility();
+        }, 0);
+    }
 };
 
 const moveFolderToRootQuick = async (type, folderId) => {
@@ -1047,43 +857,30 @@ const moveFolderToRootQuick = async (type, folderId) => {
     }
 };
 
-const moveFolderUnderDialog = (type, folderId) => {
-    openFolderTreeMoveDialog(type, folderId, { modeInsideOnly: true, placement: 'inside' });
-};
-
 Object.assign(window, {
     buildFolderQuickActionSummary,
-    renderFolderQuickActionSummaryHtml,
-    closeVmRowDetailsDrawer,
-    runVmRowDrawerAction,
-    buildVmRowDetailsDrawerHtml,
-    toggleVmRowDetailsDrawer,
+    closeFolderActionSheet,
     showFolderRowQuickActions,
     openFolderRowQuickActions,
     clearRowLongPressState,
     bindRowTouchQuickActions,
     copyTextToClipboard,
-    copyFolderId,
     saveFolderRecord,
     ensureFolderSortModeManual,
     buildTreeMoveTargetOptions,
     applyFolderTreeMove,
     openFolderTreeMoveDialog,
-    moveFolderToRootQuick,
-    moveFolderUnderDialog
+    moveFolderToRootQuick
 });
 
 window.FolderViewPlusFolderEditor = Object.freeze({
     buildFolderQuickActionSummary,
-    renderFolderQuickActionSummaryHtml,
     showFolderRowQuickActions,
     openFolderRowQuickActions,
     bindRowTouchQuickActions,
     copyTextToClipboard,
-    copyFolderId,
     saveFolderRecord,
     openFolderTreeMoveDialog,
-    moveFolderToRootQuick,
-    moveFolderUnderDialog
+    moveFolderToRootQuick
 });
 window.FolderViewPlusFolderEditorModuleLoaded = true;

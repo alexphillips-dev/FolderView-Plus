@@ -223,5 +223,6 @@ test('settings wizard and recovery chrome use flat graphite dark surfaces', () =
     assert.match(settingsCss, /\.fv-recovery-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
     assert.match(settingsCss, /\.fv-recovery-stage\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-card\);/);
     assert.match(settingsCss, /\.fv-recovery-history-card,\s*[\s\S]*\.fv-recovery-timeline-card,\s*[\s\S]*\.fv-recovery-undo-summary\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
-    assert.match(settingsCss, /\.fv-row-quick-actions-header\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet-header\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);/);
 });

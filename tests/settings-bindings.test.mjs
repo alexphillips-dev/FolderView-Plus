@@ -534,11 +534,13 @@ test('nested folder rendering keeps highlighted display HTML isolated from aria/
     assert.match(settingsCss, /\.name-cell-content\.is-nested::after\s*\{[\s\S]*border-top:\s*1px solid var\(--fvplus-settings-tree-guide\)/);
 });
 
-test('nested folder branch and integrity actions are reachable from quick actions and exported', () => {
-    assert.match(script, /id:\s*'branchCollapse'/);
-    assert.match(script, /id:\s*'branchExpand'/);
-    assert.match(script, /\['branchExport',\s*'fa-sign-out',\s*'Export branch'/);
-    assert.match(script, /\['branchImport',\s*'fa-sign-in',\s*'Import branch here'/);
+test('nested folder branch actions stay context-aware while integrity tools remain in advanced settings', () => {
+    assert.match(script, /id:\s*branchCollapsed \? 'branchExpand' : 'branchCollapse'/);
+    assert.match(script, /id:\s*branchPinned \? 'branchUnpin' : 'branchPin'/);
+    assert.match(script, /label:\s*isBranch \? 'Export branch\.\.\.' : 'Export folder\.\.\.'/);
+    assert.match(script, /label:\s*'Import into this folder\.\.\.'/);
+    assert.match(page, /runTreeIntegrityCheck\('docker'/);
+    assert.match(page, /runTreeIntegrityCheck\('vm'/);
     assert.match(script, /const setFolderBranchPinned = async \(type, folderId, pinned = true\) =>/);
     assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
     assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);

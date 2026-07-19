@@ -64,16 +64,11 @@ test('mobile compact mode keeps optional tree reorder controls and path hints fo
     assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
 });
 
-test('quick-actions modal remains iPhone safe-area bounded and scroll-safe', () => {
-    assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*left:\s*calc\(env\(safe-area-inset-left\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*right:\s*calc\(env\(safe-area-inset-right\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*top:\s*calc\(env\(safe-area-inset-top\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*bottom:\s*calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-y:\s*auto !important/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*overflow-x:\s*hidden !important/);
-    assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*-webkit-overflow-scrolling:\s*touch/);
-    assert.match(settingsJs, /\$\('\.sweet-alert'\)\.removeClass\('fv-row-quick-actions-modal'\);/);
-    assert.match(settingsJs, /const modal = \$\('\.sweet-alert:visible'\);/);
-    assert.match(settingsJs, /modal\.addClass\('fv-row-quick-actions-modal'\);/);
+test('folder action sheet remains iPhone safe-area bounded and scroll-safe', () => {
+    assert.match(settingsCss, /@media \(max-width: 620px\)/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet-backdrop[\s\S]*padding:[\s\S]*env\(safe-area-inset-top\)[\s\S]*env\(safe-area-inset-right\)[\s\S]*env\(safe-area-inset-bottom\)[\s\S]*env\(safe-area-inset-left\)/);
+    assert.match(settingsCss, /\.fv-folder-action-sheet-body[\s\S]*overflow-x:\s*hidden;[\s\S]*overflow-y:\s*auto;[\s\S]*-webkit-overflow-scrolling:\s*touch/);
+    assert.match(settingsJs, /const closeFolderActionSheet = \(\{ restoreFocus = true \} = \{\}\) =>/);
+    assert.match(settingsJs, /if \(event\.key === 'Escape'\)/);
+    assert.match(settingsJs, /if \(event\.key !== 'Tab'\)/);
 });

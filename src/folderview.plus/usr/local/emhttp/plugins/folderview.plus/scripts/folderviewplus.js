@@ -645,10 +645,6 @@ let rowFocusTimersByType = {
     docker: null,
     vm: null
 };
-let rowDetailsDrawerByType = {
-    docker: null,
-    vm: null
-};
 let folderTreeMoveErrorsByType = {
     docker: {},
     vm: {}
@@ -9292,9 +9288,6 @@ const renderTable = (type) => {
         hierarchyMeta,
         collapsedParents
     }));
-    if (type === 'vm') {
-        rowDetailsDrawerByType.vm = null;
-    }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
     bindBasicFolderDragHandles(type);
@@ -11761,7 +11754,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     moveFolderRow,
     moveFolderRowBesideSibling,
     moveFolderToRootQuick,
-    moveFolderUnderDialog,
     openFolderTreeMoveDialog,
     applyTreeMoveUndo,
     applyTreeMoveRedo,
@@ -11776,7 +11768,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     runTreeIntegrityCheck,
     handleFolderRowKeydown,
     toggleFolderPin,
-    copyFolderId,
     toggleDockerUpdatesFilter,
     toggleHealthSeverityFilter,
     toggleStatusFilter,

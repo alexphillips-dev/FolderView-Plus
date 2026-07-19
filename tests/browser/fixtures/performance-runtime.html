@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus runtime performance fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/runtime.shared.css">
+    <style>
+        body { margin: 0; background: #171717; color: #eee; font: 14px/1.3 Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        td { border-bottom: 1px solid #333; padding: 2px 4px; }
+        tr.is-host-hidden, tr.is-folder-hidden { display: none; }
+    </style>
+</head>
+<body data-fv-perf-surface="runtime">
+    <table id="docker_containers">
+        <thead><tr><th>Application</th><th>Status</th><th>Network</th><th>IP</th><th>Port</th><th>LAN</th><th>Autostart</th><th>Uptime</th></tr></thead>
+        <tbody id="docker_list"></tbody>
+    </table>
+    <script src="/fixtures/runtime-performance.fixture.js"></script>
+</body>
+</html>

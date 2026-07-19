@@ -78,6 +78,7 @@ chmod +x \
   scripts/perf_budget_guard.sh \
   scripts/release_guard.sh \
   scripts/release_notes_consistency_guard.sh \
+  scripts/runtime_performance_benchmarks.sh \
   scripts/repro_build_guard.sh \
   scripts/theme_matrix_smoke.sh \
   scripts/theme_runtime_guard.sh \
@@ -137,6 +138,7 @@ prepare_playwright() {
 run_fixture_browser_tests() {
   prepare_playwright
   bash scripts/fixture_browser_tests.sh
+  bash scripts/runtime_performance_benchmarks.sh
 }
 
 lint_shell_scripts() {

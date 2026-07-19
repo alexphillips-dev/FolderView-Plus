@@ -49,6 +49,7 @@ chmod +x \
   scripts/release_guard.sh \
   scripts/install_smoke.sh \
   scripts/fixture_browser_tests.sh \
+  scripts/runtime_performance_benchmarks.sh \
   scripts/browser_smoke.sh \
   scripts/run_ci_suite.sh \
   scripts/api_contract_guard.sh \

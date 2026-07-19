@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-19T21:51:58.221Z",
+  "browser": "149.0.7827.55",
+  "notes": "Tracked medians for the deterministic Chromium runtime fixtures. Update only after reviewing an intentional performance change.",
+  "scenarios": {
+    "small": {
+      "folders": 25,
+      "members": 50,
+      "medians": {
+        "nativeRowsVisibleMs": 21,
+        "allFoldersGroupedMs": 42.6,
+        "settingsBootstrapMs": 53.1,
+        "folderEditorOpenMs": 48,
+        "incrementalStartStopMs": 2.8,
+        "updateAllReconciliationMs": 33.9,
+        "domNodeCount": 922,
+        "mutationObserverCallbacks": 35,
+        "heapGrowthBytes": 11658,
+        "bootstrapNetworkRequests": 4,
+        "mutationRecordCount": 4030
+      }
+    },
+    "normal": {
+      "folders": 100,
+      "members": 500,
+      "medians": {
+        "nativeRowsVisibleMs": 33.3,
+        "allFoldersGroupedMs": 92,
+        "settingsBootstrapMs": 59.6,
+        "folderEditorOpenMs": 66.7,
+        "incrementalStartStopMs": 2.37,
+        "updateAllReconciliationMs": 30,
+        "domNodeCount": 8422,
+        "mutationObserverCallbacks": 35,
+        "heapGrowthBytes": 0,
+        "bootstrapNetworkRequests": 4,
+        "mutationRecordCount": 22414
+      }
+    },
+    "extreme": {
+      "folders": 250,
+      "members": 2000,
+      "medians": {
+        "nativeRowsVisibleMs": 56.2,
+        "allFoldersGroupedMs": 357.1,
+        "settingsBootstrapMs": 63.5,
+        "folderEditorOpenMs": 149.5,
+        "incrementalStartStopMs": 4.54,
+        "updateAllReconciliationMs": 62.5,
+        "domNodeCount": 34084,
+        "mutationObserverCallbacks": 35,
+        "heapGrowthBytes": 43738,
+        "bootstrapNetworkRequests": 4,
+        "mutationRecordCount": 79114
+      }
+    }
+  }
+}

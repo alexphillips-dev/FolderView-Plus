@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "runs": {
+    "warmup": 1,
+    "measured": 5
+  },
+  "regressionPolicy": {
+    "timingPercent": 60,
+    "timingNoiseFloorMs": 50,
+    "countPercent": 15,
+    "heapPercent": 75,
+    "heapNoiseFloorBytes": 4194304
+  },
+  "scenarios": {
+    "small": {
+      "folders": 25,
+      "members": 50,
+      "budgets": {
+        "nativeRowsVisibleMs": 300,
+        "allFoldersGroupedMs": 300,
+        "settingsBootstrapMs": 350,
+        "folderEditorOpenMs": 350,
+        "incrementalStartStopMs": 100,
+        "updateAllReconciliationMs": 150,
+        "domNodeCount": 2000,
+        "mutationObserverCallbacks": 45,
+        "heapGrowthBytes": 4194304,
+        "bootstrapNetworkRequests": 6
+      }
+    },
+    "normal": {
+      "folders": 100,
+      "members": 500,
+      "budgets": {
+        "nativeRowsVisibleMs": 900,
+        "allFoldersGroupedMs": 900,
+        "settingsBootstrapMs": 900,
+        "folderEditorOpenMs": 1100,
+        "incrementalStartStopMs": 250,
+        "updateAllReconciliationMs": 500,
+        "domNodeCount": 12000,
+        "mutationObserverCallbacks": 35,
+        "heapGrowthBytes": 8388608,
+        "bootstrapNetworkRequests": 6
+      }
+    },
+    "extreme": {
+      "folders": 250,
+      "members": 2000,
+      "budgets": {
+        "nativeRowsVisibleMs": 3000,
+        "allFoldersGroupedMs": 3000,
+        "settingsBootstrapMs": 2500,
+        "folderEditorOpenMs": 3500,
+        "incrementalStartStopMs": 700,
+        "updateAllReconciliationMs": 1800,
+        "domNodeCount": 45000,
+        "mutationObserverCallbacks": 50,
+        "heapGrowthBytes": 16777216,
+        "bootstrapNetworkRequests": 6
+      }
+    }
+  }
+}

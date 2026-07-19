@@ -2,7 +2,8 @@
   "name": "folderview-plus-quality",
   "private": true,
   "scripts": {
-    "test:browser-fixtures": "node scripts/fixture_browser_tests.mjs"
+    "test:browser-fixtures": "node scripts/fixture_browser_tests.mjs",
+    "test:runtime-performance": "node scripts/runtime_performance_benchmarks.mjs"
   },
   "devDependencies": {
     "jquery": "3.7.1",

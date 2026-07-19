@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.10">
-<!ENTITY md5 "c1586e4bcf2e8e678003c8fb7031f016">
+<!ENTITY version "2026.07.19.11">
+<!ENTITY md5 "28a83704d67afe63572e17a406f2c6d5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.11
+# FolderView Plus 2026.07.19.11
+- Performance: Add required real-browser runtime budgets for small 25-folder/50-member, normal 100-folder/500-member, and extreme 250-folder/2,000-member configurations.
+- Test: Measure navigation-to-native-row visibility, one-shot folder grouping, Settings bootstrap, modern folder editor opening, normalized start/stop reconciliation, and Update-All reconciliation in Chromium.
+- Regression guard: Enforce DOM node, MutationObserver callback, retained heap after repeated view switching, and bootstrap network-request ceilings alongside runtime timings.
+- Quality: Use one warm-up and five fresh-page samples with stable medians, absolute ceilings, tracked baselines, percentage tolerances, and metric-specific noise floors so tiny timing fluctuations do not fail builds.
+- Diagnostics: Publish machine-readable JSON and review-friendly Markdown performance reports with every fixture-browser CI artifact.
+- Maintenance: Reconcile the static asset baseline with the already-shipped support-bundle telemetry client so the existing size ratchet remains enforceable alongside the new runtime budgets.
+- Docs: Document the scenario matrix, budget policy, local benchmark command, baseline review workflow, and failure interpretation.
 
 ###2026.07.19.10
 # FolderView Plus 2026.07.19.10

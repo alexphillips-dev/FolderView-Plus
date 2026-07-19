@@ -35,6 +35,10 @@ for (const relativePath of [
   'scripts/run_ci_suite.sh',
   'scripts/fixture_browser_tests.sh',
   'scripts/fixture_browser_tests.mjs',
+  'scripts/runtime_performance_benchmarks.sh',
+  'scripts/runtime_performance_benchmarks.mjs',
+  'scripts/runtime_perf_budgets.json',
+  'scripts/runtime_perf_baseline.json',
   'scripts/build_release_notes.sh',
   'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
@@ -69,6 +73,9 @@ if (!/ci-duration-report/.test(ciWorkflow)) {
 }
 if (!/fixture-browser:/.test(ciWorkflow) || !/--lane fixture-browser/.test(ciWorkflow)) {
   fail('CI workflow must run the required deterministic fixture browser lane.');
+}
+if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh'))) {
+  fail('The deterministic fixture browser lane must enforce runtime performance budgets.');
 }
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');

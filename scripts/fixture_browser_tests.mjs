@@ -17,6 +17,10 @@ const requestedBrowsers = String(process.env.FVPLUS_FIXTURE_BROWSERS || 'chromiu
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 const browserTypes = { chromium, firefox, webkit };
+const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+const englishSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'en', 'legacy-surface.json'));
+const germanSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'de', 'legacy-surface.json'));
+const surfaceKeyFor = (phrase) => Object.keys(englishSurfaceCatalog).find((key) => englishSurfaceCatalog[key] === phrase);
 
 fs.mkdirSync(artifactDir, { recursive: true });
 
@@ -79,6 +83,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'folder-editor.html');
         } else if (requestUrl.pathname === '/import') {
             filePath = path.join(fixtureDir, 'import.html');
+        } else if (requestUrl.pathname === '/localization') {
+            filePath = path.join(fixtureDir, 'localization.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -114,6 +120,48 @@ const baseUrl = `http://127.0.0.1:${address.port}`;
 const tests = [];
 const test = (name, handler) => tests.push({ name, handler });
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
+
+test('Generated localization covers initial, attributed, parameterized, and dynamic UI text', async ({ page }) => {
+    const searchKey = surfaceKeyFor('Search built-in icons');
+    const pageKey = surfaceKeyFor('Page $1 / $2');
+    assert.ok(searchKey && pageKey, 'fixture phrases must exist in the generated surface catalog');
+    const expectedSearch = germanSurfaceCatalog[searchKey];
+    const expectedPage = germanSurfaceCatalog[pageKey].replace('$1', '2').replace('$2', '7');
+
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    await page.evaluate(async () => window.FolderViewPlusI18n.configure({
+        requestedLocale: 'de',
+        resolvedLocale: 'de',
+        fallbackChain: ['de', 'en'],
+        namespaces: ['legacy-surface'],
+        assets: [
+            { locale: 'en', namespace: 'legacy-surface', url: '/plugin/langs/namespaces/en/legacy-surface.json' },
+            { locale: 'de', namespace: 'legacy-surface', url: '/plugin/langs/namespaces/de/legacy-surface.json' }
+        ]
+    }));
+    assert.equal(await page.locator('#initial-label').textContent(), expectedSearch);
+    assert.equal(await page.locator('#initial-attribute').getAttribute('placeholder'), expectedSearch);
+    assert.equal(await page.locator('#user-content').textContent(), 'Search built-in icons', 'runtime data selectors must be ignored');
+    await page.evaluate(() => {
+        const label = document.createElement('span');
+        label.id = 'dynamic-label';
+        label.textContent = 'Page 2 / 7';
+        document.querySelector('#dynamic-root').append(label);
+    });
+    await page.waitForFunction((expected) => document.querySelector('#dynamic-label')?.textContent === expected, expectedPage);
+    const snapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
+    assert.equal(snapshot.dynamicTranslationObserver, true);
+    assert.equal(snapshot.autoBoundMessageCount, 1564);
+    assert.ok(snapshot.autoTranslatedNodeCount >= 3);
+});
 
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });

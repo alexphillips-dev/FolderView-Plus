@@ -2452,6 +2452,7 @@
                 'sourceMessageCount' => (int)($catalogReport['sourceMessageCount'] ?? 0),
                 'namespaceCount' => (int)($catalogReport['namespaceCount'] ?? 0),
                 'extractionCandidateCount' => (int)($catalogReport['extraction']['candidateCount'] ?? 0),
+                'autoBoundMessageCount' => (int)($catalogReport['extraction']['autoBoundMessageCount'] ?? 0),
                 'localeCount' => count($localeCoverage),
                 'activeLocaleCoverage' => is_array($localeCoverage[$localeResolution['resolved'] ?? 'en'] ?? null)
                     ? $localeCoverage[$localeResolution['resolved'] ?? 'en']

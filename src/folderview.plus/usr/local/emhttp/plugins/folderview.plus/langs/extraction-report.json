@@ -1,18 +1,20 @@
 {
-    "catalog-version": "2026.07.17.4",
-    "generated-at": "2026-07-17",
-    "candidate-count": 1588,
-    "catalog-message-count": 373,
-    "description": "Heuristic count of legacy user-facing string candidates not yet represented by an explicit localization binding.",
+    "catalog-version": "2026.07.19.1",
+    "generated-at": "2026-07-19",
+    "candidate-count": 0,
+    "auto-bound-message-count": 1564,
+    "catalog-message-count": 1937,
+    "description": "All detected initial and runtime-written legacy UI text is represented by the generated legacy-surface namespace.",
     "largest-surfaces": {
-        "FolderViewPlus.page": 629,
-        "Folder.page": 254,
-        "scripts/folderviewplus.wizard.js": 169,
-        "scripts/folderviewplus.js": 106,
-        "scripts/folder.js": 73,
-        "scripts/folderviewplus.settings-workspaces.js": 57,
-        "scripts/folder.editor.chrome.js": 41,
-        "scripts/docker.runtime.command-view.js": 31,
-        "scripts/folderviewplus.import.js": 28
+        "FolderViewPlus.page": 539,
+        "scripts/folderviewplus.js": 265,
+        "Folder.page": 211,
+        "scripts/folderviewplus.wizard.js": 197,
+        "scripts/folder.js": 129,
+        "scripts/folder.editor.chrome.js": 94,
+        "scripts/folderviewplus.import.js": 76,
+        "scripts/folderviewplus.activity-diagnostics.js": 63,
+        "scripts/folderviewplus.settings-workspaces.js": 56,
+        "scripts/docker.js": 54
     }
 }

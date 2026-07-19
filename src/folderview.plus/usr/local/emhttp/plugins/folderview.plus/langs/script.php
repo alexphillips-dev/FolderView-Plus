@@ -15,6 +15,9 @@
     if (!in_array('common', $requestedNamespaces, true)) {
         array_unshift($requestedNamespaces, 'common');
     }
+    if (!in_array('legacy-surface', $requestedNamespaces, true)) {
+        $requestedNamespaces[] = 'legacy-surface';
+    }
 
     $localeAssets = [[
         'locale' => 'en',

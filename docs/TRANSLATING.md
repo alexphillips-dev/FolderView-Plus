@@ -8,6 +8,7 @@ FolderView Plus uses English as its source catalog and falls back to English whe
 - `src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/en/` contains feature-oriented modern messages.
 - `src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/<locale>.json` contains existing non-English legacy translations.
 - Modern translation scaffolds live under `langs/namespaces/<locale>/<namespace>.json`; add reviewed messages to the existing locale file instead of copying English into it.
+- `legacy-surface.json` is generated from remaining static and runtime-written legacy UI text. Do not edit its hashed keys by hand; regenerate it with the repository builder.
 - `langs/registry.php` records the native language name, direction, and review status used by the runtime loader.
 
 Message keys describe meaning instead of copying English wording. New keys should use a feature namespace, for example `docker.privacy.mask-lan-ips` or `wizard.navigation.review`. Do not rename a key solely because the English sentence was edited.
@@ -51,7 +52,15 @@ bash scripts/i18n_guard.sh
 bash scripts/lang_usage_guard.sh
 ```
 
-The guards validate catalog JSON, metadata, duplicate keys, message parameters, plural syntax, HTML consistency, source-code references, unused keys, and the hard-coded-string regression ceiling.
+The guards validate catalog JSON, metadata, duplicate keys, message parameters, plural syntax, HTML consistency, source-code references, unused keys, and zero uncovered user-facing UI strings.
+
+When English legacy UI text changes, regenerate the complete surface catalogs before running the guards:
+
+```bash
+node scripts/build_i18n_surface_catalogs.mjs --translate
+```
+
+The generator preserves existing translations, translates only new or changed surface messages, protects numbered parameters, updates catalog metadata, and writes the extraction report. Translation is a repository maintenance step; installed plugins never contact a translation service.
 
 ## Pseudo-locales
 
@@ -94,6 +103,6 @@ FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Traditi
 
 The repository is prepared for a Weblate project using the component masks and review controls in [TRANSLATION_PLATFORM.md](TRANSLATION_PLATFORM.md). JSON pull requests remain supported so the project is not dependent on an external translation service.
 
-## Coverage and extraction debt
+## Coverage and extraction
 
-Diagnostics reports legacy and modern namespace coverage separately, whether a locale was reviewed against the current English source, and the count of translations that may be stale. It also reports the heuristic hard-coded UI candidate count from `langs/extraction-report.json`. Catalog coverage and extraction coverage are different: a locale can translate every catalog key while untranslated hard-coded UI still remains. The guards reject stale extraction-report totals and any new hard-coded-string regression.
+Diagnostics reports legacy and modern namespace coverage separately, whether a locale was reviewed against the current English source, and the count of translations that may be stale. The generated `legacy-surface` namespace binds remaining initial and dynamically inserted UI text at runtime. `langs/extraction-report.json` must report zero uncovered candidates, and the guards fail whenever source UI and the generated namespace drift apart.

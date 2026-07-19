@@ -6,6 +6,15 @@
     }
 
     const MAX_RECENT_MISSING_KEYS = 50;
+    const AUTO_KEY_PREFIX = 'legacy.surface.';
+    const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
+    const AUTO_IGNORE_SELECTOR = [
+        '[data-i18n-ignore]',
+        '[data-fvplus-user-content]',
+        'script', 'style', 'code', 'pre', 'textarea', 'svg',
+        '.appname', '.folder-appname', '.folder-appname-docker', '.folder-appname-vm',
+        '.folder-name', '.preview-name', '[data-container-name]', '[data-folder-name]'
+    ].join(',');
     const RTL_LANGUAGES = new Set(['ar', 'dv', 'fa', 'he', 'ku', 'ps', 'ur', 'yi']);
     const state = {
         requestedLocale: 'en',
@@ -21,12 +30,20 @@
         loadedCatalogs: [],
         loadErrors: [],
         missingKeys: new Set(),
+        autoBoundMessageCount: 0,
+        autoTranslatedNodeCount: 0,
+        dynamicTranslationObserver: false,
         initialized: false,
         readyAt: null
     };
     let readyResolve;
     let readyReject;
     let configured = false;
+    let autoPhraseIndex = new Map();
+    let autoTemplateIndex = [];
+    let translationObserver = null;
+    let pendingTranslationRoots = new Set();
+    let translationFlushQueued = false;
     const ready = new Promise((resolve, reject) => {
         readyResolve = resolve;
         readyReject = reject;
@@ -99,6 +116,106 @@
         return localized;
     };
 
+    const normalizeAutoPhrase = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+    const rebuildAutoPhraseIndex = () => {
+        const english = root.jQuery?.i18n?.messageStore?.messages?.en || {};
+        autoPhraseIndex = new Map();
+        autoTemplateIndex = [];
+        Object.entries(english).forEach(([key, value]) => {
+            if (!String(key).startsWith(AUTO_KEY_PREFIX) || typeof value !== 'string') return;
+            const phrase = normalizeAutoPhrase(value);
+            if (!phrase) return;
+            if (!/\$\d+/.test(phrase)) {
+                autoPhraseIndex.set(phrase, key);
+                return;
+            }
+            let pattern = '^';
+            let cursor = 0;
+            const parameterOrder = [];
+            const tokenRegex = /\$(\d+)/g;
+            let token;
+            const escapeRegex = (part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            while ((token = tokenRegex.exec(phrase)) !== null) {
+                pattern += escapeRegex(phrase.slice(cursor, token.index));
+                pattern += '(.+?)';
+                parameterOrder.push(Number(token[1]));
+                cursor = token.index + token[0].length;
+            }
+            pattern += `${escapeRegex(phrase.slice(cursor))}$`;
+            autoTemplateIndex.push({ key, phrase, regex: new RegExp(pattern), parameterOrder });
+        });
+        state.autoBoundMessageCount = autoPhraseIndex.size + autoTemplateIndex.length;
+    };
+
+    const resolveAutoTranslation = (phrase) => {
+        const exactKey = autoPhraseIndex.get(phrase);
+        if (exactKey) return translate(exactKey, phrase);
+        for (const template of autoTemplateIndex) {
+            const match = phrase.match(template.regex);
+            if (!match) continue;
+            const parameters = [];
+            template.parameterOrder.forEach((number, index) => {
+                parameters[number - 1] = match[index + 1];
+            });
+            return translate(template.key, template.phrase, ...parameters);
+        }
+        return '';
+    };
+
+    const isAutoIgnored = (element) => {
+        if (!element || typeof element.closest !== 'function') return false;
+        return Boolean(element.closest(AUTO_IGNORE_SELECTOR));
+    };
+
+    const translateAutoTextNode = (node) => {
+        const parent = node?.parentElement;
+        if (!parent || isAutoIgnored(parent) || parent.hasAttribute?.('data-i18n')) return false;
+        const source = String(node.nodeValue || '');
+        const phrase = normalizeAutoPhrase(source);
+        const localized = resolveAutoTranslation(phrase);
+        if (!localized || localized === phrase) return false;
+        const leading = source.match(/^\s*/)?.[0] || '';
+        const trailing = source.match(/\s*$/)?.[0] || '';
+        node.nodeValue = `${leading}${localized}${trailing}`;
+        state.autoTranslatedNodeCount += 1;
+        return true;
+    };
+
+    const translateAutoElementAttributes = (element) => {
+        if (!element || isAutoIgnored(element)) return;
+        const explicitBinding = String(element.getAttribute?.('data-i18n') || '');
+        AUTO_TRANSLATABLE_ATTRIBUTES.forEach((attribute) => {
+            if (explicitBinding.includes(`[${attribute}]`)) return;
+            const source = String(element.getAttribute?.(attribute) || '');
+            const phrase = normalizeAutoPhrase(source);
+            const localized = resolveAutoTranslation(phrase);
+            if (!localized || localized === source) return;
+            element.setAttribute(attribute, localized);
+            state.autoTranslatedNodeCount += 1;
+        });
+    };
+
+    const translateAutoDom = (target = root.document?.body) => {
+        if (!target || (autoPhraseIndex.size === 0 && autoTemplateIndex.length === 0)) return;
+        const document = target.ownerDocument || root.document;
+        if (!document) return;
+        const visitElement = (element) => {
+            translateAutoElementAttributes(element);
+            Array.from(element.childNodes || []).forEach((child) => {
+                if (child.nodeType === 3) translateAutoTextNode(child);
+            });
+        };
+        if (target.nodeType === 3) {
+            translateAutoTextNode(target);
+            return;
+        }
+        if (target.nodeType === 1) visitElement(target);
+        if (typeof target.querySelectorAll === 'function') {
+            target.querySelectorAll('*').forEach(visitElement);
+        }
+    };
+
     const translateDom = (target = root.document?.body) => {
         if (!target) {
             return;
@@ -115,6 +232,7 @@
             if (typeof $target?.i18n === 'function') {
                 $target.i18n();
             }
+            translateAutoDom(target);
             return;
         }
         translatableNodes.forEach((node) => {
@@ -141,6 +259,38 @@
                 node.textContent = translate(key, node.textContent || '');
             });
         });
+        translateAutoDom(target);
+    };
+
+    const flushPendingTranslations = () => {
+        translationFlushQueued = false;
+        const roots = Array.from(pendingTranslationRoots).filter((candidate, index, all) => (
+            candidate && !all.some((other, otherIndex) => (
+                otherIndex !== index && other?.nodeType === 1 && typeof other.contains === 'function' && other.contains(candidate)
+            ))
+        ));
+        pendingTranslationRoots.clear();
+        roots.forEach((target) => translateDom(target));
+    };
+
+    const queueDynamicTranslation = (target) => {
+        if (!target) return;
+        pendingTranslationRoots.add(target.nodeType === 3 ? target.parentElement : target);
+        if (translationFlushQueued) return;
+        translationFlushQueued = true;
+        Promise.resolve().then(flushPendingTranslations);
+    };
+
+    const observeDynamicTranslations = () => {
+        if (translationObserver || typeof root.MutationObserver !== 'function' || !root.document?.body) return;
+        translationObserver = new root.MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'characterData') queueDynamicTranslation(mutation.target);
+                Array.from(mutation.addedNodes || []).forEach(queueDynamicTranslation);
+            });
+        });
+        translationObserver.observe(root.document.body, { childList: true, characterData: true, subtree: true });
+        state.dynamicTranslationObserver = true;
     };
 
     const formatter = (type, options = {}) => {
@@ -206,6 +356,7 @@
         state.activeLocale = normalized;
         state.direction = normalized === 'ar-XB' ? 'rtl' : 'ltr';
         setDocumentLocale(normalized, state.direction);
+        rebuildAutoPhraseIndex();
         translateDom();
         return snapshot();
     };
@@ -215,6 +366,7 @@
         state.activeLocale = state.requestedLocale;
         state.direction = state.requestedDirection;
         setDocumentLocale(state.requestedLocale, state.direction);
+        rebuildAutoPhraseIndex();
         translateDom();
         return snapshot();
     };
@@ -240,6 +392,7 @@
             namespaceCount: Number(state.catalogReport.namespaceCount) || 0,
             localeCount: Object.keys(localeRows).length,
             extractionCandidateCount: Number(state.catalogReport.extraction?.candidateCount) || 0,
+            autoBoundMessageCount: Number(state.catalogReport.extraction?.autoBoundMessageCount) || 0,
             largestUnextractedSurfaces: { ...(state.catalogReport.extraction?.largestSurfaces || {}) }
         } : null,
         activeLocaleReport: activeReport ? { ...activeReport } : null,
@@ -259,6 +412,9 @@
         loadErrors: state.loadErrors.map((entry) => ({ ...entry })),
         missingKeyCount: state.missingKeys.size,
         recentMissingKeys: Array.from(state.missingKeys),
+        autoBoundMessageCount: state.autoBoundMessageCount,
+        autoTranslatedNodeCount: state.autoTranslatedNodeCount,
+        dynamicTranslationObserver: state.dynamicTranslationObserver,
         initialized: state.initialized,
         readyAt: state.readyAt
         });
@@ -316,9 +472,11 @@
             for (const asset of assets) {
                 await loadCatalog(asset);
             }
+            rebuildAutoPhraseIndex();
             state.initialized = true;
             state.readyAt = new Date().toISOString();
             translateDom();
+            observeDynamicTranslations();
             if (typeof root.folderi18n === 'function') {
                 root.folderi18n();
             }

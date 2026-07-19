@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.06">
-<!ENTITY md5 "0eb0a47d05a5198c54ee2303d34bdc58">
+<!ENTITY version "2026.07.19.07">
+<!ENTITY md5 "a99cd31b0f1daf12b369c193aa682355">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,21 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.07
+# FolderView Plus 2026.07.19.07
+- Localization: Complete actual localization coverage for the remaining 1,564 initial and runtime-written legacy UI messages, increasing every shipped locale from 373 to 1,937 translated catalog messages.
+- Localization: Ship the complete generated surface in Czech, German, Spanish, French, Italian, Japanese, Korean, Dutch, Polish, Brazilian Portuguese, European Portuguese, Romanian, Russian, Swedish, Turkish, Ukrainian, and Simplified Chinese.
+- Feature: Translate legacy page text, placeholders, titles, accessibility labels, dynamically inserted UI, and parameterized live-state messages without requiring each legacy renderer to be rewritten.
+- Reliability: Preserve `$1`, `$2`, and other runtime parameters through translation generation so names, counts, progress values, and import results cannot be interpreted as currency or lost.
+- Reliability: Load the generated `legacy-surface` namespace on every localized plugin page and retain English fallback behavior when an individual catalog asset cannot load.
+- Performance: Index exact and parameterized source phrases once, batch MutationObserver updates, and collapse nested mutation roots before translating dynamic UI.
+- Diagnostics: Replace the previous 1,588-candidate localization backlog with a zero-uncovered contract and report the 1,564 automatically bound messages in runtime and support diagnostics.
+- Quality: Add a deterministic localization surface builder with stable content-addressed keys, existing-translation reuse, request timeouts, progress checkpoints, and placeholder-integrity enforcement.
+- Regression guard: Remove the permissive per-file hard-coded-string ceiling; source changes now fail validation until every detected user-facing phrase has a current catalog entry in all 18 locales.
+- Test: Add source-to-catalog, locale-completeness, parameter-integrity, mandatory-loader, and real Chromium coverage for initial, attributed, ignored user data, parameterized, and dynamically inserted translations.
+- Docs: Document the generated localization workflow, zero-debt validation model, parameter protection, and the fact that installed plugins never contact a translation service.
+
 
 ###2026.07.19.06
 # FolderView Plus 2026.07.19.06

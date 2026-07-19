@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('FVPLUS_I18N_CATALOG_VERSION')) {
-    define('FVPLUS_I18N_CATALOG_VERSION', '2026.07.17.4');
+    define('FVPLUS_I18N_CATALOG_VERSION', '2026.07.19.1');
 }
 
 if (!function_exists('fvplus_i18n_registry')) {
@@ -242,6 +242,7 @@ if (!function_exists('fvplus_i18n_catalog_report')) {
             'namespaceCount' => count($sourceByNamespace),
             'extraction' => [
                 'candidateCount' => (int)($extractionReport['candidate-count'] ?? 0),
+                'autoBoundMessageCount' => (int)($extractionReport['auto-bound-message-count'] ?? 0),
                 'catalogMessageCount' => (int)($extractionReport['catalog-message-count'] ?? $sourceTotal),
                 'largestSurfaces' => is_array($extractionReport['largest-surfaces'] ?? null) ? $extractionReport['largest-surfaces'] : []
             ],

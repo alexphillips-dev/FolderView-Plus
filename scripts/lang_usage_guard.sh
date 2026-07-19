@@ -6,7 +6,7 @@ PLUGIN_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.
 LANG_DIR="${PLUGIN_DIR}/langs"
 STRICT_MODE="${FVPLUS_I18N_STRICT:-0}"
 ALLOW_UNUSED_KEYS="${FVPLUS_I18N_ALLOW_UNUSED_KEYS:-}"
-HARDCODED_BASELINE="${ROOT_DIR}/scripts/i18n_hardcoded_baseline.json"
+SURFACE_TOOLS="${ROOT_DIR}/scripts/lib/i18n_surface_tools.cjs"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
@@ -17,14 +17,14 @@ if [[ ! -f "${LANG_DIR}/en.json" ]]; then
   fvplus::fail "Missing base locale file: ${LANG_DIR}/en.json"
 fi
 
-"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" "$(fvplus::path_for_command "${NODE_BIN}" "${HARDCODED_BASELINE}")" <<'NODE'
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" "$(fvplus::path_for_command "${NODE_BIN}" "${LANG_DIR}")" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" "$(fvplus::path_for_command "${NODE_BIN}" "${SURFACE_TOOLS}")" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 
 const pluginDir = process.argv[2];
 const langDir = process.argv[3];
 const strictMode = /^(1|true|yes|on)$/i.test(String(process.argv[4] || '').trim());
-const hardcodedBaselineFile = process.argv[6];
+const surfaceTools = require(process.argv[6]);
 const allowUnusedKeys = new Set(
   String(process.argv[5] || '')
     .split(/[,\n;]+/)
@@ -114,33 +114,10 @@ for (const catalogFile of catalogFiles) {
 
 const localeKeys = new Set(Object.keys(en));
 const referencedKeys = new Map();
-const hardcodedCounts = {};
 
 for (const fullPath of sourceFiles.sort()) {
   const relPath = path.relative(pluginDir, fullPath).replace(/\\/g, '/');
   const source = fs.readFileSync(fullPath, 'utf8');
-  let hardcodedCount = 0;
-  const attributeRegex = /\b(?:placeholder|aria-label|title)\s*=\s*["']([A-Za-z][^"'<>]*[A-Za-z])["']/g;
-  let attributeMatch;
-  while ((attributeMatch = attributeRegex.exec(source)) !== null) {
-    const tagStart = source.lastIndexOf('<', attributeMatch.index);
-    const tagEnd = source.indexOf('>', attributeMatch.index);
-    const tagSource = tagStart >= 0 && tagEnd >= 0 ? source.slice(tagStart, tagEnd + 1) : '';
-    if (/\bdata-i18n\s*=/.test(tagSource) || /\bdata-i18n-ignore\b/.test(tagSource)) continue;
-    hardcodedCount += 1;
-  }
-  const textNodeRegex = />([^<>{}`$]*[A-Za-z][^<>{}`$]*)</g;
-  let textMatch;
-  while ((textMatch = textNodeRegex.exec(source)) !== null) {
-    const text = String(textMatch[1] || '').replace(/\s+/g, ' ').trim();
-    if (!text || text.length < 2 || /^(?:https?:|\/|[A-Z0-9_.-]+)$/.test(text)) continue;
-    const tagStart = source.lastIndexOf('<', textMatch.index);
-    const tagSource = tagStart >= 0 ? source.slice(tagStart, textMatch.index + 1) : '';
-    if (/\bdata-i18n\s*=/.test(tagSource) || /\bdata-i18n-ignore\b/.test(tagSource)) continue;
-    hardcodedCount += 1;
-  }
-  if (hardcodedCount > 0) hardcodedCounts[relPath] = hardcodedCount;
-
   const dataI18nRegex = /data-i18n\s*=\s*["']([^"']+)["']/g;
   let match;
   while ((match = dataI18nRegex.exec(source)) !== null) {
@@ -213,7 +190,7 @@ if (missing.length > 0) {
 }
 
 const unused = [...localeKeys]
-  .filter((key) => key !== '@metadata' && !allowUnusedKeys.has(key) && !referencedKeys.has(key))
+  .filter((key) => key !== '@metadata' && !key.startsWith(surfaceTools.AUTO_KEY_PREFIX) && !allowUnusedKeys.has(key) && !referencedKeys.has(key))
   .sort();
 if (unused.length > 0) {
   const details = unused.slice(0, 20).join(', ');
@@ -226,27 +203,19 @@ if (unused.length > 0) {
   }
 }
 
-let hardcodedBaseline = null;
-try {
-  hardcodedBaseline = JSON.parse(fs.readFileSync(hardcodedBaselineFile, 'utf8'));
-} catch (error) {
-  console.error(`ERROR: Missing or invalid hard-coded UI baseline ${hardcodedBaselineFile}: ${error.message}`);
-  console.error(JSON.stringify(hardcodedCounts, null, 2));
+const surface = surfaceTools.collectSurfaceCandidates(pluginDir);
+const generatedSurfaceMessages = new Map(
+  Object.entries(en).filter(([key]) => key.startsWith(surfaceTools.AUTO_KEY_PREFIX)).map(([key, value]) => [String(value), key])
+);
+const uncoveredSurface = [...surface.byPhrase.keys()].filter((phrase) => !generatedSurfaceMessages.has(phrase));
+const staleSurface = [...generatedSurfaceMessages.keys()].filter((phrase) => !surface.byPhrase.has(phrase));
+if (uncoveredSurface.length > 0 || staleSurface.length > 0) {
+  console.error(`ERROR: Generated localization surface is out of date (${uncoveredSurface.length} uncovered, ${staleSurface.length} stale).`);
+  uncoveredSurface.slice(0, 30).forEach((phrase) => console.error(`  - uncovered: ${phrase}`));
+  staleSurface.slice(0, 30).forEach((phrase) => console.error(`  - stale: ${phrase}`));
+  console.error('Run: node scripts/build_i18n_surface_catalogs.mjs --translate');
   process.exit(1);
 }
-const baselineCounts = hardcodedBaseline?.files && typeof hardcodedBaseline.files === 'object'
-  ? hardcodedBaseline.files
-  : {};
-const hardcodedRegressions = Object.entries(hardcodedCounts)
-  .filter(([file, count]) => count > Number(baselineCounts[file] || 0));
-if (hardcodedRegressions.length > 0) {
-  console.error(`ERROR: ${hardcodedRegressions.length} file(s) introduced additional hard-coded user-facing strings.`);
-  for (const [file, count] of hardcodedRegressions.slice(0, 30)) {
-    console.error(`  - ${file}: ${count} candidate(s), baseline ${Number(baselineCounts[file] || 0)}`);
-  }
-  process.exit(1);
-}
-const hardcodedTotal = Object.values(hardcodedCounts).reduce((sum, count) => sum + Number(count || 0), 0);
 const extractionReportPath = path.join(langDir, 'extraction-report.json');
 let extractionReport;
 try {
@@ -261,8 +230,12 @@ if (String(extractionReport?.['catalog-version'] || '') !== catalogVersion) {
   console.error(`ERROR: Localization extraction report catalog version does not match ${catalogVersion}.`);
   process.exit(1);
 }
-if (Number(extractionReport?.['candidate-count']) !== hardcodedTotal) {
-  console.error(`ERROR: Localization extraction report has ${Number(extractionReport?.['candidate-count']) || 0} candidates; measured ${hardcodedTotal}.`);
+if (Number(extractionReport?.['candidate-count']) !== 0) {
+  console.error(`ERROR: Localization extraction report must report zero uncovered candidates.`);
+  process.exit(1);
+}
+if (Number(extractionReport?.['auto-bound-message-count']) !== surface.byPhrase.size) {
+  console.error(`ERROR: Localization extraction report has ${Number(extractionReport?.['auto-bound-message-count']) || 0} auto-bound messages; measured ${surface.byPhrase.size}.`);
   process.exit(1);
 }
 if (Number(extractionReport?.['catalog-message-count']) !== localeKeys.size) {
@@ -270,5 +243,5 @@ if (Number(extractionReport?.['catalog-message-count']) !== localeKeys.size) {
   process.exit(1);
 }
 
-console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${catalogFiles.length} English catalog file(s), ${referencedKeys.size} unique keys referenced, ${hardcodedTotal} baselined hard-coded candidate(s).`);
+console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${catalogFiles.length} English catalog file(s), ${referencedKeys.size} explicit keys referenced, ${surface.byPhrase.size} legacy surface messages auto-bound, zero uncovered UI strings.`);
 NODE

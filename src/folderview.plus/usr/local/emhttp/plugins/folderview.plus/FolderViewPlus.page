@@ -426,10 +426,17 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Interval (sec)</span>
                         <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
                     </label>
-                    <label class="setting-toggle"><input id="docker-performance-mode" type="checkbox" onchange="changeRuntimePref('docker', 'performanceMode', this.checked)"> Performance mode</label>
-                    <label class="setting-toggle"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                    <label class="setting-select" for="docker-performance-profile">
+                        <span>Performance profile</span>
+                        <select id="docker-performance-profile" onchange="changeRuntimePref('docker', 'performanceProfile', this.value)">
+                            <option value="standard">Standard</option>
+                            <option value="adaptive">Adaptive (recommended)</option>
+                            <option value="maximum">Maximum performance</option>
+                        </select>
+                    </label>
+                    <label class="setting-toggle"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Defer large previews</label>
                     <label id="docker-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
-                        <span>Lazy threshold</span>
+                        <span>Preview threshold</span>
                         <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
                     </label>
                     <label class="setting-select" for="docker-theme-compat-mode">
@@ -441,7 +448,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="highcontrast">High contrast safe</option>
                         </select>
                     </label>
-                    <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
+                    <div id="docker-performance-policy-summary" class="setting-help fv-performance-policy-summary"></div>
+                    <div class="setting-help">Adaptive responds to library size. Deferred previews hydrate near the viewport without changing saved folder settings.</div>
                 </div>
                 <div class="settings-mini-card fv-folder-defaults-card">
                     <div class="settings-mini-title">Folder defaults</div>
@@ -731,10 +739,17 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Interval (sec)</span>
                         <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
                     </label>
-                    <label class="setting-toggle"><input id="vm-performance-mode" type="checkbox" onchange="changeRuntimePref('vm', 'performanceMode', this.checked)"> Performance mode</label>
-                    <label class="setting-toggle"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                    <label class="setting-select" for="vm-performance-profile">
+                        <span>Performance profile</span>
+                        <select id="vm-performance-profile" onchange="changeRuntimePref('vm', 'performanceProfile', this.value)">
+                            <option value="standard">Standard</option>
+                            <option value="adaptive">Adaptive (recommended)</option>
+                            <option value="maximum">Maximum performance</option>
+                        </select>
+                    </label>
+                    <label class="setting-toggle"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Defer large previews</label>
                     <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
-                        <span>Lazy threshold</span>
+                        <span>Preview threshold</span>
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
                     </label>
                     <label class="setting-select" for="vm-theme-compat-mode">
@@ -746,7 +761,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="highcontrast">High contrast safe</option>
                         </select>
                     </label>
-                    <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
+                    <div id="vm-performance-policy-summary" class="setting-help fv-performance-policy-summary"></div>
+                    <div class="setting-help">Adaptive responds to library size. Deferred previews hydrate near the viewport without changing saved folder settings.</div>
                 </div>
                 <div class="settings-mini-card fv-folder-defaults-card">
                     <div class="settings-mini-title">Folder defaults</div>

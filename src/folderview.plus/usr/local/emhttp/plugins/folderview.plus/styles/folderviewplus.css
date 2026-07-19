@@ -12873,3 +12873,7 @@ tr.is-long-press-active {
     background: rgba(var(--fv-wizard-color-info-rgb), 0.14) !important;
     box-shadow: 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.35) !important;
 }
+.fv-performance-policy-summary {
+    color: var(--fvplus-theme-muted-foreground, #b8bec7);
+    line-height: 1.35;
+}

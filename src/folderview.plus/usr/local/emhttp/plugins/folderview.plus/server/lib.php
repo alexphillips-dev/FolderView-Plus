@@ -361,7 +361,7 @@
     const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
-    const FVPLUS_RUNTIME_PREFS_SCHEMA = 3;
+    const FVPLUS_RUNTIME_PREFS_SCHEMA = 4;
     const FVPLUS_RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
     const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
     const FVPLUS_CONFIG_METADATA_SCHEMA_VERSION = 1;

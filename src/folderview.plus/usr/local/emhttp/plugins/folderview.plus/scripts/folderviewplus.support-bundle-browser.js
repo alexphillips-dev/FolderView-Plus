@@ -95,7 +95,10 @@
 
         const normalizeEnum = (value, allowed, fallback = '') => {
             const normalized = String(value || '').trim().toLowerCase();
-            return allowed.has(normalized) ? normalized : fallback;
+            const isAllowed = allowed instanceof Set
+                ? allowed.has(normalized)
+                : (Array.isArray(allowed) && allowed.includes(normalized));
+            return isAllowed ? normalized : fallback;
         };
 
         const normalizeIsoTimestamp = (value) => {
@@ -135,6 +138,23 @@
                 preferenceSaves = null;
             }
             const nativeOrganizerSource = readClientDiagnosticsStorageRecord(storageKeys.nativeOrganizer || '');
+            const normalizePerformancePolicy = (source) => {
+                if (!source || typeof source !== 'object' || Array.isArray(source)) return null;
+                return {
+                    mode: normalizeEnum(source.mode, ['standard', 'adaptive', 'maximum'], 'standard'),
+                    strict: source.strict === true,
+                    reason: normalizeEnum(source.reason, ['standard-profile', 'adaptive-profile', 'large-library', 'measured-render-cost', 'maximum-profile'], 'standard-profile'),
+                    folderCount: Math.max(0, Number(source.folderCount) || 0),
+                    itemCount: Math.max(0, Number(source.itemCount) || 0),
+                    renderMs: Math.max(0, Number(source.renderMs) || 0),
+                    effectiveRefreshSeconds: Math.max(0, Number(source.effectiveRefreshSeconds) || 0),
+                    expandRestoreLimit: source.expandRestoreLimit === null ? null : Math.max(0, Number(source.expandRestoreLimit) || 0),
+                    previewStrategy: normalizeEnum(source.previewStrategy, ['immediate', 'deferred'], 'immediate'),
+                    capturedAt: normalizeIsoTimestamp(source.capturedAt)
+                };
+            };
+            const dockerPerformancePolicy = normalizePerformancePolicy(readClientDiagnosticsStorageRecord(storageKeys.dockerPerformancePolicy || ''));
+            const vmPerformancePolicy = normalizePerformancePolicy(readClientDiagnosticsStorageRecord(storageKeys.vmPerformancePolicy || ''));
             const nativeOrganizer = nativeOrganizerSource && typeof nativeOrganizerSource === 'object'
                 ? {
                     available: true,
@@ -159,6 +179,10 @@
                 sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
                 dockerListViewModeCookie: normalizeDockerListViewMode(readCookieValue('docker_listview_mode')),
                 preferenceSaves,
+                performancePolicies: {
+                    docker: dockerPerformancePolicy,
+                    vm: vmPerformancePolicy
+                },
                 nativeOrganizer,
                 folderEditorDebug: {
                     launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),

@@ -155,9 +155,10 @@ const utils = window.FolderViewPlusUtils || {
         appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        runtimePrefsSchema: 3,
+        runtimePrefsSchema: 4,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
+        performanceProfile: 'standard',
         performanceMode: false,
         lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30,
@@ -509,6 +510,10 @@ const resolveDockerRuntimePerformanceProfile = typeof dockerRuntimeShared.resolv
         expandRestoreLimit: null,
         minLiveRefreshSeconds: null
     });
+const createDockerDeferredPreviewController = typeof dockerRuntimeShared.createDeferredPreviewController === 'function'
+    ? dockerRuntimeShared.createDeferredPreviewController
+    : () => ({ defer: () => false, hydrate: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+const dockerDeferredPreviewController = createDockerDeferredPreviewController();
 const runtimeContracts = dockerRuntimeShared.runtimeContracts && typeof dockerRuntimeShared.runtimeContracts === 'object'
     ? dockerRuntimeShared.runtimeContracts
     : {};
@@ -4673,6 +4678,7 @@ window.FolderViewPlusDockerRuntimeInternals = Object.assign(window.FolderViewPlu
     setDockerRuntimePageViewMode: (mode) => dockerRuntimeActionBarApi?.setPageViewMode(mode)
 });
 const syncDockerVisibleFoldersFromRuntimeCache = (changedNames = null) => {
+    dockerDeferredPreviewController.flush();
     const changedSet = changedNames instanceof Set
         ? changedNames
         : (Array.isArray(changedNames) ? new Set(changedNames.map((name) => String(name || '').trim()).filter(Boolean)) : null);
@@ -5405,6 +5411,10 @@ let createFoldersQueued = false;
  * Handles the creation of all folders
  */
 const createFolders = async () => {
+    dockerDeferredPreviewController.flush();
+    const performanceRenderStartedAt = typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now();
     dockerPerf.begin('createFolders.total');
     const widthBootstrapGeneration = dockerRuntimeWidthState.pendingRenderGeneration
         || beginDockerRuntimeWidthBootstrap();
@@ -5669,7 +5679,7 @@ const createFolders = async () => {
     }
     const expansionIds = Object.keys(foldersDone)
         .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
-    const maxRestoredExpansions = folderTypePrefs?.performanceMode === true
+    const maxRestoredExpansions = dockerRuntimePerformanceProfile?.performanceMode === true
         ? Number(dockerRuntimePerformanceProfile?.expandRestoreLimit || PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT)
         : Number.POSITIVE_INFINITY;
     let restoredExpansionCount = 0;
@@ -5684,7 +5694,6 @@ const createFolders = async () => {
             continue;
         }
         if (restoredExpansionCount >= maxRestoredExpansions) {
-            expandedStateById[id] = false;
             folder.status = (folder.status && typeof folder.status === 'object') ? folder.status : {};
             folder.status.expanded = false;
             continue;
@@ -5693,7 +5702,7 @@ const createFolders = async () => {
         dropDownButton(id, false);
         restoredExpansionCount++;
     }
-    persistDockerExpandedStateFromGlobal();
+    // The restore budget is session-only. Do not overwrite the user's remembered expansion map.
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
@@ -5720,6 +5729,9 @@ const createFolders = async () => {
     });
     throw error;
     } finally {
+    dockerLastRenderMs = Math.max(0, (typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now()) - performanceRenderStartedAt);
     dockerHostLoadOwnsLoadingUi = false;
     activeDockerRenderSuppressLoadingUi = false;
     completeDockerRuntimeWidthBootstrap(widthBootstrapGeneration, {
@@ -5880,26 +5892,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by auto rules:`, ruleMatches);
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Final combined list of containers for folder processing (combinedContainers):`, [...combinedContainers]);
     }
-    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled === true;
+    const lazyPreviewEnabled = dockerRuntimePerformanceProfile?.deferredPreviews === true
+        || folderTypePrefs?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_tab === true;
     const lazyPreviewActive = lazyPreviewEnabled
         && Number.isFinite(lazyPreviewThreshold)
         && combinedContainers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
-    if (lazyPreviewActive && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
     // --- End of combinedContainers build ---
 
     const colspan = document.querySelector("#docker_containers > thead > tr").childElementCount - 5;
@@ -6642,6 +6642,15 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    if (lazyPreviewActive) {
+        const previewElement = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+        const rowElement = $(`tr.folder-id-${id}`).get(0);
+        dockerDeferredPreviewController.defer(previewElement, {
+            interactionTarget: rowElement,
+            placeholder: `${combinedContainers.length} members · preview deferred`,
+            onHydrated: () => layoutFolderPreviewRows($(previewElement), folder.settings)
+        });
+    }
     if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
     if(folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
@@ -8111,8 +8120,8 @@ let dockerRuntimeLastRenderGeneration = 0;
 const dockerDiagnosticsTraceSessionId = `fvplus-docker-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
-const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
+let dockerLastRenderMs = 0;
 const DOCKER_POST_UPDATE_RECONCILE_INITIAL_DELAY_MS = 220;
 const DOCKER_POST_UPDATE_RECONCILE_POLL_INTERVAL_MS = 4000;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
@@ -8202,7 +8211,12 @@ const bindDockerUpdateActionClickCapture = () => {
 const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) => {
     const folderCount = Object.keys(folders && typeof folders === 'object' ? folders : {}).length;
     const itemCount = Object.keys(containersInfo && typeof containersInfo === 'object' ? containersInfo : {}).length;
-    dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(prefs || {}, { folderCount, itemCount });
+    dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(prefs || {}, {
+        folderCount,
+        itemCount,
+        renderMs: dockerLastRenderMs,
+        previousStrict: dockerRuntimePerformanceProfile?.strict === true
+    });
     dockerRuntimeStateStore.set({ performanceProfile: dockerRuntimePerformanceProfile });
     return dockerRuntimePerformanceProfile;
 };
@@ -8472,13 +8486,8 @@ const scheduleLiveRefresh = (prefs) => {
         return;
     }
     const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
-    const strictMinSeconds = Number(dockerRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
-    const perfMinSeconds = normalized.performanceMode === true
-        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, strictMinSeconds || PERFORMANCE_MODE_MIN_REFRESH_SECONDS)
-        : 0;
-    const seconds = perfMinSeconds > 0
-        ? Math.max(perfMinSeconds, requestedSeconds)
-        : requestedSeconds;
+    const policyMinSeconds = Number(dockerRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
+    const seconds = Math.max(requestedSeconds, policyMinSeconds);
     const ms = seconds * 1000;
     if (liveRefreshTimer && liveRefreshMs === ms) {
         return;
@@ -8491,8 +8500,12 @@ const scheduleLiveRefresh = (prefs) => {
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
     lastAppliedRuntimePrefs = normalized;
+    resolveDockerStrictPerformanceProfile(normalized, globalFolders, dockerRuntimeInfoByName);
     if (!dockerRuntimePrivacyPersistPromise && dockerRuntimePrivacyPendingEnabled === null) {
         dockerRuntimePrivacyPersistedPrefs = normalized;
+    }
+    if (normalized.lazyPreviewEnabled !== true) {
+        dockerDeferredPreviewController.flush();
     }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-page-view', resolveDockerPageViewMode(normalized));
@@ -8515,8 +8528,20 @@ const applyRuntimePrefs = (prefs) => {
     }
     queueDockerRuntimeResizerBind();
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
-    $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
+    $('body').toggleClass('fvplus-performance-mode', dockerRuntimePerformanceProfile?.reduceMotion === true);
     $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
+    if (document.body) {
+        document.body.setAttribute('data-fvplus-performance-profile', String(dockerRuntimePerformanceProfile?.mode || 'standard'));
+        document.body.setAttribute('data-fvplus-performance-reason', String(dockerRuntimePerformanceProfile?.reason || 'standard-profile'));
+    }
+    try {
+        window.localStorage?.setItem('fv.performancePolicy.docker.v1', JSON.stringify({
+            ...(dockerRuntimePerformanceProfile || {}),
+            capturedAt: new Date().toISOString()
+        }));
+    } catch (_error) {
+        // Runtime policy visibility is best effort and never blocks rendering.
+    }
     const dockerPrivacyMode = resolveDockerRuntimePrivacyMode(normalized);
     $('body').toggleClass('fvplus-privacy-docker-runtime', dockerPrivacyMode);
     $('body').toggleClass('fvplus-privacy-docker-runtime-mask-names', dockerPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
@@ -8557,6 +8582,10 @@ window.getDockerRuntimePerfTelemetrySnapshot = () => {
     }
     return dockerPerfTelemetry.snapshot();
 };
+window.getDockerRuntimePerformancePolicySnapshot = () => ({
+    ...(dockerRuntimePerformanceProfile || {}),
+    deferredPreviewQueue: dockerDeferredPreviewController.snapshot()
+});
 window.toggleDockerFolderFocus = (id) => toggleDockerFolderFocus(id);
 window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);
 window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);

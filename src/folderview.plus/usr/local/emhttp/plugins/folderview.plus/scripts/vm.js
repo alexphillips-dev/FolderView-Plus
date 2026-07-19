@@ -153,9 +153,10 @@ const utils = window.FolderViewPlusUtils || {
         appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        runtimePrefsSchema: 3,
+        runtimePrefsSchema: 4,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
+        performanceProfile: 'standard',
         performanceMode: false,
         lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30,
@@ -435,6 +436,10 @@ const resolveVmRuntimePerformanceProfile = typeof runtimeShared.resolveRuntimePe
         expandRestoreLimit: null,
         minLiveRefreshSeconds: null
     });
+const createVmDeferredPreviewController = typeof runtimeShared.createDeferredPreviewController === 'function'
+    ? runtimeShared.createDeferredPreviewController
+    : () => ({ defer: () => false, hydrate: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+const vmDeferredPreviewController = createVmDeferredPreviewController();
 const vmRuntimeStateStore = createVmRuntimeStateStore({
     expandedFolderIds: [],
     inFlightAction: '',
@@ -1549,6 +1554,10 @@ let createFoldersQueued = false;
  * Handles the creation of all folders
  */
 const createFolders = async () => {
+    vmDeferredPreviewController.flush();
+    const performanceRenderStartedAt = typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now();
     vmPerfTelemetry.begin('createFolders.total');
     showVmRuntimeLoadingRow();
     setVmFatalBannerPhase('bootstrap-data');
@@ -1688,7 +1697,7 @@ const createFolders = async () => {
     }
     const expansionIds = Object.keys(foldersDone)
         .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
-    const maxRestoredExpansions = folderTypePrefs?.performanceMode === true
+    const maxRestoredExpansions = vmRuntimePerformanceProfile?.performanceMode === true
         ? Number(vmRuntimePerformanceProfile?.expandRestoreLimit || PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT)
         : Number.POSITIVE_INFINITY;
     let restoredExpansionCount = 0;
@@ -1703,7 +1712,6 @@ const createFolders = async () => {
             continue;
         }
         if (restoredExpansionCount >= maxRestoredExpansions) {
-            expandedStateById[id] = false;
             folder.status = (folder.status && typeof folder.status === 'object') ? folder.status : {};
             folder.status.expanded = false;
             continue;
@@ -1726,7 +1734,7 @@ const createFolders = async () => {
     refreshVmFolderQuickActionStates();
     applyVmFocusedFolderState();
     syncVmRuntimeExpandedStore();
-    persistVmExpandedStateFromGlobal();
+    // The restore budget is session-only. Do not overwrite the user's remembered expansion map.
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     scheduleVmRuntimeWidthReflow('create-folders', 0);
     applyVmZebra();
@@ -1742,6 +1750,9 @@ const createFolders = async () => {
         });
         throw error;
     } finally {
+        vmLastRenderMs = Math.max(0, (typeof performance !== 'undefined' && typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()) - performanceRenderStartedAt);
         hideVmRuntimeLoadingRow();
         vmPerfTelemetry.end('createFolders.total', {
             folderCount: Object.keys(globalFolders || {}).length,
@@ -1846,26 +1857,14 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         });
     ruleMatches.forEach(pushCombined);
 
-    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled === true;
+    const lazyPreviewEnabled = vmRuntimePerformanceProfile?.deferredPreviews === true
+        || folderTypePrefs?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_tab === true;
     const lazyPreviewActive = lazyPreviewEnabled
         && Number.isFinite(lazyPreviewThreshold)
         && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
-    if (lazyPreviewActive && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
 
     // the HTML template for the folder
     const totalCols = document.querySelector("#kvm_table > thead > tr").childElementCount;
@@ -2090,6 +2089,15 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
     applyFolderPreviewLayout($preview, folder.settings);
     layoutFolderPreviewRows($preview, folder.settings);
+    if (lazyPreviewActive) {
+        const previewElement = $preview.get(0);
+        const rowElement = $(`tr.folder-id-${id}`).get(0);
+        vmDeferredPreviewController.defer(previewElement, {
+            interactionTarget: rowElement,
+            placeholder: `${combinedMembers.length} members · preview deferred`,
+            onHydrated: () => layoutFolderPreviewRows($(previewElement), folder.settings)
+        });
+    }
 
     //set tehe status of a folder
 
@@ -3161,8 +3169,8 @@ let lastVmRuntimeSnapshotToken = '';
 let lastVmRuntimeSnapshotRevisions = { folder: 0, prefs: 0 };
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
-const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
+let vmLastRenderMs = 0;
 let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile(folderTypePrefs, {
     folderCount: 0,
     itemCount: 0
@@ -3171,7 +3179,12 @@ let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile(folderTypeP
 const resolveVmStrictPerformanceProfile = (prefs, folders, vmInfo) => {
     const folderCount = Object.keys(folders && typeof folders === 'object' ? folders : {}).length;
     const itemCount = Object.keys(vmInfo && typeof vmInfo === 'object' ? vmInfo : {}).length;
-    vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile(prefs || {}, { folderCount, itemCount });
+    vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile(prefs || {}, {
+        folderCount,
+        itemCount,
+        renderMs: vmLastRenderMs,
+        previousStrict: vmRuntimePerformanceProfile?.strict === true
+    });
     vmRuntimeStateStore.set({ performanceProfile: vmRuntimePerformanceProfile });
     return vmRuntimePerformanceProfile;
 };
@@ -3343,6 +3356,7 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
 };
 
 const syncVmRuntimeRows = (changedNames) => {
+    vmDeferredPreviewController.flush();
     const changedSet = changedNames instanceof Set ? changedNames : new Set(Array.isArray(changedNames) ? changedNames : []);
     changedSet.forEach((name) => {
         const entry = vmRuntimeInfoByName[name];
@@ -3456,13 +3470,8 @@ const scheduleLiveRefresh = (prefs) => {
         return;
     }
     const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
-    const strictMinSeconds = Number(vmRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
-    const perfMinSeconds = normalized.performanceMode === true
-        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, strictMinSeconds || PERFORMANCE_MODE_MIN_REFRESH_SECONDS)
-        : 0;
-    const seconds = perfMinSeconds > 0
-        ? Math.max(perfMinSeconds, requestedSeconds)
-        : requestedSeconds;
+    const policyMinSeconds = Number(vmRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
+    const seconds = Math.max(requestedSeconds, policyMinSeconds);
     const ms = seconds * 1000;
     if (liveRefreshTimer && liveRefreshMs === ms) {
         return;
@@ -3642,6 +3651,10 @@ const bindVmRuntimeThemeReflow = () => {
 
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
+    if (normalized.lazyPreviewEnabled !== true) {
+        vmDeferredPreviewController.flush();
+    }
+    resolveVmStrictPerformanceProfile(normalized, globalFolders, vmRuntimeInfoByName);
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(normalized.appColumnWidth)
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
@@ -3651,8 +3664,20 @@ const applyRuntimePrefs = (prefs) => {
     bindVmRuntimeViewportWidthSync();
     bindVmRuntimeThemeReflow();
     scheduleVmRuntimeWidthReflow('runtime-prefs', 0);
-    $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
+    $('body').toggleClass('fvplus-performance-mode', vmRuntimePerformanceProfile?.reduceMotion === true);
     $('body').toggleClass('fvplus-performance-mode-strict', vmRuntimePerformanceProfile?.strict === true);
+    if (document.body) {
+        document.body.setAttribute('data-fvplus-performance-profile', String(vmRuntimePerformanceProfile?.mode || 'standard'));
+        document.body.setAttribute('data-fvplus-performance-reason', String(vmRuntimePerformanceProfile?.reason || 'standard-profile'));
+    }
+    try {
+        window.localStorage?.setItem('fv.performancePolicy.vm.v1', JSON.stringify({
+            ...(vmRuntimePerformanceProfile || {}),
+            capturedAt: new Date().toISOString()
+        }));
+    } catch (_error) {
+        // Runtime policy visibility is best effort and never blocks rendering.
+    }
     const vmPrivacyMode = normalized?.dashboard?.privacyMode === true;
     $('body').toggleClass('fvplus-privacy-vm-runtime', vmPrivacyMode);
     $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
@@ -3678,6 +3703,10 @@ window.getVmRuntimePerfTelemetrySnapshot = () => {
     }
     return vmPerfTelemetry.snapshot();
 };
+window.getVmRuntimePerformancePolicySnapshot = () => ({
+    ...(vmRuntimePerformanceProfile || {}),
+    deferredPreviewQueue: vmDeferredPreviewController.snapshot()
+});
 window.getVmRuntimeStateSnapshot = () => vmRuntimeStateStore.getState();
 
 function buildVmFolderReq() {

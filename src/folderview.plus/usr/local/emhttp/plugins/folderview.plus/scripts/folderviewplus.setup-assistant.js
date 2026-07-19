@@ -90,6 +90,7 @@ const SETUP_ASSISTANT_PROFILE_PRESETS = {
         runtime: {
             liveRefreshEnabled: false,
             liveRefreshSeconds: 20,
+            performanceProfile: 'standard',
             performanceMode: false,
             lazyPreviewEnabled: false,
             lazyPreviewThreshold: 30
@@ -110,6 +111,7 @@ const SETUP_ASSISTANT_PROFILE_PRESETS = {
         runtime: {
             liveRefreshEnabled: false,
             liveRefreshSeconds: 20,
+            performanceProfile: 'adaptive',
             performanceMode: true,
             lazyPreviewEnabled: false,
             lazyPreviewThreshold: 30
@@ -126,10 +128,11 @@ const SETUP_ASSISTANT_PROFILE_PRESETS = {
     },
     power: {
         label: 'Power',
-        description: 'Higher refresh and richer telemetry for large installs.',
+        description: 'Adaptive refresh, deferred previews, and richer telemetry for large installs.',
         runtime: {
             liveRefreshEnabled: true,
-            liveRefreshSeconds: 15,
+            liveRefreshSeconds: 20,
+            performanceProfile: 'adaptive',
             performanceMode: true,
             lazyPreviewEnabled: true,
             lazyPreviewThreshold: 45

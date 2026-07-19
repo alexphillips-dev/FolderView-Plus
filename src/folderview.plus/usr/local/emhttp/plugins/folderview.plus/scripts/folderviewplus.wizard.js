@@ -1509,9 +1509,9 @@ const buildSetupAssistantPrefsDiffForType = (type) => {
     if (setupAssistantState.applyProfileDefaults) {
         register('live refresh', current.liveRefreshEnabled === true ? '1' : '0', next.liveRefreshEnabled === true ? '1' : '0');
         register('refresh interval', Number(current.liveRefreshSeconds ?? 20), Number(next.liveRefreshSeconds ?? 20));
-        register('performance mode', current.performanceMode === true ? '1' : '0', next.performanceMode === true ? '1' : '0');
-        register('lazy previews', current.lazyPreviewEnabled === true ? '1' : '0', next.lazyPreviewEnabled === true ? '1' : '0');
-        register('lazy threshold', Number(current.lazyPreviewThreshold ?? 30), Number(next.lazyPreviewThreshold ?? 30));
+        register('performance profile', current.performanceProfile || (current.performanceMode === true ? 'adaptive' : 'standard'), next.performanceProfile || (next.performanceMode === true ? 'adaptive' : 'standard'));
+        register('deferred previews', current.lazyPreviewEnabled === true ? '1' : '0', next.lazyPreviewEnabled === true ? '1' : '0');
+        register('preview threshold', Number(current.lazyPreviewThreshold ?? 30), Number(next.lazyPreviewThreshold ?? 30));
     }
     return {
         count: changes.length,
@@ -1864,6 +1864,7 @@ const applySetupAssistantProfileToPrefs = (prefs, profileId) => {
         ...prefs,
         liveRefreshEnabled: preset.runtime.liveRefreshEnabled,
         liveRefreshSeconds: preset.runtime.liveRefreshSeconds,
+        performanceProfile: preset.runtime.performanceProfile,
         performanceMode: preset.runtime.performanceMode,
         lazyPreviewEnabled: preset.runtime.lazyPreviewEnabled,
         lazyPreviewThreshold: preset.runtime.lazyPreviewThreshold,

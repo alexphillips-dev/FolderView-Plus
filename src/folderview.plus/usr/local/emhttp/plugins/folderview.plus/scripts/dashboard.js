@@ -6,6 +6,19 @@ if (!window || !$) {
 const folderContract = window.FolderViewPlusFolderContract || null;
 const requestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
+const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const resolveDashboardPerformancePolicy = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
+    ? runtimeShared.resolveRuntimePerformanceProfile
+    : (prefs = {}, counts = {}) => ({
+        mode: prefs?.performanceMode === true ? 'adaptive' : 'standard',
+        performanceMode: prefs?.performanceMode === true,
+        reduceMotion: prefs?.performanceMode === true,
+        strict: false,
+        reason: 'fallback-policy',
+        folderCount: Number(counts?.folderCount || 0),
+        itemCount: Number(counts?.itemCount || 0),
+        minLiveRefreshSeconds: prefs?.performanceMode === true ? 20 : 0
+    });
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const dashboardT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t(key, fallback, ...params) || fallback || key
@@ -88,9 +101,10 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        runtimePrefsSchema: 3,
+        runtimePrefsSchema: 4,
         liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
+        performanceProfile: 'standard',
         performanceMode: false,
         lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30,
@@ -1697,27 +1711,6 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
         });
     ruleMatches.forEach(pushCombined);
 
-    const lazyPreviewEnabled = folderTypePrefs?.docker?.lazyPreviewEnabled === true;
-    const lazyPreviewThreshold = Number(folderTypePrefs?.docker?.lazyPreviewThreshold || 30);
-    const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
-    const lazyPreviewActive = lazyPreviewEnabled
-        && Number.isFinite(lazyPreviewThreshold)
-        && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
-        && !isExpandedByDefault;
-    if (lazyPreviewActive && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
-
     // the HTML template for the folder
     const safeFolderIcon = sanitizeImageSrc(folder.icon, DEFAULT_FOLDER_ICON_PATH);
     const safeFolderName = escapeHtml(folder.name);
@@ -1906,6 +1899,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     folder.status.managerTypes = Array.from(managerTypes);
     folder.status.expanded = false;
 
+
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-creation', {detail: {
         folder: folder,
         id: id,
@@ -1991,27 +1985,6 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             type: 'vm'
         });
     ruleMatches.forEach(pushCombined);
-
-    const lazyPreviewEnabled = folderTypePrefs?.vm?.lazyPreviewEnabled === true;
-    const lazyPreviewThreshold = Number(folderTypePrefs?.vm?.lazyPreviewThreshold || 30);
-    const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
-    const lazyPreviewActive = lazyPreviewEnabled
-        && Number.isFinite(lazyPreviewThreshold)
-        && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
-        && !isExpandedByDefault;
-    if (lazyPreviewActive && folder && typeof folder === 'object') {
-        folder.settings = {
-            ...(folder.settings || {}),
-            preview: 0,
-            preview_hover: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_webui: false,
-            preview_vertical_bars: false,
-            preview_update: false,
-            preview_grayscale: false
-        };
-    }
 
     // the HTML template for the folder
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
@@ -2168,6 +2141,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     folder.status.autostartStarted = autostartStarted;
     folder.status.expanded = false;
 
+
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-creation', {detail: {
         folder: folder,
         id: id,
@@ -2300,9 +2274,10 @@ let folderReq = {
     docker: [],
     vm: []
 };
-let liveRefreshTimer = null;
-let liveRefreshMs = 0;
-let liveRefreshInFlight = false;
+let liveRefreshTimers = { docker: null, vm: null };
+let liveRefreshMsByType = { docker: 0, vm: 0 };
+let liveRefreshInFlightByType = { docker: false, vm: false };
+let dashboardPerformancePolicies = { docker: null, vm: null };
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let dashboardDockerCpuCores = 1;
@@ -2324,7 +2299,6 @@ let dashboardRuntimeInfoByType = {
 };
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
-const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 let dashboardLayoutPersistTokenByType = {
     docker: 0,
     vm: 0
@@ -2673,80 +2647,91 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
     }
 };
 
-const clearLiveRefreshTimer = () => {
-    if (liveRefreshTimer) {
-        clearInterval(liveRefreshTimer);
-        liveRefreshTimer = null;
-    }
-    liveRefreshMs = 0;
+const clearLiveRefreshTimer = (type = null) => {
+    const types = type === 'docker' || type === 'vm' ? [type] : ['docker', 'vm'];
+    types.forEach((resolvedType) => {
+        if (liveRefreshTimers[resolvedType]) {
+            clearInterval(liveRefreshTimers[resolvedType]);
+            liveRefreshTimers[resolvedType] = null;
+        }
+        liveRefreshMsByType[resolvedType] = 0;
+        liveRefreshInFlightByType[resolvedType] = false;
+    });
 };
 
-const runLiveRefreshTick = () => {
-    if (liveRefreshInFlight || document.hidden) {
+const runLiveRefreshTick = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (liveRefreshInFlightByType[resolvedType] || document.hidden) {
         return;
     }
-    liveRefreshInFlight = true;
+    liveRefreshInFlightByType[resolvedType] = true;
     Promise.resolve()
         .then(async () => {
-            const checks = [];
-            if ($('tbody#docker_view').length > 0 && folderTypePrefs?.docker?.liveRefreshEnabled === true) {
-                checks.push('docker');
-            }
-            if ($('tbody#vm_view').length > 0 && folderTypePrefs?.vm?.liveRefreshEnabled === true) {
-                checks.push('vm');
-            }
-            if (!checks.length) {
+            const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
+            if ($(tbodySelector).length === 0 || folderTypePrefs?.[resolvedType]?.liveRefreshEnabled !== true) {
                 return;
             }
-
-            let requiresFullRefresh = false;
-            for (const type of checks) {
-                let check = null;
-                try {
-                    check = await fetchDashboardTypeSnapshotCheck(type);
-                } catch (_error) {
-                    check = null;
-                }
-                if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
-                    requiresFullRefresh = true;
-                    continue;
-                }
-                if (check.notModified !== true) {
-                    const patched = await refreshDashboardTypeRuntimeStateInPlace(type);
-                    if (patched !== true) requiresFullRefresh = true;
-                }
+            let check = null;
+            try {
+                check = await fetchDashboardTypeSnapshotCheck(resolvedType);
+            } catch (_error) {
+                check = null;
             }
-            if (requiresFullRefresh) {
+            if (!check || (!check.snapshotToken && !check.runtimeSignature)) {
                 queueLoadlistRefresh();
+                return;
+            }
+            if (check.notModified !== true) {
+                const patched = await refreshDashboardTypeRuntimeStateInPlace(resolvedType);
+                if (patched !== true) queueLoadlistRefresh();
             }
         })
         .finally(() => {
             setTimeout(() => {
-                liveRefreshInFlight = false;
+                liveRefreshInFlightByType[resolvedType] = false;
             }, 500);
         });
+};
+
+const scheduleDashboardTypeLiveRefresh = (type, prefs, policy) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodySelector = resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view';
+    if ($(tbodySelector).length === 0 || prefs.liveRefreshEnabled !== true) {
+        clearLiveRefreshTimer(resolvedType);
+        return;
+    }
+    const requestedSeconds = Math.max(10, Math.min(300, Number(prefs.liveRefreshSeconds) || 20));
+    const intervalMs = Math.max(requestedSeconds, Number(policy?.minLiveRefreshSeconds || 0)) * 1000;
+    if (liveRefreshTimers[resolvedType] && liveRefreshMsByType[resolvedType] === intervalMs) return;
+    clearLiveRefreshTimer(resolvedType);
+    liveRefreshMsByType[resolvedType] = intervalMs;
+    liveRefreshTimers[resolvedType] = setInterval(() => runLiveRefreshTick(resolvedType), intervalMs);
 };
 
 const applyDashboardRuntimePrefs = () => {
     const dockerPrefs = utils.normalizePrefs(folderTypePrefs?.docker || {});
     const vmPrefs = utils.normalizePrefs(folderTypePrefs?.vm || {});
-    const candidates = [];
-    const dockerRequestedSeconds = Math.max(10, Math.min(300, Number(dockerPrefs.liveRefreshSeconds) || 20));
-    const vmRequestedSeconds = Math.max(10, Math.min(300, Number(vmPrefs.liveRefreshSeconds) || 20));
-    const dockerSeconds = dockerPrefs.performanceMode === true
-        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, dockerRequestedSeconds)
-        : dockerRequestedSeconds;
-    const vmSeconds = vmPrefs.performanceMode === true
-        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, vmRequestedSeconds)
-        : vmRequestedSeconds;
-    if ($('tbody#docker_view').length > 0 && dockerPrefs.liveRefreshEnabled === true) {
-        candidates.push(dockerSeconds);
+    dashboardPerformancePolicies = {
+        docker: resolveDashboardPerformancePolicy(dockerPrefs, {
+            folderCount: Object.keys(globalFolders?.docker || {}).length,
+            itemCount: Object.keys(dashboardRuntimeInfoByType?.docker || {}).length,
+            previousStrict: dashboardPerformancePolicies.docker?.strict === true
+        }),
+        vm: resolveDashboardPerformancePolicy(vmPrefs, {
+            folderCount: Object.keys(globalFolders?.vms || {}).length,
+            itemCount: Object.keys(dashboardRuntimeInfoByType?.vm || {}).length,
+            previousStrict: dashboardPerformancePolicies.vm?.strict === true
+        })
+    };
+    const reduceMotion = dashboardPerformancePolicies.docker?.reduceMotion === true
+        || dashboardPerformancePolicies.vm?.reduceMotion === true;
+    $('body').toggleClass('fvplus-performance-mode', reduceMotion);
+    $('body').toggleClass('fvplus-performance-mode-docker', dashboardPerformancePolicies.docker?.reduceMotion === true);
+    $('body').toggleClass('fvplus-performance-mode-vm', dashboardPerformancePolicies.vm?.reduceMotion === true);
+    if (document.body) {
+        document.body.setAttribute('data-fvplus-docker-performance-profile', String(dashboardPerformancePolicies.docker?.mode || 'standard'));
+        document.body.setAttribute('data-fvplus-vm-performance-profile', String(dashboardPerformancePolicies.vm?.mode || 'standard'));
     }
-    if ($('tbody#vm_view').length > 0 && vmPrefs.liveRefreshEnabled === true) {
-        candidates.push(vmSeconds);
-    }
-    const performanceMode = dockerPrefs.performanceMode === true || vmPrefs.performanceMode === true;
-    $('body').toggleClass('fvplus-performance-mode', performanceMode);
     const dockerPrivacyMode = dockerPrefs?.dashboard?.privacyMode === true;
     const vmPrivacyMode = vmPrefs?.dashboard?.privacyMode === true;
     $('body').toggleClass('fvplus-privacy-docker-dashboard', dockerPrivacyMode);
@@ -2756,17 +2741,8 @@ const applyDashboardRuntimePrefs = () => {
     window.FolderViewPlusRuntimePrivacy?.apply('docker', dockerPrivacyMode, dockerPrefs?.dashboard || {});
     window.FolderViewPlusRuntimePrivacy?.apply('vm', vmPrivacyMode, vmPrefs?.dashboard || {});
 
-    if (!candidates.length) {
-        clearLiveRefreshTimer();
-        return;
-    }
-    const intervalMs = Math.min(...candidates) * 1000;
-    if (liveRefreshTimer && liveRefreshMs === intervalMs) {
-        return;
-    }
-    clearLiveRefreshTimer();
-    liveRefreshMs = intervalMs;
-    liveRefreshTimer = setInterval(runLiveRefreshTick, intervalMs);
+    scheduleDashboardTypeLiveRefresh('docker', dockerPrefs, dashboardPerformancePolicies.docker);
+    scheduleDashboardTypeLiveRefresh('vm', vmPrefs, dashboardPerformancePolicies.vm);
 };
 
 const bindDashboardPreferenceSync = () => {
@@ -2783,6 +2759,11 @@ const bindDashboardPreferenceSync = () => {
     });
 };
 bindDashboardPreferenceSync();
+window.getDashboardRuntimePerformancePolicySnapshot = () => ({
+    docker: { ...(dashboardPerformancePolicies.docker || {}) },
+    vm: { ...(dashboardPerformancePolicies.vm || {}) },
+    refreshMsByType: { ...liveRefreshMsByType }
+});
 
 const refreshDashboardDockerCpuCores = () => requestClient.getText('/plugins/folderview.plus/server/cpu.php')
     .then((value) => {

@@ -25,6 +25,7 @@
             'runtimePrefsSchema' => FVPLUS_RUNTIME_PREFS_SCHEMA,
             'liveRefreshEnabled' => false,
             'liveRefreshSeconds' => 20,
+            'performanceProfile' => 'standard',
             'performanceMode' => false,
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
@@ -353,6 +354,14 @@
         return 'auto';
     }
 
+    function normalizePerformanceProfile($value, bool $legacyPerformanceMode = false): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['standard', 'adaptive', 'maximum'], true)) {
+            return $normalized;
+        }
+        return $legacyPerformanceMode ? 'adaptive' : 'standard';
+    }
+
     function fvplusPrefsArrayIsList(array $value): bool {
         if (count($value) === 0) {
             return true;
@@ -452,9 +461,13 @@
             ? normalizeBool($prefs['liveRefreshEnabled'] ?? false, false)
             : false;
         $normalized['liveRefreshSeconds'] = normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20);
-        $normalized['performanceMode'] = $runtimePrefsReady
+        $legacyPerformanceMode = $runtimePrefsReady
             ? normalizeBool($prefs['performanceMode'] ?? false, false)
             : false;
+        $normalized['performanceProfile'] = $runtimePrefsReady
+            ? normalizePerformanceProfile($prefs['performanceProfile'] ?? '', $legacyPerformanceMode)
+            : 'standard';
+        $normalized['performanceMode'] = $normalized['performanceProfile'] !== 'standard';
         $normalized['lazyPreviewEnabled'] = $runtimePrefsReady
             ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
             : false;

@@ -70,5 +70,5 @@ test('Docker leaves Unraid native rows visible until one uninterrupted folder co
     assert.doesNotMatch(dockerCss, /fvplus-docker-render-staging|fvplus-docker-render-snapshot/);
     assert.match(dockerJs, /window\.loadlist = \(\) => \{[\s\S]*folderReq = ensureDockerFolderReqForHostRender\(\);[\s\S]*window\.loadlist_original\(\);/);
     assert.match(dockerJs, /window\.listview = \(\) => \{[\s\S]*window\.listview_original\(\);[\s\S]*queueDockerRuntimeRenderForPageViewMode\(\);/);
-    assert.match(dockerJs, /const createFolders = async \(\) => \{\s*dockerPerf\.begin\('createFolders\.total'\);\s*const widthBootstrapGeneration/);
+    assert.match(dockerJs, /const createFolders = async \(\) => \{[\s\S]*dockerPerf\.begin\('createFolders\.total'\);\s*const widthBootstrapGeneration/);
 });

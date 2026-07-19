@@ -7409,6 +7409,42 @@ const syncRuntimeDependentFields = (type) => {
     $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
 };
 
+const renderPerformancePolicySummary = (type, prefs) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    const mode = typeof utils.normalizePerformanceProfile === 'function'
+        ? utils.normalizePerformanceProfile(normalized.performanceProfile, normalized.performanceMode === true)
+        : (normalized.performanceMode === true ? 'adaptive' : 'standard');
+    const folders = type === 'vm' ? vms : dockers;
+    const folderCount = Object.keys(folders || {}).length;
+    const itemCount = Object.keys(infoByType[type] || {}).length;
+    const largeLibrary = folderCount >= 34 || itemCount >= 220;
+    let runtimePolicy = null;
+    try {
+        const candidate = JSON.parse(window.localStorage?.getItem(`fv.performancePolicy.${type}.v1`) || 'null');
+        const capturedAt = Date.parse(String(candidate?.capturedAt || ''));
+        if (candidate?.mode === mode && Number.isFinite(capturedAt) && (Date.now() - capturedAt) < 86400000) runtimePolicy = candidate;
+    } catch (_error) {
+        runtimePolicy = null;
+    }
+    const strict = runtimePolicy?.strict === true || mode === 'maximum' || (mode === 'adaptive' && largeLibrary);
+    const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const minimumSeconds = Number(runtimePolicy?.minLiveRefreshSeconds || (mode === 'maximum' ? 45 : (strict ? 30 : (mode === 'adaptive' ? 20 : 0))));
+    const effectiveSeconds = Math.max(requestedSeconds, minimumSeconds);
+    const expansionBudget = runtimePolicy?.expandRestoreLimit ?? (mode === 'maximum' ? 6 : (strict ? 8 : (mode === 'adaptive' ? 12 : null)));
+    const label = mode === 'maximum' ? 'Maximum performance' : (mode === 'adaptive' ? 'Adaptive' : 'Standard');
+    const runtimeReason = String(runtimePolicy?.reason || '');
+    const reason = runtimeReason === 'measured-render-cost'
+        ? `measured render cost (${Math.round(Number(runtimePolicy?.renderMs || 0))}ms)`
+        : (mode === 'maximum' ? 'fixed maximum limits' : (strict ? 'large library profile' : `${folderCount} folders / ${itemCount} items`));
+    const parts = [`${label}: ${reason}`];
+    if (normalized.liveRefreshEnabled === true) parts.push(`${effectiveSeconds}s effective refresh`);
+    if (expansionBudget !== null) parts.push(`restore up to ${expansionBudget} expanded folders`);
+    parts.push(normalized.lazyPreviewEnabled === true || strict
+        ? `defer previews at ${normalized.lazyPreviewThreshold}+ members${strict && normalized.lazyPreviewEnabled !== true ? ' automatically' : ''}`
+        : 'previews render immediately');
+    $(`#${type}-performance-policy-summary`).text(parts.join(' · '));
+};
+
 const renderDashboardControls = (type) => {
     const dashboard = normalizeDashboardPrefsForType(type);
     $(`#${type}-dashboard-layout`).val(dashboard.layout);
@@ -7442,7 +7478,7 @@ const renderRuntimeControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled === true);
     $(`#${type}-live-refresh-seconds`).val(String(prefs.liveRefreshSeconds || 20));
-    $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
+    $(`#${type}-performance-profile`).val(prefs.performanceProfile || (prefs.performanceMode === true ? 'adaptive' : 'standard'));
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
     $(`#${type}-page-view-mode`).val(
@@ -7452,6 +7488,7 @@ const renderRuntimeControls = (type) => {
     );
     $(`#${type}-theme-compat-mode`).val(resolveThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
+    renderPerformancePolicySummary(type, prefs);
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
 };
 
@@ -10367,8 +10404,12 @@ const changeRuntimePref = async (type, key, value) => {
     } else if (key === 'liveRefreshSeconds') {
         const parsed = Number(value);
         next.liveRefreshSeconds = Number.isFinite(parsed) ? Math.min(300, Math.max(10, Math.round(parsed))) : current.liveRefreshSeconds;
-    } else if (key === 'performanceMode') {
-        next.performanceMode = value === true;
+    } else if (key === 'performanceProfile') {
+        const profile = typeof utils.normalizePerformanceProfile === 'function'
+            ? utils.normalizePerformanceProfile(value, false)
+            : (['adaptive', 'maximum'].includes(String(value || '').toLowerCase()) ? String(value).toLowerCase() : 'standard');
+        next.performanceProfile = profile;
+        next.performanceMode = profile !== 'standard';
     } else if (key === 'lazyPreviewEnabled') {
         next.lazyPreviewEnabled = value === true;
     } else if (key === 'lazyPreviewThreshold') {
@@ -10388,7 +10429,10 @@ const changeRuntimePref = async (type, key, value) => {
         syncRuntimeDependentFields(type);
     }
     try {
-        await updatePrefsPartial(type, { [key]: next[key] }, {
+        const patch = key === 'performanceProfile'
+            ? { performanceProfile: next.performanceProfile, performanceMode: next.performanceMode }
+            : { [key]: next[key] };
+        await updatePrefsPartial(type, patch, {
             render: () => renderRuntimeControls(type),
             onCommitted: () => {
                 if (key === 'themeCompatibilityMode') {

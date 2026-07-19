@@ -287,3 +287,17 @@ tr.folder.fv-hover-animation-wiggle:hover .folder-outer,
         animation: none !important;
     }
 }
+.fv-preview-deferred {
+    min-height: 1.8rem;
+}
+
+.fv-preview-deferred-placeholder {
+    align-items: center;
+    color: var(--fvplus-theme-muted-foreground, #9ca3af);
+    display: inline-flex;
+    font-size: 1.1rem;
+    min-height: 1.8rem;
+    opacity: 0.85;
+    padding: 0 0.35rem;
+    white-space: nowrap;
+}

@@ -135,6 +135,7 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             'runtimePrefsSchema',
             'liveRefreshEnabled',
             'liveRefreshSeconds',
+            'performanceProfile',
             'performanceMode',
             'lazyPreviewEnabled',
             'lazyPreviewThreshold'

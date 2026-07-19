@@ -612,7 +612,9 @@ const getSupportBundleTelemetryApi = () => {
                 dockerPage: 'fv.support.bundle.docker.page.v1',
                 dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
-                dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1'
+                dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
+                dockerPerformancePolicy: 'fv.performancePolicy.docker.v1',
+                vmPerformancePolicy: 'fv.performancePolicy.vm.v1'
             }
         });
     }

@@ -624,12 +624,29 @@
     const runtimeContracts = Object.freeze({
         folderLabelKeys: Object.freeze(['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view']),
         performance: Object.freeze({
+            standardLiveRefreshSeconds: 10,
+            adaptiveLiveRefreshSeconds: 20,
+            adaptiveExpandRestoreLimit: 12,
             strictFolderCount: 34,
             strictItemCount: 220,
+            strictRenderMs: 140,
+            strictExitFolderCount: 30,
+            strictExitItemCount: 200,
+            strictExitRenderMs: 100,
             strictExpandRestoreLimit: 8,
-            strictLiveRefreshSeconds: 30
+            strictLiveRefreshSeconds: 30,
+            maximumExpandRestoreLimit: 6,
+            maximumLiveRefreshSeconds: 45
         })
     });
+
+    const normalizePerformanceProfileMode = (prefs = {}) => {
+        const raw = String(prefs?.performanceProfile || '').trim().toLowerCase();
+        if (['standard', 'adaptive', 'maximum'].includes(raw)) {
+            return raw;
+        }
+        return prefs?.performanceMode === true ? 'adaptive' : 'standard';
+    };
 
     /**
      * Resolves effective runtime performance profile for large installs.
@@ -639,24 +656,122 @@
      */
     const resolveRuntimePerformanceProfile = (prefs = {}, counts = {}, overrides = {}) => {
         const perf = runtimeContracts.performance;
-        const performanceMode = prefs?.performanceMode === true;
+        const mode = normalizePerformanceProfileMode(prefs);
+        const performanceMode = mode !== 'standard';
         const folderCount = Math.max(0, Number(counts?.folderCount || 0));
         const itemCount = Math.max(0, Number(counts?.itemCount || 0));
         const strictFolderCount = Math.max(1, Number(overrides.strictFolderCount || perf.strictFolderCount));
         const strictItemCount = Math.max(1, Number(overrides.strictItemCount || perf.strictItemCount));
+        const renderMs = Math.max(0, Number(counts?.renderMs || 0));
+        const previousStrict = counts?.previousStrict === true;
         const strictExpandRestoreLimit = Math.max(1, Number(overrides.strictExpandRestoreLimit || perf.strictExpandRestoreLimit));
         const strictLiveRefreshSeconds = Math.max(10, Number(overrides.strictLiveRefreshSeconds || perf.strictLiveRefreshSeconds));
-        const strict = performanceMode && (folderCount >= strictFolderCount || itemCount >= strictItemCount);
+        const slowRender = renderMs >= Number(perf.strictRenderMs || 140);
+        const largeLibrary = folderCount >= strictFolderCount || itemCount >= strictItemCount || slowRender;
+        const remainsLarge = previousStrict && (
+            folderCount >= Number(perf.strictExitFolderCount || 30)
+            || itemCount >= Number(perf.strictExitItemCount || 200)
+            || renderMs >= Number(perf.strictExitRenderMs || 100)
+        );
+        const strict = mode === 'maximum' || (mode === 'adaptive' && (largeLibrary || remainsLarge));
+        const requestedRefreshSeconds = Math.max(10, Math.min(300, Number(prefs?.liveRefreshSeconds) || 20));
+        const minLiveRefreshSeconds = mode === 'maximum'
+            ? Math.max(strictLiveRefreshSeconds, Number(perf.maximumLiveRefreshSeconds || 45))
+            : (strict
+                ? strictLiveRefreshSeconds
+                : (mode === 'adaptive' ? Number(perf.adaptiveLiveRefreshSeconds || 20) : 0));
+        const expandRestoreLimit = mode === 'maximum'
+            ? Math.max(1, Number(perf.maximumExpandRestoreLimit || 6))
+            : (strict
+                ? strictExpandRestoreLimit
+                : (mode === 'adaptive' ? Number(perf.adaptiveExpandRestoreLimit || 12) : null));
+        const deferredPreviews = prefs?.lazyPreviewEnabled === true || strict;
+        const reason = mode === 'standard'
+            ? 'standard-profile'
+            : (mode === 'maximum'
+                ? 'maximum-profile'
+                : (slowRender ? 'measured-render-cost' : ((largeLibrary || remainsLarge) ? 'large-library' : 'adaptive-profile')));
         return Object.freeze({
+            mode,
             performanceMode,
             strict,
+            largeLibrary,
+            reason,
             folderCount,
             itemCount,
+            renderMs,
+            previousStrict,
             strictFolderCount,
             strictItemCount,
-            expandRestoreLimit: strict ? strictExpandRestoreLimit : null,
-            minLiveRefreshSeconds: strict ? strictLiveRefreshSeconds : null
+            reduceMotion: performanceMode,
+            previewStrategy: deferredPreviews ? 'deferred' : 'immediate',
+            deferredPreviews,
+            lazyPreviewThreshold: Math.max(10, Math.min(200, Number(prefs?.lazyPreviewThreshold) || 30)),
+            expandRestoreLimit,
+            minLiveRefreshSeconds,
+            requestedRefreshSeconds,
+            effectiveRefreshSeconds: Math.max(requestedRefreshSeconds, minLiveRefreshSeconds || 0)
         });
+    };
+
+    /**
+     * Defers already-built preview content until its owning row/card approaches the viewport.
+     * Folder settings remain immutable; the detached fragment is restored on visibility or interaction.
+     */
+    const createDeferredPreviewController = (options = {}) => {
+        const pending = new Map();
+        const rootMargin = String(options.rootMargin || '480px 0px');
+        const hydrate = (target) => {
+            const entry = pending.get(target);
+            if (!entry) return false;
+            pending.delete(target);
+            observer?.unobserve(target);
+            entry.placeholder?.remove();
+            target.appendChild(entry.fragment);
+            target.classList.remove('fv-preview-deferred');
+            target.setAttribute('data-fv-preview-hydrated', '1');
+            if (typeof entry.onHydrated === 'function') entry.onHydrated(target);
+            return true;
+        };
+        const observer = typeof window.IntersectionObserver === 'function'
+            ? new window.IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting || entry.intersectionRatio > 0) hydrate(entry.target);
+                });
+            }, { root: null, rootMargin, threshold: 0 })
+            : null;
+        const defer = (target, metadata = {}) => {
+            if (!(target instanceof Element) || pending.has(target) || target.childNodes.length === 0) return false;
+            const interactionTarget = metadata.interactionTarget instanceof Element ? metadata.interactionTarget : target;
+            if (typeof interactionTarget.getBoundingClientRect === 'function') {
+                const rect = interactionTarget.getBoundingClientRect();
+                const viewportHeight = Math.max(0, Number(window.innerHeight || document.documentElement?.clientHeight || 0));
+                if (viewportHeight > 0 && rect.bottom >= -480 && rect.top <= viewportHeight + 480) return false;
+            }
+            const fragment = document.createDocumentFragment();
+            while (target.firstChild) fragment.appendChild(target.firstChild);
+            const placeholder = document.createElement('span');
+            placeholder.className = 'fv-preview-deferred-placeholder';
+            placeholder.textContent = String(metadata.placeholder || 'Preview loads when visible');
+            target.appendChild(placeholder);
+            target.classList.add('fv-preview-deferred');
+            target.setAttribute('data-fv-preview-hydrated', '0');
+            pending.set(target, { fragment, placeholder, onHydrated: metadata.onHydrated });
+            const hydrateOnInteraction = () => hydrate(target);
+            interactionTarget.addEventListener('pointerenter', hydrateOnInteraction, { once: true, passive: true });
+            interactionTarget.addEventListener('focusin', hydrateOnInteraction, { once: true });
+            interactionTarget.addEventListener('click', hydrateOnInteraction, { once: true });
+            if (observer) observer.observe(target);
+            else window.setTimeout(() => hydrate(target), 0);
+            return true;
+        };
+        const flush = () => Array.from(pending.keys()).forEach((target) => hydrate(target));
+        const snapshot = () => Object.freeze({ pending: pending.size, rootMargin });
+        const disconnect = () => {
+            flush();
+            observer?.disconnect();
+        };
+        return Object.freeze({ defer, hydrate, flush, snapshot, disconnect });
     };
 
     /**
@@ -994,6 +1109,8 @@
         createDebugLogger,
         createRuntimeDiagnosticsBridge,
         resolveRuntimePerformanceProfile,
+        normalizePerformanceProfileMode,
+        createDeferredPreviewController,
         runtimeContracts,
         layoutTokens
     };

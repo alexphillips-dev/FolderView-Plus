@@ -648,12 +648,13 @@ test('getAutoRuleDecision uses documented first-match priority for advanced dock
     assert.equal(excludeFirst.blockedBy?.id, 'exc1');
 });
 
-test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {
+test('normalizePrefs includes live refresh, performance profile, and backup schedule defaults', () => {
     const prefs = utils.normalizePrefs({});
-    assert.equal(prefs.runtimePrefsSchema, 3);
+    assert.equal(prefs.runtimePrefsSchema, 4);
     assert.equal(prefs.liveRefreshEnabled, false);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
+    assert.equal(prefs.performanceProfile, 'standard');
     assert.equal(prefs.lazyPreviewEnabled, false);
     assert.equal(prefs.lazyPreviewThreshold, 30);
     assert.equal(prefs.pageViewMode, 'folderview');
@@ -768,9 +769,10 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
         lazyPreviewEnabled: true,
         lazyPreviewThreshold: 77
     });
-    assert.equal(legacy.runtimePrefsSchema, 3);
+    assert.equal(legacy.runtimePrefsSchema, 4);
     assert.equal(legacy.liveRefreshEnabled, false);
     assert.equal(legacy.performanceMode, false);
+    assert.equal(legacy.performanceProfile, 'standard');
     assert.equal(legacy.lazyPreviewEnabled, false);
     assert.equal(legacy.liveRefreshSeconds, 45);
     assert.equal(legacy.lazyPreviewThreshold, 77);
@@ -785,7 +787,16 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
     });
     assert.equal(upgraded.liveRefreshEnabled, true);
     assert.equal(upgraded.performanceMode, true);
+    assert.equal(upgraded.performanceProfile, 'adaptive');
     assert.equal(upgraded.lazyPreviewEnabled, true);
+
+    const maximum = utils.normalizePrefs({
+        runtimePrefsSchema: 4,
+        performanceProfile: 'maximum',
+        performanceMode: false
+    });
+    assert.equal(maximum.performanceProfile, 'maximum');
+    assert.equal(maximum.performanceMode, true);
 
     const legacyPrivacy = utils.normalizePrefs({
         runtimePrefsSchema: 2,

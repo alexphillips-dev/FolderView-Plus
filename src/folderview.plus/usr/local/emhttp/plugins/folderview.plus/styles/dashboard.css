@@ -649,8 +649,10 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
     display: none !important;
 }
 
-body.fvplus-performance-mode .folder-showcase,
-body.fvplus-performance-mode .folder-showcase *,
+body.fvplus-performance-mode-docker tbody#docker_view .folder-showcase,
+body.fvplus-performance-mode-docker tbody#docker_view .folder-showcase *,
+body.fvplus-performance-mode-vm tbody#vm_view .folder-showcase,
+body.fvplus-performance-mode-vm tbody#vm_view .folder-showcase *,
 body.fvplus-performance-mode .tooltipster-base,
 body.fvplus-performance-mode .tooltipster-content {
     animation: none !important;

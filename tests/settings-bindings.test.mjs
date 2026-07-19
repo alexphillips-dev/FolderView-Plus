@@ -164,7 +164,8 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
     assert.match(page, /folderviewplus\.prefs-store\.js/);
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
-    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
+    assert.match(script, /const patch = key === 'performanceProfile'[\s\S]*\? \{ performanceProfile: next\.performanceProfile, performanceMode: next\.performanceMode \}[\s\S]*: \{ \[key\]: next\[key\] \};/);
+    assert.match(script, /await updatePrefsPartial\(type, patch, \{/);
     assert.match(script, /showError\('Runtime preference sync pending', error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
@@ -367,7 +368,7 @@ test('instant settings controls use partial prefs updates', () => {
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
-    assert.match(script, /await updatePrefsPartial\(type, \{ \[key\]: next\[key\] \}, \{/);
+    assert.match(script, /await updatePrefsPartial\(type, patch, \{/);
 });
 
 test('settings action buttons are explicitly non-submit buttons', () => {

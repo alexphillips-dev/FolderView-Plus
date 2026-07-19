@@ -18,11 +18,12 @@
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
-    const RUNTIME_PREFS_SCHEMA = 3;
+    const RUNTIME_PREFS_SCHEMA = 4;
     const RUNTIME_TOGGLE_PREFS_SCHEMA = 2;
     const PRIVACY_MODE_PREFS_SCHEMA = 3;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
+    const PERFORMANCE_PROFILE_OPTIONS = ['standard', 'adaptive', 'maximum'];
     const RUNTIME_PAGE_VIEW_MODE_OPTIONS = ['folderview', 'host', 'command'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
@@ -469,6 +470,14 @@
         return THEME_COMPATIBILITY_MODE_OPTIONS.includes(normalized) ? normalized : 'auto';
     };
 
+    const normalizePerformanceProfile = (value, legacyPerformanceMode = false) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (PERFORMANCE_PROFILE_OPTIONS.includes(normalized)) {
+            return normalized;
+        }
+        return legacyPerformanceMode === true ? 'adaptive' : 'standard';
+    };
+
     const normalizeRuntimePageViewMode = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return RUNTIME_PAGE_VIEW_MODE_OPTIONS.includes(normalized) ? normalized : 'folderview';
@@ -794,7 +803,10 @@
         const privacyModePrefsReady = runtimePrefsSchema >= PRIVACY_MODE_PREFS_SCHEMA;
         const liveRefreshEnabled = runtimePrefsReady ? incoming.liveRefreshEnabled === true : false;
         const liveRefreshSeconds = clampNumber(incoming.liveRefreshSeconds, 10, 300, 20);
-        const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
+        const performanceProfile = runtimePrefsReady
+            ? normalizePerformanceProfile(incoming.performanceProfile, incoming.performanceMode === true)
+            : 'standard';
+        const performanceMode = performanceProfile !== 'standard';
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
         const pageViewMode = normalizeRuntimePageViewMode(incoming.pageViewMode);
@@ -956,6 +968,7 @@
             runtimePrefsSchema: RUNTIME_PREFS_SCHEMA,
             liveRefreshEnabled,
             liveRefreshSeconds,
+            performanceProfile,
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
@@ -2260,6 +2273,7 @@
         normalizeRuntimePageViewMode,
         resolvePreviewActionPrefs,
         normalizeThemeCompatibilityMode,
+        normalizePerformanceProfile,
         normalizePrefs,
         orderFoldersByPrefs,
         getFolderStatusColors,

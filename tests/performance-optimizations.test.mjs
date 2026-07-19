@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 
 const repoRoot = path.resolve(process.cwd());
 const libPath = path.join(
@@ -52,6 +53,10 @@ const dockerModulesPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js'
 );
+const runtimeSharedJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js'
+);
 const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
@@ -97,6 +102,7 @@ const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
+const runtimeSharedJs = fs.readFileSync(runtimeSharedJsPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
@@ -106,6 +112,12 @@ const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
+
+const loadRuntimeShared = () => {
+    const window = {};
+    vm.runInNewContext(runtimeSharedJs, { window, console, Map, Set, Object, Number, String, Boolean, Math, Date });
+    return window.FolderViewDockerRuntimeShared;
+};
 
 test('read_info supports cached full/state payload retrieval', () => {
     assert.match(libPhp, /const FVPLUS_INFO_CACHE_TTL_FULL\s*=\s*\d+/);
@@ -166,19 +178,66 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /return `\$\{status\}:\$\{autostart\}:\$\{manager\}:\$\{updated\}:\$\{label\}`;/);
 });
 
-test('performance mode applies stricter refresh cadence and reduced motion guards', () => {
-    assert.match(dockerJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
-    assert.match(vmJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
-    assert.match(dashboardJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
-    assert.match(dockerJs, /strictMinSeconds/);
-    assert.match(vmJs, /strictMinSeconds/);
-    assert.match(dockerJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*strictMinSeconds \|\| PERFORMANCE_MODE_MIN_REFRESH_SECONDS\)/);
-    assert.match(vmJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*strictMinSeconds \|\| PERFORMANCE_MODE_MIN_REFRESH_SECONDS\)/);
-    assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*dockerRequestedSeconds\)/);
-    assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*vmRequestedSeconds\)/);
+test('performance policy applies adaptive and maximum refresh cadence with reduced motion guards', () => {
+    assert.match(runtimeSharedJs, /const normalizePerformanceProfileMode =/);
+    assert.match(runtimeSharedJs, /mode === 'maximum'/);
+    assert.match(runtimeSharedJs, /largeLibrary/);
+    assert.match(dockerJs, /const policyMinSeconds = Number\(dockerRuntimePerformanceProfile\?\.minLiveRefreshSeconds \|\| 0\)/);
+    assert.match(vmJs, /const policyMinSeconds = Number\(vmRuntimePerformanceProfile\?\.minLiveRefreshSeconds \|\| 0\)/);
+    assert.match(dashboardJs, /scheduleDashboardTypeLiveRefresh\('docker'/);
+    assert.match(dashboardJs, /scheduleDashboardTypeLiveRefresh\('vm'/);
+    assert.match(dashboardJs, /liveRefreshTimers = \{ docker: null, vm: null \}/);
     assert.match(dockerCss, /body\.fvplus-performance-mode \.folder-preview/);
     assert.match(vmCss, /body\.fvplus-performance-mode \.folder-preview/);
-    assert.match(dashboardCss, /body\.fvplus-performance-mode \.folder-showcase/);
+    assert.match(dashboardCss, /body\.fvplus-performance-mode-docker tbody#docker_view \.folder-showcase/);
+    assert.match(dashboardCss, /body\.fvplus-performance-mode-vm tbody#vm_view \.folder-showcase/);
+});
+
+test('performance policy resolves standard, adaptive large-library, and maximum profiles deterministically', () => {
+    const shared = loadRuntimeShared();
+    const standard = shared.resolveRuntimePerformanceProfile({
+        performanceProfile: 'standard',
+        liveRefreshSeconds: 10
+    }, { folderCount: 100, itemCount: 500 });
+    assert.equal(standard.mode, 'standard');
+    assert.equal(standard.strict, false);
+    assert.equal(standard.reduceMotion, false);
+    assert.equal(standard.expandRestoreLimit, null);
+    assert.equal(standard.effectiveRefreshSeconds, 10);
+
+    const adaptive = shared.resolveRuntimePerformanceProfile({
+        performanceProfile: 'adaptive',
+        liveRefreshSeconds: 10,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 45
+    }, { folderCount: 34, itemCount: 80 });
+    assert.equal(adaptive.mode, 'adaptive');
+    assert.equal(adaptive.strict, true);
+    assert.equal(adaptive.reason, 'large-library');
+    assert.equal(adaptive.expandRestoreLimit, 8);
+    assert.equal(adaptive.effectiveRefreshSeconds, 30);
+    assert.equal(adaptive.previewStrategy, 'deferred');
+
+    const maximum = shared.resolveRuntimePerformanceProfile({
+        performanceProfile: 'maximum',
+        liveRefreshSeconds: 10
+    }, { folderCount: 1, itemCount: 1 });
+    assert.equal(maximum.strict, true);
+    assert.equal(maximum.expandRestoreLimit, 6);
+    assert.equal(maximum.effectiveRefreshSeconds, 45);
+
+    const measured = shared.resolveRuntimePerformanceProfile({
+        performanceProfile: 'adaptive',
+        liveRefreshSeconds: 20
+    }, { folderCount: 5, itemCount: 20, renderMs: 160 });
+    assert.equal(measured.strict, true);
+    assert.equal(measured.reason, 'measured-render-cost');
+
+    const hysteresis = shared.resolveRuntimePerformanceProfile({
+        performanceProfile: 'adaptive',
+        liveRefreshSeconds: 20
+    }, { folderCount: 31, itemCount: 50, renderMs: 80, previousStrict: true });
+    assert.equal(hysteresis.strict, true);
 });
 
 test('performance mode preserves configured collapsed previews on every runtime surface', () => {
@@ -208,17 +267,24 @@ test('performance mode preserves configured collapsed previews on every runtime 
     for (const source of [dockerCreateFolder, vmCreateFolder, dashboardDockerCreateFolder, dashboardVmCreateFolder]) {
         assert.doesNotMatch(source, /performanceMode[\s\S]*?preview:\s*0/);
     }
-    assert.match(dockerJs, /const lazyPreviewActive = lazyPreviewEnabled[\s\S]*?preview:\s*0/);
-    assert.match(vmJs, /const lazyPreviewActive = lazyPreviewEnabled[\s\S]*?preview:\s*0/);
+    assert.doesNotMatch(dockerCreateFolder, /folder\.settings\s*=\s*\{[\s\S]*?preview:\s*0/);
+    assert.doesNotMatch(vmCreateFolder, /folder\.settings\s*=\s*\{[\s\S]*?preview:\s*0/);
+    assert.match(dockerCreateFolder, /dockerDeferredPreviewController\.defer\(previewElement/);
+    assert.match(vmCreateFolder, /vmDeferredPreviewController\.defer\(previewElement/);
+    assert.match(runtimeSharedJs, /new window\.IntersectionObserver/);
 });
 
-test('performance mode limits auto-restored expanded branches on runtime views', () => {
+test('performance policy limits restored branches without overwriting saved expansion preferences', () => {
     assert.match(dockerJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);
     assert.match(vmJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);
     assert.match(dockerJs, /restoredExpansionCount/);
     assert.match(vmJs, /restoredExpansionCount/);
-    assert.match(dockerJs, /expandedStateById\[id\] = false/);
-    assert.match(vmJs, /expandedStateById\[id\] = false/);
+    const dockerRestore = dockerJs.slice(dockerJs.indexOf('const expansionIds ='), dockerJs.indexOf('renderRuntimeHealthBadge', dockerJs.indexOf('const expansionIds =')));
+    const vmRestore = vmJs.slice(vmJs.indexOf('const expansionIds ='), vmJs.indexOf('renderRuntimeHealthBadge', vmJs.indexOf('const expansionIds =')));
+    assert.doesNotMatch(dockerRestore, /expandedStateById\[id\] = false/);
+    assert.doesNotMatch(vmRestore, /expandedStateById\[id\] = false/);
+    assert.doesNotMatch(dockerRestore, /persistDockerExpandedStateFromGlobal\(/);
+    assert.doesNotMatch(vmRestore, /persistVmExpandedStateFromGlobal\(/);
 });
 
 test('dashboard widget renders root-level folders only when nested folders exist', () => {

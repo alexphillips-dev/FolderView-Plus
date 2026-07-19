@@ -8,6 +8,8 @@
     const RETRYABLE_STATUS_CODES = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
     const TRACE_HEADER_NAME = 'X-FV-Trace';
     const TRACE_PAYLOAD_KEY = '_fv_trace';
+    const TRANSACTION_HEADER_NAME = 'X-FV-Transaction';
+    const TRANSACTION_PAYLOAD_KEY = '_fv_transaction';
     const requestDiagnostics = [];
     let securityPrefilterConfigured = false;
 
@@ -16,6 +18,7 @@
         const rand = Math.random().toString(16).slice(2, 10);
         return `fv-${Date.now().toString(36)}-${rand}`;
     };
+    const transactionIdForTrace = (traceId) => `tx-${String(traceId || '').replace(/^fv-/, '').slice(0, 80)}`;
 
     const sanitizeDiagnosticUrl = (url) => {
         const raw = String(url || '').trim();
@@ -38,7 +41,8 @@
             status: Math.max(0, Number(entry.status) || 0),
             durationMs: Math.max(0, Number(entry.durationMs) || 0),
             attempts: Math.max(1, Number(entry.attempts) || 1),
-            traceId: String(entry.traceId || '').slice(0, 96)
+            traceId: String(entry.traceId || '').slice(0, 96),
+            transactionId: String(entry.transactionId || '').slice(0, 96)
         });
         if (requestDiagnostics.length > MAX_DIAGNOSTICS) {
             requestDiagnostics.splice(0, requestDiagnostics.length - MAX_DIAGNOSTICS);
@@ -104,6 +108,7 @@
         const trace = String(traceId || '').trim();
         if (trace) {
             headers[TRACE_HEADER_NAME] = trace;
+            headers[TRANSACTION_HEADER_NAME] = transactionIdForTrace(trace);
         }
         return headers;
     };
@@ -120,6 +125,7 @@
         }
         const safeToken = String(token || '').trim();
         const safeTraceId = String(traceId || '').trim();
+        const safeTransactionId = safeTraceId ? transactionIdForTrace(safeTraceId) : '';
         if (typeof FormData !== 'undefined' && data instanceof FormData) {
             if (!data.has('_fv_request')) {
                 data.append('_fv_request', '1');
@@ -129,6 +135,9 @@
             }
             if (safeTraceId && !data.has(TRACE_PAYLOAD_KEY)) {
                 data.append(TRACE_PAYLOAD_KEY, safeTraceId);
+            }
+            if (safeTransactionId && !data.has(TRANSACTION_PAYLOAD_KEY)) {
+                data.append(TRANSACTION_PAYLOAD_KEY, safeTransactionId);
             }
             return data;
         }
@@ -142,6 +151,9 @@
             if (safeTraceId && !data.has(TRACE_PAYLOAD_KEY)) {
                 data.set(TRACE_PAYLOAD_KEY, safeTraceId);
             }
+            if (safeTransactionId && !data.has(TRANSACTION_PAYLOAD_KEY)) {
+                data.set(TRANSACTION_PAYLOAD_KEY, safeTransactionId);
+            }
             return data;
         }
         const payload = isPlainObject(data) ? { ...data } : {};
@@ -153,6 +165,9 @@
         }
         if (safeTraceId && !Object.prototype.hasOwnProperty.call(payload, TRACE_PAYLOAD_KEY)) {
             payload[TRACE_PAYLOAD_KEY] = safeTraceId;
+        }
+        if (safeTransactionId && !Object.prototype.hasOwnProperty.call(payload, TRANSACTION_PAYLOAD_KEY)) {
+            payload[TRANSACTION_PAYLOAD_KEY] = safeTransactionId;
         }
         return payload;
     };
@@ -325,6 +340,7 @@
         let attempts = 0;
         const token = getOptionalRequestToken(tokenStorageKey);
         const traceId = newTraceId();
+        const transactionId = transactionIdForTrace(traceId);
         const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId);
 
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
@@ -344,6 +360,7 @@
                 if (typeof xhr === 'function') ajaxOptions.xhr = xhr;
                 const response = await toAjaxPromise(ajaxOptions, signal, onRequest);
                 response.traceId = traceId;
+                response.transactionId = transactionId;
                 recordDiagnostic({
                     method: normalizedMethod,
                     url,
@@ -351,7 +368,8 @@
                     status: response?.jqXHR?.status,
                     durationMs: Date.now() - startedAt,
                     attempts,
-                    traceId
+                    traceId,
+                    transactionId
                 });
                 return response;
             } catch (error) {
@@ -369,7 +387,8 @@
                         status: error?.jqXHR?.status,
                         durationMs: Date.now() - startedAt,
                         attempts,
-                        traceId
+                        traceId,
+                        transactionId
                     });
                     throw formatted;
                 }
@@ -388,7 +407,8 @@
             status: lastError?.jqXHR?.status,
             durationMs: Date.now() - startedAt,
             attempts,
-            traceId
+            traceId,
+            transactionId
         });
         throw formatted;
     };
@@ -409,6 +429,16 @@
             return payload;
         }
         throw new Error(`Unexpected JSON response type from ${url}.`);
+    };
+
+    const parseResponseJson = (response, url) => {
+        const parsed = parseJsonStrict(response?.data, url);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return parsed;
+        }
+        if (!parsed.traceId && response?.traceId) parsed.traceId = response.traceId;
+        if (!parsed.transactionId && response?.transactionId) parsed.transactionId = response.transactionId;
+        return parsed;
     };
 
     const getText = async (url, {
@@ -480,7 +510,7 @@
             cache,
             signal
         });
-        return parseJsonStrict(response.data, url);
+        return parseResponseJson(response, url);
     };
 
     const postJson = async (url, data = {}, {
@@ -502,7 +532,7 @@
             tokenStorageKey,
             signal
         });
-        return parseJsonStrict(response.data, url);
+        return parseResponseJson(response, url);
     };
 
     const uploadJson = async (url, formData, {
@@ -539,7 +569,7 @@
                 return xhr;
             }
         });
-        return parseJsonStrict(response.data, url);
+        return parseResponseJson(response, url);
     };
 
     const sendKeepalive = (url, data = {}, {
@@ -552,6 +582,7 @@
         const startedAt = Date.now();
         const token = getOptionalRequestToken(tokenStorageKey);
         const traceId = newTraceId();
+        const transactionId = transactionIdForTrace(traceId);
         const markedPayload = addMutationPayloadMarkers('POST', data, token, traceId);
         const body = (
             (typeof FormData !== 'undefined' && markedPayload instanceof FormData)
@@ -562,7 +593,7 @@
                 const accepted = navigator.sendBeacon(url, body);
                 recordDiagnostic({
                     method: 'POST', url, outcome: accepted ? 'queued' : 'rejected',
-                    durationMs: Date.now() - startedAt, attempts: 1, traceId
+                    durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId
                 });
                 if (accepted) {
                     return true;
@@ -572,7 +603,7 @@
             // Continue to the fetch keepalive fallback.
         }
         if (typeof window.fetch !== 'function') {
-            recordDiagnostic({ method: 'POST', url, outcome: 'unavailable', durationMs: 0, attempts: 1, traceId });
+            recordDiagnostic({ method: 'POST', url, outcome: 'unavailable', durationMs: 0, attempts: 1, traceId, transactionId });
             return false;
         }
         try {
@@ -585,14 +616,14 @@
             }).then((response) => {
                 recordDiagnostic({
                     method: 'POST', url, outcome: response?.ok ? 'ok' : 'error', status: response?.status,
-                    durationMs: Date.now() - startedAt, attempts: 1, traceId
+                    durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId
                 });
             }).catch(() => {
-                recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId });
+                recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId });
             });
             return true;
         } catch (_error) {
-            recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId });
+            recordDiagnostic({ method: 'POST', url, outcome: 'error', durationMs: Date.now() - startedAt, attempts: 1, traceId, transactionId });
             return false;
         }
     };

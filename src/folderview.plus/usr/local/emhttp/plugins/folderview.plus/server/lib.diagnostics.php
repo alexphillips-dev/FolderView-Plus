@@ -1,6 +1,14 @@
 <?php
     require_once(__DIR__ . '/../langs/registry.php');
 
+    function diagnosticsCurrentTraceId(): string {
+        return function_exists('getRequestTraceId') ? getRequestTraceId() : '';
+    }
+
+    function diagnosticsCurrentTransactionId(): string {
+        return function_exists('getRequestTransactionId') ? getRequestTransactionId() : '';
+    }
+
     function normalizeDiagnosticsPrivacyMode(string $mode): string {
         return strtolower(trim($mode)) === 'full' ? 'full' : FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY;
     }
@@ -40,7 +48,10 @@
         if (!file_exists($path)) {
             return [];
         }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
+        $decoded = readJsonObjectFile($path);
+        if (!is_array($decoded)) {
+            $decoded = recoverJsonObjectFromLastGood($path);
+        }
         if (!is_array($decoded)) {
             return [];
         }
@@ -92,7 +103,10 @@
         }
 
         $path = diagnosticsHistoryPath();
-        $decoded = @json_decode((string)@file_get_contents($path), true);
+        $decoded = readJsonObjectFile($path);
+        if (!is_array($decoded)) {
+            $decoded = recoverJsonObjectFromLastGood($path);
+        }
         $events = is_array($decoded) ? $decoded : [];
 
         $event = [
@@ -102,6 +116,8 @@
             'type' => $type ? ensureType($type) : null,
             'status' => trim($status) === '' ? 'ok' : substr(trim($status), 0, 32),
             'source' => trim($source) === '' ? 'server' : substr(trim($source), 0, 64),
+            'traceId' => diagnosticsCurrentTraceId(),
+            'transactionId' => diagnosticsCurrentTransactionId(),
             'details' => diagnosticsNormalizeEventDetails($details)
         ];
 
@@ -109,7 +125,7 @@
         if (count($events) > FVPLUS_DIAGNOSTICS_HISTORY_MAX) {
             $events = array_slice($events, -FVPLUS_DIAGNOSTICS_HISTORY_MAX);
         }
-        @file_put_contents($path, json_encode(array_values($events), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        writeJsonObjectWithLastGood($path, array_values($events));
         return $event;
     }
 
@@ -2243,6 +2259,7 @@
             'checkedAt' => gmdate('c'),
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
+            'durableStorage' => getDurableStorageRuntimeSnapshot(),
             'nativeOrganizer' => diagnosticsBuildNativeOrganizerStatus(),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
             'customIcons' => $customIcons,
@@ -2435,6 +2452,8 @@
             'bundleVersion' => 2,
             'schemaVersion' => (int)($diagnostics['schemaVersion'] ?? 0),
             'generatedAt' => gmdate('c'),
+            'traceId' => diagnosticsCurrentTraceId(),
+            'transactionId' => diagnosticsCurrentTransactionId(),
             'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'channel' => diagnosticsResolveSupportBundleChannel(),
             'privacyMode' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)),
@@ -2483,7 +2502,10 @@
                 'folderSha256' => (string)($configMetadata['folderSha256'] ?? ''),
                 'prefsSha256' => (string)($configMetadata['prefsSha256'] ?? ''),
                 'externalChangeCount' => (int)($configMetadata['externalChangeCount'] ?? 0),
-                'lastExternalChangeAt' => (string)($configMetadata['lastExternalChangeAt'] ?? '')
+                'lastExternalChangeAt' => (string)($configMetadata['lastExternalChangeAt'] ?? ''),
+                'lastTraceId' => (string)($configMetadata['lastTraceId'] ?? ''),
+                'lastTransactionId' => (string)($configMetadata['lastTransactionId'] ?? ''),
+                'lastMutationAt' => (string)($configMetadata['lastMutationAt'] ?? '')
             ],
             'prefs' => [
                 'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
@@ -2766,6 +2788,7 @@
                 ),
                 'customIcons' => $customIcons
             ],
+            'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
             'nativeOrganizer' => is_array($diagnostics['nativeOrganizer'] ?? null) ? $diagnostics['nativeOrganizer'] : diagnosticsBuildNativeOrganizerStatus(),
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
@@ -2803,6 +2826,8 @@
                 'type' => $event['type'] ?? null,
                 'status' => (string)($event['status'] ?? 'ok'),
                 'source' => (string)($event['source'] ?? 'server'),
+                'traceId' => (string)($event['traceId'] ?? ''),
+                'transactionId' => (string)($event['transactionId'] ?? ''),
                 'details' => diagnosticsSupportBundleRedactEventDetails(
                     is_array($event['details'] ?? null) ? $event['details'] : [],
                     'healthAndHistory.recentMutations.events.*.details',

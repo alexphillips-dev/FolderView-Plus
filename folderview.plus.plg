@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.11">
-<!ENTITY md5 "28a83704d67afe63572e17a406f2c6d5">
+<!ENTITY version "2026.07.19.12">
+<!ENTITY md5 "58073606d6aaaf3a3100d5bbb670a87e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.12
+# FolderView Plus 2026.07.19.12
+- Reliability: Route durable folder maps, preferences, configuration metadata, diagnostics history, backups, rollback snapshots, templates, theme state, request tokens, Unraid autostart state, and custom icon files through one atomic storage service.
+- Safety: Write to a sibling temporary file, flush file contents, atomically replace the target, preserve file permissions, clean up failed temp files, and attempt a parent-directory flush where the platform supports it.
+- Recovery: Maintain atomic `.lastgood` JSON mirrors, preserve a successful primary commit when its recovery mirror fails, and refuse to restore corrupt last-good data.
+- Diagnostics: Carry one trace and transaction ID across browser requests, API responses and errors, backups, rollback snapshots, configuration revisions, activity history, storage status, and sanitized support bundles.
+- Fix: Store uploaded and mirrored custom icon bytes through the same durable writer instead of directly moving or copying data into persistent plugin storage.
+- Regression guard: Classify every remaining direct PHP file write and fail validation if a new unclassified write bypasses the durable storage boundary.
+- Test: Add failure injection for parent creation, read-only flash storage, temp creation and writes, interrupted writes, full disks, file flushes, atomic renames, directory flushes, last-good failures, and corrupt recovery copies.
+- Docs: Document which state is durable, which logs and caches remain intentionally disposable, the commit guarantees, and the storage failure-testing contract.
+
 
 ###2026.07.19.11
 # FolderView Plus 2026.07.19.11

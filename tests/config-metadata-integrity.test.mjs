@@ -24,6 +24,8 @@ const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').repla
 
 const buildHarness = () => `<?php
 $_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+$_SERVER['HTTP_X_FV_TRACE'] = 'fv-metadata-test';
+$_SERVER['HTTP_X_FV_TRANSACTION'] = 'tx-metadata-test';
 require_once ${phpSingleQuote(libPath)};
 
 $folderOne = [
@@ -116,6 +118,9 @@ test('configuration metadata revisions track writes, reject stale saves, and rec
     assert.equal(result.afterFolderWrite.type, 'docker');
     assert.equal(result.afterFolderWrite.folderRevision, 1);
     assert.equal(result.afterFolderWrite.prefsRevision, 0);
+    assert.equal(result.afterFolderWrite.lastTraceId, 'fv-metadata-test');
+    assert.equal(result.afterFolderWrite.lastTransactionId, 'tx-metadata-test');
+    assert.match(result.afterFolderWrite.lastMutationAt, /^\d{4}-\d{2}-\d{2}T/);
     assert.match(result.afterFolderWrite.folderSha256, /^[a-f0-9]{64}$/);
 
     assert.equal(result.afterPrefsWrite.folderRevision, 1);
@@ -154,6 +159,8 @@ test('metadata integrity is visible in diagnostics and the sanitized support bun
     assert.match(diagnosticsLib, /'configurationMetadata'\s*=>\s*\$configMetadataIntegrity/);
     assert.match(supportBundleLib, /'configurationMetadata'\s*=>\s*\[/);
     assert.match(supportBundleLib, /'externalChangeCount'\s*=>/);
+    assert.match(supportBundleLib, /'lastTransactionId'\s*=>/);
+    assert.match(supportBundleLib, /'transactionId'\s*=>\s*diagnosticsCurrentTransactionId\(\)/);
 });
 
 test('custom icon metadata uses atomic primary and last-good writes', () => {

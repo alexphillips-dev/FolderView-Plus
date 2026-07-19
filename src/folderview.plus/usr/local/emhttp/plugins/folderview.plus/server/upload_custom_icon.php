@@ -1221,7 +1221,6 @@ function handleCustomIconUploadAction(): array {
             $extension,
             $originalName,
             $tmpPath,
-            $isHttpUpload,
             &$cleanupPath,
             $optimization,
             $uploadMode
@@ -1254,23 +1253,14 @@ function handleCustomIconUploadAction(): array {
             $incomingBytes = max(0, (int)@filesize($tmpPath));
             enforceCustomIconStorageLimit($customDir, $incomingBytes, $replaced ? $targetName : '');
 
-            $stored = false;
-            if ($isHttpUpload) {
-                $stored = @move_uploaded_file($tmpPath, $targetPath);
-            } else {
-                if (@rename($tmpPath, $targetPath)) {
-                    $stored = true;
-                    $cleanupPath = '';
-                } elseif (@copy($tmpPath, $targetPath)) {
-                    $stored = true;
-                }
-            }
-
-            if (!$stored) {
+            $iconContents = @file_get_contents($tmpPath);
+            if (!is_string($iconContents)) {
                 throw new RuntimeException('Unable to store uploaded icon.');
             }
+            writeDurableFileAtomic($targetPath, $iconContents, ['mode' => 0644]);
             if ($cleanupPath !== '' && is_file($cleanupPath)) {
                 @unlink($cleanupPath);
+                $cleanupPath = '';
             }
 
             @chmod($targetPath, 0644);

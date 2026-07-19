@@ -55,6 +55,7 @@ test('lib.php defines centralized JSON response helpers', () => {
     assert.match(libPhp, /function fvplus_json_response\s*\(/);
     assert.match(libPhp, /function fvplus_json_ok\s*\(/);
     assert.match(libPhp, /function fvplus_json_error\s*\(/);
+    assert.match(libPhp, /\$payload\['transactionId'\]\s*=\s*getRequestTransactionId\(\)/);
     assert.match(libPhp, /function fvplus_json_try\s*\(/);
     assert.match(libPhp, /function getRequestTraceId\s*\(/);
     assert.match(libPhp, /function emitRequestTraceHeader\s*\(/);

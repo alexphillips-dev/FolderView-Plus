@@ -67,7 +67,7 @@ test('upload endpoint enforces request guard and uploads into images\\/custom', 
     assert.match(uploadPhp, /enforceCustomIconUploadRateLimit\(\)/);
     assert.match(uploadPhp, /withCustomIconLock\(true/);
     assert.match(uploadPhp, /enforceCustomIconStorageLimit\(\$customDir,\s*\$incomingBytes,\s*\$replaced \? \$targetName : ''\)/);
-    assert.match(uploadPhp, /move_uploaded_file\(/);
+    assert.match(uploadPhp, /writeDurableFileAtomic\(\$targetPath, \$iconContents, \['mode' => 0644\]\)/);
     assert.match(uploadPhp, /\/plugins\/folderview\.plus\/images\/custom\//);
     assert.match(uploadPhp, /function customIconStorageStats\s*\(/);
     assert.match(uploadPhp, /function syncCustomIconMetadataIndex\s*\(/);
@@ -104,9 +104,8 @@ test('upload endpoint supports inline fallback payloads when multipart uploads f
     assert.match(uploadPhp, /base64_decode\(/);
     assert.match(uploadPhp, /tempnam\(/);
     assert.match(uploadPhp, /isHttpUpload/);
-    assert.match(uploadPhp, /move_uploaded_file\(/);
-    assert.match(uploadPhp, /@rename\(/);
-    assert.match(uploadPhp, /@copy\(/);
+    assert.match(uploadPhp, /file_get_contents\(\$tmpPath\)/);
+    assert.match(uploadPhp, /writeDurableFileAtomic\(\$targetPath, \$iconContents/);
 });
 
 test('upload endpoint supports custom icon manager actions', () => {

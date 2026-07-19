@@ -692,9 +692,39 @@
         return $traceId;
     }
 
+    function normalizeRequestTransactionId(string $value): string {
+        $trimmed = trim($value);
+        if ($trimmed === '' || !preg_match('/^[A-Za-z0-9._:-]{6,96}$/', $trimmed)) {
+            return '';
+        }
+        return $trimmed;
+    }
+
+    function getRequestTransactionId(): string {
+        static $transactionId = null;
+        if (is_string($transactionId) && $transactionId !== '') {
+            return $transactionId;
+        }
+        $candidates = [
+            (string)($_POST['_fv_transaction'] ?? ''),
+            (string)($_GET['_fv_transaction'] ?? ''),
+            getRequestHeaderValue('X-FV-Transaction')
+        ];
+        foreach ($candidates as $candidate) {
+            $normalized = normalizeRequestTransactionId($candidate);
+            if ($normalized !== '') {
+                $transactionId = $normalized;
+                return $transactionId;
+            }
+        }
+        $transactionId = normalizeRequestTransactionId('tx-' . substr(hash('sha256', getRequestTraceId()), 0, 24));
+        return $transactionId !== '' ? $transactionId : 'tx-fallback';
+    }
+
     function emitRequestTraceHeader(): void {
         if (!headers_sent()) {
             header('X-FV-Trace: ' . getRequestTraceId());
+            header('X-FV-Transaction: ' . getRequestTransactionId());
         }
     }
 
@@ -816,8 +846,11 @@
         if ($token === '') {
             return;
         }
-        @file_put_contents($path, $token, LOCK_EX);
-        @chmod($path, 0600);
+        try {
+            writeDurableFileAtomic($path, $token, ['mode' => 0600]);
+        } catch (Throwable $error) {
+            // Request-token creation remains optional in compatibility mode.
+        }
     }
 
     function getConfiguredRequestToken(): string {
@@ -1002,6 +1035,12 @@
             emitRequestTraceHeader();
         }
         http_response_code($statusCode);
+        if (!array_key_exists('traceId', $payload)) {
+            $payload['traceId'] = getRequestTraceId();
+        }
+        if (!array_key_exists('transactionId', $payload)) {
+            $payload['transactionId'] = getRequestTransactionId();
+        }
         $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
             http_response_code(500);
@@ -1012,7 +1051,11 @@
     }
 
     function fvplus_json_ok(array $payload = []): void {
-        $data = ['ok' => true];
+        $data = [
+            'ok' => true,
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId()
+        ];
         foreach ($payload as $key => $value) {
             if ($key === 'ok') {
                 continue;
@@ -1026,7 +1069,8 @@
         $data = [
             'ok' => false,
             'error' => $message,
-            'traceId' => getRequestTraceId()
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId()
         ];
         foreach ($payload as $key => $value) {
             if ($key === 'ok' || $key === 'error') {
@@ -1040,10 +1084,12 @@
     function fvplus_log_api_exception(Throwable $error): void {
         $timestamp = gmdate('c');
         $traceId = getRequestTraceId();
+        $transactionId = getRequestTransactionId();
         $line = sprintf(
-            "[%s] [trace:%s] %s in %s:%d | %s\n",
+            "[%s] [trace:%s] [transaction:%s] %s in %s:%d | %s\n",
             $timestamp,
             $traceId,
+            $transactionId,
             get_class($error),
             (string)$error->getFile(),
             (int)$error->getLine(),
@@ -2052,30 +2098,173 @@
         }
     }
 
-    function writeJsonObjectAtomic(string $path, array $payload): void {
-        $parent = dirname($path);
-        if (!is_dir($parent)) {
-            @mkdir($parent, 0770, true);
+    function fvplusStorageFailureStage(): string {
+        $enabled = trim((string)getenv('FVPLUS_STORAGE_FAILURE_INJECTION')) === '1';
+        if (!$enabled) {
+            return '';
         }
+        return strtolower(trim((string)getenv('FVPLUS_STORAGE_FAILURE_STAGE')));
+    }
+
+    function fvplusStorageFailureInjected(string $stage): bool {
+        return fvplusStorageFailureStage() === strtolower(trim($stage));
+    }
+
+    function fvplusStorageThrowInjectedFailure(string $stage, string $path): void {
+        if (fvplusStorageFailureInjected($stage)) {
+            throw new RuntimeException("Injected durable storage failure at '$stage' for '" . basename($path) . "'.");
+        }
+    }
+
+    function fvplusFlushFileHandleBestEffort($handle): bool {
+        if (!is_resource($handle)) {
+            return false;
+        }
+        if (!@fflush($handle)) {
+            return false;
+        }
+        if (!function_exists('fsync')) {
+            return true;
+        }
+        return @fsync($handle);
+    }
+
+    function fvplusFlushDirectoryBestEffort(string $directory): bool {
+        if (!function_exists('fsync') || !is_dir($directory)) {
+            return false;
+        }
+        $handle = @fopen($directory, 'r');
+        if (!is_resource($handle)) {
+            return false;
+        }
+        try {
+            return @fsync($handle);
+        } finally {
+            @fclose($handle);
+        }
+    }
+
+    function getDurableStorageRuntimeSnapshot(): array {
+        $snapshot = $GLOBALS['fvplus_durable_storage_snapshot'] ?? [];
+        return is_array($snapshot) ? $snapshot : [];
+    }
+
+    function writeDurableFileAtomic(string $path, string $contents, array $options = []): array {
+        $transactionId = getRequestTransactionId();
+        $traceId = getRequestTraceId();
+        $tmpPath = '';
+        $handle = null;
+        $fileFlushed = false;
+        $directoryFlushed = false;
+        try {
+            $parent = dirname($path);
+            fvplusStorageThrowInjectedFailure('parent-create', $path);
+            if (!is_dir($parent) && !@mkdir($parent, 0770, true) && !is_dir($parent)) {
+                throw new RuntimeException("Failed to create durable storage directory for '$path'.");
+            }
+            fvplusStorageThrowInjectedFailure('read-only', $path);
+            if (!is_writable($parent)) {
+                throw new RuntimeException("Durable storage directory is read-only for '$path'.");
+            }
+
+            $existingMode = is_file($path) ? ((int)@fileperms($path) & 0777) : 0;
+            $requestedMode = max(0, (int)($options['mode'] ?? 0644));
+            $mode = $existingMode > 0 ? $existingMode : ($requestedMode > 0 ? $requestedMode : 0644);
+            fvplusStorageThrowInjectedFailure('temp-create', $path);
+            $tmpPath = createAtomicWriteTempPath($path);
+            $handle = @fopen($tmpPath, 'c+b');
+            if (!is_resource($handle)) {
+                throw new RuntimeException("Failed to open temp durable payload for '$path'.");
+            }
+            if (!@flock($handle, LOCK_EX) || !@ftruncate($handle, 0) || @rewind($handle) === false) {
+                throw new RuntimeException("Failed to prepare temp durable payload for '$path'.");
+            }
+            fvplusStorageThrowInjectedFailure('temp-write', $path);
+
+            $length = strlen($contents);
+            $written = 0;
+            if (fvplusStorageFailureInjected('interrupted-write')) {
+                $partialLength = max(1, (int)floor(max(1, $length) / 2));
+                @fwrite($handle, substr($contents, 0, $partialLength));
+                throw new RuntimeException("Injected interrupted durable write for '" . basename($path) . "'.");
+            }
+            while ($written < $length) {
+                $chunk = @fwrite($handle, substr($contents, $written));
+                if ($chunk === false || $chunk <= 0) {
+                    throw new RuntimeException("Failed to complete temp durable payload for '$path' (storage may be full).");
+                }
+                $written += $chunk;
+                if (fvplusStorageFailureInjected('disk-full') && $written < $length) {
+                    throw new RuntimeException("Injected full-disk durable write failure for '" . basename($path) . "'.");
+                }
+            }
+            if (fvplusStorageFailureInjected('disk-full')) {
+                throw new RuntimeException("Injected full-disk durable write failure for '" . basename($path) . "'.");
+            }
+            fvplusStorageThrowInjectedFailure('file-flush', $path);
+            $fileFlushed = fvplusFlushFileHandleBestEffort($handle);
+            if (!$fileFlushed) {
+                throw new RuntimeException("Failed to flush temp durable payload for '$path'.");
+            }
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+            $handle = null;
+
+            fvplusStorageThrowInjectedFailure('rename', $path);
+            if (!@rename($tmpPath, $path)) {
+                throw new RuntimeException("Failed to atomically replace durable payload for '$path'.");
+            }
+            $tmpPath = '';
+            @chmod($path, $mode);
+            if (!fvplusStorageFailureInjected('directory-flush')) {
+                $directoryFlushed = fvplusFlushDirectoryBestEffort($parent);
+            }
+
+            $result = [
+                'ok' => true,
+                'target' => basename($path),
+                'bytes' => $length,
+                'traceId' => $traceId,
+                'transactionId' => $transactionId,
+                'fileFlushed' => $fileFlushed,
+                'directoryFlushed' => $directoryFlushed,
+                'committedAt' => gmdate('c')
+            ];
+            $GLOBALS['fvplus_durable_storage_snapshot'] = $result;
+            return $result;
+        } catch (Throwable $error) {
+            if (is_resource($handle)) {
+                @flock($handle, LOCK_UN);
+                @fclose($handle);
+            }
+            if ($tmpPath !== '' && file_exists($tmpPath)) {
+                @unlink($tmpPath);
+            }
+            $GLOBALS['fvplus_durable_storage_snapshot'] = [
+                'ok' => false,
+                'target' => basename($path),
+                'traceId' => $traceId,
+                'transactionId' => $transactionId,
+                'failedStage' => fvplusStorageFailureStage(),
+                'failedAt' => gmdate('c')
+            ];
+            throw $error;
+        }
+    }
+
+    function writeJsonObjectAtomic(string $path, array $payload): void {
         $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
         if (!is_string($encoded) || $encoded === '') {
             throw new RuntimeException("Failed to encode JSON payload for '$path'.");
         }
-        $tmpPath = createAtomicWriteTempPath($path);
-        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) === false) {
-            throw new RuntimeException("Failed to write temp JSON payload for '$path'.");
-        }
-        if (!@rename($tmpPath, $path)) {
-            @unlink($tmpPath);
-            throw new RuntimeException("Failed to replace JSON payload for '$path'.");
-        }
-        @chmod($path, 0644);
+        writeDurableFileAtomic($path, $encoded);
     }
 
     function writeJsonObjectWithLastGood(string $path, array $payload): void {
         writeJsonObjectAtomic($path, $payload);
         $lastGoodPath = getLastGoodJsonPath($path);
         try {
+            fvplusStorageThrowInjectedFailure('last-good', $lastGoodPath);
             writeJsonObjectAtomic($lastGoodPath, $payload);
         } catch (Throwable $error) {
             // Keep primary writes non-fatal if last-good mirror fails.
@@ -2132,7 +2321,10 @@
             'folderSha256' => configMetadataHashFromPath($folderPath),
             'prefsSha256' => configMetadataHashFromPath($prefsPath),
             'externalChangeCount' => 0,
-            'lastExternalChangeAt' => ''
+            'lastExternalChangeAt' => '',
+            'lastTraceId' => '',
+            'lastTransactionId' => '',
+            'lastMutationAt' => ''
         ];
     }
 
@@ -2160,7 +2352,10 @@
             'folderSha256' => strtolower(trim((string)($incoming['folderSha256'] ?? ''))),
             'prefsSha256' => strtolower(trim((string)($incoming['prefsSha256'] ?? ''))),
             'externalChangeCount' => max(0, (int)($incoming['externalChangeCount'] ?? 0)),
-            'lastExternalChangeAt' => normalizeIsoTimestamp($incoming['lastExternalChangeAt'] ?? '')
+            'lastExternalChangeAt' => normalizeIsoTimestamp($incoming['lastExternalChangeAt'] ?? ''),
+            'lastTraceId' => normalizeRequestTraceId((string)($incoming['lastTraceId'] ?? '')),
+            'lastTransactionId' => normalizeRequestTransactionId((string)($incoming['lastTransactionId'] ?? '')),
+            'lastMutationAt' => normalizeIsoTimestamp($incoming['lastMutationAt'] ?? '')
         ];
     }
 
@@ -2234,6 +2429,9 @@
         $metadata[$updatedKey] = $now;
         $metadata[$hashKey] = configMetadataHashFromPath($targetPath);
         $metadata['updatedAt'] = $now;
+        $metadata['lastTraceId'] = getRequestTraceId();
+        $metadata['lastTransactionId'] = getRequestTransactionId();
+        $metadata['lastMutationAt'] = $now;
         return writeConfigMetadata($safeType, $metadata);
     }
 
@@ -2536,8 +2734,7 @@
             if (!is_dir($parent)) {
                 @mkdir($parent, 0770, true);
             }
-            @file_put_contents($path, $output . "\n", LOCK_EX);
-            @chmod($path, 0644);
+            writeDurableFileAtomic($path, $output . "\n");
         }
     }
 
@@ -3306,7 +3503,7 @@
         if (!is_dir($configDir)) {
             @mkdir($configDir, 0770, true);
         }
-        @file_put_contents(getLegacyMigrationMarkerPath($type, $kind), gmdate('c'));
+        writeDurableFileAtomic(getLegacyMigrationMarkerPath($type, $kind), gmdate('c'));
     }
 
     function migrateLegacyTypeDataIfNeeded(string $type, string $kind): void {
@@ -3692,11 +3889,15 @@
             $decoded = @json_decode((string)@file_get_contents($path), true);
             $reason = '';
             $pluginVersion = '';
+            $traceId = '';
+            $transactionId = '';
             $dockerCount = null;
             $vmCount = null;
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
                 $pluginVersion = (string)($decoded['pluginVersion'] ?? '');
+                $traceId = normalizeRequestTraceId((string)($decoded['traceId'] ?? ''));
+                $transactionId = normalizeRequestTransactionId((string)($decoded['transactionId'] ?? ''));
                 $types = is_array($decoded['types'] ?? null) ? $decoded['types'] : [];
                 $dockerFolders = $types['docker']['folders'] ?? null;
                 $vmFolders = $types['vm']['folders'] ?? null;
@@ -3713,6 +3914,8 @@
                 'size' => (int)@filesize($path),
                 'reason' => $reason,
                 'pluginVersion' => $pluginVersion,
+                'traceId' => $traceId,
+                'transactionId' => $transactionId,
                 'dockerCount' => $dockerCount,
                 'vmCount' => $vmCount
             ];
@@ -3760,6 +3963,8 @@
             'pluginVersion' => readInstalledVersion(),
             'createdAt' => gmdate('c'),
             'reason' => $reason,
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId(),
             'types' => [
                 'docker' => [
                     'folders' => readRawFolderMap('docker'),
@@ -3772,7 +3977,7 @@
             ],
             'themeWorkspace' => readThemeWorkspace()
         ];
-        @file_put_contents("$rollbackDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        writeJsonObjectAtomic("$rollbackDir/$filename", $payload);
         $pruned = pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX);
         try {
             appendDiagnosticsHistoryEvent('rollback_create', null, [
@@ -3794,6 +3999,8 @@
             'dockerCount' => count($payload['types']['docker']['folders']),
             'vmCount' => count($payload['types']['vm']['folders']),
             'managedThemeCount' => count((array)($payload['themeWorkspace']['themes'] ?? [])),
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId(),
             'pruned' => $pruned
         ];
     }
@@ -3940,6 +4147,8 @@
                 'name' => '',
                 'createdAt' => gmdate('c'),
                 'count' => 0,
+                'traceId' => getRequestTraceId(),
+                'transactionId' => getRequestTransactionId(),
                 'pruned' => [],
                 'skipped' => true,
                 'skipReason' => 'empty-folder-map'
@@ -3962,11 +4171,13 @@
             'type' => $type,
             'mode' => 'full',
             'reason' => $reason,
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId(),
             'configurationMetadata' => readConfigMetadata($type, true),
             'folders' => $folders,
             'prefs' => $prefs
         ];
-        @file_put_contents("$backupDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        writeJsonObjectAtomic("$backupDir/$filename", $payload);
         $pruned = pruneBackupSnapshots($type, getTypeBackupRetention($type));
         try {
             appendDiagnosticsHistoryEvent('backup_create', $type, [
@@ -3982,6 +4193,8 @@
             'name' => $filename,
             'createdAt' => gmdate('c'),
             'count' => $folderCount,
+            'traceId' => getRequestTraceId(),
+            'transactionId' => getRequestTransactionId(),
             'pruned' => $pruned,
             'skipped' => false
         ];
@@ -4039,16 +4252,22 @@
             $decoded = @json_decode((string)@file_get_contents($path), true);
             $reason = '';
             $count = null;
+            $traceId = '';
+            $transactionId = '';
             if (is_array($decoded)) {
                 $reason = (string)($decoded['reason'] ?? '');
                 $count = getBackupPayloadFolderCount($decoded);
+                $traceId = normalizeRequestTraceId((string)($decoded['traceId'] ?? ''));
+                $transactionId = normalizeRequestTransactionId((string)($decoded['transactionId'] ?? ''));
             }
             $entries[] = [
                 'name' => $file,
                 'createdAt' => gmdate('c', (int)@filemtime($path)),
                 'size' => (int)@filesize($path),
                 'reason' => $reason,
-                'count' => $count
+                'count' => $count,
+                'traceId' => $traceId,
+                'transactionId' => $transactionId
             ];
         }
         usort($entries, function($a, $b) {
@@ -4084,6 +4303,8 @@
             'schemaVersion' => array_key_exists('schemaVersion', $decoded) ? $decoded['schemaVersion'] : null,
             'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
             'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
+            'traceId' => normalizeRequestTraceId((string)($decoded['traceId'] ?? '')),
+            'transactionId' => normalizeRequestTransactionId((string)($decoded['transactionId'] ?? '')),
             'count' => count($folders),
             'configurationMetadata' => is_array($decoded['configurationMetadata'] ?? null)
                 ? normalizeConfigMetadata($decoded['configurationMetadata'], $type)
@@ -4486,7 +4707,7 @@
             }
             $rows[] = $normalized;
         }
-        @file_put_contents($path, json_encode(array_values($rows), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        writeJsonObjectWithLastGood($path, array_values($rows));
         return array_values($rows);
     }
 
@@ -5730,7 +5951,7 @@
                 : '';
             $currentAutoStartContent = @file_get_contents($autoStartFile);
             if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
-                file_put_contents($autoStartFile, $nextAutoStartContent);
+                writeDurableFileAtomic($autoStartFile, $nextAutoStartContent);
                 fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries using " . (string)($plan['mode'] ?? 'docker-page') . " mode");
             } else {
                 fv3_debug_log("syncContainerOrder: autostart file already up to date");
@@ -6271,11 +6492,13 @@
     }
 
     function fvplusCopyCustomIconStorageFile(string $sourcePath, string $targetPath): bool {
-        $targetDir = dirname($targetPath);
-        if (!is_dir($targetDir)) {
-            @mkdir($targetDir, 0770, true);
+        $contents = @file_get_contents($sourcePath);
+        if (!is_string($contents)) {
+            return false;
         }
-        if (!@copy($sourcePath, $targetPath)) {
+        try {
+            writeDurableFileAtomic($targetPath, $contents, ['mode' => 0644]);
+        } catch (Throwable $error) {
             return false;
         }
         $mtime = (int)@filemtime($sourcePath);
@@ -6973,7 +7196,7 @@
                 return in_array($parts[0], $allCtNames);
             });
             if (count($cleanedLines) < count($autoStartLines)) {
-                file_put_contents($autoStartFile, implode("\n", $cleanedLines) . "\n");
+                writeDurableFileAtomic($autoStartFile, implode("\n", $cleanedLines) . "\n");
                 fv3_debug_log("readInfo: removed " . (count($autoStartLines) - count($cleanedLines)) . " stale autostart entries");
                 $autoStart = array_map('var_split', $cleanedLines);
             }

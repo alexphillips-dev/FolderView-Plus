@@ -153,9 +153,12 @@ test('request client generates trace IDs and sends them on mutation payload + he
     const call = getAjaxCalls()[0] || {};
     assert.equal(call.method, 'POST');
     assert.match(String(call.headers?.['X-FV-Trace'] || ''), /^fv-/);
+    assert.match(String(call.headers?.['X-FV-Transaction'] || ''), /^tx-/);
     assert.equal(call.data._fv_request, '1');
     assert.equal(call.data.token, 'tok-123');
     assert.equal(call.data._fv_trace, call.headers?.['X-FV-Trace']);
+    assert.equal(call.data._fv_transaction, call.headers?.['X-FV-Transaction']);
+    assert.equal(response.transactionId, call.headers?.['X-FV-Transaction']);
 });
 
 test('request client retries retryable failures and returns parsed JSON', async () => {

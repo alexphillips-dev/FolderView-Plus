@@ -30,6 +30,8 @@ test('backup payload contract includes full folders + prefs metadata', () => {
     assert.match(libPhp, /'schemaVersion'\s*=>\s*FVPLUS_EXPORT_SCHEMA_VERSION/);
     assert.match(libPhp, /'mode'\s*=>\s*'full'/);
     assert.match(libPhp, /'reason'\s*=>\s*\$reason/);
+    assert.match(libPhp, /'traceId'\s*=>\s*getRequestTraceId\(\)/);
+    assert.match(libPhp, /'transactionId'\s*=>\s*getRequestTransactionId\(\)/);
     assert.match(libPhp, /'folders'\s*=>\s*\$folders/);
     assert.match(libPhp, /'prefs'\s*=>\s*\$prefs/);
 });

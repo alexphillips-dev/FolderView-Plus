@@ -46,6 +46,8 @@ test('the shared client owns mutation safety, keepalive, tracing, and diagnostic
     assert.match(request, /const uploadJson = async/);
     assert.match(request, /const sendKeepalive =/);
     assert.match(request, /const getDiagnostics =/);
+    assert.match(request, /X-FV-Transaction/);
+    assert.match(request, /_fv_transaction/);
     assert.match(request, /sanitizeDiagnosticUrl/);
     assert.match(request, /endpoint\.startsWith\('\/plugins\/folderview\.plus\/'\)/);
     assert.doesNotMatch(request, /ajaxSetup\s*\(/);

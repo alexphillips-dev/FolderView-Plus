@@ -719,6 +719,10 @@ test('shared script library and doctor preflight exist with required helpers', (
 test('docs metadata guard keeps readme and packaged descriptions aligned', () => {
     assert.match(docsMetadataGuard, /Packaged README fallback text must match langs\/en\.json folderviewplus-desc/);
     assert.match(docsMetadataGuard, /README\.md is missing required current-state phrase/);
+    assert.match(docsMetadataGuard, /docs\/current-state\.json/);
+    assert.match(docsMetadataGuard, /visibleSavedIndicator/);
+    assert.match(docsMetadataGuard, /performance profiles do not match the runtime resolver/);
+    assert.match(docsMetadataGuard, /still uses retired current-state terminology/);
     assert.match(docsMetadataGuard, /folderview\.plus\.xml description is missing expected phrase/);
     assert.match(docsMetadataGuard, /Docs metadata guard passed/);
     assert.match(buildReleaseNotes, /Missing CHANGES block for version/);

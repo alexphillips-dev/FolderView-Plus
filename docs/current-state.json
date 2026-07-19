@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "settingsPersistence": {
+    "readmeStatement": "Everyday settings changes save automatically, while workflows that can replace or remove data show their own review and confirmation step.",
+    "visibleSavedIndicator": false,
+    "removedUiTokens": [
+      "fv-prefs-save-status",
+      "renderPreferenceSaveStatus",
+      "fvplus-pref-save-spin"
+    ]
+  },
+  "featureNames": {
+    "settingsModes": ["Basic", "Advanced"],
+    "advancedWorkspaces": [
+      { "id": "automation", "label": "Automation" },
+      { "id": "rules", "label": "Rules" },
+      { "id": "recovery", "label": "Recovery" },
+      { "id": "operations", "label": "Operations" },
+      { "id": "startup", "label": "Start Order" },
+      { "id": "appearance", "label": "Appearance" },
+      { "id": "diagnostics", "label": "Diagnostics" }
+    ],
+    "folderActionSurface": {
+      "label": "folder action sheet",
+      "runtimeToken": "fv-folder-action-sheet",
+      "edgeCaseMinimumMentions": 3
+    }
+  },
+  "performanceProfiles": [
+    { "id": "standard", "name": "Standard", "uiLabel": "Standard" },
+    { "id": "adaptive", "name": "Adaptive", "uiLabel": "Adaptive (recommended)" },
+    { "id": "maximum", "name": "Maximum", "uiLabel": "Maximum performance" }
+  ],
+  "documentationContracts": {
+    "requiredReadmeSections": [
+      "## Settings Overview",
+      "## Getting Started",
+      "## Backups and Recovery",
+      "## Troubleshooting",
+      "## Customization"
+    ],
+    "requiredReadmePhrases": [
+      "Setup Assistant",
+      "Dashboard",
+      "Folder editor bootstrap diagnostics",
+      "docs/TROUBLESHOOTING.md"
+    ],
+    "requiredTroubleshootingSections": [
+      "## Common Issues",
+      "## Support Bundles",
+      "## Paths",
+      "## Legacy CSS/JS Overrides"
+    ],
+    "xmlFeaturePhrases": ["dashboard", "bulk assignment", "recovery", "templates", "diagnostics"],
+    "performanceArchitectureDocs": [
+      "docs/docker-runtime-architecture.md",
+      "docs/vm-runtime-architecture.md"
+    ],
+    "edgeCaseDoc": "docs/edge-cases-test-matrix.md",
+    "retiredTerms": [
+      { "term": "saved indicator", "files": ["README.md"] },
+      { "term": "quick-actions modal", "files": ["docs/edge-cases-test-matrix.md"] },
+      { "term": "strict performance profile", "files": ["docs/docker-runtime-architecture.md", "docs/vm-runtime-architecture.md"] }
+    ]
+  }
+}

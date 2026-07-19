@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.13">
-<!ENTITY md5 "2878eb4ac56139c72d2275f0fd75eb1e">
+<!ENTITY version "2026.07.19.14">
+<!ENTITY md5 "6b95fc9ef8572d2c4a5d3f41bc91a720">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.14
+- Docs: Corrected Settings persistence guidance after removal of the visible saved indicator and documented the current confirmation and recovery workflow.
+- Docs: Renamed the retired quick-actions modal references to the current folder action sheet throughout the edge-case test matrix.
+- Docs: Updated Docker and VM architecture guidance to accurately describe the current Standard, Adaptive, and Maximum performance modes.
+- Quality: Added a machine-readable current-state metadata registry for Settings modes, Advanced workspaces, performance profiles, action-surface names, and retired terminology.
+- Quality: Upgraded the documentation guard to compare published guidance with the live Settings and runtime implementations instead of checking required phrases alone.
+- Test: Added regression coverage that detects stale feature names, removed UI guidance, mismatched performance profiles, and documentation metadata drift.
+
 
 ###2026.07.19.13
 - Security: Added one versioned endpoint registry that classifies every API and action as read-only or mutating and routes all declared mutations through the shared request guard.

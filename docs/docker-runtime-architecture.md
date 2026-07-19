@@ -13,7 +13,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `createContextMenuQuickStripAdapter`: resilient context-menu enhancement for icon-only quick actions.
   - `createRuntimePerfTelemetry`: structured action timing with snapshot support.
   - `createSafeUiActionRunner`: in-flight dedupe for UI-triggered async actions.
-  - `resolveRuntimePerformanceProfile`: strict performance profile for large libraries.
+  - `resolveRuntimePerformanceProfile`: resolves the Standard, Adaptive, and Maximum runtime performance profiles.
   - `runtimeContracts`: shared key/threshold contracts consumed by Docker and VMs.
 - `scripts/docker.modules.js`
   - view helpers (debug logger, perf tracker, row-centering tools).
@@ -28,6 +28,14 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `lockedFolderIds`
   - `pinnedFolderIds`
   - `performanceProfile`
+
+## Performance Profiles
+
+- **Standard** keeps the normal motion and refresh behavior, restores expanded folders without a profile-imposed cap, and renders previews immediately unless the user explicitly enables deferred previews.
+- **Adaptive** is recommended for most installations. It uses a moderate refresh floor and expansion cap, then increases those safeguards when folder count, member count, or measured render time indicates a large library. Deferred previews activate when requested or when those large-library thresholds are active.
+- **Maximum** always applies the strongest runtime safeguards: reduced motion, deferred previews, the smallest expanded-folder restore limit, and the longest minimum refresh interval.
+
+The runtime still uses an internal threshold state while resolving Adaptive and Maximum behavior. That state is an implementation detail, not a fourth user-selectable profile.
 
 ## Guardrails
 

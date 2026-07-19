@@ -20,6 +20,7 @@ This folder holds project documentation that does not need to stay at the reposi
 
 ## Testing and Assets
 
+- [`current-state.json`](current-state.json) — machine-readable names and behavior contracts used to prevent documentation drift.
 - [edge-cases-test-matrix.md](edge-cases-test-matrix.md)
 - [images/README.md](images/README.md)
 - [images/screenshots/README.md](images/screenshots/README.md)

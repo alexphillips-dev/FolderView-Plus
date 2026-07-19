@@ -5365,11 +5365,33 @@ const normalizeUpdateNotesCategoryId = (value) => {
         : 'bugfix';
 };
 
-const stripUpdateNotesLineDecoration = (line) => String(line || '')
-    .trim()
-    .replace(/^#{1,6}\s+/, '')
-    .replace(/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i, '')
-    .trim();
+let updateNotesCategoryTags = [];
+const normalizeReleaseNoteCategoryTags = (value) => {
+    const seen = new Set();
+    return (Array.isArray(value) ? value : [])
+        .map((tag) => String(tag || '').trim())
+        .filter((tag) => {
+            const key = tag.toLowerCase();
+            if (!/^[a-z][a-z0-9 /-]{0,39}$/i.test(tag) || seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+};
+
+const stripUpdateNotesLineDecoration = (line) => {
+    let cleaned = String(line || '')
+        .trim()
+        .replace(/^#{1,6}\s+/, '')
+        .trim();
+    const lowered = cleaned.toLowerCase();
+    const matchedTag = updateNotesCategoryTags.find((tag) => lowered.startsWith(`${tag.toLowerCase()}:`));
+    if (matchedTag) {
+        cleaned = cleaned.slice(matchedTag.length + 1).trim();
+    }
+    return cleaned;
+};
 
 const buildUpdateNotesHeadline = (lines, version = '') => {
     const normalizedLines = Array.isArray(lines)
@@ -5652,6 +5674,7 @@ const maybeShowUpdateNotesPanel = async () => {
         if (lines.length) {
             notes = lines;
         }
+        updateNotesCategoryTags = normalizeReleaseNoteCategoryTags(response?.categoryTags);
         category = normalizeUpdateNotesCategoryId(response?.category);
         categoryLabel = String(response?.categoryLabel || '').trim();
         headline = String(response?.headline || '').trim();

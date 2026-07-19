@@ -9,6 +9,7 @@ fvplus_json_try(function (): array {
         'usedFallback' => (($summary['usedFallback'] ?? false) === true),
         'category' => (string)($summary['category'] ?? 'bugfix'),
         'categoryLabel' => (string)($summary['categoryLabel'] ?? 'Bug Fix Update'),
+        'categoryTags' => releaseNoteCategoryTags(),
         'headline' => (string)($summary['headline'] ?? ''),
         'lines' => (array)($summary['lines'] ?? [])
     ];

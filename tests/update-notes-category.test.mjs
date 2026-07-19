@@ -12,6 +12,7 @@ const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plu
 const updateNotesPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/update_notes.php');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const categoryContract = JSON.parse(read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/release-note-categories.json'));
 const libPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
@@ -63,6 +64,42 @@ echo json_encode(readCurrentVersionChangeSummary(18), JSON_UNESCAPED_SLASHES);
     }
 };
 
+const runCategoryContractHarness = () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-update-note-categories-'));
+    const configDir = path.join(tempDir, 'config');
+    const sourceDir = path.join(tempDir, 'source');
+    const documentRoot = path.join(tempDir, 'document-root');
+    const harnessPath = path.join(tempDir, 'categories.php');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.mkdirSync(documentRoot, { recursive: true });
+    fs.writeFileSync(harnessPath, `<?php
+$_SERVER['DOCUMENT_ROOT'] = getenv('FVPLUS_TEST_DOCUMENT_ROOT');
+require_once ${phpSingleQuote(libPath)};
+echo json_encode([
+    'tags' => releaseNoteCategoryTags(),
+    'privacyCategory' => classifyChangesCategory(['Privacy: Redacted exported network details.']),
+    'reliabilityCategory' => classifyChangesCategory(['Reliability: Preserved atomic recovery state.']),
+    'localizedHeadline' => stripChangesLineDecoration('Localization: Completed the translated catalog.')
+], JSON_UNESCAPED_SLASHES);
+`, 'utf8');
+    try {
+        return JSON.parse(execFileSync('php', [harnessPath], {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            timeout: 120000,
+            env: {
+                ...process.env,
+                FVPLUS_TEST_CONFIG_DIR: configDir,
+                FVPLUS_TEST_SOURCE_DIR: sourceDir,
+                FVPLUS_TEST_DOCUMENT_ROOT: documentRoot
+            }
+        }));
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+};
+
 test('update-notes backend provides current-version-only categorized summary', () => {
     assert.match(libPhp, /function readInstalledManifestPathCandidates\s*\(/);
     assert.match(libPhp, /function readChangesSummaryForVersion\s*\(/);
@@ -76,11 +113,15 @@ test('update-notes backend provides current-version-only categorized summary', (
     assert.match(libPhp, /readChangesSummaryForVersion\(readInstalledVersion\(\), \$maxLines, false\)/);
     assert.match(libPhp, /'maintenance'\s*=>\s*\[[^\]]*'release'[^\]]*'metadata'[^\]]*'packaging'[^\]]*'sync'/);
     assert.match(libPhp, /function classifyChangesCategory\s*\(/);
+    assert.match(libPhp, /function readReleaseNoteCategoryContract\s*\(/);
+    assert.match(libPhp, /function releaseNoteCategoryTags\s*\(/);
+    assert.match(libPhp, /function releaseNoteCategorySummaryMap\s*\(/);
     assert.match(libPhp, /function buildChangesHeadline\s*\(/);
     assert.match(libPhp, /function filterChangesDetailLines\s*\(/);
     assert.match(libPhp, /function readCurrentVersionChangeSummary\s*\(/);
     assert.match(updateNotesPhp, /'category'\s*=>\s*\(string\)\(\$summary\['category'\]/);
     assert.match(updateNotesPhp, /'categoryLabel'\s*=>\s*\(string\)\(\$summary\['categoryLabel'\]/);
+    assert.match(updateNotesPhp, /'categoryTags'\s*=>\s*releaseNoteCategoryTags\(\)/);
     assert.match(updateNotesPhp, /'headline'\s*=>\s*\(string\)\(\$summary\['headline'\]/);
     assert.match(updateNotesPhp, /'usedFallback'\s*=>/);
     assert.match(updateNotesPhp, /'sourceVersion'\s*=>/);
@@ -103,12 +144,53 @@ test('update-notes parser keeps section headings and returns exact current-versi
 test('update-notes UI renders category and headline before changelog list', () => {
     assert.match(settingsJs, /const UPDATE_NOTES_CATEGORY_META = \{/);
     assert.match(settingsJs, /const normalizeUpdateNotesCategoryId =/);
+    assert.match(settingsJs, /const normalizeReleaseNoteCategoryTags =/);
+    assert.match(settingsJs, /updateNotesCategoryTags = normalizeReleaseNoteCategoryTags\(response\?\.categoryTags\)/);
     assert.match(settingsJs, /fv-update-notes-summary/);
     assert.match(settingsJs, /fv-update-notes-category/);
     assert.match(settingsJs, /fv-update-notes-headline/);
     assert.match(settingsCss, /\.fv-update-notes-summary\s*\{/);
     assert.match(settingsCss, /\.fv-update-notes-category\s*\{/);
     assert.match(settingsCss, /\.fv-update-notes-headline\s*\{/);
+});
+
+test('release-note category contract includes the supported specialized tags without aliases', () => {
+    const tags = categoryContract.categories.map((entry) => entry.tag);
+    assert.equal(new Set(tags.map((tag) => tag.toLowerCase())).size, tags.length);
+    assert.deepEqual(tags, [
+        'Feature',
+        'Fix',
+        'Security',
+        'Performance',
+        'Reliability',
+        'Privacy',
+        'UX',
+        'UI/UX',
+        'Accessibility',
+        'Localization',
+        'Diagnostics',
+        'Maintenance',
+        'Docs',
+        'Test',
+        'Quality',
+        'Regression guard',
+        'Compatibility',
+        'Refactor'
+    ]);
+    assert.ok(categoryContract.categories.every((entry) => (
+        typeof entry.summaryCategory === 'string' && entry.summaryCategory !== ''
+    )));
+    assert.ok(!tags.includes('Responsive design'));
+    assert.ok(!tags.includes('Testing'));
+    assert.ok(!tags.includes('Support'));
+});
+
+test('release-note backend consumes specialized tags from the canonical contract', () => {
+    const result = runCategoryContractHarness();
+    assert.deepEqual(result.tags, categoryContract.categories.map((entry) => entry.tag));
+    assert.deepEqual(result.privacyCategory, { id: 'security', label: 'Security Update' });
+    assert.deepEqual(result.reliabilityCategory, { id: 'bugfix', label: 'Bug Fix Update' });
+    assert.equal(result.localizedHeadline, 'Completed the translated catalog.');
 });
 
 test('update-notes headline has no canned generic release summary', () => {

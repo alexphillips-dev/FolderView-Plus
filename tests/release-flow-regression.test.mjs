@@ -64,6 +64,8 @@ test('ensure_plg_changes_entry tolerates unavailable git metadata when curated n
 
     copyFileIntoTemp(tempRoot, 'scripts/ensure_plg_changes_entry.sh');
     copyFileIntoTemp(tempRoot, 'scripts/lib.sh');
+    copyFileIntoTemp(tempRoot, 'scripts/release_note_categories.sh');
+    copyFileIntoTemp(tempRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/release-note-categories.json');
 
     writeFile(path.join(tempRoot, 'folderview.plus.plg'), `<?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [

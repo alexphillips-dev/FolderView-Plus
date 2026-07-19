@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    { "tag": "Feature", "summaryCategory": "feature" },
+    { "tag": "Fix", "summaryCategory": "bugfix" },
+    { "tag": "Security", "summaryCategory": "security" },
+    { "tag": "Performance", "summaryCategory": "performance" },
+    { "tag": "Reliability", "summaryCategory": "bugfix" },
+    { "tag": "Privacy", "summaryCategory": "security" },
+    { "tag": "UX", "summaryCategory": "ui" },
+    { "tag": "UI/UX", "summaryCategory": "ui" },
+    { "tag": "Accessibility", "summaryCategory": "ui" },
+    { "tag": "Localization", "summaryCategory": "ui" },
+    { "tag": "Diagnostics", "summaryCategory": "maintenance" },
+    { "tag": "Maintenance", "summaryCategory": "maintenance" },
+    { "tag": "Docs", "summaryCategory": "maintenance" },
+    { "tag": "Test", "summaryCategory": "maintenance" },
+    { "tag": "Quality", "summaryCategory": "maintenance" },
+    { "tag": "Regression guard", "summaryCategory": "maintenance" },
+    { "tag": "Compatibility", "summaryCategory": "maintenance" },
+    { "tag": "Refactor", "summaryCategory": "maintenance" }
+  ]
+}

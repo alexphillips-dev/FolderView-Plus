@@ -1741,6 +1741,67 @@
         ];
     }
 
+    function readReleaseNoteCategoryContract(): array {
+        static $contract = null;
+        if (is_array($contract)) {
+            return $contract;
+        }
+
+        $contract = [
+            'schemaVersion' => 1,
+            'categories' => []
+        ];
+        $contractPath = dirname(__DIR__) . '/release-note-categories.json';
+        $decoded = readJsonObjectFile($contractPath);
+        if (!is_array($decoded) || !is_array($decoded['categories'] ?? null)) {
+            return $contract;
+        }
+
+        $allowedSummaryCategories = ['feature', 'bugfix', 'security', 'performance', 'ui', 'maintenance'];
+        $seen = [];
+        foreach ($decoded['categories'] as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $tag = trim((string)($entry['tag'] ?? ''));
+            $summaryCategory = strtolower(trim((string)($entry['summaryCategory'] ?? '')));
+            $tagKey = strtolower($tag);
+            if (
+                $tag === ''
+                || !preg_match('/^[A-Za-z][A-Za-z0-9 \/-]{0,39}$/', $tag)
+                || isset($seen[$tagKey])
+                || !in_array($summaryCategory, $allowedSummaryCategories, true)
+            ) {
+                continue;
+            }
+            $seen[$tagKey] = true;
+            $contract['categories'][] = [
+                'tag' => $tag,
+                'summaryCategory' => $summaryCategory
+            ];
+        }
+        $contract['schemaVersion'] = max(1, (int)($decoded['schemaVersion'] ?? 1));
+        return $contract;
+    }
+
+    function releaseNoteCategoryTags(): array {
+        return array_values(array_map(static function (array $entry): string {
+            return (string)($entry['tag'] ?? '');
+        }, (array)(readReleaseNoteCategoryContract()['categories'] ?? [])));
+    }
+
+    function releaseNoteCategorySummaryMap(): array {
+        $map = [];
+        foreach ((array)(readReleaseNoteCategoryContract()['categories'] ?? []) as $entry) {
+            $tag = strtolower(trim((string)($entry['tag'] ?? '')));
+            $summaryCategory = strtolower(trim((string)($entry['summaryCategory'] ?? '')));
+            if ($tag !== '' && $summaryCategory !== '') {
+                $map[$tag] = $summaryCategory;
+            }
+        }
+        return $map;
+    }
+
     function classifyChangesCategory(array $lines): array {
         $text = strtolower(implode("\n", array_map(static function ($line): string {
             return trim((string)$line);
@@ -1769,6 +1830,20 @@
             'maintenance' => ['maintenance', 'release', 'metadata', 'packaging', 'sync', 'build', 'ci', 'test', 'docs', 'documentation', 'cleanup', 'refactor', 'lint', 'guardrail', 'quality']
         ];
 
+        $tagSummaryMap = releaseNoteCategorySummaryMap();
+        foreach ($lines as $line) {
+            $trimmed = ltrim(trim((string)$line), '-* ');
+            $separator = strpos($trimmed, ':');
+            if ($separator === false) {
+                continue;
+            }
+            $tagKey = strtolower(trim(substr($trimmed, 0, $separator)));
+            $summaryCategory = (string)($tagSummaryMap[$tagKey] ?? '');
+            if ($summaryCategory !== '' && array_key_exists($summaryCategory, $scores)) {
+                $scores[$summaryCategory] += 3;
+            }
+        }
+
         foreach ($keywords as $category => $terms) {
             $score = 0;
             foreach ($terms as $term) {
@@ -1776,7 +1851,7 @@
                     $score += 1;
                 }
             }
-            $scores[$category] = $score;
+            $scores[$category] += $score;
         }
 
         arsort($scores);
@@ -1815,7 +1890,13 @@
     function stripChangesLineDecoration(string $line): string {
         $cleaned = trim($line);
         $cleaned = preg_replace('/^#{1,6}\s+/', '', $cleaned);
-        $cleaned = preg_replace('/^(?:Feature|Fix|UI\/UX|Performance|Security|Diagnostics|Compatibility|Privacy|Quality|Test|Maintenance):\s*/i', '', (string)$cleaned);
+        $categoryTags = releaseNoteCategoryTags();
+        if (count($categoryTags) > 0) {
+            $escapedTags = array_map(static function (string $tag): string {
+                return preg_quote($tag, '/');
+            }, $categoryTags);
+            $cleaned = preg_replace('/^(?:' . implode('|', $escapedTags) . '):\s*/i', '', (string)$cleaned);
+        }
         return trim((string)$cleaned);
     }
 

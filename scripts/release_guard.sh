@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
+# shellcheck source=scripts/release_note_categories.sh
+source "${ROOT_DIR}/scripts/release_note_categories.sh"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 PRIMARY_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
 CA_TEMPLATE_FILE="${PRIMARY_CA_TEMPLATE_FILE}"
@@ -965,14 +967,7 @@ fi
 
 is_allowed_changes_category() {
   local category_name="${1:-}"
-  case "${category_name}" in
-    Feature|Fix|Security|Performance|UX|UI/UX|Maintenance|Docs|Test|Quality|"Regression guard"|Compatibility|Refactor)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+  fvplus::is_release_note_category "${category_name}"
 }
 
 is_metadata_only_changes_line() {
@@ -1008,7 +1003,7 @@ done
 if [[ ${#INVALID_CHANGE_CATEGORIES[@]} -gt 0 ]]; then
   unique_invalid="$(printf '%s\n' "${INVALID_CHANGE_CATEGORIES[@]}" | sort -u | awk 'BEGIN{first=1} {if (!first) {printf ", "} printf "%s", $0; first=0}')"
   echo "ERROR: CHANGES entry for ${VERSION} contains unsupported category tag(s): ${unique_invalid}" >&2
-  echo "Allowed categories: Feature, Fix, Security, Performance, UX, UI/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor." >&2
+  echo "Allowed categories: $(fvplus::release_note_category_list)." >&2
   exit 1
 fi
 

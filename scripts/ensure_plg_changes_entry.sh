@@ -11,6 +11,8 @@ REQUIRE_EXPLICIT="${FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:-0}"
 PRUNE_STALE_CHANGES="${FVPLUS_PRUNE_STALE_CHANGES:-0}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
+# shellcheck source=scripts/release_note_categories.sh
+source "${ROOT_DIR}/scripts/release_note_categories.sh"
 
 print_usage() {
   cat <<'EOF'
@@ -298,6 +300,9 @@ format_change_line() {
   local subject="${2:-}"
   if [[ -z "${subject}" ]]; then
     return
+  fi
+  if ! fvplus::is_release_note_category "${category}"; then
+    category="Maintenance"
   fi
   if [[ "${subject}" =~ [.!?]$ ]]; then
     printf -- '- %s: %s\n' "${category}" "${subject}"

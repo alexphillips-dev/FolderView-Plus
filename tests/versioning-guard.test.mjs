@@ -39,6 +39,8 @@ const devVersionBumpGuardPath = path.join(repoRoot, 'scripts/dev_version_bump_gu
 const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
 const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
+const releaseNoteCategoriesShellPath = path.join(repoRoot, 'scripts/release_note_categories.sh');
+const releaseNoteCategoryContractPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/release-note-categories.json');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const syncMainToDevPath = path.join(repoRoot, 'scripts/sync_main_to_dev.sh');
@@ -88,6 +90,8 @@ const devVersionBumpGuard = fs.readFileSync(devVersionBumpGuardPath, 'utf8');
 const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
 const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
+const releaseNoteCategoriesShell = fs.readFileSync(releaseNoteCategoriesShellPath, 'utf8');
+const releaseNoteCategoryContract = JSON.parse(fs.readFileSync(releaseNoteCategoryContractPath, 'utf8'));
 const doctorScript = fs.readFileSync(doctorPath, 'utf8');
 const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
 const prePushHook = fs.readFileSync(prePushHookPath, 'utf8');
@@ -187,7 +191,31 @@ test('release_guard enforces explicit changelog category contract for current ve
     assert.match(releaseGuard, /contains release-metadata boilerplate lines/);
     assert.match(releaseGuard, /duplicates the previous release notes block/);
     assert.match(releaseGuard, /contains only release-metadata boilerplate notes/);
-    assert.match(releaseGuard, /Allowed categories: Feature, Fix, Security, Performance, UX, UI\/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor/);
+    assert.match(releaseGuard, /source "\$\{ROOT_DIR\}\/scripts\/release_note_categories\.sh"/);
+    assert.match(releaseGuard, /fvplus::is_release_note_category/);
+    assert.match(releaseGuard, /fvplus::release_note_category_list/);
+    assert.match(ensureChanges, /fvplus::is_release_note_category/);
+    assert.match(releaseNoteCategoriesShell, /FVPLUS_RELEASE_NOTE_CATEGORY_FILE=/);
+    assert.deepEqual(releaseNoteCategoryContract.categories.map((entry) => entry.tag), [
+        'Feature',
+        'Fix',
+        'Security',
+        'Performance',
+        'Reliability',
+        'Privacy',
+        'UX',
+        'UI/UX',
+        'Accessibility',
+        'Localization',
+        'Diagnostics',
+        'Maintenance',
+        'Docs',
+        'Test',
+        'Quality',
+        'Regression guard',
+        'Compatibility',
+        'Refactor'
+    ]);
 });
 
 test('release_guard enforces archive size, file-count, and extension policy', () => {

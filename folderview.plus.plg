@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.02">
-<!ENTITY md5 "55289d5121b56261d0c6dba423586fea">
+<!ENTITY version "2026.07.19.03">
+<!ENTITY md5 "09219834052f25c572fc3bdfd87587fc">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.03
+# FolderView Plus 2026.07.19.03
+- Feature: Expand the release-note taxonomy with dedicated Reliability, Privacy, Accessibility, Localization, and Diagnostics categories while preserving every previously supported tag.
+- Quality: Centralize all 18 allowed tags and their update-summary mappings in one packaged JSON contract shared by release validation and the installed plugin.
+- Reliability: Make the release guard and automatic notes builder consume the shared contract so an accepted tag cannot drift between packaging paths.
+- UX: Make the installed update-notes endpoint and browser headline formatter use the same canonical tag list instead of separate regular expressions.
+- Compatibility: Continue grouping detailed tags into the existing Feature, Bug Fix, Security, Performance, UI/UX, Maintenance, and Mixed update summary badges.
+- Test: Add contract, parser, classification, helper, and temporary release-flow coverage for the expanded category system.
+
 
 ###2026.07.19.02
 # FolderView Plus 2026.07.19.02

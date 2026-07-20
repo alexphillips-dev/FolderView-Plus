@@ -594,6 +594,10 @@ test('release-on-main workflow auto-publishes validated releases from current pl
     assert.match(releaseOnMainWorkflow, /gh release create/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
     assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
+    assert.match(releaseOnMainWorkflow, /retry_command\(\)/);
+    assert.match(releaseOnMainWorkflow, /create_or_confirm_release\(\)/);
+    assert.match(releaseOnMainWorkflow, /release not found\|HTTP 404\|Not Found/);
     assert.match(releaseOnMainWorkflow, /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/);
 });
 

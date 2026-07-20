@@ -159,19 +159,72 @@ jobs:
         if: steps.release_scope.outputs.should_publish == '1'
         env:
           GH_TOKEN: ${{ github.token }}
+          FVPLUS_GITHUB_RELEASE_ATTEMPTS: '6'
+          FVPLUS_GITHUB_RELEASE_DELAY_SEC: '10'
         run: |
           set -euo pipefail
           TAG="${{ steps.release_meta.outputs.tag }}"
           ARCHIVE="${{ steps.release_meta.outputs.archive }}"
           CHECKSUM="${{ steps.release_meta.outputs.checksum }}"
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release edit "${TAG}" --title "${TAG}" --notes-file release_notes.md
-            gh release upload "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --clobber
-            echo "Updated release ${TAG}"
+
+          retry_command() {
+            local label="$1"
+            shift
+            local attempts="${FVPLUS_GITHUB_RELEASE_ATTEMPTS:-6}"
+            local delay="${FVPLUS_GITHUB_RELEASE_DELAY_SEC:-10}"
+            local attempt=1
+            until "$@"; do
+              if (( attempt >= attempts )); then
+                echo "::error::${label} failed after ${attempts} attempts."
+                return 1
+              fi
+              echo "::warning::${label} failed on attempt ${attempt}/${attempts}; retrying in ${delay}s."
+              sleep "${delay}"
+              attempt=$((attempt + 1))
+              delay=$((delay < 60 ? delay * 2 : 60))
+            done
+          }
+
+          release_exists=0
+          inspect_attempt=1
+          while (( inspect_attempt <= FVPLUS_GITHUB_RELEASE_ATTEMPTS )); do
+            set +e
+            inspect_output="$(gh release view "${TAG}" 2>&1)"
+            inspect_status=$?
+            set -e
+            if (( inspect_status == 0 )); then
+              release_exists=1
+              break
+            fi
+            if grep -Eiq 'release not found|HTTP 404|Not Found' <<<"${inspect_output}"; then
+              break
+            fi
+            if (( inspect_attempt >= FVPLUS_GITHUB_RELEASE_ATTEMPTS )); then
+              echo "${inspect_output}" >&2
+              echo "::error::Unable to determine whether release ${TAG} exists after ${inspect_attempt} attempts."
+              exit 1
+            fi
+            echo "::warning::Release lookup failed on attempt ${inspect_attempt}/${FVPLUS_GITHUB_RELEASE_ATTEMPTS}; retrying."
+            sleep "${FVPLUS_GITHUB_RELEASE_DELAY_SEC}"
+            inspect_attempt=$((inspect_attempt + 1))
+          done
+
+          create_or_confirm_release() {
+            if gh release create "${TAG}" --title "${TAG}" --notes-file release_notes.md; then
+              return 0
+            fi
+            gh release view "${TAG}" >/dev/null 2>&1
+          }
+
+          if (( release_exists == 1 )); then
+            retry_command "Update release metadata" gh release edit "${TAG}" --title "${TAG}" --notes-file release_notes.md
+            echo "Updated release ${TAG} metadata."
           else
-            gh release create "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --title "${TAG}" --notes-file release_notes.md
-            echo "Created release ${TAG}"
+            retry_command "Create release" create_or_confirm_release
+            echo "Created release ${TAG}."
           fi
+          retry_command "Upload release assets" gh release upload "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --clobber
+          echo "Published release ${TAG} assets."
 
       - name: Upload debug artifacts on failure
         if: failure()

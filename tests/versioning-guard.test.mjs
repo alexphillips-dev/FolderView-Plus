@@ -333,7 +333,8 @@ test('browser smoke scripts require folder editor coverage and include real edit
     assert.match(browserSmokeShell, /SMOKE_REQUIRED=1/);
     assert.match(browserSmokeShell, /Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set/);
     assert.match(browserSmokeShell, /Skipping browser smoke checks/);
-    assert.match(browserSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/browser_smoke\.mjs"/);
+    assert.match(browserSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(browserSmokeShell, /"\$\{NODE_BIN\}" "\$\{SMOKE_SCRIPT\}"/);
     assert.match(browserSmokeNode, /playwright/);
     assert.match(browserSmokeNode, /#fv-settings-topbar/);
     assert.match(browserSmokeNode, /#fv-settings-search/);
@@ -369,7 +370,8 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_REQUIRED/);
     assert.match(themeMatrixSmokeShell, /Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set/);
     assert.match(themeMatrixSmokeShell, /Skipping theme matrix smoke checks/);
-    assert.match(themeMatrixSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/theme_matrix_smoke\.mjs"/);
+    assert.match(themeMatrixSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(themeMatrixSmokeShell, /"\$\{NODE_BIN\}" "\$\{THEME_SCRIPT\}"/);
     assert.match(themeMatrixSmokeNode, /playwright/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_REQUIRED_LABELS/);
     assert.match(themeMatrixSmokeNode, /Theme matrix is missing required label\(s\)/);
@@ -508,7 +510,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 });
 
 test('deterministic browser fixtures exercise shipped runtime modules without a live Unraid URL', () => {
-    assert.match(fixtureBrowserShell, /node scripts\/fixture_browser_tests\.mjs/);
+    assert.match(fixtureBrowserShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(fixtureBrowserShell, /"\$\{NODE_BIN\}" "\$\{FIXTURE_SCRIPT\}"/);
     assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeActionBar/);
     assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeReconcile/);
     assert.match(folderEditorBrowserFixture, /folderviewplus\.folder-editor\.js/);

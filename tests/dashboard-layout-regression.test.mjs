@@ -110,6 +110,21 @@ test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /changeDashboardPref\('vm', 'layout', this\.value\)/);
 });
 
+test('dashboard layout preference commits are narrow, immediate, verified, and hydration-gated', () => {
+    assert.match(settingsScript, /immediate: key === 'layout' \|\| key\.startsWith\('privacyMask'\)/);
+    assert.match(settingsScript, /Dashboard layout save mismatch: requested \$\{nextDashboard\.layout\}, received \$\{committedLayout\}/);
+    assert.match(settingsScript, /protectDashboardLayoutFromBroadPrefsWrite/);
+    assert.match(dashboardScript, /const patch = \{ dashboard: \{ layout: normalizedLayout \} \};/);
+    assert.match(dashboardScript, /dashboardPrefsCoordinator\.save\(resolvedType, patch,/);
+    assert.doesNotMatch(dashboardScript, /dashboardPrefsCoordinator\.save\(resolvedType, prefsPayload/);
+    assert.match(dashboardScript, /Dashboard layout save mismatch: requested \$\{nextLayout\}, received \$\{committedLayout\}/);
+    assert.match(dashboardScript, /isDashboardPrefsHydratedForType:/);
+    assert.match(dashboardScript, /isDashboardRenderCompleteForType:/);
+    assert.match(dashboardQuickRailScript, /deps\.isDashboardPrefsHydratedForType\(meta\.type\) !== true/);
+    assert.match(dashboardQuickRailScript, /layout !== 'compactmatrix' \|\| renderComplete !== true \|\| metrics\.containerWidth <= 0/);
+    assert.doesNotMatch(dashboardQuickRailScript, /publishDashboardCompactMatrixTelemetry\(resolvedType, layout, deriveCompactMatrixLayout\(\)\)/);
+});
+
 test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /const normalizeDashboardPrefsForType = \(type, prefsOverride = null\) =>/);
     assert.match(settingsScript, /const markFatalBannerStep = \(step\) =>/);

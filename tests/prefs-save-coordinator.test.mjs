@@ -295,6 +295,83 @@ test('preference coordinator broadcasts committed revisions to another tab', asy
     assert.equal(secondTab.getDiagnostics().types.docker.requests, 0);
 });
 
+test('settings and dashboard layout commits reconcile without unrelated or stale writes restoring classic', async () => {
+    const api = loadModule();
+    const channels = [];
+    class FakeBroadcastChannel {
+        constructor(name) {
+            this.name = name;
+            this.listeners = [];
+            channels.push(this);
+        }
+        addEventListener(kind, listener) {
+            if (kind === 'message') {
+                this.listeners.push(listener);
+            }
+        }
+        postMessage(data) {
+            channels
+                .filter((channel) => channel !== this && channel.name === this.name)
+                .forEach((channel) => channel.listeners.forEach((listener) => listener({ data })));
+        }
+    }
+    let serverPrefs = normalizePrefs({
+        dashboard: { layout: 'classic', greyscale: false },
+        sortMode: 'created',
+        _metadata: { prefsRevision: 1 }
+    });
+    const writePrefs = async (_type, patch, context) => {
+        const revision = Number(serverPrefs._metadata.prefsRevision);
+        if (Number(context.expectedRevision) !== revision) {
+            const error = new Error('Conflict');
+            error.status = 409;
+            throw error;
+        }
+        serverPrefs = normalizePrefs(api.mergePatch(serverPrefs, patch));
+        serverPrefs._metadata.prefsRevision = revision + 1;
+        return {
+            ok: true,
+            prefs: serverPrefs,
+            metadata: { prefsRevision: revision + 1 }
+        };
+    };
+    const common = {
+        normalizePrefs,
+        debounceMs: 0,
+        BroadcastChannel: FakeBroadcastChannel,
+        storage: createStorage(),
+        fetchPrefs: async () => ({
+            prefs: serverPrefs,
+            metadata: serverPrefs._metadata
+        }),
+        writePrefs
+    };
+    const settingsTab = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'settings-tab' });
+    const dashboardTab = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'dashboard-tab' });
+    const staleTab = api.createPreferenceSaveCoordinator({ ...common, sourceId: 'stale-tab', BroadcastChannel: null });
+    const initial = normalizePrefs(serverPrefs);
+    settingsTab.reconcile('docker', initial);
+    dashboardTab.reconcile('docker', initial);
+    staleTab.reconcile('docker', initial);
+
+    await settingsTab.save('docker', { dashboard: { layout: 'compactmatrix' } }, { immediate: true });
+    await wait(5);
+    assert.equal(dashboardTab.getOptimisticPrefs('docker').dashboard.layout, 'compactmatrix');
+
+    await dashboardTab.save('docker', { dashboard: { greyscale: true } }, { immediate: true });
+    assert.equal(serverPrefs.dashboard.layout, 'compactmatrix');
+    assert.equal(serverPrefs.dashboard.greyscale, true);
+
+    const protectedStaleWrite = api.protectDashboardLayoutFromBroadPrefsWrite({
+        ...initial,
+        sortMode: 'manual',
+        dashboard: { ...initial.dashboard, layout: 'classic' }
+    });
+    await staleTab.save('docker', protectedStaleWrite, { immediate: true });
+    assert.equal(serverPrefs.dashboard.layout, 'compactmatrix');
+    assert.equal(serverPrefs.sortMode, 'manual');
+});
+
 test('merge patch preserves nested siblings and replaces arrays atomically', () => {
     const api = loadModule();
     const merged = api.mergePatch({

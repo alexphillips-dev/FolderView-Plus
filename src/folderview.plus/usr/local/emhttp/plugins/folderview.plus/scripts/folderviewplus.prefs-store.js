@@ -12,6 +12,11 @@
     const DEFAULT_DEBOUNCE_MS = 90;
     const DEFAULT_RETRY_DELAY_MS = 1200;
     const MAX_CONFLICT_RETRIES = 2;
+    const DASHBOARD_LAYOUT_TRANSITION_LIMIT = 16;
+    const DASHBOARD_LAYOUT_STORAGE_KEYS = Object.freeze({
+        docker: 'fv.support.bundle.dashboard.layout.docker.v1',
+        vm: 'fv.support.bundle.dashboard.layout.vm.v1'
+    });
 
     const isPlainObject = (value) => (
         value !== null
@@ -58,6 +63,29 @@
         );
     };
 
+    const protectDashboardLayoutFromBroadPrefsWrite = (prefs, options = {}) => {
+        if (!isPlainObject(prefs) || options.allowDashboardLayoutWrite === true) {
+            return prefs;
+        }
+        const dashboard = prefs.dashboard;
+        if (!isPlainObject(dashboard) || !Object.prototype.hasOwnProperty.call(dashboard, 'layout')) {
+            return prefs;
+        }
+        const topLevelKeys = Object.keys(prefs).filter((key) => key !== '_metadata');
+        const dashboardKeys = Object.keys(dashboard);
+        const layoutOnlyPatch = topLevelKeys.length === 1 && topLevelKeys[0] === 'dashboard'
+            && dashboardKeys.length === 1 && dashboardKeys[0] === 'layout';
+        if (layoutOnlyPatch) {
+            return cloneValue(prefs);
+        }
+        const next = cloneValue(prefs);
+        delete next.dashboard.layout;
+        if (Object.keys(next.dashboard).length === 0) {
+            delete next.dashboard;
+        }
+        return next;
+    };
+
     const patchIsEmpty = (patch) => !isPlainObject(patch) || Object.keys(patch).length === 0;
     const readRevision = (prefs) => Math.max(0, Number.parseInt(String(prefs?._metadata?.prefsRevision ?? '0'), 10) || 0);
     const normalizeType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
@@ -66,6 +94,166 @@
     const isRetryableSyncError = (error) => {
         const status = Number(error?.status || error?.httpStatus || 0);
         return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500;
+    };
+
+    const normalizeDashboardLayout = (value, fallback = null) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized)
+            ? normalized
+            : fallback;
+    };
+
+    const createDashboardLayoutStateStore = (options = {}) => {
+        const storage = options.storage || (() => {
+            try {
+                return options.window?.localStorage || root?.localStorage || null;
+            } catch (_error) {
+                return null;
+            }
+        })();
+        const now = typeof options.now === 'function' ? options.now : Date.now;
+        const transitionLimit = Math.max(4, Number(options.transitionLimit || DASHBOARD_LAYOUT_TRANSITION_LIMIT) || DASHBOARD_LAYOUT_TRANSITION_LIMIT);
+
+        const emptyRecord = (type) => ({
+            schemaVersion: 2,
+            type: normalizeType(type),
+            currentPreference: null,
+            preferenceRevision: 0,
+            measurementStatus: 'unmeasured',
+            measuredLayout: null,
+            widgetWidthPx: null,
+            folderCount: null,
+            folderColumns: null,
+            folderRows: null,
+            estimatedFolderWidthPx: null,
+            memberColumns: null,
+            estimatedMemberWidthPx: null,
+            measuredAt: null,
+            transitions: []
+        });
+        const isoTimestamp = (value = null) => {
+            const date = value ? new Date(value) : new Date(now());
+            return Number.isNaN(date.getTime()) ? new Date(now()).toISOString() : date.toISOString();
+        };
+        const nonNegativeInteger = (value, fallback = null) => {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) && numeric >= 0 ? Math.floor(numeric) : fallback;
+        };
+        const normalizeRecord = (type, value = {}) => {
+            const base = emptyRecord(type);
+            const source = isPlainObject(value) ? value : {};
+            const legacyWidth = nonNegativeInteger(source.widgetWidthPx, null);
+            const legacyLayout = normalizeDashboardLayout(source.layout, null);
+            const measuredLayout = normalizeDashboardLayout(
+                source.measuredLayout,
+                legacyWidth > 0 ? legacyLayout : null
+            );
+            const currentPreference = normalizeDashboardLayout(source.currentPreference, legacyLayout);
+            const next = {
+                ...base,
+                currentPreference,
+                preferenceRevision: nonNegativeInteger(source.preferenceRevision, 0),
+                measuredLayout,
+                widgetWidthPx: measuredLayout ? legacyWidth : null,
+                folderCount: measuredLayout ? nonNegativeInteger(source.folderCount, 0) : null,
+                folderColumns: measuredLayout ? nonNegativeInteger(source.folderColumns, 1) : null,
+                folderRows: measuredLayout ? nonNegativeInteger(source.folderRows, 1) : null,
+                estimatedFolderWidthPx: measuredLayout ? nonNegativeInteger(source.estimatedFolderWidthPx, 0) : null,
+                memberColumns: measuredLayout ? nonNegativeInteger(source.memberColumns, 1) : null,
+                estimatedMemberWidthPx: measuredLayout ? nonNegativeInteger(source.estimatedMemberWidthPx, 0) : null,
+                measuredAt: measuredLayout ? String(source.measuredAt || source.observedAt || '') || null : null,
+                currentPreferenceUpdatedAt: String(source.currentPreferenceUpdatedAt || '') || null,
+                transitions: Array.isArray(source.transitions)
+                    ? source.transitions.slice(-transitionLimit).filter((entry) => isPlainObject(entry))
+                    : []
+            };
+            next.measurementStatus = !next.currentPreference || !next.measuredLayout
+                ? 'unmeasured'
+                : (next.measuredLayout === next.currentPreference ? 'measured' : 'stale');
+            return next;
+        };
+        const read = (type) => {
+            const resolvedType = normalizeType(type);
+            const key = DASHBOARD_LAYOUT_STORAGE_KEYS[resolvedType];
+            if (!storage || typeof storage.getItem !== 'function') {
+                return emptyRecord(resolvedType);
+            }
+            try {
+                return normalizeRecord(resolvedType, JSON.parse(String(storage.getItem(key) || 'null')) || {});
+            } catch (_error) {
+                return emptyRecord(resolvedType);
+            }
+        };
+        const write = (type, value) => {
+            const resolvedType = normalizeType(type);
+            const record = normalizeRecord(resolvedType, value);
+            if (storage && typeof storage.setItem === 'function') {
+                try {
+                    storage.setItem(DASHBOARD_LAYOUT_STORAGE_KEYS[resolvedType], JSON.stringify(record));
+                } catch (_error) {
+                    // Layout diagnostics must never interfere with preference persistence.
+                }
+            }
+            return record;
+        };
+        const recordTransition = (type, event = {}) => {
+            const resolvedType = normalizeType(type);
+            const record = read(resolvedType);
+            const requestedLayout = normalizeDashboardLayout(event.requestedLayout, null);
+            const previousLayout = normalizeDashboardLayout(event.previousLayout, null);
+            const committedLayout = normalizeDashboardLayout(event.committedLayout, null);
+            const incomingRevision = nonNegativeInteger(event.preferenceRevision, 0);
+            const outcome = String(event.outcome || 'requested').trim().slice(0, 40) || 'requested';
+            const source = String(event.source || 'hydration').trim().slice(0, 40) || 'hydration';
+            let effectiveOutcome = outcome;
+            const commitsPreference = committedLayout && ['committed', 'hydrated', 'reconciled'].includes(outcome);
+            const staleRevision = commitsPreference
+                && incomingRevision > 0
+                && record.preferenceRevision > 0
+                && incomingRevision < record.preferenceRevision;
+            if (staleRevision) {
+                effectiveOutcome = 'ignored-stale';
+            } else if (commitsPreference) {
+                record.currentPreference = committedLayout;
+                record.preferenceRevision = Math.max(record.preferenceRevision, incomingRevision);
+                record.currentPreferenceUpdatedAt = isoTimestamp(event.timestamp);
+            }
+            record.transitions = [...record.transitions, {
+                requestedLayout,
+                previousLayout,
+                committedLayout,
+                source,
+                preferenceRevision: incomingRevision,
+                outcome: effectiveOutcome,
+                timestamp: isoTimestamp(event.timestamp)
+            }].slice(-transitionLimit);
+            return write(resolvedType, record);
+        };
+        const recordMeasurement = (type, measurement = {}) => {
+            const resolvedType = normalizeType(type);
+            const record = read(resolvedType);
+            const measuredLayout = normalizeDashboardLayout(measurement.measuredLayout, null);
+            const widgetWidthPx = nonNegativeInteger(measurement.widgetWidthPx, 0);
+            const valid = measurement.renderComplete === true
+                && widgetWidthPx > 0
+                && Boolean(record.currentPreference)
+                && measuredLayout === record.currentPreference;
+            if (!valid) {
+                return write(resolvedType, record);
+            }
+            record.measuredLayout = measuredLayout;
+            record.widgetWidthPx = widgetWidthPx;
+            record.folderCount = nonNegativeInteger(measurement.folderCount, 0);
+            record.folderColumns = nonNegativeInteger(measurement.folderColumns, 1);
+            record.folderRows = nonNegativeInteger(measurement.folderRows, 1);
+            record.estimatedFolderWidthPx = nonNegativeInteger(measurement.estimatedFolderWidthPx, 0);
+            record.memberColumns = nonNegativeInteger(measurement.memberColumns, 1);
+            record.estimatedMemberWidthPx = nonNegativeInteger(measurement.estimatedMemberWidthPx, 0);
+            record.measuredAt = isoTimestamp(measurement.measuredAt);
+            return write(resolvedType, record);
+        };
+
+        return Object.freeze({ read, recordTransition, recordMeasurement });
     };
 
     const createPreferenceSaveCoordinator = (options = {}) => {
@@ -595,6 +783,7 @@
     };
 
     let defaultCoordinator = null;
+    let defaultDashboardLayoutStateStore = null;
     const getDefaultCoordinator = (options = {}) => {
         if (defaultCoordinator) {
             return defaultCoordinator;
@@ -637,13 +826,28 @@
         return defaultCoordinator;
     };
 
+    const getDefaultDashboardLayoutStateStore = (options = {}) => {
+        if (!defaultDashboardLayoutStateStore) {
+            defaultDashboardLayoutStateStore = createDashboardLayoutStateStore({
+                ...options,
+                window: options.window || root
+            });
+        }
+        return defaultDashboardLayoutStateStore;
+    };
+
     return Object.freeze({
         createPreferenceSaveCoordinator,
         getDefaultCoordinator,
+        createDashboardLayoutStateStore,
+        getDefaultDashboardLayoutStateStore,
         mergePatch,
         cleanPatch,
+        protectDashboardLayoutFromBroadPrefsWrite,
         isRetryableSyncError,
         STORAGE_PREFIX,
-        CHANNEL_NAME
+        CHANNEL_NAME,
+        DASHBOARD_LAYOUT_STORAGE_KEYS,
+        DASHBOARD_LAYOUT_TRANSITION_LIMIT
     });
 }));

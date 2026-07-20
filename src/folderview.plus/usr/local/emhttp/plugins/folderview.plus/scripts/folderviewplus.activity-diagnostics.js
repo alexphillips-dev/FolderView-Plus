@@ -760,9 +760,39 @@ const fetchPrefs = async (type) => {
     return utils.normalizePrefs({});
 };
 
+const protectDashboardLayoutFromBroadPrefsWrite = (prefs, options = {}) => {
+    if (typeof diagnosticsPrefsStoreModule?.protectDashboardLayoutFromBroadPrefsWrite === 'function') {
+        return diagnosticsPrefsStoreModule.protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
+    }
+    if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs) || options.allowDashboardLayoutWrite === true) {
+        return prefs;
+    }
+    const dashboard = prefs.dashboard;
+    if (!dashboard || typeof dashboard !== 'object' || Array.isArray(dashboard) || !Object.prototype.hasOwnProperty.call(dashboard, 'layout')) {
+        return prefs;
+    }
+    const topLevelKeys = Object.keys(prefs).filter((key) => key !== '_metadata');
+    const dashboardKeys = Object.keys(dashboard);
+    const layoutOnlyPatch = topLevelKeys.length === 1 && topLevelKeys[0] === 'dashboard'
+        && dashboardKeys.length === 1 && dashboardKeys[0] === 'layout';
+    if (layoutOnlyPatch) {
+        return prefs;
+    }
+    const nextDashboard = { ...dashboard };
+    delete nextDashboard.layout;
+    const nextPrefs = { ...prefs };
+    if (Object.keys(nextDashboard).length > 0) {
+        nextPrefs.dashboard = nextDashboard;
+    } else {
+        delete nextPrefs.dashboard;
+    }
+    return nextPrefs;
+};
+
 const postPrefs = async (type, prefs, options = {}) => {
+    const protectedPrefs = protectDashboardLayoutFromBroadPrefsWrite(prefs, options);
     if (diagnosticsPrefsCoordinator) {
-        const savedPrefs = await diagnosticsPrefsCoordinator.save(type, prefs, {
+        const savedPrefs = await diagnosticsPrefsCoordinator.save(type, protectedPrefs, {
             currentPrefs: options.currentPrefs || prefsByType?.[type] || null,
             immediate: options.immediate === true
         });
@@ -772,7 +802,7 @@ const postPrefs = async (type, prefs, options = {}) => {
     const expectedRevision = Math.max(
         0,
         Number.parseInt(String(
-            prefs?._metadata?.prefsRevision
+            protectedPrefs?._metadata?.prefsRevision
             ?? prefsByType?.[type]?._metadata?.prefsRevision
             ?? '0'
         ), 10) || 0
@@ -780,7 +810,7 @@ const postPrefs = async (type, prefs, options = {}) => {
     const payload = {
         type,
         prefs: JSON.stringify(Object.fromEntries(
-            Object.entries(prefs || {}).filter(([key]) => key !== '_metadata')
+            Object.entries(protectedPrefs || {}).filter(([key]) => key !== '_metadata')
         ))
     };
     if (expectedRevision > 0) {
@@ -791,8 +821,11 @@ const postPrefs = async (type, prefs, options = {}) => {
         throw new Error(response.error || 'Failed to save preferences.');
     }
     latestPrefsBackupByType[type] = response.backup || null;
+    const fallbackPrefs = typeof diagnosticsPrefsStoreModule?.mergePatch === 'function'
+        ? diagnosticsPrefsStoreModule.mergePatch(prefsByType?.[type] || {}, protectedPrefs || {})
+        : { ...(prefsByType?.[type] || {}), ...(protectedPrefs || {}) };
     return utils.normalizePrefs({
-        ...(response.prefs || prefs),
+        ...(response.prefs || fallbackPrefs),
         _metadata: response.metadata || {}
     });
 };

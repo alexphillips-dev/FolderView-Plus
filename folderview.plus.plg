@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.20.01">
-<!ENTITY md5 "d6413650c7825dfa7446e00b1a51aef8">
+<!ENTITY version "2026.07.20.02">
+<!ENTITY md5 "7bb15f936737d2259d6deed53aa55e74">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.20.02
+- Fix: Made Dashboard layout changes from Settings and the Dashboard quick switch commit only the requested `dashboard.layout` field immediately, verify the server-confirmed value, and show a visible error if persistence returns a different layout.
+- Reliability: Prevented broad or stale preference writes from carrying an old Dashboard layout, while retaining revision-conflict rebasing and cross-tab synchronization so Compact Matrix survives refreshes and Settings/Dashboard navigation.
+- Reliability: Delayed Dashboard layout application and Compact Matrix measurement until preferences are hydrated and folder rendering is complete, preventing startup defaults and zero-width widgets from being treated as authoritative state.
+- Diagnostics: Reworked Dashboard layout telemetry to distinguish unmeasured, measured, and stale states; retain the last valid geometry; report the committed preference separately; and include a bounded, privacy-safe transition trace with source, revision, outcome, and timestamp.
+- Test: Added regression coverage for Settings/Dashboard reconciliation, unrelated concurrent saves, stale broad writes, pre-hydration startup, zero-width measurement, retained Compact Matrix evidence, responsive resize measurement, and bounded transition history.
 
 ###2026.07.20.01
 - Fix: Corrected Compact Matrix Dashboard sizing so Docker and VM folder cards use the actual widget width instead of the full browser viewport, preventing narrow Dashboard panels from retaining an unsafe three-column layout.

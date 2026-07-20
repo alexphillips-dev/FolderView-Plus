@@ -9,6 +9,8 @@
             greyscale: false,
             folderLabel: true
         }),
+        isDashboardPrefsHydratedForType: () => true,
+        isDashboardRenderCompleteForType: () => true,
         resolveFolderIdFromCard: ($card) => String($card.index()),
         updateExpandToggleIcon: () => {},
         onLayoutTelemetry: (_type, snapshot) => telemetry.push(snapshot)

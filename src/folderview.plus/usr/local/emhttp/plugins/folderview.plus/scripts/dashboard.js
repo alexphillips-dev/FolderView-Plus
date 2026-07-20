@@ -6,6 +6,7 @@ if (!window || !$) {
 const folderContract = window.FolderViewPlusFolderContract || null;
 const requestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
+const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const resolveDashboardPerformancePolicy = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
     ? runtimeShared.resolveRuntimePerformanceProfile
@@ -214,6 +215,27 @@ const dashboardPrefsCoordinator = window.FolderViewPlusPrefsStore?.getDefaultCoo
     normalizePrefs: utils.normalizePrefs,
     request: window.FolderViewPlusRequest
 }) || null;
+const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
+const readDashboardPrefsRevision = (prefs) => Math.max(
+    0,
+    Number.parseInt(String(prefs?._metadata?.prefsRevision ?? '0'), 10) || 0
+);
+const recordDashboardLayoutTransition = (type, event = {}) => (
+    dashboardLayoutStateStore?.recordTransition?.(type, event) || null
+);
+const recordDashboardLayoutHydration = (type, prefs = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const committedLayout = normalizeDashboardLayoutMode(prefs?.dashboard?.layout);
+    const previousLayout = dashboardLayoutStateStore?.read?.(resolvedType)?.currentPreference || null;
+    return recordDashboardLayoutTransition(resolvedType, {
+        requestedLayout: null,
+        previousLayout,
+        committedLayout,
+        source: 'hydration',
+        preferenceRevision: readDashboardPrefsRevision(prefs),
+        outcome: previousLayout === committedLayout ? 'reconciled' : 'hydrated'
+    });
+};
 const normalizeDashboardPrefsResponse = (type, response = {}) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const normalized = utils.normalizePrefs({
@@ -230,26 +252,8 @@ const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'func
         idleTimeoutMs: 900
     })
     : null;
-const DASHBOARD_LAYOUT_TELEMETRY_STORAGE_KEYS = Object.freeze({
-    docker: 'fv.support.bundle.dashboard.layout.docker.v1',
-    vm: 'fv.support.bundle.dashboard.layout.vm.v1'
-});
 const persistDashboardLayoutTelemetry = (type, snapshot = {}) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const storageKey = DASHBOARD_LAYOUT_TELEMETRY_STORAGE_KEYS[resolvedType];
-    if (!storageKey || !window.localStorage || !snapshot || typeof snapshot !== 'object') {
-        return;
-    }
-    const payload = JSON.stringify(snapshot);
-    try {
-        if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
-            dashboardStorageWriter.setItem(storageKey, payload, { delayMs: 120, idle: true });
-        } else {
-            window.localStorage.setItem(storageKey, payload);
-        }
-    } catch (_error) {
-        // Dashboard layout telemetry is diagnostic-only and must never affect rendering.
-    }
+    dashboardLayoutStateStore?.recordMeasurement?.(type, snapshot);
 };
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const getFolderLabelValue = (labels) => {
@@ -557,6 +561,8 @@ const getDashboardQuickRailController = () => {
         dashboardLayoutModes: DASHBOARD_LAYOUT_MODES,
         dashboardLayoutLabels: DASHBOARD_LAYOUT_LABELS,
         normalizeDashboardPrefsForType,
+        isDashboardPrefsHydratedForType: (type) => dashboardPrefsHydratedByType[type === 'vm' ? 'vm' : 'docker'] === true,
+        isDashboardRenderCompleteForType: (type) => dashboardFolderRenderCompleteByType[type === 'vm' ? 'vm' : 'docker'] === true,
         getDashboardStartedOnlySelectorForType,
         isDashboardStartedOnlyEnabledForType: (type) => isDashboardStartedOnlyEnabledForType(type),
         readDashboardHealthEmphasisStateForType: (type) => readDashboardHealthEmphasisStateForType(type),
@@ -831,10 +837,12 @@ const syncDashboardWidgetLayoutQuickControlForType = (type) => {
         controller.syncDashboardWidgetLayoutQuickControlForType(type);
     }
 };
-const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
+const saveDashboardLayoutPrefForType = async (type, layout) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedLayout = normalizeDashboardLayoutMode(layout);
+    const patch = { dashboard: { layout: normalizedLayout } };
     if (dashboardPrefsCoordinator) {
-        const prefs = await dashboardPrefsCoordinator.save(resolvedType, prefsPayload || {}, {
+        const prefs = await dashboardPrefsCoordinator.save(resolvedType, patch, {
             currentPrefs: folderTypePrefs?.[resolvedType] || {},
             immediate: true
         });
@@ -842,7 +850,7 @@ const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     }
     return requestClient.postJson('/plugins/folderview.plus/server/prefs.php', {
         type: resolvedType,
-        prefs: JSON.stringify(prefsPayload || {})
+        prefs: JSON.stringify(patch)
     }, {
         retries: 0,
         timeoutMs: 10000
@@ -879,10 +887,19 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         return;
     }
 
+    recordDashboardLayoutTransition(resolvedType, {
+        requestedLayout: nextLayout,
+        previousLayout: previousDashboard.layout,
+        committedLayout: null,
+        source: 'dashboard-quick-switch',
+        preferenceRevision: readDashboardPrefsRevision(previousPrefs),
+        outcome: 'requested'
+    });
+
     const nextPrefs = {
         ...previousPrefs,
         dashboard: {
-            ...previousDashboard,
+            ...(previousPrefs.dashboard || {}),
             layout: nextLayout
         }
     };
@@ -897,21 +914,42 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 
     try {
-        const response = await saveDashboardLayoutPrefForType(resolvedType, nextPrefs);
+        const response = await saveDashboardLayoutPrefForType(resolvedType, nextLayout);
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
             return;
         }
         if (!response || response.ok !== true) {
             throw new Error(response?.error || 'Failed to save dashboard preferences.');
         }
-        folderTypePrefs[resolvedType] = utils.normalizePrefs(response.prefs || nextPrefs);
+        const committedPrefs = utils.normalizePrefs(response.prefs || nextPrefs);
+        const committedLayout = normalizeDashboardLayoutMode(committedPrefs?.dashboard?.layout);
+        if (committedLayout !== nextLayout) {
+            recordDashboardLayoutTransition(resolvedType, {
+                requestedLayout: nextLayout,
+                previousLayout: previousDashboard.layout,
+                committedLayout,
+                source: 'dashboard-quick-switch',
+                preferenceRevision: readDashboardPrefsRevision(committedPrefs),
+                outcome: 'mismatch'
+            });
+            throw new Error(`Dashboard layout save mismatch: requested ${nextLayout}, received ${committedLayout}.`);
+        }
+        folderTypePrefs[resolvedType] = committedPrefs;
+        recordDashboardLayoutTransition(resolvedType, {
+            requestedLayout: nextLayout,
+            previousLayout: previousDashboard.layout,
+            committedLayout,
+            source: 'dashboard-quick-switch',
+            preferenceRevision: readDashboardPrefsRevision(committedPrefs),
+            outcome: 'committed'
+        });
         if (requiresStructureReload) {
             await rerenderDashboardWidgetStructureForType(resolvedType);
             return;
         }
         scheduleDashboardLayoutApplyForType(resolvedType);
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-    } catch (_error) {
+    } catch (error) {
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
             if (requiresStructureReload) {
                 dashboardLayoutTransitionInFlightByType[resolvedType] = false;
@@ -924,12 +962,20 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
             scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
         }
         folderTypePrefs[resolvedType] = previousPrefs;
+        recordDashboardLayoutTransition(resolvedType, {
+            requestedLayout: nextLayout,
+            previousLayout: previousDashboard.layout,
+            committedLayout: normalizeDashboardLayoutMode(folderTypePrefs[resolvedType]?.dashboard?.layout),
+            source: 'dashboard-quick-switch',
+            preferenceRevision: readDashboardPrefsRevision(folderTypePrefs[resolvedType]),
+            outcome: 'failed'
+        });
         scheduleDashboardLayoutApplyForType(resolvedType);
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
         if (typeof window.swal === 'function') {
             window.swal({
                 title: 'Error',
-                text: 'Unable to save dashboard view preference.',
+                text: String(error?.message || 'Unable to save dashboard view preference.'),
                 type: 'error'
             });
         }
@@ -1247,6 +1293,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
     // if docker is enabled
     if (renderTypes.has('docker') && $('tbody#docker_view').length > 0) {
+        dashboardFolderRenderCompleteByType.docker = false;
         showDashboardRuntimeLoadingRow('docker');
         try {
         let prom = await Promise.all(folderReq.docker);
@@ -1262,6 +1309,8 @@ const createFolders = async (types = ['docker', 'vm']) => {
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.docker = normalizeDashboardPrefsResponse('docker', prefsResponse);
+        dashboardPrefsHydratedByType.docker = true;
+        recordDashboardLayoutHydration('docker', folderTypePrefs.docker);
         const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
         folders = dockerRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
@@ -1269,6 +1318,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
         if (isDashboardLegacyLayoutForType('docker')) {
             globalFolders.docker = {};
+            dashboardFolderRenderCompleteByType.docker = true;
             scheduleDashboardLayoutApplyForType('docker');
             syncDashboardWidgetLayoutQuickControlForType('docker');
         } else {
@@ -1436,6 +1486,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         if (window.FolderViewPlusNativeOrganizer && typeof window.FolderViewPlusNativeOrganizer.syncDockerOrganizer === 'function') {
             window.FolderViewPlusNativeOrganizer.syncDockerOrganizer(globalFolders.docker, { source: 'dashboard-page' }).catch(() => {});
         }
+        dashboardFolderRenderCompleteByType.docker = true;
         scheduleDashboardLayoutApplyForType('docker');
         }
         } finally {
@@ -1450,6 +1501,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
 
     // if vm is enabled
     if (renderTypes.has('vm') && $('tbody#vm_view').length > 0) {
+        dashboardFolderRenderCompleteByType.vm = false;
         showDashboardRuntimeLoadingRow('vm');
         try {
         const prom = await Promise.all(folderReq.vm);
@@ -1465,6 +1517,8 @@ const createFolders = async (types = ['docker', 'vm']) => {
         let order = Object.values(parseDashboardPayloadOr(prom[3], {}));
         let prefsResponse = parseDashboardPayloadOr(prom[4], {});
         folderTypePrefs.vm = normalizeDashboardPrefsResponse('vm', prefsResponse);
+        dashboardPrefsHydratedByType.vm = true;
+        recordDashboardLayoutHydration('vm', folderTypePrefs.vm);
         const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
         folders = vmRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
@@ -1472,6 +1526,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);
         if (isDashboardLegacyLayoutForType('vm')) {
             globalFolders.vms = {};
+            dashboardFolderRenderCompleteByType.vm = true;
             scheduleDashboardLayoutApplyForType('vm');
             syncDashboardWidgetLayoutQuickControlForType('vm');
         } else {
@@ -1635,6 +1690,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
         }}));
 
         globalFolders.vms = foldersDone;
+        dashboardFolderRenderCompleteByType.vm = true;
         scheduleDashboardLayoutApplyForType('vm');
         }
         } finally {
@@ -2329,6 +2385,14 @@ let dashboardLayoutTransitionInFlightByType = {
     docker: false,
     vm: false
 };
+let dashboardPrefsHydratedByType = {
+    docker: false,
+    vm: false
+};
+let dashboardFolderRenderCompleteByType = {
+    docker: false,
+    vm: false
+};
 let dashboardThemeReflowBound = false;
 let dashboardThemeReflowObserver = null;
 let dashboardThemeReflowTimer = 0;
@@ -2775,6 +2839,9 @@ const bindDashboardPreferenceSync = () => {
         const type = snapshot?.type === 'vm' ? 'vm' : 'docker';
         if (!snapshot?.prefs) {
             return;
+        }
+        if (snapshot.hydrated === true) {
+            dashboardPrefsHydratedByType[type] = true;
         }
         folderTypePrefs[type] = utils.normalizePrefs(snapshot.prefs);
         applyDashboardRuntimePrefs();

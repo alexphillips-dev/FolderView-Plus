@@ -3,6 +3,7 @@ const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
+const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const compareLocalizedText = (left, right, options = {}) => (
     window.FolderViewPlusI18n?.compare?.(left, right, options)
@@ -7416,6 +7417,26 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
     };
 };
 
+const readSettingsPrefsRevision = (prefs) => Math.max(
+    0,
+    Number.parseInt(String(prefs?._metadata?.prefsRevision ?? '0'), 10) || 0
+);
+const recordSettingsDashboardLayoutTransition = (type, event = {}) => (
+    dashboardLayoutStateStore?.recordTransition?.(type, event) || null
+);
+const recordSettingsDashboardLayoutHydration = (type, prefs = {}) => {
+    const committedLayout = normalizeDashboardPrefsForType(type, prefs).layout;
+    const previousLayout = dashboardLayoutStateStore?.read?.(type)?.currentPreference || null;
+    return recordSettingsDashboardLayoutTransition(type, {
+        requestedLayout: null,
+        previousLayout,
+        committedLayout,
+        source: 'hydration',
+        preferenceRevision: readSettingsPrefsRevision(prefs),
+        outcome: previousLayout === committedLayout ? 'reconciled' : 'hydrated'
+    });
+};
+
 const syncDashboardDependentFields = (type) => {
     const prefs = normalizeDashboardPrefsForType(type);
     const showNonClassicControls = !['classic', 'legacy'].includes(prefs.layout);
@@ -9375,6 +9396,7 @@ const refreshType = async (type) => {
     }
 
     prefsByType[type] = normalizedPrefs;
+    recordSettingsDashboardLayoutHydration(type, normalizedPrefs);
     setFatalBannerPrefsStatus({
         fetched: prefsResult.status === 'fulfilled',
         normalized: true,
@@ -10474,6 +10496,7 @@ const changeRuntimePref = async (type, key, value) => {
 const changeDashboardPref = async (type, key, value) => {
     const current = utils.normalizePrefs(prefsByType[type]);
     const dashboard = normalizeDashboardPrefsForType(type, current);
+    const previousLayout = dashboard.layout;
     const nextDashboard = {
         ...dashboard
     };
@@ -10508,16 +10531,53 @@ const changeDashboardPref = async (type, key, value) => {
         return;
     }
 
+    if (key === 'layout' && nextDashboard.layout !== previousLayout) {
+        recordSettingsDashboardLayoutTransition(type, {
+            requestedLayout: nextDashboard.layout,
+            previousLayout,
+            committedLayout: null,
+            source: 'settings',
+            preferenceRevision: readSettingsPrefsRevision(current),
+            outcome: 'requested'
+        });
+    }
+
     try {
-        await updatePrefsPartial(type, {
+        const savedPrefs = await updatePrefsPartial(type, {
             dashboard: {
                 [key]: nextDashboard[key]
             }
         }, {
             render: () => renderDashboardControls(type),
-            immediate: key.startsWith('privacyMask')
+            immediate: key === 'layout' || key.startsWith('privacyMask')
         });
+        if (key === 'layout') {
+            const committedLayout = normalizeDashboardPrefsForType(type, savedPrefs).layout;
+            const outcome = committedLayout === nextDashboard.layout ? 'committed' : 'mismatch';
+            recordSettingsDashboardLayoutTransition(type, {
+                requestedLayout: nextDashboard.layout,
+                previousLayout,
+                committedLayout,
+                source: 'settings',
+                preferenceRevision: readSettingsPrefsRevision(savedPrefs),
+                outcome
+            });
+            if (outcome === 'mismatch') {
+                throw new Error(`Dashboard layout save mismatch: requested ${nextDashboard.layout}, received ${committedLayout}.`);
+            }
+        }
     } catch (error) {
+        if (key === 'layout') {
+            const reconciledPrefs = utils.normalizePrefs(prefsByType[type] || current);
+            recordSettingsDashboardLayoutTransition(type, {
+                requestedLayout: nextDashboard.layout,
+                previousLayout,
+                committedLayout: normalizeDashboardPrefsForType(type, reconciledPrefs).layout,
+                source: 'settings',
+                preferenceRevision: readSettingsPrefsRevision(reconciledPrefs),
+                outcome: 'failed'
+            });
+        }
         renderDashboardControls(type);
         showError('Dashboard preference save failed', error);
     }

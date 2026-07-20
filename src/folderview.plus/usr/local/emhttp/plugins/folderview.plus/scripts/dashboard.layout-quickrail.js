@@ -176,11 +176,18 @@
 
         const publishDashboardCompactMatrixTelemetry = (type, layout, metrics) => {
             const resolvedType = normalizeDashboardType(type);
+            const renderComplete = typeof deps.isDashboardRenderCompleteForType === 'function'
+                && deps.isDashboardRenderCompleteForType(resolvedType) === true;
+            if (layout !== 'compactmatrix' || renderComplete !== true || metrics.containerWidth <= 0) {
+                return;
+            }
             const previous = state.compactMatrixMetricsByType[resolvedType];
             const next = {
-                schemaVersion: 1,
+                schemaVersion: 2,
                 type: resolvedType,
-                layout,
+                currentPreference: layout,
+                measurementStatus: 'measured',
+                measuredLayout: layout,
                 widgetWidthPx: metrics.containerWidth,
                 folderCount: metrics.folderCount,
                 folderColumns: metrics.folderColumns,
@@ -199,7 +206,8 @@
             if (typeof deps.onLayoutTelemetry === 'function') {
                 deps.onLayoutTelemetry(resolvedType, {
                     ...next,
-                    observedAt: new Date().toISOString()
+                    renderComplete: true,
+                    measuredAt: new Date().toISOString()
                 });
             }
         };
@@ -255,11 +263,11 @@
             }
             bindDashboardCompactMatrixResizeObserverForType(resolvedType);
             if (layout !== 'compactmatrix') {
+                state.compactMatrixMetricsByType[resolvedType] = null;
                 $container.css('--fv-dashboard-compactmatrix-columns', '');
                 $container.css('--fv-dashboard-compactmatrix-rows', '');
                 $container.css('--fv-dashboard-compactmatrix-member-columns', '');
                 $container.removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
-                publishDashboardCompactMatrixTelemetry(resolvedType, layout, deriveCompactMatrixLayout());
                 return;
             }
             const directCardCount = $container.children('.folder-showcase-outer').length;
@@ -679,6 +687,12 @@
 
         const applyDashboardLayoutStateForType = (type) => {
             const meta = dashboardTypeMeta(type);
+            if (
+                typeof deps.isDashboardPrefsHydratedForType === 'function'
+                && deps.isDashboardPrefsHydratedForType(meta.type) !== true
+            ) {
+                return;
+            }
             const $tbody = jq(meta.tbodySelector);
             if (!$tbody.length) {
                 return;

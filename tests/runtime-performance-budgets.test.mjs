@@ -31,6 +31,7 @@ test('runtime performance matrix covers the required small, normal, and extreme 
     };
     assert.equal(config.runs.measured, 5);
     assert.ok(config.runs.warmup >= 1);
+    assert.equal(config.regressionPolicy.timingNoiseFloorMsByMetric.nativeRowsVisibleMs, 250);
     for (const [name, [folders, members]] of Object.entries(expectedScenarios)) {
         assert.equal(config.scenarios[name].folders, folders);
         assert.equal(config.scenarios[name].members, members);
@@ -47,6 +48,8 @@ test('runtime benchmark enforces median regression limits with noise floors and 
     const runner = read('scripts/runtime_performance_benchmarks.mjs');
     assert.match(runner, /const median = \(values\)/);
     assert.match(runner, /timingNoiseFloorMs/);
+    assert.match(runner, /timingNoiseFloorMsByMetric\?\.\[metric\]/);
+    assert.match(runner, /Number\.isFinite\(metricNoiseFloor\)/);
     assert.match(runner, /heapNoiseFloorBytes/);
     assert.match(runner, /Math\.min\(absoluteBudget, regressionLimit\)/);
     assert.match(runner, /runtime-performance-report\.json/);

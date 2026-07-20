@@ -48,7 +48,7 @@ This stable release brings together every change made on `dev` since stable `202
 - Performance: Replace unbounded localization microtask flushes with one animation-frame batch and collapse very large mutation bursts into one bounded document scan.
 - Performance: Add required browser runtime budgets for small 25-folder/50-member, normal 100-folder/500-member, and extreme 250-folder/2,000-member configurations.
 - Performance: Measure time until native rows are visible, one-shot folder grouping, Settings bootstrap, modern editor opening, start/stop reconciliation, Update-All reconciliation, DOM size, observer volume, retained heap, and bootstrap network requests.
-- Performance: Use warm-up and fresh-page samples with stable medians, absolute ceilings, tracked baselines, percentage tolerances, and metric-specific noise floors so insignificant timing variance does not fail a build.
+- Performance: Use warm-up and fresh-page samples with stable medians, absolute ceilings, tracked baselines, percentage tolerances, and metric-specific noise floors—including a first-paint scheduling allowance—so hosted-runner contention does not create false release failures while absolute limits remain enforced.
 ## Fixes
 - Fix: Preserve saved expanded-folder preferences when the active performance profile limits how many folders are restored during the current page load.
 - Fix: Flush deferred previews before full or incremental reconciliation so container and VM lifecycle changes cannot leave stale preview content.

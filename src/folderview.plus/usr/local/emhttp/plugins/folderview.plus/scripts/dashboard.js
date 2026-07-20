@@ -230,6 +230,27 @@ const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'func
         idleTimeoutMs: 900
     })
     : null;
+const DASHBOARD_LAYOUT_TELEMETRY_STORAGE_KEYS = Object.freeze({
+    docker: 'fv.support.bundle.dashboard.layout.docker.v1',
+    vm: 'fv.support.bundle.dashboard.layout.vm.v1'
+});
+const persistDashboardLayoutTelemetry = (type, snapshot = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_LAYOUT_TELEMETRY_STORAGE_KEYS[resolvedType];
+    if (!storageKey || !window.localStorage || !snapshot || typeof snapshot !== 'object') {
+        return;
+    }
+    const payload = JSON.stringify(snapshot);
+    try {
+        if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
+            dashboardStorageWriter.setItem(storageKey, payload, { delayMs: 120, idle: true });
+        } else {
+            window.localStorage.setItem(storageKey, payload);
+        }
+    } catch (_error) {
+        // Dashboard layout telemetry is diagnostic-only and must never affect rendering.
+    }
+};
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -556,7 +577,8 @@ const getDashboardQuickRailController = () => {
             scheduleDashboardLayoutApplyForType(type);
         },
         onResetView: (type) => resetDashboardWidgetViewStateForType(type),
-        onOpenSettings: () => openFolderViewPlusSettings()
+        onOpenSettings: () => openFolderViewPlusSettings(),
+        onLayoutTelemetry: (type, snapshot) => persistDashboardLayoutTelemetry(type, snapshot)
     });
     return dashboardQuickRailController;
 };

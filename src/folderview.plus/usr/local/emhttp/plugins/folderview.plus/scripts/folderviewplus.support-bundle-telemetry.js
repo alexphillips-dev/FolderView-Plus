@@ -376,6 +376,10 @@
         const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
         const collectDockerRequestBundleTrace = browserCollectors?.collectDockerRequestBundleTrace || (() => ({ available: false }));
         const collectDockerTraceHealth = browserCollectors?.collectDockerTraceHealth || (() => ({ available: false }));
+        const collectDashboardLayoutDiagnostics = browserCollectors?.collectDashboardLayoutDiagnostics || (() => ({
+            docker: { available: false },
+            vm: { available: false }
+        }));
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
@@ -418,6 +422,7 @@
                 requestBundleTrace: collectDockerRequestBundleTrace(uiRedactor),
                 traceHealth: collectDockerTraceHealth(uiRedactor)
             };
+            existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',

@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const repoRoot = path.resolve(process.cwd());
 const settingsPagePath = path.join(
@@ -70,6 +73,7 @@ const libPrefsPhpPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
 );
+const dashboardQuickRailModule = require(dashboardQuickRailScriptPath);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
@@ -302,11 +306,34 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
     assert.match(dashboardQuickRailScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
     assert.match(dashboardQuickRailScript, /return !isDashboardNodeVisible\(updatedNode\);/);
     assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout\) =>/);
-    assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-rows-desktop/);
-    assert.match(dashboardQuickRailScript, /rowsForColumns\(3\)/);
+    assert.match(dashboardQuickRailScript, /const deriveCompactMatrixLayout = \(\{ containerWidth = 0, folderCount = 0 \} = \{\}\) =>/);
+    assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-columns/);
+    assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-member-columns/);
+    assert.match(dashboardQuickRailScript, /new win\.ResizeObserver/);
     assert.match(dashboardQuickRailScript, /syncDashboardCompactMatrixOrderFlowForType\(meta\.type, layout\);/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('angle-down'\)/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('chevron-down'\)/);
+});
+
+test('compact matrix derives folder and member columns from the widget width', () => {
+    const derive = dashboardQuickRailModule.deriveCompactMatrixLayout;
+    assert.equal(typeof derive, 'function');
+    assert.deepEqual(
+        { ...derive({ containerWidth: 1200, folderCount: 5 }) },
+        {
+            containerWidth: 1200,
+            folderCount: 5,
+            folderColumns: 3,
+            folderRows: 2,
+            estimatedFolderWidth: 394,
+            memberColumns: 1,
+            estimatedMemberWidth: 394
+        }
+    );
+    assert.equal(derive({ containerWidth: 900, folderCount: 5 }).folderColumns, 2);
+    assert.equal(derive({ containerWidth: 520, folderCount: 5 }).folderColumns, 1);
+    assert.equal(derive({ containerWidth: 350, folderCount: 5 }).folderColumns, 1);
+    assert.equal(derive({ containerWidth: 1080, folderCount: 2 }).memberColumns, 2);
 });
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
@@ -341,10 +368,11 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
-    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-desktop,\s*1\),\s*max-content\)/);
+    assert.match(dashboardCss, /grid-template-columns:\s*repeat\(var\(--fv-dashboard-compactmatrix-columns,\s*1\),\s*minmax\(0,\s*1fr\)\)/);
+    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows,\s*1\),\s*max-content\)/);
     assert.match(dashboardCss, /grid-auto-flow:\s*column/);
-    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-tablet,\s*1\),\s*max-content\)/);
-    assert.match(dashboardCss, /grid-template-rows:\s*repeat\(var\(--fv-dashboard-compactmatrix-rows-mobile,\s*1\),\s*max-content\)/);
+    assert.match(dashboardCss, /grid-template-columns:\s*repeat\(var\(--fv-dashboard-compactmatrix-member-columns,\s*1\),\s*minmax\(0,\s*1fr\)\)/);
+    assert.doesNotMatch(dashboardCss, /--fv-dashboard-compactmatrix-rows-(?:desktop|tablet|mobile)/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
     assert.doesNotMatch(dashboardCss, /\.folder-hand-docker[\s\S]{0,160}display:\s*none !important/);
     assert.doesNotMatch(dashboardCss, /\.folder-hand-vm[\s\S]{0,160}display:\s*none !important/);

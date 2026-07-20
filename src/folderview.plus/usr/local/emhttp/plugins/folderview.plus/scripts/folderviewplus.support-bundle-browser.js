@@ -347,6 +347,25 @@
             });
         };
 
+        const collectDashboardLayoutDiagnostics = (uiRedactor) => {
+            const collectType = (type, storageKey) => {
+                const record = readClientDiagnosticsStorageRecord(storageKey || '');
+                if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                    return { available: false };
+                }
+                return sanitizeUiRecord(
+                    uiRedactor,
+                    `uiTelemetry.dashboardLayout.${type}`,
+                    type,
+                    { available: true, ...record }
+                );
+            };
+            return {
+                docker: collectType('docker', storageKeys.dashboardLayoutDocker),
+                vm: collectType('vm', storageKeys.dashboardLayoutVm)
+            };
+        };
+
         return Object.freeze({
             collectBrowserCapabilities,
             collectClientStorageDiagnostics,
@@ -356,7 +375,8 @@
             collectDockerPageDiagnostics,
             collectDockerBulkUpdateTrace,
             collectDockerRequestBundleTrace,
-            collectDockerTraceHealth
+            collectDockerTraceHealth,
+            collectDashboardLayoutDiagnostics
         });
     };
 

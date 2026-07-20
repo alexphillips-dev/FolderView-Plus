@@ -6,7 +6,56 @@
     root.FolderViewPlusDashboardLayoutQuickRail = factory();
     root.FolderViewPlusDashboardLayoutQuickRailModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+    const COMPACT_MATRIX_LAYOUT = Object.freeze({
+        maxFolderColumns: 3,
+        minFolderWidth: 360,
+        minMemberWidth: 220,
+        gap: 8
+    });
+
     const normalizeDashboardType = (type) => (type === 'vm' ? 'vm' : 'docker');
+
+    const deriveCompactMatrixLayout = ({ containerWidth = 0, folderCount = 0 } = {}) => {
+        const width = Math.max(0, Math.floor(Number(containerWidth) || 0));
+        const count = Math.max(0, Math.floor(Number(folderCount) || 0));
+        const availableFolderColumns = Math.max(
+            1,
+            Math.floor((width + COMPACT_MATRIX_LAYOUT.gap) / (COMPACT_MATRIX_LAYOUT.minFolderWidth + COMPACT_MATRIX_LAYOUT.gap))
+        );
+        const folderColumns = Math.max(1, Math.min(
+            COMPACT_MATRIX_LAYOUT.maxFolderColumns,
+            count || 1,
+            availableFolderColumns
+        ));
+        const folderRows = Math.max(1, Math.ceil(count / folderColumns));
+        const estimatedFolderWidth = Math.max(
+            0,
+            Math.floor((width - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, folderColumns - 1))) / folderColumns)
+        );
+        const memberColumns = Math.max(
+            1,
+            Math.floor(
+                (estimatedFolderWidth + COMPACT_MATRIX_LAYOUT.gap)
+                / (COMPACT_MATRIX_LAYOUT.minMemberWidth + COMPACT_MATRIX_LAYOUT.gap)
+            )
+        );
+        const estimatedMemberWidth = Math.max(
+            0,
+            Math.floor(
+                (estimatedFolderWidth - (COMPACT_MATRIX_LAYOUT.gap * Math.max(0, memberColumns - 1)))
+                / memberColumns
+            )
+        );
+        return Object.freeze({
+            containerWidth: width,
+            folderCount: count,
+            folderColumns,
+            folderRows,
+            estimatedFolderWidth,
+            memberColumns,
+            estimatedMemberWidth
+        });
+    };
 
     const defaultDashboardTypeMeta = (type) => {
         const resolvedType = normalizeDashboardType(type);
@@ -44,6 +93,22 @@
             widgetVisibilitySyncTimerByType: {
                 docker: 0,
                 vm: 0
+            },
+            compactMatrixResizeObserverByType: {
+                docker: null,
+                vm: null
+            },
+            compactMatrixObservedNodeByType: {
+                docker: null,
+                vm: null
+            },
+            compactMatrixResizeRafByType: {
+                docker: 0,
+                vm: 0
+            },
+            compactMatrixMetricsByType: {
+                docker: null,
+                vm: null
             },
             quickActionSyncBound: false
         };
@@ -97,23 +162,117 @@
             return $tbody.children('tr.updated').first();
         };
 
+        const measureDashboardContainerWidth = (node) => {
+            if (!node) {
+                return 0;
+            }
+            const style = typeof win.getComputedStyle === 'function' ? win.getComputedStyle(node) : null;
+            const horizontalPadding = style
+                ? (parseFloat(style.paddingLeft || '0') || 0) + (parseFloat(style.paddingRight || '0') || 0)
+                : 0;
+            const borderBoxWidth = Number(node.getBoundingClientRect?.().width) || Number(node.clientWidth) || 0;
+            return Math.max(0, Math.floor(borderBoxWidth - horizontalPadding));
+        };
+
+        const publishDashboardCompactMatrixTelemetry = (type, layout, metrics) => {
+            const resolvedType = normalizeDashboardType(type);
+            const previous = state.compactMatrixMetricsByType[resolvedType];
+            const next = {
+                schemaVersion: 1,
+                type: resolvedType,
+                layout,
+                widgetWidthPx: metrics.containerWidth,
+                folderCount: metrics.folderCount,
+                folderColumns: metrics.folderColumns,
+                folderRows: metrics.folderRows,
+                estimatedFolderWidthPx: metrics.estimatedFolderWidth,
+                memberColumns: metrics.memberColumns,
+                estimatedMemberWidthPx: metrics.estimatedMemberWidth,
+                minimumFolderWidthPx: COMPACT_MATRIX_LAYOUT.minFolderWidth,
+                minimumMemberWidthPx: COMPACT_MATRIX_LAYOUT.minMemberWidth
+            };
+            const comparable = (value) => JSON.stringify(value || {});
+            if (comparable(previous) === comparable(next)) {
+                return;
+            }
+            state.compactMatrixMetricsByType[resolvedType] = next;
+            if (typeof deps.onLayoutTelemetry === 'function') {
+                deps.onLayoutTelemetry(resolvedType, {
+                    ...next,
+                    observedAt: new Date().toISOString()
+                });
+            }
+        };
+
+        const scheduleDashboardCompactMatrixSyncForType = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            if (state.compactMatrixResizeRafByType[resolvedType]) {
+                return;
+            }
+            const callback = () => {
+                state.compactMatrixResizeRafByType[resolvedType] = 0;
+                const layout = typeof deps.normalizeDashboardPrefsForType === 'function'
+                    ? deps.normalizeDashboardPrefsForType(resolvedType).layout
+                    : 'classic';
+                syncDashboardCompactMatrixOrderFlowForType(resolvedType, layout);
+            };
+            state.compactMatrixResizeRafByType[resolvedType] = typeof win.requestAnimationFrame === 'function'
+                ? win.requestAnimationFrame(callback)
+                : win.setTimeout(callback, 16);
+        };
+
+        const bindDashboardCompactMatrixResizeObserverForType = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
+            const containerNode = $container.get(0) || null;
+            if (!containerNode) {
+                return;
+            }
+            if (
+                state.compactMatrixObservedNodeByType[resolvedType] === containerNode
+                && state.compactMatrixResizeObserverByType[resolvedType]
+            ) {
+                return;
+            }
+            state.compactMatrixResizeObserverByType[resolvedType]?.disconnect?.();
+            state.compactMatrixResizeObserverByType[resolvedType] = null;
+            state.compactMatrixObservedNodeByType[resolvedType] = containerNode;
+            if (typeof win.ResizeObserver !== 'function') {
+                return;
+            }
+            const observer = new win.ResizeObserver(() => {
+                scheduleDashboardCompactMatrixSyncForType(resolvedType);
+            });
+            observer.observe(containerNode);
+            state.compactMatrixResizeObserverByType[resolvedType] = observer;
+        };
+
         const syncDashboardCompactMatrixOrderFlowForType = (type, layout) => {
             const resolvedType = normalizeDashboardType(type);
             const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
             if (!$container.length) {
                 return;
             }
+            bindDashboardCompactMatrixResizeObserverForType(resolvedType);
             if (layout !== 'compactmatrix') {
-                $container.css('--fv-dashboard-compactmatrix-rows-desktop', '');
-                $container.css('--fv-dashboard-compactmatrix-rows-tablet', '');
-                $container.css('--fv-dashboard-compactmatrix-rows-mobile', '');
+                $container.css('--fv-dashboard-compactmatrix-columns', '');
+                $container.css('--fv-dashboard-compactmatrix-rows', '');
+                $container.css('--fv-dashboard-compactmatrix-member-columns', '');
+                $container.removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
+                publishDashboardCompactMatrixTelemetry(resolvedType, layout, deriveCompactMatrixLayout());
                 return;
             }
             const directCardCount = $container.children('.folder-showcase-outer').length;
-            const rowsForColumns = (columns) => Math.max(1, Math.ceil(directCardCount / Math.max(1, columns)));
-            $container.css('--fv-dashboard-compactmatrix-rows-desktop', String(rowsForColumns(3)));
-            $container.css('--fv-dashboard-compactmatrix-rows-tablet', String(rowsForColumns(2)));
-            $container.css('--fv-dashboard-compactmatrix-rows-mobile', String(rowsForColumns(1)));
+            const metrics = deriveCompactMatrixLayout({
+                containerWidth: measureDashboardContainerWidth($container.get(0)),
+                folderCount: directCardCount
+            });
+            $container.css('--fv-dashboard-compactmatrix-columns', String(metrics.folderColumns));
+            $container.css('--fv-dashboard-compactmatrix-rows', String(metrics.folderRows));
+            $container.css('--fv-dashboard-compactmatrix-member-columns', String(metrics.memberColumns));
+            $container.attr('data-fv-compactmatrix-folder-columns', String(metrics.folderColumns));
+            $container.attr('data-fv-compactmatrix-member-columns', String(metrics.memberColumns));
+            publishDashboardCompactMatrixTelemetry(resolvedType, layout, metrics);
         };
 
         const isDashboardNodeVisible = (node) => {
@@ -653,6 +812,8 @@
             jq(win).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', () => {
                 scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
                 scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
+                scheduleDashboardCompactMatrixSyncForType('docker');
+                scheduleDashboardCompactMatrixSyncForType('vm');
             });
             state.quickActionSyncBound = true;
         };
@@ -672,6 +833,13 @@
             areAllDashboardFoldersExpandedForType,
             syncDashboardWidgetLayoutQuickControlForType,
             ensureDashboardWidgetLayoutQuickSwitchForType,
+            syncDashboardCompactMatrixOrderFlowForType,
+            scheduleDashboardCompactMatrixSyncForType,
+            bindDashboardCompactMatrixResizeObserverForType,
+            getDashboardCompactMatrixMetrics: () => ({
+                docker: state.compactMatrixMetricsByType.docker,
+                vm: state.compactMatrixMetricsByType.vm
+            }),
             applyDashboardLayoutStateForType,
             scheduleDashboardLayoutApplyForType,
             scheduleDashboardWidgetVisibilitySyncForType,
@@ -681,6 +849,8 @@
     };
 
     return Object.freeze({
+        COMPACT_MATRIX_LAYOUT,
+        deriveCompactMatrixLayout,
         createController
     });
 }));

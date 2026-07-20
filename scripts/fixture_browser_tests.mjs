@@ -87,6 +87,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'localization.html');
         } else if (requestUrl.pathname === '/ui-primitives') {
             filePath = path.join(fixtureDir, 'ui-primitives.html');
+        } else if (requestUrl.pathname === '/dashboard-layout') {
+            filePath = path.join(fixtureDir, 'dashboard-layout.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -247,6 +249,39 @@ test('Docker and VM host adapters share row, structure, and idempotent hook cont
         ['second-handler', 'refresh'],
         ['original', 'refresh']
     ]);
+});
+
+test('Compact Matrix responds to the Dashboard widget width without clipping long names', async ({ page }) => {
+    await page.setViewportSize({ width: 1400, height: 900 });
+    await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.fixtureDashboardLayout?.snapshot().folderColumns === 3);
+
+    const wide = await page.evaluate(() => window.fixtureDashboardLayout.snapshot());
+    assert.equal(wide.folderColumns, 3);
+    assert.equal(wide.horizontalOverflow, false);
+    assert.equal(wide.telemetry.folderColumns, 3);
+    assert.ok(wide.telemetry.widgetWidthPx > 1000);
+
+    await page.evaluate(() => window.fixtureDashboardLayout.resize(900));
+    await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 2);
+    const narrowDesktopWidget = await page.evaluate(() => window.fixtureDashboardLayout.snapshot());
+    assert.equal(narrowDesktopWidget.folderColumns, 2, 'a narrow widget in a wide browser must not retain three columns');
+    assert.equal(narrowDesktopWidget.horizontalOverflow, false);
+
+    await page.evaluate(() => window.fixtureDashboardLayout.resize(390));
+    await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 1);
+    const mobile = await page.evaluate(() => window.fixtureDashboardLayout.snapshot());
+    assert.equal(mobile.folderColumns, 1);
+    assert.equal(mobile.memberColumns, 1);
+    assert.equal(mobile.horizontalOverflow, false);
+    assert.ok(mobile.tileWidths.every((width) => width > 300), 'mobile member tiles should use the full folder width');
+
+    await page.evaluate(() => window.fixtureDashboardLayout.resize(1000));
+    await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 2);
+    const restored = await page.evaluate(() => window.fixtureDashboardLayout.snapshot());
+    assert.equal(restored.folderColumns, 2);
+    assert.equal(restored.memberColumns, 2);
+    assert.ok(restored.tileWidths.slice(0, 3).every((width) => width >= 220));
 });
 
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {

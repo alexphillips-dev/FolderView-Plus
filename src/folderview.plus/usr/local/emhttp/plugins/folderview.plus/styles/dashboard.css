@@ -428,8 +428,8 @@ tbody.fv-dashboard-layout-inset .folder-showcase-outer {
 
 tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-desktop, 1), max-content);
+    grid-template-columns: repeat(var(--fv-dashboard-compactmatrix-columns, 1), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows, 1), max-content);
     grid-auto-flow: column;
     gap: 8px;
     align-items: start;
@@ -453,8 +453,22 @@ tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer {
 }
 
 tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > .folder-showcase-outer[expanded="true"] .folder-showcase {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(var(--fv-dashboard-compactmatrix-member-columns, 1), minmax(0, 1fr));
     gap: 6px 8px;
+}
+
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner {
+    width: 100%;
+}
+
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner > .appname,
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner > a:first-child {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-docker,
@@ -685,18 +699,6 @@ body.fvplus-performance-mode .tooltipster-content {
         min-height: 14px !important;
         max-height: 14px !important;
         font-size: 9px;
-    }
-
-    tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-tablet, 1), max-content);
-    }
-}
-
-@media (max-width: 520px) {
-    tbody.fv-dashboard-layout-compactmatrix > tr.updated > td {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: repeat(var(--fv-dashboard-compactmatrix-rows-mobile, 1), max-content);
     }
 }
 

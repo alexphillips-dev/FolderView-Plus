@@ -460,13 +460,29 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     }
                 };
             }
+            if (storageKey === 'dashboard-layout-docker-key') {
+                return {
+                    schemaVersion: 1,
+                    type: 'docker',
+                    layout: 'compactmatrix',
+                    widgetWidthPx: 900,
+                    folderCount: 5,
+                    folderColumns: 2,
+                    folderRows: 3,
+                    estimatedFolderWidthPx: 446,
+                    memberColumns: 2,
+                    estimatedMemberWidthPx: 219
+                };
+            }
             return null;
         },
         storageKeys: {
             dockerPage: 'docker-page-key',
             dockerBulkUpdateTrace: 'docker-trace-key',
             dockerRequestBundleTrace: 'docker-request-key',
-            dockerTraceHealth: 'docker-trace-health-key'
+            dockerTraceHealth: 'docker-trace-health-key',
+            dashboardLayoutDocker: 'dashboard-layout-docker-key',
+            dashboardLayoutVm: 'dashboard-layout-vm-key'
         }
     });
 
@@ -474,6 +490,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     const bulkUpdateTrace = collectors.collectDockerBulkUpdateTrace();
     const requestBundleTrace = collectors.collectDockerRequestBundleTrace();
     const traceHealth = collectors.collectDockerTraceHealth();
+    const dashboardLayout = collectors.collectDashboardLayoutDiagnostics();
 
     assert.equal(pageSnapshot.available, true);
     assert.equal(pageSnapshot.summary.memberMissingFolderClassCount, 2);
@@ -486,6 +503,9 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     assert.equal(traceHealth.available, true);
     assert.equal(traceHealth.bulkUpdateTrace.lastWriteSucceeded, true);
     assert.equal(traceHealth.requestBundleTrace.lastWriteSucceeded, true);
+    assert.equal(dashboardLayout.docker.available, true);
+    assert.equal(dashboardLayout.docker.folderColumns, 2);
+    assert.equal(dashboardLayout.vm.available, false);
 
     const bundle = {
         bundleMeta: { privacyMode: 'sanitized', bundleSaltHash: 'bundle-salt' },

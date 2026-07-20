@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus Dashboard layout fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/dashboard.css">
+    <style>
+        body { margin: 12px; background: #171717; color: #f3f3f3; font: 16px/1.35 Arial, sans-serif; }
+        #fixture-widget { width: 1180px; max-width: 100%; }
+        #fixture-widget table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        #fixture-widget td { padding: 0; }
+        .folder-showcase-outer > span.outer { display: flex; min-height: 50px; padding: 6px; background: #242424; }
+        .folder-showcase > span.outer { min-height: 74px; padding: 6px; background: #292929; }
+        .folder-showcase .img { width: 42px; height: 42px; flex: 0 0 42px; background: #4779aa; }
+    </style>
+</head>
+<body>
+    <section id="fixture-widget">
+        <table>
+            <tbody id="docker_view">
+                <tr class="updated">
+                    <td id="fixture-dashboard-host">
+                        <div class="folder-showcase-outer" expanded="true">
+                            <span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">System</span></span></span>
+                            <div class="folder-showcase">
+                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">Docker-Socket-Proxy</a><br><span>Started</span></span></span>
+                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">VideoDuplicateFinder</a><br><span>Gestartet</span></span></span>
+                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">VM-Custom-Icons</a><br><span>Gestartet</span></span></span>
+                            </div>
+                        </div>
+                        <div class="folder-showcase-outer" expanded="true"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Medien und Automatisierung</span></span></span><div class="folder-showcase"><span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">Open-Archiver</a></span></span></div></div>
+                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Utilities</span></span></span><div class="folder-showcase"></div></div>
+                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Network</span></span></span><div class="folder-showcase"></div></div>
+                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Storage</span></span></span><div class="folder-showcase"></div></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/dashboard.layout-quickrail.js"></script>
+    <script src="/fixtures/dashboard-layout.fixture.js"></script>
+</body>
+</html>

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.16">
-<!ENTITY md5 "0f043bc4c8baa6bd69df92f3bd544e68">
+<!ENTITY version "2026.07.20.01">
+<!ENTITY md5 "d6413650c7825dfa7446e00b1a51aef8">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.20.01
+- Fix: Corrected Compact Matrix Dashboard sizing so Docker and VM folder cards use the actual widget width instead of the full browser viewport, preventing narrow Dashboard panels from retaining an unsafe three-column layout.
+- UI/UX: Made Compact Matrix choose one, two, or three folder columns responsively, keep member tiles at a readable minimum width, and truncate unavoidable long labels cleanly instead of clipping their contents.
+- Reliability: Added per-widget resize and orientation reconciliation so Dashboard layouts update after live panel resizing, Dashboard rearrangement, and mobile rotation without requiring a page refresh.
+- Diagnostics: Added privacy-safe Dashboard layout telemetry to support bundles, including measured widget width, selected folder/member columns, row count, and estimated tile widths for Docker and VM widgets.
+- Test: Added deterministic unit and Chromium fixture coverage for wide widgets, narrow widgets inside wide desktop viewports, mobile widths, long German container names, horizontal overflow, and live resize recovery.
+
 
 ###2026.07.19.16
 - UI/UX: Replaced the generic FolderView Plus install footer with a compact report that identifies installation, upgrade, reinstall, or downgrade and summarizes version, core package, icon pack, persistent data, scheduler, elapsed time, and the next step.

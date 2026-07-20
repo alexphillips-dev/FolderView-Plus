@@ -613,6 +613,8 @@ const getSupportBundleTelemetryApi = () => {
                 dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
                 dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
+                dashboardLayoutDocker: 'fv.support.bundle.dashboard.layout.docker.v1',
+                dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
                 dockerPerformancePolicy: 'fv.performancePolicy.docker.v1',
                 vmPerformancePolicy: 'fv.performancePolicy.vm.v1'
             }

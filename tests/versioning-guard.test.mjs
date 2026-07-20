@@ -238,6 +238,8 @@ test('release_guard enforces archive size, file-count, and extension policy', ()
     assert.match(releaseGuard, /ALLOWED_ARCHIVE_EXTENSIONS='page\|php\|js\|css/);
     assert.match(releaseGuard, /contains blocked executable\/binary artifacts/);
     assert.match(releaseGuard, /contains files with unexpected extensions/);
+    assert.match(releaseGuard, /grep -Fvx 'install\/slack-desc'/);
+    assert.match(releaseGuard, /scripts\/install_report\.sh/);
 });
 
 test('release_guard checks debug flags and mutation endpoint guards', () => {
@@ -626,6 +628,9 @@ test('install smoke supports configurable archive directory override', () => {
     assert.match(installSmoke, /ARCHIVE_DIR="\$\{FVPLUS_ARCHIVE_DIR:-\$\{ROOT_DIR\}\/archive\}"/);
     assert.match(installSmoke, /ARCHIVE_FILE="\$\{ARCHIVE_DIR\}\/folderview\.plus-\$\{VERSION\}\.txz"/);
     assert.match(installSmoke, /scripts\/folderviewplus\.dirty\.js/);
+    assert.match(installSmoke, /\.\/install\/slack-desc/);
+    assert.match(installSmoke, /scripts\/install_report\.sh/);
+    assert.match(installSmoke, /must contain exactly 11 folderview\.plus description lines/);
 });
 
 test('ensure changes entry seeds category-signaling release note text', () => {

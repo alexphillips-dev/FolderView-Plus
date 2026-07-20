@@ -10,8 +10,28 @@ ICON_PACK_ARCHIVE="${FVPLUS_ICON_PACK_ARCHIVE:-${CONFIG_DIR}/folderview.plus-ico
 ICON_PACK_CACHE_ROOT="${CACHE_BASE}/icons-${ICON_PACK_VERSION}"
 ICON_PACK_MARKER="${ICON_PACK_CACHE_ROOT}/.folderview-plus-asset-pack"
 ICON_PACK_EXPECTED_MARKER="${ICON_PACK_VERSION}:${ICON_PACK_SHA256}"
+ICON_PACK_STATUS_FILE="${FVPLUS_ICON_PACK_STATUS_FILE:-}"
+ICON_PACK_INSTALL_STATE="reused"
+
+write_status() {
+    state="${1:-unknown}"
+    file_count="${2:-0}"
+    error_message="${3:-}"
+    if [ -z "${ICON_PACK_STATUS_FILE}" ]; then
+        return
+    fi
+    {
+        printf 'state=%s\n' "${state}"
+        printf 'version=%s\n' "${ICON_PACK_VERSION}"
+        printf 'file_count=%s\n' "${file_count}"
+        if [ -n "${error_message}" ]; then
+            printf 'error=%s\n' "${error_message}"
+        fi
+    } > "${ICON_PACK_STATUS_FILE}"
+}
 
 fail() {
+    write_status "failed" "0" "$1"
     echo "ERROR: $1" >&2
     exit 1
 }
@@ -35,6 +55,7 @@ if [ -f "${ICON_PACK_MARKER}" ] && [ -f "${ICON_PACK_CACHE_ROOT}/asset-pack.json
 fi
 
 if [ "${ICON_PACK_READY}" -ne 1 ]; then
+    ICON_PACK_INSTALL_STATE="activated"
     [ -f "${ICON_PACK_ARCHIVE}" ] || fail "FolderView Plus icon asset pack is missing: ${ICON_PACK_ARCHIVE}"
     ICON_PACK_ACTUAL_SHA256="$(sha256sum "${ICON_PACK_ARCHIVE}" | awk '{print $1}')"
     [ "${ICON_PACK_ACTUAL_SHA256}" = "${ICON_PACK_SHA256}" ] || fail "FolderView Plus icon asset-pack checksum verification failed."
@@ -79,6 +100,13 @@ if [ "${ICON_PACK_READY}" -ne 1 ]; then
     fi
 fi
 
+if [ -z "${ICON_PACK_FILE_COUNT:-}" ]; then
+    ICON_PACK_FILE_COUNT="$(sed -n 's/.*"fileCount"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "${ICON_PACK_CACHE_ROOT}/asset-pack.json" | head -n 1)"
+fi
+case "${ICON_PACK_FILE_COUNT:-}" in
+    ''|*[!0-9]*) ICON_PACK_FILE_COUNT=0 ;;
+esac
+
 mkdir -p "${PLUGIN_DIR}/images"
 RUNTIME_LINK="${PLUGIN_DIR}/images/third-party-icons"
 RUNTIME_LINK_STAGE="${RUNTIME_LINK}.stage.$$"
@@ -100,4 +128,7 @@ for stale_archive in "${CONFIG_DIR}"/folderview.plus-icons-*.txz; do
     fi
 done
 
-echo "FolderView Plus icon asset pack ${ICON_PACK_VERSION} is ready (${ICON_PACK_FILE_COUNT:-cached} icons)."
+write_status "${ICON_PACK_INSTALL_STATE}" "${ICON_PACK_FILE_COUNT}" ""
+if [ -z "${ICON_PACK_STATUS_FILE}" ]; then
+    echo "[OK] FolderView Plus icon asset pack ${ICON_PACK_VERSION} is ready (${ICON_PACK_FILE_COUNT} icons; ${ICON_PACK_INSTALL_STATE})."
+fi

@@ -1,0 +1,11 @@
+folderview.plus: FolderView Plus for Unraid
+folderview.plus:
+folderview.plus: Organizes Docker containers and VMs into nested folder views.
+folderview.plus: Adds live previews, folder actions, rules, and bulk assignment.
+folderview.plus: Includes import, export, backups, recovery, and diagnostics.
+folderview.plus: Provides privacy controls and runtime performance profiles.
+folderview.plus: Uses a verified, independently versioned icon asset pack.
+folderview.plus: Supports Unraid 7.0.0 and newer.
+folderview.plus:
+folderview.plus: Project: https://github.com/alexphillips-dev/FolderView-Plus
+folderview.plus: License: MIT

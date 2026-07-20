@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.19.15">
-<!ENTITY md5 "c851ebcc92605ad6e69a80e5b3ea4eba">
+<!ENTITY version "2026.07.19.16">
+<!ENTITY md5 "0f043bc4c8baa6bd69df92f3bd544e68">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.19.16
+- UI/UX: Replaced the generic FolderView Plus install footer with a compact report that identifies installation, upgrade, reinstall, or downgrade and summarizes version, core package, icon pack, persistent data, scheduler, elapsed time, and the next step.
+- UI/UX: Added previous-to-current version output for upgrades, explicit cache reuse or activation details for the icon pack, preserved backup/custom-content counts, and a compatibility warning after downgrades.
+- Quality: Added a complete Slackware `install/slack-desc` package description so Unraid's package installer no longer displays an empty `PACKAGE DESCRIPTION` section.
+- Reliability: Added stage-aware failure reporting with the failed stage, exit code, icon-pack verification detail when available, and the previous installed version without emitting a false success summary.
+- Reliability: Record install context before package replacement, write the installed version only after icon-pack and scheduler setup, and distinguish a successful cron registration from a daemon restart warning.
+- Test: Added executable install-report coverage for fresh installs, upgrades, reinstalls, downgrades, preserved data, cache activation, and failure output, plus package-content guards for the description and reporting helper.
+- Docs: Documented the new installation report and clarified which output is controlled by Unraid versus FolderView Plus.
+
 
 ###2026.07.19.15
 - Docs: Added a complete task-oriented User Guide covering folders, hierarchy, previews, runtime views, actions, rules, imports, backups, start order, performance profiles, privacy, and diagnostics.
@@ -7296,6 +7306,48 @@
 
     </CHANGES>
 
+    <FILE Run="/bin/bash">
+        <INLINE>
+            set -e
+            install_context="/tmp/folderview.plus-install-context"
+            icon_status="/tmp/folderview.plus-icon-pack-status"
+            config_dir="/boot/config/plugins/&name;"
+            previous_version=""
+            had_config=0
+            backup_count=0
+            custom_icon_count=0
+            override_count=0
+            if [ -f "${config_dir}/version" ] || [ -f "${config_dir}/docker.json" ] || [ -f "${config_dir}/vm.json" ] || [ -f "${config_dir}/docker.prefs.json" ] || [ -f "${config_dir}/vm.prefs.json" ] || [ -d "${config_dir}/backups" ] || [ -d "${config_dir}/images/custom" ] || [ -d "${config_dir}/styles" ] || [ -d "${config_dir}/scripts" ]; then
+                had_config=1
+            fi
+            if [ -f "${config_dir}/version" ]; then
+                previous_version="$(cat "${config_dir}/version" | tr -cd '0-9.')"
+            fi
+            if [ -d "${config_dir}/backups" ]; then
+                backup_count="$(find "${config_dir}/backups" -type f | wc -l | tr -d '[:space:]')"
+            fi
+            if [ -d "${config_dir}/images/custom" ]; then
+                custom_icon_count="$(find "${config_dir}/images/custom" -type f | wc -l | tr -d '[:space:]')"
+            fi
+            if [ -d "${config_dir}/styles" ]; then
+                override_count="$(find "${config_dir}/styles" -type f | wc -l | tr -d '[:space:]')"
+            fi
+            if [ -d "${config_dir}/scripts" ]; then
+                script_override_count="$(find "${config_dir}/scripts" -type f | wc -l | tr -d '[:space:]')"
+                override_count="$((override_count + script_override_count))"
+            fi
+            {
+                printf 'started_at=%s\n' "$(date +%s)"
+                printf 'previous_version=%s\n' "${previous_version}"
+                printf 'had_config=%s\n' "${had_config}"
+                printf 'backup_count=%s\n' "${backup_count}"
+                printf 'custom_icon_count=%s\n' "${custom_icon_count}"
+                printf 'override_count=%s\n' "${override_count}"
+            } > "${install_context}"
+            rm -f "${icon_status}"
+        </INLINE>
+    </FILE>
+
     <FILE Name="/boot/config/plugins/&name;/folderview.plus-icons-&iconPackVersion;.txz">
         <URL>&iconPackURL;</URL>
         <MD5>&iconPackMd5;</MD5>
@@ -7309,21 +7361,35 @@
     <FILE Run="/bin/bash">
         <INLINE>
             set -e
+            install_stage="configuration"
+            install_report="&plugdir;/scripts/install_report.sh"
+            icon_status="/tmp/folderview.plus-icon-pack-status"
+            scheduler_status="registered"
+            install_failure() {
+                exit_code=$?
+                trap - EXIT
+                if [ -f "${install_report}" ]; then
+                    /bin/bash "${install_report}" failure "&version;" "&iconPackVersion;" "${icon_status}" "${install_stage}" "${exit_code}" || true
+                fi
+                exit "${exit_code}"
+            }
+            trap install_failure EXIT
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
             find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
-            echo "Activating FolderView Plus icon asset pack &iconPackVersion;..."
-            /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
-            echo "&version;" > /boot/config/plugins/&name;/version
+            install_stage="icon pack activation"
+            FVPLUS_ICON_PACK_STATUS_FILE="${icon_status}" /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
+            install_stage="scheduled backup registration"
             echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
             chmod 644 /etc/cron.d/folderview.plus
-            /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
-            echo ""
-            echo "----------------------------------------------------"
-            echo " &name; has been installed."
-            echo " Version: &version;"
-            echo "----------------------------------------------------"
-            echo ""
+            if ! /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1; then
+                scheduler_status="registered-restart-warning"
+            fi
+            install_stage="version metadata"
+            echo "&version;" > /boot/config/plugins/&name;/version
+            install_stage="installation report"
+            /bin/bash "${install_report}" complete "&version;" "&iconPackVersion;" "${icon_status}" "${scheduler_status}"
+            trap - EXIT
         </INLINE>
     </FILE>
 

@@ -381,7 +381,9 @@ ALLOWED_ARCHIVE_EXTENSIONS='page|php|js|css|png|jpg|jpeg|gif|webp|svg|bmp|ico|av
 UNEXPECTED_ARCHIVE_FILES="$(
   printf '%s\n' "${ARCHIVE_FILES_ONLY}" \
     | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" \
+    | grep -Fvx 'install/slack-desc' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh' \
+    | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh' \
     || true
 )"
 if [[ -n "${UNEXPECTED_ARCHIVE_FILES}" ]]; then
@@ -391,6 +393,8 @@ if [[ -n "${UNEXPECTED_ARCHIVE_FILES}" ]]; then
 fi
 
 REQUIRED_ARCHIVE_PATHS=(
+  "./install/slack-desc"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"

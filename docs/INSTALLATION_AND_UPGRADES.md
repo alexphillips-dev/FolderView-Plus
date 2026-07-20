@@ -12,6 +12,19 @@ plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plu
 
 The same command can be run from an Unraid terminal. After installation, open `Settings -> FolderView Plus` and use the Setup Assistant or Basic settings.
 
+## Installation report
+
+Unraid prints its own download, verification, package-manager, and hook lines. FolderView Plus then prints a compact final report that identifies whether the operation was an installation, upgrade, reinstall, or downgrade and shows:
+
+- Previous and current versions where applicable.
+- Core package status.
+- Icon-pack version, verification result, cache reuse or activation, and icon count.
+- Whether configuration, backups, custom icons, and overrides were preserved or initialized.
+- Scheduled-backup registration status.
+- Elapsed installation time and the recommended next step.
+
+The core archive includes a Slackware package description, so the package manager's `PACKAGE DESCRIPTION` section identifies FolderView Plus instead of remaining blank. A failed FolderView Plus stage prints the stage, exit code, available error detail, and previous installed version without printing a success report.
+
 ## Install the dev build
 
 The dev branch can change frequently and is intended for directed testing:

@@ -83,7 +83,8 @@ test('manifest resolves and requires the installed asset-pack activation helper'
     assert.match(plg, /<INLINE>\s*set -e/);
     assert.match(plg, /\/bin\/bash "&plugdir;\/scripts\/install_icon_asset_pack\.sh"/);
     assert.doesNotMatch(plg, /&plugdir;scripts\/install_icon_asset_pack\.sh/);
-    assert.match(plg, /Activating FolderView Plus icon asset pack &iconPackVersion;/);
+    assert.match(plg, /FVPLUS_ICON_PACK_STATUS_FILE="\$\{icon_status\}"/);
+    assert.match(plg, /\/bin\/bash "\$\{install_report\}" complete/);
 });
 
 test('asset pack contains only its manifest and supported runtime icons', () => {
@@ -125,6 +126,7 @@ test('installer verifies, stages, activates, reuses, and links the pack', () => 
     assert.match(installer, /\.folderview-plus-asset-pack/);
     assert.match(installer, /ln -s "\$\{ICON_PACK_CACHE_ROOT\}\/third-party-icons"/);
     assert.match(installer, /mv -Tf "\$\{RUNTIME_LINK_STAGE\}"/);
+    assert.match(installer, /write_status "\$\{ICON_PACK_INSTALL_STATE\}"/);
 
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-icon-pack-install-'));
     const pluginDir = path.join(tempDir, 'plugin');

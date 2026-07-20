@@ -39,6 +39,7 @@ if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
 fi
 
 REQUIRED_ARCHIVE_ENTRIES=(
+  "./install/slack-desc"
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page"
@@ -65,6 +66,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
@@ -137,6 +139,7 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.wizard.js"
   "scripts/folderviewplus.import.js"
   "scripts/install_icon_asset_pack.sh"
+  "scripts/install_report.sh"
   "scripts/docker.runtime.hierarchy.js"
   "scripts/docker.runtime.actions.js"
   "scripts/folder.settings-transfer.js"
@@ -168,6 +171,21 @@ for required_file in "${REQUIRED_FILES[@]}"; do
     exit 1
   fi
 done
+
+SLACK_DESC_PATH="${TMP_DIR}/install/slack-desc"
+if [[ ! -s "${SLACK_DESC_PATH}" ]]; then
+  echo "ERROR: Missing Slackware package description: ${SLACK_DESC_PATH}" >&2
+  exit 1
+fi
+SLACK_DESC_LINES="$(grep -c '^folderview\.plus:' "${SLACK_DESC_PATH}" || true)"
+if [[ "${SLACK_DESC_LINES}" -ne 11 ]]; then
+  echo "ERROR: install/slack-desc must contain exactly 11 folderview.plus description lines (found: ${SLACK_DESC_LINES})." >&2
+  exit 1
+fi
+if ! grep -Fq 'folderview.plus: FolderView Plus for Unraid' "${SLACK_DESC_PATH}"; then
+  echo "ERROR: install/slack-desc is missing the package summary." >&2
+  exit 1
+fi
 
 while IFS= read -r -d '' file; do
   if command -v wslpath >/dev/null 2>&1 && command_uses_windows_path_translation "${PHP_BIN}"; then

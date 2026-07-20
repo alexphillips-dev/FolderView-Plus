@@ -52,6 +52,13 @@ const ciWorkflow = read('.github/workflows/ci.yml');
 const releaseMainWorkflow = read('.github/workflows/release-main.yml');
 const releaseOnMainWorkflow = read('.github/workflows/release-on-main.yml');
 const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
+const jobBlock = (workflow, jobName) => {
+  const match = workflow.match(new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'));
+  if (!match) {
+    fail(`Workflow job is missing: ${jobName}`);
+  }
+  return match[1];
+};
 
 if (!/detect-changes:/.test(ciWorkflow)) {
   fail('CI workflow must define a detect-changes job.');
@@ -79,6 +86,24 @@ if (!/runtime_performance_benchmarks\.sh/.test(read('scripts/run_ci_suite.sh')))
 }
 if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');
+}
+for (const jobName of [
+  'detect-changes',
+  'lint-and-syntax',
+  'node-tests',
+  'browser-smoke',
+  'fixture-browser',
+  'theme-matrix'
+]) {
+  const job = jobBlock(ciWorkflow, jobName);
+  if (!/fetch-depth:\s*1/.test(job) || /fetch-depth:\s*0/.test(job)) {
+    fail(`CI job ${jobName} must use a shallow checkout.`);
+  }
+}
+for (const jobName of ['guard-suite', 'release-preview']) {
+  if (!/fetch-depth:\s*0/.test(jobBlock(ciWorkflow, jobName))) {
+    fail(`CI job ${jobName} must retain full history for versioning or packaging.`);
+  }
 }
 for (const [name, workflow] of [
   ['release-main', releaseMainWorkflow],
@@ -132,9 +157,18 @@ if (!/pull-requests:\s*write/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must have pull-requests: write permission.');
 }
 if (!/Create or update back-merge PR/.test(backmergeWorkflow) ||
-    !/gh pr create/.test(backmergeWorkflow) ||
-    !/gh pr edit/.test(backmergeWorkflow)) {
+    !/gh api --method POST/.test(backmergeWorkflow) ||
+    !/gh api --method PATCH/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must open or update a PR into dev instead of pushing directly.');
+}
+if (!/secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must support a scoped token when the repository GITHUB_TOKEN cannot create pull requests.');
+}
+if (!/Back-merge follow-up required/.test(backmergeWorkflow) ||
+    !/::error title=Back-merge PR was not created/.test(backmergeWorkflow) ||
+    !/exit 1/.test(backmergeWorkflow) ||
+    /::warning::Back-merge branch/.test(backmergeWorkflow)) {
+  fail('Back-merge PR failures must fail visibly and provide a manual recovery path.');
 }
 if (/git push origin dev/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must not push directly to protected dev.');

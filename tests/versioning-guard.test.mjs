@@ -503,7 +503,30 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*'chromium,firefox,webkit'/);
     assert.match(backmergeWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(backmergeWorkflow, /pull-requests:\s*write/);
+    assert.match(backmergeWorkflow, /secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/);
+    assert.match(backmergeWorkflow, /Back-merge follow-up required/);
+    assert.match(backmergeWorkflow, /::error title=Back-merge PR was not created/);
+    assert.doesNotMatch(backmergeWorkflow, /::warning::Back-merge branch/);
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
+
+    for (const jobName of [
+        'detect-changes',
+        'lint-and-syntax',
+        'node-tests',
+        'browser-smoke',
+        'fixture-browser',
+        'theme-matrix'
+    ]) {
+        const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
+        const job = ciWorkflow.match(jobPattern)?.[1] || '';
+        assert.match(job, /fetch-depth:\s*1/, `${jobName} should use a shallow checkout`);
+        assert.doesNotMatch(job, /fetch-depth:\s*0/, `${jobName} should not fetch full history`);
+    }
+    for (const jobName of ['guard-suite', 'release-preview']) {
+        const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
+        const job = ciWorkflow.match(jobPattern)?.[1] || '';
+        assert.match(job, /fetch-depth:\s*0/, `${jobName} should retain full history`);
+    }
 
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
@@ -610,8 +633,10 @@ test('back-merge workflow validates merged dev state before pushing', () => {
     assert.match(backmergeWorkflow, /Push back-merge branch when updated/);
     assert.match(backmergeWorkflow, /Create or update back-merge PR/);
     assert.match(backmergeWorkflow, /git push --force-with-lease origin dev:"\$\{BACKMERGE_BRANCH\}"/);
-    assert.match(backmergeWorkflow, /gh pr create --base dev --head "\$\{BACKMERGE_BRANCH\}"/);
-    assert.match(backmergeWorkflow, /gh pr edit "\$\{EXISTING_PR\}"/);
+    assert.match(backmergeWorkflow, /gh api --method POST "repos\/\$\{GITHUB_REPOSITORY\}\/pulls"/);
+    assert.match(backmergeWorkflow, /gh api --method PATCH "repos\/\$\{GITHUB_REPOSITORY\}\/pulls\/\$\{EXISTING_PR\}"/);
+    assert.match(backmergeWorkflow, /secrets\.FVPLUS_BACKMERGE_TOKEN\s*\|\|\s*github\.token/);
+    assert.match(backmergeWorkflow, /exit 1/);
     assert.match(backmergeWorkflow, /Collect back-merge debug artifacts on failure/);
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 });

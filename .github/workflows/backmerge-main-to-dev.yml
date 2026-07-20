@@ -24,6 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          # The sync script needs both branch histories and their merge base.
           fetch-depth: 0
 
       - name: Setup CI environment
@@ -86,11 +87,29 @@ jobs:
       - name: Create or update back-merge PR
         if: steps.push_backmerge.outputs.updated == '1'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.FVPLUS_BACKMERGE_TOKEN || github.token }}
+          BACKMERGE_TOKEN_SOURCE: ${{ secrets.FVPLUS_BACKMERGE_TOKEN != '' && 'FVPLUS_BACKMERGE_TOKEN' || 'GITHUB_TOKEN' }}
         run: |
           set -euo pipefail
           TITLE="Sync main into dev"
           BODY_FILE="$(mktemp)"
+          MANUAL_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/dev...${GITHUB_REPOSITORY_OWNER}:${BACKMERGE_BRANCH}?expand=1"
+          report_pr_failure() {
+            local reason="$1"
+            {
+              echo "## Back-merge follow-up required"
+              echo
+              echo "The validated branch \`${BACKMERGE_BRANCH}\` was pushed, but the workflow could not create or update its pull request using \`${BACKMERGE_TOKEN_SOURCE}\`."
+              echo
+              echo "Reason: ${reason}"
+              echo
+              echo "[Open the back-merge pull request manually](${MANUAL_URL})"
+              echo
+              echo "Repository administrators can enable **Allow GitHub Actions to create and approve pull requests**, or configure the \`FVPLUS_BACKMERGE_TOKEN\` repository secret with pull-request access."
+            } >> "${GITHUB_STEP_SUMMARY}"
+            echo "::error title=Back-merge PR was not created::${reason}. The validated ${BACKMERGE_BRANCH} branch is available; use ${MANUAL_URL}"
+            exit 1
+          }
           cat > "${BODY_FILE}" <<'EOF'
           ## Summary
 
@@ -103,26 +122,60 @@ jobs:
           - `archive/*.sha256`
           EOF
 
-          EXISTING_PR="$(gh pr list --state open --base dev --head "${BACKMERGE_BRANCH}" --json number --jq '.[0].number')"
+          set +e
+          EXISTING_PR="$(
+            gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+              -f state=open \
+              -f base=dev \
+              -f head="${GITHUB_REPOSITORY_OWNER}:${BACKMERGE_BRANCH}" \
+              --jq '.[0].number // empty'
+          )"
+          LOOKUP_STATUS=$?
+          set -e
+          if [ "${LOOKUP_STATUS}" -ne 0 ]; then
+            report_pr_failure "GitHub rejected the lookup for an existing back-merge pull request"
+          fi
+
           set +e
           if [ -n "${EXISTING_PR}" ]; then
-            gh pr edit "${EXISTING_PR}" --title "${TITLE}" --body-file "${BODY_FILE}"
+            PR_URL="$(
+              gh api --method PATCH "repos/${GITHUB_REPOSITORY}/pulls/${EXISTING_PR}" \
+                -f title="${TITLE}" \
+                -f body="$(cat "${BODY_FILE}")" \
+                --jq '.html_url'
+            )"
             STATUS=$?
             if [ "${STATUS}" -eq 0 ]; then
-              echo "Updated back-merge PR #${EXISTING_PR}."
+              echo "Updated back-merge PR #${EXISTING_PR}: ${PR_URL}"
             fi
           else
-            gh pr create --base dev --head "${BACKMERGE_BRANCH}" --title "${TITLE}" --body-file "${BODY_FILE}"
+            PR_URL="$(
+              gh api --method POST "repos/${GITHUB_REPOSITORY}/pulls" \
+                -f title="${TITLE}" \
+                -f head="${BACKMERGE_BRANCH}" \
+                -f base=dev \
+                -f body="$(cat "${BODY_FILE}")" \
+                --jq '.html_url'
+            )"
             STATUS=$?
             if [ "${STATUS}" -eq 0 ]; then
-              echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev."
+              echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev: ${PR_URL}"
             fi
           fi
           set -e
 
           if [ "${STATUS}" -ne 0 ]; then
-            echo "::warning::Back-merge branch ${BACKMERGE_BRANCH} was pushed, but this workflow token is not permitted to create or update pull requests. Open or refresh the PR manually."
+            report_pr_failure "GitHub rejected the back-merge pull-request create or update operation"
           fi
+          if [ -z "${PR_URL:-}" ]; then
+            report_pr_failure "GitHub returned no pull-request URL after the create or update operation"
+          fi
+
+          {
+            echo "## Back-merge pull request ready"
+            echo
+            echo "${PR_URL}"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Collect back-merge debug artifacts on failure
         if: failure()

@@ -47,7 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Detect changed paths
         id: changes
@@ -157,7 +157,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
@@ -190,7 +190,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
@@ -229,6 +229,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # Version and history guards compare the current push with its base.
           fetch-depth: 0
 
       - name: Setup CI environment
@@ -280,7 +281,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
@@ -327,7 +328,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
@@ -368,7 +369,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
@@ -416,6 +417,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # Preview packaging and version resolution require repository history.
           fetch-depth: 0
 
       - name: Setup CI environment

@@ -223,8 +223,9 @@ jobs:
             retry_command "Create release" create_or_confirm_release
             echo "Created release ${TAG}."
           fi
-          retry_command "Upload release assets" gh release upload "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --clobber
-          echo "Published release ${TAG} assets."
+          retry_command "Upload release package" gh release upload "${TAG}" "${ARCHIVE}" --clobber
+          retry_command "Upload release checksum" gh release upload "${TAG}" "${CHECKSUM}" --clobber
+          echo "Published release ${TAG} package and checksum assets."
 
       - name: Upload debug artifacts on failure
         if: failure()

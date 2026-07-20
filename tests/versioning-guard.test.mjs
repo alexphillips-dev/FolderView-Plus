@@ -593,7 +593,8 @@ test('release-on-main workflow auto-publishes validated releases from current pl
     assert.match(releaseOnMainWorkflow, /Generated missing checksum/);
     assert.match(releaseOnMainWorkflow, /gh release create/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release package" gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release checksum" gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
     assert.match(releaseOnMainWorkflow, /retry_command\(\)/);
     assert.match(releaseOnMainWorkflow, /create_or_confirm_release\(\)/);
@@ -706,7 +707,8 @@ test('simulate main release uses a temporary worktree and shared release prepara
 
 test('release workflows keep checksum assets and metadata changes', () => {
     assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
 });
 
 test('CI includes shellcheck linting for repository shell scripts', () => {

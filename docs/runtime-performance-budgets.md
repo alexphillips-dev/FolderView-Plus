@@ -19,6 +19,8 @@ The runner performs one warm-up and five fresh-page measurements, then evaluates
 - The absolute ceiling in `scripts/runtime_perf_budgets.json`.
 - The tracked median in `scripts/runtime_perf_baseline.json` plus the configured meaningful-regression allowance.
 
+Timing allowances include a general scheduling-noise floor and may define a larger metric-specific floor when the measurement includes browser navigation or first-paint scheduling. In particular, `nativeRowsVisibleMs` keeps a 250 ms allowance because hosted runners can delay initial paint while still completing the full folder grouping faster than the tracked baseline. The absolute scenario ceiling remains enforced, so this avoids infrastructure-only failures without turning off the first-visible-row budget.
+
 Timing comparisons use a percentage allowance and a minimum millisecond noise floor. Counts use a smaller percentage allowance with deterministic count floors. Retained heap uses a separate percentage and byte floor. This ignores inconsequential timer noise while still catching substantial runtime, DOM, observer, memory, or request growth.
 
 Reports are written to `tmp/fixture-browser-artifacts/runtime-performance/` as JSON and Markdown and are retained by the existing fixture-browser CI artifact upload.

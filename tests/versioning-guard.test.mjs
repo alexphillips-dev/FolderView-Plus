@@ -333,7 +333,8 @@ test('browser smoke scripts require folder editor coverage and include real edit
     assert.match(browserSmokeShell, /SMOKE_REQUIRED=1/);
     assert.match(browserSmokeShell, /Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set/);
     assert.match(browserSmokeShell, /Skipping browser smoke checks/);
-    assert.match(browserSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/browser_smoke\.mjs"/);
+    assert.match(browserSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(browserSmokeShell, /"\$\{NODE_BIN\}" "\$\{SMOKE_SCRIPT\}"/);
     assert.match(browserSmokeNode, /playwright/);
     assert.match(browserSmokeNode, /#fv-settings-topbar/);
     assert.match(browserSmokeNode, /#fv-settings-search/);
@@ -369,7 +370,8 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_REQUIRED/);
     assert.match(themeMatrixSmokeShell, /Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set/);
     assert.match(themeMatrixSmokeShell, /Skipping theme matrix smoke checks/);
-    assert.match(themeMatrixSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/theme_matrix_smoke\.mjs"/);
+    assert.match(themeMatrixSmokeShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(themeMatrixSmokeShell, /"\$\{NODE_BIN\}" "\$\{THEME_SCRIPT\}"/);
     assert.match(themeMatrixSmokeNode, /playwright/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_REQUIRED_LABELS/);
     assert.match(themeMatrixSmokeNode, /Theme matrix is missing required label\(s\)/);
@@ -433,6 +435,8 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /"\$\{NPM_BIN\}" ci --ignore-scripts/);
     assert.match(runCiSuite, /FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED/);
     assert.match(runCiSuite, /Matching Playwright browsers already cached/);
+    assert.match(runCiSuite, /"\$\{NODE_BIN\}" != \*\.exe/);
+    assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install-deps chromium firefox webkit/);
     assert.match(runCiSuite, /"\$\{NPX_BIN\}" playwright install --with-deps chromium firefox webkit/);
     assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED/);
@@ -508,7 +512,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 });
 
 test('deterministic browser fixtures exercise shipped runtime modules without a live Unraid URL', () => {
-    assert.match(fixtureBrowserShell, /node scripts\/fixture_browser_tests\.mjs/);
+    assert.match(fixtureBrowserShell, /NODE_BIN="\$\(fvplus::resolve_platform_command node\)"/);
+    assert.match(fixtureBrowserShell, /"\$\{NODE_BIN\}" "\$\{FIXTURE_SCRIPT\}"/);
     assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeActionBar/);
     assert.match(runtimeBrowserFixture, /FolderViewPlusDockerRuntimeReconcile/);
     assert.match(folderEditorBrowserFixture, /folderviewplus\.folder-editor\.js/);
@@ -588,7 +593,12 @@ test('release-on-main workflow auto-publishes validated releases from current pl
     assert.match(releaseOnMainWorkflow, /Generated missing checksum/);
     assert.match(releaseOnMainWorkflow, /gh release create/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release package" gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /retry_command "Upload release checksum" gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /FVPLUS_GITHUB_RELEASE_ATTEMPTS:\s*'6'/);
+    assert.match(releaseOnMainWorkflow, /retry_command\(\)/);
+    assert.match(releaseOnMainWorkflow, /create_or_confirm_release\(\)/);
+    assert.match(releaseOnMainWorkflow, /release not found\|HTTP 404\|Not Found/);
     assert.match(releaseOnMainWorkflow, /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/);
 });
 
@@ -697,7 +707,8 @@ test('simulate main release uses a temporary worktree and shared release prepara
 
 test('release workflows keep checksum assets and metadata changes', () => {
     assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
-    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" --clobber/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{CHECKSUM\}" --clobber/);
 });
 
 test('CI includes shellcheck linting for repository shell scripts', () => {

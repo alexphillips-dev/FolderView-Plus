@@ -168,9 +168,13 @@ try {
             let regressionLimit = Number.POSITIVE_INFINITY;
             if (Number.isFinite(baselineValue)) {
                 if (kind === 'timing') {
+                    const metricNoiseFloor = Number(budgetConfig.regressionPolicy?.timingNoiseFloorMsByMetric?.[metric]);
+                    const timingNoiseFloor = Number.isFinite(metricNoiseFloor)
+                        ? metricNoiseFloor
+                        : Number(budgetConfig.regressionPolicy?.timingNoiseFloorMs || 15);
                     regressionLimit = baselineValue + Math.max(
                         baselineValue * Number(budgetConfig.regressionPolicy?.timingPercent || 60) / 100,
-                        Number(budgetConfig.regressionPolicy?.timingNoiseFloorMs || 15)
+                        timingNoiseFloor
                     );
                 } else if (kind === 'heap') {
                     regressionLimit = baselineValue + Math.max(

@@ -7,6 +7,9 @@
   "regressionPolicy": {
     "timingPercent": 60,
     "timingNoiseFloorMs": 50,
+    "timingNoiseFloorMsByMetric": {
+      "nativeRowsVisibleMs": 250
+    },
     "countPercent": 15,
     "heapPercent": 75,
     "heapNoiseFloorBytes": 4194304

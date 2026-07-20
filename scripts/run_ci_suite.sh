@@ -126,6 +126,9 @@ prepare_playwright() {
   fi
 
   if [[ "${browser_cache_ready}" -eq 1 ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_SKIP_BROWSER_INSTALL_IF_CACHED:-1}"; then
+    if [[ "${NODE_BIN}" != *.exe ]] && parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
+      "${NPX_BIN}" playwright install-deps chromium firefox webkit
+    fi
     printf '[ci-suite] Matching Playwright browsers already cached in %s, skipping browser install.\n' "${browsers_dir}"
   elif parse_truthy "${FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS:-1}"; then
     "${NPX_BIN}" playwright install --with-deps chromium firefox webkit

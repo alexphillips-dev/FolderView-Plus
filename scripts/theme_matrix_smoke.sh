@@ -7,6 +7,8 @@ source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
+THEME_SCRIPT="$(fvplus::path_for_command "${NODE_BIN}" "${ROOT_DIR}/scripts/theme_matrix_smoke.mjs")"
 
 REQUIRED_RAW="${FVPLUS_THEME_MATRIX_REQUIRED:-0}"
 
@@ -28,4 +30,4 @@ if [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
   exit 0
 fi
 
-node "${ROOT_DIR}/scripts/theme_matrix_smoke.mjs"
+"${NODE_BIN}" "${THEME_SCRIPT}"

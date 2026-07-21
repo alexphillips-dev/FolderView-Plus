@@ -299,18 +299,24 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     await layoutTrigger.click();
     const popover = page.locator('.fv-dashboard-view-popover-shell');
     await popover.waitFor();
-    assert.equal(await popover.locator('[data-fv-layout-option]').count(), 7);
+    const layoutSelect = popover.locator('[data-fv-layout-select]');
+    assert.equal(await layoutSelect.locator('option').count(), 7);
+    assert.equal(await layoutSelect.inputValue(), 'compactmatrix');
     const compactButtonStyles = await popover.evaluate((root) => {
-        const layoutGrid = root.querySelector('.fv-dashboard-layout-options');
-        const layoutButton = root.querySelector('[data-fv-layout-option="legacy"]');
+        const displayGrid = root.querySelector('.fv-dashboard-view-options');
+        const layoutControl = root.querySelector('[data-fv-layout-select]');
+        const displayButton = root.querySelector('[data-fv-view-action="running-only"]');
         const colorProbe = document.createElement('span');
         colorProbe.style.color = 'var(--fvplus-ui-text-primary)';
         colorProbe.style.border = '1px solid var(--fvplus-ui-border-subtle)';
         root.append(colorProbe);
-        const buttonStyle = getComputedStyle(layoutButton);
+        const layoutStyle = getComputedStyle(layoutControl);
+        const buttonStyle = getComputedStyle(displayButton);
         const probeStyle = getComputedStyle(colorProbe);
         const snapshot = {
-            gap: Number.parseFloat(getComputedStyle(layoutGrid).gap || '0'),
+            gap: Number.parseFloat(getComputedStyle(displayGrid).gap || '0'),
+            layoutMarginTop: Number.parseFloat(layoutStyle.marginTop || '0'),
+            layoutColor: layoutStyle.color,
             marginTop: Number.parseFloat(buttonStyle.marginTop || '0'),
             marginRight: Number.parseFloat(buttonStyle.marginRight || '0'),
             color: buttonStyle.color,
@@ -321,14 +327,14 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
         colorProbe.remove();
         return snapshot;
     });
-    assert.ok(compactButtonStyles.gap <= 2, 'layout choices should be tightly grouped');
+    assert.ok(compactButtonStyles.gap <= 2, 'display choices should be tightly grouped');
+    assert.equal(compactButtonStyles.layoutMarginTop, 0);
+    assert.equal(compactButtonStyles.layoutColor, compactButtonStyles.expectedColor, 'the layout dropdown should use neutral theme text');
     assert.equal(compactButtonStyles.marginTop, 0);
     assert.equal(compactButtonStyles.marginRight, 0);
     assert.equal(compactButtonStyles.color, compactButtonStyles.expectedColor, 'global Unraid button colors must not override the neutral popover text');
     assert.equal(compactButtonStyles.borderColor, compactButtonStyles.expectedBorderColor, 'global Unraid button borders must not override the neutral popover border');
-    assert.equal(await popover.locator('[data-fv-layout-option="compactmatrix"]').getAttribute('aria-checked'), 'true');
-    await popover.locator('[data-fv-layout-option="compactmatrix"]').press('ArrowDown');
-    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-layout-option')), 'embossed');
+    await layoutSelect.focus();
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-quick-action')), 'layout-menu');
@@ -338,7 +344,7 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.equal(await popover.locator('[data-fv-view-action="health-emphasis"]').getAttribute('aria-pressed'), 'true');
     await popover.locator('[data-fv-view-action="running-only"]').click();
     assert.equal(await rail.locator('[data-fv-quick-action="running-only"]').getAttribute('aria-pressed'), 'true');
-    await popover.locator('[data-fv-layout-option="classic"]').click();
+    await popover.locator('[data-fv-layout-select]').selectOption('classic');
     await page.waitForFunction(() => window.fixtureDashboardLayout.state.layout === 'classic');
     assert.equal(await layoutTrigger.getAttribute('data-fv-layout'), 'classic');
 

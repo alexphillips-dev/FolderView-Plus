@@ -832,8 +832,8 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
                 throw new Error(`Dashboard quick rail hidden while selecting ${requestedLayout} for ${type}. Screenshot: ${screenshotPath}`);
             }
             await button.click({ timeout: timeoutMs });
-            const option = page.locator(`.fv-dashboard-view-popover[data-fv-dashboard-type="${type}"] [data-fv-layout-option="${requestedLayout}"]`).first();
-            await option.click({ timeout: timeoutMs });
+            const layoutSelect = page.locator(`.fv-dashboard-view-popover[data-fv-dashboard-type="${type}"] [data-fv-layout-select]`).first();
+            await layoutSelect.selectOption(requestedLayout, { timeout: timeoutMs });
             await page.waitForTimeout(220);
             const appliedLayout = await page.locator(type === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view').getAttribute('data-fv-dashboard-layout');
             visitedLayouts.push(String(appliedLayout || '').trim().toLowerCase());

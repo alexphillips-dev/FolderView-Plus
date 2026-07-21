@@ -262,6 +262,8 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /data-fv-view-action="open-settings"/);
     assert.match(dashboardQuickRailScript, /ui\.openPopover/);
     assert.match(dashboardQuickRailScript, /aria-pressed/);
+    assert.match(dashboardQuickRailScript, /data-fv-layout-select/);
+    assert.doesNotMatch(dashboardQuickRailScript, /data-fv-layout-option/);
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-inline-host/);
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-quick-rail/);
     assert.match(dashboardQuickRailScript, /\$host\.parent\(\)\.is\(\$container\)/);
@@ -366,7 +368,7 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-compact-grid/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
     assert.match(dashboardCss, /\.fv-dashboard-view-popover-shell/);
-    assert.match(dashboardCss, /\.fv-dashboard-layout-option:focus-visible/);
+    assert.match(dashboardCss, /select\.fv-dashboard-layout-select:focus-visible/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border:\s*0 !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border-radius:\s*5px/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-bg-top\),\s*var\(--fvplus-dashboard-quick-action-bg-bottom\)\) !important/);

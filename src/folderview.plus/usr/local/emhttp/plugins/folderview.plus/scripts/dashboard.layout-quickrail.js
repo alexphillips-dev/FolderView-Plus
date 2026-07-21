@@ -557,13 +557,11 @@
                 ? deps.normalizeDashboardPrefsForType(resolvedType).layout
                 : 'classic';
             const quickState = readDashboardQuickStateForType(resolvedType);
-            popover.element.querySelectorAll('[data-fv-layout-option]').forEach((button) => {
-                const selected = button.getAttribute('data-fv-layout-option') === currentLayout;
-                button.classList.toggle('is-selected', selected);
-                button.setAttribute('aria-checked', selected ? 'true' : 'false');
-                button.tabIndex = selected ? 0 : -1;
-                button.disabled = state.layoutPendingByType[resolvedType] === true;
-            });
+            const layoutSelect = popover.element.querySelector('[data-fv-layout-select]');
+            if (layoutSelect) {
+                layoutSelect.value = currentLayout;
+                layoutSelect.disabled = state.layoutPendingByType[resolvedType] === true;
+            }
             const toggleStates = {
                 'running-only': quickState.startedOnlyEnabled,
                 'health-emphasis': quickState.healthEnabled,
@@ -588,9 +586,7 @@
                 ? deps.normalizeDashboardPrefsForType(resolvedType).layout
                 : 'classic';
             const layoutOptions = getDashboardLayoutModes().map((layout) => `
-                <button type="button" class="fv-dashboard-layout-option${layout === currentLayout ? ' is-selected' : ''}" role="radio" aria-checked="${layout === currentLayout ? 'true' : 'false'}" tabindex="${layout === currentLayout ? '0' : '-1'}" data-fv-layout-option="${escapeHtml(layout)}">
-                    <i class="fa fa-check" aria-hidden="true"></i><span>${escapeHtml(layoutLabels[layout] || layout)}</span>
-                </button>`).join('');
+                <option value="${escapeHtml(layout)}"${layout === currentLayout ? ' selected' : ''}>${escapeHtml(layoutLabels[layout] || layout)}</option>`).join('');
             const toggleRow = (action, icon, label, description) => `
                 <button type="button" class="fv-dashboard-view-option" data-fv-view-action="${escapeHtml(action)}" aria-pressed="false">
                     <i class="fa ${escapeHtml(icon)} fv-dashboard-view-option-icon" aria-hidden="true"></i>
@@ -602,7 +598,11 @@
                     <header><strong>${escapeHtml(translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel))}</strong><span>${escapeHtml(translate('dashboard.quick.view-options-help', 'Customize this Dashboard widget.'))}</span></header>
                     <section class="fv-dashboard-view-section" data-fv-view-section="layout">
                         <h3>${escapeHtml(translate('dashboard.quick.layout', 'Layout'))}</h3>
-                        <div class="fv-dashboard-layout-options" role="radiogroup" aria-label="${escapeHtml(translate('dashboard.quick.choose-layout', 'Choose layout'))}">${layoutOptions}</div>
+                        <div class="fv-dashboard-layout-select-shell">
+                            <i class="fa fa-columns" aria-hidden="true"></i>
+                            <select class="fv-dashboard-layout-select" data-fv-layout-select aria-label="${escapeHtml(translate('dashboard.quick.choose-layout', 'Choose layout'))}">${layoutOptions}</select>
+                            <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                        </div>
                     </section>
                     <section class="fv-dashboard-view-section">
                         <h3>${escapeHtml(translate('dashboard.quick.display', 'Display'))}</h3>
@@ -656,7 +656,7 @@
                 ariaLabel: translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel),
                 className: 'fv-dashboard-view-popover-shell',
                 placement: 'bottom-end',
-                initialFocus: initialSection === 'layout' ? '[data-fv-layout-option][aria-checked="true"]' : '[data-fv-view-action="running-only"]',
+                initialFocus: initialSection === 'layout' ? '[data-fv-layout-select]' : '[data-fv-view-action="running-only"]',
                 onClose: () => {
                     if (state.viewPopoverByType[resolvedType]?.element === popover?.element) state.viewPopoverByType[resolvedType] = null;
                 }
@@ -664,14 +664,15 @@
             if (!popover) return;
             state.viewPopoverByType[resolvedType] = popover;
             syncDashboardViewPopoverForType(resolvedType);
+            popover.element.addEventListener('change', (event) => {
+                const layoutSelect = event.target.closest('[data-fv-layout-select]');
+                if (!layoutSelect) return;
+                const layout = String(layoutSelect.value || '').trim();
+                if (!getDashboardLayoutModes().includes(layout)) return;
+                popover.close('layout-selected');
+                void setDashboardLayoutFromQuickRail(resolvedType, layout);
+            });
             popover.element.addEventListener('click', (event) => {
-                const layoutButton = event.target.closest('[data-fv-layout-option]');
-                if (layoutButton) {
-                    const layout = String(layoutButton.getAttribute('data-fv-layout-option') || '').trim();
-                    popover.close('layout-selected');
-                    void setDashboardLayoutFromQuickRail(resolvedType, layout);
-                    return;
-                }
                 const actionButton = event.target.closest('[data-fv-view-action]');
                 if (!actionButton || actionButton.disabled) return;
                 const action = String(actionButton.getAttribute('data-fv-view-action') || '').trim();
@@ -694,19 +695,6 @@
                     popover.close('settings', { restoreFocus: false });
                     deps.onOpenSettings?.();
                 }
-            });
-            popover.element.addEventListener('keydown', (event) => {
-                const current = event.target.closest('[data-fv-layout-option]');
-                if (!current || !['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
-                const options = Array.from(popover.element.querySelectorAll('[data-fv-layout-option]'));
-                const index = options.indexOf(current);
-                if (index < 0) return;
-                event.preventDefault();
-                const nextIndex = event.key === 'Home' ? 0
-                    : event.key === 'End' ? options.length - 1
-                        : ['ArrowDown', 'ArrowRight'].includes(event.key) ? (index + 1) % options.length
-                            : (index - 1 + options.length) % options.length;
-                options[nextIndex]?.focus();
             });
         };
 

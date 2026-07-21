@@ -85,7 +85,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(settingsJs, /else if \(key === 'privacyMaskContainerIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskLocalIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskPorts' && type === 'docker'\) \{/);
-    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}\s*\},\s*\{[\s\S]*immediate: key\.startsWith\('privacyMask'\)/);
+    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}\s*\},\s*\{[\s\S]*immediate: key === 'layout' \|\| key\.startsWith\('privacyMask'\)/);
     assert.match(settingsJs, /postPrefs\(resolvedType, partial,\s*\{\s*currentPrefs: next,\s*immediate: options\.immediate === true/);
     assert.match(dockerJs, /dockerPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'docker'[\s\S]*applyRuntimePrefs\(nextPrefs\)/);
     assert.match(vmJs, /vmPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'vm'[\s\S]*applyRuntimePrefs\(folderTypePrefs\)/);

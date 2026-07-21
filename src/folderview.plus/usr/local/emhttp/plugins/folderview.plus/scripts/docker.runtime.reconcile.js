@@ -58,6 +58,9 @@
         const isDockerLifecycleStateSettled = typeof deps.isDockerLifecycleStateSettled === 'function'
             ? deps.isDockerLifecycleStateSettled
             : null;
+        const prepareDockerLifecycleSurface = typeof deps.prepareDockerLifecycleSurface === 'function'
+            ? deps.prepareDockerLifecycleSurface
+            : (() => false);
         const dockerLifecycleRefreshDelaysMs = Array.isArray(deps.lifecycleRefreshDelaysMs)
             && deps.lifecycleRefreshDelaysMs.length > 0
             ? Object.freeze(deps.lifecycleRefreshDelaysMs.map((delayMs) => Math.max(0, Number(delayMs) || 0)))
@@ -487,6 +490,7 @@
                         container: String(request.container || '').trim()
                     };
                     pendingDockerLifecycleRequest = callbackRequest;
+                    prepareDockerLifecycleSurface(callbackRequest);
                     if (interceptedHostLoadlist) {
                         appendDockerBulkUpdateTrace('lifecycleLoadlistIntercepted', {
                             action: callbackRequest.action,

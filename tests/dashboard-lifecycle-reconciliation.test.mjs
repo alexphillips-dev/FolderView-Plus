@@ -27,6 +27,7 @@ const flushPromises = async () => {
 test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until Start settles', async () => {
     const scheduled = [];
     const hostCalls = [];
+    const preparedRequests = [];
     const refreshStates = [false, false, false, false, true];
     let running = false;
     const window = {
@@ -47,6 +48,7 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
             return true;
         },
         isDockerLifecycleStateSettled: () => running,
+        prepareDockerLifecycleSurface: (request) => preparedRequests.push({ ...request }),
         lifecycleRefreshCallbackName: '__fvplusDashboardDockerLifecycleRefresh',
         lifecycleRefreshDelaysMs: [0, 500, 1250, 2500, 4500, 7000],
         getDockerHostGuardsApi: () => ({
@@ -64,6 +66,7 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
     window.eventControl({ action: 'start', container: 'abc123' }, 'loadlist');
 
     assert.equal(hostCalls[0][1], '__fvplusDashboardDockerLifecycleRefresh');
+    assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123' }]);
     assert.deepEqual(scheduled.map(({ delayMs }) => delayMs), [0, 500, 1250, 2500, 4500, 7000]);
 
     for (const item of scheduled) {
@@ -157,6 +160,9 @@ test('Dashboard runtime reconciliation clears host lifecycle spinner classes', (
     assert.equal(cleanupUses.length, 2);
     assert.match(dashboardSource, /\.removeAttr\('aria-busy'\)/);
     assert.match(dashboardSource, /\$statusIcons\.filter\('i\[id\^="load-"\]'\)\.first\(\)/);
-    assert.match(dashboardSource, /\$statusIcons\.not\(\$icon\)\.filter\(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR\)/);
+    assert.match(dashboardSource, /prepareDockerLifecycleSurface: captureDashboardRuntimeSurface/);
+    assert.match(dashboardSource, /\$surface\.find\('i'\)\.each/);
+    assert.match(dashboardSource, /node\.setAttribute\('class', String\(node\.getAttribute\(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE\)/);
+    assert.match(dashboardSource, /\.addClass\(`fa \$\{meta\.icon\} \$\{meta\.className\} \$\{meta\.colorClass\}`\)/);
     assert.match(dashboardSource, /\['color', 'animation', 'animation-name', 'transform', 'opacity'\]/);
 });

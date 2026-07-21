@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.16">
-<!ENTITY md5 "24d6d6376c2b4198c058204e54f1a395">
+<!ENTITY version "2026.07.21.17">
+<!ENTITY md5 "ae3a1a4ea6cf4c175e4f3c7adace5ce5">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.17
+- Fix: Dashboard Start, Stop, Pause, Resume, and Restart actions now restore every native card icon after Unraid applies its temporary busy spinner classes across the card.
+- Fix: Running, paused, and stopped member status glyphs now use Unraid's canonical green, orange, and red state colors after incremental reconciliation.
+- Reliability: FolderView Plus snapshots the native icon-class contract before lifecycle actions, preserving WebUI, console, and menu icons instead of leaving them animated or altering their original glyphs.
+- Quality: Expanded Dashboard lifecycle regression coverage to verify pre-action surface capture, complete busy-state cleanup, and canonical runtime color restoration.
+
 
 ###2026.07.21.16
 - Fix: Dashboard container status icons now clear stale Unraid started/stopped tone classes and inline color or animation styles after lifecycle actions.

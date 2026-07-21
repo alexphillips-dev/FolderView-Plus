@@ -2593,21 +2593,22 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
 const getDashboardRuntimeStateMeta = (type, entry = {}) => {
     if (type === 'vm') {
         const state = String(entry?.state || 'unknown').trim().toLowerCase();
-        if (state === 'running') return { state, key: 'started', icon: 'fa-play', className: 'started', active: true, paused: false };
-        if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') return { state, key: 'paused', icon: 'fa-pause', className: 'paused', active: true, paused: true };
-        return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
+        if (state === 'running') return { state, key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
+        if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') return { state, key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
+        return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
     }
     const stateNode = entry?.info?.State || {};
     const running = entry?.running === true || stateNode.Running === true;
     const paused = running && (entry?.paused === true || stateNode.Paused === true);
-    if (paused) return { state: 'paused', key: 'paused', icon: 'fa-pause', className: 'paused', active: true, paused: true };
-    if (running) return { state: 'running', key: 'started', icon: 'fa-play', className: 'started', active: true, paused: false };
-    return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
+    if (paused) return { state: 'paused', key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
+    if (running) return { state: 'running', key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
+    return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
 };
 
 const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';
 const DASHBOARD_RUNTIME_ICON_CLASSES = `fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch ${DASHBOARD_RUNTIME_STATE_CLASSES}`;
 const DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR = '.fa-refresh, .fa-spin, .fa-spinner, .fa-circle-o-notch';
+const DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE = 'data-fv-host-icon-classes';
 
 const clearDashboardRuntimeIconInlineState = ($icons) => {
     $icons.each((_, node) => {
@@ -2617,22 +2618,56 @@ const clearDashboardRuntimeIconInlineState = ($icons) => {
     });
 };
 
+const captureDashboardRuntimeSurface = (request = {}) => {
+    const containerId = String(request?.container || '').trim();
+    if (!containerId) return false;
+    const control = document.getElementById(containerId);
+    if (!control) return false;
+    const $surface = $(control).parent('span.outer').first();
+    if (!$surface.length) return false;
+    $surface.find('i').each((_, node) => {
+        if (!node.hasAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE)) {
+            node.setAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE, String(node.getAttribute('class') || ''));
+        }
+    });
+    return true;
+};
+
+const restoreDashboardRuntimeSurfaceIcons = ($surface) => {
+    const $capturedIcons = $surface.find(`i[${DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE}]`);
+    $capturedIcons.each((_, node) => {
+        node.setAttribute('class', String(node.getAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE) || ''));
+        node.removeAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE);
+        node.removeAttribute('aria-busy');
+    });
+    clearDashboardRuntimeIconInlineState($capturedIcons);
+
+    // Unraid's eventControl() applies the spinner classes to every icon in the
+    // card. Clean uncaptured remnants defensively without deleting action icons.
+    $surface.find(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR).each((_, node) => {
+        const $node = $(node);
+        const wasSpinning = $node.hasClass('fa-spin') || $node.hasClass('fa-spinner') || $node.hasClass('fa-circle-o-notch');
+        $node.removeClass('fa-spin fa-spinner fa-circle-o-notch');
+        if (wasSpinning) $node.removeClass('fa-refresh');
+        node.removeAttribute('aria-busy');
+    });
+};
+
 const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
     if (!$surface || !$surface.length) return;
+    restoreDashboardRuntimeSurfaceIcons($surface);
     const meta = getDashboardRuntimeStateMeta(type, entry);
     const $inner = $surface.find('span.inner').first();
     const $state = $inner.find('span.state').first();
     const $statusIcons = $state.length ? $state.prevAll('i.fa') : $inner.find('i.fa').first();
     const $identifiedIcon = $statusIcons.filter('i[id^="load-"]').first();
     const $icon = $identifiedIcon.length ? $identifiedIcon : $statusIcons.first();
-    const $extraTransientIcons = $statusIcons.not($icon).filter(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR);
-    $extraTransientIcons.remove();
     $surface.add($surface.find('span.hand, span.inner')).removeClass(DASHBOARD_RUNTIME_STATE_CLASSES).addClass(meta.className);
     $surface.attr('data-fv-runtime-state', meta.state);
     if ($icon.length) {
         $icon
             .removeClass(DASHBOARD_RUNTIME_ICON_CLASSES)
-            .addClass(`fa ${meta.icon} ${meta.className}`)
+            .addClass(`fa ${meta.icon} ${meta.className} ${meta.colorClass}`)
             .removeAttr('aria-busy');
         clearDashboardRuntimeIconInlineState($icon);
     }
@@ -2840,6 +2875,7 @@ const getDashboardDockerRuntimeReconcileApi = () => {
             getDockerHostGuardsApi: () => ({
                 wrapHostHook: (name, handler, options = {}) => dashboardDockerHostAdapter.wrapHook(name, handler, options)
             }),
+            prepareDockerLifecycleSurface: captureDashboardRuntimeSurface,
             isDockerLifecycleStateSettled: isDashboardDockerLifecycleStateSettled,
             lifecycleRefreshCallbackName: '__fvplusDashboardDockerLifecycleRefresh',
             lifecycleRefreshDelaysMs: [0, 500, 1250, 2500, 4500, 7000]

@@ -582,7 +582,8 @@
      * @param {boolean} enabled
      */
     const createRuntimePerfTelemetry = (namespace = 'folderview-plus.docker', enabled = false) => {
-        const on = Boolean(enabled && typeof performance !== 'undefined');
+        const on = typeof performance !== 'undefined';
+        const debug = enabled === true;
         const marks = new Map();
         const aggregates = new Map();
         const begin = (name) => {
@@ -603,7 +604,7 @@
                 maxMs: Math.max(prev.maxMs, elapsed)
             };
             aggregates.set(key, next);
-            console.debug(`[FV_PERF][${namespace}] ${key}: ${elapsed.toFixed(2)}ms`, metadata);
+            if (debug) console.debug(`[FV_PERF][${namespace}] ${key}: ${elapsed.toFixed(2)}ms`, metadata);
             return elapsed;
         };
         const snapshot = () => {

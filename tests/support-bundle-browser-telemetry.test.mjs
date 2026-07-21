@@ -267,6 +267,17 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     const telemetryModule = loadTelemetryModule(root);
     const api = telemetryModule.createApi({
         normalizeSupportBundleV2Payload: (bundle) => (bundle && typeof bundle === 'object' ? { ...bundle } : {}),
+        readClientDiagnosticsStorageRecord: (key) => key === 'runtime-performance-docker-key' ? {
+            schemaVersion: 1,
+            surface: 'docker',
+            operations: { folderGrouping: { count: 2, p95Ms: 51.7 } }
+        } : null,
+        storageKeys: {
+            runtimePerformance: {
+                docker: 'runtime-performance-docker-key',
+                settings: 'runtime-performance-settings-key'
+            }
+        },
         getStandardRequestDiagnosticsSnapshot: () => ({
             count: 1,
             failures: 0,
@@ -286,6 +297,9 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     assert.equal(payload.uiTelemetry.clientStorage.dockerListViewModeCookie, 'basic');
     assert.equal(payload.uiTelemetry.requestActivity.count, 1);
     assert.equal(payload.uiTelemetry.requestActivity.entries[0].endpoint, '/plugins/folderview.plus/server/read.php');
+    assert.equal(payload.uiTelemetry.runtimePerformance.available, true);
+    assert.equal(payload.uiTelemetry.runtimePerformance.surfaces.docker.operations.folderGrouping.p95Ms, 51.7);
+    assert.equal(payload.uiTelemetry.runtimePerformance.surfaces.settings.available, false);
     assert.equal(payload.redactionManifest.privacySelfCheck.status, 'passed');
     assert.equal(payload.redactionManifest.privacySelfCheck.scope, 'uiTelemetry');
     assert.equal(payload.redactionManifest.privacySelfCheck.violationCount, 0);
@@ -510,6 +524,19 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     }
                 };
             }
+            if (storageKey === 'runtime-performance-docker-key') {
+                return {
+                    schemaVersion: 1,
+                    surface: 'docker',
+                    milestones: {
+                        nativeRowsVisible: { count: 1, lastMs: 31.4 }
+                    },
+                    operations: {
+                        folderGrouping: { count: 2, averageMs: 44.1, p95Ms: 51.7 }
+                    },
+                    events: [{ type: 'operation', name: 'folderGrouping', durationMs: 51.7 }]
+                };
+            }
             return null;
         },
         storageKeys: {
@@ -520,7 +547,11 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
             dashboardLayoutDocker: 'dashboard-layout-docker-key',
             dashboardLayoutVm: 'dashboard-layout-vm-key',
             dashboardLifecycle: 'dashboard-lifecycle-key',
-            vmLifecycle: 'vm-lifecycle-key'
+            vmLifecycle: 'vm-lifecycle-key',
+            runtimePerformance: {
+                docker: 'runtime-performance-docker-key',
+                settings: 'runtime-performance-settings-key'
+            }
         }
     });
 

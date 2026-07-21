@@ -278,9 +278,13 @@ test('docker runtime script is wrapped in a private scope to avoid host-page plu
     assert.match(dockerJs, /\}\)\(window, window\.jQuery \|\| window\.\$\);\s*$/);
 });
 
-test('dashboard folder cards are click-to-expand for docker and vm widgets', () => {
-    assert.match(dashboardJs, /onclick='expandFolderDocker\("\$\{id\}"\)'/);
-    assert.match(dashboardJs, /onclick='expandFolderVM\("\$\{id\}"\)'/);
+test('dashboard folder cards expose delegated mouse and keyboard expansion controls', () => {
+    assert.match(dashboardJs, /data-fv-dashboard-folder-toggle data-fv-dashboard-type="docker" aria-expanded="false"/);
+    assert.match(dashboardJs, /data-fv-dashboard-folder-toggle data-fv-dashboard-type="vm" aria-expanded="false"/);
+    assert.match(dashboardJs, /role="button" tabindex="0"/);
+    assert.match(dashboardJs, /keydown\.fvDashboardFolderToggle/);
+    assert.match(dashboardJs, /event\.key !== 'Enter' && event\.key !== ' '/);
+    assert.doesNotMatch(dashboardJs, /onclick='expandFolder(?:Docker|VM)\(/);
     assert.match(dashboardJs, /window\.expandFolderDocker = expandFolderDocker;/);
     assert.match(dashboardJs, /window\.expandFolderVM = expandFolderVM;/);
 });

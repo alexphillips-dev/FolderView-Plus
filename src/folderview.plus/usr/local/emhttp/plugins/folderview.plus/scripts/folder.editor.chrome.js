@@ -3,6 +3,12 @@
     if (editorPageMode !== 'modern') {
         return;
     }
+    const editorRuntimePerformanceTelemetry = root.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('folder-editor', {
+        window: root,
+        document: root.document
+    }) || null;
+    let editorRuntimePerformanceVisibleRecorded = false;
+    editorRuntimePerformanceTelemetry?.begin?.('editorBootstrap');
     root.FolderViewPlusFolderEditorRuntimeBootStage = 'chrome-bootstrap';
     const sharedModernSchemaFactory = root.FolderViewPlusFolderEditorSchema?.createModernSchema;
     const sharedSectionMeta = typeof sharedModernSchemaFactory === 'function'
@@ -448,6 +454,13 @@
         stage.classList.add('is-ready');
         form.classList.remove('fv-modern-editor-booting');
         form.classList.add('fv-modern-editor-ready');
+        if (!editorRuntimePerformanceVisibleRecorded) {
+            editorRuntimePerformanceVisibleRecorded = true;
+            editorRuntimePerformanceTelemetry?.observe?.(stage);
+            editorRuntimePerformanceTelemetry?.end?.('editorBootstrap');
+            editorRuntimePerformanceTelemetry?.mark?.('editorVisible');
+            editorRuntimePerformanceTelemetry?.sampleDom?.('editor-visible');
+        }
     };
 
     const ensureTopChrome = (form) => {

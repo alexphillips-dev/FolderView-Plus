@@ -384,6 +384,18 @@
         }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
         const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
+        const collectRuntimePerformanceDiagnostics = (uiRedactor) => {
+            const surfaces = Object.fromEntries(Object.entries(storageKeys.runtimePerformance || {}).map(([surface, key]) => {
+                const record = readClientDiagnosticsStorageRecord(key);
+                const available = Boolean(record && typeof record === 'object' && !Array.isArray(record));
+                return [surface, available ? { available, ...record } : { available }];
+            }));
+            return uiRedactor.sanitizeValue('uiTelemetry.runtimePerformance', 'runtimePerformance', {
+                schemaVersion: 1,
+                available: Object.values(surfaces).some((surface) => surface.available),
+                surfaces
+            });
+        };
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
@@ -429,6 +441,7 @@
             existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
             existingUiTelemetry.dashboardLifecycle = collectDashboardLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.vmLifecycle = collectVmLifecycleDiagnostics(uiRedactor);
+            existingUiTelemetry.runtimePerformance = collectRuntimePerformanceDiagnostics(uiRedactor);
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',

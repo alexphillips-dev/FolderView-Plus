@@ -2,6 +2,13 @@ const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
+const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
+const settingsRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('settings', {
+    window,
+    document
+}) || null;
+let settingsRuntimePerformanceVisibleRecorded = false;
+settingsRuntimePerformanceTelemetry?.begin?.('settingsBootstrap');
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
@@ -3105,6 +3112,13 @@ const revealSettingsBootstrapSurface = () => {
     const shell = document.getElementById('fv-settings-bootstrap-shell');
     if (shell instanceof HTMLElement) {
         shell.hidden = true;
+    }
+    if (!settingsRuntimePerformanceVisibleRecorded) {
+        settingsRuntimePerformanceVisibleRecorded = true;
+        settingsRuntimePerformanceTelemetry?.observe?.(root);
+        settingsRuntimePerformanceTelemetry?.end?.('settingsBootstrap');
+        settingsRuntimePerformanceTelemetry?.mark?.('settingsVisible');
+        settingsRuntimePerformanceTelemetry?.sampleDom?.('settings-visible');
     }
 };
 

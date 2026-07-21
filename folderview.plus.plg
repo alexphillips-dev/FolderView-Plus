@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.22">
-<!ENTITY md5 "ed08c770038c7607b4592cfc0a9843e7">
+<!ENTITY version "2026.07.21.26">
+<!ENTITY md5 "41a55b87b521a2b0722d345b4525f2fb">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.26
+- Performance: Added one bounded, passive runtime telemetry service for Docker, VMs, Dashboard, Settings, and the modern folder editor with no new bootstrap requests.
+- Diagnostics: Support bundles now include privacy-safe timing percentiles, rendering milestones, DOM size, mutation volume, FolderView asset requests, long tasks, and optional heap measurements for visited surfaces.
+- Reliability: Action timing is collected outside debug mode, histories remain capped, duplicate Settings/editor visibility samples are prevented, and the export collector remains inside established asset budgets.
+- Accessibility: Dashboard Docker and VM folder headers now support Enter and Space, synchronize `aria-expanded` with their controlled member panels, and show a clear keyboard focus ring.
+- Accessibility: Decorative folder icons are excluded from assistive output, the Dashboard quick-action group uses localized labeling, and shared disclosure/loading primitives support focus visibility and reduced-motion preferences.
+- Quality: Replaced the obsolete nested Dashboard toggle button, removed 34 unnecessary `!important` declarations, ratcheted the CSS-debt ceiling to 1,310, refreshed all 18 locale catalogs, and added unit and browser regressions.
+
 
 ###2026.07.21.22
 - Feature: Added complete VM lifecycle reconciliation for native Start, Stop, Pause, Resume, Restart, Hibernate, Wake, Force Stop, and console-start actions.

@@ -9,6 +9,12 @@ const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
+const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('docker', {
+    window,
+    document,
+    debug: FOLDER_VIEW_DEBUG_MODE
+}) || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
@@ -4178,8 +4184,10 @@ const dockerActionBoundary = createDockerAsyncActionBoundary({
 });
 const runDockerGuardedAction = async (actionName, action, context = {}) => {
     dockerPerfTelemetry.begin(actionName);
+    dockerRuntimePerformanceTelemetry?.begin?.(`action.${actionName}`);
     const result = await dockerActionBoundary.run(actionName, action, context);
     dockerPerfTelemetry.end(actionName, { ok: result.ok });
+    dockerRuntimePerformanceTelemetry?.end?.(`action.${actionName}`, { ok: result.ok });
     return result;
 };
 const rowCenteringTools = typeof dockerModules.createRowCenteringTools === 'function'
@@ -5421,6 +5429,12 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     dockerDeferredPreviewController.flush();
+    const dockerRuntimeRoot = document.querySelector('#docker_list, #docker_view');
+    dockerRuntimePerformanceTelemetry?.observe?.(dockerRuntimeRoot);
+    dockerRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible', {
+        nativeRowCount: dockerRuntimeRoot?.querySelectorAll?.('tr.sortable:not(.folder)')?.length || 0
+    });
+    dockerRuntimePerformanceTelemetry?.begin?.('folderGrouping');
     const performanceRenderStartedAt = typeof performance !== 'undefined' && typeof performance.now === 'function'
         ? performance.now()
         : Date.now();
@@ -5731,6 +5745,10 @@ const createFolders = async () => {
     setDockerFatalBannerPhase('ready');
     recordDockerFatalBannerAction('Docker folders rendered successfully');
     foldersRenderedSuccessfully = true;
+    dockerRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
+        folderCount: Object.keys(globalFolders || {}).length
+    });
+    dockerRuntimePerformanceTelemetry?.sampleDom?.('folders-grouped');
     } catch (error) {
     reportDockerFatalRuntimeError(error, {
         phase: error?.fvplusPhase || 'bootstrap-data',
@@ -5751,6 +5769,10 @@ const createFolders = async () => {
     dockerPerf.end('createFolders.total', {
         folderCount: Object.keys(globalFolders || {}).length,
         perfMode: FOLDER_VIEW_PERF_MODE
+    });
+    dockerRuntimePerformanceTelemetry?.end?.('folderGrouping', {
+        success: foldersRenderedSuccessfully,
+        folderCount: Object.keys(globalFolders || {}).length
     });
     }
 };
@@ -8280,6 +8302,7 @@ const fetchDockerRuntimeSnapshotCheck = async (options = {}) => {
 };
 
 const refreshDockerRuntimeStateInPlace = async (options = {}) => {
+    dockerRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     const followupDelayMs = Math.max(0, Number(options?.followupDelayMs) || 0);
     const liveUpdateStatus = options?.liveUpdateStatus === true;
     const preserveGroupedDom = options?.preserveGroupedDom === true;
@@ -8384,6 +8407,11 @@ const refreshDockerRuntimeStateInPlace = async (options = {}) => {
     } catch (_error) {
         fallbackToLoadlist();
         return false;
+    } finally {
+        dockerRuntimePerformanceTelemetry?.end?.('incrementalReconciliation', {
+            preserveGroupedDom,
+            liveUpdateStatus
+        });
     }
 };
 

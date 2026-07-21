@@ -731,6 +731,13 @@ const getSupportBundleTelemetryApi = () => {
                 dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
                 dashboardLifecycle: 'fv.support.bundle.dashboard.lifecycle.v1',
                 vmLifecycle: 'fv.support.bundle.vm.lifecycle.v1',
+                runtimePerformance: {
+                    docker: 'fv.support.bundle.runtime.performance.docker.v1',
+                    vm: 'fv.support.bundle.runtime.performance.vm.v1',
+                    dashboard: 'fv.support.bundle.runtime.performance.dashboard.v1',
+                    settings: 'fv.support.bundle.runtime.performance.settings.v1',
+                    folderEditor: 'fv.support.bundle.runtime.performance.folder-editor.v1'
+                },
                 dockerPerformancePolicy: 'fv.performancePolicy.docker.v1',
                 vmPerformancePolicy: 'fv.performancePolicy.vm.v1'
             }

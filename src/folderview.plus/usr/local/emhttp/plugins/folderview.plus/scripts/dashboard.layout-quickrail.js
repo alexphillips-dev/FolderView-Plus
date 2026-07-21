@@ -850,9 +850,13 @@
             }
             let $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
             if (!$rail.length) {
-                $rail = jq('<div class="fv-dashboard-layout-quick-rail" role="group" aria-label="Dashboard quick actions"></div>');
+                $rail = jq('<div class="fv-dashboard-layout-quick-rail" role="group"></div>');
                 $host.append($rail);
             }
+            const widgetLabel = resolvedType === 'vm'
+                ? translate('dashboard.widget.vm', 'VM')
+                : translate('dashboard.widget.docker', 'Docker');
+            $rail.attr('aria-label', translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel));
 
             const ensureQuickAction = (action, iconClass, label, extraClass = '') => {
                 let $button = $rail.children(`button[data-fv-quick-action="${action}"]`).first();

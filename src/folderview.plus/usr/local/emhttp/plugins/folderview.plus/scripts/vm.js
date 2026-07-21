@@ -6,6 +6,11 @@ const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers ||
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
+const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('vm', {
+    window,
+    document
+}) || null;
 const vmLifecycleModule = window.FolderViewPlusVmRuntimeLifecycle || null;
 let vmLifecycleApi = null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
@@ -540,8 +545,10 @@ const vmActionBoundary = createVmAsyncActionBoundary({
 const vmSafeUiActionRunner = createVmSafeUiActionRunner();
 const runVmGuardedAction = async (actionName, action, context = {}) => {
     vmPerfTelemetry.begin(actionName);
+    vmRuntimePerformanceTelemetry?.begin?.(`action.${actionName}`);
     const result = await vmActionBoundary.run(actionName, action, context);
     vmPerfTelemetry.end(actionName, { ok: result.ok });
+    vmRuntimePerformanceTelemetry?.end?.(`action.${actionName}`, { ok: result.ok });
     return result;
 };
 const readVmExpandedFolderIdsFromGlobal = () => Object.entries(globalFolders || {})
@@ -1559,6 +1566,12 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     vmDeferredPreviewController.flush();
+    const vmRuntimeRoot = document.querySelector('#kvm_list, #vm_view');
+    vmRuntimePerformanceTelemetry?.observe?.(vmRuntimeRoot);
+    vmRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible', {
+        nativeRowCount: vmRuntimeRoot?.querySelectorAll?.('tr.sortable:not(.folder)')?.length || 0
+    });
+    vmRuntimePerformanceTelemetry?.begin?.('folderGrouping');
     const performanceRenderStartedAt = typeof performance !== 'undefined' && typeof performance.now === 'function'
         ? performance.now()
         : Date.now();
@@ -1747,6 +1760,10 @@ const createFolders = async () => {
     markVmFatalBannerStep('VM folders rendered');
     setVmFatalBannerPhase('ready');
     recordVmFatalBannerAction('VM folders rendered successfully');
+    vmRuntimePerformanceTelemetry?.mark?.('foldersGrouped', {
+        folderCount: Object.keys(globalFolders || {}).length
+    });
+    vmRuntimePerformanceTelemetry?.sampleDom?.('folders-grouped');
     } catch (error) {
         reportVmFatalRuntimeError(error, {
             phase: error?.fvplusPhase || 'bootstrap-data',
@@ -1761,6 +1778,9 @@ const createFolders = async () => {
         vmPerfTelemetry.end('createFolders.total', {
             folderCount: Object.keys(globalFolders || {}).length,
             strictPerf: vmRuntimePerformanceProfile?.strict === true
+        });
+        vmRuntimePerformanceTelemetry?.end?.('folderGrouping', {
+            folderCount: Object.keys(globalFolders || {}).length
         });
     }
 };
@@ -3438,6 +3458,7 @@ const syncVmRuntimeRows = (changedNames) => {
 
 const refreshVmRuntimeStateInPlace = async (options = {}) => {
     const preserveGroupedDom = options?.preserveGroupedDom === true;
+    vmRuntimePerformanceTelemetry?.begin?.('incrementalReconciliation');
     try {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
         const payload = await pluginRequestClient.getJson(useSnapshot
@@ -3474,6 +3495,8 @@ const refreshVmRuntimeStateInPlace = async (options = {}) => {
     } catch (_error) {
         if (!preserveGroupedDom) queueLoadlistRefresh();
         return false;
+    } finally {
+        vmRuntimePerformanceTelemetry?.end?.('incrementalReconciliation', { preserveGroupedDom });
     }
 };
 

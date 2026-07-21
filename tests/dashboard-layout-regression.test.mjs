@@ -234,6 +234,9 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /data-fv-dashboard-overflow="\$\{overflowMode\}"/);
     assert.match(dashboardScript, /attachDashboardAdvancedPreviewIfEnabled\(\$containerEl, ct, folder, id\);/);
     assert.match(dashboardScript, /class="fv-dashboard-expand-toggle-btn"/);
+    assert.match(dashboardScript, /aria-controls="folder-showcase-docker-\$\{id\}"/);
+    assert.match(dashboardScript, /aria-controls="folder-showcase-vm-\$\{id\}"/);
+    assert.match(dashboardScript, /\$surface\.attr\('aria-expanded', expanded === true \? 'true' : 'false'\)/);
     assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('docker'\)/);
     assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('vm'\)/);
     assert.match(dashboardQuickRailScript, /\|\| \(typeof deps\.isDashboardLayoutTransitionInFlightForType === 'function' && deps\.isDashboardLayoutTransitionInFlightForType\(resolvedType\)\)/);
@@ -398,10 +401,9 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /data-fv-layout="accordion"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);
     assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{/);
-    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*border:\s*0 !important/);
-    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*background:\s*transparent !important/);
-    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*box-shadow:\s*none !important/);
-    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*min-width:\s*11px !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*width:\s*24px/);
+    assert.match(dashboardCss, /span\.outer\[data-fv-dashboard-folder-toggle\]:focus-visible/);
+    assert.doesNotMatch(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]{0,800}!important/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);

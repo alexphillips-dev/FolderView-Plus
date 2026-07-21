@@ -431,38 +431,29 @@ tbody.fv-dashboard-layout-embossed .folder-showcase-outer > span.outer {
     position: absolute;
     right: 6px;
     top: 50%;
-    width: 11px !important;
-    min-width: 11px !important;
-    max-width: 11px !important;
-    height: 11px !important;
-    min-height: 11px !important;
-    max-height: 11px !important;
+    width: 24px;
+    height: 24px;
     transform: translateY(-50%);
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
     color: var(--fvplus-dashboard-accent);
-    cursor: pointer;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    padding: 0 !important;
     z-index: 2;
     font-size: 10px;
-    box-shadow: none !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
 }
 
-.fv-dashboard-expand-toggle-btn:hover,
-.fv-dashboard-expand-toggle-btn:focus,
-.fv-dashboard-expand-toggle-btn:active {
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
+.folder-showcase-outer > span.outer[data-fv-dashboard-folder-toggle] {
+    cursor: pointer;
+}
+
+.folder-showcase-outer > span.outer[data-fv-dashboard-folder-toggle]:focus-visible {
+    outline: 2px solid var(--fv-ui-info, #4ab3ff);
+    outline-offset: 2px;
+}
+
+.folder-showcase-outer > span.outer[data-fv-dashboard-folder-toggle]:hover > .fv-dashboard-expand-toggle-btn,
+.folder-showcase-outer > span.outer[data-fv-dashboard-folder-toggle]:focus-visible > .fv-dashboard-expand-toggle-btn {
     color: var(--fvplus-dashboard-warning);
-    text-decoration: none;
-    outline: none;
 }
 
 tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > .fv-dashboard-expand-toggle-btn {
@@ -470,7 +461,7 @@ tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > .fv-
 }
 
 tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > span.inner {
-    padding-right: 18px;
+    padding-right: 30px;
 }
 
 tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-appname-docker,
@@ -636,36 +627,25 @@ tbody.fv-dashboard-layout-compactmatrix.fv-dashboard-show-expand-toggle .folder-
 }
 
 tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn {
-    display: inline-flex !important;
+    display: inline-flex;
     position: static;
     top: auto;
     right: auto;
     transform: none;
-    margin: 0 0 0 1px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    min-width: 6px !important;
-    max-width: 6px !important;
-    width: 6px !important;
-    min-height: 6px !important;
-    max-height: 6px !important;
-    height: 6px !important;
-    line-height: 1 !important;
+    margin: 0 0 0 1px;
+    width: 10px;
+    height: 10px;
+    line-height: 1;
     overflow: visible;
-    -webkit-appearance: none !important;
-    appearance: none !important;
     font-size: 7px;
     flex: 0 0 auto;
 }
 
 tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
-    font-size: 7px !important;
-    line-height: 1 !important;
-    width: 6px;
-    height: 6px;
+    font-size: 7px;
+    line-height: 1;
+    width: 10px;
+    height: 10px;
 }
 
 .folder-showcase-outer[data-fv-dashboard-overflow="scroll"][expanded="true"] > .folder-showcase {

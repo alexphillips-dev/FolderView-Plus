@@ -5,6 +5,11 @@ if (!window || !$) {
 
 const folderContract = window.FolderViewPlusFolderContract || null;
 const requestClient = window.FolderViewPlusRequest || null;
+const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
+const dashboardRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('dashboard', {
+    window,
+    document
+}) || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
@@ -1025,6 +1030,8 @@ const updateExpandToggleIcon = ($card, expanded) => {
     if (!$card || !$card.length) {
         return;
     }
+    const $surface = $card.children('[data-fv-dashboard-folder-toggle]').first();
+    $surface.attr('aria-expanded', expanded === true ? 'true' : 'false');
     const icon = $card.find('.fv-dashboard-expand-toggle-btn i.fa').first();
     if (!icon.length) {
         return;
@@ -1757,7 +1764,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" role="button" tabindex="0" data-fv-dashboard-folder-toggle data-fv-dashboard-type="docker" aria-expanded="false" aria-controls="folder-showcase-docker-${id}" aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" alt="" aria-hidden="true" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><span class="fv-dashboard-expand-toggle-btn" aria-hidden="true"><i class="fa fa-chevron-down" aria-hidden="true"></i></span><div class="folder-storage"></div></span><div id="folder-showcase-docker-${id}" class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -2035,7 +2042,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const safeFolderName = escapeHtml(folder.name);
     const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer ${hoverAnimationClass}" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" role="button" tabindex="0" data-fv-dashboard-folder-toggle data-fv-dashboard-type="vm" aria-expanded="false" aria-controls="folder-showcase-vm-${id}" aria-label="${escapeHtml(dashboardT('dashboard.folder.toggle-members', 'Toggle folder members'))}"><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" alt="" aria-hidden="true" onerror='this.src="${DEFAULT_FOLDER_ICON_PATH}"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><span class="fv-dashboard-expand-toggle-btn" aria-hidden="true"><i class="fa fa-chevron-down" aria-hidden="true"></i></span><div class="folder-storage" style="display:none"></div></span><div id="folder-showcase-vm-${id}" class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -2305,7 +2312,36 @@ const toggleFolderExpansion = (type, id, options = {}) => {
 const expandFolderDocker = (id, options = {}) => toggleFolderExpansion('docker', id, options);
 const expandFolderVM = (id, options = {}) => toggleFolderExpansion('vm', id, options);
 
-// Keep expand handlers on window for inline onclick contracts in dashboard cards.
+const activateDashboardFolderToggle = (element) => {
+    const $surface = $(element).closest('[data-fv-dashboard-folder-toggle]');
+    const $card = $surface.closest('.folder-showcase-outer');
+    const id = resolveFolderIdFromCard($card);
+    if (!id) {
+        return;
+    }
+    if ($surface.attr('data-fv-dashboard-type') === 'vm') {
+        expandFolderVM(id);
+    } else {
+        expandFolderDocker(id);
+    }
+};
+
+$(document)
+    .off('click.fvDashboardFolderToggle', '[data-fv-dashboard-folder-toggle]')
+    .on('click.fvDashboardFolderToggle', '[data-fv-dashboard-folder-toggle]', function(event) {
+        event.preventDefault();
+        activateDashboardFolderToggle(this);
+    })
+    .off('keydown.fvDashboardFolderToggle', '[data-fv-dashboard-folder-toggle]')
+    .on('keydown.fvDashboardFolderToggle', '[data-fv-dashboard-folder-toggle]', function(event) {
+        if (event.repeat || (event.key !== 'Enter' && event.key !== ' ')) {
+            return;
+        }
+        event.preventDefault();
+        activateDashboardFolderToggle(this);
+    });
+
+// Keep public expand handlers for integrations that invoke them directly.
 window.expandFolderDocker = expandFolderDocker;
 window.expandFolderVM = expandFolderVM;
 
@@ -3023,10 +3059,30 @@ dashboardHostAdapter = dashboardHostAdapterModule.getOrCreate({
     runtimeHostAdapter: dashboardDockerHostAdapter,
     prepareFolderRequests: prepareDashboardFolderRequestsForType,
     renderFolders: queueCreateFoldersRender,
-    hideSpinner: () => $('div.spinner.fixed').hide()
+    hideSpinner: () => $('div.spinner.fixed').hide(),
+    onEvent: (event = {}) => {
+        const eventName = String(event?.name || 'dashboardEvent');
+        if (eventName === 'nativeRowsLoading') {
+            dashboardRuntimePerformanceTelemetry?.begin?.('folderGrouping');
+        } else if (eventName === 'nativeRowsLoaded') {
+            const dashboardRoot = document.querySelector('#docker_view')?.parentElement
+                || document.querySelector('#vm_view')?.parentElement;
+            dashboardRuntimePerformanceTelemetry?.observe?.(dashboardRoot);
+            dashboardRuntimePerformanceTelemetry?.mark?.('nativeRowsVisible');
+        } else if (eventName === 'foldersGrouped') {
+            dashboardRuntimePerformanceTelemetry?.end?.('folderGrouping');
+            dashboardRuntimePerformanceTelemetry?.mark?.('foldersGrouped');
+            dashboardRuntimePerformanceTelemetry?.sampleDom?.('folders-grouped');
+        } else if (eventName === 'runtimeActionCompleted') {
+            dashboardRuntimePerformanceTelemetry?.mark?.('runtimeActionCompleted');
+        } else if (eventName === 'folderRenderFailed') {
+            dashboardRuntimePerformanceTelemetry?.end?.('folderGrouping', { success: false });
+        }
+    }
 });
 dashboardHostAdapter.bind();
 window.getFolderViewPlusDashboardHostSnapshot = () => dashboardHostAdapter.getSnapshot();
+window.getDashboardRuntimePerformanceTelemetrySnapshot = () => dashboardRuntimePerformanceTelemetry?.getSnapshot?.() || null;
 
 // Docker may acknowledge a lifecycle command before its next runtime snapshot reflects
 // the new state. Keep the grouped Dashboard DOM mounted and reconcile until the requested

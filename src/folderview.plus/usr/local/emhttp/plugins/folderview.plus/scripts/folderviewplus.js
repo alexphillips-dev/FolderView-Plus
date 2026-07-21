@@ -502,6 +502,10 @@ let infoByType = {
     docker: {},
     vm: {}
 };
+let runtimeHydrationStateByType = {
+    docker: 'pending',
+    vm: 'pending'
+};
 let backupsByType = {
     docker: [],
     vm: []
@@ -3001,6 +3005,8 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
     try {
         root.hidden = false;
         root.removeAttribute('aria-hidden');
+        root.classList.remove('fv-settings-bootstrap-pending');
+        root.setAttribute('aria-busy', 'false');
         root.style.display = 'block';
         root.style.visibility = 'visible';
         root.style.opacity = '1';
@@ -3073,6 +3079,20 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
         });
     }
     return false;
+};
+
+const revealSettingsBootstrapSurface = () => {
+    const root = document.getElementById('fv-settings-root');
+    if (!(root instanceof HTMLElement)) {
+        return;
+    }
+    root.classList.remove('fv-settings-bootstrap-pending');
+    root.setAttribute('aria-busy', 'false');
+    root.dataset.fvBootstrap = 'ready';
+    const shell = document.getElementById('fv-settings-bootstrap-shell');
+    if (shell instanceof HTMLElement) {
+        shell.hidden = true;
+    }
 };
 
 const scheduleBlankSettingsRecoveryChecks = () => {
@@ -6844,6 +6864,10 @@ const bindBasicFolderDragHandles = (type) => {
 
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
+    const runtimeState = ['ready', 'unavailable'].includes(String(statusContext?.runtimeState || ''))
+        ? String(statusContext.runtimeState)
+        : 'pending';
+    const runtimeReady = runtimeState === 'ready';
     const TABLE_COLUMN_COUNT = SETTINGS_TABLE_COLUMN_COUNT;
     const folderCount = Object.keys(folders || {}).length;
     const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
@@ -6918,7 +6942,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         if (hideEmptyFolders && members.length === 0) {
             continue;
         }
-        if (!folderMatchesHealthFilter(type, id, healthMetrics)) {
+        if (runtimeReady && !folderMatchesHealthFilter(type, id, healthMetrics)) {
             continue;
         }
         const pinned = isFolderPinned(type, id);
@@ -6953,7 +6977,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 }
             }
         }
-        if (!folderMatchesQuickFilter({
+        if (runtimeReady && !folderMatchesQuickFilter({
             type,
             mode: quickFilterMode,
             pinned,
@@ -6997,7 +7021,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? `<span class="name-cell-breadcrumb" title="${escapeHtml(breadcrumbTitle)}">${highlightSearchText(pathLabel, filter)}</span>`
             : '';
         const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
-        if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
+        if (runtimeReady && !folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
         const statusWarnThresholdInfo = resolveFolderStatusWarnThresholdForId({
@@ -7060,7 +7084,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             statusThresholdLabel,
             statusChipHint
         ].filter(Boolean).join('\n');
-        const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`;
+        const runtimePendingText = runtimeState === 'unavailable' ? 'Runtime unavailable' : 'Loading runtime…';
+        const runtimePendingIcon = runtimeState === 'unavailable' ? 'fa-exclamation-circle' : 'fa-circle-o-notch fa-spin';
+        const statusSummaryChipHtml = runtimeReady
+            ? `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`
+            : `<span class="status-chip-list"><span class="folder-runtime-status status-chip is-runtime-pending ${runtimeState === 'unavailable' ? 'is-unavailable' : ''}" role="status"><i class="fa ${runtimePendingIcon}" aria-hidden="true"></i><span>${escapeHtml(runtimePendingText)}</span></span></span>`;
         const includeZeroBreakdown = statusDisplayMode === 'detailed';
         const breakdownEntries = [
             {
@@ -7090,7 +7118,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 label: 'Empty'
             });
         }
-        const statusBreakdownHtml = statusDisplayMode === 'simple'
+        const statusBreakdownHtml = !runtimeReady || statusDisplayMode === 'simple'
             ? ''
             : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
                 const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
@@ -7132,7 +7160,12 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const pinnedClass = pinned ? 'is-pinned' : '';
 
         let typeSpecificColumns = '';
-        if (isDockerType) {
+        if (!runtimeReady) {
+            const runtimeSignalHtml = `<span class="folder-metric-chip is-runtime-pending ${runtimeState === 'unavailable' ? 'is-unavailable' : ''}"><i class="fa ${runtimePendingIcon}" aria-hidden="true"></i><span>${escapeHtml(runtimePendingText)}</span></span>`;
+            typeSpecificColumns = isDockerType
+                ? `<td class="updates-cell signals-cell"><span class="signals-cell-content">${runtimeSignalHtml}</span></td><td class="health-cell fv-col-hidden"></td>`
+                : `<td class="autostart-cell">${runtimeSignalHtml}</td><td class="resources-cell">${runtimeSignalHtml}</td>`;
+        } else if (isDockerType) {
             const updateNames = dockerUpdateNames;
             const updateCount = updateNames.length;
             if (dockerUpdatesOnlyFilter && updateCount === 0) {
@@ -9311,10 +9344,25 @@ const renderTable = (type) => {
         ? statusSnapshotByType[type]
         : {};
     const nextStatusSnapshot = buildStatusSnapshot(type, ordered, memberSnapshot, infoByType[type] || {});
-    const healthMetrics = buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type]);
+    const runtimeState = runtimeHydrationStateByType[type] || 'pending';
+    const runtimeReady = runtimeState === 'ready';
+    const healthMetrics = runtimeReady
+        ? buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type])
+        : null;
     healthMetricsByType[type] = healthMetrics;
-    renderBasicSummaryCards(type, healthMetrics);
-    const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
+    const basicSummaryHost = document.getElementById(`${type}-basic-summary`);
+    if (runtimeReady) {
+        basicSummaryHost?.setAttribute('aria-busy', 'false');
+        renderBasicSummaryCards(type, healthMetrics);
+    } else if (basicSummaryHost) {
+        basicSummaryHost.replaceChildren();
+        basicSummaryHost.setAttribute('aria-busy', 'true');
+    }
+    // A config-only bootstrap knows the saved folder map but has not resolved
+    // regex/rule members yet. Applying hide-empty at that point can make valid
+    // folders disappear until runtime hydration completes.
+    const hideEmptyFolders = runtimeReady
+        && utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
     const sortMode = prefsByType[type]?.sortMode || 'created';
     $(`#${type}-sort-mode`).val(sortMode);
@@ -9322,6 +9370,7 @@ const renderTable = (type) => {
     $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders, healthMetrics, {
         previous: previousStatusSnapshot,
         current: nextStatusSnapshot,
+        runtimeState,
         hierarchyMeta,
         collapsedParents
     }));
@@ -9359,12 +9408,15 @@ const buildSettingsBootstrapDegradedReason = (type, area, error) => {
     return message ? `${prefix}: ${message}` : prefix;
 };
 
-const fetchSettingsCoreSnapshot = async (type) => {
+const fetchSettingsCoreSnapshot = async (type, options = {}) => {
     const resolvedType = normalizeManagedType(type);
-    const url = runtimeSnapshotApi.buildUrl(resolvedType, 'state', {
-        ttl: 2,
-        cacheBust: Date.now()
-    });
+    const configOnly = options?.configOnly === true;
+    const mode = configOnly ? 'config' : 'state';
+    const requestOptions = { cacheBust: Date.now() };
+    if (!configOnly) {
+        requestOptions.ttl = 12;
+    }
+    const url = runtimeSnapshotApi.buildUrl(resolvedType, mode, requestOptions);
     const snapshot = runtimeSnapshotApi.parsePayload(await apiGetJson(url));
     const snapshotPrefs = utils.normalizePrefs({
         ...(snapshot.prefs && typeof snapshot.prefs === 'object' ? snapshot.prefs : {}),
@@ -9381,6 +9433,7 @@ const fetchSettingsCoreSnapshot = async (type) => {
         folders: utils.normalizeFolderMap(snapshot.folders || {}),
         prefs: reconciledPrefs,
         info: sanitizeTypeInfoMap(snapshot.runtime || {}),
+        runtimeIncluded: snapshot.runtimeIncluded === true,
         snapshotToken: String(snapshot.snapshotToken || '').trim()
     };
 };
@@ -9388,37 +9441,45 @@ const fetchSettingsCoreSnapshot = async (type) => {
 const refreshType = async (type, options = {}) => {
     const startedAt = perfNowMs();
     const render = options?.render !== false;
+    const configOnly = options?.configOnly === true;
     recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
     setFatalBannerPhase('prefs-fetch');
     markFatalBannerStep(`Fetching ${type} folders and preferences`);
     const degradedReasons = [];
     let folders = {};
     let rawPrefs = {};
-    let info = {};
+    let info = configOnly ? (infoByType[type] || {}) : {};
     let prefsFetched = false;
-    let dataSource = 'runtime-snapshot';
+    let runtimeFetched = false;
+    let dataSource = configOnly ? 'config-snapshot' : 'runtime-snapshot';
     let requestCount = 1;
     try {
-        const snapshot = await fetchSettingsCoreSnapshot(type);
+        const snapshot = await fetchSettingsCoreSnapshot(type, { configOnly });
         folders = snapshot.folders;
         rawPrefs = snapshot.prefs;
-        info = snapshot.info;
+        if (!configOnly) {
+            info = snapshot.info;
+            runtimeFetched = snapshot.runtimeIncluded === true;
+        }
         prefsFetched = true;
     } catch (snapshotError) {
-        dataSource = 'legacy-fallback';
-        requestCount = 4;
+        dataSource = configOnly ? 'config-legacy-fallback' : 'runtime-legacy-fallback';
+        requestCount = configOnly ? 3 : 4;
         recordFatalBannerAction(`${type.toUpperCase()} Settings snapshot unavailable; using compatibility requests`);
-        const results = await Promise.allSettled([
-            fetchFolders(type),
-            fetchPrefs(type),
-            fetchTypeInfo(type)
-        ]);
+        const fallbackRequests = [fetchFolders(type), fetchPrefs(type)];
+        if (!configOnly) {
+            fallbackRequests.push(fetchTypeInfo(type));
+        }
+        const results = await Promise.allSettled(fallbackRequests);
         const foldersResult = results[0];
         const prefsResult = results[1];
-        const infoResult = results[2];
+        const infoResult = configOnly ? null : results[2];
         folders = foldersResult.status === 'fulfilled' ? foldersResult.value : {};
         rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
-        info = infoResult.status === 'fulfilled' ? infoResult.value : {};
+        if (!configOnly) {
+            info = infoResult?.status === 'fulfilled' ? infoResult.value : {};
+            runtimeFetched = infoResult?.status === 'fulfilled';
+        }
         prefsFetched = prefsResult.status === 'fulfilled';
         if (foldersResult.status !== 'fulfilled') {
             degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'folders', foldersResult.reason));
@@ -9426,7 +9487,7 @@ const refreshType = async (type, options = {}) => {
         if (prefsResult.status !== 'fulfilled') {
             degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', prefsResult.reason));
         }
-        if (infoResult.status !== 'fulfilled') {
+        if (!configOnly && infoResult?.status !== 'fulfilled') {
             degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'runtime info', infoResult.reason));
         }
     }
@@ -9460,7 +9521,10 @@ const refreshType = async (type, options = {}) => {
         normalizeError: normalizeErrorMessage
     });
     setFatalBannerPhase('render');
-    infoByType[type] = info && typeof info === 'object' ? info : {};
+    if (!configOnly) {
+        infoByType[type] = info && typeof info === 'object' ? info : {};
+        runtimeHydrationStateByType[type] = runtimeFetched ? 'ready' : 'unavailable';
+    }
     setTypeFolders(type, utils.normalizeFolderMap(folders || {}));
     if (render) {
         renderTable(type);
@@ -9470,6 +9534,7 @@ const refreshType = async (type, options = {}) => {
         folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
         infoCount: Object.keys(info || {}).length,
         coldLoad: settingsUiState.initialized !== true,
+        configOnly,
         dataSource,
         requestCount
     });
@@ -9654,9 +9719,10 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 
 const refreshCoreData = async () => {
     const startedAt = perfNowMs();
+    runtimeHydrationStateByType = { docker: 'pending', vm: 'pending' };
     const refreshResults = await Promise.allSettled([
-        refreshType('docker', { render: false }),
-        refreshType('vm', { render: false })
+        refreshType('docker', { render: false, configOnly: true }),
+        refreshType('vm', { render: false, configOnly: true })
     ]);
     renderTable('docker');
     renderTable('vm');
@@ -9667,6 +9733,11 @@ const refreshCoreData = async () => {
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
+    const runtimeHydrationPromise = Promise.allSettled([
+        refreshType('docker'),
+        refreshType('vm')
+    ]);
+    window.FolderViewPlusSettingsRuntimeHydrationPromise = runtimeHydrationPromise;
     const degradedReasons = [];
     const dockerResult = refreshResults[0];
     const vmResult = refreshResults[1];
@@ -9686,12 +9757,16 @@ const refreshCoreData = async () => {
         coldLoad: settingsUiState.initialized !== true
     });
     return {
-        degradedReasons
+        degradedReasons,
+        runtimeHydrationPromise
     };
 };
 
 const refreshAll = async () => {
     const coreResult = await refreshCoreData();
+    // Explicit refresh/recovery workflows retain their historical completion
+    // semantics even though first paint no longer waits for host discovery.
+    await coreResult?.runtimeHydrationPromise;
     const advancedFailures = await ensureAdvancedDataLoaded({ force: true });
     refreshSettingsUx();
     return {
@@ -9702,7 +9777,11 @@ const refreshAll = async () => {
     };
 };
 
-window.FolderViewPlusRefreshCoreData = refreshCoreData;
+window.FolderViewPlusRefreshCoreData = async () => {
+    const result = await refreshCoreData();
+    await result?.runtimeHydrationPromise;
+    return result;
+};
 
 const downloadType = async (type, id) => {
     let resolvedType;
@@ -12038,6 +12117,7 @@ if (window.FolderViewPlusUI?.registerAction) {
         } catch (error) {
             // Keep initial settings sections visible on first-load API hiccups.
             refreshSettingsUx();
+            revealSettingsBootstrapSurface();
             markSettingsBootstrapState({
                 degraded: true,
                 lastPhase: 'bootstrap-data',
@@ -12062,6 +12142,9 @@ if (window.FolderViewPlusUI?.registerAction) {
             if (settingsUiState.mode) {
                 setSettingsMode(settingsUiState.mode);
             }
+            // Config-only Docker and VM data is painted and the saved mode/tab
+            // has been applied. Runtime discovery continues independently.
+            revealSettingsBootstrapSurface();
             if (settingsLaunchOverrides?.sectionKey) {
                 window.requestAnimationFrame(() => {
                     scrollToSectionKey(settingsLaunchOverrides.sectionKey);
@@ -12088,6 +12171,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
+        revealSettingsBootstrapSurface();
         const currentBootstrapState = window.FolderViewPlusSettingsBootstrapState || {};
         if (bootstrapDegradedReasons.length <= 0 && currentBootstrapState.degraded !== true) {
             clearFatalBannerResolvedState();
@@ -12123,6 +12207,7 @@ if (window.FolderViewPlusUI?.registerAction) {
                 });
         }
     } catch (error) {
+        revealSettingsBootstrapSurface();
         try {
             refreshSettingsUx();
         } catch (_ignored) {

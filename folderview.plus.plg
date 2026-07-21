@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.08">
-<!ENTITY md5 "90104a72afa4d8e3487715c810e56d47">
+<!ENTITY version "2026.07.21.09">
+<!ENTITY md5 "aa7a08c98f19491019a9ffb6f57ce60c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.09
+- Performance: Settings now loads saved Docker and VM folder configuration through a runtime-free snapshot path, so folder rows no longer wait for Docker inspection or libvirt discovery.
+- Performance: Docker and VM runtime details hydrate independently in the background, preventing a slow VM response from delaying Docker folders while retaining complete refresh semantics for recovery and diagnostics actions.
+- UI/UX: Added a compact first-paint loading shell and reveal the Settings workspace only after the saved mode, tab, folders, and preferences are applied, eliminating the raw Advanced-page flash during startup.
+- UI/UX: Folder status and signal cells show a neutral loading or unavailable state until live runtime data arrives instead of briefly reporting members as stopped.
+- Fix: Deferred empty-folder, health, update, quick, and status filtering until runtime hydration is complete so rule-populated folders cannot disappear during first paint.
+- Reliability: Kept legacy folder, preference, and runtime requests as automatic fallbacks and increased the warm runtime cache window to avoid unnecessary host queries.
+- Quality: Added contract and regression coverage proving config-only snapshots never invoke host runtime discovery, first-paint cloaking is present, runtime hydration remains independent, and explicit refresh workflows still wait for complete data.
+
 
 ###2026.07.21.08
 - Performance: Reworked Settings startup to load each Docker and VM core state through one coherent runtime snapshot request instead of separate folder, preference, and runtime requests.

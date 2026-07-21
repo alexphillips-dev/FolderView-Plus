@@ -14,6 +14,7 @@ fvplus_json_try(function (): array {
     $forceRefresh = normalizeBool((string)($_GET['nocache'] ?? $_REQUEST['nocache'] ?? '0'), false);
     $preferLiveUpdateStatus = $type === 'docker'
         && $mode !== 'full'
+        && $mode !== 'config'
         && normalizeBool((string)($_GET['liveupdate'] ?? $_REQUEST['liveupdate'] ?? '0'), false);
     $ttl = null;
     if (isset($_GET['ttl']) || isset($_REQUEST['ttl'])) {

@@ -27,7 +27,7 @@
 
     const buildUrl = (type, mode = 'state', options = {}) => {
         const safeType = type === 'vm' ? 'vm' : 'docker';
-        const safeMode = ['state', 'full', 'check'].includes(String(mode || '').toLowerCase())
+        const safeMode = ['config', 'state', 'full', 'check'].includes(String(mode || '').toLowerCase())
             ? String(mode).toLowerCase()
             : 'state';
         const query = { type: safeType, mode: safeMode };
@@ -35,7 +35,7 @@
         if (/^[a-f0-9]{64}$/.test(since)) {
             query.since = since;
         }
-        if (options?.liveUpdateStatus === true && safeType === 'docker' && safeMode !== 'full') {
+        if (options?.liveUpdateStatus === true && safeType === 'docker' && safeMode !== 'full' && safeMode !== 'config') {
             query.liveupdate = 1;
         }
         if (options?.forceRefresh === true || safeMode === 'check') {

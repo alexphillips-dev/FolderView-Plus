@@ -98,6 +98,30 @@ test('snapshot tokens are mode-independent and unchanged checks omit payloads', 
     assert.deepEqual(result.changed.revisions, { folder: 8, prefs: 9 });
 });
 
+test('config snapshots return saved layout without touching host runtime discovery', () => {
+    const absoluteLib = path.join(repoRoot, runtimeSnapshotLibPath).replace(/\\/g, '/').replace(/'/g, "\\'");
+    const php = [
+        "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",
+        "function withConfigMutationLock(callable $callback) { return $callback(); }",
+        "function readFolder(string $type): string { return json_encode(['folder-a' => ['name' => 'Media', 'containers' => ['app']]]); }",
+        "function readTypePrefs(string $type): array { return ['sortMode' => 'manual']; }",
+        "function readUserPrefs(string $type): string { return json_encode(['folder-folder-a', 'app']); }",
+        "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => 7, 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
+        "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { throw new RuntimeException('runtime discovery must not run'); }",
+        "function readInfoState(string $type, bool $live = false): array { throw new RuntimeException('runtime discovery must not run'); }",
+        `require '${absoluteLib}';`,
+        "$result = buildRuntimeSnapshot('docker', 'config');",
+        "echo json_encode($result);"
+    ].join(' ');
+    const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
+    assert.equal(result.mode, 'config');
+    assert.equal(result.payloadIncluded, true);
+    assert.equal(result.runtimeIncluded, false);
+    assert.equal(Object.hasOwn(result, 'runtime'), false);
+    assert.equal(result.folders['folder-a'].name, 'Media');
+    assert.deepEqual(result.order, ['folder-folder-a', 'app']);
+});
+
 test('client projects one snapshot into legacy renderer inputs and falls back per field', async () => {
     const api = loadClientApi();
     const snapshot = {
@@ -130,6 +154,8 @@ test('client projects one snapshot into legacy renderer inputs and falls back pe
     );
     assert.deepEqual(JSON.parse(await fallback[0]), { legacy: true });
     assert.match(api.buildUrl('docker', 'check', { since: 'a'.repeat(64) }), /runtime_snapshot\.php\?type=docker&mode=check&since=/);
+    assert.match(api.buildUrl('vm', 'config', { liveUpdateStatus: true }), /runtime_snapshot\.php\?type=vm&mode=config/);
+    assert.doesNotMatch(api.buildUrl('docker', 'config', { liveUpdateStatus: true }), /liveupdate=/);
 });
 
 test('runtime row diff isolates state changes and distinguishes structural changes', () => {
@@ -199,13 +225,16 @@ test('Docker, VM, and Dashboard bootstrap and polling use the coherent endpoint'
     assert.match(dashboardJs, /lastDashboardSnapshotTokens/);
 });
 
-test('Settings bootstrap uses one coherent core request per managed type with a compatibility fallback', () => {
+test('Settings bootstrap paints config first and hydrates Docker and VM runtime independently', () => {
     assert.match(settingsJs, /const runtimeSnapshotApi = window\.FolderViewPlusRuntimeSnapshot \|\| null;/);
-    assert.match(settingsJs, /const fetchSettingsCoreSnapshot = async \(type\) => \{[\s\S]*runtimeSnapshotApi\.buildUrl\(resolvedType, 'state'/);
+    assert.match(settingsJs, /const fetchSettingsCoreSnapshot = async \(type, options = \{\}\) => \{[\s\S]*const mode = configOnly \? 'config' : 'state';[\s\S]*runtimeSnapshotApi\.buildUrl\(resolvedType, mode/);
     assert.match(settingsJs, /runtimeSnapshotApi\.parsePayload\(await apiGetJson\(url\)\)/);
     assert.match(settingsJs, /diagnosticsPrefsCoordinator\.reconcile\(resolvedType, snapshotPrefs/);
-    assert.match(settingsJs, /catch \(snapshotError\) \{[\s\S]*fetchFolders\(type\),[\s\S]*fetchPrefs\(type\),[\s\S]*fetchTypeInfo\(type\)/);
-    assert.match(settingsJs, /refreshType\('docker', \{ render: false \}\),[\s\S]*refreshType\('vm', \{ render: false \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
+    assert.match(settingsJs, /const fallbackRequests = \[fetchFolders\(type\), fetchPrefs\(type\)\];[\s\S]*if \(!configOnly\) \{\s*fallbackRequests\.push\(fetchTypeInfo\(type\)\);/);
+    assert.match(settingsJs, /refreshType\('docker', \{ render: false, configOnly: true \}\),[\s\S]*refreshType\('vm', \{ render: false, configOnly: true \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
+    assert.match(settingsJs, /const runtimeHydrationPromise = Promise\.allSettled\(\[\s*refreshType\('docker'\),\s*refreshType\('vm'\)\s*\]\);/);
+    assert.match(settingsJs, /window\.FolderViewPlusSettingsRuntimeHydrationPromise = runtimeHydrationPromise;/);
+    assert.match(settingsJs, /const hideEmptyFolders = runtimeReady[\s\S]*hideEmptyFolders === true;/);
 });
 
 test('all runtime pages load the snapshot client before their main runtime', () => {

@@ -27,6 +27,14 @@ const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/fo
 const themeWorkspaceJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
+test('settings first paint is cloaked until config-only folder data is ready', () => {
+    assert.match(settingsPage, /id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true"/);
+    assert.match(settingsPage, /id="fv-settings-bootstrap-shell"[\s\S]*Loading FolderView Plus settings/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-settings-bootstrap-pending > :not\(#fv-settings-bootstrap-shell\):not\(#fvplus-fatal-banner\)/);
+    assert.match(settingsJs, /const revealSettingsBootstrapSurface = \(\) => \{[\s\S]*classList\.remove\('fv-settings-bootstrap-pending'\)/);
+    assert.match(settingsJs, /const result = await refreshCoreData\(\);[\s\S]*setSettingsMode\(settingsUiState\.mode\);[\s\S]*revealSettingsBootstrapSurface\(\);/);
+});
+
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');
@@ -116,7 +124,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /label: 'Optional integrations'/);
     assert.match(diagnosticsJs, /const retestPerformanceDiagnostics = async \(\) => \{/);
     assert.match(diagnosticsJs, /window\.FolderViewPlusRefreshCoreData/);
-    assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = refreshCoreData;/);
+    assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = async \(\) => \{[\s\S]*await result\?\.runtimeHydrationPromise;/);
     assert.match(settingsJs, /coldLoad: settingsUiState\.initialized !== true/);
     assert.match(settingsCss, /\.fv-diagnostics-card-sections\s*\{/);
     assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-core\s*\{\s*grid-column:\s*1 \/ -1;/);

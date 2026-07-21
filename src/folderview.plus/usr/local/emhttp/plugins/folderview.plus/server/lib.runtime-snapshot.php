@@ -5,7 +5,7 @@ const FVPLUS_RUNTIME_SNAPSHOT_KIND = 'runtime_snapshot';
 
 function normalizeRuntimeSnapshotMode(string $mode): string {
     $normalized = strtolower(trim($mode));
-    return in_array($normalized, ['state', 'full', 'check'], true) ? $normalized : 'state';
+    return in_array($normalized, ['config', 'state', 'full', 'check'], true) ? $normalized : 'state';
 }
 
 function normalizeRuntimeSnapshotSinceToken(string $value): string {
@@ -155,7 +155,9 @@ function buildRuntimeSnapshot(
     $safeType = ensureType($type);
     $safeMode = normalizeRuntimeSnapshotMode($mode);
     $safeSinceToken = normalizeRuntimeSnapshotSinceToken($sinceToken);
-    if ($safeMode === 'full') {
+    if ($safeMode === 'config') {
+        $runtime = [];
+    } elseif ($safeMode === 'full') {
         $runtime = readInfoCached($safeType, 'full', $ttlSeconds, $forceRefresh);
     } else {
         $runtime = $preferLiveUpdateStatus
@@ -167,7 +169,7 @@ function buildRuntimeSnapshot(
     }
 
     $config = readRuntimeSnapshotConfig($safeType);
-    $unraidOrder = runtimeSnapshotOrderFromEntities($safeType, $runtime);
+    $unraidOrder = $safeMode === 'config' ? [] : runtimeSnapshotOrderFromEntities($safeType, $runtime);
     $runtimeSignature = runtimeSnapshotSignature($safeType, $runtime);
     $snapshotToken = runtimeSnapshotToken($safeType, $config, $unraidOrder, $runtimeSignature);
     $metadata = is_array($config['metadata'] ?? null) ? $config['metadata'] : [];
@@ -185,6 +187,7 @@ function buildRuntimeSnapshot(
         'runtimeSignature' => $runtimeSignature,
         'notModified' => $notModified,
         'payloadIncluded' => $safeMode !== 'check',
+        'runtimeIncluded' => $safeMode !== 'config' && $safeMode !== 'check',
         'revisions' => [
             'folder' => max(0, (int)($metadata['folderRevision'] ?? 0)),
             'prefs' => max(0, (int)($metadata['prefsRevision'] ?? 0))
@@ -203,6 +206,8 @@ function buildRuntimeSnapshot(
     $response['unraidOrder'] = $unraidOrder;
     $response['prefs'] = is_array($config['prefs'] ?? null) ? $config['prefs'] : [];
     $response['metadata'] = $metadata;
-    $response['runtime'] = $runtime;
+    if ($safeMode !== 'config') {
+        $response['runtime'] = $runtime;
+    }
     return $response;
 }

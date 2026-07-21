@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "tr",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "Çocuk Klasörleri",
     "legacy.surface.bc9520564edc373b": "Loş daraltılmış kartlar",
     "legacy.surface.bcef9e1aca74baf5": "Şubeyi durdur",
-    "legacy.surface.bd2ae11a26e7d378": "Kontrol paneli görünümü tercihi kaydedilemiyor.",
     "legacy.surface.bd950ced4b1e4ad4": "\"$1\" kaydedildi.",
     "legacy.surface.bda851790ae255ce": "Ad ve isteğe bağlı klasör WebUI davranışı.",
     "legacy.surface.bde0de8fa103da67": "Teknik ayrıntıları göster",

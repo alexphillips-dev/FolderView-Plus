@@ -183,7 +183,9 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.doesNotMatch(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'\]\)/);
-    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
+    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABEL_FALLBACKS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
+    assert.match(dashboardScript, /classic: dashboardT\('dashboard\.layout\.classic'/);
+    assert.match(dashboardScript, /compactmatrix: dashboardT\('dashboard\.layout\.compactmatrix'/);
     assert.match(dashboardScript, /const dashboardAdvancedPreviewModule = window\.FolderViewPlusDashboardAdvancedPreview \|\| null;/);
     assert.match(dashboardScript, /const attachDashboardAdvancedPreviewIfEnabled = \(\$containerEl, ct, folder, id\) =>/);
     assert.match(dashboardScript, /let dashboardDockerCpuCores = 1;/);
@@ -250,13 +252,16 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
     assert.match(dashboardQuickRailScript, /const syncDashboardWidgetLayoutQuickControlForType = \(type\) =>/);
     assert.match(dashboardQuickRailScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
-    assert.match(dashboardQuickRailScript, /ensureQuickAction\('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick'\)/);
+    assert.match(dashboardQuickRailScript, /ensureQuickAction\('layout-menu', 'fa-columns'/);
     assert.match(dashboardQuickRailScript, /ensureQuickAction\('expand-toggle'/);
     assert.match(dashboardQuickRailScript, /ensureQuickAction\('running-only'/);
-    assert.match(dashboardQuickRailScript, /ensureQuickAction\('health-emphasis'/);
-    assert.match(dashboardQuickRailScript, /ensureQuickAction\('density-toggle'/);
-    assert.match(dashboardQuickRailScript, /ensureQuickAction\('reset-view'/);
-    assert.match(dashboardQuickRailScript, /ensureQuickAction\('open-settings'/);
+    assert.match(dashboardQuickRailScript, /ensureQuickAction\('view-options'/);
+    assert.match(dashboardQuickRailScript, /toggleRow\('health-emphasis'/);
+    assert.match(dashboardQuickRailScript, /toggleRow\('density-toggle'/);
+    assert.match(dashboardQuickRailScript, /data-fv-view-action="reset-view"/);
+    assert.match(dashboardQuickRailScript, /data-fv-view-action="open-settings"/);
+    assert.match(dashboardQuickRailScript, /ui\.openPopover/);
+    assert.match(dashboardQuickRailScript, /aria-pressed/);
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-inline-host/);
     assert.match(dashboardQuickRailScript, /fv-dashboard-layout-quick-rail/);
     assert.match(dashboardQuickRailScript, /\$host\.parent\(\)\.is\(\$container\)/);
@@ -353,19 +358,21 @@ test('compact matrix derives folder and member columns from the widget width', (
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
-    assert.match(dashboardCss, /--fvplus-dashboard-quick-rail-gutter:\s*38px/);
+    assert.match(dashboardCss, /--fvplus-dashboard-quick-rail-gutter:\s*36px/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-container\.fv-dashboard-has-visible-quick-rail\s*\{[\s\S]*padding-right:\s*var\(--fvplus-dashboard-quick-rail-gutter\)/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-clamped/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-compact-grid/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
+    assert.match(dashboardCss, /\.fv-dashboard-view-popover-shell/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-option:focus-visible/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border:\s*0 !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border-radius:\s*5px/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-bg-top\),\s*var\(--fvplus-dashboard-quick-action-bg-bottom\)\) !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*box-shadow:\s*var\(--fvplus-dashboard-quick-action-shadow\) !important/);
-    assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover,\s*[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-hover-top\),\s*var\(--fvplus-dashboard-quick-action-hover-bottom\)\) !important/);
-    assert.doesNotMatch(dashboardCss, /\.fv-dashboard-quick-action:hover,\s*[\s\S]*transform:\s*translateY\(-1px\)/);
+    assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-hover-top\),\s*var\(--fvplus-dashboard-quick-action-hover-bottom\)\) !important/);
+    assert.doesNotMatch(dashboardCss, /\.fv-dashboard-quick-action:hover\s*\{[\s\S]*transform:\s*translateY\(-1px\)/);
     assert.match(dashboardCss, /data-fv-layout="legacy"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);

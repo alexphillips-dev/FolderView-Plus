@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "ro",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "Dosare copii",
     "legacy.surface.bc9520564edc373b": "Dim carduri prăbușite",
     "legacy.surface.bcef9e1aca74baf5": "Opriți ramura",
-    "legacy.surface.bd2ae11a26e7d378": "Nu se pot salva preferința de vizualizare a tabloului de bord.",
     "legacy.surface.bd950ced4b1e4ad4": "Salvat „$1”.",
     "legacy.surface.bda851790ae255ce": "Nume și folder opțional Comportamentul WebUI.",
     "legacy.surface.bde0de8fa103da67": "Afișați detalii tehnice",

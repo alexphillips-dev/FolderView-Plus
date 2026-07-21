@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.20.02">
-<!ENTITY md5 "7bb15f936737d2259d6deed53aa55e74">
+<!ENTITY version "2026.07.21.03">
+<!ENTITY md5 "e0184736d0e4d3eacc02dc53a5abb29f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.03
+- Feature: Reworked the Docker and VM Dashboard action rail into four focused controls for layout, expand or collapse all, running-only filtering, and a consolidated View options menu.
+- UI/UX: Replaced blind seven-layout cycling with a named layout selector, moved health emphasis, compact density, Reset view, and Settings into a compact anchored popover, and disabled Reset view when no temporary view state needs clearing.
+- UI/UX: Increased desktop and mobile action targets, added clear selected and pending states, prevented short widgets from requiring a seven-button scroll rail, and collapsed narrow widgets to the essential expand and View options controls.
+- Accessibility: Added explicit pressed and selected semantics, visible keyboard focus, arrow-key layout navigation, Escape and outside-click dismissal, focus restoration, localized labels, and responsive touch-friendly controls.
+- Reliability: Reused the existing verified Dashboard preference path for explicit layout choices, retained optimistic rollback on failed saves, and surfaced failures through the shared themed toast primitive.
+- Localization: Added complete Dashboard action-rail and layout-selector coverage across all 18 shipped language catalogs and advanced the source catalog to revision 2026.07.21.1.
+- Quality: Added a reusable viewport-aware popover primitive with safe positioning, outside-click handling, Escape dismissal, resize and scroll reconciliation, and trigger state restoration.
+- Test: Added Chromium fixture coverage for action inventory, target sizing, layout selection, arrow navigation, Escape focus return, toggle synchronization, persisted layout state, and narrow-widget control collapse; updated live Dashboard smoke coverage to select every layout explicitly.
+
 
 ###2026.07.20.02
 - Fix: Made Dashboard layout changes from Settings and the Dashboard quick switch commit only the requested `dashboard.layout` field immediately, verify the server-confirmed value, and show a visible error if persistence returns a different layout.

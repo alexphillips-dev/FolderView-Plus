@@ -14,7 +14,7 @@ const css = fs.readFileSync(path.join(root, 'src/folderview.plus/usr/local/emhtt
 test('shared UI renderer exposes every required primitive with escaped output', () => {
     for (const method of [
         'button', 'iconButton', 'badge', 'disclosure', 'field', 'dropdown', 'multiselect',
-        'emptyState', 'loadingState', 'openModal', 'openActionSheet', 'confirm', 'alert',
+        'emptyState', 'loadingState', 'openPopover', 'openModal', 'openActionSheet', 'confirm', 'alert',
         'toast', 'progress', 'registerAction', 'dispatchAction', 'installDelegation'
     ]) assert.equal(typeof ui[method], 'function', `${method} must be public`);
 
@@ -32,7 +32,7 @@ test('shared UI renderer exposes every required primitive with escaped output', 
 test('shared primitive stylesheet is tokenized, responsive, and specificity-safe', () => {
     for (const selector of [
         '.fv-ui-button', '.fv-ui-icon-button', '.fv-ui-badge', '.fv-ui-disclosure', '.fv-ui-field',
-        '.fv-ui-select', '.fv-ui-modal-backdrop', '.fv-ui-toast-region', '.fv-ui-progress-state',
+        '.fv-ui-select', '.fv-ui-popover', '.fv-ui-modal-backdrop', '.fv-ui-toast-region', '.fv-ui-progress-state',
         '.fv-ui-empty-state', '.fv-ui-loading-state'
     ]) assert.ok(css.includes(selector), `${selector} must be styled`);
     assert.match(css, /@media \(max-width: 620px\)/);

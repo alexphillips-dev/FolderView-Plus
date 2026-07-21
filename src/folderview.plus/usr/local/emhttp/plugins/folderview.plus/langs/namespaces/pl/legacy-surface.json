@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "pl",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "Foldery podrzędne",
     "legacy.surface.bc9520564edc373b": "Przyciemnij zwinięte karty",
     "legacy.surface.bcef9e1aca74baf5": "Zatrzymaj oddział",
-    "legacy.surface.bd2ae11a26e7d378": "Nie można zapisać preferencji widoku panelu.",
     "legacy.surface.bd950ced4b1e4ad4": "Zapisano „$1”.",
     "legacy.surface.bda851790ae255ce": "Nazwa i opcjonalne zachowanie WebUI folderu.",
     "legacy.surface.bde0de8fa103da67": "Pokaż szczegóły techniczne",

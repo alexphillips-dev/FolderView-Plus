@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FolderView Plus Dashboard layout fixture</title>
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/ui.primitives.css">
     <link rel="stylesheet" href="/plugin/styles/dashboard.css">
     <style>
         body { margin: 12px; background: #171717; color: #f3f3f3; font: 16px/1.35 Arial, sans-serif; }
@@ -18,6 +19,7 @@
 </head>
 <body>
     <section id="fixture-widget">
+        <input id="apps" type="checkbox" hidden>
         <table>
             <tbody id="docker_view">
                 <tr class="updated">
@@ -40,6 +42,7 @@
         </table>
     </section>
     <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/folderviewplus.ui.js"></script>
     <script src="/plugin/scripts/dashboard.layout-quickrail.js"></script>
     <script src="/fixtures/dashboard-layout.fixture.js"></script>
 </body>

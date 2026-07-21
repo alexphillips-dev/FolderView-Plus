@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "en",
         "namespace": "legacy-surface"
     },
@@ -1457,7 +1457,6 @@
     "legacy.surface.8c38209b26ab71f8": "Tunes folder behavior, status thresholds, and visibility defaults for Docker and VMs.",
     "legacy.surface.baaddf70fb5d432b": "Type",
     "legacy.surface.b45d81ae334dcdc8": "UI/UX Update",
-    "legacy.surface.bd2ae11a26e7d378": "Unable to save dashboard view preference.",
     "legacy.surface.88b6f7429ce74e85": "Unchanged",
     "legacy.surface.a8283ade31856f71": "Undo",
     "legacy.surface.3a93135af3359aea": "Undo and recent changes",

@@ -13,6 +13,8 @@
     const actionHandlers = new Map();
     const modalStack = [];
     let toastRegion = null;
+    let activePopover = null;
+    let popoverSequence = 0;
     let delegatedRoot = null;
 
     const escapeHtml = (value) => String(value ?? '')
@@ -110,6 +112,103 @@
 
     const loadingState = ({ label = '', detail = '', compact = false } = {}) => `
         <div class="fv-ui-loading-state${compact ? ' is-compact' : ''}" role="status" aria-live="polite"><span class="fv-ui-spinner" aria-hidden="true"></span><span><strong>${escapeHtml(label || translate('common.loading', 'Loading…'))}</strong>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}</span></div>`;
+
+    const openPopover = ({
+        trigger = null, content = '', ariaLabel = '', className = '', initialFocus = '', returnFocus = true,
+        placement = 'bottom-end', onClose = null
+    } = {}) => {
+        if (!host?.document?.body || !trigger || typeof trigger.getBoundingClientRect !== 'function') return null;
+        activePopover?.close?.('replaced', { restoreFocus: false });
+
+        const element = host.document.createElement('div');
+        const popoverId = `fv-ui-popover-${++popoverSequence}`;
+        element.id = popoverId;
+        element.className = `fv-ui-popover${className ? ` ${className}` : ''}`;
+        element.setAttribute('role', 'dialog');
+        element.setAttribute('tabindex', '-1');
+        if (ariaLabel) element.setAttribute('aria-label', ariaLabel);
+        appendContent(element, content);
+        host.document.body.append(element);
+
+        const previousExpanded = trigger.getAttribute('aria-expanded');
+        const previousControls = trigger.getAttribute('aria-controls');
+        trigger.setAttribute('aria-expanded', 'true');
+        trigger.setAttribute('aria-controls', popoverId);
+        let closed = false;
+        let resolveClosed;
+        const closedPromise = new Promise((resolve) => { resolveClosed = resolve; });
+
+        const reposition = () => {
+            if (closed || !element.isConnected) return;
+            if (!trigger.isConnected) {
+                close('trigger-removed', { restoreFocus: false });
+                return;
+            }
+            const triggerRect = trigger.getBoundingClientRect();
+            const popoverRect = element.getBoundingClientRect();
+            const viewportWidth = Math.max(0, host.innerWidth || host.document.documentElement.clientWidth || 0);
+            const viewportHeight = Math.max(0, host.innerHeight || host.document.documentElement.clientHeight || 0);
+            const gutter = 8;
+            const gap = 6;
+            const preferAbove = placement.startsWith('top');
+            const fitsBelow = triggerRect.bottom + gap + popoverRect.height <= viewportHeight - gutter;
+            const fitsAbove = triggerRect.top - gap - popoverRect.height >= gutter;
+            const useAbove = preferAbove ? fitsAbove || !fitsBelow : !fitsBelow && fitsAbove;
+            const top = useAbove
+                ? triggerRect.top - popoverRect.height - gap
+                : triggerRect.bottom + gap;
+            const alignStart = placement.endsWith('start');
+            const desiredLeft = alignStart ? triggerRect.left : triggerRect.right - popoverRect.width;
+            const left = Math.min(
+                Math.max(gutter, desiredLeft),
+                Math.max(gutter, viewportWidth - popoverRect.width - gutter)
+            );
+            element.style.top = `${Math.max(gutter, Math.min(top, viewportHeight - popoverRect.height - gutter))}px`;
+            element.style.left = `${left}px`;
+            element.dataset.fvUiPlacement = useAbove ? 'top' : 'bottom';
+        };
+
+        const close = (reason = 'close', options = {}) => {
+            if (closed) return;
+            closed = true;
+            host.document.removeEventListener('pointerdown', handleOutsidePointer, true);
+            host.document.removeEventListener('keydown', handleKeydown, true);
+            host.removeEventListener('resize', reposition);
+            host.removeEventListener('scroll', reposition, true);
+            element.remove();
+            if (previousExpanded === null) trigger.removeAttribute('aria-expanded');
+            else trigger.setAttribute('aria-expanded', previousExpanded);
+            if (previousControls === null) trigger.removeAttribute('aria-controls');
+            else trigger.setAttribute('aria-controls', previousControls);
+            if (activePopover?.element === element) activePopover = null;
+            if (options.restoreFocus !== false && returnFocus && trigger.isConnected) trigger.focus({ preventScroll: true });
+            onClose?.(reason);
+            resolveClosed(reason);
+        };
+        const handleOutsidePointer = (event) => {
+            if (!element.contains(event.target) && !trigger.contains(event.target)) close('outside', { restoreFocus: false });
+        };
+        const handleKeydown = (event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            event.stopPropagation();
+            close('escape');
+        };
+
+        const controller = Object.freeze({ element, trigger, reposition, close, closed: closedPromise });
+        activePopover = controller;
+        host.document.addEventListener('pointerdown', handleOutsidePointer, true);
+        host.document.addEventListener('keydown', handleKeydown, true);
+        host.addEventListener('resize', reposition);
+        host.addEventListener('scroll', reposition, true);
+        host.requestAnimationFrame?.(reposition) || host.setTimeout(reposition, 0);
+        const requestedFocus = initialFocus ? element.querySelector(initialFocus) : null;
+        const focusTarget = requestedFocus && !requestedFocus.disabled && requestedFocus.getAttribute('aria-disabled') !== 'true'
+            ? requestedFocus
+            : getFocusable(element)[0];
+        (focusTarget || element).focus({ preventScroll: true });
+        return controller;
+    };
 
     const getFocusable = (container) => Array.from(container?.querySelectorAll?.(
         'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), details > summary, [tabindex]:not([tabindex="-1"])'
@@ -368,6 +467,7 @@
         multiselect: (options = {}) => dropdown({ ...options, multiple: true }),
         emptyState,
         loadingState,
+        openPopover,
         openModal,
         openActionSheet,
         confirm,

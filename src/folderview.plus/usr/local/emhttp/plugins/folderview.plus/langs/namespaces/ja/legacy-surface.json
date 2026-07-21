@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "ja",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "子フォルダー",
     "legacy.surface.bc9520564edc373b": "暗く折りたたまれたカード",
     "legacy.surface.bcef9e1aca74baf5": "分岐を停止する",
-    "legacy.surface.bd2ae11a26e7d378": "ダッシュボードのビュー設定を保存できません。",
     "legacy.surface.bd950ced4b1e4ad4": "「$1」を節約しました。",
     "legacy.surface.bda851790ae255ce": "名前とオプションのフォルダー WebUI の動作。",
     "legacy.surface.bde0de8fa103da67": "技術的な詳細を表示する",

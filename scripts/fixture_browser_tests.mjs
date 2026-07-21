@@ -219,7 +219,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1564);
+    assert.equal(snapshot.autoBoundMessageCount, 1563);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -282,6 +282,54 @@ test('Compact Matrix responds to the Dashboard widget width without clipping lon
     assert.equal(restored.folderColumns, 2);
     assert.equal(restored.memberColumns, 2);
     assert.ok(restored.tileWidths.slice(0, 3).every((width) => width >= 220));
+});
+
+test('Dashboard action rail exposes accessible primary controls and a keyboard-safe view popover', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 760 });
+    await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
+    const rail = page.locator('.fv-dashboard-layout-quick-rail');
+    await rail.waitFor();
+    assert.deepEqual(await rail.locator('.fv-dashboard-quick-action').evaluateAll((buttons) => buttons.map((button) => button.dataset.fvQuickAction)), [
+        'layout-menu', 'expand-toggle', 'running-only', 'view-options'
+    ]);
+    const buttonBox = await rail.locator('[data-fv-quick-action="layout-menu"]').boundingBox();
+    assert.ok(buttonBox.width >= 24 && buttonBox.height >= 24, 'desktop action buttons must remain usable mouse targets');
+
+    const layoutTrigger = rail.locator('[data-fv-quick-action="layout-menu"]');
+    await layoutTrigger.click();
+    const popover = page.locator('.fv-dashboard-view-popover-shell');
+    await popover.waitFor();
+    assert.equal(await popover.locator('[data-fv-layout-option]').count(), 7);
+    assert.equal(await popover.locator('[data-fv-layout-option="compactmatrix"]').getAttribute('aria-checked'), 'true');
+    await popover.locator('[data-fv-layout-option="compactmatrix"]').press('ArrowDown');
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-layout-option')), 'embossed');
+    await page.keyboard.press('Escape');
+    await popover.waitFor({ state: 'detached' });
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-quick-action')), 'layout-menu');
+
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    await popover.locator('[data-fv-view-action="health-emphasis"]').click();
+    assert.equal(await popover.locator('[data-fv-view-action="health-emphasis"]').getAttribute('aria-pressed'), 'true');
+    await popover.locator('[data-fv-view-action="running-only"]').click();
+    assert.equal(await rail.locator('[data-fv-quick-action="running-only"]').getAttribute('aria-pressed'), 'true');
+    await popover.locator('[data-fv-layout-option="classic"]').click();
+    await page.waitForFunction(() => window.fixtureDashboardLayout.state.layout === 'classic');
+    assert.equal(await layoutTrigger.getAttribute('data-fv-layout'), 'classic');
+
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    const reset = popover.locator('[data-fv-view-action="reset-view"]');
+    assert.equal(await reset.isDisabled(), false);
+    await reset.click();
+    await rail.locator('[data-fv-quick-action="view-options"]').click();
+    assert.equal(await popover.locator('[data-fv-view-action="reset-view"]').isDisabled(), true);
+    await page.locator('body').click({ position: { x: 4, y: 4 } });
+    await popover.waitFor({ state: 'detached' });
+
+    await page.evaluate(() => window.fixtureDashboardLayout.resize(390));
+    await page.waitForFunction(() => document.querySelector('.fv-dashboard-layout-inline-host')?.classList.contains('is-narrow'));
+    assert.deepEqual((await page.evaluate(() => window.fixtureDashboardLayout.snapshot())).visibleQuickActions, ['expand-toggle', 'view-options']);
+    const mobileButtonBox = await rail.locator('[data-fv-quick-action="view-options"]').boundingBox();
+    assert.ok(mobileButtonBox.width >= 30 && mobileButtonBox.height >= 30, 'narrow action buttons must retain larger touch targets');
 });
 
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {

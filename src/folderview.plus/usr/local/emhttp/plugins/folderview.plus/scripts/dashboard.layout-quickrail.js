@@ -110,8 +110,26 @@
                 docker: null,
                 vm: null
             },
+            viewPopoverByType: {
+                docker: null,
+                vm: null
+            },
+            layoutPendingByType: {
+                docker: false,
+                vm: false
+            },
             quickActionSyncBound: false
         };
+
+        const ui = deps.ui || win.FolderViewPlusUI || null;
+        const translate = (key, fallback = '', ...params) => (
+            typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
+        );
+        const escapeHtml = (value) => (
+            typeof ui?.escapeHtml === 'function'
+                ? ui.escapeHtml(value)
+                : String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+        );
 
         const dashboardTypeMeta = (type) => (
             typeof deps.dashboardTypeMeta === 'function'
@@ -370,7 +388,9 @@
                 return;
             }
             const availableHeight = Math.max(0, Math.floor((parentRect?.height || 0) - offsetTop - 2));
+            $host.toggleClass('is-narrow', Math.max(0, Number(parentRect?.width || 0)) < 440);
             if (availableHeight <= 0) {
+                $host.removeClass('is-height-constrained');
                 $host.css('max-height', '');
                 $rail.css('max-height', '');
                 $rail.removeClass('is-clamped is-compact-grid');
@@ -378,8 +398,9 @@
             }
             $host.css('max-height', `${availableHeight}px`);
             $rail.css('max-height', `${availableHeight}px`);
+            $host.toggleClass('is-height-constrained', availableHeight < 58);
 
-            const $buttons = $rail.children('button.fv-dashboard-quick-action');
+            const $buttons = $rail.children('button.fv-dashboard-quick-action').filter((_, node) => win.getComputedStyle(node).display !== 'none');
             const buttonCount = $buttons.length;
             const buttonNode = $buttons.first().get(0);
             const buttonStyle = buttonNode ? win.getComputedStyle(buttonNode) : null;
@@ -415,6 +436,7 @@
             const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
             const firstVisibleCard = getFirstVisibleDashboardFolderCardForType(resolvedType);
             if (!parentNode || !firstVisibleCard || !isDashboardNodeVisible(parentNode)) {
+                $host.removeClass('is-height-constrained');
                 $host.css('top', '');
                 $host.css('max-height', '');
                 $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
@@ -452,6 +474,7 @@
             }
             $host.css('top', '');
             $host.css('max-height', '');
+            $host.removeClass('is-height-constrained');
             $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
         };
 
@@ -484,9 +507,212 @@
             return allExpanded;
         };
 
+        const hasExpandedDashboardFoldersForType = (type) => {
+            let hasExpanded = false;
+            getDashboardFolderCardsForType(type).each((_, node) => {
+                if (jq(node).attr('expanded') === 'true') {
+                    hasExpanded = true;
+                    return false;
+                }
+                return true;
+            });
+            return hasExpanded;
+        };
+
+        const readDashboardQuickStateForType = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            const hasStartedOnlyToggle = typeof deps.getDashboardStartedOnlySelectorForType === 'function'
+                ? jq(deps.getDashboardStartedOnlySelectorForType(resolvedType)).length > 0
+                : false;
+            return {
+                hasStartedOnlyToggle,
+                startedOnlyEnabled: hasStartedOnlyToggle && typeof deps.isDashboardStartedOnlyEnabledForType === 'function'
+                    ? deps.isDashboardStartedOnlyEnabledForType(resolvedType)
+                    : false,
+                healthEnabled: typeof deps.readDashboardHealthEmphasisStateForType === 'function'
+                    ? deps.readDashboardHealthEmphasisStateForType(resolvedType)
+                    : false,
+                compactDensityEnabled: typeof deps.readDashboardCompactDensityStateForType === 'function'
+                    ? deps.readDashboardCompactDensityStateForType(resolvedType)
+                    : false,
+                allExpanded: areAllDashboardFoldersExpandedForType(resolvedType),
+                anyExpanded: hasExpandedDashboardFoldersForType(resolvedType),
+                folderCount: getDashboardFolderCardsForType(resolvedType).length
+            };
+        };
+
+        const isDashboardQuickStateDefaultForType = (type) => {
+            const quickState = readDashboardQuickStateForType(type);
+            return quickState.startedOnlyEnabled !== true
+                && quickState.healthEnabled !== true
+                && quickState.compactDensityEnabled !== true
+                && quickState.anyExpanded !== true;
+        };
+
+        const syncDashboardViewPopoverForType = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            const popover = state.viewPopoverByType[resolvedType];
+            if (!popover?.element?.isConnected) return;
+            const currentLayout = typeof deps.normalizeDashboardPrefsForType === 'function'
+                ? deps.normalizeDashboardPrefsForType(resolvedType).layout
+                : 'classic';
+            const quickState = readDashboardQuickStateForType(resolvedType);
+            popover.element.querySelectorAll('[data-fv-layout-option]').forEach((button) => {
+                const selected = button.getAttribute('data-fv-layout-option') === currentLayout;
+                button.classList.toggle('is-selected', selected);
+                button.setAttribute('aria-checked', selected ? 'true' : 'false');
+                button.tabIndex = selected ? 0 : -1;
+                button.disabled = state.layoutPendingByType[resolvedType] === true;
+            });
+            const toggleStates = {
+                'running-only': quickState.startedOnlyEnabled,
+                'health-emphasis': quickState.healthEnabled,
+                'density-toggle': quickState.compactDensityEnabled
+            };
+            Object.entries(toggleStates).forEach(([action, enabled]) => {
+                const button = popover.element.querySelector(`[data-fv-view-action="${action}"]`);
+                if (!button) return;
+                button.classList.toggle('is-active', enabled === true);
+                button.setAttribute('aria-pressed', enabled === true ? 'true' : 'false');
+                if (action === 'running-only') button.disabled = !quickState.hasStartedOnlyToggle;
+            });
+            const reset = popover.element.querySelector('[data-fv-view-action="reset-view"]');
+            if (reset) reset.disabled = isDashboardQuickStateDefaultForType(resolvedType);
+        };
+
+        const buildDashboardViewPopoverMarkup = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            const widgetLabel = resolvedType === 'vm' ? translate('dashboard.widget.vm', 'VM') : translate('dashboard.widget.docker', 'Docker');
+            const layoutLabels = getDashboardLayoutLabels();
+            const currentLayout = typeof deps.normalizeDashboardPrefsForType === 'function'
+                ? deps.normalizeDashboardPrefsForType(resolvedType).layout
+                : 'classic';
+            const layoutOptions = getDashboardLayoutModes().map((layout) => `
+                <button type="button" class="fv-dashboard-layout-option${layout === currentLayout ? ' is-selected' : ''}" role="radio" aria-checked="${layout === currentLayout ? 'true' : 'false'}" tabindex="${layout === currentLayout ? '0' : '-1'}" data-fv-layout-option="${escapeHtml(layout)}">
+                    <i class="fa fa-check" aria-hidden="true"></i><span>${escapeHtml(layoutLabels[layout] || layout)}</span>
+                </button>`).join('');
+            const toggleRow = (action, icon, label, description) => `
+                <button type="button" class="fv-dashboard-view-option" data-fv-view-action="${escapeHtml(action)}" aria-pressed="false">
+                    <i class="fa ${escapeHtml(icon)} fv-dashboard-view-option-icon" aria-hidden="true"></i>
+                    <span><strong>${escapeHtml(label)}</strong><small>${escapeHtml(description)}</small></span>
+                    <i class="fa fa-check fv-dashboard-view-option-check" aria-hidden="true"></i>
+                </button>`;
+            return `
+                <div class="fv-dashboard-view-popover" data-fv-dashboard-type="${resolvedType}">
+                    <header><strong>${escapeHtml(translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel))}</strong><span>${escapeHtml(translate('dashboard.quick.view-options-help', 'Customize this Dashboard widget.'))}</span></header>
+                    <section class="fv-dashboard-view-section" data-fv-view-section="layout">
+                        <h3>${escapeHtml(translate('dashboard.quick.layout', 'Layout'))}</h3>
+                        <div class="fv-dashboard-layout-options" role="radiogroup" aria-label="${escapeHtml(translate('dashboard.quick.choose-layout', 'Choose layout'))}">${layoutOptions}</div>
+                    </section>
+                    <section class="fv-dashboard-view-section">
+                        <h3>${escapeHtml(translate('dashboard.quick.display', 'Display'))}</h3>
+                        <div class="fv-dashboard-view-options">
+                            ${toggleRow('running-only', 'fa-play-circle', translate('dashboard.quick.running-only', 'Running only'), translate('dashboard.quick.running-only-help', 'Hide stopped members and folders.'))}
+                            ${toggleRow('health-emphasis', 'fa-heartbeat', translate('dashboard.quick.health-emphasis', 'Health emphasis'), translate('dashboard.quick.health-emphasis-help', 'Make runtime health states easier to scan.'))}
+                            ${toggleRow('density-toggle', 'fa-compress', translate('dashboard.quick.compact-density', 'Compact density'), translate('dashboard.quick.compact-density-help', 'Reduce spacing to fit more folders.'))}
+                        </div>
+                    </section>
+                    <footer>
+                        <button type="button" class="fv-dashboard-view-footer-action" data-fv-view-action="reset-view"><i class="fa fa-undo" aria-hidden="true"></i><span>${escapeHtml(translate('dashboard.quick.reset-view', 'Reset view'))}</span></button>
+                        <button type="button" class="fv-dashboard-view-footer-action" data-fv-view-action="open-settings"><i class="fa fa-cog" aria-hidden="true"></i><span>${escapeHtml(translate('dashboard.quick.open-settings', 'Open settings'))}</span></button>
+                    </footer>
+                </div>`;
+        };
+
+        const setDashboardLayoutFromQuickRail = async (type, layout) => {
+            const resolvedType = normalizeDashboardType(type);
+            if (state.layoutPendingByType[resolvedType]) return;
+            state.layoutPendingByType[resolvedType] = true;
+            syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+            try {
+                const result = typeof deps.onLayoutCycle === 'function'
+                    ? await deps.onLayoutCycle(resolvedType, layout)
+                    : { ok: true };
+                if (result?.ok === false) throw (result.error instanceof Error ? result.error : new Error(String(result.error || 'Unable to save dashboard view preference.')));
+            } catch (error) {
+                ui?.toast?.({
+                    title: translate('dashboard.quick.save-error-title', 'Dashboard view not saved'),
+                    message: String(error?.message || translate('dashboard.quick.save-error-message', 'Unable to save the Dashboard view preference.')),
+                    tone: 'danger'
+                });
+            } finally {
+                state.layoutPendingByType[resolvedType] = false;
+                syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+            }
+        };
+
+        const openDashboardViewPopoverForType = (type, trigger, initialSection = 'all') => {
+            const resolvedType = normalizeDashboardType(type);
+            const existing = state.viewPopoverByType[resolvedType];
+            if (existing?.element?.isConnected && existing.trigger === trigger) {
+                existing.close('toggle');
+                return;
+            }
+            if (typeof ui?.openPopover !== 'function') return;
+            const widgetLabel = resolvedType === 'vm' ? translate('dashboard.widget.vm', 'VM') : translate('dashboard.widget.docker', 'Docker');
+            const popover = ui.openPopover({
+                trigger,
+                content: buildDashboardViewPopoverMarkup(resolvedType),
+                ariaLabel: translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel),
+                className: 'fv-dashboard-view-popover-shell',
+                placement: 'bottom-end',
+                initialFocus: initialSection === 'layout' ? '[data-fv-layout-option][aria-checked="true"]' : '[data-fv-view-action="running-only"]',
+                onClose: () => {
+                    if (state.viewPopoverByType[resolvedType]?.element === popover?.element) state.viewPopoverByType[resolvedType] = null;
+                }
+            });
+            if (!popover) return;
+            state.viewPopoverByType[resolvedType] = popover;
+            syncDashboardViewPopoverForType(resolvedType);
+            popover.element.addEventListener('click', (event) => {
+                const layoutButton = event.target.closest('[data-fv-layout-option]');
+                if (layoutButton) {
+                    const layout = String(layoutButton.getAttribute('data-fv-layout-option') || '').trim();
+                    popover.close('layout-selected');
+                    void setDashboardLayoutFromQuickRail(resolvedType, layout);
+                    return;
+                }
+                const actionButton = event.target.closest('[data-fv-view-action]');
+                if (!actionButton || actionButton.disabled) return;
+                const action = String(actionButton.getAttribute('data-fv-view-action') || '').trim();
+                if (action === 'running-only') {
+                    const current = readDashboardQuickStateForType(resolvedType).startedOnlyEnabled;
+                    deps.onSetStartedOnlyEnabled?.(resolvedType, !current);
+                    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+                } else if (action === 'health-emphasis') {
+                    const current = readDashboardQuickStateForType(resolvedType).healthEnabled;
+                    deps.onToggleHealthEmphasis?.(resolvedType, !current);
+                    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+                } else if (action === 'density-toggle') {
+                    const current = readDashboardQuickStateForType(resolvedType).compactDensityEnabled;
+                    deps.onToggleDensity?.(resolvedType, !current);
+                    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+                } else if (action === 'reset-view') {
+                    popover.close('reset');
+                    deps.onResetView?.(resolvedType);
+                } else if (action === 'open-settings') {
+                    popover.close('settings', { restoreFocus: false });
+                    deps.onOpenSettings?.();
+                }
+            });
+            popover.element.addEventListener('keydown', (event) => {
+                const current = event.target.closest('[data-fv-layout-option]');
+                if (!current || !['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+                const options = Array.from(popover.element.querySelectorAll('[data-fv-layout-option]'));
+                const index = options.indexOf(current);
+                if (index < 0) return;
+                event.preventDefault();
+                const nextIndex = event.key === 'Home' ? 0
+                    : event.key === 'End' ? options.length - 1
+                        : ['ArrowDown', 'ArrowRight'].includes(event.key) ? (index + 1) % options.length
+                            : (index - 1 + options.length) % options.length;
+                options[nextIndex]?.focus();
+            });
+        };
+
         const syncDashboardWidgetLayoutQuickControlForType = (type) => {
             const resolvedType = normalizeDashboardType(type);
-            const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
+            const widgetLabel = resolvedType === 'vm' ? translate('dashboard.widget.vm', 'VM') : translate('dashboard.widget.docker', 'Docker');
             const currentLayout = typeof deps.normalizeDashboardPrefsForType === 'function'
                 ? deps.normalizeDashboardPrefsForType(resolvedType).layout
                 : 'classic';
@@ -497,66 +723,45 @@
             }
 
             const $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
-            const $layoutControl = $rail.children('[data-fv-quick-action="layout-cycle"]').first();
+            const quickState = readDashboardQuickStateForType(resolvedType);
+            const $layoutControl = $rail.children('[data-fv-quick-action="layout-menu"]').first();
             if ($layoutControl.length) {
                 $layoutControl.attr('data-fv-layout', currentLayout);
-                $layoutControl.attr('title', `${widgetLabel} view: ${layoutLabel} (click to switch)`);
-                $layoutControl.attr('aria-label', `${widgetLabel} dashboard view: ${layoutLabel}. Click to switch.`);
+                $layoutControl.toggleClass('is-pending', state.layoutPendingByType[resolvedType] === true);
+                $layoutControl.prop('disabled', state.layoutPendingByType[resolvedType] === true);
+                $layoutControl.attr('title', translate('dashboard.quick.current-layout', '$1 view: $2. Choose a layout.', widgetLabel, layoutLabel));
+                $layoutControl.attr('aria-label', translate('dashboard.quick.current-layout', '$1 view: $2. Choose a layout.', widgetLabel, layoutLabel));
+                $layoutControl.children('i.fa').attr('class', state.layoutPendingByType[resolvedType] ? 'fa fa-spinner fa-spin' : 'fa fa-columns');
             }
 
-            const allExpanded = areAllDashboardFoldersExpandedForType(resolvedType);
-            const folderCount = getDashboardFolderCardsForType(resolvedType).length;
             const $expandControl = $rail.children('[data-fv-quick-action="expand-toggle"]').first();
             if ($expandControl.length) {
-                $expandControl.toggleClass('is-active', allExpanded === true);
-                $expandControl.prop('disabled', folderCount === 0);
-                $expandControl.attr('title', allExpanded ? `${widgetLabel}: Collapse all folders` : `${widgetLabel}: Expand all folders`);
-                $expandControl.attr('aria-label', allExpanded ? `${widgetLabel}: collapse all folders` : `${widgetLabel}: expand all folders`);
+                $expandControl.toggleClass('is-active', quickState.allExpanded === true);
+                $expandControl.prop('disabled', quickState.folderCount === 0);
+                $expandControl.attr('aria-pressed', quickState.allExpanded === true ? 'true' : 'false');
+                $expandControl.attr('title', quickState.allExpanded ? translate('dashboard.quick.collapse-all', '$1: Collapse all folders', widgetLabel) : translate('dashboard.quick.expand-all', '$1: Expand all folders', widgetLabel));
+                $expandControl.attr('aria-label', quickState.allExpanded ? translate('dashboard.quick.collapse-all', '$1: Collapse all folders', widgetLabel) : translate('dashboard.quick.expand-all', '$1: Expand all folders', widgetLabel));
                 const $icon = $expandControl.children('i.fa').first();
-                $icon.toggleClass('fa-angle-double-down', allExpanded !== true);
-                $icon.toggleClass('fa-angle-double-up', allExpanded === true);
+                $icon.toggleClass('fa-angle-double-down', quickState.allExpanded !== true);
+                $icon.toggleClass('fa-angle-double-up', quickState.allExpanded === true);
             }
 
-            const hasStartedOnlyToggle = typeof deps.getDashboardStartedOnlySelectorForType === 'function'
-                ? jq(deps.getDashboardStartedOnlySelectorForType(resolvedType)).length > 0
-                : false;
-            const startedOnlyEnabled = hasStartedOnlyToggle && typeof deps.isDashboardStartedOnlyEnabledForType === 'function'
-                ? deps.isDashboardStartedOnlyEnabledForType(resolvedType)
-                : false;
             const $runningControl = $rail.children('[data-fv-quick-action="running-only"]').first();
             if ($runningControl.length) {
-                $runningControl.toggleClass('is-active', startedOnlyEnabled);
-                $runningControl.prop('disabled', !hasStartedOnlyToggle);
-                $runningControl.attr('title', `${widgetLabel}: Running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
-                $runningControl.attr('aria-label', `${widgetLabel}: running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
+                $runningControl.toggleClass('is-active', quickState.startedOnlyEnabled);
+                $runningControl.prop('disabled', !quickState.hasStartedOnlyToggle);
+                $runningControl.attr('aria-pressed', quickState.startedOnlyEnabled ? 'true' : 'false');
+                $runningControl.attr('title', translate('dashboard.quick.running-state', '$1: Running-only $2', widgetLabel, quickState.startedOnlyEnabled ? translate('dashboard.quick.enabled', 'enabled') : translate('dashboard.quick.disabled', 'disabled')));
+                $runningControl.attr('aria-label', translate('dashboard.quick.running-state', '$1: Running-only $2', widgetLabel, quickState.startedOnlyEnabled ? translate('dashboard.quick.enabled', 'enabled') : translate('dashboard.quick.disabled', 'disabled')));
             }
 
-            const healthEnabled = typeof deps.readDashboardHealthEmphasisStateForType === 'function'
-                ? deps.readDashboardHealthEmphasisStateForType(resolvedType)
-                : false;
-            const $healthControl = $rail.children('[data-fv-quick-action="health-emphasis"]').first();
-            if ($healthControl.length) {
-                $healthControl.toggleClass('is-active', healthEnabled);
-                $healthControl.attr('title', `${widgetLabel}: Health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
-                $healthControl.attr('aria-label', `${widgetLabel}: health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
+            const $viewControl = $rail.children('[data-fv-quick-action="view-options"]').first();
+            if ($viewControl.length) {
+                const label = translate('dashboard.quick.view-options-title', '$1 view options', widgetLabel);
+                $viewControl.attr('title', label).attr('aria-label', label);
             }
 
-            const compactDensityEnabled = typeof deps.readDashboardCompactDensityStateForType === 'function'
-                ? deps.readDashboardCompactDensityStateForType(resolvedType)
-                : false;
-            const $densityControl = $rail.children('[data-fv-quick-action="density-toggle"]').first();
-            if ($densityControl.length) {
-                $densityControl.toggleClass('is-active', compactDensityEnabled);
-                $densityControl.attr('title', `${widgetLabel}: Compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
-                $densityControl.attr('aria-label', `${widgetLabel}: compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
-            }
-
-            const $resetControl = $rail.children('[data-fv-quick-action="reset-view"]').first();
-            if ($resetControl.length) {
-                $resetControl.attr('title', `${widgetLabel}: Reset quick view state`);
-                $resetControl.attr('aria-label', `${widgetLabel}: reset quick view state`);
-            }
-
+            syncDashboardViewPopoverForType(resolvedType);
             syncDashboardWidgetQuickRailVisibilityForType(resolvedType);
         };
 
@@ -602,13 +807,10 @@
                 return $button;
             };
 
-            ensureQuickAction('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick');
-            ensureQuickAction('expand-toggle', 'fa-angle-double-down', 'Expand all folders');
-            ensureQuickAction('running-only', 'fa-play-circle', 'Toggle running-only filter');
-            ensureQuickAction('health-emphasis', 'fa-heartbeat', 'Toggle health emphasis');
-            ensureQuickAction('density-toggle', 'fa-compress', 'Toggle compact density');
-            ensureQuickAction('reset-view', 'fa-undo', 'Reset widget view');
-            ensureQuickAction('open-settings', 'fa-cog', 'Open FolderView Plus settings');
+            ensureQuickAction('layout-menu', 'fa-columns', translate('dashboard.quick.choose-layout', 'Choose layout'), 'fv-dashboard-layout-quick is-responsive-secondary').attr('aria-haspopup', 'dialog').attr('aria-expanded', 'false');
+            ensureQuickAction('expand-toggle', 'fa-angle-double-down', translate('dashboard.quick.expand-all-short', 'Expand all folders'));
+            ensureQuickAction('running-only', 'fa-play-circle', translate('dashboard.quick.running-only', 'Running only'), 'is-responsive-secondary');
+            ensureQuickAction('view-options', 'fa-sliders', translate('dashboard.quick.view-options', 'View options')).attr('aria-haspopup', 'dialog').attr('aria-expanded', 'false');
 
             if (!$rail.data('fvQuickActionBound')) {
                 $rail.on('click.fvplusdashboardquick', 'button.fv-dashboard-quick-action', (event) => {
@@ -618,16 +820,8 @@
                     if (!action) {
                         return;
                     }
-                    if (action === 'layout-cycle') {
-                        const currentLayout = typeof deps.normalizeDashboardPrefsForType === 'function'
-                            ? deps.normalizeDashboardPrefsForType(buttonType).layout
-                            : 'classic';
-                        const layoutModes = getDashboardLayoutModes();
-                        const currentIndex = layoutModes.indexOf(currentLayout);
-                        const nextIndex = currentIndex < 0 ? 0 : ((currentIndex + 1) % layoutModes.length);
-                        if (typeof deps.onLayoutCycle === 'function') {
-                            void deps.onLayoutCycle(buttonType, layoutModes[nextIndex]);
-                        }
+                    if (action === 'layout-menu') {
+                        openDashboardViewPopoverForType(buttonType, $button.get(0), 'layout');
                         return;
                     }
                     if (action === 'expand-toggle') {
@@ -647,35 +841,7 @@
                         syncDashboardWidgetLayoutQuickControlForType(buttonType);
                         return;
                     }
-                    if (action === 'health-emphasis') {
-                        const current = typeof deps.readDashboardHealthEmphasisStateForType === 'function'
-                            ? deps.readDashboardHealthEmphasisStateForType(buttonType)
-                            : false;
-                        if (typeof deps.onToggleHealthEmphasis === 'function') {
-                            deps.onToggleHealthEmphasis(buttonType, !current);
-                        }
-                        syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                        return;
-                    }
-                    if (action === 'density-toggle') {
-                        const current = typeof deps.readDashboardCompactDensityStateForType === 'function'
-                            ? deps.readDashboardCompactDensityStateForType(buttonType)
-                            : false;
-                        if (typeof deps.onToggleDensity === 'function') {
-                            deps.onToggleDensity(buttonType, !current);
-                        }
-                        syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                        return;
-                    }
-                    if (action === 'reset-view') {
-                        if (typeof deps.onResetView === 'function') {
-                            deps.onResetView(buttonType);
-                        }
-                        return;
-                    }
-                    if (action === 'open-settings' && typeof deps.onOpenSettings === 'function') {
-                        deps.onOpenSettings();
-                    }
+                    if (action === 'view-options') openDashboardViewPopoverForType(buttonType, $button.get(0), 'all');
                 });
                 $rail.data('fvQuickActionBound', true);
             }

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "pt-PT",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "Pastas filhas",
     "legacy.surface.bc9520564edc373b": "Escurecer cartões recolhidos",
     "legacy.surface.bcef9e1aca74baf5": "Parar filial",
-    "legacy.surface.bd2ae11a26e7d378": "Não foi possível salvar a preferência de visualização do painel.",
     "legacy.surface.bd950ced4b1e4ad4": "Salvo \"$1\".",
     "legacy.surface.bda851790ae255ce": "Nome e comportamento WebUI da pasta opcional.",
     "legacy.surface.bde0de8fa103da67": "Mostrar detalhes técnicos",

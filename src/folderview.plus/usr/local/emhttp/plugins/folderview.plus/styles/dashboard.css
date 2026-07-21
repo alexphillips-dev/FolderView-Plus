@@ -30,7 +30,7 @@
     --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
     --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
     --fvplus-dashboard-quick-rail-top: 0px;
-    --fvplus-dashboard-quick-rail-gutter: 38px;
+    --fvplus-dashboard-quick-rail-gutter: 36px;
     --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));
     --fvplus-status-paused: var(--fvplus-runtime-status-paused, #b8860b);
     --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
@@ -195,26 +195,26 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 
 .fv-dashboard-layout-quick-rail.is-compact-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 16px));
+    grid-template-columns: repeat(2, minmax(0, 26px));
     justify-content: end;
     align-content: start;
 }
 
 .fv-dashboard-layout-quick-rail.is-clamped {
-    overflow-y: auto;
-    scrollbar-width: thin;
+    overflow: hidden;
 }
 
 .fv-dashboard-quick-action {
+    --fvplus-dashboard-quick-action-size: 26px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px !important;
-    min-width: 16px !important;
-    max-width: 16px !important;
-    height: 16px !important;
-    min-height: 16px !important;
-    max-height: 16px !important;
+    width: var(--fvplus-dashboard-quick-action-size) !important;
+    min-width: var(--fvplus-dashboard-quick-action-size) !important;
+    max-width: var(--fvplus-dashboard-quick-action-size) !important;
+    height: var(--fvplus-dashboard-quick-action-size) !important;
+    min-height: var(--fvplus-dashboard-quick-action-size) !important;
+    max-height: var(--fvplus-dashboard-quick-action-size) !important;
     margin: 0 !important;
     padding: 0 !important;
     border: 0 !important;
@@ -223,7 +223,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     color: var(--fvplus-dashboard-quick-action-fg);
     cursor: pointer;
     line-height: 1;
-    font-size: 9px;
+    font-size: 12px;
     vertical-align: middle;
     -webkit-appearance: none;
     appearance: none;
@@ -231,14 +231,17 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
-.fv-dashboard-quick-action:hover,
-.fv-dashboard-quick-action:focus {
+.fv-dashboard-quick-action:hover {
     text-decoration: none;
     color: var(--fvplus-dashboard-accent);
     border-color: transparent !important;
     background: linear-gradient(180deg, var(--fvplus-dashboard-quick-action-hover-top), var(--fvplus-dashboard-quick-action-hover-bottom)) !important;
     box-shadow: var(--fvplus-dashboard-quick-action-shadow-hover) !important;
-    outline: none;
+}
+
+.fv-dashboard-quick-action:focus-visible {
+    outline: 2px solid var(--fv-ui-info);
+    outline-offset: 1px;
 }
 
 .fv-dashboard-quick-action.is-active {
@@ -252,6 +255,110 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     opacity: 0.45;
     cursor: default;
     pointer-events: none;
+}
+
+.fv-dashboard-quick-action.is-pending { cursor: progress; }
+
+.fv-dashboard-layout-inline-host.is-narrow .fv-dashboard-quick-action.is-responsive-secondary,
+.fv-dashboard-layout-inline-host.is-height-constrained .fv-dashboard-quick-action.is-responsive-secondary { display: none !important; }
+.fv-dashboard-layout-inline-host.is-narrow .fv-dashboard-quick-action {
+    --fvplus-dashboard-quick-action-size: 30px;
+    font-size: 13px;
+}
+
+.fv-dashboard-view-popover-shell {
+    width: min(370px, calc(100vw - 16px));
+}
+
+.fv-dashboard-view-popover { display: grid; gap: 0; }
+.fv-dashboard-view-popover > header {
+    background: var(--fvplus-ui-strong);
+    border-bottom: 1px solid var(--fvplus-ui-border-faint);
+    display: grid;
+    gap: 2px;
+    padding: 11px 12px;
+}
+.fv-dashboard-view-popover > header strong { color: var(--fvplus-ui-text-primary); font-size: 1.15rem; }
+.fv-dashboard-view-popover > header span { color: var(--fvplus-ui-text-muted); font-size: 1rem; }
+.fv-dashboard-view-section { display: grid; gap: 7px; padding: 10px 12px; }
+.fv-dashboard-view-section + .fv-dashboard-view-section { border-top: 1px solid var(--fvplus-ui-border-faint); }
+.fv-dashboard-view-section h3 {
+    color: var(--fvplus-ui-text-muted);
+    font-size: 0.95rem;
+    letter-spacing: 0.07em;
+    margin: 0;
+    text-transform: uppercase;
+}
+.fv-dashboard-layout-options { display: grid; gap: 5px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fv-dashboard-layout-option,
+.fv-dashboard-view-option,
+.fv-dashboard-view-footer-action {
+    appearance: none;
+    background: var(--fvplus-ui-control);
+    border: 1px solid var(--fvplus-ui-border-subtle);
+    border-radius: var(--fv-ui-radius-sm);
+    box-sizing: border-box;
+    color: var(--fvplus-ui-text-primary);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+.fv-dashboard-layout-option {
+    align-items: center;
+    display: flex;
+    font-size: 1.05rem;
+    font-weight: 700;
+    gap: 7px;
+    min-height: 34px;
+    padding: 6px 8px;
+}
+.fv-dashboard-layout-option > i { color: transparent; width: 11px; }
+.fv-dashboard-layout-option.is-selected {
+    background: color-mix(in srgb, var(--fv-ui-info) 12%, var(--fvplus-ui-control));
+    border-color: color-mix(in srgb, var(--fv-ui-info) 55%, var(--fvplus-ui-border-subtle));
+}
+.fv-dashboard-layout-option.is-selected > i { color: var(--fv-ui-info); }
+.fv-dashboard-view-options { display: grid; gap: 5px; }
+.fv-dashboard-view-option {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 20px minmax(0, 1fr) 16px;
+    min-height: 45px;
+    padding: 7px 9px;
+}
+.fv-dashboard-view-option-icon { color: var(--fvplus-ui-text-muted); text-align: center; }
+.fv-dashboard-view-option > span { display: grid; gap: 1px; min-width: 0; }
+.fv-dashboard-view-option strong { font-size: 1.05rem; }
+.fv-dashboard-view-option small { color: var(--fvplus-ui-text-muted); font-size: 0.95rem; }
+.fv-dashboard-view-option-check { color: transparent; }
+.fv-dashboard-view-option.is-active .fv-dashboard-view-option-icon,
+.fv-dashboard-view-option.is-active .fv-dashboard-view-option-check { color: var(--fv-ui-success); }
+.fv-dashboard-layout-option:hover,
+.fv-dashboard-view-option:hover,
+.fv-dashboard-view-footer-action:hover { background: var(--fvplus-ui-control-hover); border-color: var(--fvplus-ui-border-strong); }
+.fv-dashboard-layout-option:focus-visible,
+.fv-dashboard-view-option:focus-visible,
+.fv-dashboard-view-footer-action:focus-visible { border-color: var(--fv-ui-info); box-shadow: 0 0 0 3px var(--fvplus-ui-focus-ring); outline: 0; }
+.fv-dashboard-view-option:disabled,
+.fv-dashboard-view-footer-action:disabled { cursor: not-allowed; opacity: 0.46; }
+.fv-dashboard-view-popover > footer {
+    border-top: 1px solid var(--fvplus-ui-border-faint);
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 12px;
+}
+.fv-dashboard-view-footer-action {
+    align-items: center;
+    display: inline-flex;
+    font-size: 1rem;
+    font-weight: 700;
+    gap: 7px;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 8px;
+    text-align: center;
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="classic"] {
@@ -676,7 +783,7 @@ body.fvplus-performance-mode .tooltipster-content {
 @media (max-width: 820px) {
     :root {
         --fvplus-dashboard-quick-rail-top: 0px;
-        --fvplus-dashboard-quick-rail-gutter: 32px;
+        --fvplus-dashboard-quick-rail-gutter: 38px;
     }
 
     .fv-dashboard-layout-inline-host {
@@ -688,18 +795,18 @@ body.fvplus-performance-mode .tooltipster-content {
     }
 
     .fv-dashboard-layout-quick-rail.is-compact-grid {
-        grid-template-columns: repeat(2, minmax(0, 14px));
+        grid-template-columns: repeat(2, minmax(0, 30px));
     }
 
     .fv-dashboard-quick-action {
-        width: 14px !important;
-        min-width: 14px !important;
-        max-width: 14px !important;
-        height: 14px !important;
-        min-height: 14px !important;
-        max-height: 14px !important;
-        font-size: 9px;
+        --fvplus-dashboard-quick-action-size: 30px;
+        font-size: 13px;
     }
+}
+
+@media (max-width: 520px) {
+    .fv-dashboard-layout-options { grid-template-columns: 1fr; }
+    .fv-dashboard-view-popover-shell { width: min(340px, calc(100vw - 16px)); }
 }
 
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */

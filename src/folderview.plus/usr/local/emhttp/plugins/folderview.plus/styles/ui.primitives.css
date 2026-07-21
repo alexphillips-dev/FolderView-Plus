@@ -127,6 +127,22 @@ body.fv-ui-modal-open { overflow: hidden; }
 .fv-ui-select:not(.is-multiselect) select { padding-right: 2.2rem; }
 .fv-ui-select.is-multiselect select { min-height: 110px; }
 
+.fv-ui-popover {
+    background: var(--fvplus-ui-panel);
+    border: 1px solid var(--fvplus-ui-border-strong);
+    border-radius: var(--fv-ui-radius-md);
+    box-shadow: var(--fvplus-ui-shadow);
+    box-sizing: border-box;
+    color: var(--fvplus-ui-text-primary);
+    max-height: calc(100dvh - 16px);
+    max-width: calc(100vw - 16px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: fixed;
+    z-index: 100040;
+}
+.fv-ui-popover:focus { outline: 0; }
+
 .fv-ui-modal-backdrop {
     align-items: center;
     background: rgba(0, 0, 0, 0.68);

@@ -489,7 +489,7 @@ const dashboardDebugLog = (...args) => {
 const DASHBOARD_LAYOUT_MODES = Array.isArray(utils.DASHBOARD_LAYOUT_OPTIONS)
     ? utils.DASHBOARD_LAYOUT_OPTIONS
     : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'];
-const DASHBOARD_LAYOUT_LABELS = utils.DASHBOARD_LAYOUT_LABELS || Object.freeze({
+const DASHBOARD_LAYOUT_LABEL_FALLBACKS = utils.DASHBOARD_LAYOUT_LABELS || Object.freeze({
     classic: 'Classic',
     legacy: 'Legacy',
     fullwidth: 'Full Width',
@@ -497,6 +497,15 @@ const DASHBOARD_LAYOUT_LABELS = utils.DASHBOARD_LAYOUT_LABELS || Object.freeze({
     inset: 'Inset',
     compactmatrix: 'Compact Matrix',
     embossed: 'Embossed'
+});
+const DASHBOARD_LAYOUT_LABELS = Object.freeze({
+    classic: dashboardT('dashboard.layout.classic', DASHBOARD_LAYOUT_LABEL_FALLBACKS.classic || 'Classic'),
+    legacy: dashboardT('dashboard.layout.legacy', DASHBOARD_LAYOUT_LABEL_FALLBACKS.legacy || 'Legacy'),
+    fullwidth: dashboardT('dashboard.layout.fullwidth', DASHBOARD_LAYOUT_LABEL_FALLBACKS.fullwidth || 'Full Width'),
+    accordion: dashboardT('dashboard.layout.accordion', DASHBOARD_LAYOUT_LABEL_FALLBACKS.accordion || 'Accordion'),
+    inset: dashboardT('dashboard.layout.inset', DASHBOARD_LAYOUT_LABEL_FALLBACKS.inset || 'Inset'),
+    compactmatrix: dashboardT('dashboard.layout.compactmatrix', DASHBOARD_LAYOUT_LABEL_FALLBACKS.compactmatrix || 'Compact Matrix'),
+    embossed: dashboardT('dashboard.layout.embossed', DASHBOARD_LAYOUT_LABEL_FALLBACKS.embossed || 'Embossed')
 });
 const normalizeDashboardLayoutMode = typeof utils.normalizeDashboardLayout === 'function'
     ? utils.normalizeDashboardLayout
@@ -557,6 +566,8 @@ const getDashboardQuickRailController = () => {
     dashboardQuickRailController = dashboardLayoutQuickRailModule.createController({
         window,
         $,
+        ui: window.FolderViewPlusUI || null,
+        t: dashboardT,
         dashboardTypeMeta,
         dashboardLayoutModes: DASHBOARD_LAYOUT_MODES,
         dashboardLayoutLabels: DASHBOARD_LAYOUT_LABELS,
@@ -884,7 +895,7 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     const requiresStructureReload = previousDashboard.layout === 'legacy' || nextLayout === 'legacy';
     if (previousDashboard.layout === nextLayout) {
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-        return;
+        return { ok: true, unchanged: true };
     }
 
     recordDashboardLayoutTransition(resolvedType, {
@@ -945,10 +956,11 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         });
         if (requiresStructureReload) {
             await rerenderDashboardWidgetStructureForType(resolvedType);
-            return;
+            return { ok: true };
         }
         scheduleDashboardLayoutApplyForType(resolvedType);
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+        return { ok: true };
     } catch (error) {
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
             if (requiresStructureReload) {
@@ -972,13 +984,7 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         });
         scheduleDashboardLayoutApplyForType(resolvedType);
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-        if (typeof window.swal === 'function') {
-            window.swal({
-                title: 'Error',
-                text: String(error?.message || 'Unable to save dashboard view preference.'),
-                type: 'error'
-            });
-        }
+        return { ok: false, error };
     }
 };
 const getDashboardCard = (type, id) => {

@@ -747,12 +747,12 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
         const widgetSelectors = {
             docker: {
                 rail: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="docker"] .fv-dashboard-layout-quick-rail',
-                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="docker"] [data-fv-quick-action="layout-cycle"]',
+                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="docker"] [data-fv-quick-action="layout-menu"]',
                 tbody: 'tbody#docker_view'
             },
             vm: {
                 rail: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="vm"] .fv-dashboard-layout-quick-rail',
-                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="vm"] [data-fv-quick-action="layout-cycle"]',
+                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="vm"] [data-fv-quick-action="layout-menu"]',
                 tbody: 'tbody#vm_view'
             }
         };
@@ -803,12 +803,12 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
     for (const widget of report.widgets) {
         const type = widget.type === 'vm' ? 'vm' : 'docker';
         const rail = page.locator(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${type}"] .fv-dashboard-layout-quick-rail`).first();
-        const button = rail.locator('[data-fv-quick-action="layout-cycle"]').first();
+        const button = rail.locator('[data-fv-quick-action="layout-menu"]').first();
         if (await button.count() === 0) {
             continue;
         }
         const visitedLayouts = [];
-        for (let index = 0; index < 6; index += 1) {
+        for (const requestedLayout of ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed']) {
             const snapshot = await page.evaluate((widgetType) => {
                 const railNode = document.querySelector(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${widgetType}"] .fv-dashboard-layout-quick-rail`);
                 const tbody = document.querySelector(widgetType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view');
@@ -828,12 +828,15 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
                     railVisible: isVisible(railNode)
                 };
             }, type);
-            visitedLayouts.push(snapshot.layout || '');
             if (snapshot.railVisible !== true) {
-                throw new Error(`Dashboard quick rail hidden during ${type} layout cycling. Screenshot: ${screenshotPath}`);
+                throw new Error(`Dashboard quick rail hidden while selecting ${requestedLayout} for ${type}. Screenshot: ${screenshotPath}`);
             }
             await button.click({ timeout: timeoutMs });
+            const option = page.locator(`.fv-dashboard-view-popover[data-fv-dashboard-type="${type}"] [data-fv-layout-option="${requestedLayout}"]`).first();
+            await option.click({ timeout: timeoutMs });
             await page.waitForTimeout(220);
+            const appliedLayout = await page.locator(type === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view').getAttribute('data-fv-dashboard-layout');
+            visitedLayouts.push(String(appliedLayout || '').trim().toLowerCase());
         }
         const uniqueLayouts = Array.from(new Set(visitedLayouts.filter(Boolean)));
         if (uniqueLayouts.length < 2) {

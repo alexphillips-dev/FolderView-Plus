@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.19.2",
+        "catalog-version": "2026.07.21.1",
         "locale": "fr",
         "namespace": "legacy-surface"
     },
@@ -1143,7 +1143,6 @@
     "legacy.surface.bc8ddfe935aeab8a": "Dossiers enfants",
     "legacy.surface.bc9520564edc373b": "Dim cartes pliées",
     "legacy.surface.bcef9e1aca74baf5": "Arrêter la branche",
-    "legacy.surface.bd2ae11a26e7d378": "Impossible d'enregistrer les préférences d'affichage du tableau de bord.",
     "legacy.surface.bd950ced4b1e4ad4": "\"$1\" enregistré.",
     "legacy.surface.bda851790ae255ce": "Nom et comportement WebUI du dossier facultatif.",
     "legacy.surface.bde0de8fa103da67": "Afficher les détails techniques",

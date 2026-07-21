@@ -9,6 +9,9 @@ const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const dashboardHostAdapterModule = window.FolderViewPlusDashboardHostAdapter || null;
+const dashboardRuntimeSurfaceModule = window.FolderViewPlusDashboardRuntimeSurface || null;
+const dashboardStateStoreModule = window.FolderViewPlusDashboardStateStore || null;
 const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const resolveDashboardPerformancePolicy = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
     ? runtimeShared.resolveRuntimePerformanceProfile
@@ -254,6 +257,11 @@ const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'func
         idleTimeoutMs: 900
     })
     : null;
+const dashboardExpandedStateStore = dashboardStateStoreModule?.createStore?.({
+    window,
+    storage: window.localStorage,
+    writer: dashboardStorageWriter
+}) || null;
 const persistDashboardLayoutTelemetry = (type, snapshot = {}) => {
     dashboardLayoutStateStore?.recordMeasurement?.(type, snapshot);
 };
@@ -279,8 +287,20 @@ if (
 ) {
     dashboardBootstrapMissingModules.push('folderviewplus.request.js');
 }
+if (!runtimeHostAdapters || typeof runtimeHostAdapters.getOrCreate !== 'function') {
+    dashboardBootstrapMissingModules.push('runtime.host-adapter.js');
+}
 if (!window.FolderViewPlusDashboardFolderMatchCache || typeof window.FolderViewPlusDashboardFolderMatchCache.createApi !== 'function') {
     dashboardBootstrapMissingModules.push('dashboard.folder-match-cache.js');
+}
+if (!dashboardHostAdapterModule || typeof dashboardHostAdapterModule.getOrCreate !== 'function') {
+    dashboardBootstrapMissingModules.push('dashboard.host-adapter.js');
+}
+if (!dashboardRuntimeSurfaceModule || typeof dashboardRuntimeSurfaceModule.createApi !== 'function') {
+    dashboardBootstrapMissingModules.push('dashboard.runtime-surface.js');
+}
+if (!dashboardExpandedStateStore) {
+    dashboardBootstrapMissingModules.push('dashboard.state-store.js');
 }
 if (dashboardBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus Dashboard bootstrap failed. Missing modules: ${dashboardBootstrapMissingModules.join(', ')}`);
@@ -295,6 +315,12 @@ const dashboardFolderMatchCacheApi = dashboardFolderMatchCacheModule.createApi({
     utils,
     folderRegex: /^folder-/,
     getFolderLabelValue
+});
+const dashboardRuntimeSurfaceApi = dashboardRuntimeSurfaceModule.createApi({
+    window,
+    document,
+    $,
+    translate: (key) => $.i18n(key)
 });
 const {
     getPrefsOrderedFolderMap,
@@ -1038,81 +1064,9 @@ const setFolderExpandedState = (type, id, expanded) => {
         map[id].status.expanded = expanded === true;
     }
 };
-const DASHBOARD_EXPANDED_STATE_STORAGE_KEYS = Object.freeze({
-    docker: 'fvplus.runtime.expand.dashboard.docker.v1',
-    vm: 'fvplus.runtime.expand.dashboard.vm.v1'
-});
-const normalizeExpandedStateMap = (value) => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        return {};
-    }
-    const next = {};
-    for (const [rawId, expanded] of Object.entries(value)) {
-        const id = String(rawId || '').trim();
-        if (!id) {
-            continue;
-        }
-        next[id] = expanded === true;
-    }
-    return next;
-};
-const readDashboardExpandedStateMap = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const storageKey = DASHBOARD_EXPANDED_STATE_STORAGE_KEYS[resolvedType];
-    if (!storageKey) {
-        return {};
-    }
-    try {
-        const raw = window.localStorage && window.localStorage.getItem(storageKey);
-        if (!raw) {
-            return {};
-        }
-        return normalizeExpandedStateMap(JSON.parse(raw));
-    } catch (_error) {
-        return {};
-    }
-};
-const writeDashboardExpandedStateMap = (type, map) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const storageKey = DASHBOARD_EXPANDED_STATE_STORAGE_KEYS[resolvedType];
-    if (!storageKey) {
-        return;
-    }
-    try {
-        if (window.localStorage) {
-            const payload = JSON.stringify(normalizeExpandedStateMap(map));
-            if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
-                dashboardStorageWriter.setItem(storageKey, payload, { delayMs: 80, idle: true });
-            } else {
-                window.localStorage.setItem(storageKey, payload);
-            }
-        }
-    } catch (_error) {
-        // Ignore localStorage failures so dashboard rendering remains stable.
-    }
-};
-const applyDashboardExpandedStateChanges = (type, changes) => {
-    if (!changes || typeof changes !== 'object') {
-        return;
-    }
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const current = readDashboardExpandedStateMap(resolvedType);
-    let dirty = false;
-    for (const [rawId, expanded] of Object.entries(changes)) {
-        const id = String(rawId || '').trim();
-        if (!id) {
-            continue;
-        }
-        const nextValue = expanded === true;
-        if (current[id] !== nextValue) {
-            current[id] = nextValue;
-            dirty = true;
-        }
-    }
-    if (dirty) {
-        writeDashboardExpandedStateMap(resolvedType, current);
-    }
-};
+const readDashboardExpandedStateMap = (type) => dashboardExpandedStateStore.read(type);
+const writeDashboardExpandedStateMap = (type, map) => dashboardExpandedStateStore.write(type, map);
+const applyDashboardExpandedStateChanges = (type, changes) => dashboardExpandedStateStore.patch(type, changes);
 const resolveFolderIdFromCard = ($card) => {
     if (!$card || !$card.length) {
         return '';
@@ -2356,7 +2310,6 @@ window.expandFolderDocker = expandFolderDocker;
 window.expandFolderVM = expandFolderVM;
 
 // Global variables
-let loadedFolder = false;
 let globalFolders = {};
 const folderRegex = /^folder-/;
 let folderDebugMode = false;
@@ -2375,6 +2328,7 @@ let liveRefreshInFlightByType = { docker: false, vm: false };
 let dashboardPerformancePolicies = { docker: null, vm: null };
 let dashboardDockerRuntimeReconcileApi = null;
 const dashboardDockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
+let dashboardHostAdapter = null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let dashboardDockerCpuCores = 1;
@@ -2590,126 +2544,13 @@ const normalizeDashboardRuntimeInfoMap = (type, source, previousMap = null) => {
     return normalized;
 };
 
-const getDashboardRuntimeStateMeta = (type, entry = {}) => {
-    if (type === 'vm') {
-        const state = String(entry?.state || 'unknown').trim().toLowerCase();
-        if (state === 'running') return { state, key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
-        if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') return { state, key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
-        return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
-    }
-    const stateNode = entry?.info?.State || {};
-    const running = entry?.running === true || stateNode.Running === true;
-    const paused = running && (entry?.paused === true || stateNode.Paused === true);
-    if (paused) return { state: 'paused', key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
-    if (running) return { state: 'running', key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
-    return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
-};
-
-const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';
-const DASHBOARD_RUNTIME_ICON_CLASSES = `fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch ${DASHBOARD_RUNTIME_STATE_CLASSES}`;
-const DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR = '.fa-refresh, .fa-spin, .fa-spinner, .fa-circle-o-notch';
-const DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE = 'data-fv-host-icon-classes';
-const DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY = 'fv.support.bundle.dashboard.lifecycle.v1';
-
-const clearDashboardRuntimeIconInlineState = ($icons) => {
-    $icons.each((_, node) => {
-        if (!node?.style) return;
-        ['color', 'animation', 'animation-name', 'transform', 'opacity'].forEach((property) => node.style.removeProperty(property));
-        if (!String(node.getAttribute?.('style') || '').trim()) node.removeAttribute?.('style');
-    });
-};
-
-const captureDashboardRuntimeSurface = (request = {}) => {
-    const containerId = String(request?.container || '').trim();
-    if (!containerId) return false;
-    const control = document.getElementById(containerId);
-    if (!control) return false;
-    const $surface = $(control).parent('span.outer').first();
-    if (!$surface.length) return false;
-    $surface.find('i').each((_, node) => {
-        if (!node.hasAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE)) {
-            node.setAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE, String(node.getAttribute('class') || ''));
-        }
-    });
-    return true;
-};
-
-const restoreDashboardRuntimeSurfaceIcons = ($surface) => {
-    const $capturedIcons = $surface.find(`i[${DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE}]`);
-    $capturedIcons.each((_, node) => {
-        node.setAttribute('class', String(node.getAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE) || ''));
-        node.removeAttribute(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE);
-        node.removeAttribute('aria-busy');
-    });
-    clearDashboardRuntimeIconInlineState($capturedIcons);
-
-    // Unraid's eventControl() applies the spinner classes to every icon in the
-    // card. Clean uncaptured remnants defensively without deleting action icons.
-    $surface.find(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR).each((_, node) => {
-        const $node = $(node);
-        const wasSpinning = $node.hasClass('fa-spin') || $node.hasClass('fa-spinner') || $node.hasClass('fa-circle-o-notch');
-        $node.removeClass('fa-spin fa-spinner fa-circle-o-notch');
-        if (wasSpinning) $node.removeClass('fa-refresh');
-        node.removeAttribute('aria-busy');
-    });
-};
-
-const collectDashboardRuntimeSurfaceDiagnostics = (containerId = '') => {
-    const safeContainerId = String(containerId || '').trim();
-    const control = safeContainerId ? document.getElementById(safeContainerId) : null;
-    const $surface = control ? $(control).parent('span.outer').first() : $();
-    const $icons = $surface.find('i');
-    const $statusIcon = $surface.find('span.inner i[id^="load-"]').first();
-    return {
-        containerId: safeContainerId || null,
-        controlFound: !!control,
-        surfaceFound: $surface.length > 0,
-        runtimeState: String($surface.attr('data-fv-runtime-state') || '').trim() || null,
-        iconCount: $icons.length,
-        capturedIconCount: $icons.filter(`[${DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE}]`).length,
-        busyIconCount: $icons.filter(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR).length,
-        statusIconClasses: String($statusIcon.attr('class') || '').trim() || null,
-        iconClassSets: $icons.map((_, node) => String(node.getAttribute('class') || '').trim()).get().slice(0, 12)
-    };
-};
-
-const persistDashboardLifecycleDiagnostics = (record = {}) => {
-    try {
-        window.localStorage?.setItem(DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY, JSON.stringify(record));
-    } catch (_error) {
-        // Disposable diagnostics must not affect Dashboard behavior.
-    }
-};
-
-const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
-    if (!$surface || !$surface.length) return;
-    restoreDashboardRuntimeSurfaceIcons($surface);
-    const meta = getDashboardRuntimeStateMeta(type, entry);
-    const $inner = $surface.find('span.inner').first();
-    const $state = $inner.find('span.state').first();
-    const $statusIcons = $state.length ? $state.prevAll('i.fa') : $inner.find('i.fa').first();
-    const $identifiedIcon = $statusIcons.filter('i[id^="load-"]').first();
-    const $icon = $identifiedIcon.length ? $identifiedIcon : $statusIcons.first();
-    $surface.add($surface.find('span.hand, span.inner')).removeClass(DASHBOARD_RUNTIME_STATE_CLASSES).addClass(meta.className);
-    $surface.attr('data-fv-runtime-state', meta.state);
-    if ($icon.length) {
-        $icon
-            .removeClass(DASHBOARD_RUNTIME_ICON_CLASSES)
-            .addClass(`fa ${meta.icon} ${meta.className} ${meta.colorClass}`)
-            .removeAttr('aria-busy');
-        clearDashboardRuntimeIconInlineState($icon);
-    }
-    if ($state.length) {
-        $state
-            .text(` ${$.i18n(meta.key)}`)
-            .removeClass(DASHBOARD_RUNTIME_STATE_CLASSES)
-            .addClass(meta.className)
-            .removeAttr('aria-busy');
-        clearDashboardRuntimeIconInlineState($state);
-    }
-    const autostart = type === 'vm' ? entry?.autostart === true : entry?.info?.State?.Autostart === true;
-    $surface.toggleClass('autostart', autostart);
-};
+const getDashboardRuntimeStateMeta = dashboardRuntimeSurfaceApi.getRuntimeStateMeta;
+const DASHBOARD_RUNTIME_ICON_CLASSES = dashboardRuntimeSurfaceModule.RUNTIME_ICON_CLASSES;
+const captureDashboardRuntimeSurface = dashboardRuntimeSurfaceApi.captureSurface;
+const restoreDashboardRuntimeSurfaceIcons = dashboardRuntimeSurfaceApi.restoreSurfaceIcons;
+const collectDashboardRuntimeSurfaceDiagnostics = dashboardRuntimeSurfaceApi.collectDiagnostics;
+const persistDashboardLifecycleDiagnostics = dashboardRuntimeSurfaceApi.persistDiagnostics;
+const syncDashboardRuntimeSurface = dashboardRuntimeSurfaceApi.syncSurface;
 
 const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -2928,6 +2769,15 @@ const finalizeDashboardDockerLifecycleSurface = (request = {}, outcome = {}) => 
         attempt: Number(outcome?.attempt || 0),
         observedState: outcome?.observedState || null
     });
+    dashboardHostAdapter?.notifyRuntimeActionCompleted?.({
+        type: 'docker',
+        action: String(request?.action || '').trim().toLowerCase(),
+        containerId,
+        reason: String(outcome?.reason || '').trim() || 'unknown',
+        settled: outcome?.settled === true,
+        success: outcome?.success === true,
+        observedState: outcome?.observedState || null
+    });
     if (outcome?.settled === true) return true;
     window.setTimeout(() => {
         appendDashboardLifecycleTrace('lifecycleNativeRefreshFallback', {
@@ -3112,7 +2962,6 @@ const queueCreateFoldersRender = () => {
         .then(() => createFolders())
         .then(() => true)
         .catch((error) => {
-            loadedFolder = false;
             if (window.console && typeof window.console.warn === 'function') {
                 console.warn('[FolderView Plus] Dashboard folder render failed.', error);
             }
@@ -3167,14 +3016,17 @@ const prepareDashboardFolderRequestsForType = (type) => {
     return folderReq[resolvedType];
 };
 
-// Patching the original function to make sure the containers are rendered before insering the folder
-window.loadlist_original = loadlist;
-window.loadlist = (x) => {
-    loadedFolder = false;
-    prepareDashboardFolderRequestsForType('docker');
-    prepareDashboardFolderRequestsForType('vm');
-    loadlist_original(x);
-};
+dashboardHostAdapter = dashboardHostAdapterModule.getOrCreate({
+    window,
+    document,
+    $,
+    runtimeHostAdapter: dashboardDockerHostAdapter,
+    prepareFolderRequests: prepareDashboardFolderRequestsForType,
+    renderFolders: queueCreateFoldersRender,
+    hideSpinner: () => $('div.spinner.fixed').hide()
+});
+dashboardHostAdapter.bind();
+window.getFolderViewPlusDashboardHostSnapshot = () => dashboardHostAdapter.getSnapshot();
 
 // Docker may acknowledge a lifecycle command before its next runtime snapshot reflects
 // the new state. Keep the grouped Dashboard DOM mounted and reconcile until the requested
@@ -3182,24 +3034,6 @@ window.loadlist = (x) => {
 const dashboardDockerLifecycleApi = getDashboardDockerRuntimeReconcileApi();
 dashboardDockerLifecycleApi?.bindLifecycleEventControlPatch?.();
 dashboardDockerLifecycleApi?.bindDockerContainerContextStatePatch?.();
-
-// this is needed to trigger the funtion to create the folders
-$.ajaxPrefilter((options, originalOptions, jqXHR) => {
-    if (options.url === "/webGui/include/DashboardApps.php" && !loadedFolder) {
-        jqXHR.promise().then(() => {
-            queueCreateFoldersRender()
-                .then((rendered) => {
-                    loadedFolder = rendered !== false;
-                })
-                .catch(() => {
-                    loadedFolder = false;
-                })
-                .finally(() => {
-                    $('div.spinner.fixed').hide();
-                });
-        });
-    }
-});
 
 // activate debug mode
 window.addEventListener("keydown", (e) => {

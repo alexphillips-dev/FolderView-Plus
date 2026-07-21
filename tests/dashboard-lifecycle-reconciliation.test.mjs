@@ -14,6 +14,10 @@ const dashboardSource = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
 ), 'utf8');
+const dashboardRuntimeSurfaceSource = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.runtime-surface.js'
+), 'utf8');
 const dashboardPage = fs.readFileSync(path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page'
@@ -192,20 +196,19 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
 
 test('Dashboard runtime reconciliation clears host lifecycle spinner classes', () => {
     assert.match(
-        dashboardSource,
-        /const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';/
+        dashboardRuntimeSurfaceSource,
+        /const RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';/
     );
-    const cleanupUses = dashboardSource.match(/\.removeClass\(DASHBOARD_RUNTIME_ICON_CLASSES\)/g) || [];
-    assert.equal(cleanupUses.length, 2);
-    assert.match(dashboardSource, /\.removeAttr\('aria-busy'\)/);
-    assert.match(dashboardSource, /\$statusIcons\.filter\('i\[id\^="load-"\]'\)\.first\(\)/);
+    assert.match(dashboardRuntimeSurfaceSource, /\.removeClass\(RUNTIME_ICON_CLASSES\)/);
+    assert.match(dashboardRuntimeSurfaceSource, /\.removeAttr\('aria-busy'\)/);
+    assert.match(dashboardRuntimeSurfaceSource, /\$statusIcons\.filter\('i\[id\^="load-"\]'\)\.first\(\)/);
     assert.match(dashboardSource, /prepareDockerLifecycleSurface: captureDashboardRuntimeSurface/);
     assert.match(dashboardSource, /finalizeDockerLifecycleSurface: finalizeDashboardDockerLifecycleSurface/);
     assert.match(dashboardSource, /lifecycleNativeRefreshFallback/);
     assert.match(dashboardSource, /if \(typeof window\.loadlist === 'function'\) window\.loadlist\(\)/);
-    assert.match(dashboardSource, /DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY = 'fv\.support\.bundle\.dashboard\.lifecycle\.v1'/);
-    assert.match(dashboardSource, /\$surface\.find\('i'\)\.each/);
-    assert.match(dashboardSource, /node\.setAttribute\('class', String\(node\.getAttribute\(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE\)/);
-    assert.match(dashboardSource, /\.addClass\(`fa \$\{meta\.icon\} \$\{meta\.className\} \$\{meta\.colorClass\}`\)/);
-    assert.match(dashboardSource, /\['color', 'animation', 'animation-name', 'transform', 'opacity'\]/);
+    assert.match(dashboardRuntimeSurfaceSource, /LIFECYCLE_DIAGNOSTICS_STORAGE_KEY = 'fv\.support\.bundle\.dashboard\.lifecycle\.v1'/);
+    assert.match(dashboardRuntimeSurfaceSource, /\$surface\.find\('i'\)\.each/);
+    assert.match(dashboardRuntimeSurfaceSource, /node\.setAttribute\('class', String\(node\.getAttribute\(HOST_ICON_CLASSES_ATTRIBUTE\)/);
+    assert.match(dashboardRuntimeSurfaceSource, /\.addClass\(`fa \$\{meta\.icon\} \$\{meta\.className\} \$\{meta\.colorClass\}`\)/);
+    assert.match(dashboardRuntimeSurfaceSource, /\['color', 'animation', 'animation-name', 'transform', 'opacity'\]/);
 });

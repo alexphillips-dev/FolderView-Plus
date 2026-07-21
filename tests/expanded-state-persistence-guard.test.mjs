@@ -12,6 +12,7 @@ const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.pl
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const dashboardStateStoreJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.state-store.js');
 const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
 
 test('server prefs contract keeps expandedFolderState default and normalization', () => {
@@ -59,9 +60,11 @@ test('vm runtime keeps server-backed expanded state sync contract', () => {
 });
 
 test('dashboard runtime keeps local expanded-state memory for docker and vm widgets', () => {
-    assert.match(dashboardJs, /const DASHBOARD_EXPANDED_STATE_STORAGE_KEYS = Object\.freeze\(/);
-    assert.match(dashboardJs, /fvplus\.runtime\.expand\.dashboard\.docker\.v1/);
-    assert.match(dashboardJs, /fvplus\.runtime\.expand\.dashboard\.vm\.v1/);
+    assert.match(dashboardStateStoreJs, /const EXPANDED_STATE_STORAGE_KEYS = Object\.freeze\(/);
+    assert.match(dashboardStateStoreJs, /fvplus\.runtime\.expand\.dashboard\.docker\.v1/);
+    assert.match(dashboardStateStoreJs, /fvplus\.runtime\.expand\.dashboard\.vm\.v1/);
+    assert.match(dashboardStateStoreJs, /const read = \(type\) =>/);
+    assert.match(dashboardStateStoreJs, /const patch = \(type, changes\) =>/);
     assert.match(dashboardJs, /const readDashboardExpandedStateMap = \(type\) =>/);
     assert.match(dashboardJs, /const applyDashboardExpandedStateChanges = \(type,\s*changes\) =>/);
     assert.match(dashboardJs, /persistExpandedState:\s*false/);

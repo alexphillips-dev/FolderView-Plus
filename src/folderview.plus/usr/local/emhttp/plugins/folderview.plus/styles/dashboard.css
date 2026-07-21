@@ -216,7 +216,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     justify-content: center;
     width: var(--fvplus-dashboard-quick-action-size) !important;
     min-width: var(--fvplus-dashboard-quick-action-size) !important;
-    max-width: var(--fvplus-dashboard-quick-action-size) !important;
+    max-width: var(--fvplus-dashboard-quick-action-size);
     height: var(--fvplus-dashboard-quick-action-size) !important;
     min-height: var(--fvplus-dashboard-quick-action-size) !important;
     max-height: var(--fvplus-dashboard-quick-action-size) !important;

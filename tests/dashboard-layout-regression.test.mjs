@@ -452,13 +452,13 @@ test('dashboard render waits for successful folder hydration and has request fal
     assert.match(dashboardScript, /runtimeSnapshotApi\.createProjectedBundle\([\s\S]*\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
     assert.match(dashboardScript, /const legacyFactories = \[[\s\S]*getDashboardRequestWithFallback\(resolvedType, 'runtime info'/);
     assert.match(dashboardScript, /fallbackFactories: legacyFactories/);
-    assert.match(dashboardScript, /prepareDashboardFolderRequestsForType\('docker'\);[\s\S]*prepareDashboardFolderRequestsForType\('vm'\);/);
+    assert.match(dashboardScript, /prepareFolderRequests: prepareDashboardFolderRequestsForType/);
     assert.match(dashboardScript, /const queueCreateFoldersRender = \(\) => \{/);
     assert.match(dashboardScript, /let createFoldersPromise = null;/);
     assert.match(dashboardScript, /return createFoldersPromise \|\| Promise\.resolve\(false\);/);
     assert.match(dashboardScript, /createFoldersPromise = Promise\.resolve\(\)[\s\S]*\.then\(\(\) => createFolders\(\)\)[\s\S]*\.then\(\(\) => true\)/);
-    assert.match(dashboardScript, /loadedFolder = rendered !== false;/);
-    assert.doesNotMatch(dashboardScript, /loadedFolder = !loadedFolder/);
+    assert.match(dashboardScript, /renderFolders: queueCreateFoldersRender/);
+    assert.doesNotMatch(dashboardScript, /let loadedFolder =/);
 });
 
 test('dashboard status and diagnostics include paused state and sanitized render details', () => {

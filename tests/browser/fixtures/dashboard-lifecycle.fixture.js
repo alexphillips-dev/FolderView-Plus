@@ -24,53 +24,27 @@
     let nativeLoadlistCount = 0;
     let hostContextCallCount = 0;
     let quickRailController = null;
+    const runtimeSurface = window.FolderViewPlusDashboardRuntimeSurface.createApi({
+        window,
+        document,
+        $,
+        translate: (key) => key
+    });
 
-    const metaFor = (entry = {}) => {
-        const state = entry.info?.State || {};
-        const running = entry.running === true || state.Running === true;
-        const paused = running && (entry.paused === true || state.Paused === true);
-        if (paused) return { state: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
-        if (running) return { state: 'running', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
-        return { state: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
-    };
+    const metaFor = (entry = {}) => runtimeSurface.getRuntimeStateMeta('docker', entry);
     const findEntryById = (containerId) => Object.values(snapshotRuntime).find((entry) => entry.id === String(containerId || '')) || null;
     const findNameById = (containerId) => Object.keys(hostRuntime).find((name) => hostRuntime[name].id === String(containerId || '')) || '';
     const surfaceFor = (containerId) => {
         const control = document.getElementById(String(containerId || ''));
         return control ? control.parentElement : null;
     };
-    const captureSurface = (request = {}) => {
-        const surface = surfaceFor(request.container);
-        if (!surface) return false;
-        surface.querySelectorAll('i').forEach((icon) => {
-            if (!icon.hasAttribute('data-fv-host-icon-classes')) {
-                icon.setAttribute('data-fv-host-icon-classes', icon.getAttribute('class') || '');
-            }
-        });
-        return true;
-    };
-    const restoreSurface = (surface) => {
-        if (!surface) return;
-        surface.querySelectorAll('i[data-fv-host-icon-classes]').forEach((icon) => {
-            icon.setAttribute('class', icon.getAttribute('data-fv-host-icon-classes') || '');
-            icon.removeAttribute('data-fv-host-icon-classes');
-        });
-        surface.querySelectorAll('i.fa-spin, i.fa-spinner, i.fa-circle-o-notch').forEach((icon) => {
-            icon.classList.remove('fa-spin', 'fa-spinner', 'fa-circle-o-notch', 'fa-refresh');
-        });
-    };
+    const captureSurface = runtimeSurface.captureSurface;
+    const restoreSurface = (surface) => runtimeSurface.restoreSurfaceIcons($(surface));
     const syncMember = (name) => {
         const entry = snapshotRuntime[name];
         const card = document.querySelector(`[data-fv-runtime-name="${name}"]`);
         if (!entry || !card) return;
-        restoreSurface(card);
-        const meta = metaFor(entry);
-        card.classList.remove('started', 'paused', 'stopped');
-        card.classList.add(meta.className);
-        card.dataset.fvRuntimeState = meta.state;
-        const icon = card.querySelector('i[id^="load-"]');
-        icon.className = `fa ${meta.icon} ${meta.className} ${meta.colorClass}`;
-        card.querySelector('.state').textContent = ` ${meta.className}`;
+        runtimeSurface.syncSurface('docker', $(card), entry);
     };
     const syncFolder = () => {
         const entries = Object.values(snapshotRuntime);

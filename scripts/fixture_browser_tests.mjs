@@ -89,6 +89,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'ui-primitives.html');
         } else if (requestUrl.pathname === '/dashboard-layout') {
             filePath = path.join(fixtureDir, 'dashboard-layout.html');
+        } else if (requestUrl.pathname === '/dashboard-lifecycle') {
+            filePath = path.join(fixtureDir, 'dashboard-lifecycle.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -410,6 +412,104 @@ test('Dashboard Started only applies the same runtime-state policy to VM folders
     assert.equal(await page.locator('#fixture-vm-paused.fv-dashboard-started-only-hidden').count(), 0);
     assert.equal(await page.locator('#fixture-vm-stopped.fv-dashboard-started-only-hidden').count(), 1);
     assert.equal(await page.locator('#fixture-vm-folder.fv-dashboard-started-only-hidden').count(), 0);
+});
+
+test('Dashboard lifecycle keeps native cards, folder totals, icons, and context actions synchronized', async ({ page }) => {
+    await page.goto(`${baseUrl}/dashboard-lifecycle`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.fixtureDashboardLifecycle?.getSnapshot().memberState === 'running');
+
+    await page.click('#fixture-audiobookshelf-card');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), [
+        'stop', 'pause', 'restart'
+    ]);
+    await page.click('#fixture-context-menu [data-action="stop"]');
+    await page.waitForFunction(() => {
+        const snapshot = window.fixtureDashboardLifecycle.getSnapshot();
+        return snapshot.memberState === 'stopped' && snapshot.busyIconCount === 0;
+    });
+    let snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.folderState, 'stopped');
+    assert.equal(snapshot.folderText, '2/2 stopped');
+    assert.match(snapshot.memberIconClasses, /fa-square/);
+    assert.match(snapshot.memberIconClasses, /red-text/);
+    assert.doesNotMatch(snapshot.memberIconClasses, /fa-spin|fa-refresh/);
+
+    await page.click('#fixture-audiobookshelf-card');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), ['start']);
+    await page.click('#fixture-context-menu [data-action="start"]');
+    await page.waitForFunction(() => {
+        const current = window.fixtureDashboardLifecycle.getSnapshot();
+        return current.memberState === 'running' && current.busyIconCount === 0;
+    });
+    snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.folderState, 'running');
+    assert.equal(snapshot.folderText, '1/2 started');
+    assert.match(snapshot.memberIconClasses, /fa-play/);
+    assert.match(snapshot.memberIconClasses, /green-text/);
+    assert.doesNotMatch(snapshot.memberIconClasses, /fa-spin|fa-refresh/);
+
+    await page.click('#fixture-audiobookshelf-card');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), [
+        'stop', 'pause', 'restart'
+    ]);
+    snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.hostContextCallCount, 3, 'idempotent context wrapping must invoke the native builder once per open');
+});
+
+test('Dashboard Started only follows rapid Stop then Start reconciliation without stale tails', async ({ page }) => {
+    await page.goto(`${baseUrl}/dashboard-lifecycle`, { waitUntil: 'load' });
+    await page.check('#apps');
+    await page.waitForFunction(() => document.querySelector('#fixture-paperless-card')?.classList.contains('fv-dashboard-started-only-hidden'));
+    assert.equal(await page.locator('#fixture-audiobookshelf-card').isVisible(), true);
+
+    await page.click('#fixture-audiobookshelf-card');
+    await page.click('#fixture-context-menu [data-action="stop"]');
+    await page.waitForFunction(() => window.fixtureDashboardLifecycle.getSnapshot().folderHidden === true);
+    let snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.memberHidden, true);
+    assert.equal(snapshot.busyIconCount, 0);
+
+    await page.uncheck('#apps');
+    await page.click('#fixture-audiobookshelf-card');
+    await page.click('#fixture-context-menu [data-action="start"]');
+    await page.waitForFunction(() => window.fixtureDashboardLifecycle.getSnapshot().memberState === 'running');
+    await page.check('#apps');
+    await page.waitForFunction(() => window.fixtureDashboardLifecycle.getSnapshot().folderHidden === false);
+    snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.memberHidden, false);
+    assert.equal(snapshot.folderText, '1/2 started');
+    assert.equal(snapshot.busyIconCount, 0);
+    const finalizedActions = await page.evaluate(() => window.fixtureDashboardLifecycle.events
+        .filter((event) => event.type === 'finalize')
+        .map((event) => ({ action: event.action, settled: event.settled })));
+    assert.deepEqual(finalizedActions, [
+        { action: 'stop', settled: true },
+        { action: 'start', settled: true }
+    ]);
+});
+
+test('Dashboard lifecycle performs one native fallback when Start snapshots remain stale', async ({ page }) => {
+    await page.goto(`${baseUrl}/dashboard-lifecycle`, { waitUntil: 'load' });
+    await page.click('#fixture-audiobookshelf-card');
+    await page.click('#fixture-context-menu [data-action="stop"]');
+    await page.waitForFunction(() => window.fixtureDashboardLifecycle.getSnapshot().memberState === 'stopped');
+
+    await page.click('#fixture-audiobookshelf-card');
+    await page.evaluate(() => window.fixtureDashboardLifecycle.setStaleRefreshBudget(3));
+    await page.click('#fixture-context-menu [data-action="start"]');
+    await page.waitForFunction(() => {
+        const snapshot = window.fixtureDashboardLifecycle.getSnapshot();
+        return snapshot.memberState === 'running' && snapshot.nativeLoadlistCount === 1 && snapshot.busyIconCount === 0;
+    });
+    const snapshot = await page.evaluate(() => window.fixtureDashboardLifecycle.getSnapshot());
+    assert.equal(snapshot.nativeLoadlistCount, 1);
+    assert.match(snapshot.memberIconClasses, /fa-play/);
+    assert.match(snapshot.memberIconClasses, /green-text/);
+    assert.doesNotMatch(snapshot.memberIconClasses, /fa-spin|fa-refresh/);
+    const fallbackFinalizers = await page.evaluate(() => window.fixtureDashboardLifecycle.events
+        .filter((event) => event.type === 'finalize' && event.action === 'start')
+        .map((event) => ({ reason: event.reason, settled: event.settled })));
+    assert.deepEqual(fallbackFinalizers, [{ reason: 'attempts-exhausted', settled: false }]);
 });
 
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {

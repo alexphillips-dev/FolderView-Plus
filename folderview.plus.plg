@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.19">
-<!ENTITY md5 "8de821e196020ed887c3682fc603c7a6">
+<!ENTITY version "2026.07.21.20">
+<!ENTITY md5 "d507ca03db77050a2f1b44ab3037e155">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.20
+- Quality: Added a full browser-driven Dashboard container lifecycle fixture using realistic Unraid card markup and the production host-adapter and reconciliation modules.
+- Quality: The fixture verifies Stop and Start state convergence, folder aggregate totals, canonical red and green status icons, complete spinner cleanup, and live context-menu action correction.
+- Quality: Added Started only coverage across runtime transitions, rapid Stop-to-Start reconciliation, duplicate hook binding protection, and the one-time native refresh fallback for stale Start snapshots.
+- Compatibility: Validated the complete fixture suite in Chromium, Firefox, and WebKit with 66 passing browser checks and no failures.
+
 
 ###2026.07.21.19
 - Fix: Dashboard container context menus now resolve Start, Stop, Pause, and Resume availability from the latest reconciled runtime cache instead of the stale inline state captured when the widget first rendered.

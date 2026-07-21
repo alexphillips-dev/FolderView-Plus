@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus Dashboard lifecycle fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/ui.primitives.css">
+    <link rel="stylesheet" href="/plugin/styles/dashboard.css">
+    <style>
+        body { margin: 16px; background: #171717; color: #f3f3f3; font: 16px/1.35 Arial, sans-serif; }
+        #fixture-dashboard { width: 520px; max-width: 100%; }
+        #fixture-dashboard table { width: 100%; border-collapse: collapse; }
+        #fixture-dashboard td { padding: 0; }
+        .folder-showcase-outer { margin-bottom: 8px; }
+        .folder-showcase-outer > span.outer { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 6px; background: #252525; }
+        .folder-showcase { display: grid; gap: 4px; padding: 6px; border: 1px solid #454545; border-radius: 8px; }
+        .folder-showcase > span.outer { display: flex; align-items: center; gap: 8px; min-height: 62px; padding: 6px; background: #202020; }
+        .img { width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; background: #a56b27; }
+        .inner { flex: 1 1 auto; }
+        .green-text, .started { color: #55b72d; }
+        .orange-text, .paused { color: #f2a129; }
+        .red-text, .stopped { color: #ff4e59; }
+        .fa-spin { animation: fixture-spin .2s linear infinite; }
+        @keyframes fixture-spin { to { transform: rotate(360deg); } }
+        #fixture-context-menu { position: fixed; z-index: 50; min-width: 180px; padding: 4px; background: #151515; border: 1px solid #666; border-radius: 6px; }
+        #fixture-context-menu[hidden] { display: none; }
+        #fixture-context-menu button { display: block; width: 100%; padding: 8px; border: 0; background: transparent; color: #eee; text-align: left; }
+        #fixture-context-menu button:hover, #fixture-context-menu button:focus { background: #333; }
+    </style>
+</head>
+<body>
+    <section id="fixture-dashboard">
+        <label><input id="apps" type="checkbox"> Started only</label>
+        <table>
+            <tbody id="docker_view">
+                <tr class="updated"><td>
+                    <div id="fixture-audiobooks-folder" class="folder-showcase-outer" data-fv-folder-id="audiobooks" expanded="true">
+                        <span class="outer apps folder-docker started" data-fv-runtime-state="running">
+                            <span class="img" aria-hidden="true"></span>
+                            <span class="inner folder-inner-docker">
+                                <span class="folder-appname-docker">Audiobooks</span><br>
+                                <i class="fa fa-play started green-text folder-load-status-docker" aria-hidden="true"></i>
+                                <span class="state folder-state-docker">1/2 started</span>
+                            </span>
+                        </span>
+                        <div class="folder-showcase">
+                            <span id="fixture-audiobookshelf-card" class="outer apps started folder-element-docker" data-fv-runtime-name="audiobookshelf" data-fv-runtime-state="running">
+                                <span id="abc123def456" class="hand"><span class="img" aria-hidden="true"></span></span>
+                                <span class="inner">
+                                    <span class="appname">audiobookshelf</span><br>
+                                    <i id="load-abc123def456" class="fa fa-play started green-text" aria-hidden="true"></i>
+                                    <span class="state"> started</span><br>
+                                    <i class="fa fa-globe" aria-hidden="true"></i>
+                                    <i class="fa fa-terminal" aria-hidden="true"></i>
+                                    <i class="fa fa-bars" aria-hidden="true"></i>
+                                </span>
+                            </span>
+                            <span id="fixture-paperless-card" class="outer apps stopped folder-element-docker" data-fv-runtime-name="paperless" data-fv-runtime-state="stopped">
+                                <span id="fed654cba321" class="hand"><span class="img" aria-hidden="true"></span></span>
+                                <span class="inner">
+                                    <span class="appname">paperless</span><br>
+                                    <i id="load-fed654cba321" class="fa fa-square stopped red-text" aria-hidden="true"></i>
+                                    <span class="state"> stopped</span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </td></tr>
+            </tbody>
+        </table>
+    </section>
+    <div id="fixture-context-menu" role="menu" hidden></div>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/folderviewplus.ui.js"></script>
+    <script src="/plugin/scripts/runtime.host-adapter.js"></script>
+    <script src="/plugin/scripts/docker.runtime.reconcile.js"></script>
+    <script src="/plugin/scripts/dashboard.layout-quickrail.js"></script>
+    <script src="/fixtures/dashboard-lifecycle.fixture.js"></script>
+</body>
+</html>

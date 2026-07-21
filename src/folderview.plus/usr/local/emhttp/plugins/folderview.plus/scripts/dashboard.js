@@ -2605,6 +2605,8 @@ const getDashboardRuntimeStateMeta = (type, entry = {}) => {
     return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
 };
 
+const DASHBOARD_RUNTIME_ICON_CLASSES = 'fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped';
+
 const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
     if (!$surface || !$surface.length) return;
     const meta = getDashboardRuntimeStateMeta(type, entry);
@@ -2613,7 +2615,12 @@ const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
     const $icon = $state.length ? $state.prevAll('i.fa').first() : $inner.find('i.fa').first();
     $surface.add($surface.find('span.hand, span.inner')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
     $surface.attr('data-fv-runtime-state', meta.state);
-    if ($icon.length) $icon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${meta.icon} ${meta.className}`);
+    if ($icon.length) {
+        $icon
+            .removeClass(DASHBOARD_RUNTIME_ICON_CLASSES)
+            .addClass(`fa ${meta.icon} ${meta.className}`)
+            .removeAttr('aria-busy');
+    }
     if ($state.length) $state.text(` ${$.i18n(meta.key)}`).removeClass('started paused stopped').addClass(meta.className);
     const autostart = type === 'vm' ? entry?.autostart === true : entry?.info?.State?.Autostart === true;
     $surface.toggleClass('autostart', autostart);
@@ -2661,7 +2668,11 @@ const updateDashboardFolderRuntimeSummary = (type, id, folder) => {
     const statusColors = resolveDashboardFolderStatusColors(folder?.settings || {});
     const statusColor = statusColors[aggregate.className] || '';
     $folderSurface.removeClass('started paused stopped').addClass(aggregate.className);
-    $statusIcon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${aggregate.icon} ${aggregate.className}`).css('color', statusColor);
+    $statusIcon
+        .removeClass(DASHBOARD_RUNTIME_ICON_CLASSES)
+        .addClass(`fa ${aggregate.icon} ${aggregate.className}`)
+        .removeAttr('aria-busy')
+        .css('color', statusColor);
     $statusText.text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`).css('color', statusColor);
     $outer.add($folderSurface).removeClass('no-autostart autostart-off autostart-partial autostart-full no-managed managed-partial managed-full');
     if (autostart === 0) $outer.add($folderSurface).addClass('no-autostart');

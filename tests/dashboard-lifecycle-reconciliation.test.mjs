@@ -147,3 +147,13 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
         < dashboardPage.indexOf('/scripts/dashboard.js')
     );
 });
+
+test('Dashboard runtime reconciliation clears host lifecycle spinner classes', () => {
+    assert.match(
+        dashboardSource,
+        /const DASHBOARD_RUNTIME_ICON_CLASSES = 'fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped';/
+    );
+    const cleanupUses = dashboardSource.match(/\.removeClass\(DASHBOARD_RUNTIME_ICON_CLASSES\)/g) || [];
+    assert.equal(cleanupUses.length, 2);
+    assert.match(dashboardSource, /\.removeAttr\('aria-busy'\)/);
+});

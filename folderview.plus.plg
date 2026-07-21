@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.10">
-<!ENTITY md5 "d13a0b50a4f9103ea06999b9fdb0c9cd">
+<!ENTITY version "2026.07.21.11">
+<!ENTITY md5 "52319bb0ecf7b427e8d22ad8d0d5de23">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.11
+- Performance: Settings now retrieves saved Docker and VM folders and preferences through one combined configuration snapshot and paints both tables from a single request, while retaining automatic per-type and legacy request fallbacks for mixed-version installs.
+- Performance: Replaced the Diagnostics support-preview full bundle build with a lightweight contract-only endpoint; full host discovery, history collection, redaction, and browser telemetry now run only when a report is copied or exported.
+- Diagnostics: Split Settings performance telemetry into configuration first paint, Docker runtime hydration, VM runtime hydration, full manual refresh, and Diagnostics refresh measurements with individual budgets.
+- Diagnostics: Persisted bounded performance samples in browser storage for 24 hours across refreshes while limiting health evaluation to the latest 30 minutes so stale timings cannot create current warnings.
+- Performance: Preference changes are applied optimistically and coalesced for 160ms; no-op saves no longer rewrite flash state, and display-only changes skip full recovery backups, order reconciliation, and synchronous audit-history writes.
+- Reliability: Ordering, rule, start-order, folder-default, import-preset, and backup-schedule changes retain revision checks, atomic last-good writes, full recovery checkpoints, and mutation audit records; repeated checkpoints reuse one recent backup for 30 seconds.
+- Quality: Added combined-snapshot, fallback, endpoint-manifest, recovery-classification, persistent telemetry, and lightweight-preview regressions; Chromium UI fixtures and small, normal, and extreme runtime performance budgets pass.
 
 ###2026.07.21.10
 - Fix: The Settings blank-page watchdog now recognizes the intentional loading shell during its early check, preventing false `FVPLUS-SET-BLANK-001` errors on slower refreshes while retaining the later stalled-bootstrap warning.

@@ -61,6 +61,7 @@
       "actionParameter": "action", "defaultAction": "report",
       "actions": {
         "report": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.report"},
+        "support_bundle_preview": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.support-bundle-preview"},
         "support_bundle": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.support-bundle"},
         "track_event": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["eventType"], "auditCategory": "diagnostics.event"},
         "sync_docker_order": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},

@@ -8,8 +8,18 @@ fvplus_json_try(function (): array {
     if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
         throw new RuntimeException('Unsupported method.');
     }
-    $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $mode = normalizeRuntimeSnapshotMode((string)($_GET['mode'] ?? $_REQUEST['mode'] ?? 'state'));
+    $requestedType = strtolower(trim((string)($_GET['type'] ?? $_REQUEST['type'] ?? '')));
+    if ($requestedType === 'all') {
+        if ($mode !== 'config') {
+            throw new RuntimeException('Combined runtime snapshots only support config mode.');
+        }
+        if (!headers_sent()) {
+            header('X-FV-Runtime-Snapshot-Schema: ' . FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION);
+        }
+        return buildRuntimeConfigBootstrapSnapshot();
+    }
+    $type = ensureType($requestedType);
     $since = (string)($_GET['since'] ?? $_REQUEST['since'] ?? '');
     $forceRefresh = normalizeBool((string)($_GET['nocache'] ?? $_REQUEST['nocache'] ?? '0'), false);
     $preferLiveUpdateStatus = $type === 'docker'

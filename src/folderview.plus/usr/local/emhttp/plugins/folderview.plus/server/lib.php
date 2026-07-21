@@ -4206,30 +4206,51 @@
         ];
     }
 
-    function createCoalescedPrefsBackupSnapshot(string $type, int $windowSeconds = 3): array {
+    function findRecentPrefsBackupSnapshot(string $type, int $windowSeconds): ?array {
         $type = ensureType($type);
-        $windowSeconds = max(0, min(30, $windowSeconds));
-        if ($windowSeconds > 0) {
-            foreach (listBackupSnapshots($type) as $snapshot) {
-                if ((string)($snapshot['reason'] ?? '') !== 'before-prefs-update') {
-                    continue;
-                }
-                try {
-                    $path = getBackupSnapshotPath($type, (string)($snapshot['name'] ?? ''));
-                    $ageSeconds = max(0, time() - (int)@filemtime($path));
-                    if ($ageSeconds <= $windowSeconds) {
-                        return [
-                            ...$snapshot,
-                            'pruned' => [],
-                            'skipped' => false,
-                            'coalesced' => true
-                        ];
-                    }
-                } catch (Throwable $err) {
-                    // Continue to a new checkpoint when the recent entry is unreadable.
-                }
-                break;
+        $backupDir = getBackupsDirPath();
+        if ($windowSeconds <= 0 || !is_dir($backupDir)) {
+            return null;
+        }
+        $latestPath = '';
+        $latestMtime = 0;
+        foreach ((array)@scandir($backupDir) as $file) {
+            if (!is_string($file) || !preg_match('/^' . preg_quote($type, '/') . '-.*-before-prefs-update\.json$/', $file)) {
+                continue;
             }
+            $path = "$backupDir/$file";
+            $mtime = is_file($path) ? (int)@filemtime($path) : 0;
+            if ($mtime > $latestMtime) {
+                $latestMtime = $mtime;
+                $latestPath = $path;
+            }
+        }
+        if ($latestPath === '' || max(0, time() - $latestMtime) > $windowSeconds) {
+            return null;
+        }
+        $decoded = @json_decode((string)@file_get_contents($latestPath), true);
+        return [
+            'name' => basename($latestPath),
+            'createdAt' => gmdate('c', $latestMtime),
+            'size' => (int)@filesize($latestPath),
+            'reason' => 'before-prefs-update',
+            'count' => getBackupPayloadFolderCount($decoded),
+            'traceId' => is_array($decoded) ? normalizeRequestTraceId((string)($decoded['traceId'] ?? '')) : '',
+            'transactionId' => is_array($decoded) ? normalizeRequestTransactionId((string)($decoded['transactionId'] ?? '')) : ''
+        ];
+    }
+
+    function createCoalescedPrefsBackupSnapshot(string $type, int $windowSeconds = 30): array {
+        $type = ensureType($type);
+        $windowSeconds = max(0, min(120, $windowSeconds));
+        $recent = findRecentPrefsBackupSnapshot($type, $windowSeconds);
+        if (is_array($recent)) {
+            return [
+                ...$recent,
+                'pruned' => [],
+                'skipped' => false,
+                'coalesced' => true
+            ];
         }
         return [
             ...createBackupSnapshot($type, 'before-prefs-update'),

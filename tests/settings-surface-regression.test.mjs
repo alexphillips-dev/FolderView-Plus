@@ -119,7 +119,12 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_BUDGET_MS = Object\.freeze\(\{/);
-    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 15 \* 60 \* 1000;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 24 \* 60 \* 60 \* 1000;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_EVALUATION_WINDOW_MS = 30 \* 60 \* 1000;/);
+    assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_STORAGE_KEY = 'fv\.performance\.diagnostics\.history\.v1';/);
+    assert.match(diagnosticsJs, /restorePerformanceDiagnosticsHistory\(\);/);
+    assert.match(settingsJs, /recordPerformanceDiagnosticsSample\('runtimeHydration'/);
+    assert.match(diagnosticsJs, /action=support_bundle_preview/);
     assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_RECENT_WINDOW = 3;/);
     assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_REPEAT_THRESHOLD = 2;/);
     assert.match(diagnosticsJs, /const PERF_DIAGNOSTICS_EXTREME_MULTIPLIER = 3;/);

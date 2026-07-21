@@ -51,6 +51,12 @@ fvplus_json_try(function (): array {
         ];
     }
 
+    if ($action === 'support_bundle_preview') {
+        return [
+            'bundle' => getSupportBundlePreviewSnapshot($privacyMode)
+        ];
+    }
+
     if ($action === 'sync_docker_order') {
         syncContainerOrder('docker');
         return [

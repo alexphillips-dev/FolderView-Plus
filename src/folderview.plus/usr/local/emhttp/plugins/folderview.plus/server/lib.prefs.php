@@ -391,6 +391,36 @@
         return $merged;
     }
 
+    function prefsPatchRequiresSafetyBackup(array $patch, ?array $current = null, ?array $next = null): bool {
+        // Atomic last-good writes protect ordinary display toggles. Keep full
+        // recovery checkpoints for preference changes that can reshape folder
+        // assignment, ordering, automation, imports, or scheduled recovery.
+        $recoveryCriticalKeys = [
+            'sortMode',
+            'manualOrder',
+            'pinnedFolderIds',
+            'autoRules',
+            'backupSchedule',
+            'dockerStartOrder',
+            'folderDefaults',
+            'importPresets'
+        ];
+        foreach ($recoveryCriticalKeys as $key) {
+            if (!array_key_exists($key, $patch)) {
+                continue;
+            }
+            if (is_array($current) && is_array($next)) {
+                $before = json_encode($current[$key] ?? null, JSON_UNESCAPED_SLASHES);
+                $after = json_encode($next[$key] ?? null, JSON_UNESCAPED_SLASHES);
+                if ($before === $after) {
+                    continue;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     function normalizeRuntimePageViewMode($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['folderview', 'host', 'command'], true)) {

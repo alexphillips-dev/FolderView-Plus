@@ -2,6 +2,7 @@
 
 const FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1;
 const FVPLUS_RUNTIME_SNAPSHOT_KIND = 'runtime_snapshot';
+const FVPLUS_RUNTIME_CONFIG_BOOTSTRAP_KIND = 'runtime_config_bootstrap';
 
 function normalizeRuntimeSnapshotMode(string $mode): string {
     $normalized = strtolower(trim($mode));
@@ -104,26 +105,88 @@ function runtimeSnapshotOrderFromEntities(string $type, array $runtime): array {
     return array_values($names);
 }
 
+function readRuntimeSnapshotConfigUnlocked(string $type): array {
+    $safeType = ensureType($type);
+    $folders = json_decode(readFolder($safeType), true);
+    if (!is_array($folders)) {
+        $folders = [];
+    }
+    $prefs = readTypePrefs($safeType);
+    $order = json_decode(readUserPrefs($safeType), true);
+    if (!is_array($order)) {
+        $order = [];
+    }
+    $metadata = readConfigMetadata($safeType, true);
+    return [
+        'folders' => $folders,
+        'prefs' => $prefs,
+        'order' => array_values($order),
+        'metadata' => $metadata
+    ];
+}
+
 function readRuntimeSnapshotConfig(string $type): array {
     $safeType = ensureType($type);
     return withConfigMutationLock(static function () use ($safeType): array {
-        $folders = json_decode(readFolder($safeType), true);
-        if (!is_array($folders)) {
-            $folders = [];
-        }
-        $prefs = readTypePrefs($safeType);
-        $order = json_decode(readUserPrefs($safeType), true);
-        if (!is_array($order)) {
-            $order = [];
-        }
-        $metadata = readConfigMetadata($safeType, true);
+        return readRuntimeSnapshotConfigUnlocked($safeType);
+    });
+}
+
+function buildRuntimeConfigSnapshotFromConfig(string $type, array $config): array {
+    $safeType = ensureType($type);
+    $runtimeSignature = runtimeSnapshotSignature($safeType, []);
+    $snapshotToken = runtimeSnapshotToken($safeType, $config, [], $runtimeSignature);
+    $metadata = is_array($config['metadata'] ?? null) ? $config['metadata'] : [];
+    return [
+        'kind' => FVPLUS_RUNTIME_SNAPSHOT_KIND,
+        'schemaVersion' => FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION,
+        'type' => $safeType,
+        'mode' => 'config',
+        'generatedAt' => gmdate('c'),
+        'durationMs' => 0,
+        'snapshotToken' => $snapshotToken,
+        'runtimeSignature' => $runtimeSignature,
+        'notModified' => false,
+        'payloadIncluded' => true,
+        'runtimeIncluded' => false,
+        'revisions' => [
+            'folder' => max(0, (int)($metadata['folderRevision'] ?? 0)),
+            'prefs' => max(0, (int)($metadata['prefsRevision'] ?? 0))
+        ],
+        'counts' => [
+            'folders' => count((array)($config['folders'] ?? [])),
+            'entities' => 0,
+            'order' => count((array)($config['order'] ?? []))
+        ],
+        'folders' => is_array($config['folders'] ?? null) ? $config['folders'] : [],
+        'order' => array_values(is_array($config['order'] ?? null) ? $config['order'] : []),
+        'unraidOrder' => [],
+        'prefs' => is_array($config['prefs'] ?? null) ? $config['prefs'] : [],
+        'metadata' => $metadata
+    ];
+}
+
+function buildRuntimeConfigBootstrapSnapshot(): array {
+    $startedAt = microtime(true);
+    $configs = withConfigMutationLock(static function (): array {
         return [
-            'folders' => $folders,
-            'prefs' => $prefs,
-            'order' => array_values($order),
-            'metadata' => $metadata
+            'docker' => readRuntimeSnapshotConfigUnlocked('docker'),
+            'vm' => readRuntimeSnapshotConfigUnlocked('vm')
         ];
     });
+    $snapshots = [];
+    foreach (['docker', 'vm'] as $type) {
+        $snapshots[$type] = buildRuntimeConfigSnapshotFromConfig($type, $configs[$type]);
+    }
+    return [
+        'kind' => FVPLUS_RUNTIME_CONFIG_BOOTSTRAP_KIND,
+        'schemaVersion' => FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION,
+        'mode' => 'config',
+        'generatedAt' => gmdate('c'),
+        'durationMs' => max(0, (int)round((microtime(true) - $startedAt) * 1000)),
+        'types' => ['docker', 'vm'],
+        'snapshots' => $snapshots
+    ];
 }
 
 function runtimeSnapshotToken(string $type, array $config, array $unraidOrder, string $runtimeSignature): string {

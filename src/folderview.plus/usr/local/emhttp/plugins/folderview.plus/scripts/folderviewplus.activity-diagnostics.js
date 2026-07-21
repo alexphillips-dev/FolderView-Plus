@@ -162,24 +162,29 @@ const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
 let activityFeedAutoClearTimer = null;
 let activityCenterHistoryExpanded = false;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
-const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 15 * 60 * 1000;
+const PERF_DIAGNOSTICS_SAMPLE_TTL_MS = 24 * 60 * 60 * 1000;
+const PERF_DIAGNOSTICS_EVALUATION_WINDOW_MS = 30 * 60 * 1000;
+const PERF_DIAGNOSTICS_STORAGE_KEY = 'fv.performance.diagnostics.history.v1';
 const PERF_DIAGNOSTICS_RECENT_WINDOW = 3;
 const PERF_DIAGNOSTICS_REPEAT_THRESHOLD = 2;
 const PERF_DIAGNOSTICS_EXTREME_MULTIPLIER = 3;
 const PERF_DIAGNOSTICS_BUDGET_MS = Object.freeze({
     refresh: Object.freeze({ docker: 1500, vm: 1500 }),
+    runtimehydration: Object.freeze({ docker: 2500, vm: 2500 }),
     import: Object.freeze({ docker: 5000, vm: 5000 }),
     wizard: Object.freeze({ apply: 8000 }),
-    settings: Object.freeze({ bootstrap: 2500, diagnostics: 3000 })
+    settings: Object.freeze({ bootstrap: 2500, configbootstrap: 1500, manualrefresh: 5000, diagnostics: 3000 })
 });
 const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
 const performanceDiagnosticsState = {
     refresh: { docker: [], vm: [] },
+    runtimeHydration: { docker: [], vm: [] },
     import: { docker: [], vm: [] },
     wizard: { apply: [] },
-    settings: { bootstrap: [], diagnostics: [] },
+    settings: { bootstrap: [], configbootstrap: [], manualrefresh: [], diagnostics: [] },
     updatedAt: 0
 };
+let performanceDiagnosticsPersistTimer = null;
 const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
@@ -200,6 +205,93 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
         return null;
     }
 };
+
+const getPerformanceDiagnosticsSeries = () => ([
+    performanceDiagnosticsState.refresh.docker,
+    performanceDiagnosticsState.refresh.vm,
+    performanceDiagnosticsState.runtimeHydration.docker,
+    performanceDiagnosticsState.runtimeHydration.vm,
+    performanceDiagnosticsState.import.docker,
+    performanceDiagnosticsState.import.vm,
+    performanceDiagnosticsState.wizard.apply,
+    performanceDiagnosticsState.settings.bootstrap,
+    performanceDiagnosticsState.settings.configbootstrap,
+    performanceDiagnosticsState.settings.manualrefresh,
+    performanceDiagnosticsState.settings.diagnostics
+]);
+
+const sanitizePerformanceDiagnosticsDetails = (details) => Object.fromEntries(
+    Object.entries(details && typeof details === 'object' && !Array.isArray(details) ? details : {})
+        .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
+        .slice(0, 16)
+        .map(([key, value]) => [String(key).slice(0, 64), typeof value === 'string' ? value.slice(0, 160) : value])
+);
+
+const sanitizePersistedPerformanceSample = (sample, now = Date.now()) => {
+    const at = Number(sample?.at);
+    const durationMs = Number(sample?.durationMs);
+    if (!Number.isFinite(at) || at <= 0 || at < now - PERF_DIAGNOSTICS_SAMPLE_TTL_MS || !Number.isFinite(durationMs) || durationMs < 0) {
+        return null;
+    }
+    return {
+        at,
+        durationMs: Number(durationMs.toFixed(2)),
+        details: sanitizePerformanceDiagnosticsDetails(sample?.details)
+    };
+};
+
+const restorePerformanceDiagnosticsHistory = () => {
+    const stored = readClientDiagnosticsStorageRecord(PERF_DIAGNOSTICS_STORAGE_KEY);
+    if (Number(stored?.schemaVersion || 0) !== 1 || !stored.state || typeof stored.state !== 'object') {
+        return;
+    }
+    const now = Date.now();
+    const copySeries = (target, source) => {
+        const restored = (Array.isArray(source) ? source : [])
+            .map((sample) => sanitizePersistedPerformanceSample(sample, now))
+            .filter(Boolean)
+            .slice(-PERF_DIAGNOSTICS_SAMPLE_LIMIT);
+        target.splice(0, target.length, ...restored);
+    };
+    copySeries(performanceDiagnosticsState.refresh.docker, stored.state.refresh?.docker);
+    copySeries(performanceDiagnosticsState.refresh.vm, stored.state.refresh?.vm);
+    copySeries(performanceDiagnosticsState.runtimeHydration.docker, stored.state.runtimeHydration?.docker);
+    copySeries(performanceDiagnosticsState.runtimeHydration.vm, stored.state.runtimeHydration?.vm);
+    copySeries(performanceDiagnosticsState.import.docker, stored.state.import?.docker);
+    copySeries(performanceDiagnosticsState.import.vm, stored.state.import?.vm);
+    copySeries(performanceDiagnosticsState.wizard.apply, stored.state.wizard?.apply);
+    copySeries(performanceDiagnosticsState.settings.bootstrap, stored.state.settings?.bootstrap);
+    copySeries(performanceDiagnosticsState.settings.configbootstrap, stored.state.settings?.configbootstrap);
+    copySeries(performanceDiagnosticsState.settings.manualrefresh, stored.state.settings?.manualrefresh);
+    copySeries(performanceDiagnosticsState.settings.diagnostics, stored.state.settings?.diagnostics);
+    const latestSampleAt = getPerformanceDiagnosticsSeries()
+        .flat()
+        .reduce((latest, sample) => Math.max(latest, Number(sample?.at) || 0), 0);
+    performanceDiagnosticsState.updatedAt = latestSampleAt;
+};
+
+const persistPerformanceDiagnosticsHistory = () => {
+    performanceDiagnosticsPersistTimer = null;
+    try {
+        localStorage.setItem(PERF_DIAGNOSTICS_STORAGE_KEY, JSON.stringify({
+            schemaVersion: 1,
+            savedAt: new Date().toISOString(),
+            state: performanceDiagnosticsState
+        }));
+    } catch (_error) {
+        // Browser performance history is optional and must never block Settings.
+    }
+};
+
+const schedulePerformanceDiagnosticsHistoryPersist = () => {
+    if (performanceDiagnosticsPersistTimer !== null) {
+        clearTimeout(performanceDiagnosticsPersistTimer);
+    }
+    performanceDiagnosticsPersistTimer = setTimeout(persistPerformanceDiagnosticsHistory, 120);
+};
+
+restorePerformanceDiagnosticsHistory();
+window.addEventListener?.('pagehide', persistPerformanceDiagnosticsHistory);
 
 const collectFolderEditorDebugDiagnostics = () => {
     const launch = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
@@ -313,7 +405,7 @@ const resolvePerformanceDiagnosticsSamples = (bucket, type = 'global') => {
     if (!performanceDiagnosticsState[bucket] || typeof performanceDiagnosticsState[bucket] !== 'object') {
         return null;
     }
-    if (bucket === 'refresh' || bucket === 'import') {
+    if (bucket === 'refresh' || bucket === 'runtimeHydration' || bucket === 'import') {
         const resolvedType = String(type || '').trim() === 'vm' ? 'vm' : 'docker';
         return Array.isArray(performanceDiagnosticsState[bucket][resolvedType])
             ? performanceDiagnosticsState[bucket][resolvedType]
@@ -338,7 +430,7 @@ const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = 
     target.push({
         at: capturedAt,
         durationMs: Number(duration.toFixed(2)),
-        details: details && typeof details === 'object' ? details : {}
+        details: sanitizePerformanceDiagnosticsDetails(details)
     });
     const retentionCutoff = capturedAt - PERF_DIAGNOSTICS_SAMPLE_TTL_MS;
     for (let index = target.length - 1; index >= 0; index -= 1) {
@@ -351,6 +443,7 @@ const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = 
         target.splice(0, target.length - PERF_DIAGNOSTICS_SAMPLE_LIMIT);
     }
     performanceDiagnosticsState.updatedAt = capturedAt;
+    schedulePerformanceDiagnosticsHistoryPersist();
     renderPerformanceDiagnostics();
 };
 
@@ -364,7 +457,7 @@ const resolvePerformanceDiagnosticsBudgetMs = (bucket, type = 'global') => {
 
 const summarizePerformanceDiagnosticsSamples = (samples, budgetMs = null) => {
     const now = Date.now();
-    const retentionCutoff = now - PERF_DIAGNOSTICS_SAMPLE_TTL_MS;
+    const retentionCutoff = now - PERF_DIAGNOSTICS_EVALUATION_WINDOW_MS;
     const list = (Array.isArray(samples) ? samples : []).filter((row) => {
         const sampleAt = Number(row?.at);
         return !Number.isFinite(sampleAt) || sampleAt <= 0 || sampleAt >= retentionCutoff;
@@ -469,13 +562,25 @@ const collectClientPerformanceTelemetry = () => ({
             docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker')),
             vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))
         },
+        runtimeHydration: {
+            docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.runtimeHydration.docker, resolvePerformanceDiagnosticsBudgetMs('runtimeHydration', 'docker')),
+            vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.runtimeHydration.vm, resolvePerformanceDiagnosticsBudgetMs('runtimeHydration', 'vm'))
+        },
         import: {
             docker: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker')),
             vm: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))
         },
         wizardApply: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply')),
+        configBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.configbootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'configBootstrap')),
         settingsBootstrap: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap')),
+        manualRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.manualrefresh, resolvePerformanceDiagnosticsBudgetMs('settings', 'manualRefresh')),
         diagnosticsRefresh: summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics'))
+    },
+    history: {
+        persisted: true,
+        retentionHours: Math.round(PERF_DIAGNOSTICS_SAMPLE_TTL_MS / 3600000),
+        evaluationWindowMinutes: Math.round(PERF_DIAGNOSTICS_EVALUATION_WINDOW_MS / 60000),
+        storedSampleCount: getPerformanceDiagnosticsSeries().reduce((total, series) => total + series.length, 0)
     },
     runtime: getRuntimePerfTelemetrySnapshot(),
     requestErrors: getRequestErrorDiagnosticsSnapshot()
@@ -500,12 +605,13 @@ const renderPerformanceDiagnostics = () => {
         return `<tr><th>${diagnosticsEscapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td><td>${diagnosticsEscapeHtml(`${statusLabel} (${budgetLabel})`)}</td></tr>`;
     };
     const rows = [
-        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker, resolvePerformanceDiagnosticsBudgetMs('refresh', 'docker'))),
-        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm, resolvePerformanceDiagnosticsBudgetMs('refresh', 'vm'))),
+        renderRow('Configuration first paint', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.configbootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'configBootstrap'))),
+        renderRow('Docker runtime hydration', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.runtimeHydration.docker, resolvePerformanceDiagnosticsBudgetMs('runtimeHydration', 'docker'))),
+        renderRow('VM runtime hydration', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.runtimeHydration.vm, resolvePerformanceDiagnosticsBudgetMs('runtimeHydration', 'vm'))),
+        renderRow('Full Settings refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.manualrefresh, resolvePerformanceDiagnosticsBudgetMs('settings', 'manualRefresh'))),
         renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker, resolvePerformanceDiagnosticsBudgetMs('import', 'docker'))),
         renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm, resolvePerformanceDiagnosticsBudgetMs('import', 'vm'))),
         renderRow('Wizard apply', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.wizard.apply, resolvePerformanceDiagnosticsBudgetMs('wizard', 'apply'))),
-        renderRow('Settings bootstrap', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.bootstrap, resolvePerformanceDiagnosticsBudgetMs('settings', 'bootstrap'))),
         renderRow('Diagnostics refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.settings.diagnostics, resolvePerformanceDiagnosticsBudgetMs('settings', 'diagnostics')))
     ].join('');
     const runtimeSnapshot = getRuntimePerfTelemetrySnapshot();
@@ -513,7 +619,7 @@ const renderPerformanceDiagnostics = () => {
         ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
         : 'Not yet sampled';
     host.html(`
-        <div class="fv-perf-summary-note">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.note', 'Recent UI operation timings from the last 15 minutes. Cold loads are observed but do not trigger a warning by themselves.'))}</div>
+        <div class="fv-perf-summary-note">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.note', 'Rolling UI timings are retained for 24 hours across refreshes; health evaluation uses the most recent 30 minutes. Cold loads are observed but do not trigger a warning by themselves.'))}</div>
         <table class="fv-perf-table">
             <thead>
                 <tr><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.operation', 'Operation'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.samples', 'Samples'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.last', 'Last'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.average', 'Avg'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.maximum', 'Max'))}</th><th>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.performance.budget', 'Budget'))}</th></tr>
@@ -537,6 +643,14 @@ const getSupportBundle = async (privacy = 'sanitized') => {
     const response = await apiGetJson(`/plugins/folderview.plus/server/diagnostics.php?action=support_bundle&privacy=${encodeURIComponent(privacy || 'sanitized')}`);
     if (!response.ok) {
         throw new Error(response.error || 'Support bundle failed.');
+    }
+    return normalizeSupportBundleV2Payload(response.bundle || {}, privacy);
+};
+
+const getSupportBundlePreview = async (privacy = 'sanitized') => {
+    const response = await apiGetJson(`/plugins/folderview.plus/server/diagnostics.php?action=support_bundle_preview&privacy=${encodeURIComponent(privacy || 'sanitized')}`);
+    if (!response.ok) {
+        throw new Error(response.error || 'Support bundle preview failed.');
     }
     return normalizeSupportBundleV2Payload(response.bundle || {}, privacy);
 };
@@ -665,7 +779,7 @@ const getSupportBundlePreviewApi = () => {
             escapeHtml: diagnosticsEscapeHtml,
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
-            getSupportBundle,
+            getSupportBundlePreview,
             showError: diagnosticsShowError
         });
     }
@@ -1546,12 +1660,13 @@ const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
         ? telemetry.settings
         : {};
     const entries = [
-        { key: 'docker-refresh', group: 'settings-load', label: 'Docker refresh', summary: settingsTelemetry.refresh?.docker },
-        { key: 'vm-refresh', group: 'settings-load', label: 'VM refresh', summary: settingsTelemetry.refresh?.vm },
+        { key: 'config-bootstrap', group: 'settings-first-paint', label: 'Configuration first paint', summary: settingsTelemetry.configBootstrap },
+        { key: 'docker-runtime-hydration', group: 'runtime-hydration', label: 'Docker runtime hydration', summary: settingsTelemetry.runtimeHydration?.docker },
+        { key: 'vm-runtime-hydration', group: 'runtime-hydration', label: 'VM runtime hydration', summary: settingsTelemetry.runtimeHydration?.vm },
+        { key: 'manual-refresh', group: 'settings-refresh', label: 'Full Settings refresh', summary: settingsTelemetry.manualRefresh },
         { key: 'docker-import', group: 'docker-import', label: 'Docker import', summary: settingsTelemetry.import?.docker },
         { key: 'vm-import', group: 'vm-import', label: 'VM import', summary: settingsTelemetry.import?.vm },
         { key: 'wizard-apply', group: 'wizard-apply', label: 'Wizard apply', summary: settingsTelemetry.wizardApply },
-        { key: 'settings-bootstrap', group: 'settings-load', label: 'Settings bootstrap', summary: settingsTelemetry.settingsBootstrap },
         { key: 'diagnostics-refresh', group: 'diagnostics-refresh', label: 'Diagnostics refresh', summary: settingsTelemetry.diagnosticsRefresh }
     ].filter((entry) => entry.summary && typeof entry.summary === 'object');
     if (!entries.length) {

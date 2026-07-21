@@ -2869,6 +2869,47 @@
         ];
     }
 
+    function getSupportBundlePreviewSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
+        $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        return [
+            'bundleMeta' => [
+                'bundleType' => 'FolderViewPlusSupportBundle',
+                'bundleVersion' => 2,
+                'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
+                'generatedAt' => gmdate('c'),
+                'traceId' => diagnosticsCurrentTraceId(),
+                'transactionId' => diagnosticsCurrentTransactionId(),
+                'pluginVersion' => readInstalledVersion(),
+                'channel' => diagnosticsResolveSupportBundleChannel(),
+                'privacyMode' => $mode,
+                'redactionPolicyVersion' => 1,
+                'bundleSaltScope' => $mode === 'full' ? 'none' : 'per-bundle',
+                'previewOnly' => true
+            ],
+            // These contract placeholders make the preview useful without running
+            // host discovery. Full data is collected only when an export is requested.
+            'system' => ['previewOnly' => true],
+            'pluginState' => ['previewOnly' => true],
+            'runtimeState' => ['previewOnly' => true],
+            'uiTelemetry' => ['previewOnly' => true],
+            'healthAndHistory' => [
+                'previewOnly' => true,
+                'summary' => new stdClass(),
+                'recentTimeline' => []
+            ],
+            'redactionManifest' => [
+                'mode' => $mode,
+                'saltScope' => $mode === 'full' ? 'none' : 'per-bundle',
+                'saltHash' => null,
+                'hashedFields' => [],
+                'maskedFields' => [],
+                'omittedFields' => [],
+                'truncatedFields' => [],
+                'previewOnly' => true
+            ]
+        ];
+    }
+
     function getSupportBundleV2Snapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $redactor = diagnosticsCreateSupportBundleRedactor($privacyMode);
         $diagnostics = getDiagnosticsSnapshot('full');

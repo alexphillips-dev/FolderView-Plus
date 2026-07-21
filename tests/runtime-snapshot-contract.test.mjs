@@ -47,7 +47,9 @@ test('runtime snapshot endpoint exposes a versioned, no-cache GET contract', () 
 
 test('snapshot assembly keeps configuration reads under one mutation boundary', () => {
     assert.match(runtimeSnapshotLib, /const FVPLUS_RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1/);
-    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfig\(string \$type\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readFolder\(\$safeType\)[\s\S]*readTypePrefs\(\$safeType\)[\s\S]*readUserPrefs\(\$safeType\)[\s\S]*readConfigMetadata\(\$safeType, true\)/);
+    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfigUnlocked\(string \$type\): array \{[\s\S]*readFolder\(\$safeType\)[\s\S]*readTypePrefs\(\$safeType\)[\s\S]*readUserPrefs\(\$safeType\)[\s\S]*readConfigMetadata\(\$safeType, true\)/);
+    assert.match(runtimeSnapshotLib, /function readRuntimeSnapshotConfig\(string \$type\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readRuntimeSnapshotConfigUnlocked\(\$safeType\)/);
+    assert.match(runtimeSnapshotLib, /function buildRuntimeConfigBootstrapSnapshot\(\): array \{[\s\S]*withConfigMutationLock\(static function[\s\S]*readRuntimeSnapshotConfigUnlocked\('docker'\)[\s\S]*readRuntimeSnapshotConfigUnlocked\('vm'\)/);
     assert.match(runtimeSnapshotLib, /function runtimeSnapshotToken\([\s\S]*folderRevision[\s\S]*prefsRevision[\s\S]*runtimeSignature/);
     assert.match(runtimeSnapshotLib, /\$notModified = \$safeMode === 'check'[\s\S]*hash_equals\(\$snapshotToken, \$safeSinceToken\)/);
     assert.match(runtimeSnapshotLib, /if \(\$safeMode === 'check'\) \{\s*return \$response;\s*\}/);
@@ -111,15 +113,19 @@ test('config snapshots return saved layout without touching host runtime discove
         "function readInfoState(string $type, bool $live = false): array { throw new RuntimeException('runtime discovery must not run'); }",
         `require '${absoluteLib}';`,
         "$result = buildRuntimeSnapshot('docker', 'config');",
-        "echo json_encode($result);"
+        "$combined = buildRuntimeConfigBootstrapSnapshot();",
+        "echo json_encode(['single' => $result, 'combined' => $combined]);"
     ].join(' ');
     const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
-    assert.equal(result.mode, 'config');
-    assert.equal(result.payloadIncluded, true);
-    assert.equal(result.runtimeIncluded, false);
-    assert.equal(Object.hasOwn(result, 'runtime'), false);
-    assert.equal(result.folders['folder-a'].name, 'Media');
-    assert.deepEqual(result.order, ['folder-folder-a', 'app']);
+    assert.equal(result.single.mode, 'config');
+    assert.equal(result.single.payloadIncluded, true);
+    assert.equal(result.single.runtimeIncluded, false);
+    assert.equal(Object.hasOwn(result.single, 'runtime'), false);
+    assert.equal(result.single.folders['folder-a'].name, 'Media');
+    assert.deepEqual(result.single.order, ['folder-folder-a', 'app']);
+    assert.equal(result.combined.kind, 'runtime_config_bootstrap');
+    assert.equal(result.combined.snapshots.docker.folders['folder-a'].name, 'Media');
+    assert.equal(result.combined.snapshots.vm.runtimeIncluded, false);
 });
 
 test('client projects one snapshot into legacy renderer inputs and falls back per field', async () => {
@@ -156,6 +162,23 @@ test('client projects one snapshot into legacy renderer inputs and falls back pe
     assert.match(api.buildUrl('docker', 'check', { since: 'a'.repeat(64) }), /runtime_snapshot\.php\?type=docker&mode=check&since=/);
     assert.match(api.buildUrl('vm', 'config', { liveUpdateStatus: true }), /runtime_snapshot\.php\?type=vm&mode=config/);
     assert.doesNotMatch(api.buildUrl('docker', 'config', { liveUpdateStatus: true }), /liveupdate=/);
+    assert.match(api.buildConfigBootstrapUrl(), /runtime_snapshot\.php\?type=all&mode=config/);
+});
+
+test('combined configuration bootstrap validates both per-type snapshots', () => {
+    const api = loadClientApi();
+    const result = api.parseConfigBootstrapPayload({
+        ok: true,
+        kind: 'runtime_config_bootstrap',
+        schemaVersion: 1,
+        snapshots: {
+            docker: { kind: 'runtime_snapshot', schemaVersion: 1, type: 'docker', mode: 'config', folders: {} },
+            vm: { kind: 'runtime_snapshot', schemaVersion: 1, type: 'vm', mode: 'config', folders: {} }
+        }
+    });
+    assert.equal(result.snapshots.docker.type, 'docker');
+    assert.equal(result.snapshots.vm.type, 'vm');
+    assert.throws(() => api.parseConfigBootstrapPayload({ kind: 'runtime_config_bootstrap', schemaVersion: 1, snapshots: {} }));
 });
 
 test('runtime row diff isolates state changes and distinguishes structural changes', () => {
@@ -228,10 +251,11 @@ test('Docker, VM, and Dashboard bootstrap and polling use the coherent endpoint'
 test('Settings bootstrap paints config first and hydrates Docker and VM runtime independently', () => {
     assert.match(settingsJs, /const runtimeSnapshotApi = window\.FolderViewPlusRuntimeSnapshot \|\| null;/);
     assert.match(settingsJs, /const fetchSettingsCoreSnapshot = async \(type, options = \{\}\) => \{[\s\S]*const mode = configOnly \? 'config' : 'state';[\s\S]*runtimeSnapshotApi\.buildUrl\(resolvedType, mode/);
+    assert.match(settingsJs, /const fetchSettingsCombinedConfigSnapshots = async \(\) => \{[\s\S]*buildConfigBootstrapUrl[\s\S]*parseConfigBootstrapPayload/);
     assert.match(settingsJs, /runtimeSnapshotApi\.parsePayload\(await apiGetJson\(url\)\)/);
     assert.match(settingsJs, /diagnosticsPrefsCoordinator\.reconcile\(resolvedType, snapshotPrefs/);
     assert.match(settingsJs, /const fallbackRequests = \[fetchFolders\(type\), fetchPrefs\(type\)\];[\s\S]*if \(!configOnly\) \{\s*fallbackRequests\.push\(fetchTypeInfo\(type\)\);/);
-    assert.match(settingsJs, /refreshType\('docker', \{ render: false, configOnly: true \}\),[\s\S]*refreshType\('vm', \{ render: false, configOnly: true \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
+    assert.match(settingsJs, /fetchSettingsCombinedConfigSnapshots\(\)[\s\S]*snapshot: combined\.snapshots\.docker[\s\S]*snapshot: combined\.snapshots\.vm[\s\S]*per-type-config-fallback/);
     assert.match(settingsJs, /const runtimeHydrationPromise = Promise\.allSettled\(\[\s*refreshType\('docker'\),\s*refreshType\('vm'\)\s*\]\);/);
     assert.match(settingsJs, /window\.FolderViewPlusSettingsRuntimeHydrationPromise = runtimeHydrationPromise;/);
     assert.match(settingsJs, /const hideEmptyFolders = runtimeReady[\s\S]*hideEmptyFolders === true;/);

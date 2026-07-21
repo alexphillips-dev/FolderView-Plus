@@ -25,6 +25,30 @@
         return parsed;
     };
 
+    const parseConfigBootstrapPayload = (payload) => {
+        let parsed = payload;
+        if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed);
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Combined configuration snapshot response was empty.');
+        }
+        if (parsed.ok === false) {
+            throw new Error(String(parsed.error || 'Combined configuration snapshot request failed.'));
+        }
+        if (String(parsed.kind || '') !== 'runtime_config_bootstrap' || Number(parsed.schemaVersion || 0) !== SCHEMA_VERSION) {
+            throw new Error('Combined configuration snapshot response was invalid.');
+        }
+        const snapshots = parsed.snapshots && typeof parsed.snapshots === 'object' ? parsed.snapshots : {};
+        return {
+            ...parsed,
+            snapshots: {
+                docker: parsePayload(snapshots.docker),
+                vm: parsePayload(snapshots.vm)
+            }
+        };
+    };
+
     const buildUrl = (type, mode = 'state', options = {}) => {
         const safeType = type === 'vm' ? 'vm' : 'docker';
         const safeMode = ['config', 'state', 'full', 'check'].includes(String(mode || '').toLowerCase())
@@ -49,6 +73,17 @@
             throw new Error('FolderView Plus request URL builder is unavailable.');
         }
         return requestClient.buildUrl(ENDPOINT, query);
+    };
+
+    const buildConfigBootstrapUrl = (options = {}) => {
+        if (!requestClient || typeof requestClient.buildUrl !== 'function') {
+            throw new Error('FolderView Plus request URL builder is unavailable.');
+        }
+        return requestClient.buildUrl(ENDPOINT, {
+            type: 'all',
+            mode: 'config',
+            _: String(options?.cacheBust || Date.now())
+        });
     };
 
     const projectValue = (snapshot, field) => {
@@ -188,7 +223,9 @@
         ENDPOINT,
         SCHEMA_VERSION,
         parsePayload,
+        parseConfigBootstrapPayload,
         buildUrl,
+        buildConfigBootstrapUrl,
         projectValue,
         createProjectedBundle,
         projectRequest,

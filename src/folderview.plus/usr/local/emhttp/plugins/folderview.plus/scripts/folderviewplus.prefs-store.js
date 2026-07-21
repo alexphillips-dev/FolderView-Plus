@@ -9,7 +9,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const STORAGE_PREFIX = 'fvplus.prefs.outbox.v1.';
     const CHANNEL_NAME = 'fvplus-prefs-sync-v1';
-    const DEFAULT_DEBOUNCE_MS = 90;
+    const DEFAULT_DEBOUNCE_MS = 160;
     const DEFAULT_RETRY_DELAY_MS = 1200;
     const MAX_CONFLICT_RETRIES = 2;
     const DASHBOARD_LAYOUT_TRANSITION_LIMIT = 16;

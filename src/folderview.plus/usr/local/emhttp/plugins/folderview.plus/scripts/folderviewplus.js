@@ -9424,13 +9424,18 @@ const buildSettingsBootstrapDegradedReason = (type, area, error) => {
 const fetchSettingsCoreSnapshot = async (type, options = {}) => {
     const resolvedType = normalizeManagedType(type);
     const configOnly = options?.configOnly === true;
-    const mode = configOnly ? 'config' : 'state';
-    const requestOptions = { cacheBust: Date.now() };
-    if (!configOnly) {
-        requestOptions.ttl = 12;
+    let snapshot = options?.snapshot || null;
+    if (!snapshot) {
+        const mode = configOnly ? 'config' : 'state';
+        const requestOptions = { cacheBust: Date.now() };
+        if (!configOnly) {
+            requestOptions.ttl = 12;
+        }
+        const url = runtimeSnapshotApi.buildUrl(resolvedType, mode, requestOptions);
+        snapshot = runtimeSnapshotApi.parsePayload(await apiGetJson(url));
+    } else {
+        snapshot = runtimeSnapshotApi.parsePayload(snapshot);
     }
-    const url = runtimeSnapshotApi.buildUrl(resolvedType, mode, requestOptions);
-    const snapshot = runtimeSnapshotApi.parsePayload(await apiGetJson(url));
     const snapshotPrefs = utils.normalizePrefs({
         ...(snapshot.prefs && typeof snapshot.prefs === 'object' ? snapshot.prefs : {}),
         _metadata: snapshot.metadata && typeof snapshot.metadata === 'object' ? snapshot.metadata : {}
@@ -9451,6 +9456,14 @@ const fetchSettingsCoreSnapshot = async (type, options = {}) => {
     };
 };
 
+const fetchSettingsCombinedConfigSnapshots = async () => {
+    if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildConfigBootstrapUrl !== 'function' || typeof runtimeSnapshotApi.parseConfigBootstrapPayload !== 'function') {
+        throw new Error('Combined Settings configuration bootstrap is unavailable.');
+    }
+    const url = runtimeSnapshotApi.buildConfigBootstrapUrl({ cacheBust: Date.now() });
+    return runtimeSnapshotApi.parseConfigBootstrapPayload(await apiGetJson(url));
+};
+
 const refreshType = async (type, options = {}) => {
     const startedAt = perfNowMs();
     const render = options?.render !== false;
@@ -9464,10 +9477,11 @@ const refreshType = async (type, options = {}) => {
     let info = configOnly ? (infoByType[type] || {}) : {};
     let prefsFetched = false;
     let runtimeFetched = false;
-    let dataSource = configOnly ? 'config-snapshot' : 'runtime-snapshot';
-    let requestCount = 1;
+    const suppliedSnapshot = options?.snapshot || null;
+    let dataSource = suppliedSnapshot ? 'combined-config-snapshot' : (configOnly ? 'config-snapshot' : 'runtime-snapshot');
+    let requestCount = suppliedSnapshot ? 0 : 1;
     try {
-        const snapshot = await fetchSettingsCoreSnapshot(type, { configOnly });
+        const snapshot = await fetchSettingsCoreSnapshot(type, { configOnly, snapshot: suppliedSnapshot });
         folders = snapshot.folders;
         rawPrefs = snapshot.prefs;
         if (!configOnly) {
@@ -9543,14 +9557,15 @@ const refreshType = async (type, options = {}) => {
         renderTable(type);
         markFatalBannerStep(`Rendered ${type} settings table`);
     }
-    recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
-        folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
-        infoCount: Object.keys(info || {}).length,
-        coldLoad: settingsUiState.initialized !== true,
-        configOnly,
-        dataSource,
-        requestCount
-    });
+    if (!configOnly) {
+        recordPerformanceDiagnosticsSample('runtimeHydration', type, perfNowMs() - startedAt, {
+            folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
+            infoCount: Object.keys(info || {}).length,
+            coldLoad: settingsUiState.initialized !== true,
+            dataSource,
+            requestCount
+        });
+    }
     return {
         hasErrors: degradedReasons.length > 0,
         degradedReasons
@@ -9733,10 +9748,24 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 const refreshCoreData = async () => {
     const startedAt = perfNowMs();
     runtimeHydrationStateByType = { docker: 'pending', vm: 'pending' };
-    const refreshResults = await Promise.allSettled([
-        refreshType('docker', { render: false, configOnly: true }),
-        refreshType('vm', { render: false, configOnly: true })
-    ]);
+    let refreshResults;
+    let configDataSource = 'combined-config-snapshot';
+    let configRequestCount = 1;
+    try {
+        const combined = await fetchSettingsCombinedConfigSnapshots();
+        refreshResults = await Promise.allSettled([
+            refreshType('docker', { render: false, configOnly: true, snapshot: combined.snapshots.docker }),
+            refreshType('vm', { render: false, configOnly: true, snapshot: combined.snapshots.vm })
+        ]);
+    } catch (combinedError) {
+        configDataSource = 'per-type-config-fallback';
+        configRequestCount = 2;
+        recordFatalBannerAction('Combined Settings configuration unavailable; using per-type snapshots');
+        refreshResults = await Promise.allSettled([
+            refreshType('docker', { render: false, configOnly: true }),
+            refreshType('vm', { render: false, configOnly: true })
+        ]);
+    }
     renderTable('docker');
     renderTable('vm');
     ensureRegexPresetUi('docker');
@@ -9746,6 +9775,13 @@ const refreshCoreData = async () => {
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
+    recordPerformanceDiagnosticsSample('settings', 'configBootstrap', perfNowMs() - startedAt, {
+        dockerFolders: Object.keys(getFolderMap('docker')).length,
+        vmFolders: Object.keys(getFolderMap('vm')).length,
+        coldLoad: settingsUiState.initialized !== true,
+        dataSource: configDataSource,
+        requestCount: configRequestCount
+    });
     const runtimeHydrationPromise = Promise.allSettled([
         refreshType('docker'),
         refreshType('vm')
@@ -9776,12 +9812,17 @@ const refreshCoreData = async () => {
 };
 
 const refreshAll = async () => {
+    const startedAt = perfNowMs();
     const coreResult = await refreshCoreData();
     // Explicit refresh/recovery workflows retain their historical completion
     // semantics even though first paint no longer waits for host discovery.
     await coreResult?.runtimeHydrationPromise;
     const advancedFailures = await ensureAdvancedDataLoaded({ force: true });
     refreshSettingsUx();
+    recordPerformanceDiagnosticsSample('settings', 'manualRefresh', perfNowMs() - startedAt, {
+        coldLoad: false,
+        advancedReloaded: true
+    });
     return {
         degradedReasons: [
             ...(Array.isArray(coreResult?.degradedReasons) ? coreResult.degradedReasons : []),
@@ -9791,8 +9832,14 @@ const refreshAll = async () => {
 };
 
 window.FolderViewPlusRefreshCoreData = async () => {
+    const startedAt = perfNowMs();
     const result = await refreshCoreData();
     await result?.runtimeHydrationPromise;
+    recordPerformanceDiagnosticsSample('settings', 'manualRefresh', perfNowMs() - startedAt, {
+        coldLoad: false,
+        advancedReloaded: false,
+        source: 'diagnostics'
+    });
     return result;
 };
 

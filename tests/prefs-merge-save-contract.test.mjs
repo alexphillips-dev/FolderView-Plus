@@ -36,6 +36,9 @@ echo json_encode([
     'pinnedFolderIds' => $merged['pinnedFolderIds'],
     'first' => $first,
     'second' => $second,
+    'displayPatchRequiresBackup' => prefsPatchRequiresSafetyBackup(['dashboard' => ['privacyMode' => true]]),
+    'rulePatchRequiresBackup' => prefsPatchRequiresSafetyBackup(['autoRules' => [['pattern' => 'media']]]),
+    'unchangedBroadPatchRequiresBackup' => prefsPatchRequiresSafetyBackup($current, $current, $current),
     'backupCount' => count(listBackupSnapshots('docker'))
 ], JSON_UNESCAPED_SLASHES);
 `;
@@ -71,6 +74,9 @@ test('server preference merge preserves nested siblings and replaces list values
     assert.equal(result.first.coalesced, false);
     assert.equal(result.second.coalesced, true);
     assert.equal(result.second.name, result.first.name);
+    assert.equal(result.displayPatchRequiresBackup, false);
+    assert.equal(result.rulePatchRequiresBackup, true);
+    assert.equal(result.unchangedBroadPatchRequiresBackup, false);
     assert.equal(result.backupCount, 1);
 });
 
@@ -78,5 +84,7 @@ test('preference endpoint exposes revision-safe merge and mutation diagnostics',
     assert.match(prefsEndpoint, /mergeTypePrefsPatch\(\$current, \$decoded\)/);
     assert.match(prefsEndpoint, /clientMutationId/);
     assert.match(prefsEndpoint, /createCoalescedPrefsBackupSnapshot\(\$type\)/);
+    assert.match(prefsEndpoint, /prefsPatchRequiresSafetyBackup\(\$decoded, \$current, \$next\)/);
+    assert.match(prefsEndpoint, /'backupRequired'/);
     assert.match(prefsEndpoint, /'backupCoalesced'/);
 });

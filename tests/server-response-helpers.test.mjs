@@ -276,7 +276,10 @@ test('diagnostics endpoint emits support bundle v2 shape only', () => {
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleSystemSection\(array \$diagnostics, array \$integrityFindings, array &\$redactor\): array/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleHealthAndHistorySection\(array \$diagnostics, array \$integrityFindings, array &\$redactor\): array/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRedactionManifestSection\(array \$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function getSupportBundlePreviewSnapshot\(string \$privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY\): array/);
     assert.match(libDiagnosticsPhp, /function getSupportBundleV2Snapshot\(string \$privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY\): array/);
+    assert.match(diagnosticsEndpointPhp, /if \(\$action === 'support_bundle_preview'\) \{/);
+    assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*getSupportBundlePreviewSnapshot\(\$privacyMode\)/);
     assert.match(diagnosticsEndpointPhp, /if \(\$action === 'support_bundle'\) \{/);
     assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*getSupportBundleV2Snapshot\(\$privacyMode\)/);
     assert.match(libDiagnosticsPhp, /'bundleMeta'\s*=>\s*diagnosticsBuildSupportBundleMetaSection\(\$diagnostics, \$redactor\)/);

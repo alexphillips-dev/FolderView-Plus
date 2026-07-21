@@ -55,9 +55,9 @@
         const normalizeSupportBundleV2Payload = typeof deps.normalizeSupportBundleV2Payload === 'function'
             ? deps.normalizeSupportBundleV2Payload
             : ((bundle) => (bundle && typeof bundle === 'object' ? { ...bundle } : {}));
-        const getSupportBundle = typeof deps.getSupportBundle === 'function'
-            ? deps.getSupportBundle
-            : async () => null;
+        const getSupportBundlePreview = typeof deps.getSupportBundlePreview === 'function'
+            ? deps.getSupportBundlePreview
+            : (typeof deps.getSupportBundle === 'function' ? deps.getSupportBundle : async () => null);
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
 
         let lastSupportBundlePreview = null;
@@ -112,9 +112,13 @@
                 || normalized.bundleMeta?.bundleSaltHash
                 || ''
             ).trim();
+            const previewOnly = manifest.previewOnly === true || normalized.bundleMeta?.previewOnly === true;
             const redactionPills = Object.entries(SUPPORT_BUNDLE_REDACTION_LABELS).map(([fieldKey, label]) => {
                 const count = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].length : 0;
                 const examples = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].slice(0, 3) : [];
+                if (previewOnly) {
+                    return `<span class="fv-support-bundle-redaction-pill" title="${escapeHtml(`${label} fields are calculated when the export is created.`)}">${escapeHtml(label)}: on export</span>`;
+                }
                 const title = examples.length
                     ? `${label}: ${examples.join(', ')}${count > examples.length ? ', ...' : ''}`
                     : `${label}: none reported`;
@@ -190,7 +194,7 @@
 
         const refreshSupportBundlePreview = async ({ privacy = 'sanitized', quiet = true } = {}) => {
             try {
-                lastSupportBundlePreview = await getSupportBundle(privacy);
+                lastSupportBundlePreview = await getSupportBundlePreview(privacy);
                 renderSupportBundlePreview(lastSupportBundlePreview);
                 return lastSupportBundlePreview;
             } catch (error) {

@@ -36,13 +36,22 @@ fvplus_json_try(function (): array {
     $backup = null;
     $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
     $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
-    if ($currentJson !== $nextJson) {
+    $configChanged = $currentJson !== $nextJson;
+    $backupRequired = $configChanged && prefsPatchRequiresSafetyBackup($decoded, $current, $next);
+    if ($backupRequired) {
         $backup = createCoalescedPrefsBackupSnapshot($type);
     }
 
-    $saved = writeTypePrefs($type, $next);
-    syncManualOrderWithFolders($type, readRawFolderMap($type));
-    $saved = readTypePrefs($type);
+    $saved = $configChanged ? writeTypePrefs($type, $next) : normalizeTypePrefs($current);
+    $orderPrefsChanged = $configChanged && (
+        (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
+        || normalizeStringIdList($current['manualOrder'] ?? []) !== normalizeStringIdList($saved['manualOrder'] ?? [])
+        || normalizeStringIdList($current['pinnedFolderIds'] ?? []) !== normalizeStringIdList($saved['pinnedFolderIds'] ?? [])
+    );
+    if ($orderPrefsChanged) {
+        syncManualOrderWithFolders($type, readRawFolderMap($type));
+        $saved = readTypePrefs($type);
+    }
     $metadata = readConfigMetadata($type, false);
     $dockerOrderChanged = $type === 'docker' && (
         (string)($current['sortMode'] ?? 'created') !== (string)($saved['sortMode'] ?? 'created')
@@ -53,19 +62,25 @@ fvplus_json_try(function (): array {
     if ($dockerOrderChanged) {
         syncContainerOrder('docker');
     }
-    try {
-        appendDiagnosticsHistoryEvent('prefs_update', $type, [
-            'traceId' => getRequestTraceId(),
-            'clientMutationId' => $clientMutationId,
-            'patchFieldCount' => count($decoded),
-            'backupCreated' => is_array($backup) && !($backup['coalesced'] ?? false),
-            'backupCoalesced' => (bool)($backup['coalesced'] ?? false),
-            'sortMode' => (string)($saved['sortMode'] ?? 'created'),
-            'ruleCount' => count($saved['autoRules'] ?? []),
-            'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? [])
-        ], 'ok', 'server');
-    } catch (Throwable $err) {
-        // Non-fatal.
+    $auditRecorded = false;
+    if ($configChanged && ($backupRequired || $orderPrefsChanged || $dockerOrderChanged)) {
+        try {
+            appendDiagnosticsHistoryEvent('prefs_update', $type, [
+                'traceId' => getRequestTraceId(),
+                'clientMutationId' => $clientMutationId,
+                'patchFieldCount' => count($decoded),
+                'configChanged' => true,
+                'backupRequired' => $backupRequired,
+                'backupCreated' => is_array($backup) && !($backup['coalesced'] ?? false),
+                'backupCoalesced' => (bool)($backup['coalesced'] ?? false),
+                'sortMode' => (string)($saved['sortMode'] ?? 'created'),
+                'ruleCount' => count($saved['autoRules'] ?? []),
+                'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? [])
+            ], 'ok', 'server');
+            $auditRecorded = true;
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
     }
 
     return [
@@ -73,6 +88,9 @@ fvplus_json_try(function (): array {
         'backup' => $backup,
         'metadata' => $metadata,
         'clientMutationId' => $clientMutationId,
+        'configChanged' => $configChanged,
+        'backupRequired' => $backupRequired,
+        'auditRecorded' => $auditRecorded,
         'backupCoalesced' => (bool)($backup['coalesced'] ?? false)
     ];
 });

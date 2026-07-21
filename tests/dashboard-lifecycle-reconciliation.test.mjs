@@ -174,6 +174,8 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
     assert.match(dashboardSource, /isDashboardDockerLifecycleStateSettled/);
     assert.match(dashboardSource, /lifecycleRefreshDelaysMs: \[0, 300, 750, 1500, 2500\]/);
     assert.match(dashboardSource, /bindLifecycleEventControlPatch/);
+    assert.match(dashboardSource, /getDockerRuntimeContainerInfo: \(containerName\) =>/);
+    assert.match(dashboardSource, /dashboardDockerLifecycleApi\?\.bindDockerContainerContextStatePatch\?\.\(\)/);
     assert.match(
         dashboardSource,
         /refreshDockerRuntimeStateInPlace: \(\) => refreshDashboardTypeRuntimeStateInPlace\('docker'\)/

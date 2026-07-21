@@ -146,6 +146,10 @@ test('Docker container context menus resolve lifecycle actions from the latest r
     assert.equal(harness.contextCalls[1][3], false);
     assert.equal(harness.contextCalls[1][4], false);
     assert.equal(harness.contextCalls[1][6], false);
+    assert.ok(harness.trace.some((entry) => (
+        entry.eventType === 'lifecycleContextStateResolved'
+        && entry.details.running === false
+    )));
 
     const wrappedContextBuilder = harness.window.addDockerContainerContext;
     assert.equal(harness.api.bindDockerContainerContextStatePatch(), true);

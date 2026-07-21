@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.18">
-<!ENTITY md5 "0f03ad23ca2e515b438a3ff77b6c455b">
+<!ENTITY version "2026.07.21.19">
+<!ENTITY md5 "8de821e196020ed887c3682fc603c7a6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.19
+- Fix: Dashboard container context menus now resolve Start, Stop, Pause, and Resume availability from the latest reconciled runtime cache instead of the stale inline state captured when the widget first rendered.
+- Fix: A container stopped from an expanded Dashboard folder immediately offers Start when its menu is opened again; stopped containers no longer continue offering Stop and Pause.
+- Diagnostics: Dashboard lifecycle telemetry now records when a context menu was corrected from current runtime state, including sanitized running, paused, and autostart flags.
+- Quality: Added Dashboard wiring and runtime-adapter regressions covering a stopped container whose original native menu payload still claims it is running.
+
 
 ###2026.07.21.18
 - Fix: Dashboard container Start actions now fall back to one canonical native widget refresh when incremental runtime reconciliation does not reach the running state within 2.5 seconds.

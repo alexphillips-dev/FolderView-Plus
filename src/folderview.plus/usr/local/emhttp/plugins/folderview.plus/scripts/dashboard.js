@@ -2951,6 +2951,9 @@ const getDashboardDockerRuntimeReconcileApi = () => {
             window,
             document,
             refreshDockerRuntimeStateInPlace: () => refreshDashboardTypeRuntimeStateInPlace('docker'),
+            getDockerRuntimeContainerInfo: (containerName) => (
+                dashboardRuntimeInfoByType.docker?.[String(containerName || '').trim()] || null
+            ),
             appendDockerBulkUpdateTrace: appendDashboardLifecycleTrace,
             getDockerHostGuardsApi: () => ({
                 wrapHostHook: (name, handler, options = {}) => dashboardDockerHostAdapter.wrapHook(name, handler, options)
@@ -3176,7 +3179,9 @@ window.loadlist = (x) => {
 // Docker may acknowledge a lifecycle command before its next runtime snapshot reflects
 // the new state. Keep the grouped Dashboard DOM mounted and reconcile until the requested
 // state is observed, even when periodic live refresh is disabled.
-getDashboardDockerRuntimeReconcileApi()?.bindLifecycleEventControlPatch?.();
+const dashboardDockerLifecycleApi = getDashboardDockerRuntimeReconcileApi();
+dashboardDockerLifecycleApi?.bindLifecycleEventControlPatch?.();
+dashboardDockerLifecycleApi?.bindDockerContainerContextStatePatch?.();
 
 // this is needed to trigger the funtion to create the folders
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

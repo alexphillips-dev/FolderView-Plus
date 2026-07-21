@@ -115,6 +115,12 @@
                     if (typeof runtimeState.Autostart === 'boolean') {
                         args[6] = runtimeState.Autostart;
                     }
+                    appendDockerBulkUpdateTrace('lifecycleContextStateResolved', {
+                        containerName,
+                        running: runtimeState.Running,
+                        paused: runtimeState.Running && runtimeState.Paused === true,
+                        autostart: runtimeState.Autostart === true
+                    });
                 }
                 return invokeOriginal(...args);
             }, {

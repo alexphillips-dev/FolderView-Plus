@@ -634,7 +634,7 @@ build_metadata_path="$tmpdir/usr/local/emhttp/plugins/folderview.plus/build-meta
 build_source_content_sha256="$(
     cd "$tmpdir"
     while IFS= read -r -d '' source_file; do
-        sha256sum "$source_file"
+        sha256sum --text "$source_file"
     done < <(find . -type f -print0 | sort -z) | sha256sum | awk '{print $1}'
 )"
 build_git_head_commit_sha="$(detect_git_commit_sha)"

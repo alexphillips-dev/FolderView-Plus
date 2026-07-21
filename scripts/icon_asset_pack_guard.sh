@@ -83,7 +83,7 @@ SOURCE_CONTENT_SHA256="$({
     extension="${icon_file##*.}"
     extension="${extension,,}"
     case "${extension}" in
-      png|jpg|jpeg|gif|webp|svg|bmp|ico|avif) sha256sum "${icon_file}" ;;
+      png|jpg|jpeg|gif|webp|svg|bmp|ico|avif) sha256sum --text "${icon_file}" ;;
     esac
   done < <(find . -type f -print0 | sort -z)
 } | sha256sum | awk '{print $1}')"

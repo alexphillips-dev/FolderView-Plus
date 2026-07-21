@@ -8,6 +8,8 @@ const requestClient = window.FolderViewPlusRequest || null;
 const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const dockerRuntimeReconcileModule = window.FolderViewPlusDockerRuntimeReconcile || null;
 const resolveDashboardPerformancePolicy = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
     ? runtimeShared.resolveRuntimePerformanceProfile
     : (prefs = {}, counts = {}) => ({
@@ -2371,6 +2373,8 @@ let liveRefreshTimers = { docker: null, vm: null };
 let liveRefreshMsByType = { docker: 0, vm: 0 };
 let liveRefreshInFlightByType = { docker: false, vm: false };
 let dashboardPerformancePolicies = { docker: null, vm: null };
+let dashboardDockerRuntimeReconcileApi = null;
+const dashboardDockerHostAdapter = runtimeHostAdapters?.getOrCreate?.('docker', { window, document }) || null;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let dashboardDockerCpuCores = 1;
@@ -2749,6 +2753,68 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
     }
 };
 
+const resolveDashboardDockerLifecycleRuntime = (request = {}) => {
+    const containerToken = String(request?.container || '').replace(/^sha256:/i, '').trim();
+    if (!containerToken) return null;
+    const runtimeMap = dashboardRuntimeInfoByType.docker || {};
+    const directEntry = runtimeMap[containerToken];
+    const matchedEntry = directEntry || Object.values(runtimeMap).find((entry) => {
+        const id = String(entry?.id || entry?.shortId || '').replace(/^sha256:/i, '').trim();
+        return id === containerToken || id.slice(0, 12) === containerToken.slice(0, 12);
+    });
+    return matchedEntry ? getDashboardRuntimeStateMeta('docker', matchedEntry) : null;
+};
+
+const isDashboardDockerLifecycleStateSettled = (request = {}) => {
+    const action = String(request?.action || '').trim().toLowerCase();
+    const state = resolveDashboardDockerLifecycleRuntime(request);
+    if (!state) return false;
+    if (action === 'stop') return state.active !== true;
+    if (action === 'pause') return state.active === true && state.paused === true;
+    if (action === 'start' || action === 'resume' || action === 'restart') {
+        return state.active === true && state.paused !== true;
+    }
+    return false;
+};
+
+const appendDashboardLifecycleTrace = (eventType, details = {}) => {
+    const previous = window.FolderViewPlusDashboardLifecycleReconciliation;
+    const events = Array.isArray(previous?.events) ? previous.events.slice(-39) : [];
+    events.push({
+        eventType: String(eventType || 'runtime-reconcile'),
+        capturedAt: new Date().toISOString(),
+        ...details
+    });
+    window.FolderViewPlusDashboardLifecycleReconciliation = {
+        strategy: 'state-aware-incremental',
+        latest: events[events.length - 1],
+        events
+    };
+};
+
+const getDashboardDockerRuntimeReconcileApi = () => {
+    if (
+        !dashboardDockerRuntimeReconcileApi
+        && dockerRuntimeReconcileModule
+        && typeof dockerRuntimeReconcileModule.createApi === 'function'
+        && dashboardDockerHostAdapter
+    ) {
+        dashboardDockerRuntimeReconcileApi = dockerRuntimeReconcileModule.createApi({
+            window,
+            document,
+            refreshDockerRuntimeStateInPlace: () => refreshDashboardTypeRuntimeStateInPlace('docker'),
+            appendDockerBulkUpdateTrace: appendDashboardLifecycleTrace,
+            getDockerHostGuardsApi: () => ({
+                wrapHostHook: (name, handler, options = {}) => dashboardDockerHostAdapter.wrapHook(name, handler, options)
+            }),
+            isDockerLifecycleStateSettled: isDashboardDockerLifecycleStateSettled,
+            lifecycleRefreshCallbackName: '__fvplusDashboardDockerLifecycleRefresh',
+            lifecycleRefreshDelaysMs: [0, 500, 1250, 2500, 4500, 7000]
+        });
+    }
+    return dashboardDockerRuntimeReconcileApi;
+};
+
 const clearLiveRefreshTimer = (type = null) => {
     const types = type === 'docker' || type === 'vm' ? [type] : ['docker', 'vm'];
     types.forEach((resolvedType) => {
@@ -2955,6 +3021,11 @@ window.loadlist = (x) => {
     prepareDashboardFolderRequestsForType('vm');
     loadlist_original(x);
 };
+
+// Docker may acknowledge a lifecycle command before its next runtime snapshot reflects
+// the new state. Keep the grouped Dashboard DOM mounted and reconcile until the requested
+// state is observed, even when periodic live refresh is disabled.
+getDashboardDockerRuntimeReconcileApi()?.bindLifecycleEventControlPatch?.();
 
 // this is needed to trigger the funtion to create the folders
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

@@ -67,7 +67,9 @@ fi
 CONTENT_SHA256="$({
   cd "${PACK_ICON_DIR}"
   while IFS= read -r -d '' icon_file; do
-    sha256sum "${icon_file}"
+    # Force the text marker so GNU coreutils emits the same digest stream on
+    # Windows Git Bash (binary mode is otherwise marked with '*') and Linux.
+    sha256sum --text "${icon_file}"
   done < <(find . -type f -print0 | sort -z)
 } | sha256sum | awk '{print $1}')"
 

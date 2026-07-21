@@ -76,6 +76,11 @@ test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(plg, /<MD5>&iconPackMd5;<\/MD5>/);
 });
 
+test('icon content hashing is deterministic across Linux and Windows Git Bash', () => {
+    assert.match(buildScript, /sha256sum --text "\$\{icon_file\}"/);
+    assert.match(guardScript, /sha256sum --text "\$\{icon_file\}"/);
+});
+
 test('manifest resolves and requires the installed asset-pack activation helper', () => {
     const pluginDir = entity('plugdir').replace('&name;', entity('name'));
     const activationPath = `${pluginDir}/scripts/install_icon_asset_pack.sh`;

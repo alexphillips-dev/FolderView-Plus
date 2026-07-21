@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.13">
-<!ENTITY md5 "e846d5cfbefaeaf0a987490f74abb842">
+<!ENTITY version "2026.07.21.14">
+<!ENTITY md5 "efd3c6b689dcfbfd2ba208c6120c01ba">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.14
+- Fix: Dashboard folder members and aggregate counts now reconcile from stopped back to started after Docker lifecycle actions without requiring a page refresh.
+- Performance: Dashboard lifecycle actions keep the grouped folder DOM mounted and use bounded, state-aware runtime refreshes that stop as soon as the requested container state is observed.
+- Reliability: Delayed Docker state propagation is followed for up to seven seconds, and a newer lifecycle action cancels stale follow-up work from the previous action.
+- Quality: Added regression coverage for delayed start propagation and consecutive stop-to-start transitions while preserving the existing Docker-page reconciliation contract.
+- Quality: Icon-pack and package-source content hashing is now deterministic across Linux and Windows Git Bash, preventing false asset-change failures during dev packaging.
 
 ###2026.07.21.13
 - Fix: Dashboard `Started only` now hides stopped Docker and VM members inside expanded and collapsed folders, hides fully inactive folders, and preserves parent folders with active nested descendants.

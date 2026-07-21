@@ -55,6 +55,17 @@
         const getDockerRuntimeContainerInfo = typeof deps.getDockerRuntimeContainerInfo === 'function'
             ? deps.getDockerRuntimeContainerInfo
             : (() => null);
+        const isDockerLifecycleStateSettled = typeof deps.isDockerLifecycleStateSettled === 'function'
+            ? deps.isDockerLifecycleStateSettled
+            : null;
+        const dockerLifecycleRefreshDelaysMs = Array.isArray(deps.lifecycleRefreshDelaysMs)
+            && deps.lifecycleRefreshDelaysMs.length > 0
+            ? Object.freeze(deps.lifecycleRefreshDelaysMs.map((delayMs) => Math.max(0, Number(delayMs) || 0)))
+            : DOCKER_LIFECYCLE_REFRESH_DELAYS_MS;
+        const requestedLifecycleCallbackName = String(deps.lifecycleRefreshCallbackName || '').trim();
+        const dockerLifecycleRefreshCallbackName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(requestedLifecycleCallbackName)
+            ? requestedLifecycleCallbackName
+            : DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME;
         const initialDelayMsDefault = Math.max(0, Number(deps.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS) || DEFAULT_INITIAL_DELAY_MS);
         const pollDelayMsDefault = Math.max(0, Number(deps.pollDelayMs ?? DEFAULT_POLL_DELAY_MS) || DEFAULT_POLL_DELAY_MS);
 
@@ -68,6 +79,7 @@
         let dockerPostUpdateRuntimePollIntervalMs = pollDelayMsDefault;
         let dockerPostUpdateRuntimePollRemaining = 0;
         let dockerLifecycleRefreshGeneration = 0;
+        let dockerLifecycleSettledGeneration = 0;
         let pendingDockerLifecycleRequest = {};
 
         const bindDockerContainerContextStatePatch = () => {
@@ -397,17 +409,21 @@
         const runDockerLifecycleRefresh = (request = {}) => {
             const action = String(request?.action || '').trim().toLowerCase();
             const generation = ++dockerLifecycleRefreshGeneration;
+            dockerLifecycleSettledGeneration = 0;
             appendDockerBulkUpdateTrace('lifecycleRefreshScheduled', {
                 action,
                 strategy: 'incremental-runtime-rows',
-                attempts: DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.length
+                attempts: dockerLifecycleRefreshDelaysMs.length
             });
-            DOCKER_LIFECYCLE_REFRESH_DELAYS_MS.forEach((delayMs, attemptIndex) => {
+            dockerLifecycleRefreshDelaysMs.forEach((delayMs, attemptIndex) => {
                 const schedule = typeof win?.setTimeout === 'function'
                     ? win.setTimeout.bind(win)
                     : setTimeout;
                 schedule(() => {
-                    if (generation !== dockerLifecycleRefreshGeneration) {
+                    if (
+                        generation !== dockerLifecycleRefreshGeneration
+                        || generation === dockerLifecycleSettledGeneration
+                    ) {
                         return;
                     }
                     Promise.resolve(refreshDockerRuntimeStateInPlace({
@@ -415,11 +431,18 @@
                         preserveGroupedDom: true
                     }))
                         .then((success) => {
+                            const settled = success === true
+                                && isDockerLifecycleStateSettled
+                                && isDockerLifecycleStateSettled(request) === true;
+                            if (settled) {
+                                dockerLifecycleSettledGeneration = generation;
+                            }
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
                                 attempt: attemptIndex + 1,
                                 delayMs,
-                                success: success === true
+                                success: success === true,
+                                settled: settled === true
                             });
                         })
                         .catch(() => {
@@ -438,8 +461,8 @@
             if (!win || (typeof win !== 'object' && typeof win !== 'function')) {
                 return false;
             }
-            if (typeof win[DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME] !== 'function') {
-                win[DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME] = () => {
+            if (typeof win[dockerLifecycleRefreshCallbackName] !== 'function') {
+                win[dockerLifecycleRefreshCallbackName] = () => {
                     runDockerLifecycleRefresh(pendingDockerLifecycleRequest);
                 };
             }
@@ -455,10 +478,10 @@
                 const refreshTarget = String(args?.[1] || '').trim();
                 if (
                     isDockerLifecycleRequest(request)
-                    && (refreshTarget === 'loadlist' || refreshTarget === DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME)
+                    && (refreshTarget === 'loadlist' || refreshTarget === dockerLifecycleRefreshCallbackName)
                 ) {
                     const interceptedHostLoadlist = refreshTarget === 'loadlist';
-                    args[1] = DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME;
+                    args[1] = dockerLifecycleRefreshCallbackName;
                     const callbackRequest = {
                         action: String(request.action || '').trim().toLowerCase(),
                         container: String(request.container || '').trim()
@@ -498,7 +521,7 @@
             isDockerLifecycleRequest,
             runDockerLifecycleRefresh,
             bindLifecycleEventControlPatch,
-            getLifecycleRefreshCallbackName: () => DOCKER_LIFECYCLE_REFRESH_CALLBACK_NAME
+            getLifecycleRefreshCallbackName: () => dockerLifecycleRefreshCallbackName
         };
     };
 

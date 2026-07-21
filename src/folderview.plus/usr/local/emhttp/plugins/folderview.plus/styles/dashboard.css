@@ -280,7 +280,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 }
 .fv-dashboard-view-popover > header strong { color: var(--fvplus-ui-text-primary); font-size: 1.15rem; }
 .fv-dashboard-view-popover > header span { color: var(--fvplus-ui-text-muted); font-size: 1rem; }
-.fv-dashboard-view-section { display: grid; gap: 7px; padding: 10px 12px; }
+.fv-dashboard-view-section { display: grid; gap: 4px; padding: 7px 8px; }
 .fv-dashboard-view-section + .fv-dashboard-view-section { border-top: 1px solid var(--fvplus-ui-border-faint); }
 .fv-dashboard-view-section h3 {
     color: var(--fvplus-ui-text-muted);
@@ -289,18 +289,22 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     margin: 0;
     text-transform: uppercase;
 }
-.fv-dashboard-layout-options { display: grid; gap: 5px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.fv-dashboard-layout-option,
-.fv-dashboard-view-option,
-.fv-dashboard-view-footer-action {
+.fv-dashboard-layout-options { display: grid; gap: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fv-dashboard-view-popover button.fv-dashboard-layout-option,
+.fv-dashboard-view-popover button.fv-dashboard-view-option,
+.fv-dashboard-view-popover button.fv-dashboard-view-footer-action {
+    --fv-dashboard-view-button-bg: var(--fvplus-ui-control);
+    --fv-dashboard-view-button-border: var(--fvplus-ui-border-subtle);
+    --fv-dashboard-view-button-color: var(--fvplus-ui-text-primary);
     appearance: none;
-    background: var(--fvplus-ui-control);
-    border: 1px solid var(--fvplus-ui-border-subtle);
+    background: var(--fv-dashboard-view-button-bg) !important;
+    border: 1px solid var(--fv-dashboard-view-button-border) !important;
     border-radius: var(--fv-ui-radius-sm);
     box-sizing: border-box;
-    color: var(--fvplus-ui-text-primary);
+    color: var(--fv-dashboard-view-button-color) !important;
     cursor: pointer;
     font: inherit;
+    margin: 0 !important;
     text-align: left;
 }
 .fv-dashboard-layout-option {
@@ -313,12 +317,12 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     padding: 6px 8px;
 }
 .fv-dashboard-layout-option > i { color: transparent; width: 11px; }
-.fv-dashboard-layout-option.is-selected {
-    background: color-mix(in srgb, var(--fv-ui-info) 12%, var(--fvplus-ui-control));
-    border-color: color-mix(in srgb, var(--fv-ui-info) 55%, var(--fvplus-ui-border-subtle));
+.fv-dashboard-view-popover button.fv-dashboard-layout-option.is-selected {
+    --fv-dashboard-view-button-bg: color-mix(in srgb, var(--fv-ui-info) 12%, var(--fvplus-ui-control));
+    --fv-dashboard-view-button-border: color-mix(in srgb, var(--fv-ui-info) 55%, var(--fvplus-ui-border-subtle));
 }
 .fv-dashboard-layout-option.is-selected > i { color: var(--fv-ui-info); }
-.fv-dashboard-view-options { display: grid; gap: 5px; }
+.fv-dashboard-view-options { display: grid; gap: 2px; }
 .fv-dashboard-view-option {
     align-items: center;
     display: grid;
@@ -334,20 +338,28 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 .fv-dashboard-view-option-check { color: transparent; }
 .fv-dashboard-view-option.is-active .fv-dashboard-view-option-icon,
 .fv-dashboard-view-option.is-active .fv-dashboard-view-option-check { color: var(--fv-ui-success); }
-.fv-dashboard-layout-option:hover,
-.fv-dashboard-view-option:hover,
-.fv-dashboard-view-footer-action:hover { background: var(--fvplus-ui-control-hover); border-color: var(--fvplus-ui-border-strong); }
-.fv-dashboard-layout-option:focus-visible,
-.fv-dashboard-view-option:focus-visible,
-.fv-dashboard-view-footer-action:focus-visible { border-color: var(--fv-ui-info); box-shadow: 0 0 0 3px var(--fvplus-ui-focus-ring); outline: 0; }
+.fv-dashboard-view-popover button.fv-dashboard-layout-option:hover,
+.fv-dashboard-view-popover button.fv-dashboard-view-option:hover,
+.fv-dashboard-view-popover button.fv-dashboard-view-footer-action:hover {
+    --fv-dashboard-view-button-bg: var(--fvplus-ui-control-hover);
+    --fv-dashboard-view-button-border: var(--fvplus-ui-border-strong);
+    --fv-dashboard-view-button-color: var(--fvplus-ui-text-primary);
+}
+.fv-dashboard-view-popover button.fv-dashboard-layout-option:focus-visible,
+.fv-dashboard-view-popover button.fv-dashboard-view-option:focus-visible,
+.fv-dashboard-view-popover button.fv-dashboard-view-footer-action:focus-visible {
+    --fv-dashboard-view-button-border: var(--fv-ui-info);
+    box-shadow: 0 0 0 2px var(--fvplus-ui-focus-ring);
+    outline: 0;
+}
 .fv-dashboard-view-option:disabled,
 .fv-dashboard-view-footer-action:disabled { cursor: not-allowed; opacity: 0.46; }
 .fv-dashboard-view-popover > footer {
     border-top: 1px solid var(--fvplus-ui-border-faint);
     display: grid;
-    gap: 6px;
+    gap: 2px;
     grid-template-columns: 1fr 1fr;
-    padding: 10px 12px;
+    padding: 7px 8px;
 }
 .fv-dashboard-view-footer-action {
     align-items: center;

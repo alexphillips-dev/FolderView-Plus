@@ -300,6 +300,32 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     const popover = page.locator('.fv-dashboard-view-popover-shell');
     await popover.waitFor();
     assert.equal(await popover.locator('[data-fv-layout-option]').count(), 7);
+    const compactButtonStyles = await popover.evaluate((root) => {
+        const layoutGrid = root.querySelector('.fv-dashboard-layout-options');
+        const layoutButton = root.querySelector('[data-fv-layout-option="legacy"]');
+        const colorProbe = document.createElement('span');
+        colorProbe.style.color = 'var(--fvplus-ui-text-primary)';
+        colorProbe.style.border = '1px solid var(--fvplus-ui-border-subtle)';
+        root.append(colorProbe);
+        const buttonStyle = getComputedStyle(layoutButton);
+        const probeStyle = getComputedStyle(colorProbe);
+        const snapshot = {
+            gap: Number.parseFloat(getComputedStyle(layoutGrid).gap || '0'),
+            marginTop: Number.parseFloat(buttonStyle.marginTop || '0'),
+            marginRight: Number.parseFloat(buttonStyle.marginRight || '0'),
+            color: buttonStyle.color,
+            expectedColor: probeStyle.color,
+            borderColor: buttonStyle.borderTopColor,
+            expectedBorderColor: probeStyle.borderTopColor
+        };
+        colorProbe.remove();
+        return snapshot;
+    });
+    assert.ok(compactButtonStyles.gap <= 2, 'layout choices should be tightly grouped');
+    assert.equal(compactButtonStyles.marginTop, 0);
+    assert.equal(compactButtonStyles.marginRight, 0);
+    assert.equal(compactButtonStyles.color, compactButtonStyles.expectedColor, 'global Unraid button colors must not override the neutral popover text');
+    assert.equal(compactButtonStyles.borderColor, compactButtonStyles.expectedBorderColor, 'global Unraid button borders must not override the neutral popover border');
     assert.equal(await popover.locator('[data-fv-layout-option="compactmatrix"]').getAttribute('aria-checked'), 'true');
     await popover.locator('[data-fv-layout-option="compactmatrix"]').press('ArrowDown');
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-fv-layout-option')), 'embossed');

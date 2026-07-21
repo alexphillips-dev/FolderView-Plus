@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.12">
-<!ENTITY md5 "4d164c84f102442ec281a29f30d9d6f0">
+<!ENTITY version "2026.07.21.13">
+<!ENTITY md5 "e846d5cfbefaeaf0a987490f74abb842">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,11 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.13
+- Fix: Dashboard `Started only` now hides stopped Docker and VM members inside expanded and collapsed folders, hides fully inactive folders, and preserves parent folders with active nested descendants.
+- Performance: Dashboard running-only changes now reconcile member and folder visibility in place after toggle, expansion, and live runtime updates instead of rebuilding the complete widget.
+- Quality: Added fixture-based Docker and VM coverage for mixed states, paused members, collapsed storage, nested folders, live state changes, and restoring `All Apps`.
 
 ###2026.07.21.12
 - UI/UX: Increased the Settings Activity Center label to 1.1rem for improved readability.

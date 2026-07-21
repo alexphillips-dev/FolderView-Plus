@@ -151,9 +151,12 @@ test('Dashboard integration keeps grouped rows mounted and uses state-aware foll
 test('Dashboard runtime reconciliation clears host lifecycle spinner classes', () => {
     assert.match(
         dashboardSource,
-        /const DASHBOARD_RUNTIME_ICON_CLASSES = 'fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped';/
+        /const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';/
     );
     const cleanupUses = dashboardSource.match(/\.removeClass\(DASHBOARD_RUNTIME_ICON_CLASSES\)/g) || [];
     assert.equal(cleanupUses.length, 2);
     assert.match(dashboardSource, /\.removeAttr\('aria-busy'\)/);
+    assert.match(dashboardSource, /\$statusIcons\.filter\('i\[id\^="load-"\]'\)\.first\(\)/);
+    assert.match(dashboardSource, /\$statusIcons\.not\(\$icon\)\.filter\(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR\)/);
+    assert.match(dashboardSource, /\['color', 'animation', 'animation-name', 'transform', 'opacity'\]/);
 });

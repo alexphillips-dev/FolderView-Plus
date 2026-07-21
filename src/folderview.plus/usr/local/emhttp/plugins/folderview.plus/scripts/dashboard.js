@@ -2605,23 +2605,45 @@ const getDashboardRuntimeStateMeta = (type, entry = {}) => {
     return { state: 'stopped', key: 'stopped', icon: 'fa-square', className: 'stopped', active: false, paused: false };
 };
 
-const DASHBOARD_RUNTIME_ICON_CLASSES = 'fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped';
+const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text';
+const DASHBOARD_RUNTIME_ICON_CLASSES = `fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch ${DASHBOARD_RUNTIME_STATE_CLASSES}`;
+const DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR = '.fa-refresh, .fa-spin, .fa-spinner, .fa-circle-o-notch';
+
+const clearDashboardRuntimeIconInlineState = ($icons) => {
+    $icons.each((_, node) => {
+        if (!node?.style) return;
+        ['color', 'animation', 'animation-name', 'transform', 'opacity'].forEach((property) => node.style.removeProperty(property));
+        if (!String(node.getAttribute?.('style') || '').trim()) node.removeAttribute?.('style');
+    });
+};
 
 const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
     if (!$surface || !$surface.length) return;
     const meta = getDashboardRuntimeStateMeta(type, entry);
     const $inner = $surface.find('span.inner').first();
     const $state = $inner.find('span.state').first();
-    const $icon = $state.length ? $state.prevAll('i.fa').first() : $inner.find('i.fa').first();
-    $surface.add($surface.find('span.hand, span.inner')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
+    const $statusIcons = $state.length ? $state.prevAll('i.fa') : $inner.find('i.fa').first();
+    const $identifiedIcon = $statusIcons.filter('i[id^="load-"]').first();
+    const $icon = $identifiedIcon.length ? $identifiedIcon : $statusIcons.first();
+    const $extraTransientIcons = $statusIcons.not($icon).filter(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR);
+    $extraTransientIcons.remove();
+    $surface.add($surface.find('span.hand, span.inner')).removeClass(DASHBOARD_RUNTIME_STATE_CLASSES).addClass(meta.className);
     $surface.attr('data-fv-runtime-state', meta.state);
     if ($icon.length) {
         $icon
             .removeClass(DASHBOARD_RUNTIME_ICON_CLASSES)
             .addClass(`fa ${meta.icon} ${meta.className}`)
             .removeAttr('aria-busy');
+        clearDashboardRuntimeIconInlineState($icon);
     }
-    if ($state.length) $state.text(` ${$.i18n(meta.key)}`).removeClass('started paused stopped').addClass(meta.className);
+    if ($state.length) {
+        $state
+            .text(` ${$.i18n(meta.key)}`)
+            .removeClass(DASHBOARD_RUNTIME_STATE_CLASSES)
+            .addClass(meta.className)
+            .removeAttr('aria-busy');
+        clearDashboardRuntimeIconInlineState($state);
+    }
     const autostart = type === 'vm' ? entry?.autostart === true : entry?.info?.State?.Autostart === true;
     $surface.toggleClass('autostart', autostart);
 };

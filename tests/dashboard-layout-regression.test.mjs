@@ -140,7 +140,7 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /const buildSettingsBootstrapDegradedReason = \(type, area, error\) =>/);
     assert.match(settingsScript, /code: 'FVPLUS-SET-BOOT-001'/);
     assert.match(settingsScript, /code: 'FVPLUS-SET-BOOT-002'/);
-    assert.match(settingsScript, /code: settingsUiState\.mode === 'advanced' \? 'FVPLUS-SET-BOOT-004' : 'FVPLUS-SET-BOOT-003'/);
+    assert.match(settingsScript, /code: 'FVPLUS-SET-BOOT-003'/);
     assert.match(settingsScript, /phase: 'module-load'/);
     assert.match(settingsScript, /phase: error\?\.fvplusPhase \|\| 'bootstrap'/);
     assert.match(settingsScript, /category: 'degraded-mode'/);

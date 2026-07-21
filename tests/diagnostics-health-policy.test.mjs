@@ -56,7 +56,7 @@ test('cold and isolated performance samples remain observations until warm overr
     assert.equal(repeatedWarm.recentOverBudgetCount, 2);
 });
 
-test('one extreme warm sample requests follow-up and stale samples expire', () => {
+test('one extreme warm sample requests follow-up and samples outside the evaluation window expire', () => {
     const api = loadDiagnosticsApi();
     const now = Date.now();
     const extremeWarm = api.summarizePerformanceDiagnosticsSamples([
@@ -66,7 +66,7 @@ test('one extreme warm sample requests follow-up and stale samples expire', () =
     assert.equal(extremeWarm.extremeOverBudget, true);
 
     const expired = api.summarizePerformanceDiagnosticsSamples([
-        { at: now - (16 * 60 * 1000), durationMs: 7600, details: { coldLoad: false } }
+        { at: now - (31 * 60 * 1000), durationMs: 7600, details: { coldLoad: false } }
     ], 2500);
     assert.equal(expired, null);
 });

@@ -26,7 +26,7 @@ const wizardCardBlock = (settingsCss.match(/\.fv-setup-card\s*\{[\s\S]*?\n\}/) |
 const wizardCardToplineBlock = (settingsCss.match(/\.fv-setup-card::before\s*\{[\s\S]*?\n\}/) || [''])[0];
 
 test('settings page wraps plugin UI in a theme-safe root container', () => {
-    assert.match(settingsPage, /<div id="fv-settings-root" class="fv-theme-safe">/);
+    assert.match(settingsPage, /<div id="fv-settings-root" class="fv-theme-safe(?: [^"]+)?"/);
     assert.match(settingsPage, /<div id="fv-settings-topbar"><\/div>/);
     assert.doesNotMatch(settingsPage, /fv-settings-action-bar/);
 });

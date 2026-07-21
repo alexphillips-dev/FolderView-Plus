@@ -260,7 +260,7 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
 .fv-dashboard-quick-action.is-pending { cursor: progress; }
 
 .fv-dashboard-layout-inline-host.is-narrow .fv-dashboard-quick-action.is-responsive-secondary,
-.fv-dashboard-layout-inline-host.is-height-constrained .fv-dashboard-quick-action.is-responsive-secondary { display: none !important; }
+.fv-dashboard-layout-inline-host.is-height-constrained .fv-dashboard-quick-action.is-responsive-secondary { display: none; }
 .fv-dashboard-layout-inline-host.is-narrow .fv-dashboard-quick-action {
     --fvplus-dashboard-quick-action-size: 30px;
     font-size: 13px;

@@ -2609,6 +2609,7 @@ const DASHBOARD_RUNTIME_STATE_CLASSES = 'started paused stopped running shutoff 
 const DASHBOARD_RUNTIME_ICON_CLASSES = `fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch ${DASHBOARD_RUNTIME_STATE_CLASSES}`;
 const DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR = '.fa-refresh, .fa-spin, .fa-spinner, .fa-circle-o-notch';
 const DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE = 'data-fv-host-icon-classes';
+const DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY = 'fv.support.bundle.dashboard.lifecycle.v1';
 
 const clearDashboardRuntimeIconInlineState = ($icons) => {
     $icons.each((_, node) => {
@@ -2651,6 +2652,33 @@ const restoreDashboardRuntimeSurfaceIcons = ($surface) => {
         if (wasSpinning) $node.removeClass('fa-refresh');
         node.removeAttribute('aria-busy');
     });
+};
+
+const collectDashboardRuntimeSurfaceDiagnostics = (containerId = '') => {
+    const safeContainerId = String(containerId || '').trim();
+    const control = safeContainerId ? document.getElementById(safeContainerId) : null;
+    const $surface = control ? $(control).parent('span.outer').first() : $();
+    const $icons = $surface.find('i');
+    const $statusIcon = $surface.find('span.inner i[id^="load-"]').first();
+    return {
+        containerId: safeContainerId || null,
+        controlFound: !!control,
+        surfaceFound: $surface.length > 0,
+        runtimeState: String($surface.attr('data-fv-runtime-state') || '').trim() || null,
+        iconCount: $icons.length,
+        capturedIconCount: $icons.filter(`[${DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE}]`).length,
+        busyIconCount: $icons.filter(DASHBOARD_RUNTIME_TRANSIENT_ICON_SELECTOR).length,
+        statusIconClasses: String($statusIcon.attr('class') || '').trim() || null,
+        iconClassSets: $icons.map((_, node) => String(node.getAttribute('class') || '').trim()).get().slice(0, 12)
+    };
+};
+
+const persistDashboardLifecycleDiagnostics = (record = {}) => {
+    try {
+        window.localStorage?.setItem(DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY, JSON.stringify(record));
+    } catch (_error) {
+        // Disposable diagnostics must not affect Dashboard behavior.
+    }
 };
 
 const syncDashboardRuntimeSurface = (type, $surface, entry = {}) => {
@@ -2821,16 +2849,29 @@ const refreshDashboardTypeRuntimeStateInPlace = async (type) => {
     }
 };
 
-const resolveDashboardDockerLifecycleRuntime = (request = {}) => {
+const resolveDashboardDockerLifecycleEntry = (request = {}) => {
     const containerToken = String(request?.container || '').replace(/^sha256:/i, '').trim();
     if (!containerToken) return null;
     const runtimeMap = dashboardRuntimeInfoByType.docker || {};
     const directEntry = runtimeMap[containerToken];
-    const matchedEntry = directEntry || Object.values(runtimeMap).find((entry) => {
+    return directEntry || Object.values(runtimeMap).find((entry) => {
         const id = String(entry?.id || entry?.shortId || '').replace(/^sha256:/i, '').trim();
         return id === containerToken || id.slice(0, 12) === containerToken.slice(0, 12);
-    });
-    return matchedEntry ? getDashboardRuntimeStateMeta('docker', matchedEntry) : null;
+    }) || null;
+};
+
+const resolveDashboardDockerLifecycleRuntime = (request = {}) => {
+    const entry = resolveDashboardDockerLifecycleEntry(request);
+    return entry ? getDashboardRuntimeStateMeta('docker', entry) : null;
+};
+
+const getDashboardDockerLifecycleStateSnapshot = (request = {}) => {
+    const state = resolveDashboardDockerLifecycleRuntime(request);
+    return state ? {
+        state: state.state,
+        active: state.active === true,
+        paused: state.paused === true
+    } : null;
 };
 
 const isDashboardDockerLifecycleStateSettled = (request = {}) => {
@@ -2858,6 +2899,45 @@ const appendDashboardLifecycleTrace = (eventType, details = {}) => {
         latest: events[events.length - 1],
         events
     };
+    const containerId = String(details?.containerId || previous?.latest?.containerId || '').trim();
+    persistDashboardLifecycleDiagnostics({
+        schemaVersion: 1,
+        strategy: window.FolderViewPlusDashboardLifecycleReconciliation.strategy,
+        capturedAt: new Date().toISOString(),
+        latest: window.FolderViewPlusDashboardLifecycleReconciliation.latest,
+        events,
+        surface: collectDashboardRuntimeSurfaceDiagnostics(containerId)
+    });
+};
+
+const finalizeDashboardDockerLifecycleSurface = (request = {}, outcome = {}) => {
+    const containerId = String(request?.container || '').trim();
+    const control = containerId ? document.getElementById(containerId) : null;
+    const $surface = control ? $(control).parent('span.outer').first() : $();
+    if ($surface.length) {
+        restoreDashboardRuntimeSurfaceIcons($surface);
+        const entry = resolveDashboardDockerLifecycleEntry(request);
+        if (entry) syncDashboardRuntimeSurface('docker', $surface, entry);
+    }
+    appendDashboardLifecycleTrace('lifecycleSurfaceFinalized', {
+        action: String(request?.action || '').trim().toLowerCase(),
+        containerId,
+        reason: String(outcome?.reason || '').trim() || 'unknown',
+        settled: outcome?.settled === true,
+        success: outcome?.success === true,
+        attempt: Number(outcome?.attempt || 0),
+        observedState: outcome?.observedState || null
+    });
+    if (outcome?.settled === true) return true;
+    window.setTimeout(() => {
+        appendDashboardLifecycleTrace('lifecycleNativeRefreshFallback', {
+            action: String(request?.action || '').trim().toLowerCase(),
+            containerId,
+            reason: String(outcome?.reason || 'attempts-exhausted')
+        });
+        if (typeof window.loadlist === 'function') window.loadlist();
+    }, 0);
+    return true;
 };
 
 const getDashboardDockerRuntimeReconcileApi = () => {
@@ -2876,9 +2956,11 @@ const getDashboardDockerRuntimeReconcileApi = () => {
                 wrapHostHook: (name, handler, options = {}) => dashboardDockerHostAdapter.wrapHook(name, handler, options)
             }),
             prepareDockerLifecycleSurface: captureDashboardRuntimeSurface,
+            getDockerLifecycleStateSnapshot: getDashboardDockerLifecycleStateSnapshot,
+            finalizeDockerLifecycleSurface: finalizeDashboardDockerLifecycleSurface,
             isDockerLifecycleStateSettled: isDashboardDockerLifecycleStateSettled,
             lifecycleRefreshCallbackName: '__fvplusDashboardDockerLifecycleRefresh',
-            lifecycleRefreshDelaysMs: [0, 500, 1250, 2500, 4500, 7000]
+            lifecycleRefreshDelaysMs: [0, 300, 750, 1500, 2500]
         });
     }
     return dashboardDockerRuntimeReconcileApi;

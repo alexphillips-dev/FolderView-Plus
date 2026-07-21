@@ -28,6 +28,7 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
     const scheduled = [];
     const hostCalls = [];
     const preparedRequests = [];
+    const finalizedRequests = [];
     const refreshStates = [false, false, false, false, true];
     let running = false;
     const window = {
@@ -49,8 +50,10 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
         },
         isDockerLifecycleStateSettled: () => running,
         prepareDockerLifecycleSurface: (request) => preparedRequests.push({ ...request }),
+        getDockerLifecycleStateSnapshot: () => ({ state: running ? 'running' : 'stopped', active: running, paused: false }),
+        finalizeDockerLifecycleSurface: (request, outcome) => finalizedRequests.push({ request: { ...request }, outcome }),
         lifecycleRefreshCallbackName: '__fvplusDashboardDockerLifecycleRefresh',
-        lifecycleRefreshDelaysMs: [0, 500, 1250, 2500, 4500, 7000],
+        lifecycleRefreshDelaysMs: [0, 300, 750, 1500, 2500],
         getDockerHostGuardsApi: () => ({
             wrapHostHook(name, handler) {
                 const original = window[name];
@@ -67,7 +70,7 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
 
     assert.equal(hostCalls[0][1], '__fvplusDashboardDockerLifecycleRefresh');
     assert.deepEqual(preparedRequests, [{ action: 'start', container: 'abc123' }]);
-    assert.deepEqual(scheduled.map(({ delayMs }) => delayMs), [0, 500, 1250, 2500, 4500, 7000]);
+    assert.deepEqual(scheduled.map(({ delayMs }) => delayMs), [0, 300, 750, 1500, 2500]);
 
     for (const item of scheduled) {
         item.handler();
@@ -76,6 +79,40 @@ test('Dashboard lifecycle reconciliation follows a stale stopped snapshot until 
 
     assert.equal(running, true);
     assert.equal(refreshStates.length, 0);
+    assert.equal(finalizedRequests.length, 1);
+    assert.equal(finalizedRequests[0].outcome.reason, 'settled');
+    assert.equal(finalizedRequests[0].outcome.observedState.state, 'running');
+});
+
+test('Dashboard lifecycle reconciliation invokes one canonical fallback after Start attempts are exhausted', async () => {
+    const scheduled = [];
+    const finalizedRequests = [];
+    const window = {
+        setTimeout(handler, delayMs) {
+            scheduled.push({ handler, delayMs });
+            return scheduled.length;
+        }
+    };
+    const api = reconcileModule.createApi({
+        window,
+        refreshDockerRuntimeStateInPlace: async () => true,
+        isDockerLifecycleStateSettled: () => false,
+        getDockerLifecycleStateSnapshot: () => ({ state: 'stopped', active: false, paused: false }),
+        finalizeDockerLifecycleSurface: (request, outcome) => finalizedRequests.push({ request: { ...request }, outcome }),
+        lifecycleRefreshDelaysMs: [0, 500, 1250]
+    });
+
+    api.runDockerLifecycleRefresh({ action: 'start', container: 'abc123' });
+    for (const item of scheduled) {
+        item.handler();
+        await flushPromises();
+    }
+
+    assert.equal(finalizedRequests.length, 1);
+    assert.equal(finalizedRequests[0].request.action, 'start');
+    assert.equal(finalizedRequests[0].outcome.reason, 'attempts-exhausted');
+    assert.equal(finalizedRequests[0].outcome.settled, false);
+    assert.equal(finalizedRequests[0].outcome.observedState.state, 'stopped');
 });
 
 test('Dashboard stop followed by start cancels the stale stop tail and converges to running', async () => {
@@ -135,7 +172,7 @@ test('Dashboard stop followed by start cancels the stale stop tail and converges
 
 test('Dashboard integration keeps grouped rows mounted and uses state-aware follow-up timings', () => {
     assert.match(dashboardSource, /isDashboardDockerLifecycleStateSettled/);
-    assert.match(dashboardSource, /lifecycleRefreshDelaysMs: \[0, 500, 1250, 2500, 4500, 7000\]/);
+    assert.match(dashboardSource, /lifecycleRefreshDelaysMs: \[0, 300, 750, 1500, 2500\]/);
     assert.match(dashboardSource, /bindLifecycleEventControlPatch/);
     assert.match(
         dashboardSource,
@@ -161,6 +198,10 @@ test('Dashboard runtime reconciliation clears host lifecycle spinner classes', (
     assert.match(dashboardSource, /\.removeAttr\('aria-busy'\)/);
     assert.match(dashboardSource, /\$statusIcons\.filter\('i\[id\^="load-"\]'\)\.first\(\)/);
     assert.match(dashboardSource, /prepareDockerLifecycleSurface: captureDashboardRuntimeSurface/);
+    assert.match(dashboardSource, /finalizeDockerLifecycleSurface: finalizeDashboardDockerLifecycleSurface/);
+    assert.match(dashboardSource, /lifecycleNativeRefreshFallback/);
+    assert.match(dashboardSource, /if \(typeof window\.loadlist === 'function'\) window\.loadlist\(\)/);
+    assert.match(dashboardSource, /DASHBOARD_LIFECYCLE_DIAGNOSTICS_STORAGE_KEY = 'fv\.support\.bundle\.dashboard\.lifecycle\.v1'/);
     assert.match(dashboardSource, /\$surface\.find\('i'\)\.each/);
     assert.match(dashboardSource, /node\.setAttribute\('class', String\(node\.getAttribute\(DASHBOARD_HOST_ICON_CLASSES_ATTRIBUTE\)/);
     assert.match(dashboardSource, /\.addClass\(`fa \$\{meta\.icon\} \$\{meta\.className\} \$\{meta\.colorClass\}`\)/);

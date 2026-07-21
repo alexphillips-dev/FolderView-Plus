@@ -61,6 +61,12 @@
         const prepareDockerLifecycleSurface = typeof deps.prepareDockerLifecycleSurface === 'function'
             ? deps.prepareDockerLifecycleSurface
             : (() => false);
+        const getDockerLifecycleStateSnapshot = typeof deps.getDockerLifecycleStateSnapshot === 'function'
+            ? deps.getDockerLifecycleStateSnapshot
+            : (() => null);
+        const finalizeDockerLifecycleSurface = typeof deps.finalizeDockerLifecycleSurface === 'function'
+            ? deps.finalizeDockerLifecycleSurface
+            : (() => false);
         const dockerLifecycleRefreshDelaysMs = Array.isArray(deps.lifecycleRefreshDelaysMs)
             && deps.lifecycleRefreshDelaysMs.length > 0
             ? Object.freeze(deps.lifecycleRefreshDelaysMs.map((delayMs) => Math.max(0, Number(delayMs) || 0)))
@@ -83,6 +89,7 @@
         let dockerPostUpdateRuntimePollRemaining = 0;
         let dockerLifecycleRefreshGeneration = 0;
         let dockerLifecycleSettledGeneration = 0;
+        let dockerLifecycleFinalizedGeneration = 0;
         let pendingDockerLifecycleRequest = {};
 
         const bindDockerContainerContextStatePatch = () => {
@@ -413,8 +420,24 @@
             const action = String(request?.action || '').trim().toLowerCase();
             const generation = ++dockerLifecycleRefreshGeneration;
             dockerLifecycleSettledGeneration = 0;
+            dockerLifecycleFinalizedGeneration = 0;
+            const finalizeGeneration = (outcome = {}) => {
+                if (generation !== dockerLifecycleRefreshGeneration || generation === dockerLifecycleFinalizedGeneration) {
+                    return;
+                }
+                dockerLifecycleFinalizedGeneration = generation;
+                try {
+                    finalizeDockerLifecycleSurface(request, {
+                        generation,
+                        ...outcome
+                    });
+                } catch (_error) {
+                    // Diagnostics and visual cleanup must never break host lifecycle actions.
+                }
+            };
             appendDockerBulkUpdateTrace('lifecycleRefreshScheduled', {
                 action,
+                containerId: String(request?.container || '').trim(),
                 strategy: 'incremental-runtime-rows',
                 attempts: dockerLifecycleRefreshDelaysMs.length
             });
@@ -434,6 +457,7 @@
                         preserveGroupedDom: true
                     }))
                         .then((success) => {
+                            const observedState = getDockerLifecycleStateSnapshot(request);
                             const settled = success === true
                                 && isDockerLifecycleStateSettled
                                 && isDockerLifecycleStateSettled(request) === true;
@@ -442,19 +466,48 @@
                             }
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
+                                containerId: String(request?.container || '').trim(),
                                 attempt: attemptIndex + 1,
                                 delayMs,
                                 success: success === true,
-                                settled: settled === true
+                                settled: settled === true,
+                                observedState
                             });
+                            if (settled) {
+                                finalizeGeneration({
+                                    reason: 'settled',
+                                    settled: true,
+                                    success: success === true,
+                                    attempt: attemptIndex + 1,
+                                    observedState
+                                });
+                            } else if (attemptIndex === dockerLifecycleRefreshDelaysMs.length - 1) {
+                                finalizeGeneration({
+                                    reason: 'attempts-exhausted',
+                                    settled: false,
+                                    success: success === true,
+                                    attempt: attemptIndex + 1,
+                                    observedState
+                                });
+                            }
                         })
                         .catch(() => {
                             appendDockerBulkUpdateTrace('lifecycleRefreshResult', {
                                 action,
+                                containerId: String(request?.container || '').trim(),
                                 attempt: attemptIndex + 1,
                                 delayMs,
                                 success: false
                             });
+                            if (attemptIndex === dockerLifecycleRefreshDelaysMs.length - 1) {
+                                finalizeGeneration({
+                                    reason: 'attempts-exhausted',
+                                    settled: false,
+                                    success: false,
+                                    attempt: attemptIndex + 1,
+                                    observedState: getDockerLifecycleStateSnapshot(request)
+                                });
+                            }
                         });
                 }, delayMs);
             });
@@ -494,6 +547,7 @@
                     if (interceptedHostLoadlist) {
                         appendDockerBulkUpdateTrace('lifecycleLoadlistIntercepted', {
                             action: callbackRequest.action,
+                            containerId: callbackRequest.container,
                             strategy: 'incremental-runtime-rows'
                         });
                     }

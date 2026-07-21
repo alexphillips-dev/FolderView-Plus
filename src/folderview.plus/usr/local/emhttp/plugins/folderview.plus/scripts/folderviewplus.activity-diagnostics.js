@@ -729,6 +729,7 @@ const getSupportBundleTelemetryApi = () => {
                 dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
                 dashboardLayoutDocker: 'fv.support.bundle.dashboard.layout.docker.v1',
                 dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
+                dashboardLifecycle: 'fv.support.bundle.dashboard.lifecycle.v1',
                 dockerPerformancePolicy: 'fv.performancePolicy.docker.v1',
                 vmPerformancePolicy: 'fv.performancePolicy.vm.v1'
             }

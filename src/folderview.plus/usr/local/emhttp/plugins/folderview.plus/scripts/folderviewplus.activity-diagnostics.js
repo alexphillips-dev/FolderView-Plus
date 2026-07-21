@@ -2238,7 +2238,31 @@ const initializeClientDiagnosticsPanels = () => {
     renderDiagnosticsSummary(lastDiagnostics);
     const previewApi = getSupportBundlePreviewApi();
     renderSupportBundlePreview(previewApi ? previewApi.getLastSupportBundlePreview() : null);
-    void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
+};
+
+let diagnosticsPreviewHydrationPromise = null;
+let diagnosticsPreviewHydratedAt = 0;
+const DIAGNOSTICS_PREVIEW_TTL_MS = 2 * 60 * 1000;
+
+const hydrateDiagnosticsPreview = async ({ force = false } = {}) => {
+    const age = Date.now() - diagnosticsPreviewHydratedAt;
+    if (force !== true && diagnosticsPreviewHydratedAt > 0 && age < DIAGNOSTICS_PREVIEW_TTL_MS) {
+        return getSupportBundlePreviewApi()?.getLastSupportBundlePreview?.() || null;
+    }
+    if (diagnosticsPreviewHydrationPromise) {
+        return diagnosticsPreviewHydrationPromise;
+    }
+    diagnosticsPreviewHydrationPromise = refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true })
+        .then((bundle) => {
+            if (bundle) {
+                diagnosticsPreviewHydratedAt = Date.now();
+            }
+            return bundle;
+        })
+        .finally(() => {
+            diagnosticsPreviewHydrationPromise = null;
+        });
+    return diagnosticsPreviewHydrationPromise;
 };
 
 window.collectFolderEditorDebugDiagnostics = collectFolderEditorDebugDiagnostics;
@@ -2523,6 +2547,7 @@ Object.assign(window, {
     collectClientPerformanceTelemetry,
     getDiagnostics,
     getSupportBundle,
+    FolderViewPlusHydrateDiagnosticsPreview: hydrateDiagnosticsPreview,
     runDiagnosticAction,
     trackDiagnosticsEvent,
     fetchPrefs,

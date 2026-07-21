@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.09">
-<!ENTITY md5 "aa7a08c98f19491019a9ffb6f57ce60c">
+<!ENTITY version "2026.07.21.10">
+<!ENTITY md5 "d13a0b50a4f9103ea06999b9fdb0c9cd">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.10
+- Fix: The Settings blank-page watchdog now recognizes the intentional loading shell during its early check, preventing false `FVPLUS-SET-BLANK-001` errors on slower refreshes while retaining the later stalled-bootstrap warning.
+- Performance: Removed passive theme-resolution and reflow events from the server diagnostics mutation path so initial styling no longer launches a burst of competing HTTP requests.
+- Performance: Theme token application now skips unchanged CSS properties and attributes, breaking the MutationObserver feedback loop that repeatedly re-rendered Settings during startup.
+- Performance: The full support-bundle preview is no longer generated on every Settings page load; its code remains ready and the data hydrates on demand when the Advanced Diagnostics tab is actually opened.
+- Reliability: Diagnostics preview hydration is deduplicated and cached briefly so repeated Diagnostics navigation cannot start overlapping support-bundle requests.
+- Quality: Added regressions for loading-shell watchdog behavior, startup request suppression, on-demand Diagnostics hydration, and idempotent theme-token application.
+
 
 ###2026.07.21.09
 - Performance: Settings now loads saved Docker and VM folder configuration through a runtime-free snapshot path, so folder rows no longer wait for Docker inspection or libvirt discovery.

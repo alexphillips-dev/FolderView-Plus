@@ -127,6 +127,12 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
 });
 
+test('theme token application skips identical inline values to prevent observer feedback loops', () => {
+    assert.match(themeResolverJs, /target\.style\.getPropertyValue\(token\) !== normalizedValue/);
+    assert.match(themeResolverJs, /target\.getAttribute\('data-fv-theme-mode'\) !== appliedMode/);
+    assert.match(themeResolverJs, /target\.style\.colorScheme !== colorScheme/);
+});
+
 test('theme resolver keeps folder editor outlines aligned to accent borders', () => {
     assert.match(themeResolverJs, /const editorOutline = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.24 : 0\.22\);/);
     assert.match(themeResolverJs, /const editorOutlineStrong = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.44 : 0\.5\);/);

@@ -764,12 +764,27 @@
         };
         for (const target of targets) {
             for (const [token, value] of Object.entries(rootTokenMap)) {
-                target.style.setProperty(token, value);
+                const normalizedValue = String(value || '');
+                if (target.style.getPropertyValue(token) !== normalizedValue) {
+                    target.style.setProperty(token, normalizedValue);
+                }
             }
-            target.setAttribute('data-fv-theme-mode', String(snapshot.appliedMode || 'auto'));
-            target.setAttribute('data-fv-theme-class', String(snapshot.classification || 'mixed'));
-            target.setAttribute('data-fv-theme-autoheal', snapshot.autoHealed ? '1' : '0');
-            target.style.colorScheme = snapshot.classification === 'light' ? 'light' : 'dark';
+            const appliedMode = String(snapshot.appliedMode || 'auto');
+            const classification = String(snapshot.classification || 'mixed');
+            const autoHealed = snapshot.autoHealed ? '1' : '0';
+            if (target.getAttribute('data-fv-theme-mode') !== appliedMode) {
+                target.setAttribute('data-fv-theme-mode', appliedMode);
+            }
+            if (target.getAttribute('data-fv-theme-class') !== classification) {
+                target.setAttribute('data-fv-theme-class', classification);
+            }
+            if (target.getAttribute('data-fv-theme-autoheal') !== autoHealed) {
+                target.setAttribute('data-fv-theme-autoheal', autoHealed);
+            }
+            const colorScheme = classification === 'light' ? 'light' : 'dark';
+            if (target.style.colorScheme !== colorScheme) {
+                target.style.colorScheme = colorScheme;
+            }
         }
         const trackEvent = typeof options.trackEvent === 'function'
             ? options.trackEvent

@@ -35,6 +35,16 @@ test('settings first paint is cloaked until config-only folder data is ready', (
     assert.match(settingsJs, /const result = await refreshCoreData\(\);[\s\S]*setSettingsMode\(settingsUiState\.mode\);[\s\S]*revealSettingsBootstrapSurface\(\);/);
 });
 
+test('settings loading shell avoids false blank alarms and bootstrap request storms', () => {
+    assert.match(settingsPage, /String\(reason \|\| ''\) === 'watchdog-early' && isVisible\(loadingShell\)/);
+    assert.match(settingsJs, /configureThemeResolverRuntimeApi\(\{\s*getMode: getEffectiveThemeCompatibilityMode,[\s\S]*trackEvent: null/);
+    assert.doesNotMatch(settingsJs, /eventType: 'theme_reflow'/);
+    const initializeBlock = diagnosticsJs.match(/const initializeClientDiagnosticsPanels = \(\) => \{[\s\S]*?\n\};/)?.[0] || '';
+    assert.doesNotMatch(initializeBlock, /refreshSupportBundlePreview/);
+    assert.match(diagnosticsJs, /const hydrateDiagnosticsPreview = async \(\{ force = false \} = \{\}\) =>/);
+    assert.match(settingsJs, /const hydrateActiveDiagnosticsPreview = \(\) => \{[\s\S]*settingsUiState\.advancedTab !== 'diagnostics'[\s\S]*FolderViewPlusHydrateDiagnosticsPreview/);
+});
+
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');

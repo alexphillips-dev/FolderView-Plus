@@ -118,6 +118,12 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
             if (!root) {
                 return;
             }
+            const loadingShell = doc.getElementById('fv-settings-bootstrap-shell');
+            // A visible bootstrap shell is intentional progress, not a blank
+            // page. The later watchdog still reports a genuine startup stall.
+            if (String(reason || '') === 'watchdog-early' && isVisible(loadingShell)) {
+                return;
+            }
             if (hasVisibleSettingsContent(root)) {
                 return;
             }

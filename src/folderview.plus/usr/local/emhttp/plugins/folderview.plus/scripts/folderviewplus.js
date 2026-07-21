@@ -994,16 +994,11 @@ const applySettingsThemeAwareReflow = () => {
 };
 
 const queueSettingsThemeAwareReflow = (reason = 'theme-change') => {
-    const nextReason = String(reason || 'theme-change');
     if (settingsThemeReflowTimer !== null) {
         window.clearTimeout(settingsThemeReflowTimer);
     }
     settingsThemeReflowTimer = window.setTimeout(() => {
         settingsThemeReflowTimer = null;
-        trackDiagnosticsEvent({
-            eventType: 'theme_reflow',
-            details: { source: nextReason }
-        });
         applySettingsThemeAwareReflow();
     }, 60);
 };
@@ -1051,7 +1046,9 @@ const initThemeAwareSettingsReflow = () => {
 };
 configureThemeResolverRuntimeApi({
     getMode: getEffectiveThemeCompatibilityMode,
-    trackEvent: (payload) => trackDiagnosticsEvent(payload)
+    // Passive theme resolution is local UI work. Recording every application
+    // as a server event caused startup request storms and diagnostic noise.
+    trackEvent: null
 });
 
 const applySettingsResolvedThemeTokens = (reason = 'runtime') => {
@@ -1420,6 +1417,20 @@ const persistActiveAdvancedSection = (sectionKey) => {
     writeSettingsStorage(ADVANCED_SECTION_STORAGE_KEY, key, { delayMs: 70, idle: true });
 };
 
+const hydrateActiveDiagnosticsPreview = () => {
+    if (
+        settingsUiState.initialized !== true
+        || settingsUiState.mode !== 'advanced'
+        || settingsUiState.advancedTab !== 'diagnostics'
+    ) {
+        return;
+    }
+    const hydrate = window.FolderViewPlusHydrateDiagnosticsPreview;
+    if (typeof hydrate === 'function') {
+        void hydrate();
+    }
+};
+
 const setAdvancedTab = (tab, persist = true) => {
     settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
     if (settingsUiState.mode === 'advanced' && settingsUiState.searchAllAdvanced !== true) {
@@ -1437,6 +1448,7 @@ const setAdvancedTab = (tab, persist = true) => {
     if (settingsUiState.mode === 'advanced') {
         void ensureAdvancedDataLoaded();
     }
+    hydrateActiveDiagnosticsPreview();
 };
 
 const applySettingsLaunchOverrides = ({ persist = false } = {}) => {
@@ -2288,6 +2300,7 @@ const setSettingsMode = (mode, { persistServer = false } = {}) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
+    hydrateActiveDiagnosticsPreview();
     if (persistServer === true && previousMode !== settingsUiState.mode) {
         void persistSetupPrefsToServer({ mode: settingsUiState.mode });
     }
@@ -12172,6 +12185,7 @@ if (window.FolderViewPlusUI?.registerAction) {
         });
         settingsUiState.initialized = true;
         revealSettingsBootstrapSurface();
+        hydrateActiveDiagnosticsPreview();
         const currentBootstrapState = window.FolderViewPlusSettingsBootstrapState || {};
         if (bootstrapDegradedReasons.length <= 0 && currentBootstrapState.degraded !== true) {
             clearFatalBannerResolvedState();

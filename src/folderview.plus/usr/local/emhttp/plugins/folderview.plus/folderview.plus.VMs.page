@@ -63,6 +63,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.host-adapter.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/vm.js')?>"></script>
 
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">

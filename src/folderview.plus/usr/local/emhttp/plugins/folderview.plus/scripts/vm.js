@@ -6,6 +6,8 @@ const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers ||
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const vmLifecycleModule = window.FolderViewPlusVmRuntimeLifecycle || null;
+let vmLifecycleApi = null;
 const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -327,6 +329,16 @@ if (
     setVmFatalBannerModuleStatus('runtime.host-adapter.js', 'missing', 'shared host adapter unavailable');
 } else {
     setVmFatalBannerModuleStatus('runtime.host-adapter.js', 'ok', 'VM host adapter ready');
+}
+if (
+    window.FolderViewPlusVmRuntimeLifecycleModuleLoaded !== true
+    || !vmLifecycleModule
+    || typeof vmLifecycleModule.createApi !== 'function'
+) {
+    vmBootstrapMissingModules.push('vm.runtime.lifecycle.js');
+    setVmFatalBannerModuleStatus('vm.runtime.lifecycle.js', 'missing', 'VM lifecycle coordinator unavailable');
+} else {
+    setVmFatalBannerModuleStatus('vm.runtime.lifecycle.js', 'ok', 'VM lifecycle coordinator ready');
 }
 if (
     !window.FolderViewDockerRuntimeShared
@@ -2470,6 +2482,7 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                 return;
             }
             let proms = [];
+            const lifecycleRequests = [];
             const originalAction = String(action || '').trim();
 
             vmRuntimeStateStore.set({ inFlightAction: `action:${id}:${originalAction}` });
@@ -2510,6 +2523,7 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                             break;
                     }
                     if (pass) {
+                        lifecycleRequests.push({ action: requestAction, uuid: cid });
                         proms.push($.post('/plugins/dynamix.vm.manager/include/VMajax.php', { action: requestAction, uuid: cid }, null, 'json').promise());
                     }
                 }
@@ -2530,11 +2544,14 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                         html: true,
                         confirmButtonText: 'Ok'
                     }, () => { void refreshVmRuntimeStateInPlace(); });
+                } else if (vmLifecycleApi && typeof vmLifecycleApi.run === 'function') {
+                    await vmLifecycleApi.run(lifecycleRequests, { source: 'folder-action' });
                 } else {
                     await refreshVmRuntimeStateInPlace();
                     window.setTimeout(() => { void refreshVmRuntimeStateInPlace(); }, 650);
                 }
             } finally {
+                updateVmFolderRuntimeSummary(id, folder);
                 vmRuntimeStateStore.set({ inFlightAction: '' });
                 $('div.spinner.fixed').hide('slow');
             }
@@ -2561,6 +2578,11 @@ const folderCustomAction = async (id, action) => {
             const folder = globalFolders[id];
             let act = folder.actions[action];
             let prom = [];
+            const lifecycleRequests = [];
+            const queueLifecyclePost = (requestAction, uuid) => {
+                lifecycleRequests.push({ action: requestAction, uuid });
+                prom.push($.post(eventURL, { action: requestAction, uuid }, null, 'json').promise());
+            };
             try {
                 if(act.type === 0) {
                     const actionContainers = Array.isArray(act.conatiners)
@@ -2573,17 +2595,17 @@ const folderCustomAction = async (id, action) => {
                         if(act.modes === 0) {
                             ctAction = (e) => {
                                 if(e.state === "running") {
-                                    prom.push($.post(eventURL, {action: 'stop', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-stop', e.id);
                                 } else if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown"){
-                                    prom.push($.post(eventURL, {action: 'domain-start', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-start', e.id);
                                 }
                             };
                         } else if(act.modes === 1) {
                             ctAction = (e) => {
                                 if(e.state === "running") {
-                                    prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-pause', e.id);
                                 } else if(e.state === "paused" || e.state === "unknown") {
-                                    prom.push($.post(eventURL, {action: 'domain-resume', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-resume', e.id);
                                 }
                             };
                         }
@@ -2593,25 +2615,25 @@ const folderCustomAction = async (id, action) => {
                         if(act.modes === 0) {
                             ctAction = (e) => {
                                 if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown") {
-                                    prom.push($.post(eventURL, {action: 'domain-start', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-start', e.id);
                                 }
                             };
                         } else if(act.modes === 1) {
                             ctAction = (e) => {
                                 if(e.state === "running") {
-                                    prom.push($.post(eventURL, {action: 'domain-stop', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-stop', e.id);
                                 }
                             };
                         } else if(act.modes === 2) {
                             ctAction = (e) => {
                                 if(e.state === "running") {
-                                    prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-pause', e.id);
                                 }
                             };
                         } else if(act.modes === 3) {
                             ctAction = (e) => {
                                 if(e.state === "paused" || e.state === "unknown") {
-                                    prom.push($.post(eventURL, {action: 'domain-restart', uuid:e.id}, null,'json').promise());
+                                    queueLifecyclePost('domain-restart', e.id);
                                 }
                             };
                         }
@@ -2620,7 +2642,7 @@ const folderCustomAction = async (id, action) => {
 
                         ctAction = (e) => {
                             if(e.state === "running") {
-                                prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
+                                queueLifecyclePost('domain-pause', e.id);
                             }
                         };
 
@@ -2652,7 +2674,11 @@ const folderCustomAction = async (id, action) => {
                 }
 
                 await Promise.all(prom);
-                queueLoadlistRefresh();
+                if (lifecycleRequests.length > 0 && vmLifecycleApi && typeof vmLifecycleApi.run === 'function') {
+                    await vmLifecycleApi.run(lifecycleRequests, { source: 'custom-folder-action' });
+                } else {
+                    queueLoadlistRefresh();
+                }
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
                 $('div.spinner.fixed').hide('slow');
@@ -3262,12 +3288,12 @@ const normalizeVmRuntimeInfoMap = (source, previousMap = null) => {
 const getVmRuntimeStateMeta = (entry = {}) => {
     const state = String(entry?.state || 'unknown').trim().toLowerCase();
     if (state === 'running') {
-        return { state, key: 'started', icon: 'fa-play', className: 'started' };
+        return { state, key: 'started', icon: 'fa-play', className: 'started', colorClass: 'green-text', active: true, paused: false };
     }
     if (state === 'paused' || state === 'pmsuspended' || state === 'unknown') {
-        return { state, key: 'paused', icon: 'fa-pause', className: 'paused' };
+        return { state, key: 'paused', icon: 'fa-pause', className: 'paused', colorClass: 'orange-text', active: true, paused: true };
     }
-    return { state, key: 'stopped', icon: 'fa-square', className: 'stopped' };
+    return { state, key: 'stopped', icon: 'fa-square', className: 'stopped', colorClass: 'red-text', active: false, paused: false };
 };
 
 const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
@@ -3280,11 +3306,14 @@ const syncVmRuntimeStateSurface = ($surface, entry = {}) => {
     const $scope = $outer.length ? $outer : $surface;
     const $state = $scope.find('span.state').first();
     const $icon = $state.length ? $state.prevAll('i.fa').first() : $scope.find('i[id^="load-"], i.folder-load-status-vm').first();
-    $scope.add($scope.find('span.hand, span.inner, a')).removeClass('started paused stopped running shutoff pmsuspended unknown').addClass(meta.className);
+    $scope.add($scope.find('span.hand, span.inner, a'))
+        .removeClass('started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text')
+        .addClass(meta.className);
     $surface.attr('data-fv-runtime-state', meta.state);
     if ($icon.length) {
-        $icon.removeClass('fa-play fa-pause fa-square started paused stopped running shutoff pmsuspended unknown')
-            .addClass(`fa ${meta.icon} ${meta.className}`);
+        $icon.removeClass('fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped running shutoff pmsuspended unknown green-text orange-text red-text')
+            .addClass(`fa ${meta.icon} ${meta.className} ${meta.colorClass}`)
+            .removeAttr('aria-busy');
     }
     if ($state.length) {
         $state.text(` ${label}`).removeClass('started paused stopped').addClass(meta.className);
@@ -3300,6 +3329,29 @@ const findVmRuntimeRowsByName = (name) => {
     return $('#kvm_list tr').not('.folder').filter(function matchVmRuntimeRow() {
         return String($(this).find('td.vm-name span.outer span.inner a').first().text() || '').trim() === safeName;
     });
+};
+
+const getVmRuntimeEntryByUuid = (uuid, fallbackName = '') => {
+    const safeUuid = String(uuid || '').trim();
+    const safeName = String(fallbackName || '').trim();
+    if (safeName && vmRuntimeInfoByName[safeName]) {
+        return vmRuntimeInfoByName[safeName];
+    }
+    return Object.values(vmRuntimeInfoByName || {}).find((entry) => (
+        String(entry?.uuid || entry?.id || '').trim() === safeUuid
+    )) || null;
+};
+
+const getVmLifecycleSurfaces = (request = {}) => {
+    const entry = getVmRuntimeEntryByUuid(request?.uuid);
+    const name = String(entry?.name || '').trim();
+    if (!name) return [];
+    const surfaces = [];
+    findVmRuntimeRowsByName(name).each((_, row) => surfaces.push(row));
+    $('[data-fv-runtime-name]').filter(function matchVmLifecyclePreview() {
+        return String($(this).attr('data-fv-runtime-name') || '').trim() === name;
+    }).each((_, node) => surfaces.push(node));
+    return Array.from(new Set(surfaces));
 };
 
 const updateVmFolderRuntimeSummary = (id, folder) => {
@@ -3333,7 +3385,12 @@ const updateVmFolderRuntimeSummary = (id, folder) => {
         : (paused > 0
             ? { count: paused, key: 'paused', icon: 'fa-pause', className: 'paused' }
             : { count: stopped, key: 'stopped', icon: 'fa-square', className: 'stopped' });
-    $folderIcon.removeClass('fa-play fa-pause fa-square started paused stopped').addClass(`fa ${aggregate.icon} ${aggregate.className} folder-load-status`);
+    const aggregateColorClass = aggregate.className === 'started'
+        ? 'green-text'
+        : (aggregate.className === 'paused' ? 'orange-text' : 'red-text');
+    $folderIcon.removeClass('fa-play fa-pause fa-square fa-refresh fa-spin fa-spinner fa-circle-o-notch started paused stopped green-text orange-text red-text')
+        .addClass(`fa ${aggregate.icon} ${aggregate.className} ${aggregateColorClass} folder-load-status`)
+        .removeAttr('aria-busy');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped')
         .text(`${aggregate.count}/${total} ${$.i18n(aggregate.key)}`)
         .addClass(`fv-folder-state-${aggregate.className}`);
@@ -3379,7 +3436,8 @@ const syncVmRuntimeRows = (changedNames) => {
     scheduleVmZebraRefresh(0);
 };
 
-const refreshVmRuntimeStateInPlace = async () => {
+const refreshVmRuntimeStateInPlace = async (options = {}) => {
+    const preserveGroupedDom = options?.preserveGroupedDom === true;
     try {
         const useSnapshot = runtimeSnapshotApi && typeof runtimeSnapshotApi.buildUrl === 'function';
         const payload = await pluginRequestClient.getJson(useSnapshot
@@ -3388,7 +3446,7 @@ const refreshVmRuntimeStateInPlace = async () => {
         const snapshot = useSnapshot ? runtimeSnapshotApi.parsePayload(payload) : null;
         const parsed = snapshot ? snapshot.runtime : parseJsonPayloadSafe(payload);
         if (!parsed || Object.keys(parsed).length <= 0 || (snapshot && !vmRuntimeSnapshotConfigMatches(snapshot))) {
-            queueLoadlistRefresh();
+            if (!preserveGroupedDom) queueLoadlistRefresh();
             return false;
         }
         const nextRuntimeInfo = normalizeVmRuntimeInfoMap(parsed, vmRuntimeInfoByName);
@@ -3408,16 +3466,35 @@ const refreshVmRuntimeStateInPlace = async () => {
                     capturedAt: new Date().toISOString()
                 }
             });
-            queueLoadlistRefresh();
+            if (!preserveGroupedDom) queueLoadlistRefresh();
             return false;
         }
         if (rowDiff.hasChanges) syncVmRuntimeRows(rowDiff.changed);
         return true;
     } catch (_error) {
-        queueLoadlistRefresh();
+        if (!preserveGroupedDom) queueLoadlistRefresh();
         return false;
     }
 };
+
+vmLifecycleApi = vmLifecycleModule.createApi({
+    window,
+    document,
+    $,
+    hostAdapter: vmHostAdapter,
+    refreshRuntimeStateInPlace: (options = {}) => refreshVmRuntimeStateInPlace(options),
+    getRuntimeEntry: (uuid, name = '') => getVmRuntimeEntryByUuid(uuid, name),
+    getSurfaces: (request) => getVmLifecycleSurfaces(request),
+    syncRuntimeState: (request) => {
+        const entry = getVmRuntimeEntryByUuid(request?.uuid);
+        const name = String(entry?.name || '').trim();
+        if (name) syncVmRuntimeRows(new Set([name]));
+    },
+    queueNativeRefresh: () => queueLoadlistRefresh(),
+    shouldTrackRequest: () => !String(vmRuntimeStateStore.get('inFlightAction', '') || '').trim(),
+    delaysMs: [0, 500, 1250, 2500]
+});
+window.getVmLifecycleDiagnosticsSnapshot = () => vmLifecycleApi?.getSnapshot?.() || null;
 
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
@@ -3780,6 +3857,8 @@ vmHostAdapter.wrapHook('loadlist', ({ args, invokeOriginal }) => {
     onWrapped: () => markVmFatalBannerStep('VM loadlist hook wrapped'),
     onInvoke: () => recordVmFatalBannerAction('VM host loadlist invoked')
 });
+vmLifecycleApi.bind();
+markVmFatalBannerStep('VM lifecycle dispatch and context hooks ready');
 
 const PINNED_FOLDER_CHANGE_STORAGE_KEY = 'fv.folderviewplus.pinnedFolders.changed.v1';
 const PINNED_FOLDER_CHANGE_EVENT = 'fvplus:pinned-folders-changed';

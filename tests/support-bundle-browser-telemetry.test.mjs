@@ -494,6 +494,22 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
                     }
                 };
             }
+            if (storageKey === 'vm-lifecycle-key') {
+                return {
+                    schemaVersion: 1,
+                    strategy: 'state-aware-incremental',
+                    latest: {
+                        eventType: 'lifecycleSurfaceFinalized',
+                        uuid: 'private-vm-uuid',
+                        action: 'domain-start',
+                        settled: true
+                    },
+                    surface: {
+                        busyIconCount: 0,
+                        capturedIconCount: 0
+                    }
+                };
+            }
             return null;
         },
         storageKeys: {
@@ -503,7 +519,8 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
             dockerTraceHealth: 'docker-trace-health-key',
             dashboardLayoutDocker: 'dashboard-layout-docker-key',
             dashboardLayoutVm: 'dashboard-layout-vm-key',
-            dashboardLifecycle: 'dashboard-lifecycle-key'
+            dashboardLifecycle: 'dashboard-lifecycle-key',
+            vmLifecycle: 'vm-lifecycle-key'
         }
     });
 
@@ -513,6 +530,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     const traceHealth = collectors.collectDockerTraceHealth();
     const dashboardLayout = collectors.collectDashboardLayoutDiagnostics();
     const dashboardLifecycle = collectors.collectDashboardLifecycleDiagnostics();
+    const vmLifecycle = collectors.collectVmLifecycleDiagnostics();
 
     assert.equal(pageSnapshot.available, true);
     assert.equal(pageSnapshot.summary.memberMissingFolderClassCount, 2);
@@ -531,6 +549,9 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     assert.equal(dashboardLifecycle.available, true);
     assert.equal(dashboardLifecycle.latest.action, 'start');
     assert.equal(dashboardLifecycle.surface.busyIconCount, 4);
+    assert.equal(vmLifecycle.available, true);
+    assert.equal(vmLifecycle.latest.action, 'domain-start');
+    assert.equal(vmLifecycle.latest.settled, true);
 
     const bundle = {
         bundleMeta: { privacyMode: 'sanitized', bundleSaltHash: 'bundle-salt' },
@@ -541,6 +562,7 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     const sanitizedBulkUpdateTrace = collectors.collectDockerBulkUpdateTrace(redactor);
     const sanitizedRequestBundleTrace = collectors.collectDockerRequestBundleTrace(redactor);
     const sanitizedDashboardLifecycle = collectors.collectDashboardLifecycleDiagnostics(redactor);
+    const sanitizedVmLifecycle = collectors.collectVmLifecycleDiagnostics(redactor);
     const serializedDockerTelemetry = JSON.stringify({
         pageSnapshot: sanitizedPageSnapshot,
         bulkUpdateTrace: sanitizedBulkUpdateTrace,
@@ -567,6 +589,8 @@ test('support bundle browser telemetry includes persisted docker page snapshot a
     assert.match(sanitizedDashboardLifecycle.latest.containerId, /^ui-[0-9a-f]{16}$/);
     assert.match(sanitizedDashboardLifecycle.surface.containerId, /^ui-[0-9a-f]{16}$/);
     assert.doesNotMatch(JSON.stringify(sanitizedDashboardLifecycle), /private-container-id/);
+    assert.match(sanitizedVmLifecycle.latest.uuid, /^ui-[0-9a-f]{16}$/);
+    assert.doesNotMatch(JSON.stringify(sanitizedVmLifecycle), /private-vm-uuid/);
     assert.match(
         sanitizedBulkUpdateTrace.entries[0].details.hookStates.window.openDocker.notes[0],
         /^update_container ui-[0-9a-f]{16}\*ui-[0-9a-f]{16}$/

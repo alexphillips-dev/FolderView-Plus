@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+const vmLifecycleJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
@@ -19,6 +20,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const hostAdapterIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+    const lifecycleIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
     const themeTokensCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const sharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
@@ -29,6 +31,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter include missing from VMs page');
+    assert.ok(lifecycleIndex >= 0, 'VM lifecycle coordinator include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
     assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet missing from VMs page');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet missing from VMs page');
@@ -42,6 +45,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(hostAdapterIndex < runtimeIndex, 'shared host adapter must load before vm.js');
+    assert.ok(lifecycleIndex < runtimeIndex, 'VM lifecycle coordinator must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');
     assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
     assert.ok(sharedCssIndex < vmCssIndex, 'shared runtime stylesheet must load before vm.css');
@@ -55,6 +59,11 @@ test('vm runtime uses the shared host adapter for structure, rows, observers, an
     assert.match(vmJs, /vmHostAdapter\.ensureStructure\(\{/);
     assert.match(vmJs, /vmHostAdapter\.observeRows\(/);
     assert.match(vmJs, /vmHostAdapter\.wrapHook\('loadlist'/);
+    assert.match(vmLifecycleJs, /VM_DISPATCH_HOOKS/);
+    assert.match(vmLifecycleJs, /hostAdapter\.wrapHook\(hookName/);
+    assert.match(vmLifecycleJs, /hostAdapter\.wrapHook\('addVMContext'/);
+    assert.match(vmJs, /vmLifecycleApi = vmLifecycleModule\.createApi\(/);
+    assert.match(vmJs, /window\.getVmLifecycleDiagnosticsSnapshot =/);
     assert.match(vmJs, /window\.getVmHostAdapterSnapshot =/);
     assert.doesNotMatch(vmJs, /VM_HOST_PAGE_REQUIRED_SELECTORS/);
 });

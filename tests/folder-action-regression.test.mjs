@@ -38,7 +38,7 @@ test('vm pin persistence and folder action error handling avoid stale reloads', 
     assert.match(vmJs, /folderTypePrefs = applyVmPinnedFolderPrefsOverride\(normalizeVmPrefsResponse\(prefsResponse\)\);/);
     assert.match(vmJs, /const cacheBust = Date\.now\(\);[\s\S]*?const snapshotRequest = createVmRuntimeRequest\(runtimeSnapshotApi\.buildUrl\('vm', 'full', \{[\s\S]*?cacheBust[\s\S]*?\}\)/);
     assert.match(vmJs, /createProjectedBundle\([\s\S]*?\['folders', 'order', 'runtime', 'unraidOrder', 'prefsResponse'\]/);
-    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, \(\) => \{ void refreshVmRuntimeStateInPlace\(\); \}\);\s*\} else \{\s*await refreshVmRuntimeStateInPlace\(\);/s);
+    assert.match(vmJs, /if \(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, \(\) => \{ void refreshVmRuntimeStateInPlace\(\); \}\);\s*\} else if \(vmLifecycleApi[\s\S]*?await vmLifecycleApi\.run\(lifecycleRequests, \{ source: 'folder-action' \}\);/s);
     assert.doesNotMatch(vmJs, /if \(errors\.length > 0\)[\s\S]{0,800}queueLoadlistRefresh\(\)/);
 });
 

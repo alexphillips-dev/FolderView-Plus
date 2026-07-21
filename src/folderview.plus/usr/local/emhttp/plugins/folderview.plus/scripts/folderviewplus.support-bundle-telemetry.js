@@ -9,6 +9,7 @@
     const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
         'id',
+        'uuid',
         'containerId',
         'folderId',
         'launchId',
@@ -382,6 +383,7 @@
             vm: { available: false }
         }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
+        const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
@@ -426,6 +428,7 @@
             };
             existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
             existingUiTelemetry.dashboardLifecycle = collectDashboardLifecycleDiagnostics(uiRedactor);
+            existingUiTelemetry.vmLifecycle = collectVmLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',

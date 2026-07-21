@@ -56,7 +56,13 @@ test('Docker and VM adapters expose one shared immutable host contract', () => {
         'eventControl',
         'addDockerContainerContext'
     ]);
-    assert.deepEqual(hostAdapters.CONTRACTS.vm.allowedHooks, ['loadlist']);
+    assert.deepEqual(hostAdapters.CONTRACTS.vm.allowedHooks, [
+        'loadlist',
+        'addVMContext',
+        'ajaxVMDispatch',
+        'ajaxVMDispatchconsole',
+        'ajaxVMDispatchconsoleRV'
+    ]);
 });
 
 test('host adapters normalize DOM discovery and row identity for Docker and VM', () => {

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus VM lifecycle fixture</title>
+    <style>
+        body { margin: 16px; background: #171717; color: #f3f3f3; font: 16px/1.35 Arial, sans-serif; }
+        table { width: 560px; max-width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid #454545; text-align: left; }
+        .green-text, .started { color: #55b72d; }
+        .orange-text, .paused { color: #f2a129; }
+        .red-text, .stopped { color: #ff4e59; }
+        #fixture-context-menu { width: 180px; padding: 4px; background: #111; border: 1px solid #666; }
+        #fixture-context-menu[hidden] { display: none; }
+        #fixture-context-menu button { display: block; width: 100%; padding: 7px; border: 0; color: #eee; background: transparent; text-align: left; }
+    </style>
+</head>
+<body>
+    <table id="kvm_table">
+        <thead><tr><th>VM</th><th>State</th></tr></thead>
+        <tbody id="kvm_list">
+            <tr id="fixture-vm-folder" class="folder folder-id-media">
+                <td class="vm-name folder-name"><i id="load-folder-media" class="fa fa-play started green-text folder-load-status"></i> Media VMs</td>
+                <td><span class="folder-state">1/1 started</span></td>
+            </tr>
+            <tr id="fixture-vm-row" class="sortable" data-name="Test VM" data-fv-runtime-state="running">
+                <td class="vm-name">
+                    <span class="outer started" data-fv-runtime-state="running">
+                        <span id="vm-vm-1" class="hand"></span>
+                        <span class="inner"><a class="appname">Test VM</a><br>
+                            <i id="load-vm-1" class="fa fa-play started green-text"></i>
+                            <span class="state started"> started</span>
+                            <i id="fixture-console-icon" class="fa fa-desktop"></i>
+                            <i id="fixture-menu-icon" class="fa fa-bars"></i>
+                        </span>
+                    </span>
+                </td>
+                <td>runtime</td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="fixture-context-menu" role="menu" hidden></div>
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/runtime.host-adapter.js"></script>
+    <script src="/plugin/scripts/vm.runtime.lifecycle.js"></script>
+    <script src="/fixtures/vm-lifecycle.fixture.js"></script>
+</body>
+</html>

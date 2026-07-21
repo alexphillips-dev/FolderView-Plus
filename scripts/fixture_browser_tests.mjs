@@ -91,6 +91,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'dashboard-layout.html');
         } else if (requestUrl.pathname === '/dashboard-lifecycle') {
             filePath = path.join(fixtureDir, 'dashboard-lifecycle.html');
+        } else if (requestUrl.pathname === '/vm-lifecycle') {
+            filePath = path.join(fixtureDir, 'vm-lifecycle.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -486,6 +488,72 @@ test('Dashboard Started only follows rapid Stop then Start reconciliation withou
         { action: 'stop', settled: true },
         { action: 'start', settled: true }
     ]);
+});
+
+test('VM lifecycle keeps native rows, folder totals, icons, and context actions synchronized', async ({ page }) => {
+    await page.goto(`${baseUrl}/vm-lifecycle`, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.fixtureVmLifecycle?.getSnapshot().runtimeState === 'running');
+
+    await page.click('#fixture-vm-row');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), [
+        'domain-stop', 'domain-pause', 'domain-restart'
+    ]);
+    await page.click('#fixture-context-menu [data-action="domain-stop"]');
+    await page.waitForFunction(() => {
+        const snapshot = window.fixtureVmLifecycle.getSnapshot();
+        return snapshot.runtimeState === 'shutoff' && snapshot.busyIconCount === 0;
+    });
+    let snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
+    assert.equal(snapshot.folderText, '1/1 stopped');
+    assert.match(snapshot.memberIconClasses, /fa-square/);
+    assert.match(snapshot.memberIconClasses, /red-text/);
+    assert.equal(snapshot.consoleIconClasses, 'fa fa-desktop');
+    assert.equal(snapshot.menuIconClasses, 'fa fa-bars');
+    assert.equal(snapshot.nativeLoadlistCount, 0);
+
+    await page.click('#fixture-vm-row');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), ['domain-start']);
+    await page.click('#fixture-context-menu [data-action="domain-start"]');
+    await page.waitForFunction(() => {
+        const current = window.fixtureVmLifecycle.getSnapshot();
+        return current.runtimeState === 'running' && current.busyIconCount === 0;
+    });
+    snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
+    assert.equal(snapshot.folderText, '1/1 started');
+    assert.match(snapshot.memberIconClasses, /fa-play/);
+    assert.match(snapshot.memberIconClasses, /green-text/);
+    assert.equal(snapshot.lifecycle.fallbackCount, 0);
+    assert.equal(snapshot.lifecycle.eventGroups.lifecycleSurfaceFinalized, 2);
+    assert.equal(snapshot.contextCallCount, 2);
+});
+
+test('VM lifecycle reconciles Pause and Resume without stale native menus or spinner tails', async ({ page }) => {
+    await page.goto(`${baseUrl}/vm-lifecycle`, { waitUntil: 'load' });
+    await page.click('#fixture-vm-row');
+    await page.click('#fixture-context-menu [data-action="domain-pause"]');
+    await page.waitForFunction(() => {
+        const snapshot = window.fixtureVmLifecycle.getSnapshot();
+        return snapshot.runtimeState === 'paused' && snapshot.busyIconCount === 0;
+    });
+    let snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
+    assert.equal(snapshot.folderText, '1/1 paused');
+    assert.match(snapshot.memberIconClasses, /fa-pause/);
+    assert.match(snapshot.memberIconClasses, /orange-text/);
+
+    await page.click('#fixture-vm-row');
+    assert.deepEqual(await page.locator('#fixture-context-menu [data-action]').evaluateAll((buttons) => buttons.map((button) => button.dataset.action)), [
+        'domain-resume', 'domain-destroy'
+    ]);
+    await page.click('#fixture-context-menu [data-action="domain-resume"]');
+    await page.waitForFunction(() => {
+        const current = window.fixtureVmLifecycle.getSnapshot();
+        return current.runtimeState === 'running' && current.busyIconCount === 0;
+    });
+    snapshot = await page.evaluate(() => window.fixtureVmLifecycle.getSnapshot());
+    assert.equal(snapshot.nativeLoadlistCount, 0);
+    assert.equal(snapshot.lifecycle.fallbackCount, 0);
+    assert.equal(snapshot.consoleIconClasses, 'fa fa-desktop');
+    assert.equal(snapshot.menuIconClasses, 'fa fa-bars');
 });
 
 test('Dashboard lifecycle performs one native fallback when Start snapshots remain stale', async ({ page }) => {

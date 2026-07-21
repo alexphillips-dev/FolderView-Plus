@@ -377,6 +377,17 @@
             });
         };
 
+        const collectVmLifecycleDiagnostics = (uiRedactor) => {
+            const record = readClientDiagnosticsStorageRecord(storageKeys.vmLifecycle || '');
+            if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                return { available: false };
+            }
+            return sanitizeUiRecord(uiRedactor, 'uiTelemetry.vmLifecycle', 'vmLifecycle', {
+                available: true,
+                ...record
+            });
+        };
+
         return Object.freeze({
             collectBrowserCapabilities,
             collectClientStorageDiagnostics,
@@ -388,7 +399,8 @@
             collectDockerRequestBundleTrace,
             collectDockerTraceHealth,
             collectDashboardLayoutDiagnostics,
-            collectDashboardLifecycleDiagnostics
+            collectDashboardLifecycleDiagnostics,
+            collectVmLifecycleDiagnostics
         });
     };
 

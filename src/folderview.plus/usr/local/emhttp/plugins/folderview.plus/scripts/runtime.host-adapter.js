@@ -56,7 +56,13 @@
             itemRowSelector: 'tr.sortable:not(.folder)',
             detailRowSelector: 'tr[data-fv-native-detail-row="1"], tr[id^="vm-details-"]',
             itemNameSelectors: ['[data-name]', '.vm-name [data-name]', '.vm-name .appname', '.vm-name'],
-            allowedHooks: ['loadlist']
+            allowedHooks: [
+                'loadlist',
+                'addVMContext',
+                'ajaxVMDispatch',
+                'ajaxVMDispatchconsole',
+                'ajaxVMDispatchconsoleRV'
+            ]
         })
     });
 

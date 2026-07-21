@@ -228,7 +228,7 @@ test('runtime pages patch state changes incrementally and retain structural fall
     assert.match(dockerJs, /syncDockerVisibleFoldersFromRuntimeCache\(rowDiff\.changed\)/);
     assert.match(dockerJs, /if \(rowDiff\.structuralChanged\) \{[\s\S]*mode: 'structural-fallback'/);
     assert.match(dockerJs, /await refreshDockerRuntimeStateInPlace\(\{[\s\S]*liveUpdateStatus:/);
-    assert.match(vmJs, /const refreshVmRuntimeStateInPlace = async \(\) =>/);
+    assert.match(vmJs, /const refreshVmRuntimeStateInPlace = async \(options = \{\}\) =>/);
     assert.match(vmJs, /runtimeSnapshotApi\.diffRuntimeRows\('vm',\s*vmRuntimeInfoByName,\s*nextRuntimeInfo\)/);
     assert.match(vmJs, /syncVmRuntimeRows\(rowDiff\.changed\)/);
     assert.match(dashboardJs, /const refreshDashboardTypeRuntimeStateInPlace = async \(type\) =>/);

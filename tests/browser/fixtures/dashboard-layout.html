@@ -24,22 +24,35 @@
             <tbody id="docker_view">
                 <tr class="updated">
                     <td id="fixture-dashboard-host">
-                        <div class="folder-showcase-outer" expanded="true">
+                        <div class="folder-showcase-outer" data-fv-folder-id="system" expanded="true">
                             <span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">System</span></span></span>
                             <div class="folder-showcase">
-                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">Docker-Socket-Proxy</a><br><span>Started</span></span></span>
-                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">VideoDuplicateFinder</a><br><span>Gestartet</span></span></span>
-                                <span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">VM-Custom-Icons</a><br><span>Gestartet</span></span></span>
+                                <span id="fixture-running-member" class="outer apps started folder-element-docker" data-fv-runtime-state="running"><span class="img"></span><span class="inner"><a class="appname">Docker-Socket-Proxy</a><br><span>Started</span></span></span>
+                                <span id="fixture-stopped-member" class="outer apps stopped folder-element-docker" data-fv-runtime-state="stopped"><span class="img"></span><span class="inner"><a class="appname">VideoDuplicateFinder</a><br><span>Gestoppt</span></span></span>
+                                <span id="fixture-paused-member" class="outer apps paused folder-element-docker" data-fv-runtime-state="paused"><span class="img"></span><span class="inner"><a class="appname">VM-Custom-Icons</a><br><span>Pausiert</span></span></span>
                             </div>
                         </div>
-                        <div class="folder-showcase-outer" expanded="true"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Medien und Automatisierung</span></span></span><div class="folder-showcase"><span class="outer apps"><span class="img"></span><span class="inner"><a class="appname">Open-Archiver</a></span></span></div></div>
-                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Utilities</span></span></span><div class="folder-showcase"></div></div>
-                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Network</span></span></span><div class="folder-showcase"></div></div>
-                        <div class="folder-showcase-outer" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Storage</span></span></span><div class="folder-showcase"></div></div>
+                        <div id="fixture-stopped-folder" class="folder-showcase-outer" data-fv-folder-id="media" expanded="true"><span class="outer apps stopped folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Medien und Automatisierung</span></span></span><div class="folder-showcase"><span id="fixture-only-stopped-member" class="outer apps stopped folder-element-docker" data-fv-runtime-state="stopped"><span class="img"></span><span class="inner"><a class="appname">Open-Archiver</a></span></span></div></div>
+                        <div class="folder-showcase-outer" data-fv-folder-id="utilities" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Utilities</span></span><div class="folder-storage"><span id="fixture-collapsed-stopped-member" class="outer apps stopped folder-element-docker" data-fv-runtime-state="stopped"><span class="inner"><a class="appname">Stopped Utility</a></span></span></div></span><div class="folder-showcase"></div></div>
+                        <div class="folder-showcase-outer" data-fv-folder-id="network" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Network</span></span></span><div class="folder-showcase"></div></div>
+                        <div id="fixture-nested-parent" class="folder-showcase-outer" data-fv-folder-id="storage" expanded="false"><span class="outer apps folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Storage</span></span></span><div class="folder-showcase"><div id="fixture-nested-running-folder" class="folder-showcase-outer" data-fv-folder-id="storage-child" expanded="false"><span class="outer apps started folder-docker"><span class="inner folder-inner-docker"><span class="folder-appname-docker">Storage child</span></span><div class="folder-storage"><span class="outer apps started folder-element-docker" data-fv-runtime-state="running"><span class="inner"><a class="appname">Running storage service</a></span></span></div></span><div class="folder-showcase"></div></div></div></div>
                     </td>
                 </tr>
             </tbody>
         </table>
+    </section>
+    <section id="fixture-vm-widget" hidden>
+        <input id="vms" type="checkbox">
+        <table><tbody id="vm_view"><tr class="updated"><td>
+            <div id="fixture-vm-folder" class="folder-showcase-outer" data-fv-folder-id="vm-system" expanded="true">
+                <span class="outer vms folder-vm"><span class="inner folder-inner-vm"><span class="folder-appname-vm">VM System</span></span></span>
+                <div class="folder-showcase">
+                    <span id="fixture-vm-running" class="outer vms started folder-element-vm" data-fv-runtime-state="running"><span class="inner">Running VM</span></span>
+                    <span id="fixture-vm-paused" class="outer vms paused folder-element-vm" data-fv-runtime-state="paused"><span class="inner">Paused VM</span></span>
+                    <span id="fixture-vm-stopped" class="outer vms stopped folder-element-vm" data-fv-runtime-state="shutoff"><span class="inner">Stopped VM</span></span>
+                </div>
+            </div>
+        </td></tr></tbody></table>
     </section>
     <script src="/vendor/jquery.js"></script>
     <script src="/plugin/scripts/folderviewplus.ui.js"></script>

@@ -694,6 +694,7 @@ const stripDashboardFolderizedStateFromRow = ($row) => {
         return;
     }
     $row.find('span.fv-dashboard-member-actions').remove();
+    $row.removeAttr('data-fv-runtime-state').removeClass('fv-dashboard-started-only-hidden');
     $row.removeClass((_, className = '') => className
         .split(/\s+/)
         .filter((token) => {
@@ -791,11 +792,12 @@ const setDashboardStartedOnlyEnabledForType = (type, enabled) => {
     }
     const nextValue = enabled === true;
     if ($toggle.is(':checked') === nextValue) {
+        applyDashboardStartedOnlyFilterForType(type);
         return true;
     }
     $toggle.prop('checked', nextValue);
     $toggle.trigger('change');
-    queueLoadlistRefresh();
+    applyDashboardStartedOnlyFilterForType(type);
     return true;
 };
 const getDashboardFolderIdsForType = (type) => {
@@ -1140,6 +1142,13 @@ const bindDashboardQuickActionSyncHandlers = () => {
     }
 };
 
+const applyDashboardStartedOnlyFilterForType = (type) => {
+    const controller = getDashboardQuickRailController();
+    return controller && typeof controller.applyDashboardStartedOnlyFilterForType === 'function'
+        ? controller.applyDashboardStartedOnlyFilterForType(type)
+        : null;
+};
+
 const showDashboardRuntimeLoadingRow = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
@@ -1461,11 +1470,6 @@ const createFolders = async (types = ['docker', 'vm']) => {
             renderDockerChildren(rootId);
         }
     
-        // if started only is active hide all stopped folder
-        if ($('input#apps').is(':checked')) {
-            $('tbody#docker_view > tr.updated > td > div > span.outer.stopped').css('display', 'none');
-        }
-
         // Keep global map in sync before restoring expansion state.
         globalFolders.docker = foldersDone;
     
@@ -1480,6 +1484,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 expandFolderDocker(id, { persistExpandedState: false });
             }
         }
+        applyDashboardStartedOnlyFilterForType('docker');
 
         folderEvents.dispatchEvent(new CustomEvent('docker-post-folders-creation', {detail: {
             folders: folders,
@@ -1669,11 +1674,6 @@ const createFolders = async (types = ['docker', 'vm']) => {
             renderVmChildren(rootId);
         }
 
-        // if started only is active hide all stopped folder
-        if ($('input#vms').is(':checked')) {
-            $('tbody#vm_view > tr.updated > td > div > span.outer.stopped').css('display', 'none');
-        }
-
         // Keep global map in sync before restoring expansion state.
         globalFolders.vms = foldersDone;
 
@@ -1688,6 +1688,7 @@ const createFolders = async (types = ['docker', 'vm']) => {
                 expandFolderVM(id, { persistExpandedState: false });
             }
         }
+        applyDashboardStartedOnlyFilterForType('vm');
 
         folderEvents.dispatchEvent(new CustomEvent('vm-post-folders-creation', {detail: {
             folders: folders,
@@ -1868,7 +1869,10 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
                 return innerText === container;
             }).first();
-            element.append($containerEl.attr('data-fv-runtime-name', container).addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
+            element.append($containerEl.attr({
+                'data-fv-runtime-name': container,
+                'data-fv-runtime-state': getDashboardRuntimeStateMeta('docker', ct).state
+            }).addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
             appendDashboardDockerMemberQuickActions($containerEl, ct, folder.settings || {});
             attachDashboardAdvancedPreviewIfEnabled($containerEl, ct, folder, id);
             
@@ -2146,7 +2150,10 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
                 const innerText = $(this).find('span.inner').contents().first().text().trim();
                 return innerText === container;
             }).first();
-            $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.attr('data-fv-runtime-name', container).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
+            $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.attr({
+                'data-fv-runtime-name': container,
+                'data-fv-runtime-state': getDashboardRuntimeStateMeta('vm', ct).state
+            }).addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
 
             if(folderDebugMode) {
                 dashboardDebugLog(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
@@ -2314,6 +2321,7 @@ const toggleFolderExpansion = (type, id, options = {}) => {
             expandedStateChanges[safeId] = nextState;
             applyDashboardExpandedStateChanges(meta.type, expandedStateChanges);
         }
+        applyDashboardStartedOnlyFilterForType(meta.type);
         scheduleDashboardLayoutApplyForType(meta.type);
         folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
         return;
@@ -2329,6 +2337,7 @@ const toggleFolderExpansion = (type, id, options = {}) => {
         expandedStateChanges[safeId] = nextState;
         applyDashboardExpandedStateChanges(meta.type, expandedStateChanges);
     }
+    applyDashboardStartedOnlyFilterForType(meta.type);
     scheduleDashboardLayoutApplyForType(meta.type);
     folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
 };
@@ -2686,6 +2695,7 @@ const syncDashboardRuntimeRows = (type, changedNames) => {
         updateDashboardFolderRuntimeSummary(resolvedType, id, folder);
         patchedFolders += 1;
     });
+    applyDashboardStartedOnlyFilterForType(resolvedType);
     window.FolderViewPlusDashboardRowReconciliation = {
         ...(window.FolderViewPlusDashboardRowReconciliation || {}),
         [resolvedType]: {

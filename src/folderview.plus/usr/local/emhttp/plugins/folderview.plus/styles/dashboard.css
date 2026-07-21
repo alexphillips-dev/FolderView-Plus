@@ -90,6 +90,11 @@ body[data-fv-theme-class="light"] {
     overflow: hidden;
 }
 
+tbody#docker_view .fv-dashboard-started-only-hidden,
+tbody#vm_view .fv-dashboard-started-only-hidden {
+    display: none !important;
+}
+
 .folder-showcase > span.outer:not(.folder-docker):not(.folder-vm) > span.inner {
     flex: 1 1 auto;
     min-width: 0;

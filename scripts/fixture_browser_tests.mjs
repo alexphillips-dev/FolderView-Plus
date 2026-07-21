@@ -364,6 +364,54 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.ok(mobileButtonBox.width >= 30 && mobileButtonBox.height >= 30, 'narrow action buttons must retain larger touch targets');
 });
 
+test('Dashboard Started only filters expanded and collapsed members and reconciles live state', async ({ page }) => {
+    await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
+    assert.equal(await page.locator('#fixture-stopped-member.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-stopped-folder.fv-dashboard-started-only-hidden').count(), 0);
+
+    await page.locator('[data-fv-quick-action="running-only"]').click();
+    assert.equal(await page.locator('#fixture-running-member.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-paused-member.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-stopped-member.fv-dashboard-started-only-hidden').count(), 1);
+    assert.equal(await page.locator('#fixture-collapsed-stopped-member.fv-dashboard-started-only-hidden').count(), 1);
+    assert.equal(await page.locator('#fixture-stopped-folder.fv-dashboard-started-only-hidden').count(), 1);
+    assert.equal(await page.locator('#fixture-nested-running-folder.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-nested-parent.fv-dashboard-started-only-hidden').count(), 0, 'a running descendant keeps its parent folder visible');
+    assert.equal(await page.locator('#fixture-running-member').isVisible(), true);
+    assert.equal(await page.locator('#fixture-stopped-member').isVisible(), false);
+
+    const reconciliation = await page.evaluate(() => window.fixtureDashboardLayout.setRuntimeState('#fixture-running-member', 'stopped'));
+    assert.equal(reconciliation.enabled, true);
+    assert.equal(await page.locator('[data-fv-folder-id="system"].fv-dashboard-started-only-hidden').count(), 0, 'paused members keep a mixed folder visible');
+    await page.evaluate(() => window.fixtureDashboardLayout.setRuntimeState('#fixture-paused-member', 'stopped'));
+    assert.equal(await page.locator('[data-fv-folder-id="system"].fv-dashboard-started-only-hidden').count(), 1);
+
+    await page.evaluate(() => {
+        const toggle = document.querySelector('#apps');
+        toggle.checked = false;
+        toggle.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await page.waitForFunction(() => document.querySelectorAll('.fv-dashboard-started-only-hidden').length === 0);
+    assert.equal(await page.locator('.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-stopped-member').isVisible(), true);
+    assert.equal(await page.locator('#fixture-stopped-folder').isVisible(), true);
+});
+
+test('Dashboard Started only applies the same runtime-state policy to VM folders', async ({ page }) => {
+    await page.goto(`${baseUrl}/dashboard-layout`, { waitUntil: 'load' });
+    await page.evaluate(() => {
+        const toggle = document.querySelector('#vms');
+        toggle.checked = true;
+        toggle.dispatchEvent(new Event('change', { bubbles: true }));
+        window.fixtureDashboardLayout.controller.applyDashboardStartedOnlyFilterForType('vm');
+    });
+    await page.waitForFunction(() => document.querySelector('#fixture-vm-stopped')?.classList.contains('fv-dashboard-started-only-hidden'));
+    assert.equal(await page.locator('#fixture-vm-running.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-vm-paused.fv-dashboard-started-only-hidden').count(), 0);
+    assert.equal(await page.locator('#fixture-vm-stopped.fv-dashboard-started-only-hidden').count(), 1);
+    assert.equal(await page.locator('#fixture-vm-folder.fv-dashboard-started-only-hidden').count(), 0);
+});
+
 test('Docker folder filters and Reset view reconcile immediately', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.click('[data-fvplus-docker-action="filter-empty"]');

@@ -272,6 +272,23 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /bindDashboardQuickActionSyncHandlers/);
 });
 
+test('Dashboard Started only reconciles folder members without a full widget reload', () => {
+    assert.match(dashboardQuickRailScript, /const applyDashboardStartedOnlyFilterForType = \(type\) =>/);
+    assert.match(dashboardQuickRailScript, /span\.folder-element-vm/);
+    assert.match(dashboardQuickRailScript, /span\.folder-element-docker/);
+    assert.match(dashboardQuickRailScript, /\.folder-storage/);
+    assert.match(dashboardQuickRailScript, /\.folder-showcase/);
+    assert.match(dashboardQuickRailScript, /hasVisibleChildFolder/);
+    assert.match(dashboardQuickRailScript, /input#apps, input#vms[\s\S]*applyDashboardStartedOnlyFilterForType\('docker'\)[\s\S]*applyDashboardStartedOnlyFilterForType\('vm'\)/);
+    assert.match(dashboardScript, /'data-fv-runtime-state': getDashboardRuntimeStateMeta\('docker', ct\)\.state/);
+    assert.match(dashboardScript, /'data-fv-runtime-state': getDashboardRuntimeStateMeta\('vm', ct\)\.state/);
+    assert.match(dashboardScript, /syncDashboardRuntimeRows[\s\S]*applyDashboardStartedOnlyFilterForType\(resolvedType\)/);
+    assert.match(dashboardScript, /toggleFolderExpansion[\s\S]*applyDashboardStartedOnlyFilterForType\(meta\.type\)/);
+    assert.doesNotMatch(dashboardScript, /tbody#docker_view > tr\.updated > td > div > span\.outer\.stopped/);
+    assert.doesNotMatch(dashboardScript, /tbody#vm_view > tr\.updated > td > div > span\.outer\.stopped/);
+    assert.match(dashboardCss, /tbody#docker_view \.fv-dashboard-started-only-hidden,[\s\S]*display:\s*none !important/);
+});
+
 test('dashboard advanced preview module is loaded before dashboard runtime and exposes attach api', () => {
     assert.match(dashboardPage, /chart\.min\.js[\s\S]*chartjs-plugin-streaming\.min\.js[\s\S]*dashboard\.advanced-preview\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*dashboard\.js/);
     assert.match(dashboardAdvancedPreviewScript, /root\.FolderViewPlusDashboardAdvancedPreview = factory\(\)/);

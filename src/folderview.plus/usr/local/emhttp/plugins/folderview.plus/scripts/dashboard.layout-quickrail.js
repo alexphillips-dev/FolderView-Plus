@@ -137,6 +137,79 @@
                 : defaultDashboardTypeMeta(type)
         );
 
+        const dashboardStartedOnlyMemberSelectorForType = (type) => (
+            normalizeDashboardType(type) === 'vm' ? 'span.folder-element-vm' : 'span.folder-element-docker'
+        );
+
+        const isDashboardStartedOnlyMemberActive = ($member) => {
+            if (!$member || !$member.length) {
+                return false;
+            }
+            const runtimeState = String($member.attr('data-fv-runtime-state') || '').trim().toLowerCase();
+            if (runtimeState) {
+                return ['running', 'started', 'paused', 'pmsuspended', 'unknown'].includes(runtimeState);
+            }
+            return $member.is('.started, .running, .paused, .pmsuspended, .unknown');
+        };
+
+        const applyDashboardStartedOnlyFilterForType = (type) => {
+            const resolvedType = normalizeDashboardType(type);
+            const meta = dashboardTypeMeta(resolvedType);
+            const $tbody = jq(meta.tbodySelector).first();
+            if (!$tbody.length) {
+                return { enabled: false, members: 0, hiddenMembers: 0, folders: 0, hiddenFolders: 0 };
+            }
+            const enabled = typeof deps.isDashboardStartedOnlyEnabledForType === 'function'
+                ? deps.isDashboardStartedOnlyEnabledForType(resolvedType) === true
+                : jq(resolvedType === 'vm' ? 'input#vms' : 'input#apps').first().is(':checked');
+            const memberSelector = dashboardStartedOnlyMemberSelectorForType(resolvedType);
+            const $members = $tbody.find(memberSelector);
+            let hiddenMembers = 0;
+
+            $tbody.toggleClass('fv-dashboard-started-only-enabled', enabled);
+            $members.each((_, node) => {
+                const $member = jq(node);
+                const hidden = enabled && !isDashboardStartedOnlyMemberActive($member);
+                $member.toggleClass('fv-dashboard-started-only-hidden', hidden);
+                if (hidden) {
+                    hiddenMembers += 1;
+                }
+            });
+
+            const cards = $tbody.find('.folder-showcase-outer').get().reverse();
+            let hiddenFolders = 0;
+            cards.forEach((node) => {
+                const $card = jq(node);
+                if (!enabled) {
+                    $card.removeClass('fv-dashboard-started-only-hidden');
+                    return;
+                }
+                const $folderSurface = $card.children(meta.outerSelector).first();
+                const $storageMembers = $folderSurface.children('.folder-storage').children(memberSelector);
+                const $showcase = $card.children('.folder-showcase').first();
+                const $showcaseMembers = $showcase.children(memberSelector);
+                const hasVisibleMember = $storageMembers.add($showcaseMembers).toArray().some((member) => (
+                    !jq(member).hasClass('fv-dashboard-started-only-hidden')
+                ));
+                const hasVisibleChildFolder = $showcase.children('.folder-showcase-outer').toArray().some((child) => (
+                    !jq(child).hasClass('fv-dashboard-started-only-hidden')
+                ));
+                const hidden = !hasVisibleMember && !hasVisibleChildFolder;
+                $card.toggleClass('fv-dashboard-started-only-hidden', hidden);
+                if (hidden) {
+                    hiddenFolders += 1;
+                }
+            });
+
+            return {
+                enabled,
+                members: $members.length,
+                hiddenMembers,
+                folders: cards.length,
+                hiddenFolders
+            };
+        };
+
         const getDashboardLayoutModes = () => (
             Array.isArray(deps.dashboardLayoutModes) && deps.dashboardLayoutModes.length
                 ? deps.dashboardLayoutModes
@@ -960,11 +1033,13 @@
             jq(win.document).on('change.fvplusdashboardquick', 'input#apps, input#vms', (event) => {
                 const id = String(event?.currentTarget?.id || '').trim().toLowerCase();
                 if (id === 'apps') {
+                    applyDashboardStartedOnlyFilterForType('docker');
                     syncDashboardWidgetLayoutQuickControlForType('docker');
                     scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
                     return;
                 }
                 if (id === 'vms') {
+                    applyDashboardStartedOnlyFilterForType('vm');
                     syncDashboardWidgetLayoutQuickControlForType('vm');
                     scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
                 }
@@ -1012,6 +1087,7 @@
             scheduleDashboardLayoutApplyForType,
             scheduleDashboardWidgetVisibilitySyncForType,
             bindDashboardWidgetVisibilityObserverForType,
+            applyDashboardStartedOnlyFilterForType,
             bindDashboardQuickActionSyncHandlers
         });
     };

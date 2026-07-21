@@ -11342,7 +11342,7 @@ h2[data-fv-section].fv-search-match {
 
 .fv-activity-center-kicker {
     color: var(--orange, #ff8c2a);
-    font-size: 0.86rem;
+    font-size: 1.1rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;

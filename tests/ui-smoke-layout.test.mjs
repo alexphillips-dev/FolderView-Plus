@@ -204,6 +204,7 @@ test('settings activity center replaces plain recent activity feed', () => {
     assert.match(settingsPage, /No activity yet/);
     assert.doesNotMatch(settingsPage, /id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;"/);
     assert.match(settingsCss, /\.fv-activity-center-head\s*\{/);
+    assert.match(settingsCss, /\.fv-activity-center-kicker\s*\{[^}]*font-size:\s*1\.1rem;/s);
     assert.match(settingsCss, /\.fv-activity-center-latest\s*\{/);
     assert.match(settingsCss, /\.fv-activity-center-latest\.is-empty\s*\{/);
     assert.match(settingsCss, /\.fv-activity-center-latest\.is-fresh\s*\{/);

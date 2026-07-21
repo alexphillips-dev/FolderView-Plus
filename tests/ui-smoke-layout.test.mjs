@@ -1002,7 +1002,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /is-trust-\$\{trust\.level\}/);
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
-    assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);[\s\S]*\} else \{[\s\S]*await refreshCoreData\(\);[\s\S]*\}/);
+    assert.match(settingsJs, /const pluginVersionPromise = fetchPluginVersion\(\);[\s\S]*const result = await refreshCoreData\(\);/);
+    assert.doesNotMatch(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);/);
+    assert.match(settingsJs, /void getThemeWorkspaceApi\(\)\.readWorkspace\(\)/);
+    assert.match(settingsJs, /void pluginVersionPromise\s*\.then\(\(\) => maybeShowUpdateNotesPanel\(\)\)/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.folder-table table td\.actions-cell \.folder-action-btn,[\s\S]*background:\s*var\(--fvplus-settings-button-quiet-top\) !important;/);
     assert.doesNotMatch(settingsCss, /\.fv-col-resizer/);

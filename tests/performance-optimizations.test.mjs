@@ -507,7 +507,7 @@ test('settings table filter and preference changes use queued table rendering', 
     assert.doesNotMatch(settingsJs, /queueSettingsTableRender/);
 });
 
-test('settings table render defers secondary workspace surfaces', () => {
+test('settings bootstrap renders core surfaces together while later refreshes can defer secondary work', () => {
     assert.match(settingsJs, /let pendingSecondarySurfaceFrameByType = \{\s*docker: null,\s*vm: null\s*\};/);
     assert.match(settingsJs, /let pendingActiveAdvancedSurfaceFrame = null;/);
     assert.match(settingsJs, /let settingsSectionRegistrySignature = '';/);
@@ -530,12 +530,13 @@ test('settings table render defers secondary workspace surfaces', () => {
     assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('operations'\)\) \{[\s\S]*renderTemplateRows\(resolvedType\);[\s\S]*renderOperationsWorkspace\(\);/);
     assert.match(settingsJs, /if \(shouldRefreshSecondaryAdvancedGroup\('rules'\)\) \{[\s\S]*renderRulesTable\(resolvedType\);[\s\S]*syncRulesWorkspaceUi\(\);/);
     assert.match(settingsJs, /setAdvancedTab\(tab\);[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\);/);
-    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\);[\s\S]*return results\.flatMap/);
+    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*scheduleActiveAdvancedSecondarySurfaces\(\{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*return results\.flatMap/);
     assert.match(settingsJs, /refreshSettingsUx\(\{ renderSecondaryWorkspaces: false \}\);/);
     assert.match(settingsJs, /const refreshSettingsUx = \(options = \{\}\) => \{[\s\S]*const renderSecondaryWorkspaces = options\.renderSecondaryWorkspaces !== false;[\s\S]*const sectionsRebuilt = buildSettingsSections\(\{ force: options\.rebuildSections === true \}\);/);
     assert.match(settingsJs, /if \(sectionsRebuilt \|\| options\.normalizeSections === true\) \{\s*normalizeExpandedAdvancedSections\(\);/);
     assert.match(settingsJs, /buildSettingsSections\(\{ force: true \}\);/);
-    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type\);[\s\S]*?\n\};/);
+    assert.match(settingsJs, /renderTable = \(type\) => \{[\s\S]*updateMobileTreePathHint\(type\);\s*scheduleSettingsSecondarySurfaces\(type, \{ immediate: settingsUiState\.initialized !== true \}\);[\s\S]*?\n\};/);
+    assert.match(settingsJs, /const refreshCoreData = async \(\) => \{[\s\S]*refreshType\('docker', \{ render: false \}\),[\s\S]*refreshType\('vm', \{ render: false \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
     const renderTableBlock = settingsJs.match(/const renderTable = \(type\) => \{[\s\S]*?\n\};/)?.[0] || '';
     const ensureAdvancedBlock = settingsJs.match(/const ensureAdvancedDataLoaded = async \(options = \{\}\) => \{[\s\S]*?\n\};/)?.[0] || '';
     assert.doesNotMatch(renderTableBlock, /renderRulesTable\(type\)/);

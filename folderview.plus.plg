@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.21.05">
-<!ENTITY md5 "2979b02cccc20372a9b1c1a7b75efff7">
+<!ENTITY version "2026.07.21.08">
+<!ENTITY md5 "90104a72afa4d8e3487715c810e56d47">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.21.08
+- Performance: Reworked Settings startup to load each Docker and VM core state through one coherent runtime snapshot request instead of separate folder, preference, and runtime requests.
+- Performance: Docker and VM settings tables now hydrate first and render in one browser pass, avoiding staged first-load painting.
+- Performance: Plugin version lookup, update notes, theme workspace data, and active Advanced-tab datasets no longer block the core Settings page from becoming usable.
+- Reliability: Preserved the existing preference coordinator, pending-write replay, and metadata revisions when hydrating from a snapshot, with the previous three-request path retained as an automatic compatibility fallback.
+- Quality: Added regression coverage for snapshot script ordering, consolidated Settings bootstrap, synchronized first render, non-blocking optional data, and legacy fallback behavior.
+
 
 ###2026.07.21.05
 - UI/UX: Replaced the seven Dashboard View options layout buttons with one compact themed dropdown for Docker and VM widgets.

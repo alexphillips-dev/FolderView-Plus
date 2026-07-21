@@ -2,6 +2,7 @@ const utils = window.FolderViewPlusUtils || null;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
+const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const dashboardLayoutStateStore = prefsStoreModule?.getDefaultDashboardLayoutStateStore?.({ window }) || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
@@ -303,6 +304,12 @@ if (!requestClient || typeof requestClient.getJson !== 'function' || typeof requ
     setFatalBannerModuleStatus('folderviewplus.request.js', 'missing', 'request client unavailable');
 } else {
     setFatalBannerModuleStatus('folderviewplus.request.js', 'ok', 'request client ready');
+}
+if (!runtimeSnapshotApi || typeof runtimeSnapshotApi.buildUrl !== 'function' || typeof runtimeSnapshotApi.parsePayload !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.runtime-snapshot.js');
+    setFatalBannerModuleStatus('folderviewplus.runtime-snapshot.js', 'missing', 'runtime snapshot client unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.runtime-snapshot.js', 'ok', 'runtime snapshot client ready');
 }
 if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
     bootstrapMissingModules.push('folderviewplus.theme-resolver.js');
@@ -9343,7 +9350,7 @@ const renderTable = (type) => {
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
     updateMobileTreePathHint(type);
-    scheduleSettingsSecondarySurfaces(type);
+    scheduleSettingsSecondarySurfaces(type, { immediate: settingsUiState.initialized !== true });
 };
 
 const buildSettingsBootstrapDegradedReason = (type, area, error) => {
@@ -9352,31 +9359,76 @@ const buildSettingsBootstrapDegradedReason = (type, area, error) => {
     return message ? `${prefix}: ${message}` : prefix;
 };
 
-const refreshType = async (type) => {
+const fetchSettingsCoreSnapshot = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const url = runtimeSnapshotApi.buildUrl(resolvedType, 'state', {
+        ttl: 2,
+        cacheBust: Date.now()
+    });
+    const snapshot = runtimeSnapshotApi.parsePayload(await apiGetJson(url));
+    const snapshotPrefs = utils.normalizePrefs({
+        ...(snapshot.prefs && typeof snapshot.prefs === 'object' ? snapshot.prefs : {}),
+        _metadata: snapshot.metadata && typeof snapshot.metadata === 'object' ? snapshot.metadata : {}
+    });
+    const reconciledPrefs = diagnosticsPrefsCoordinator && typeof diagnosticsPrefsCoordinator.reconcile === 'function'
+        ? diagnosticsPrefsCoordinator.reconcile(resolvedType, snapshotPrefs, {
+            force: true,
+            restoreOutbox: true,
+            replay: true
+        })
+        : snapshotPrefs;
+    return {
+        folders: utils.normalizeFolderMap(snapshot.folders || {}),
+        prefs: reconciledPrefs,
+        info: sanitizeTypeInfoMap(snapshot.runtime || {}),
+        snapshotToken: String(snapshot.snapshotToken || '').trim()
+    };
+};
+
+const refreshType = async (type, options = {}) => {
     const startedAt = perfNowMs();
+    const render = options?.render !== false;
     recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
     setFatalBannerPhase('prefs-fetch');
     markFatalBannerStep(`Fetching ${type} folders and preferences`);
-    const results = await Promise.allSettled([
-        fetchFolders(type),
-        fetchPrefs(type),
-        fetchTypeInfo(type)
-    ]);
     const degradedReasons = [];
-    const foldersResult = results[0];
-    const prefsResult = results[1];
-    const infoResult = results[2];
-    const folders = foldersResult.status === 'fulfilled' ? foldersResult.value : {};
-    const rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
-    const info = infoResult.status === 'fulfilled' ? infoResult.value : {};
-    if (foldersResult.status !== 'fulfilled') {
-        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'folders', foldersResult.reason));
-    }
-    if (prefsResult.status !== 'fulfilled') {
-        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', prefsResult.reason));
-    }
-    if (infoResult.status !== 'fulfilled') {
-        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'runtime info', infoResult.reason));
+    let folders = {};
+    let rawPrefs = {};
+    let info = {};
+    let prefsFetched = false;
+    let dataSource = 'runtime-snapshot';
+    let requestCount = 1;
+    try {
+        const snapshot = await fetchSettingsCoreSnapshot(type);
+        folders = snapshot.folders;
+        rawPrefs = snapshot.prefs;
+        info = snapshot.info;
+        prefsFetched = true;
+    } catch (snapshotError) {
+        dataSource = 'legacy-fallback';
+        requestCount = 4;
+        recordFatalBannerAction(`${type.toUpperCase()} Settings snapshot unavailable; using compatibility requests`);
+        const results = await Promise.allSettled([
+            fetchFolders(type),
+            fetchPrefs(type),
+            fetchTypeInfo(type)
+        ]);
+        const foldersResult = results[0];
+        const prefsResult = results[1];
+        const infoResult = results[2];
+        folders = foldersResult.status === 'fulfilled' ? foldersResult.value : {};
+        rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
+        info = infoResult.status === 'fulfilled' ? infoResult.value : {};
+        prefsFetched = prefsResult.status === 'fulfilled';
+        if (foldersResult.status !== 'fulfilled') {
+            degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'folders', foldersResult.reason));
+        }
+        if (prefsResult.status !== 'fulfilled') {
+            degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', prefsResult.reason));
+        }
+        if (infoResult.status !== 'fulfilled') {
+            degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'runtime info', infoResult.reason));
+        }
     }
 
     let normalizedPrefs = utils.normalizePrefs({});
@@ -9398,24 +9450,28 @@ const refreshType = async (type) => {
     prefsByType[type] = normalizedPrefs;
     recordSettingsDashboardLayoutHydration(type, normalizedPrefs);
     setFatalBannerPrefsStatus({
-        fetched: prefsResult.status === 'fulfilled',
+        fetched: prefsFetched,
         normalized: true,
         sourceType: type,
         rawSchemaVersion: String(rawPrefs?.runtimePrefsSchema || 'unknown'),
         normalizedSchemaVersion: String(prefsByType[type]?.runtimePrefsSchema || 'unknown'),
-        fallbackUsed: prefsResult.status !== 'fulfilled' || normalizeErrorMessage !== '',
+        fallbackUsed: !prefsFetched || normalizeErrorMessage !== '',
         migrationApplied: String(rawPrefs?.runtimePrefsSchema || '') !== String(prefsByType[type]?.runtimePrefsSchema || ''),
         normalizeError: normalizeErrorMessage
     });
     setFatalBannerPhase('render');
     infoByType[type] = info && typeof info === 'object' ? info : {};
     setTypeFolders(type, utils.normalizeFolderMap(folders || {}));
-    renderTable(type);
-    markFatalBannerStep(`Rendered ${type} settings table`);
+    if (render) {
+        renderTable(type);
+        markFatalBannerStep(`Rendered ${type} settings table`);
+    }
     recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
         folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
         infoCount: Object.keys(info || {}).length,
-        coldLoad: settingsUiState.initialized !== true
+        coldLoad: settingsUiState.initialized !== true,
+        dataSource,
+        requestCount
     });
     return {
         hasErrors: degradedReasons.length > 0,
@@ -9583,7 +9639,7 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
         }
         advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
     }
-    scheduleActiveAdvancedSecondarySurfaces();
+    scheduleActiveAdvancedSecondarySurfaces({ immediate: settingsUiState.initialized !== true });
     return results.flatMap((result, index) => {
         const moduleKey = requestedModules[index];
         if (result.status === 'rejected') {
@@ -9599,10 +9655,11 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 const refreshCoreData = async () => {
     const startedAt = perfNowMs();
     const refreshResults = await Promise.allSettled([
-        refreshType('docker'),
-        refreshType('vm'),
-        getThemeWorkspaceApi().readWorkspace()
+        refreshType('docker', { render: false }),
+        refreshType('vm', { render: false })
     ]);
+    renderTable('docker');
+    renderTable('vm');
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
@@ -9613,7 +9670,6 @@ const refreshCoreData = async () => {
     const degradedReasons = [];
     const dockerResult = refreshResults[0];
     const vmResult = refreshResults[1];
-    const themeResult = refreshResults[2];
     if (dockerResult.status === 'fulfilled') {
         degradedReasons.push(...(Array.isArray(dockerResult.value?.degradedReasons) ? dockerResult.value.degradedReasons : []));
     } else {
@@ -9623,9 +9679,6 @@ const refreshCoreData = async () => {
         degradedReasons.push(...(Array.isArray(vmResult.value?.degradedReasons) ? vmResult.value.degradedReasons : []));
     } else {
         degradedReasons.push(buildSettingsBootstrapDegradedReason('vm', 'settings data', vmResult.reason));
-    }
-    if (themeResult.status !== 'fulfilled') {
-        degradedReasons.push(buildSettingsBootstrapDegradedReason('shared', 'theme workspace', themeResult.reason));
     }
     recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
         dockerFolders: Object.keys(getFolderMap('docker')).length,
@@ -11954,26 +12007,19 @@ if (window.FolderViewPlusUI?.registerAction) {
             renderFolderDefaultsPanel('vm');
             renderPerformanceDiagnostics();
         });
-        await fetchPluginVersion();
+        const pluginVersionPromise = fetchPluginVersion();
+        let showUpdateNotesAfterReady = false;
         let bootstrapDegradedReasons = [];
         try {
-            if (settingsUiState.mode === 'advanced') {
-                setFatalBannerPhase('advanced-data');
-                recordFatalBannerAction('Start advanced Settings bootstrap');
-                markFatalBannerStep('Starting advanced settings bootstrap');
-                const result = await refreshAll();
-                bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
-            } else {
-                setFatalBannerPhase('bootstrap-data');
-                recordFatalBannerAction('Start basic Settings bootstrap');
-                markFatalBannerStep('Starting basic settings bootstrap');
-                const result = await refreshCoreData();
-                bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
-            }
+            setFatalBannerPhase('bootstrap-data');
+            recordFatalBannerAction('Start Settings core bootstrap');
+            markFatalBannerStep('Starting Settings core bootstrap');
+            const result = await refreshCoreData();
+            bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
             if (bootstrapDegradedReasons.length > 0) {
                 markSettingsBootstrapState({
                     degraded: true,
-                    lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                    lastPhase: 'bootstrap-data',
                     lastAction: 'Settings bootstrap loaded with degraded data',
                     lastStep: 'Settings bootstrap degraded'
                 });
@@ -11982,8 +12028,8 @@ if (window.FolderViewPlusUI?.registerAction) {
                     hostSelector: '#fv-settings-root',
                     title: 'Settings loaded in degraded mode',
                     message: 'FolderView Plus kept the Settings page open, but some data or advanced modules failed to load.',
-                    code: settingsUiState.mode === 'advanced' ? 'FVPLUS-SET-BOOT-004' : 'FVPLUS-SET-BOOT-003',
-                    phase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                    code: 'FVPLUS-SET-BOOT-003',
+                    phase: 'bootstrap-data',
                     category: 'degraded-mode',
                     detailLabel: 'Affected areas',
                     details: bootstrapDegradedReasons
@@ -11994,7 +12040,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             refreshSettingsUx();
             markSettingsBootstrapState({
                 degraded: true,
-                lastPhase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                lastPhase: 'bootstrap-data',
                 lastAction: 'Initial Settings data load failed',
                 lastStep: 'Settings page kept visible after data load failure'
             });
@@ -12037,7 +12083,7 @@ if (window.FolderViewPlusUI?.registerAction) {
             if (shouldRunWizard) {
                 runQuickSetupWizard(false, { source: 'auto-first-run' });
             } else {
-                await maybeShowUpdateNotesPanel();
+                showUpdateNotesAfterReady = true;
             }
             syncRuntimeConflictResolutionBanner();
         });
@@ -12060,6 +12106,22 @@ if (window.FolderViewPlusUI?.registerAction) {
             lastAction: settingsSurfaceVisible ? 'Settings bootstrap completed' : 'Settings bootstrap completed without visible content',
             lastStep: settingsSurfaceVisible ? 'Settings bootstrap completed' : 'Settings surface stayed blank'
         });
+        void getThemeWorkspaceApi().readWorkspace()
+            .then(() => {
+                if (settingsUiState.mode === 'advanced' && settingsUiState.advancedTab === 'appearance') {
+                    scheduleActiveAdvancedSecondarySurfaces({ immediate: true });
+                }
+            })
+            .catch(() => {
+                // Theme workspace data is optional and must not hold the core settings surface open.
+            });
+        if (showUpdateNotesAfterReady) {
+            void pluginVersionPromise
+                .then(() => maybeShowUpdateNotesPanel())
+                .catch(() => {
+                    // Update notes are informational and must not delay Settings readiness.
+                });
+        }
     } catch (error) {
         try {
             refreshSettingsUx();

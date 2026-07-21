@@ -19,6 +19,8 @@ const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
+const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const installSmoke = read('scripts/install_smoke.sh');
 const releaseGuard = read('scripts/release_guard.sh');
 
@@ -197,6 +199,15 @@ test('Docker, VM, and Dashboard bootstrap and polling use the coherent endpoint'
     assert.match(dashboardJs, /lastDashboardSnapshotTokens/);
 });
 
+test('Settings bootstrap uses one coherent core request per managed type with a compatibility fallback', () => {
+    assert.match(settingsJs, /const runtimeSnapshotApi = window\.FolderViewPlusRuntimeSnapshot \|\| null;/);
+    assert.match(settingsJs, /const fetchSettingsCoreSnapshot = async \(type\) => \{[\s\S]*runtimeSnapshotApi\.buildUrl\(resolvedType, 'state'/);
+    assert.match(settingsJs, /runtimeSnapshotApi\.parsePayload\(await apiGetJson\(url\)\)/);
+    assert.match(settingsJs, /diagnosticsPrefsCoordinator\.reconcile\(resolvedType, snapshotPrefs/);
+    assert.match(settingsJs, /catch \(snapshotError\) \{[\s\S]*fetchFolders\(type\),[\s\S]*fetchPrefs\(type\),[\s\S]*fetchTypeInfo\(type\)/);
+    assert.match(settingsJs, /refreshType\('docker', \{ render: false \}\),[\s\S]*refreshType\('vm', \{ render: false \}\)[\s\S]*renderTable\('docker'\);\s*renderTable\('vm'\);/);
+});
+
 test('all runtime pages load the snapshot client before their main runtime', () => {
     const assertOrder = (page, runtimePath) => {
         const snapshotIndex = page.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
@@ -208,6 +219,7 @@ test('all runtime pages load the snapshot client before their main runtime', () 
     assertOrder(dockerPage, '/plugins/folderview.plus/scripts/docker.js');
     assertOrder(vmPage, '/plugins/folderview.plus/scripts/vm.js');
     assertOrder(dashboardPage, '/plugins/folderview.plus/scripts/dashboard.js');
+    assertOrder(settingsPage, '/plugins/folderview.plus/scripts/folderviewplus.js');
     assert.match(installSmoke, /server\/runtime_snapshot\.php/);
     assert.match(installSmoke, /scripts\/folderviewplus\.runtime-snapshot\.js/);
     assert.match(releaseGuard, /server\/runtime_snapshot\.php/);

@@ -51,6 +51,7 @@ Selectors listed below are treated as stable customization hooks and protected b
 - Deprecations must be announced in release notes with a migration note.
 - Removal is delayed for at least **2 stable releases** after deprecation notice.
 - Contract tests are updated only after replacement hooks exist and are documented.
+- The shipped machine-readable registry and its current migration guidance are documented in [Deprecations and Compatibility Aliases](DEPRECATIONS.md).
 - The legacy folder-level regex editor is deprecated in favor of Advanced Auto-Rules. Runtime/import compatibility will not be removed earlier than two stable releases after a separate removal notice; this conversion release is not a removal notice.
 
 ## Legacy Regex Migration

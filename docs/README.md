@@ -11,6 +11,7 @@ This folder holds project documentation that does not need to stay at the reposi
 - [COMPATIBILITY.md](COMPATIBILITY.md)
 - [CHANGELOG.md](CHANGELOG.md)
 - [SUPPORT_POLICY.md](SUPPORT_POLICY.md)
+- [DEPRECATIONS.md](DEPRECATIONS.md)
 - [THEME_GUIDE.md](THEME_GUIDE.md)
 - [THEME_API_CONTRACT.md](THEME_API_CONTRACT.md)
 - [TRANSLATING.md](TRANSLATING.md)

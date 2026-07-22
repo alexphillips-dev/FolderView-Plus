@@ -14,6 +14,7 @@ const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const prefsStoreModule = window.FolderViewPlusPrefsStore || null;
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
 const dashboardHostAdapterModule = window.FolderViewPlusDashboardHostAdapter || null;
 const dashboardRuntimeSurfaceModule = window.FolderViewPlusDashboardRuntimeSurface || null;
 const dashboardStateStoreModule = window.FolderViewPlusDashboardStateStore || null;
@@ -293,6 +294,9 @@ if (
 }
 if (!runtimeHostAdapters || typeof runtimeHostAdapters.getOrCreate !== 'function') {
     dashboardBootstrapMissingModules.push('runtime.host-adapter.js');
+}
+if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !== 'function') {
+    dashboardBootstrapMissingModules.push('runtime.folder-ordering.js');
 }
 if (!window.FolderViewPlusDashboardFolderMatchCache || typeof window.FolderViewPlusDashboardFolderMatchCache.createApi !== 'function') {
     dashboardBootstrapMissingModules.push('dashboard.folder-match-cache.js');
@@ -1785,18 +1789,17 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     // new folder is needed for not altering the old containers
     let newFolder = {};
 
-    // foldersDone is and array of only ids there is the need to add the 'folder-' in front
-    foldersDone = foldersDone.map(e => 'folder-'+e);
-
-    // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const customOrder = order.filter((e) => {
-        return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
+    const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
+        order,
+        completedFolderIds: foldersDone,
+        currentFolderId: id
     });
+    foldersDone = foldersDone.map(e => 'folder-'+e);
 
     // loop over the containers
     for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
-        const index = customOrder.indexOf(container);
+        const index = customOrderCursor.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-preview', {detail: {
@@ -1820,7 +1823,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             }
 
             // remove the containers from the order
-            customOrder.splice(index, 1);
+            customOrderCursor.remove(container);
             order.splice(offsetIndex, 1);
             const ct = containersInfo[container];
 
@@ -2063,18 +2066,17 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     // new folder is needed for not altering the old containers
     let newFolder = {};
 
-    // foldersDone is and array of only ids there is the need to add the 'folder-' in front
-    foldersDone = foldersDone.map(e => 'folder-'+e);
-
-    // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const customOrder = order.filter((e) => {
-        return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
+    const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
+        order,
+        completedFolderIds: foldersDone,
+        currentFolderId: id
     });
+    foldersDone = foldersDone.map(e => 'folder-'+e);
 
     // loop over the containers
     for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
-        const index = customOrder.indexOf(container);
+        const index = customOrderCursor.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-preview', {detail: {
@@ -2098,7 +2100,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             }
 
             // remove the containers from the order
-            customOrder.splice(index, 1);
+            customOrderCursor.remove(container);
             order.splice(offsetIndex, 1);
 
             // add the id to the container name 
@@ -3104,4 +3106,12 @@ window.addEventListener("keydown", (e) => {
         loadlist();
     }
 });
+
+window.addEventListener('pagehide', () => {
+    clearLiveRefreshTimer();
+    clearTimeout(queuedLoadlistTimer);
+    clearTimeout(dashboardThemeReflowTimer);
+    dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
+    runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
+}, { once: true });
 })(window, window.jQuery || window.$);

@@ -19,6 +19,14 @@ const dashboardPage = fs.readFileSync(
     'utf8'
 );
 
+test('Dashboard loads shared ordering after the host adapter and before its runtime', () => {
+    const hostAdapterIndex = dashboardPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+    const orderingIndex = dashboardPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
+    const runtimeIndex = dashboardPage.indexOf('/plugins/folderview.plus/scripts/dashboard.js');
+    assert.ok(hostAdapterIndex >= 0 && orderingIndex >= 0 && runtimeIndex >= 0);
+    assert.ok(hostAdapterIndex < orderingIndex && orderingIndex < runtimeIndex);
+});
+
 const nextTurn = () => new Promise((resolve) => setTimeout(resolve, 0));
 const createHarness = ({ renderFolders = async () => true } = {}) => {
     const prefilters = [];

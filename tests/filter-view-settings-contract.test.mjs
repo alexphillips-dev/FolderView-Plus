@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 
 const repoRoot = path.resolve(process.cwd());
 const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
@@ -13,6 +14,9 @@ const dashboardJs = read('scripts/dashboard.js');
 const vmJs = read('scripts/vm.js');
 const prefsPhp = read('server/lib.prefs.php');
 const diagnosticsPhp = read('server/lib.diagnostics.php');
+const require = createRequire(import.meta.url);
+const settingsRegistry = require(path.join(pluginRoot, 'scripts/folderviewplus.settings-registry.js'));
+const viewSettings = require(path.join(pluginRoot, 'scripts/folderviewplus.view-settings.js'));
 
 const expectedPreferenceKeys = {
     changeVisibilityPref: ['appColumnWidth', 'hideEmptyFolders'],
@@ -23,46 +27,50 @@ const expectedPreferenceKeys = {
     changeHealthPref: ['allStoppedMode', 'cardsEnabled', 'criticalStoppedPercent', 'profile', 'resourceCriticalGiB', 'resourceCriticalVcpu', 'resourceWarnGiB', 'resourceWarnVcpu', 'runtimeBadgeEnabled', 'updatesMode', 'warnStoppedPercent']
 };
 
-test('Filter and view settings exposes the audited preference inventory', () => {
+test('Filter and view settings registry exposes the audited preference inventory', () => {
     const actual = {};
-    const bindingPattern = /(change(?:Visibility|Status|Badge|Runtime|Dashboard|Health)Pref)\('(?:docker|vm)',\s*'([^']+)'/g;
-    for (const match of page.matchAll(bindingPattern)) {
-        actual[match[1]] ||= new Set();
-        actual[match[1]].add(match[2]);
+    for (const definition of settingsRegistry.definitions.filter((entry) => entry.ui !== false)) {
+        actual[definition.handler] ||= new Set();
+        actual[definition.handler].add(definition.key);
     }
 
     for (const [handler, keys] of Object.entries(expectedPreferenceKeys)) {
         assert.deepEqual([...actual[handler]].sort(), keys, `${handler} settings changed without updating its audited contract`);
-        assert.match(settingsJs, new RegExp(`const ${handler} = async \\(`));
     }
+    const guard = spawnSync(process.execPath, ['scripts/filter_view_settings_guard.mjs'], { cwd: repoRoot, encoding: 'utf8' });
+    assert.equal(guard.status, 0, guard.stderr || guard.stdout);
 });
 
-test('all explicitly keyed settings handlers accept every key rendered by the page', () => {
-    for (const [handler, keys] of Object.entries(expectedPreferenceKeys)) {
-        if (handler === 'changeBadgePref') continue;
-        const start = settingsJs.indexOf(`const ${handler} = async (`);
-        assert.ok(start >= 0, `${handler} must exist`);
-        const end = settingsJs.indexOf('\nconst ', start + 1);
-        const body = settingsJs.slice(start, end >= 0 ? end : undefined);
-        for (const key of keys) {
-            if (handler === 'changeDashboardPref' && key.startsWith('privacyMask')) {
-                assert.match(body, /key\.startsWith\('privacyMask'\)/);
-            } else {
-                assert.match(body, new RegExp(`key === '${key}'`), `${handler} does not accept ${key}`);
-            }
+test('settings controller accepts registered changes, coerces values, and rejects undeclared keys', () => {
+    const controller = viewSettings.createChangeController({ registry: settingsRegistry }).start();
+    for (const definition of settingsRegistry.definitions) {
+        for (const type of definition.types) {
+            const input = definition.kind === 'boolean'
+                ? true
+                : (definition.kind === 'integer' ? Number(definition.max) + 100 : definition.values[0]);
+            const change = controller.resolve(definition.handler, type, definition.key, input);
+            assert.ok(change, `${definition.handler}/${type}/${definition.key} must resolve`);
+            assert.equal(change.storageKey, definition.storageKey);
+            if (definition.kind === 'boolean') assert.equal(change.value, true);
+            if (definition.kind === 'integer') assert.equal(change.value, definition.max);
+            if (definition.kind === 'enum') assert.equal(change.value, definition.values[0]);
         }
     }
-    assert.match(settingsJs, /const changeBadgePref = async \(type, badgeKey, checked\)[\s\S]*\[badgeKey\]: Boolean\(checked\)/);
+    assert.equal(controller.resolve('changeHealthPref', 'docker', 'notASetting', true), null);
+    assert.equal(controller.resolve('changeBadgePref', 'vm', 'updates', true), null);
+    controller.destroy();
+    assert.equal(controller.resolve('changeVisibilityPref', 'docker', 'hideEmptyFolders', true), null);
 });
 
 test('Docker advanced preview settings save immediately and are consumed by Dashboard previews', () => {
     for (const key of ['previewContext', 'previewTrigger', 'previewGraph', 'previewGraphTime']) {
-        assert.match(settingsJs, new RegExp(`key === '${key}' && type === 'docker'`));
+        const definition = settingsRegistry.getDefinition('changeDashboardPref', key, 'docker');
+        assert.ok(definition, `${key} must be registered for Docker`);
+        assert.equal(definition.liveApply, true);
         assert.match(dashboardJs, new RegExp(`dashboard\\.${key}`));
     }
-    assert.match(settingsJs, /key\.startsWith\('preview'\)/);
-    assert.match(settingsJs, /previewGraph = Number\.isFinite\(parsed\)[\s\S]*Math\.min\(4, Math\.max\(0, Math\.round\(parsed\)\)\)/);
-    assert.match(settingsJs, /previewGraphTime = Number\.isFinite\(parsed\)[\s\S]*Math\.min\(600, Math\.max\(5, Math\.round\(parsed\)\)\)/);
+    assert.equal(settingsRegistry.resolveChange('changeDashboardPref', 'docker', 'previewGraph', 99).value, 4);
+    assert.equal(settingsRegistry.resolveChange('changeDashboardPref', 'docker', 'previewGraphTime', 1).value, 5);
 });
 
 test('VM privacy has a persisted master activation and live runtime consumers', () => {

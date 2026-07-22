@@ -6,6 +6,7 @@ const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers ||
 const memberIdentityModule = window.FolderViewPlusMemberIdentity || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
 const vmRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('vm', {
     window,
@@ -334,6 +335,12 @@ if (
 } else {
     setVmFatalBannerModuleStatus('runtime.host-adapter.js', 'ok', 'VM host adapter ready');
 }
+if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !== 'function') {
+    vmBootstrapMissingModules.push('runtime.folder-ordering.js');
+    setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'missing', 'folder ordering contract unavailable');
+} else {
+    setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
+}
 if (
     window.FolderViewPlusVmRuntimeLifecycleModuleLoaded !== true
     || !vmLifecycleModule
@@ -446,7 +453,7 @@ const resolveVmRuntimePerformanceProfile = typeof runtimeShared.resolveRuntimePe
     });
 const createVmDeferredPreviewController = typeof runtimeShared.createDeferredPreviewController === 'function'
     ? runtimeShared.createDeferredPreviewController
-    : () => ({ defer: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+    : () => ({ start: () => {}, defer: () => false, refresh: () => {}, flush: () => {}, destroy: () => {}, snapshot: () => ({ active: false, pending: 0 }) });
 const vmDeferredPreviewController = createVmDeferredPreviewController();
 const vmRuntimeStateStore = createVmRuntimeStateStore({
     expandedFolderIds: [],
@@ -1967,20 +1974,19 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     // new folder is needed for not altering the old containers
     let newFolder = {};
 
-    // foldersDone is and array of only ids there is the need to add the 'folder-' in front
-    foldersDone = foldersDone.map(e => 'folder-'+e);
-
-    // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const customOrder = order.filter((e) => {
-        return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
+    const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
+        order,
+        completedFolderIds: foldersDone,
+        currentFolderId: id
     });
+    foldersDone = foldersDone.map(e => 'folder-'+e);
 
     const hiddenPreviewSet = new Set(Array.isArray(folder?.hiddenPreviewMembers) ? folder.hiddenPreviewMembers : []);
     // loop over the containers
     for (const container of combinedMembers) {
 
         // get both index, tis is needed for removing from the orders later
-        const index = customOrder.indexOf(container);
+        const index = customOrderCursor.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-preview', {detail: {
@@ -2009,7 +2015,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             }
 
             // remove the containers from the order
-            customOrder.splice(index, 1);
+            customOrderCursor.remove(container);
             order.splice(offsetIndex, 1);
 
             // add the id to the container name
@@ -3962,3 +3968,16 @@ addEventListener("keydown", (e) => {
         loadlist();
     }
 })
+
+window.addEventListener('pagehide', () => {
+    clearLiveRefreshTimer();
+    clearTimeout(queuedLoadlistTimer);
+    clearTimeout(vmRuntimeWidthReflowTimer);
+    clearTimeout(vmZebraRefreshTimer);
+    vmNativeDetailRowObserver?.disconnect?.();
+    if (vmNativeToggleClickHost instanceof HTMLTableElement) {
+        vmNativeToggleClickHost.removeEventListener('click', handleVmNativeToggleClick, true);
+    }
+    vmDeferredPreviewController.destroy();
+    runtimeHostAdapters?.release?.('vm', { window, restoreHooks: true });
+}, { once: true });

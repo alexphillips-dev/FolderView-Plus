@@ -128,7 +128,7 @@ test('VM resource threshold normalization preserves an ordered pair at maximum b
 
 test('settings rerender summary cards and runtime pages apply badge preference broadcasts live', () => {
     assert.match(settingsJs, /syncHealthSummaryVisibility\(host, normalizeHealthPrefs\(resolvedType\)\.cardsEnabled === true\)/);
-    assert.match(settingsJs, /Object\.assign\(nextHealth, applyHealthProfilePreset\(nextHealth, value\)\)/);
+    assert.match(settingsJs, /Object\.assign\(nextHealth, applyHealthProfilePreset\(nextHealth, change\.value\)\)/);
     assert.match(dockerJs, /const applyRuntimePrefs = \(prefs\) => \{[\s\S]*renderRuntimeHealthBadge\(globalFolders, normalized\);[\s\S]*scheduleLiveRefresh\(normalized\);/);
     assert.match(vmJs, /const applyRuntimePrefs = \(prefs\) => \{[\s\S]*renderRuntimeHealthBadge\(globalFolders, normalized\);[\s\S]*scheduleLiveRefresh\(normalized\);/);
 });

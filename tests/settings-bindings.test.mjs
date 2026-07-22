@@ -15,6 +15,7 @@ const settingsChromePath = path.join(repoRoot, 'src/folderview.plus/usr/local/em
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.view-settings.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
@@ -166,7 +167,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /folderviewplus\.prefs-store\.js/);
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);
     assert.match(script, /const patch = key === 'performanceProfile'[\s\S]*\? \{ performanceProfile: next\.performanceProfile, performanceMode: next\.performanceMode \}[\s\S]*: \{ \[key\]: next\[key\] \};/);
-    assert.match(script, /await updatePrefsPartial\(type, patch, \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{/);
     assert.match(script, /showError\('Runtime preference sync pending', error\);/);
     assert.match(script, /else if \(key === 'pageViewMode'\) \{/);
     assert.doesNotMatch(script, /runtimePrefsSaveStateByType/);
@@ -369,7 +370,7 @@ test('instant settings controls use partial prefs updates', () => {
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{\s*badges: \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ status: nextStatus \}, \{/);
     assert.match(script, /await updatePrefsPartial\(resolvedType, \{ health: nextHealth \}, \{/);
-    assert.match(script, /await updatePrefsPartial\(type, patch, \{/);
+    assert.match(script, /await updatePrefsPartial\(resolvedType, patch, \{/);
 });
 
 test('settings action buttons are explicitly non-submit buttons', () => {
@@ -593,7 +594,7 @@ test('filter and view settings use responsive cards with Docker scoring sliders 
     assert.match(page, /id="vm-resource-warn-vcpu"/);
     assert.match(page, /id="vm-resource-critical-gib"/);
     assert.match(script, /const syncViewSettingsRangeControls = \(type = ''\) =>/);
-    assert.match(script, /numberInput\.dispatchEvent\(new Event\('change', \{ bubbles: true \}\)\)/);
+    assert.match(script, /numberInput\?\.dispatchEvent\?\.\(new win\.Event\('change', \{ bubbles: true \}\)\)/);
     assert.match(settingsCss, /\.fv-view-settings-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
     assert.match(settingsCss, /@media \(max-width: 1450px\)[\s\S]*\.fv-view-settings-grid\s*\{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.fv-view-settings-grid\s*\{[\s\S]*minmax\(0, 1fr\)/);

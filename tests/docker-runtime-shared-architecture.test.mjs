@@ -44,6 +44,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const hostAdapterIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+    const orderingIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
     const runtimeInfoIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.info.js');
     const previewActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
@@ -65,6 +66,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter script include is missing');
+    assert.ok(orderingIndex >= 0, 'shared folder ordering script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
     assert.ok(runtimeInfoIndex >= 0, 'docker runtime info script include is missing');
     assert.ok(previewActionsIndex >= 0, 'docker preview actions script include is missing');
@@ -92,6 +94,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');
     assert.ok(hostAdapterIndex < hostGuardsIndex, 'shared host adapter must load before Docker host guards');
     assert.ok(hostAdapterIndex < runtimeIndex, 'shared host adapter must load before docker.js');
+    assert.ok(hostAdapterIndex < orderingIndex && orderingIndex < runtimeIndex, 'shared ordering must load after the host adapter and before docker.js');
     assert.ok(modulesIndex < runtimeInfoIndex, 'docker.modules.js must load before docker.runtime.info.js');
     assert.ok(runtimeInfoIndex < previewActionsIndex, 'docker.runtime.info.js must load before docker.runtime.preview-actions.js');
     assert.ok(previewActionsIndex < runtimeHierarchyIndex, 'docker preview action helpers must load before docker.runtime.hierarchy.js');

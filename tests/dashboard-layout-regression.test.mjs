@@ -153,7 +153,7 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /previewTrigger: dashboard\.previewTrigger === 'hover' \? 'hover' : 'click'/);
     assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
     assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
-    assert.match(settingsScript, /const dashboard = normalizeDashboardPrefsForType\(type, current\);/);
+    assert.match(settingsScript, /const dashboard = normalizeDashboardPrefsForType\(resolvedType, current\);/);
     assert.match(settingsScript, /dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}/);
     assert.match(settingsScript, /renderDashboardControls\(type\);/);
     assert.match(settingsScript, /const recordFatalBannerRequestResult = \(method, url, source, outcome, error = null\) =>/);

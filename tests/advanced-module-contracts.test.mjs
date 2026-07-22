@@ -46,7 +46,10 @@ test('advanced module loader uses per-module stale state with scoped tab targeti
 
 test('advanced search and bulk filter state are persisted as part of table ui state', () => {
     assert.match(script, /advancedSearch:\s*\{\s*byTab:\s*normalizeAdvancedSearchMap\(settingsUiState\.advancedSearchByTab\)/);
-    assert.match(script, /filtersByType\[resolvedType\] = \{\s*[\s\S]*bulk:\s*normalizedFilter\(perTypeFilters\.bulk\)/);
+    assert.match(script, /viewSettingsModule\?\.createUiStateStore\?\.\(/);
+    assert.match(script, /viewSettingsUiStateStore\?\.save\?\.\(buildTableUiStatePayload\(\)\)/);
+    assert.match(script, /const source = viewSettingsUiStateStore\?\.restore\?\.\(\)/);
+    assert.match(script, /filtersByType\[resolvedType\] = \{ \.\.\.source\.filters\[resolvedType\] \}/);
     assert.match(script, /const setSettingsSearchQuery = \(query\) => \{\s*settingsUiState\.query = normalizedFilter\(query\);/);
     assert.match(script, /writeActiveAdvancedSearchQuery\(settingsUiState\.query\);/);
     assert.match(script, /const setAdvancedTab = \(tab, persist = true\) => \{\s*settingsUiState\.advancedTab = normalizeAdvancedGroup\(tab\);[\s\S]*const nextQuery = readActiveAdvancedSearchQuery\(\);/);

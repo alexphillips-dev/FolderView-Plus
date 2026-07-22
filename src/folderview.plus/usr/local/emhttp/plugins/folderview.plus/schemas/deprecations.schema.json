@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "minimumStableReleasesBeforeRemoval": 2,
+  "entries": [
+    {
+      "id": "prefs.performanceMode",
+      "status": "compatibility",
+      "kind": "preference",
+      "legacyPattern": "\\bperformanceMode\\b",
+      "replacementSetting": "runtime.performanceProfile",
+      "announcedRelease": "2026.07.22.10",
+      "removalAfterRelease": null,
+      "sourceScopes": ["scripts/docker.runtime.shared.js", "scripts/folderviewplus.utils.js", "server/lib.prefs.php"],
+      "note": "Boolean input remains readable and is derived from the canonical performance profile when preferences are saved."
+    },
+    {
+      "id": "prefs.dashboard.privacyMaskContainerIps",
+      "status": "compatibility",
+      "kind": "preference",
+      "legacyPattern": "\\bprivacyMaskContainerIps\\b",
+      "replacementSetting": "dashboard.privacyMaskLocalIps",
+      "announcedRelease": "2026.07.22.10",
+      "removalAfterRelease": null,
+      "sourceScopes": ["scripts/folderviewplus.utils.js", "scripts/docker.js", "server/lib.prefs.php"],
+      "note": "The compatibility key remains readable for existing profiles but is intentionally hidden from the settings UI."
+    },
+    {
+      "id": "folder.regex",
+      "status": "deprecated",
+      "kind": "payload-field",
+      "legacyPattern": "\\bregex\\b",
+      "replacementContract": "Advanced Auto-Rules",
+      "announcedRelease": "2026.07.22.10",
+      "removalAfterRelease": null,
+      "sourceScopes": ["server/lib.php", "scripts/folder.editor.rules.js"],
+      "note": "Existing values remain readable, importable, backed up, and executable; this is not a removal notice."
+    },
+    {
+      "id": "health.compact",
+      "status": "removed",
+      "kind": "preference",
+      "announcedRelease": "2026.07.22.10",
+      "removedRelease": "2026.07.22.10",
+      "forbiddenPatterns": ["health-compact", "Compact card layout", "[\"']compact[\"']\\s*=>"],
+      "note": "The non-functional compact health-card option was removed instead of retaining a no-op preference."
+    },
+    {
+      "id": "prefs.folderEditorMode",
+      "status": "removed",
+      "kind": "preference",
+      "announcedRelease": "2026.07.22.10",
+      "removedRelease": "2026.07.22.10",
+      "forbiddenPatterns": ["\\bfolderEditorMode(?:Explicit)?\\b"],
+      "note": "The retired editor-mode preference is not accepted or emitted by the current preference contract."
+    }
+  ]
+}

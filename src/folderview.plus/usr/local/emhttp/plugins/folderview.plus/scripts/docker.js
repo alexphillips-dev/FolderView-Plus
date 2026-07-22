@@ -9,6 +9,7 @@ const runtimeSnapshotApi = window.FolderViewPlusRuntimeSnapshot || null;
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const runtimeHostAdapters = window.FolderViewPlusRuntimeHostAdapters || null;
+const runtimeFolderOrdering = window.FolderViewPlusRuntimeFolderOrdering || null;
 const runtimePerformanceTelemetryModule = window.FolderViewPlusRuntimePerformanceTelemetry || null;
 const dockerRuntimePerformanceTelemetry = runtimePerformanceTelemetryModule?.getOrCreate?.('docker', {
     window,
@@ -335,6 +336,12 @@ if (
 } else {
     setDockerFatalBannerModuleStatus('runtime.host-adapter.js', 'ok', 'Docker host adapter ready');
 }
+if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !== 'function') {
+    dockerBootstrapMissingModules.push('runtime.folder-ordering.js');
+    setDockerFatalBannerModuleStatus('runtime.folder-ordering.js', 'missing', 'folder ordering contract unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
+}
 if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
@@ -530,7 +537,7 @@ const resolveDockerRuntimePerformanceProfile = typeof dockerRuntimeShared.resolv
     });
 const createDockerDeferredPreviewController = typeof dockerRuntimeShared.createDeferredPreviewController === 'function'
     ? dockerRuntimeShared.createDeferredPreviewController
-    : () => ({ defer: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+    : () => ({ start: () => {}, defer: () => false, refresh: () => {}, flush: () => {}, destroy: () => {}, snapshot: () => ({ active: false, pending: 0 }) });
 const dockerDeferredPreviewController = createDockerDeferredPreviewController();
 const runtimeContracts = dockerRuntimeShared.runtimeContracts && typeof dockerRuntimeShared.runtimeContracts === 'object'
     ? dockerRuntimeShared.runtimeContracts
@@ -6101,11 +6108,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized newFolder for processed containers.`);
 
     // Preserve the saved folder order index in lifecycle event details for host integrations.
-    const mappedFoldersDone = foldersDone.map(e => 'folder-'+e);
-    const customOrder = orderSnapshotAtFolderStart.filter((e) => {
-        return e && (mappedFoldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
+    const customOrderCursor = runtimeFolderOrdering.createOrderCursor({
+        order: orderSnapshotAtFolderStart,
+        completedFolderIds: foldersDone,
+        currentFolderId: id
     });
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Filtered customOrder based on orderSnapshotAtFolderStart:`, [...customOrder]);
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Filtered customOrder based on orderSnapshotAtFolderStart:`, [...customOrderCursor.snapshot()]);
 
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Starting loop to process ${combinedContainers.length} combinedContainers.`);
@@ -6117,7 +6125,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] createFolder (id: ${id}): CRITICAL - Container info for '${container_name_in_folder}' not found in containersInfo! Skipping further processing for this container.`);
             continue; // Skip this container if info is missing
         }
-        const indexInCustomOrder = customOrder.indexOf(container_name_in_folder);
+        const indexInCustomOrder = customOrderCursor.indexOf(container_name_in_folder);
         const indexInLiveOrderArray = liveOrderArray.indexOf(container_name_in_folder);
 
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Processing container from combinedContainers: ${container_name_in_folder}`);
@@ -8783,6 +8791,20 @@ addEventListener("keydown", (e) => {
         loadlist();
     }
 });
+
+window.addEventListener('pagehide', () => {
+    clearLiveRefreshTimer();
+    clearTimeout(queuedLoadlistTimer);
+    clearTimeout(dockerRuntimeResizerBindTimer);
+    clearTimeout(dockerRuntimeResizerRetryTimer);
+    clearTimeout(dockerPinnedFolderServerReconcileTimer);
+    clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
+    clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
+    clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
+    dockerRuntimeResizerObserver?.disconnect?.();
+    dockerDeferredPreviewController.destroy();
+    runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
+}, { once: true });
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
 })(window, window.jQuery || window.$);

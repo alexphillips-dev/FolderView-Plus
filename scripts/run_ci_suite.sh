@@ -201,6 +201,10 @@ run_lane() {
   case "${lane}" in
     lint)
       run_timed_step settings-metadata-schema "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_settings_metadata.mjs")" --check
+      run_timed_step filter-view-settings-schema "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_filter_view_registry.mjs")" --check
+      run_timed_step filter-view-settings-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/filter_view_settings_guard.mjs")"
+      run_timed_step deprecation-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/deprecation_guard.mjs")"
+      run_timed_step architecture-contracts "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/architecture_contract_guard.mjs")"
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax

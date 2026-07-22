@@ -49,7 +49,7 @@ test('settings search provides field highlighting navigation feedback and reset 
 test('settings search keeps Basic and per-tab Advanced queries and hides irrelevant scope', () => {
     assert.match(settingsJs, /basicSearchQuery:\s*''/);
     assert.match(settingsJs, /basicQuery:\s*normalizedFilter\(settingsUiState\.basicSearchQuery\)/);
-    assert.match(settingsJs, /settingsUiState\.basicSearchQuery = normalizedFilter\(sourceAdvancedSearch\.basicQuery\)/);
+    assert.match(settingsJs, /settingsUiState\.basicSearchQuery = source\.advancedSearch\.basicQuery/);
     assert.match(settingsJs, /writeActiveAdvancedSearchQuery\(settingsUiState\.query\)/);
     assert.match(settingsJs, /settingsUiState\.mode === 'advanced' && settingsUiState\.searchAllAdvanced !== true/);
     assert.match(settingsCss, /#fv-settings-topbar\[data-fv-mode="basic"\] \.fv-search-scope\s*\{[\s\S]*display:\s*none/);

@@ -721,11 +721,19 @@
     const createDeferredPreviewController = (options = {}) => {
         const pending = new Map();
         const rootMargin = String(options.rootMargin || '480px 0px');
+        let active = true;
+        const removeInteractionListeners = (entry) => {
+            if (!entry?.interactionTarget || !entry.hydrateOnInteraction) return;
+            entry.interactionTarget.removeEventListener('pointerenter', entry.hydrateOnInteraction);
+            entry.interactionTarget.removeEventListener('focusin', entry.hydrateOnInteraction);
+            entry.interactionTarget.removeEventListener('click', entry.hydrateOnInteraction);
+        };
         const hydrate = (target) => {
             const entry = pending.get(target);
             if (!entry) return false;
             pending.delete(target);
             observer?.unobserve(target);
+            removeInteractionListeners(entry);
             entry.placeholder?.remove();
             target.appendChild(entry.fragment);
             target.classList.remove('fv-preview-deferred');
@@ -741,7 +749,7 @@
             }, { root: null, rootMargin, threshold: 0 })
             : null;
         const defer = (target, metadata = {}) => {
-            if (!(target instanceof Element) || pending.has(target) || target.childNodes.length === 0) return false;
+            if (!active || !(target instanceof Element) || pending.has(target) || target.childNodes.length === 0) return false;
             const interactionTarget = metadata.interactionTarget instanceof Element ? metadata.interactionTarget : target;
             if (typeof interactionTarget.getBoundingClientRect === 'function') {
                 const rect = interactionTarget.getBoundingClientRect();
@@ -756,8 +764,14 @@
             target.appendChild(placeholder);
             target.classList.add('fv-preview-deferred');
             target.setAttribute('data-fv-preview-hydrated', '0');
-            pending.set(target, { fragment, placeholder, onHydrated: metadata.onHydrated });
             const hydrateOnInteraction = () => hydrate(target);
+            pending.set(target, {
+                fragment,
+                placeholder,
+                onHydrated: metadata.onHydrated,
+                interactionTarget,
+                hydrateOnInteraction
+            });
             interactionTarget.addEventListener('pointerenter', hydrateOnInteraction, { once: true, passive: true });
             interactionTarget.addEventListener('focusin', hydrateOnInteraction, { once: true });
             interactionTarget.addEventListener('click', hydrateOnInteraction, { once: true });
@@ -766,8 +780,19 @@
             return true;
         };
         const flush = () => Array.from(pending.keys()).forEach((target) => hydrate(target));
-        const snapshot = () => Object.freeze({ pending: pending.size, rootMargin });
-        return Object.freeze({ defer, flush, snapshot });
+        const start = () => {
+            active = true;
+            return api;
+        };
+        const refresh = () => flush();
+        const destroy = () => {
+            flush();
+            observer?.disconnect();
+            active = false;
+        };
+        const snapshot = () => Object.freeze({ active, pending: pending.size, rootMargin });
+        const api = Object.freeze({ start, defer, refresh, flush, destroy, snapshot });
+        return api;
     };
 
     /**

@@ -20,6 +20,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const hostAdapterIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
+    const orderingIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
     const lifecycleIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
     const themeTokensCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
@@ -31,6 +32,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter include missing from VMs page');
+    assert.ok(orderingIndex >= 0, 'shared folder ordering include missing from VMs page');
     assert.ok(lifecycleIndex >= 0, 'VM lifecycle coordinator include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
     assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet missing from VMs page');
@@ -45,6 +47,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(hostAdapterIndex < runtimeIndex, 'shared host adapter must load before vm.js');
+    assert.ok(hostAdapterIndex < orderingIndex && orderingIndex < runtimeIndex, 'shared ordering must load after the host adapter and before vm.js');
     assert.ok(lifecycleIndex < runtimeIndex, 'VM lifecycle coordinator must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');
     assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');

@@ -58,6 +58,8 @@ const expectedOrder = [
   'folderviewplus.chrome.js',
   'folderviewplus.dirty.js',
   'folderviewplus.runtime-parity.js',
+  'folderviewplus.settings-registry.js',
+  'folderviewplus.view-settings.js',
   'folderviewplus.settings-metadata.js',
   'folderviewplus.settings-sections.js',
   'folderviewplus.settings-table.js',

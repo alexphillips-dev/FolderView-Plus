@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "moduleContracts": [
+    {
+      "file": "scripts/folderviewplus.settings-registry.js",
+      "global": "FolderViewPlusSettingsRegistry",
+      "moduleLoaded": "FolderViewPlusSettingsRegistryModuleLoaded",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["schemaVersion", "definitions", "normalizeType", "getDefinition", "coerceValue", "resolveChange"]
+    },
+    {
+      "file": "scripts/folderviewplus.view-settings.js",
+      "global": "FolderViewPlusViewSettings",
+      "moduleLoaded": "FolderViewPlusViewSettingsModuleLoaded",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["normalizeType", "createChangeController", "createRangeControlLifecycle", "normalizeUiState", "createUiStateStore"],
+      "lifecycleFactories": [
+        { "name": "createChangeController", "exports": ["start", "destroy", "snapshot"] },
+        { "name": "createRangeControlLifecycle", "exports": ["start", "refresh", "destroy", "snapshot"] },
+        { "name": "createUiStateStore", "exports": ["start", "destroy", "snapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/folderviewplus.settings-table.js",
+      "global": "FolderViewPlusSettingsTable",
+      "moduleLoaded": "FolderViewPlusSettingsTableModuleLoaded",
+      "loader": "commonjs",
+      "exports": ["normalizeSettingsTableColumnWidthPreset", "normalizeSettingsTablePreset", "buildPresetColumnVisibilityForType", "normalizeColumnVisibilityForType", "normalizeSingleColumnWidth", "buildEffectiveSettingsTableWidths"]
+    },
+    {
+      "file": "scripts/folderviewplus.settings-health.js",
+      "global": "FolderViewPlusSettingsHealth",
+      "moduleLoaded": "FolderViewPlusSettingsHealthModuleLoaded",
+      "loader": "commonjs",
+      "exports": ["createApi", "applyHealthProfilePreset", "syncHealthSummaryVisibility", "classifyDockerFolderHealth"],
+      "apiFactory": "createApi",
+      "apiExports": ["buildStatusSnapshot", "collectVmFolderResources", "evaluateVmResourceBadge", "buildTypeHealthMetrics"]
+    },
+    {
+      "file": "scripts/runtime.host-adapter.js",
+      "global": "FolderViewPlusRuntimeHostAdapters",
+      "moduleLoaded": "FolderViewPlusRuntimeHostAdaptersModuleLoaded",
+      "loader": "commonjs",
+      "exports": ["CONTRACTS", "normalizeType", "createHostAdapter", "getOrCreate", "release"],
+      "apiFactory": "createHostAdapter",
+      "apiFactoryArgs": ["docker"],
+      "apiExports": ["ensureStructure", "observeRows", "disconnectObservers", "dispose", "getSnapshot"],
+      "lifecycleFactories": [
+        { "name": "createHostAdapter", "args": ["docker"], "exports": ["disconnectObservers", "dispose", "getSnapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/runtime.folder-ordering.js",
+      "global": "FolderViewPlusRuntimeFolderOrdering",
+      "moduleLoaded": "FolderViewPlusRuntimeFolderOrderingModuleLoaded",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["normalizeFolderToken", "isFolderToken", "buildCustomOrder", "createOrderCursor"],
+      "lifecycleFactories": [
+        { "name": "createOrderCursor", "exports": ["destroy", "snapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.shared.js",
+      "global": "FolderViewDockerRuntimeShared",
+      "loader": "window",
+      "exports": ["createRuntimeStateStore", "createAsyncActionBoundary", "createContextMenuQuickStripAdapter", "createRuntimePerfTelemetry", "createDeferredPreviewController", "resolveRuntimePerformanceProfile"],
+      "apiFactory": "createDeferredPreviewController",
+      "apiExports": ["start", "defer", "refresh", "flush", "destroy", "snapshot"],
+      "lifecycleFactories": [
+        { "name": "createDeferredPreviewController", "exports": ["start", "refresh", "destroy", "snapshot"] }
+      ]
+    }
+  ],
+  "browserGlobals": {
+    "namespacePrefixes": ["FolderViewPlus", "FolderViewDocker", "FolderViewIconPickerRuntime", "FolderViewIconPicker"],
+    "multiOwnerGlobals": ["FolderViewPlusDockerCommandViewModuleLoaded", "FolderViewPlusEnsureAccentControlPlacement", "FolderViewPlusFatalRuntimeContext", "FolderViewPlusFolderEditorRuntimeBootStage", "FolderViewPlusFolderEditorRuntimeLastError", "FolderViewPlusFolderEditorRuntimeLoaded", "FolderViewPlusMemberIdentityDiagnostics", "FolderViewPlusRefreshModernEditorChromeLayout", "FolderViewPlusReportFolderEditorBootstrap", "FolderViewPlusRevealModernEditorStage"],
+    "ambientFallbacks": ["CustomEvent", "EventSource", "IntersectionObserver", "WebSocket", "alert", "cancelAnimationFrame", "className", "fetch", "getComputedStyle", "hidden", "id", "innerHTML", "matchMedia", "name", "querySelectorAll", "requestAnimationFrame", "requestIdleCallback", "swal"],
+    "hostCompatibilityGlobals": ["addDockerContainerContext", "addDockerFolderContext", "addVMContext", "addVMFolderContext", "ajaxVMDispatch", "ajaxVMDispatchconsole", "ajaxVMDispatchconsoleRV", "eventControl", "expandFolderDocker", "expandFolderVM", "folderi18n", "fvplusCpuCores", "listview", "listview_original", "loadlist", "loadlist_original", "openDocker", "openTerminal"],
+    "bridgeFiles": ["folderviewplus.activity-diagnostics.js", "folderviewplus.folder-editor.js", "folderviewplus.runtime-parity.js", "folderviewplus.settings-sections.js", "folderviewplus.setup-assistant.js", "folderviewplus.smart-detect-config.js", "folderviewplus.starter-templates.js"],
+    "diagnosticGlobals": ["getDashboardRuntimePerformancePolicySnapshot", "getDashboardRuntimePerformanceTelemetrySnapshot", "getDockerHostAdapterSnapshot", "getDockerRuntimePerfTelemetrySnapshot", "getDockerRuntimePerformancePolicySnapshot", "getDockerRuntimeWidthDebugSnapshot", "getFolderViewPlusDashboardHostSnapshot", "getVmHostAdapterSnapshot", "getVmLifecycleDiagnosticsSnapshot", "getVmRuntimePerfTelemetrySnapshot", "getVmRuntimePerformancePolicySnapshot", "getVmRuntimeStateSnapshot", "toggleDockerRuntimeWidthDebug"],
+    "runtimeUiGlobals": ["resetPreviewBarDefaults", "resetStatusColorDefaults", "toggleDockerFolderFocus", "toggleDockerFolderLock", "toggleDockerFolderPin"],
+    "removedGlobals": ["syncDockerOrder", "resetDockerOrganizerSync", "scanFolderTreeIntegrity", "setHealthFolderFilter"]
+  }
+}

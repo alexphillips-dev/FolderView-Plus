@@ -56,6 +56,12 @@ const configureThemeResolverRuntimeApi = (options = {}) => {
 };
 const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
+const settingsRegistry = window.FolderViewPlusSettingsRegistry || null;
+const viewSettingsModule = window.FolderViewPlusViewSettings || null;
+const viewSettingsChangeController = viewSettingsModule?.createChangeController?.({ registry: settingsRegistry })?.start?.() || null;
+const resolveViewSettingsChange = (handler, type, key, value, fallback) => (
+    viewSettingsChangeController?.resolve?.(handler, type, key, value, fallback) || null
+);
 const settingsMetadata = window.FolderViewPlusSettingsMetadata || null;
 const settingsTableModule = window.FolderViewPlusSettingsTable || null;
 const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport || null;
@@ -347,6 +353,18 @@ if (window.FolderViewPlusRuntimeParityModuleLoaded !== true) {
     setFatalBannerModuleStatus('folderviewplus.runtime-parity.js', 'missing');
 } else {
     setFatalBannerModuleStatus('folderviewplus.runtime-parity.js', 'ok');
+}
+if (!settingsRegistry || typeof settingsRegistry.resolveChange !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-registry.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-registry.js', 'missing', 'Filter/View registry unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-registry.js', 'ok', `${settingsRegistry.definitions.length} settings registered`);
+}
+if (!viewSettingsModule || typeof viewSettingsModule.createUiStateStore !== 'function' || !viewSettingsChangeController) {
+    bootstrapMissingModules.push('folderviewplus.view-settings.js');
+    setFatalBannerModuleStatus('folderviewplus.view-settings.js', 'missing', 'view settings controller unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.view-settings.js', 'ok', 'view settings lifecycle ready');
 }
 if (!settingsMetadata || !settingsMetadata.SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE) {
     bootstrapMissingModules.push('folderviewplus.settings-metadata.js');
@@ -4472,67 +4490,46 @@ const buildTableUiStatePayload = () => ({
     }
 });
 
-const persistTableUiState = () => {
-    try {
-        writeSettingsStorage(TABLE_UI_STATE_STORAGE_KEY, JSON.stringify(buildTableUiStatePayload()), { delayMs: 90, idle: true });
-    } catch (_error) {
-        // Ignore storage failures; UI continues with runtime state only.
+const viewSettingsUiStateStore = viewSettingsModule?.createUiStateStore?.({
+    storage: window.localStorage,
+    writer: settingsStorageWriter,
+    storageKey: TABLE_UI_STATE_STORAGE_KEY,
+    normalizers: {
+        filter: normalizedFilter,
+        quick: normalizeQuickFolderFilterMode,
+        healthSeverity: normalizeHealthSeverityFilterMode,
+        advancedSearchMap: normalizeAdvancedSearchMap
     }
+})?.start?.() || null;
+
+const persistTableUiState = () => {
+    viewSettingsUiStateStore?.save?.(buildTableUiStatePayload());
 };
 
 const restoreTableUiState = () => {
-    try {
-        const raw = localStorage.getItem(TABLE_UI_STATE_STORAGE_KEY);
-        if (!raw) {
-            return;
-        }
-        const parsed = JSON.parse(raw);
-        const source = parsed && typeof parsed === 'object' ? parsed : {};
-        const sourceFilters = source.filters && typeof source.filters === 'object' ? source.filters : {};
-        const sourceQuick = source.quick && typeof source.quick === 'object' ? source.quick : {};
-        const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
-        const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
-        const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
-        const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
-        ['docker', 'vm'].forEach((resolvedType) => {
-            const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
-                ? sourceFilters[resolvedType]
-                : {};
-            filtersByType[resolvedType] = {
-                folders: normalizedFilter(perTypeFilters.folders),
-                rules: normalizedFilter(perTypeFilters.rules),
-                backups: normalizedFilter(perTypeFilters.backups),
-                templates: normalizedFilter(perTypeFilters.templates),
-                bulk: normalizedFilter(perTypeFilters.bulk)
-            };
-            quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
-            healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
-            // Status filters are intentionally session-only. Older Status Details
-            // popups persisted this value and could make saved folders appear missing.
-            statusFilterByType[resolvedType] = 'all';
-            collapsedTreeParentsByType[resolvedType] = new Set(
-                Array.isArray(sourceTreeCollapsed[resolvedType])
-                    ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
-                    : []
-            );
-            mobileTreeReorderModeByType[resolvedType] = sourceTreeReorderMode[resolvedType] === true;
-        });
-        settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
-            sourceAdvancedSearch.byTab || sourceAdvancedSearch.queryByTab || {}
-        );
-        settingsUiState.basicSearchQuery = normalizedFilter(sourceAdvancedSearch.basicQuery);
-        if (typeof sourceAdvancedSearch.query === 'string') {
-            settingsUiState.query = normalizedFilter(sourceAdvancedSearch.query);
-        } else if (settingsUiState.mode === 'advanced') {
-            settingsUiState.query = readActiveAdvancedSearchQuery();
-        }
-        if (sourceAdvancedSearch.searchAll === true || sourceAdvancedSearch.searchAll === false) {
-            settingsUiState.searchAllAdvanced = sourceAdvancedSearch.searchAll === true;
-        }
-        dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
-    } catch (_error) {
-        // Ignore parse/storage failures; fall back to defaults.
+    const source = viewSettingsUiStateStore?.restore?.();
+    if (!source) {
+        return;
     }
+    ['docker', 'vm'].forEach((resolvedType) => {
+        filtersByType[resolvedType] = { ...source.filters[resolvedType] };
+        quickFolderFilterByType[resolvedType] = source.quick[resolvedType];
+        healthSeverityFilterByType[resolvedType] = source.healthSeverity[resolvedType];
+        // Status filters are intentionally session-only. Older Status Details
+        // popups persisted this value and could make saved folders appear missing.
+        statusFilterByType[resolvedType] = 'all';
+        collapsedTreeParentsByType[resolvedType] = new Set(source.treeCollapsed[resolvedType]);
+        mobileTreeReorderModeByType[resolvedType] = source.treeReorderMode[resolvedType] === true;
+    });
+    settingsUiState.advancedSearchByTab = source.advancedSearch.byTab;
+    settingsUiState.basicSearchQuery = source.advancedSearch.basicQuery;
+    if (typeof source.advancedSearch.query === 'string') {
+        settingsUiState.query = source.advancedSearch.query;
+    } else if (settingsUiState.mode === 'advanced') {
+        settingsUiState.query = readActiveAdvancedSearchQuery();
+    }
+    settingsUiState.searchAllAdvanced = source.advancedSearch.searchAll === true;
+    dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
 };
 
 const applyColumnVisibility = (type) => {
@@ -7553,60 +7550,14 @@ const renderRuntimeControls = (type) => {
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
 };
 
-let viewSettingsRangeControlsBound = false;
-
-const updateViewSettingsRangeValue = (range, value) => {
-    if (!(range instanceof HTMLInputElement)) {
-        return;
-    }
-    const min = Number(range.min || 0);
-    const max = Number(range.max || 100);
-    const nextValue = Math.max(min, Math.min(max, Number(value) || 0));
-    range.value = String(nextValue);
-    range.style.setProperty('--fv-range-percent', `${max > min ? ((nextValue - min) / (max - min)) * 100 : 0}%`);
-};
-
-const syncViewSettingsRangeControls = (type = '') => {
-    const prefix = type ? `${type}-` : '';
-    document.querySelectorAll('[data-fv-number-target]').forEach((range) => {
-        const targetId = String(range.dataset.fvNumberTarget || '');
-        if (prefix && !targetId.startsWith(prefix)) {
-            return;
-        }
-        const numberInput = document.getElementById(targetId);
-        if (numberInput) {
-            updateViewSettingsRangeValue(range, numberInput.value);
-        }
-    });
-};
-
-const bindViewSettingsRangeControls = () => {
-    if (viewSettingsRangeControlsBound) {
-        return;
-    }
-    viewSettingsRangeControlsBound = true;
-    $(document)
-        .on('input.fvViewSettingsRange', '[data-fv-number-target]', function () {
-            const numberInput = document.getElementById(String(this.dataset.fvNumberTarget || ''));
-            if (!numberInput) {
-                return;
-            }
-            numberInput.value = this.value;
-            updateViewSettingsRangeValue(this, this.value);
-        })
-        .on('change.fvViewSettingsRange', '[data-fv-number-target]', function () {
-            const numberInput = document.getElementById(String(this.dataset.fvNumberTarget || ''));
-            if (numberInput) {
-                numberInput.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        })
-        .on('input.fvViewSettingsRange', '.fv-setting-range-control > input[type="number"]', function () {
-            const range = this.parentElement?.querySelector(`[data-fv-number-target="${this.id}"]`);
-            if (range) {
-                updateViewSettingsRangeValue(range, this.value);
-            }
-        });
-};
+const viewSettingsRangeLifecycle = viewSettingsModule?.createRangeControlLifecycle?.({ window, document, $ }) || null;
+const syncViewSettingsRangeControls = (type = '') => viewSettingsRangeLifecycle?.refresh?.(type);
+const bindViewSettingsRangeControls = () => viewSettingsRangeLifecycle?.start?.();
+window.addEventListener('pagehide', () => {
+    viewSettingsRangeLifecycle?.destroy?.();
+    viewSettingsUiStateStore?.destroy?.();
+    viewSettingsChangeController?.destroy?.();
+}, { once: true });
 
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
@@ -10341,10 +10292,14 @@ const saveCurrentFolderOrderAsManual = async (type) => {
 
 const changeBadgePref = async (type, badgeKey, checked) => {
     const resolvedType = normalizeManagedType(type);
+    const change = resolveViewSettingsChange('changeBadgePref', resolvedType, badgeKey, checked);
+    if (!change) {
+        return;
+    }
     const current = utils.normalizePrefs(prefsByType[resolvedType]);
     const nextBadges = {
         ...current.badges,
-        [badgeKey]: Boolean(checked)
+        [change.storageKey]: change.value
     };
     try {
         await updatePrefsPartial(resolvedType, {
@@ -10361,13 +10316,16 @@ const changeBadgePref = async (type, badgeKey, checked) => {
 
 const changeVisibilityPref = async (type, key, value) => {
     const resolvedType = normalizeManagedType(type);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const change = resolveViewSettingsChange('changeVisibilityPref', resolvedType, key, value, current[key]);
+    if (!change) {
+        return;
+    }
     const patch = {};
     if (key === 'hideEmptyFolders') {
-        patch.hideEmptyFolders = value === true;
+        patch.hideEmptyFolders = change.value;
     } else if (key === 'appColumnWidth') {
-        patch.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
-            ? utils.normalizeAppColumnWidth(value)
-            : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
+        patch.appColumnWidth = change.value;
     } else {
         return;
     }
@@ -10388,23 +10346,24 @@ const changeStatusPref = async (type, key, value) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const current = utils.normalizePrefs(prefsByType[resolvedType]);
     const currentStatus = normalizeStatusPrefs(resolvedType, current);
+    const change = resolveViewSettingsChange('changeStatusPref', resolvedType, key, value, currentStatus[key]);
+    if (!change) {
+        return;
+    }
     const nextStatus = {
         ...currentStatus
     };
 
     if (key === 'mode') {
-        nextStatus.mode = normalizeStatusMode(value);
+        nextStatus.mode = change.value;
     } else if (key === 'displayMode') {
-        nextStatus.displayMode = normalizeStatusDisplayMode(value);
+        nextStatus.displayMode = change.value;
     } else if (key === 'trendEnabled') {
-        nextStatus.trendEnabled = value === true;
+        nextStatus.trendEnabled = change.value;
     } else if (key === 'attentionAccent') {
-        nextStatus.attentionAccent = value === true;
+        nextStatus.attentionAccent = change.value;
     } else if (key === 'warnStoppedPercent') {
-        const parsed = Number(value);
-        nextStatus.warnStoppedPercent = Number.isFinite(parsed)
-            ? Math.min(100, Math.max(0, Math.round(parsed)))
-            : currentStatus.warnStoppedPercent;
+        nextStatus.warnStoppedPercent = change.value;
     } else {
         return;
     }
@@ -10508,50 +10467,37 @@ const changeHealthPref = async (type, key, value) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const current = utils.normalizePrefs(prefsByType[resolvedType]);
     const currentHealth = normalizeHealthPrefs(resolvedType, current);
+    const healthFallback = currentHealth[settingsRegistry?.getDefinition?.('changeHealthPref', key, resolvedType)?.storageKey || key];
+    const change = resolveViewSettingsChange('changeHealthPref', resolvedType, key, value, healthFallback);
+    if (!change) {
+        return;
+    }
     const nextHealth = {
         ...currentHealth
     };
 
     if (key === 'cardsEnabled') {
-        nextHealth.cardsEnabled = value === true;
+        nextHealth.cardsEnabled = change.value;
     } else if (key === 'runtimeBadgeEnabled') {
-        nextHealth.runtimeBadgeEnabled = value === true;
+        nextHealth.runtimeBadgeEnabled = change.value;
     } else if (key === 'warnStoppedPercent') {
-        const parsed = Number(value);
-        nextHealth.warnStoppedPercent = Number.isFinite(parsed)
-            ? Math.min(100, Math.max(0, Math.round(parsed)))
-            : currentHealth.warnStoppedPercent;
+        nextHealth.warnStoppedPercent = change.value;
     } else if (key === 'criticalStoppedPercent') {
-        const parsed = Number(value);
-        nextHealth.criticalStoppedPercent = Number.isFinite(parsed)
-            ? Math.min(100, Math.max(0, Math.round(parsed)))
-            : currentHealth.criticalStoppedPercent;
+        nextHealth.criticalStoppedPercent = change.value;
     } else if (key === 'profile') {
-        Object.assign(nextHealth, applyHealthProfilePreset(nextHealth, value));
+        Object.assign(nextHealth, applyHealthProfilePreset(nextHealth, change.value));
     } else if (key === 'updatesMode') {
-        nextHealth.updatesMode = normalizeHealthUpdatesMode(value, currentHealth.updatesMode);
+        nextHealth.updatesMode = change.value;
     } else if (key === 'allStoppedMode') {
-        nextHealth.allStoppedMode = normalizeHealthAllStoppedMode(value, currentHealth.allStoppedMode);
+        nextHealth.allStoppedMode = change.value;
     } else if (key === 'resourceWarnVcpu') {
-        const parsed = Number(value);
-        nextHealth.vmResourceWarnVcpus = Number.isFinite(parsed)
-            ? Math.min(512, Math.max(1, Math.round(parsed)))
-            : currentHealth.vmResourceWarnVcpus;
+        nextHealth.vmResourceWarnVcpus = change.value;
     } else if (key === 'resourceCriticalVcpu') {
-        const parsed = Number(value);
-        nextHealth.vmResourceCriticalVcpus = Number.isFinite(parsed)
-            ? Math.min(512, Math.max(1, Math.round(parsed)))
-            : currentHealth.vmResourceCriticalVcpus;
+        nextHealth.vmResourceCriticalVcpus = change.value;
     } else if (key === 'resourceWarnGiB') {
-        const parsed = Number(value);
-        nextHealth.vmResourceWarnGiB = Number.isFinite(parsed)
-            ? Math.min(1024, Math.max(1, Math.round(parsed)))
-            : currentHealth.vmResourceWarnGiB;
+        nextHealth.vmResourceWarnGiB = change.value;
     } else if (key === 'resourceCriticalGiB') {
-        const parsed = Number(value);
-        nextHealth.vmResourceCriticalGiB = Number.isFinite(parsed)
-            ? Math.min(1024, Math.max(1, Math.round(parsed)))
-            : currentHealth.vmResourceCriticalGiB;
+        nextHealth.vmResourceCriticalGiB = change.value;
     } else {
         return;
     }
@@ -10613,49 +10559,48 @@ const toggleFolderPin = async (type, folderId) => {
 };
 
 const changeRuntimePref = async (type, key, value) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const change = resolveViewSettingsChange('changeRuntimePref', resolvedType, key, value, current[key]);
+    if (!change) {
+        return;
+    }
     const next = {
         ...current
     };
     if (key === 'liveRefreshEnabled') {
-        next.liveRefreshEnabled = value === true;
+        next.liveRefreshEnabled = change.value;
     } else if (key === 'liveRefreshSeconds') {
-        const parsed = Number(value);
-        next.liveRefreshSeconds = Number.isFinite(parsed) ? Math.min(300, Math.max(10, Math.round(parsed))) : current.liveRefreshSeconds;
+        next.liveRefreshSeconds = change.value;
     } else if (key === 'performanceProfile') {
-        const profile = typeof utils.normalizePerformanceProfile === 'function'
-            ? utils.normalizePerformanceProfile(value, false)
-            : (['adaptive', 'maximum'].includes(String(value || '').toLowerCase()) ? String(value).toLowerCase() : 'standard');
+        const profile = change.value;
         next.performanceProfile = profile;
         next.performanceMode = profile !== 'standard';
     } else if (key === 'lazyPreviewEnabled') {
-        next.lazyPreviewEnabled = value === true;
+        next.lazyPreviewEnabled = change.value;
     } else if (key === 'lazyPreviewThreshold') {
-        const parsed = Number(value);
-        next.lazyPreviewThreshold = Number.isFinite(parsed) ? Math.min(200, Math.max(10, Math.round(parsed))) : current.lazyPreviewThreshold;
+        next.lazyPreviewThreshold = change.value;
     } else if (key === 'pageViewMode') {
-        next.pageViewMode = typeof utils.normalizeRuntimePageViewMode === 'function'
-            ? utils.normalizeRuntimePageViewMode(value)
-            : (['host', 'command'].includes(String(value || '').trim().toLowerCase()) ? String(value || '').trim().toLowerCase() : 'folderview');
+        next.pageViewMode = change.value;
     } else if (key === 'themeCompatibilityMode') {
-        next.themeCompatibilityMode = resolveThemeCompatibilityMode(value);
+        next.themeCompatibilityMode = change.value;
     } else {
         return;
     }
 
     if (key === 'liveRefreshEnabled' || key === 'lazyPreviewEnabled') {
-        syncRuntimeDependentFields(type);
+        syncRuntimeDependentFields(resolvedType);
     }
     try {
         const patch = key === 'performanceProfile'
             ? { performanceProfile: next.performanceProfile, performanceMode: next.performanceMode }
             : { [key]: next[key] };
-        await updatePrefsPartial(type, patch, {
-            render: () => renderRuntimeControls(type),
+        await updatePrefsPartial(resolvedType, patch, {
+            render: () => renderRuntimeControls(resolvedType),
             onCommitted: () => {
                 if (key === 'themeCompatibilityMode') {
-                    applySettingsResolvedThemeTokens(`pref-${type}`);
-                    queueSettingsThemeAwareReflow(`theme-compat-${type}`);
+                    applySettingsResolvedThemeTokens(`pref-${resolvedType}`);
+                    queueSettingsThemeAwareReflow(`theme-compat-${resolvedType}`);
                 }
             }
         });
@@ -10665,59 +10610,38 @@ const changeRuntimePref = async (type, key, value) => {
 };
 
 const changeDashboardPref = async (type, key, value) => {
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const dashboard = normalizeDashboardPrefsForType(type, current);
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const dashboard = normalizeDashboardPrefsForType(resolvedType, current);
+    const change = resolveViewSettingsChange('changeDashboardPref', resolvedType, key, value, dashboard[key]);
+    if (!change) {
+        return;
+    }
     const previousLayout = dashboard.layout;
     const nextDashboard = {
         ...dashboard
     };
 
     if (key === 'layout') {
-        const normalizeLayout = typeof utils.normalizeDashboardLayout === 'function'
-            ? utils.normalizeDashboardLayout
-            : ((layoutValue) => {
-                const normalized = String(layoutValue || '').trim().toLowerCase();
-                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'].includes(normalized) ? normalized : 'classic';
-            });
-        nextDashboard.layout = normalizeLayout(value);
+        nextDashboard.layout = change.value;
     } else if (key === 'expandToggle') {
-        nextDashboard.expandToggle = value === true;
+        nextDashboard.expandToggle = change.value;
     } else if (key === 'greyscale') {
-        nextDashboard.greyscale = value === true;
+        nextDashboard.greyscale = change.value;
     } else if (key === 'folderLabel') {
-        nextDashboard.folderLabel = value === true;
-    } else if (key === 'previewContext' && type === 'docker') {
-        nextDashboard.previewContext = String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'native';
-    } else if (key === 'previewTrigger' && type === 'docker') {
-        nextDashboard.previewTrigger = String(value || '').trim().toLowerCase() === 'hover' ? 'hover' : 'click';
-    } else if (key === 'previewGraph' && type === 'docker') {
-        const parsed = Number(value);
-        nextDashboard.previewGraph = Number.isFinite(parsed)
-            ? Math.min(4, Math.max(0, Math.round(parsed)))
-            : dashboard.previewGraph;
-    } else if (key === 'previewGraphTime' && type === 'docker') {
-        const parsed = Number(value);
-        nextDashboard.previewGraphTime = Number.isFinite(parsed)
-            ? Math.min(600, Math.max(5, Math.round(parsed)))
-            : dashboard.previewGraphTime;
+        nextDashboard.folderLabel = change.value;
+    } else if (key.startsWith('preview')) {
+        nextDashboard[key] = change.value;
     } else if (key === 'privacyMode') {
-        nextDashboard.privacyMode = value === true;
-    } else if (key === 'privacyMaskNames') {
-        nextDashboard.privacyMaskNames = value === true;
-    } else if (key === 'privacyMaskContainerIps' && type === 'docker') {
-        nextDashboard.privacyMaskContainerIps = value === true;
-    } else if (key === 'privacyMaskLocalIps' && type === 'docker') {
-        nextDashboard.privacyMaskLocalIps = value === true;
-    } else if (key === 'privacyMaskPorts' && type === 'docker') {
-        nextDashboard.privacyMaskPorts = value === true;
+        nextDashboard.privacyMode = change.value;
     } else if (key.startsWith('privacyMask')) {
-        nextDashboard[key] = value === true;
+        nextDashboard[key] = change.value;
     } else {
         return;
     }
 
     if (key === 'layout' && nextDashboard.layout !== previousLayout) {
-        recordSettingsDashboardLayoutTransition(type, {
+        recordSettingsDashboardLayoutTransition(resolvedType, {
             requestedLayout: nextDashboard.layout,
             previousLayout,
             committedLayout: null,
@@ -10728,18 +10652,18 @@ const changeDashboardPref = async (type, key, value) => {
     }
 
     try {
-        const savedPrefs = await updatePrefsPartial(type, {
+        const savedPrefs = await updatePrefsPartial(resolvedType, {
             dashboard: {
                 [key]: nextDashboard[key]
             }
         }, {
-            render: () => renderDashboardControls(type),
+            render: () => renderDashboardControls(resolvedType),
             immediate: key === 'layout' || key === 'privacyMode' || key.startsWith('privacyMask') || key.startsWith('preview')
         });
         if (key === 'layout') {
-            const committedLayout = normalizeDashboardPrefsForType(type, savedPrefs).layout;
+            const committedLayout = normalizeDashboardPrefsForType(resolvedType, savedPrefs).layout;
             const outcome = committedLayout === nextDashboard.layout ? 'committed' : 'mismatch';
-            recordSettingsDashboardLayoutTransition(type, {
+            recordSettingsDashboardLayoutTransition(resolvedType, {
                 requestedLayout: nextDashboard.layout,
                 previousLayout,
                 committedLayout,
@@ -10753,17 +10677,17 @@ const changeDashboardPref = async (type, key, value) => {
         }
     } catch (error) {
         if (key === 'layout') {
-            const reconciledPrefs = utils.normalizePrefs(prefsByType[type] || current);
-            recordSettingsDashboardLayoutTransition(type, {
+            const reconciledPrefs = utils.normalizePrefs(prefsByType[resolvedType] || current);
+            recordSettingsDashboardLayoutTransition(resolvedType, {
                 requestedLayout: nextDashboard.layout,
                 previousLayout,
-                committedLayout: normalizeDashboardPrefsForType(type, reconciledPrefs).layout,
+                committedLayout: normalizeDashboardPrefsForType(resolvedType, reconciledPrefs).layout,
                 source: 'settings',
                 preferenceRevision: readSettingsPrefsRevision(reconciledPrefs),
                 outcome: 'failed'
             });
         }
-        renderDashboardControls(type);
+        renderDashboardControls(resolvedType);
         showError('Dashboard preference save failed', error);
     }
 };

@@ -2,6 +2,12 @@
 
 FolderView Plus is an Unraid webGUI plugin with PHP endpoints, browser runtimes for several host surfaces, persistent JSON configuration on the flash device, and generated release packages. The project uses shared contracts so Docker, VM, Dashboard, Settings, and the modern folder editor do not each invent their own storage, request, UI, or runtime behavior.
 
+## Maintainability contracts
+
+The shipped plugin keeps machine-readable contracts under `schemas/` for Filter and View settings, browser/module ownership, settings-table metadata, and deprecations. Generated runtime data is checked against those schemas in CI, while executable contract guards load module APIs and reject undeclared UI bindings, missing lifecycle methods, accidental globals, or reintroduced removed preferences.
+
+Filter and View persistence and control bindings live in `folderviewplus.view-settings.js`; Docker, VM, and Dashboard order reconciliation share `runtime.folder-ordering.js`. Runtime resources that own observers, timers, or event listeners expose teardown operations and are released on `pagehide`.
+
 ## Major layers
 
 | Layer | Responsibility |

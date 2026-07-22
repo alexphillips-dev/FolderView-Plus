@@ -547,10 +547,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-health">
-                    <div class="fv-view-settings-card-title is-health">Health cards</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health cards</strong><small>Display health card summary</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Runtime summary badge</strong><small>Show runtime summary badge</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"><span class="fv-setting-copy"><strong>Compact card layout</strong><small>Use compact card layout</small></span></label>
+                    <div class="fv-view-settings-card-title is-health">Health summary &amp; Docker scoring</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Docker page summary badge</strong><small>Show live folder totals above the Docker table</small></span></label>
                     <div class="fv-settings-divider"></div>
                     <label id="docker-health-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Warn stopped (%)</span>
@@ -569,11 +568,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </span>
                     </label>
                     <label id="docker-health-policy-profile-row" class="setting-select">
-                        <span>Profile</span>
+                        <span>Scoring preset</span>
                         <select id="docker-health-profile" onchange="changeHealthPref('docker', 'profile', this.value)">
-                            <option value="strict">Strict</option>
-                            <option value="balanced">Balanced</option>
-                            <option value="lenient">Lenient</option>
+                            <option value="strict">Strict (45 / 75)</option>
+                            <option value="balanced">Balanced (60 / 90)</option>
+                            <option value="lenient">Lenient (75 / 95)</option>
                         </select>
                     </label>
                     <label id="docker-health-updates-mode-row" class="setting-select">
@@ -591,7 +590,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="warn">Warn</option>
                         </select>
                     </label>
-                    <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
+                    <div class="setting-help">Selecting a scoring preset applies its thresholds and handling modes immediately. The individual Docker controls can then be fine-tuned.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-privacy">
                     <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
@@ -866,50 +865,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-health">
-                    <div class="fv-view-settings-card-title is-health">Health cards</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health cards</strong><small>Display health card summary</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Runtime summary badge</strong><small>Show runtime summary badge</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"><span class="fv-setting-copy"><strong>Compact card layout</strong><small>Use compact card layout</small></span></label>
+                    <div class="fv-view-settings-card-title is-health">Health summary &amp; VM resources</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>VM page summary badge</strong><small>Show live group totals above the VM table</small></span></label>
                     <div class="fv-settings-divider"></div>
-                    <label id="vm-health-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
-                        <span>Warn stopped (%)</span>
-                        <span class="fv-setting-range-control">
-                            <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-health-warn-threshold" aria-label="Stopped warning threshold">
-                            <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
-                            <span aria-hidden="true">%</span>
-                        </span>
-                    </label>
-                    <label id="vm-health-critical-threshold-row" class="setting-inline-number fv-setting-range-row">
-                        <span>Critical stopped (%)</span>
-                        <span class="fv-setting-range-control">
-                            <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-health-critical-threshold" aria-label="Stopped critical threshold">
-                            <input id="vm-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'criticalStoppedPercent', this.value)">
-                            <span aria-hidden="true">%</span>
-                        </span>
-                    </label>
-                    <label id="vm-health-policy-profile-row" class="setting-select">
-                        <span>Profile</span>
-                        <select id="vm-health-profile" onchange="changeHealthPref('vm', 'profile', this.value)">
-                            <option value="strict">Strict</option>
-                            <option value="balanced">Balanced</option>
-                            <option value="lenient">Lenient</option>
-                        </select>
-                    </label>
-                    <label id="vm-health-updates-mode-row" class="setting-select">
-                        <span>Updates handling</span>
-                        <select id="vm-health-updates-mode" onchange="changeHealthPref('vm', 'updatesMode', this.value)">
-                            <option value="maintenance">Maintenance</option>
-                            <option value="warn">Warn</option>
-                            <option value="ignore">Ignore</option>
-                        </select>
-                    </label>
-                    <label id="vm-health-all-stopped-mode-row" class="setting-select">
-                        <span>All stopped mode</span>
-                        <select id="vm-health-all-stopped-mode" onchange="changeHealthPref('vm', 'allStoppedMode', this.value)">
-                            <option value="critical">Critical</option>
-                            <option value="warn">Warn</option>
-                        </select>
-                    </label>
                     <label id="vm-resource-warn-vcpu-row" class="setting-inline-number">
                         <span>Resource warn vCPU</span>
                         <input id="vm-resource-warn-vcpu" type="number" min="1" max="512" step="1" onchange="changeHealthPref('vm', 'resourceWarnVcpu', this.value)">
@@ -926,7 +885,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Resource critical GB</span>
                         <input id="vm-resource-critical-gib" type="number" min="2" max="1024" step="1" onchange="changeHealthPref('vm', 'resourceCriticalGiB', this.value)">
                     </label>
-                    <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
+                    <div class="setting-help">VM resource thresholds control the warning and critical labels shown for vCPU and assigned memory. Docker-only scoring options are configured on the Docker tab.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-privacy">
                     <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>

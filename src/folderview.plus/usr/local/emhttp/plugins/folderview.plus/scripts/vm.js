@@ -189,7 +189,6 @@ const utils = window.FolderViewPlusUtils || {
         health: {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
-            compact: false,
             warnStoppedPercent: 60,
             criticalStoppedPercent: 90,
             profile: 'balanced',
@@ -3774,6 +3773,7 @@ const applyRuntimePrefs = (prefs) => {
     $('body').toggleClass('fvplus-privacy-vm-runtime', vmPrivacyMode);
     $('body').toggleClass('fvplus-privacy-vm-runtime-mask-names', vmPrivacyMode && normalized?.dashboard?.privacyMaskNames !== false);
     window.FolderViewPlusRuntimePrivacy?.apply('vm', vmPrivacyMode, normalized?.dashboard || {});
+    renderRuntimeHealthBadge(globalFolders, normalized);
     scheduleLiveRefresh(normalized);
 };
 const bindVmRuntimePreferenceSync = () => {

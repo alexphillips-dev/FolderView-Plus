@@ -586,14 +586,17 @@ test('status detail controls support simple balanced and detailed modes', () => 
     assert.match(script, /const showTrendControl = status\.displayMode === 'detailed';/);
 });
 
-test('filter and view settings use responsive cards with synchronized threshold sliders', () => {
+test('filter and view settings use responsive cards with Docker scoring sliders and VM resource thresholds', () => {
     assert.match(page, /id="docker-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel"/);
     assert.match(page, /id="vm-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel"/);
     assert.match(page, /Customize folder views, defaults, and visibility\./);
     assert.match(page, /class="settings-cards-grid fv-view-settings-grid"/);
     assert.match(page, /class="settings-mini-card fv-settings-card-privacy"/);
     assert.match(page, /data-fv-number-target="docker-status-warn-threshold"/);
-    assert.match(page, /data-fv-number-target="vm-health-critical-threshold"/);
+    assert.match(page, /data-fv-number-target="docker-health-critical-threshold"/);
+    assert.doesNotMatch(page, /data-fv-number-target="vm-health-critical-threshold"/);
+    assert.match(page, /id="vm-resource-warn-vcpu"/);
+    assert.match(page, /id="vm-resource-critical-gib"/);
     assert.match(script, /const syncViewSettingsRangeControls = \(type = ''\) =>/);
     assert.match(script, /numberInput\.dispatchEvent\(new Event\('change', \{ bubbles: true \}\)\)/);
     assert.match(settingsCss, /\.fv-view-settings-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);

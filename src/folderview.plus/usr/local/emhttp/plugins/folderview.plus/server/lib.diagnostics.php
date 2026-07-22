@@ -2216,7 +2216,6 @@
                 'health' => [
                     'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
                     'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
-                    'compact' => normalizeBool($prefs['health']['compact'] ?? false, false),
                     'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60),
                     'criticalStoppedPercent' => normalizeIntInRange($prefs['health']['criticalStoppedPercent'] ?? 90, 0, 100, 90),
                     'profile' => in_array(strtolower(trim((string)($prefs['health']['profile'] ?? 'balanced'))), ['strict', 'balanced', 'lenient'], true)

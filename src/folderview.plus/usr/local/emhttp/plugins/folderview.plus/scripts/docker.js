@@ -190,7 +190,6 @@ const utils = window.FolderViewPlusUtils || {
         health: {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
-            compact: false,
             warnStoppedPercent: 60,
             criticalStoppedPercent: 90,
             profile: 'balanced',
@@ -8558,6 +8557,7 @@ const applyRuntimePrefs = (prefs) => {
     window.FolderViewPlusRuntimePrivacy?.apply('docker', dockerPrivacyMode, normalized?.dashboard || {});
     refreshDockerRuntimePrivacyPortMappings();
     queueDockerRuntimePrivacyToggleMount();
+    renderRuntimeHealthBadge(globalFolders, normalized);
     scheduleLiveRefresh(normalized);
 };
 

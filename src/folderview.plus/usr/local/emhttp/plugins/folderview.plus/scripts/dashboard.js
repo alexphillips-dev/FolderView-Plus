@@ -144,7 +144,6 @@ const utils = window.FolderViewPlusUtils || {
         health: {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
-            compact: false,
             warnStoppedPercent: 60,
             criticalStoppedPercent: 90,
             profile: 'balanced',

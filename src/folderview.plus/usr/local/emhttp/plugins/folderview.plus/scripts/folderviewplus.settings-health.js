@@ -7,6 +7,103 @@
     root.FolderViewPlusSettingsHealthModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const normalizeType = (type) => type === 'vm' ? 'vm' : 'docker';
+    const HEALTH_PROFILE_PRESETS = Object.freeze({
+        strict: Object.freeze({
+            warnStoppedPercent: 45,
+            criticalStoppedPercent: 75,
+            updatesMode: 'warn',
+            allStoppedMode: 'critical'
+        }),
+        balanced: Object.freeze({
+            warnStoppedPercent: 60,
+            criticalStoppedPercent: 90,
+            updatesMode: 'maintenance',
+            allStoppedMode: 'critical'
+        }),
+        lenient: Object.freeze({
+            warnStoppedPercent: 75,
+            criticalStoppedPercent: 95,
+            updatesMode: 'maintenance',
+            allStoppedMode: 'warn'
+        })
+    });
+
+    const applyHealthProfilePreset = (health, profile) => {
+        const normalizedProfile = Object.prototype.hasOwnProperty.call(HEALTH_PROFILE_PRESETS, String(profile || '').trim().toLowerCase())
+            ? String(profile).trim().toLowerCase()
+            : 'balanced';
+        return {
+            ...(health && typeof health === 'object' && !Array.isArray(health) ? health : {}),
+            profile: normalizedProfile,
+            ...HEALTH_PROFILE_PRESETS[normalizedProfile]
+        };
+    };
+
+    const syncHealthSummaryVisibility = (host, enabled) => {
+        if (!host || typeof host !== 'object') {
+            return false;
+        }
+        const visible = enabled === true;
+        host.hidden = !visible;
+        host.setAttribute?.('aria-hidden', visible ? 'false' : 'true');
+        if (!visible) {
+            host.replaceChildren?.();
+        }
+        return visible;
+    };
+
+    const classifyDockerFolderHealth = ({ members, started, paused, stopped, updateCount, policy } = {}) => {
+        const totalMembers = Math.max(0, Number(members) || 0);
+        const startedCount = Math.max(0, Number(started) || 0);
+        const pausedCount = Math.max(0, Number(paused) || 0);
+        const stoppedCount = Math.max(0, Number(stopped) || 0);
+        const availableUpdates = Math.max(0, Number(updateCount) || 0);
+        const resolvedPolicy = policy && typeof policy === 'object' ? policy : {};
+        const warnRaw = Number(resolvedPolicy.warnThreshold);
+        const criticalRaw = Number(resolvedPolicy.criticalThreshold);
+        const warnThreshold = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, warnRaw)) : 60;
+        const criticalThreshold = Number.isFinite(criticalRaw) ? Math.min(100, Math.max(0, criticalRaw)) : 90;
+        const stoppedPercent = totalMembers > 0 ? Math.round((stoppedCount / totalMembers) * 100) : 0;
+        const allStopped = totalMembers > 0 && startedCount === 0 && pausedCount === 0 && stoppedCount > 0;
+        const hasUpdates = availableUpdates > 0;
+        const allStoppedCritical = allStopped && resolvedPolicy.allStoppedMode === 'critical';
+        const allStoppedWarn = allStopped && resolvedPolicy.allStoppedMode === 'warn';
+        const stoppedCritical = !allStopped && stoppedPercent >= criticalThreshold;
+        const stoppedWarn = !allStopped && stoppedPercent >= warnThreshold;
+        const updateWarn = hasUpdates && resolvedPolicy.updatesMode === 'warn';
+        const updateMaintenance = hasUpdates && resolvedPolicy.updatesMode === 'maintenance';
+        const updateCritical = updateWarn && availableUpdates >= 10;
+
+        let severity = 'good';
+        if (allStoppedCritical || stoppedCritical || updateCritical) {
+            severity = 'critical';
+        } else if (allStoppedWarn || stoppedWarn || pausedCount > 0 || updateWarn || updateMaintenance) {
+            severity = 'warn';
+        }
+        const maintenanceOnly = severity === 'warn'
+            && updateMaintenance
+            && !allStoppedWarn
+            && !allStoppedCritical
+            && !stoppedWarn
+            && !stoppedCritical
+            && pausedCount <= 0;
+
+        return {
+            stoppedPercent,
+            allStopped,
+            hasUpdates,
+            allStoppedCritical,
+            allStoppedWarn,
+            stoppedCritical,
+            stoppedWarn,
+            updateWarn,
+            updateMaintenance,
+            updateCritical,
+            severity,
+            maintenanceOnly,
+            filterSeverity: maintenanceOnly ? 'maintenance' : severity
+        };
+    };
 
     const createApi = (deps = {}) => {
         const utils = deps.utils || {};
@@ -446,6 +543,10 @@
     };
 
     return Object.freeze({
-        createApi
+        createApi,
+        HEALTH_PROFILE_PRESETS,
+        applyHealthProfilePreset,
+        syncHealthSummaryVisibility,
+        classifyDockerFolderHealth
     });
 }));

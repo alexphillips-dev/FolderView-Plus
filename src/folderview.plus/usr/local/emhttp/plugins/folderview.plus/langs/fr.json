@@ -3,17 +3,17 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.21.1",
+        "catalog-version": "2026.07.22.1",
         "direction": "ltr",
-        "last-reviewed": "2026-07-21",
-        "last-updated": "2026-07-21",
+        "last-reviewed": "2026-07-22",
+        "last-updated": "2026-07-22",
         "locale": "fr",
         "native-name": "Français",
         "reviewed": true,
-        "source-revision": "2026.07.21.1",
+        "source-revision": "2026.07.22.1",
         "status": "complete",
-        "translated-messages": 2000,
-        "total-source-messages": 2000
+        "translated-messages": 2006,
+        "total-source-messages": 2006
     },
     "add-folder": "Ajouter un dossier",
     "up-to-date": "à jour",

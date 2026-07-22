@@ -3066,7 +3066,7 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
                 <div class="fv-setup-behavior-setting-list">
                     ${renderSetupAssistantBehaviorSetting(resolvedType, 'hide-empty', behavior.hideEmptyFolders, 'Hide empty folders', 'Keep folders with no matching items out of the main view.')}
                     ${renderSetupAssistantBehaviorSetting(resolvedType, 'health-cards', behavior.healthCardsEnabled, 'Health cards', 'Show folder health and status summary cards.')}
-                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'runtime-badge', behavior.runtimeBadgeEnabled, 'Runtime summary badge', 'Show compact runtime totals on folder rows.')}
+                    ${renderSetupAssistantBehaviorSetting(resolvedType, 'runtime-badge', behavior.runtimeBadgeEnabled, 'Runtime summary badge', `Show live group totals above the ${resolvedType === 'vm' ? 'VM' : 'Docker'} table.`)}
                 </div>
             </div>
             <div class="fv-setup-behavior-advanced">

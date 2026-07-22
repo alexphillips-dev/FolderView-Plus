@@ -8,7 +8,7 @@ const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const langDir = path.join(pluginDir, 'langs');
 const namespaceRoot = path.join(langDir, 'namespaces');
-const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.21.1';
+const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.22.1';
 const translateMissing = process.argv.includes('--translate');
 const locales = fs.readdirSync(langDir)
     .filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))
@@ -146,8 +146,8 @@ for (const locale of locales) {
     const rootCatalog = readJson(rootFile);
     rootCatalog['@metadata']['catalog-version'] = catalogVersion;
     rootCatalog['@metadata']['source-revision'] = catalogVersion;
-    rootCatalog['@metadata']['last-updated'] = '2026-07-21';
-    rootCatalog['@metadata']['last-reviewed'] = '2026-07-21';
+    rootCatalog['@metadata']['last-updated'] = '2026-07-22';
+    rootCatalog['@metadata']['last-reviewed'] = '2026-07-22';
     rootCatalog['@metadata']['translated-messages'] = aggregateCount;
     rootCatalog['@metadata']['total-source-messages'] = aggregateCount;
     writeJson(rootFile, rootCatalog);
@@ -162,7 +162,7 @@ for (const locale of locales) {
 const largestSurfaces = Object.fromEntries(Object.entries(fileCounts).sort((left, right) => right[1] - left[1]).slice(0, 10));
 writeJson(path.join(langDir, 'extraction-report.json'), {
     'catalog-version': catalogVersion,
-    'generated-at': '2026-07-21',
+    'generated-at': '2026-07-22',
     'candidate-count': 0,
     'auto-bound-message-count': phrases.length,
     'catalog-message-count': aggregateCount,

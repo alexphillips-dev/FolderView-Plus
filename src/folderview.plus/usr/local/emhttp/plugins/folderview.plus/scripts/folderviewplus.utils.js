@@ -33,7 +33,6 @@
     const DEFAULT_HEALTH_PREFS = {
         cardsEnabled: true,
         runtimeBadgeEnabled: false,
-        compact: false,
         warnStoppedPercent: 60,
         criticalStoppedPercent: 90,
         profile: 'balanced',
@@ -854,7 +853,6 @@
                 ? DEFAULT_HEALTH_PREFS.cardsEnabled
                 : incomingHealth.cardsEnabled !== false,
             runtimeBadgeEnabled: incomingHealth.runtimeBadgeEnabled === true,
-            compact: incomingHealth.compact === true,
             warnStoppedPercent: clampNumber(
                 incomingHealth.warnStoppedPercent,
                 0,

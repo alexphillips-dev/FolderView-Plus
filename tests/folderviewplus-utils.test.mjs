@@ -668,7 +668,6 @@ test('normalizePrefs includes live refresh, performance profile, and backup sche
     assert.deepEqual(prefs.health, {
         cardsEnabled: true,
         runtimeBadgeEnabled: false,
-        compact: false,
         warnStoppedPercent: 60,
         criticalStoppedPercent: 90,
         profile: 'balanced',
@@ -827,7 +826,6 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
         health: {
             cardsEnabled: false,
             runtimeBadgeEnabled: true,
-            compact: true,
             warnStoppedPercent: 133,
             criticalStoppedPercent: 144,
             profile: 'strict',
@@ -841,7 +839,7 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
     });
     assert.equal(prefs.health.cardsEnabled, false);
     assert.equal(prefs.health.runtimeBadgeEnabled, true);
-    assert.equal(prefs.health.compact, true);
+    assert.equal(Object.prototype.hasOwnProperty.call(prefs.health, 'compact'), false);
     assert.equal(prefs.health.warnStoppedPercent, 100);
     assert.equal(prefs.health.criticalStoppedPercent, 100);
     assert.equal(prefs.health.profile, 'strict');

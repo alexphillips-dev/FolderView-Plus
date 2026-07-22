@@ -56,7 +56,6 @@
             'health' => [
                 'cardsEnabled' => true,
                 'runtimeBadgeEnabled' => false,
-                'compact' => false,
                 'warnStoppedPercent' => 60,
                 'criticalStoppedPercent' => 90,
                 'profile' => 'balanced',
@@ -559,7 +558,6 @@
                 ? true
                 : normalizeBool($healthIncoming['cardsEnabled'], true),
             'runtimeBadgeEnabled' => normalizeBool($healthIncoming['runtimeBadgeEnabled'] ?? false, false),
-            'compact' => normalizeBool($healthIncoming['compact'] ?? false, false),
             'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60),
             'criticalStoppedPercent' => normalizeIntInRange($healthIncoming['criticalStoppedPercent'] ?? 90, 0, 100, 90),
             'profile' => $healthProfile,

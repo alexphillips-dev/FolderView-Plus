@@ -43,6 +43,14 @@
       "bytes": 32945,
       "gzipBytes": 5977
     },
+    "scripts/folderviewplus.tree-integrity.js": {
+      "bytes": 16660,
+      "gzipBytes": 3811
+    },
+    "scripts/folderviewplus.mobile-reorder.js": {
+      "bytes": 2541,
+      "gzipBytes": 765
+    },
     "scripts/folderviewplus.folder-editor.js": {
       "bytes": 38544,
       "gzipBytes": 8279

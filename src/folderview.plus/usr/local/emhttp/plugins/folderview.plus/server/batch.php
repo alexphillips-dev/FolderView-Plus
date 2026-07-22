@@ -17,6 +17,6 @@ fvplus_json_try(function (): array {
     }
 
     return [
-        'result' => applyFolderBatchOperations($type, $operations)
+        'result' => applyFolderBatchOperations($type, $operations, $_POST['expectedRevision'] ?? '')
     ];
 });

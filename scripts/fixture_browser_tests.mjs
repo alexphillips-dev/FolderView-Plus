@@ -223,7 +223,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1580);
+    assert.equal(snapshot.autoBoundMessageCount, 1588);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -729,6 +729,68 @@ test('Filters and view settings uses the responsive card workspace without clipp
     assert.equal(layout.gridColumns, 1);
     assert.equal(layout.cardsInsidePanel, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'mobile panel must not cause horizontal overflow');
+});
+
+test('Mobile reorder persists click state and isolates Docker and VM controls', async ({ page }) => {
+    await page.setViewportSize({ width: 1700, height: 900 });
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    await page.evaluate(() => window.fixtureSettings.viewSettingsReady);
+    assert.equal(await page.locator('#docker-tree-reorder-toggle').isHidden(), true, 'mobile-only control should be hidden on desktop');
+
+    await page.evaluate(() => {
+        const root = document.getElementById('fv-settings-root');
+        root.classList.add('fv-mobile-compact');
+        document.body.classList.add('fv-mobile-compact');
+        root.insertAdjacentHTML('beforeend', `
+            <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false">Mobile reorder</button>
+            <div class="folder-table"><table><tbody id="docker"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">Docker move</button></span></td><td>Docker</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
+            <div class="folder-table"><table><tbody id="vms"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">VM move</button></span></td><td>VM</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
+        `);
+        const state = { docker: false, vm: false };
+        const calls = { persists: 0, renders: [] };
+        const api = window.FolderViewPlusMobileReorder.createApi({
+            document,
+            readMode: (type) => state[type] === true,
+            writeMode: (type, enabled) => { state[type] = enabled === true; },
+            persist: () => { calls.persists += 1; },
+            render: (type) => calls.renders.push(type)
+        });
+        window.__mobileReorderFixture = { state, calls, api };
+        window.toggleMobileTreeReorderMode = (type) => api.toggle(type);
+        api.refresh();
+    });
+
+    const readState = async () => page.evaluate(() => {
+        const display = (selector) => getComputedStyle(document.querySelector(selector)).display;
+        return {
+            state: { ...window.__mobileReorderFixture.state },
+            calls: {
+                persists: window.__mobileReorderFixture.calls.persists,
+                renders: [...window.__mobileReorderFixture.calls.renders]
+            },
+            dockerPressed: document.getElementById('docker-tree-reorder-toggle').getAttribute('aria-pressed'),
+            vmPressed: document.getElementById('vm-tree-reorder-toggle').getAttribute('aria-pressed'),
+            dockerCell: display('tbody#docker td.order-cell'),
+            vmCell: display('tbody#vms td.order-cell')
+        };
+    });
+
+    await page.locator('#docker-tree-reorder-toggle').click();
+    let state = await readState();
+    assert.deepEqual(state.state, { docker: true, vm: false });
+    assert.equal(state.dockerPressed, 'true');
+    assert.equal(state.vmPressed, 'false');
+    assert.equal(state.dockerCell, 'table-cell');
+    assert.equal(state.vmCell, 'none');
+    assert.deepEqual(state.calls, { persists: 1, renders: ['docker'] });
+
+    await page.locator('#vm-tree-reorder-toggle').click();
+    await page.locator('#docker-tree-reorder-toggle').click();
+    state = await readState();
+    assert.deepEqual(state.state, { docker: false, vm: true });
+    assert.equal(state.dockerCell, 'none');
+    assert.equal(state.vmCell, 'table-cell');
+    assert.deepEqual(state.calls, { persists: 3, renders: ['docker', 'vm', 'docker'] });
 });
 
 test('Folder action sheet uses the compact retained action set and accessible dialog', async ({ page }) => {

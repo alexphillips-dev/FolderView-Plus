@@ -230,10 +230,12 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.doesNotMatch(diagnosticsJs, /confirmButtonText:\s*'Full export'/);
 });
 
-test('wizard apply path records perf telemetry and settings CSS keeps simplified mobile reorder selectors', () => {
+test('wizard apply path records perf telemetry and settings CSS keeps type-scoped mobile reorder selectors', () => {
     assert.match(wizardJs, /recordPerformanceDiagnosticsSample\('wizard', 'apply'/);
-    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact:is\(\.fv-mobile-tree-reorder-docker, \.fv-mobile-tree-reorder-vm\)/);
-    assert.match(settingsCss, /body\.fv-mobile-compact #fv-settings-root:is\(\.fv-mobile-tree-reorder-docker, \.fv-mobile-tree-reorder-vm\)/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact\.fv-mobile-tree-reorder-docker tbody#docker/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact\.fv-mobile-tree-reorder-vm tbody#vms/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-root\.fv-mobile-compact:is\(\.fv-mobile-tree-reorder-docker, \.fv-mobile-tree-reorder-vm\)/);
+    assert.doesNotMatch(settingsCss, /body\.fv-mobile-compact #fv-settings-root:is\(\.fv-mobile-tree-reorder-docker, \.fv-mobile-tree-reorder-vm\)/);
     assert.doesNotMatch(settingsCss, /\.fv-settings-label\s*\{/);
 });
 

@@ -57,10 +57,15 @@ test('mobile compact mode keeps optional tree reorder controls and path hints fo
     assert.match(settingsCss, /\.tree-management-controls > button\.is-active/);
     assert.match(settingsCss, /\.fv-mobile-tree-reorder-docker/);
     assert.match(settingsCss, /\.fv-mobile-tree-reorder-vm/);
-    assert.match(settingsCss, /:is\(tbody#docker, tbody#vms\) td:nth-child\(1\)/);
-    assert.match(settingsCss, /:is\(tbody#docker, tbody#vms\) \.row-order-actions/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-docker tbody#docker td:nth-child\(1\)/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-vm tbody#vms td:nth-child\(1\)/);
+    assert.doesNotMatch(settingsCss, /:is\(tbody#docker, tbody#vms\)/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-docker tbody#docker \.row-order-actions/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-vm tbody#vms \.row-order-actions/);
     assert.match(settingsJs, /let mobileTreeReorderModeByType = \{/);
     assert.match(settingsJs, /const toggleMobileTreeReorderMode = \(type\) =>/);
+    assert.match(settingsJs, /class="folder-tree-action fv-mobile-reorder-step"[\s\S]*moveFolderRow\('\$\{type\}','\$\{escapeHtml\(id\)\}',-1\)/);
+    assert.match(settingsJs, /class="folder-tree-action fv-mobile-reorder-step"[\s\S]*moveFolderRow\('\$\{type\}','\$\{escapeHtml\(id\)\}',1\)/);
     assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
 });
 

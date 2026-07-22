@@ -377,9 +377,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="tree-visibility-controls tree-management-controls">
                     <button id="docker-tree-history-undo" type="button" onclick="applyTreeMoveUndo('docker')" disabled><i class="fa fa-undo"></i> Undo</button>
                     <button id="docker-tree-history-redo" type="button" onclick="applyTreeMoveRedo('docker')" disabled><i class="fa fa-repeat"></i> Redo</button>
-                    <button id="docker-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('docker')" aria-pressed="false"><i class="fa fa-mobile"></i> Mobile reorder</button>
-                    <button type="button" onclick="runTreeIntegrityCheck('docker')"><i class="fa fa-stethoscope"></i> Tree scan</button>
-                    <button type="button" onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
+                    <button id="docker-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('docker')" aria-pressed="false" aria-describedby="docker-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
+                    <button id="docker-tree-scan" type="button" onclick="runTreeIntegrityCheck('docker')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
+                    <button id="docker-tree-repair" type="button" onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
+                    <small id="docker-tree-reorder-help" class="fv-mobile-reorder-help">Shows touch-friendly move controls in the Order column.</small>
                 </span>
             </div>
             <div id="docker-quick-filters" class="folder-quick-filters">
@@ -733,9 +734,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="tree-visibility-controls tree-management-controls">
                     <button id="vm-tree-history-undo" type="button" onclick="applyTreeMoveUndo('vm')" disabled><i class="fa fa-undo"></i> Undo</button>
                     <button id="vm-tree-history-redo" type="button" onclick="applyTreeMoveRedo('vm')" disabled><i class="fa fa-repeat"></i> Redo</button>
-                    <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false"><i class="fa fa-mobile"></i> Mobile reorder</button>
-                    <button type="button" onclick="runTreeIntegrityCheck('vm')"><i class="fa fa-stethoscope"></i> Tree scan</button>
-                    <button type="button" onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
+                    <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false" aria-describedby="vm-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
+                    <button id="vm-tree-scan" type="button" onclick="runTreeIntegrityCheck('vm')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
+                    <button id="vm-tree-repair" type="button" onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
+                    <small id="vm-tree-reorder-help" class="fv-mobile-reorder-help">Shows touch-friendly move controls in the Order column.</small>
                 </span>
             </div>
             <div id="vm-quick-filters" class="folder-quick-filters">
@@ -1995,6 +1997,8 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>"></script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
 <script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>"></script>

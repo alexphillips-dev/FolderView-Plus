@@ -85,6 +85,26 @@ try {
 }
 $afterInvalid = file_get_contents(getFolderFilePath('vm'));
 $afterInvalidMetadata = readConfigMetadata('vm', false);
+$beforeStale = file_get_contents(getFolderFilePath('vm'));
+$beforeStaleMetadata = readConfigMetadata('vm', false);
+$staleRejected = false;
+try {
+    applyFolderBatchOperations('vm', [
+        'deletes' => [],
+        'upserts' => [[
+            'id' => 'keep',
+            'folder' => [
+                'name' => 'Stale overwrite',
+                'containers' => []
+            ]
+        ]],
+        'creates' => []
+    ], max(0, (int)$beforeStaleMetadata['folderRevision'] - 1));
+} catch (RuntimeException $error) {
+    $staleRejected = str_contains($error->getMessage(), 'changed in another page or browser tab');
+}
+$afterStale = file_get_contents(getFolderFilePath('vm'));
+$afterStaleMetadata = readConfigMetadata('vm', false);
 
 echo json_encode([
     'result' => $result,
@@ -95,7 +115,10 @@ echo json_encode([
     'primaryMatchesLastGood' => $primary === $lastGood,
     'invalidRejected' => $invalidRejected,
     'invalidPreservedFolders' => $beforeInvalid === $afterInvalid,
-    'invalidPreservedRevision' => $beforeInvalidMetadata['folderRevision'] === $afterInvalidMetadata['folderRevision']
+    'invalidPreservedRevision' => $beforeInvalidMetadata['folderRevision'] === $afterInvalidMetadata['folderRevision'],
+    'staleRejected' => $staleRejected,
+    'stalePreservedFolders' => $beforeStale === $afterStale,
+    'stalePreservedRevision' => $beforeStaleMetadata['folderRevision'] === $afterStaleMetadata['folderRevision']
 ], JSON_UNESCAPED_SLASHES);
 `;
 
@@ -138,14 +161,18 @@ test('server batch mutation validates first and commits one atomic folder revisi
     assert.equal(output.invalidRejected, true);
     assert.equal(output.invalidPreservedFolders, true, 'invalid batches must not partially mutate the folder map');
     assert.equal(output.invalidPreservedRevision, true, 'invalid batches must not advance metadata');
+    assert.equal(output.staleRejected, true, 'stale batches must be rejected with a revision conflict');
+    assert.equal(output.stalePreservedFolders, true, 'stale batches must not overwrite newer folder data');
+    assert.equal(output.stalePreservedRevision, true, 'stale batches must not advance metadata');
 });
 
 test('batch endpoint is guarded, bounded, and delegates one transaction', () => {
     assert.match(endpoint, /requireMutationRequestGuard\(\)/);
     assert.match(endpoint, /FVPLUS_MAX_FOLDER_BATCH_RAW_BYTES/);
-    assert.match(endpoint, /applyFolderBatchOperations\(\$type, \$operations\)/);
-    assert.match(lib, /function applyFolderBatchOperations\(string \$type, array \$operations\): array/);
+    assert.match(endpoint, /applyFolderBatchOperations\(\$type, \$operations, \$_POST\['expectedRevision'\] \?\? ''\)/);
+    assert.match(lib, /function applyFolderBatchOperations\(string \$type, array \$operations, \$expectedRevision = ''\): array/);
     assert.match(lib, /withConfigMutationLock\(static function/);
+    assert.match(lib, /assertExpectedConfigRevision\(\$type, 'folder', \$expectedRevision\)/);
     assert.match(lib, /writeRawFolderMap\(\$type, \$nextFolders\)/);
     assert.match(lib, /reconcileManualOrderPrefs\(\$originalPrefs, \$nextFolders\)/);
     assert.match(lib, /appendDiagnosticsHistoryEvent\('folder_batch_mutation'/);
@@ -153,7 +180,7 @@ test('batch endpoint is guarded, bounded, and delegates one transaction', () => 
 
 test('imports and deletes use one batch request instead of per-folder endpoints', () => {
     const clearFlow = settings.slice(settings.indexOf('const clearType ='), settings.indexOf('const updatePrefsPartial ='));
-    assert.match(settings, /const requestFolderBatchMutation = async \(type, operations\) =>/);
+    assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
     assert.match(importRuntime, /requestFolderBatchMutation\(resolvedType, \{ deletes, upserts, creates \}\)/);
     assert.doesNotMatch(importRuntime, /server\/(?:create|update|delete)\.php/);

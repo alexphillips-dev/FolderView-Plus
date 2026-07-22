@@ -65,6 +65,8 @@ const settingsWorkspacesModule = window.FolderViewPlusSettingsWorkspaces || null
 const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
 const themeWorkspaceModule = window.FolderViewPlusThemeWorkspace || null;
 const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
+const treeIntegrityModule = window.FolderViewPlusTreeIntegrity || null;
+const mobileReorderModule = window.FolderViewPlusMobileReorder || null;
 const bulkAssignmentSharedModule = window.FolderViewPlusBulkAssignmentShared || null;
 const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
 const settingsRuntimeActionsModule = window.FolderViewPlusSettingsRuntimeActions || null;
@@ -429,6 +431,18 @@ if (!settingsTreeModule || window.FolderViewPlusSettingsTreeModuleLoaded !== tru
     setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'missing', 'settings tree helpers unavailable');
 } else {
     setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'ok', 'settings tree helpers ready');
+}
+if (!treeIntegrityModule || window.FolderViewPlusTreeIntegrityModuleLoaded !== true || typeof treeIntegrityModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.tree-integrity.js');
+    setFatalBannerModuleStatus('folderviewplus.tree-integrity.js', 'missing', 'tree integrity api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.tree-integrity.js', 'ok', 'tree integrity api ready');
+}
+if (!mobileReorderModule || window.FolderViewPlusMobileReorderModuleLoaded !== true || typeof mobileReorderModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.mobile-reorder.js');
+    setFatalBannerModuleStatus('folderviewplus.mobile-reorder.js', 'missing', 'mobile reorder api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.mobile-reorder.js', 'ok', 'mobile reorder api ready');
 }
 if (!bulkAssignmentSharedModule || window.FolderViewPlusBulkAssignmentSharedModuleLoaded !== true || typeof bulkAssignmentSharedModule.createApi !== 'function') {
     bootstrapMissingModules.push('folderviewplus.bulk-assignment.shared.js');
@@ -4073,6 +4087,46 @@ const getBulkAssignmentApi = (() => {
     };
 })();
 
+const readFolderConfigurationRevision = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const metadata = prefsByType[resolvedType]?._metadata;
+    if (!metadata || !Object.prototype.hasOwnProperty.call(metadata, 'folderRevision')) {
+        return null;
+    }
+    const revision = Number(metadata.folderRevision);
+    return Number.isInteger(revision) && revision >= 0 ? revision : null;
+};
+
+const refreshTreeIntegrityState = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const result = await refreshType(resolvedType, { configOnly: true });
+    if (result?.hasErrors) {
+        throw new Error((result.degradedReasons || []).join(' ') || 'Unable to refresh the current folder configuration.');
+    }
+    const expectedRevision = readFolderConfigurationRevision(resolvedType);
+    if (expectedRevision === null) {
+        throw new Error('The current folder configuration revision is unavailable.');
+    }
+    return { expectedRevision };
+};
+
+const setTreeIntegrityBusy = (type, busy, operation = 'scan') => {
+    const resolvedType = normalizeManagedType(type);
+    const isBusy = busy === true;
+    const label = operation === 'repair' ? 'Tree repair in progress' : 'Tree scan in progress';
+    $(`#${resolvedType}-tree-scan, #${resolvedType}-tree-repair`)
+        .prop('disabled', isBusy)
+        .toggleClass('is-busy', isBusy)
+        .attr('aria-busy', isBusy ? 'true' : 'false')
+        .each((_, button) => {
+            if (isBusy) {
+                button.setAttribute('aria-label', label);
+            } else {
+                button.removeAttribute('aria-label');
+            }
+        });
+};
+
 const getSettingsRuntimeActionsApi = (() => {
     let cachedApi = null;
     return () => {
@@ -4106,6 +4160,9 @@ const getSettingsRuntimeActionsApi = (() => {
             applyImportOperations,
             requestFolderBatchMutation,
             ensureRuntimeConflictActionAllowed,
+            treeIntegrityModule,
+            refreshTreeIntegrityState,
+            setTreeIntegrityBusy,
             TREE_INTEGRITY_DEPTH_WARN_LEVEL,
             setRuntimePreviewOutput: (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args),
             buildRuntimePreviewHtml: (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args),
@@ -5336,19 +5393,23 @@ const apiPostJson = async (url, data = {}, options = {}) => {
     }
 };
 
-const requestFolderBatchMutation = async (type, operations) => {
+const requestFolderBatchMutation = async (type, operations, options = {}) => {
     const resolvedType = normalizeManagedType(type);
     const safeOperations = operations && typeof operations === 'object' && !Array.isArray(operations)
         ? operations
         : {};
-    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', {
+    const payload = {
         type: resolvedType,
         operations: JSON.stringify({
             deletes: Array.isArray(safeOperations.deletes) ? safeOperations.deletes : [],
             upserts: Array.isArray(safeOperations.upserts) ? safeOperations.upserts : [],
             creates: Array.isArray(safeOperations.creates) ? safeOperations.creates : []
         })
-    });
+    };
+    if (options?.expectedRevision !== null && options?.expectedRevision !== undefined && options?.expectedRevision !== '') {
+        payload.expectedRevision = String(options.expectedRevision);
+    }
+    const response = await apiPostJson('/plugins/folderview.plus/server/batch.php', payload);
     if (!response?.ok || !response?.result) {
         throw new Error(response?.error || 'Folder batch transaction failed.');
     }
@@ -6553,39 +6614,33 @@ const scheduleTableRender = (type, { immediate = false } = {}) => {
     });
 };
 
-const applyMobileTreeReorderModeClass = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const enabled = mobileTreeReorderModeByType[resolvedType] === true;
-    const className = `fv-mobile-tree-reorder-${resolvedType}`;
-    const root = document.getElementById('fv-settings-root');
-    if (root) {
-        root.classList.toggle(className, enabled);
-    }
-    if (document.body) {
-        document.body.classList.toggle(className, enabled);
-    }
-    $(`#${resolvedType}-tree-reorder-toggle`)
-        .toggleClass('is-active', enabled)
-        .attr('aria-pressed', enabled ? 'true' : 'false');
-};
+const getMobileTreeReorderApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = mobileReorderModule.createApi({
+            document,
+            normalizeManagedType,
+            readMode: (type) => mobileTreeReorderModeByType[normalizeManagedType(type)] === true,
+            writeMode: (type, enabled) => {
+                mobileTreeReorderModeByType[normalizeManagedType(type)] = enabled === true;
+            },
+            persist: persistTableUiState,
+            render: scheduleTableRender
+        });
+        return cachedApi;
+    };
+})();
+
+const applyMobileTreeReorderModeClass = (type) => getMobileTreeReorderApi().apply(type);
 
 const refreshMobileTreeReorderModeClasses = () => {
-    applyMobileTreeReorderModeClass('docker');
-    applyMobileTreeReorderModeClass('vm');
+    getMobileTreeReorderApi().refresh();
 };
 
-const setMobileTreeReorderMode = (type, enabled) => {
-    const resolvedType = normalizeManagedType(type);
-    mobileTreeReorderModeByType[resolvedType] = enabled === true;
-    persistTableUiState();
-    applyMobileTreeReorderModeClass(resolvedType);
-    scheduleTableRender(resolvedType);
-};
-
-const toggleMobileTreeReorderMode = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    setMobileTreeReorderMode(resolvedType, !(mobileTreeReorderModeByType[resolvedType] === true));
-};
+const toggleMobileTreeReorderMode = (type) => getMobileTreeReorderApi().toggle(type);
 
 const setFolderBranchPinned = (...args) => getSettingsRuntimeActionsApi().setFolderBranchPinned(...args);
 const exportFolderBranch = (...args) => getSettingsRuntimeActionsApi().exportFolderBranch(...args);
@@ -7299,7 +7354,18 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const compactMobileLayout = shouldUseCompactMobileLayout();
         const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
         const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;
-        const dragHandleHtml = hideOrderControls
+        const siblingIds = Object.keys(folders || {}).filter((candidateId) => (
+            String(hierarchyMeta?.parentById?.[candidateId] || '').trim() === parentFolderId
+        ));
+        const siblingIndex = siblingIds.indexOf(id);
+        const canMoveUp = siblingIndex > 0;
+        const canMoveDown = siblingIndex >= 0 && siblingIndex < siblingIds.length - 1;
+        const mobileMoveStepHtml = mobileTreeReorderMode
+            ? (''
+                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move up within this level" aria-label="Move ${safeNameText} up within this level" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)" ${canMoveUp ? '' : 'disabled'}><i class="fa fa-arrow-up" aria-hidden="true"></i></button>`
+                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move down within this level" aria-label="Move ${safeNameText} down within this level" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)" ${canMoveDown ? '' : 'disabled'}><i class="fa fa-arrow-down" aria-hidden="true"></i></button>`)
+            : '';
+        const dragHandleHtml = (hideOrderControls || mobileTreeReorderMode)
             ? ''
             : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
@@ -7317,6 +7383,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : (''
                 + `<div class="row-order-stack">`
                 + `<span class="row-order-actions">`
+                + mobileMoveStepHtml
                 + dragHandleHtml
                 + moveToRootButtonHtml
                 + treeMoveButtonHtml

@@ -31,6 +31,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -504,7 +505,7 @@ test('basic folder drag uses a full-row drag image', () => {
 });
 
 test('basic folder drag handle renders a compact six-dot grip', () => {
-    const dragHandleMarkup = script.match(/const dragHandleHtml = hideOrderControls[\s\S]*?;\n/)?.[0] || '';
+    const dragHandleMarkup = script.match(/const dragHandleHtml = [\s\S]*?;\n/)?.[0] || '';
     assert.equal([...dragHandleMarkup.matchAll(/<span aria-hidden="true"><\/span>/g)].length, 6);
     assert.match(settingsCss, /\.folder-drag-handle\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, 4px\);[\s\S]*grid-auto-rows:\s*4px;[\s\S]*gap:\s*3px;/);
     assert.doesNotMatch(settingsCss, /\.folder-drag-handle::(?:before|after)/);
@@ -544,7 +545,7 @@ test('nested folder branch actions stay context-aware while integrity tools rema
     assert.match(script, /const setFolderBranchPinned = async \(type, folderId, pinned = true\) =>/);
     assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
     assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);
-    assert.match(script, /const runTreeIntegrityCheck = async \(type, options = \{\}\) =>/);
+    assert.match(script, /const run = async \(type, options = \{\}\) =>/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setFolderBranchCollapse[\s\S]*setFolderBranchPinned[\s\S]*exportFolderBranch[\s\S]*importFolderBranch[\s\S]*runTreeIntegrityCheck[\s\S]*\}\);/);
 });
 

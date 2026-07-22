@@ -48,8 +48,8 @@ const settingsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'),
     'utf8'
 );
-const settingsRuntimeActionsScript = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js'),
+const settingsTreeIntegrityScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js'),
     'utf8'
 );
 const dockerRuntimeActionsScript = fs.readFileSync(
@@ -224,7 +224,7 @@ test('folder editor includes parent default hint styles', () => {
 
 test('tree integrity scan includes depth and empty-branch signals', () => {
     assert.match(settingsScript, /const TREE_INTEGRITY_DEPTH_WARN_LEVEL = \d+;/);
-    assert.match(settingsRuntimeActionsScript, /depthWarnings/);
-    assert.match(settingsRuntimeActionsScript, /emptyBranches/);
-    assert.match(settingsRuntimeActionsScript, /No repairable link issues/);
+    assert.match(settingsTreeIntegrityScript, /depthWarnings/);
+    assert.match(settingsTreeIntegrityScript, /emptyBranches/);
+    assert.match(settingsTreeIntegrityScript, /No repairable link issues/);
 });

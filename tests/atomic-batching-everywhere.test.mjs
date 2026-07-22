@@ -15,7 +15,7 @@ const bulkSharedPath = path.join(scriptRoot, 'folderviewplus.bulk-assignment.sha
 const settingsPath = path.join(scriptRoot, 'folderviewplus.js');
 const starterPath = path.join(scriptRoot, 'folderviewplus.starter-templates.js');
 const wizardPath = path.join(scriptRoot, 'folderviewplus.wizard.js');
-const runtimeActionsPath = path.join(scriptRoot, 'folderviewplus.runtime-actions.js');
+const treeIntegrityPath = path.join(scriptRoot, 'folderviewplus.tree-integrity.js');
 
 const read = (filePath) => fs.readFileSync(filePath, 'utf8');
 const lib = read(libPath);
@@ -23,7 +23,7 @@ const endpoint = read(endpointPath);
 const settings = read(settingsPath);
 const starter = read(starterPath);
 const wizard = read(wizardPath);
-const runtimeActions = read(runtimeActionsPath);
+const treeIntegrity = read(treeIntegrityPath);
 const bulkShared = read(bulkSharedPath);
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
@@ -164,14 +164,14 @@ test('large shared bulk moves use exactly one server assignment request', async 
 });
 
 test('remaining multi-folder workflows route through atomic batch helpers', () => {
-    assert.match(settings, /const requestFolderBatchMutation = async \(type, operations\) =>/);
+    assert.match(settings, /const requestFolderBatchMutation = async \(type, operations, options = \{\}\) =>/);
     assert.match(settings, /apiPostJson\('\/plugins\/folderview\.plus\/server\/batch\.php'/);
     assert.match(starter, /await requestFolderBatchMutation\(resolvedType, \{ deletes: \[\], upserts: \[\], creates \}\)/);
     assert.doesNotMatch(starter.slice(starter.indexOf('const quickCreateStarterTemplates ='), starter.indexOf('Object.assign(window')), /await apiPostText\([^\n]*server\/create\.php/);
     assert.match(wizard, /await requestFolderBatchMutation\(resolvedType, \{[\s\S]*upserts: changedFolderIds\.map/);
     assert.match(wizard, /await requestFolderBatchMutation\(resolvedType, \{ deletes: \[\], upserts: \[\], creates \}\)/);
-    assert.match(runtimeActions, /upserts: toRepair\.map\(\(id\) =>/);
-    assert.match(runtimeActions, /await requestFolderBatchMutation\(resolvedType,/);
+    assert.match(treeIntegrity, /upserts: toRepair\.map\(\(id\) =>/);
+    assert.match(treeIntegrity, /await requestFolderBatchMutation\(resolvedType,/);
     assert.match(settings, /assignments: JSON\.stringify\(Array\.from\(byFolder\.entries\(\)\)/);
     assert.match(endpoint, /bulkAssignItemsToFolders\(\$type, \$assignments\)/);
     assert.match(endpoint, /bulkAssignItemsToFolder\(\$type, \$folderId, \$itemsDecoded\)/);

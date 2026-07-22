@@ -6079,7 +6079,7 @@
         return readConfigMetadata($type, false);
     }
 
-    function applyFolderBatchOperations(string $type, array $operations): array {
+    function applyFolderBatchOperations(string $type, array $operations, $expectedRevision = ''): array {
         $type = ensureType($type);
         $deletes = $operations['deletes'] ?? [];
         $upserts = $operations['upserts'] ?? [];
@@ -6146,9 +6146,11 @@
             $normalizedDeletes,
             $normalizedUpserts,
             $normalizedCreates,
-            $operationCount
+            $operationCount,
+            $expectedRevision
         ): array {
             $startedAt = microtime(true);
+            assertExpectedConfigRevision($type, 'folder', $expectedRevision);
             $originalFolders = readRawFolderMap($type);
             $originalPrefs = readTypePrefs($type);
             $nextFolders = $originalFolders;

@@ -47,15 +47,9 @@
         const applyImportOperations = typeof deps.applyImportOperations === 'function'
             ? deps.applyImportOperations
             : (async () => {});
-        const requestFolderBatchMutation = typeof deps.requestFolderBatchMutation === 'function'
-            ? deps.requestFolderBatchMutation
-            : (async () => ({}));
         const ensureRuntimeConflictActionAllowed = typeof deps.ensureRuntimeConflictActionAllowed === 'function'
             ? deps.ensureRuntimeConflictActionAllowed
             : (() => true);
-        const TREE_INTEGRITY_DEPTH_WARN_LEVEL = Number.isFinite(Number(deps.TREE_INTEGRITY_DEPTH_WARN_LEVEL))
-            ? Number(deps.TREE_INTEGRITY_DEPTH_WARN_LEVEL)
-            : 6;
         const setRuntimePreviewOutput = typeof deps.setRuntimePreviewOutput === 'function'
             ? deps.setRuntimePreviewOutput
             : (() => {});
@@ -68,148 +62,12 @@
         const executeFolderRuntimeAction = typeof deps.executeFolderRuntimeAction === 'function'
             ? deps.executeFolderRuntimeAction
             : (async () => ({}));
-
-        const buildRawParentMap = (foldersInput = null) => {
-            const folders = utils.normalizeFolderMap(foldersInput || {});
-            const parentMap = {};
-            for (const [id, folder] of Object.entries(folders)) {
-                const rawParent = typeof folder?.parentId === 'string'
-                    ? folder.parentId
-                    : (typeof folder?.parent_id === 'string' ? folder.parent_id : '');
-                parentMap[id] = String(rawParent || '').trim();
-            }
-            return { folders, parentMap };
-        };
-
-        const scanFolderTreeIntegrity = (type, foldersInput = null) => {
-            const resolvedType = normalizeManagedType(type);
-            const { folders, parentMap } = buildRawParentMap(foldersInput || getFolderMap(resolvedType));
-            const ids = Object.keys(folders);
-            const idSet = new Set(ids);
-            const selfParents = [];
-            const orphans = [];
-            const cycles = [];
-
-            ids.forEach((id) => {
-                const parentId = String(parentMap[id] || '').trim();
-                if (!parentId) {
-                    return;
-                }
-                if (parentId === id) {
-                    selfParents.push(id);
-                    return;
-                }
-                if (!idSet.has(parentId)) {
-                    orphans.push(id);
-                }
-            });
-
-            const visited = new Set();
-            const inPath = new Set();
-            const traverse = (id, chain = []) => {
-                if (inPath.has(id)) {
-                    const startIndex = chain.indexOf(id);
-                    if (startIndex >= 0) {
-                        cycles.push(chain.slice(startIndex).concat(id));
-                    }
-                    return;
-                }
-                if (visited.has(id)) {
-                    return;
-                }
-                visited.add(id);
-                inPath.add(id);
-                const parentId = String(parentMap[id] || '').trim();
-                if (parentId && idSet.has(parentId)) {
-                    traverse(parentId, chain.concat(id));
-                }
-                inPath.delete(id);
-            };
-            ids.forEach((id) => traverse(id, []));
-
-            const hierarchyMeta = buildFolderHierarchyMeta(folders);
-            const childrenById = hierarchyMeta?.childrenById && typeof hierarchyMeta.childrenById === 'object'
-                ? hierarchyMeta.childrenById
-                : {};
-            const depthById = hierarchyMeta?.depthById && typeof hierarchyMeta.depthById === 'object'
-                ? hierarchyMeta.depthById
-                : {};
-            const branchMemberCache = {};
-            const getBranchMemberCount = (id, seen = new Set()) => {
-                const safeId = String(id || '').trim();
-                if (!safeId) {
-                    return 0;
-                }
-                if (Object.prototype.hasOwnProperty.call(branchMemberCache, safeId)) {
-                    return Number(branchMemberCache[safeId] || 0);
-                }
-                if (seen.has(safeId)) {
-                    return 0;
-                }
-                seen.add(safeId);
-                const folder = folders[safeId] || {};
-                const directMembers = (utils && typeof utils.normalizeFolderMembers === 'function')
-                    ? utils.normalizeFolderMembers(folder?.containers || []).length
-                    : (Array.isArray(folder?.containers) ? folder.containers.length : 0);
-                let total = directMembers;
-                const children = Array.isArray(childrenById[safeId]) ? childrenById[safeId] : [];
-                for (const childId of children) {
-                    total += getBranchMemberCount(childId, seen);
-                }
-                seen.delete(safeId);
-                branchMemberCache[safeId] = total;
-                return total;
-            };
-            const depthWarnings = [];
-            const emptyBranches = [];
-            let maxDepth = 0;
-            for (const id of ids) {
-                const depth = Math.max(0, Number(depthById[id] || 0));
-                if (depth > maxDepth) {
-                    maxDepth = depth;
-                }
-                if (depth > TREE_INTEGRITY_DEPTH_WARN_LEVEL) {
-                    depthWarnings.push({
-                        id,
-                        name: String(folders[id]?.name || id),
-                        depth
-                    });
-                }
-                const children = Array.isArray(childrenById[id]) ? childrenById[id] : [];
-                if (children.length <= 0) {
-                    continue;
-                }
-                const branchMembers = getBranchMemberCount(id);
-                if (branchMembers <= 0) {
-                    emptyBranches.push({
-                        id,
-                        name: String(folders[id]?.name || id),
-                        depth
-                    });
-                }
-            }
-
-            return {
-                type: resolvedType,
-                totalFolders: ids.length,
-                selfParents,
-                orphans,
-                cycles,
-                maxDepth,
-                depthWarnings,
-                emptyBranches
-            };
-        };
-
-        const normalizeTreeIntegrityOptions = (options) => {
-            if (typeof options === 'boolean') {
-                return { repair: options };
-            }
-            if (!options || typeof options !== 'object') {
-                return { repair: false };
-            }
-            return { repair: options.repair === true };
-        };
+        const treeIntegrityApi = deps.treeIntegrityApi
+            || (deps.treeIntegrityModule && typeof deps.treeIntegrityModule.createApi === 'function'
+                ? deps.treeIntegrityModule.createApi(deps)
+                : null);
+        const scanFolderTreeIntegrity = (...args) => treeIntegrityApi?.scan(...args);
+        const runTreeIntegrityCheck = (...args) => treeIntegrityApi?.run(...args);
 
         const setFolderBranchPinned = async (type, folderId, pinned = true) => {
             const resolvedType = normalizeManagedType(type);
@@ -387,114 +245,6 @@
             }
         };
 
-        const runTreeIntegrityCheck = async (type, options = {}) => {
-            const normalizedOptions = normalizeTreeIntegrityOptions(options);
-            const repair = normalizedOptions.repair === true;
-            const resolvedType = normalizeManagedType(type);
-            const report = scanFolderTreeIntegrity(resolvedType);
-            const linkIssueCount = report.selfParents.length + report.orphans.length + report.cycles.length;
-            const advisoryIssueCount = report.depthWarnings.length + report.emptyBranches.length;
-            const totalIssues = linkIssueCount + advisoryIssueCount;
-            if (totalIssues <= 0) {
-                swal({
-                    title: 'Tree integrity healthy',
-                    text: `${resolvedType.toUpperCase()} nested folder structure has no cycle/orphan/depth/empty-branch issues.`,
-                    type: 'success'
-                });
-                return;
-            }
-            if (!repair) {
-                const cyclePreview = report.cycles.slice(0, 3).map((cycle) => cycle.join(' -> ')).join('\n');
-                const depthPreview = report.depthWarnings
-                    .slice(0, 4)
-                    .map((row) => `${row.name} (depth ${row.depth})`)
-                    .join('\n');
-                const emptyBranchPreview = report.emptyBranches
-                    .slice(0, 4)
-                    .map((row) => `${row.name} (depth ${row.depth})`)
-                    .join('\n');
-                const details = [
-                    `Self-parent links: ${report.selfParents.length}`,
-                    `Orphans: ${report.orphans.length}`,
-                    `Cycles: ${report.cycles.length}`,
-                    `Depth warnings (> ${TREE_INTEGRITY_DEPTH_WARN_LEVEL}): ${report.depthWarnings.length}`,
-                    `Empty branches (no members in subtree): ${report.emptyBranches.length}`,
-                    `Max depth: ${report.maxDepth}`,
-                    cyclePreview ? `\nCycle preview:\n${cyclePreview}` : '',
-                    depthPreview ? `\nDeep branch preview:\n${depthPreview}` : '',
-                    emptyBranchPreview ? `\nEmpty branch preview:\n${emptyBranchPreview}` : ''
-                ].join('\n');
-                swal({
-                    title: 'Tree integrity issues found',
-                    text: details,
-                    type: 'warning'
-                });
-                return;
-            }
-            if (linkIssueCount <= 0) {
-                swal({
-                    title: 'No repairable link issues',
-                    text: `Detected ${advisoryIssueCount} advisory issue(s) (depth/empty branch), but no orphan/cycle link errors to auto-repair.`,
-                    type: 'info'
-                });
-                return;
-            }
-            const folders = getFolderMap(resolvedType);
-            const toRepairSet = new Set([...report.selfParents, ...report.orphans]);
-            report.cycles.forEach((cycle) => {
-                const first = Array.isArray(cycle) ? String(cycle[0] || '').trim() : '';
-                if (first) {
-                    toRepairSet.add(first);
-                }
-            });
-            const toRepair = Array.from(toRepairSet).filter((id) => Object.prototype.hasOwnProperty.call(folders, id));
-            if (!toRepair.length) {
-                return;
-            }
-            if (!ensureRuntimeConflictActionAllowed(`Repair ${resolvedType.toUpperCase()} nested tree integrity`)) {
-                return;
-            }
-            const confirmed = await new Promise((resolve) => {
-                swal({
-                    title: 'Repair tree integrity?',
-                    text: `This will reset parent links to root for ${toRepair.length} folder(s). Advisory depth/empty-branch warnings are reported but not auto-changed.`,
-                    type: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Repair',
-                    cancelButtonText: 'Cancel'
-                }, (ok) => resolve(ok === true));
-            });
-            if (!confirmed) {
-                return;
-            }
-            let backup = null;
-            try {
-                backup = await createBackup(resolvedType, `before-tree-integrity-repair-${Date.now()}`);
-                await requestFolderBatchMutation(resolvedType, {
-                    deletes: [],
-                    creates: [],
-                    upserts: toRepair.map((id) => ({
-                        id,
-                        folder: {
-                            ...folders[id],
-                            parentId: ''
-                        }
-                    }))
-                });
-                await refreshType(resolvedType);
-                if (backup?.name) {
-                    await offerUndoAction(resolvedType, backup, 'Tree integrity repair');
-                }
-                swal({
-                    title: 'Repair complete',
-                    text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}. Remaining advisory warnings: ${advisoryIssueCount}.`,
-                    type: 'success'
-                });
-            } catch (error) {
-                showError('Tree integrity repair failed', error);
-            }
-        };
-
         const previewFolderRuntimeAction = (type) => {
             const folderId = String($(`#${type}-runtime-folder`).val() || '');
             const action = String($(`#${type}-runtime-action`).val() || '');
@@ -587,6 +337,7 @@
             setFolderBranchPinned,
             exportFolderBranch,
             importFolderBranch,
+            scanFolderTreeIntegrity,
             runTreeIntegrityCheck,
             previewFolderRuntimeAction,
             applyFolderRuntimeAction

@@ -14,7 +14,6 @@
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
         const $ = deps.$ || win?.jQuery || win?.$;
-        const modernEditorEnabled = deps.modernEditorEnabled === true;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
         const getInitialSnapshot = typeof deps.getInitialSnapshot === 'function' ? deps.getInitialSnapshot : (() => '');
         const setInitialSnapshot = typeof deps.setInitialSnapshot === 'function' ? deps.setInitialSnapshot : (() => {});
@@ -231,35 +230,6 @@
             scheduleEditorRecalculation(0);
         };
 
-        const buildEditorActionBar = () => {
-            if (!$ || !modernEditorEnabled) {
-                return;
-            }
-            const form = $('div.canvas > form');
-            if (!form.length) {
-                return;
-            }
-            if (!$('#fvEditorActionBar').length) {
-                form.append(`
-                    <div id="fvEditorActionBar" class="fv-editor-actionbar">
-                        <div class="fv-editor-actionbar-main"></div>
-                        <div class="fv-editor-actionbar-meta">
-                            <span id="fvActionBarDirty" class="fv-actionbar-dirty">No pending changes</span>
-                            <span id="fvActionBarHint" class="fv-actionbar-hint">Use Restore saved values to discard local edits or Apply plugin defaults to quickly reset display tuning.</span>
-                        </div>
-                    </div>
-                `);
-            }
-            const shell = $('#fvEditorActionBar .fv-editor-actionbar-main');
-            if (!shell.length) {
-                return;
-            }
-            const controls = $('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator');
-            controls.each((_, element) => {
-                shell.append(element);
-            });
-        };
-
         const markCleanState = () => {
             setInitialSnapshot(computeFormSnapshot());
             updateUnsavedIndicator();
@@ -275,8 +245,7 @@
             updateInheritedFieldIndicators,
             restoreSectionSavedValues,
             applySectionDefaults,
-            applyEditorPluginDefaults,
-            buildEditorActionBar
+            applyEditorPluginDefaults
         });
     };
 

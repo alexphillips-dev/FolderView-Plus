@@ -435,10 +435,6 @@
         return APP_COLUMN_WIDTH_OPTIONS.includes(normalized) ? normalized : 'standard';
     };
 
-    const normalizeFolderEditorMode = (value) => {
-        return 'modern';
-    };
-
     const normalizeDashboardLayout = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return DASHBOARD_LAYOUT_OPTIONS.includes(normalized)
@@ -927,8 +923,6 @@
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
-        const folderEditorModeExplicit = false;
-        const folderEditorMode = 'modern';
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
         const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
@@ -937,12 +931,10 @@
         const normalizedSettingsTableNameWidth = String(incomingSettingsTable.nameWidth || '').trim().toLowerCase();
         const normalizedSettingsTableActionsWidth = String(incomingSettingsTable.actionsWidth || '').trim().toLowerCase();
         const settingsTable = {
-            widthMode: 'auto',
             preset: ['compact', 'balanced', 'detailed', 'custom'].includes(normalizedSettingsTablePreset)
                 ? normalizedSettingsTablePreset
                 : 'balanced',
             columns: settingsTableColumns,
-            columnWidths: {},
             nameWidth: ['compact', 'standard', 'wide'].includes(normalizedSettingsTableNameWidth)
                 ? normalizedSettingsTableNameWidth
                 : 'standard',
@@ -959,8 +951,6 @@
             expandedFolderState,
             hideEmptyFolders,
             appColumnWidth,
-            folderEditorMode,
-            folderEditorModeExplicit,
             setupWizardCompleted,
             settingsMode,
             autoRules,
@@ -2267,7 +2257,6 @@
         normalizeFolderMap,
         normalizeFolderMembers,
         normalizeAppColumnWidth,
-        normalizeFolderEditorMode,
         normalizeDashboardLayout,
         normalizeDashboardOverflowMode,
         normalizeRuntimePageViewMode,

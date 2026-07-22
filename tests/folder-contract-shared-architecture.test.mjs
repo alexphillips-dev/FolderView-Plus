@@ -82,7 +82,7 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderEditorStateJs, /root\.FolderViewPlusFolderEditorState = factory\(\);/);
     assert.match(folderEditorStateJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorStateJs, /const updateUnsavedIndicator = \(\) =>/);
-    assert.match(folderEditorStateJs, /const buildEditorActionBar = \(\) =>/);
+    assert.doesNotMatch(folderEditorStateJs, /const buildEditorActionBar = \(\) =>/);
     assert.match(folderEditorStateJs, /root\.FolderViewPlusFolderEditorStateModuleLoaded = true/);
     assert.match(folderEditorMembersJs, /^\/\/ @ts-check/m);
     assert.match(folderEditorMembersJs, /root\.FolderViewPlusFolderEditorMembers = factory\(\);/);

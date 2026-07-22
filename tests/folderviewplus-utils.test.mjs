@@ -211,28 +211,20 @@ test('normalizePrefs preserves settings table layout preferences', () => {
         }
     });
 
-    assert.equal(prefs.settingsTable.widthMode, 'auto');
     assert.equal(prefs.settingsTable.preset, 'detailed');
     assert.deepEqual(prefs.settingsTable.columns, { members: true, status: false });
-    assert.deepEqual(prefs.settingsTable.columnWidths, {});
     assert.equal(prefs.settingsTable.nameWidth, 'wide');
     assert.equal(prefs.settingsTable.actionsWidth, 'compact');
+    assert.equal(Object.hasOwn(prefs.settingsTable, 'widthMode'), false);
+    assert.equal(Object.hasOwn(prefs.settingsTable, 'columnWidths'), false);
 });
 
-test('normalizePrefs forces the folder editor to modern-only mode', () => {
-    const defaults = utils.normalizePrefs({});
-    const modern = utils.normalizePrefs({ folderEditorMode: 'modern' });
-    const fallback = utils.normalizePrefs({ folderEditorMode: 'beta-ish' });
-    const explicitLegacy = utils.normalizePrefs({ folderEditorMode: 'legacy', folderEditorModeExplicit: true });
+test('normalizePrefs drops retired folder editor mode fields', () => {
+    const prefs = utils.normalizePrefs({ folderEditorMode: 'legacy', folderEditorModeExplicit: true });
 
-    assert.equal(defaults.folderEditorMode, 'modern');
-    assert.equal(modern.folderEditorMode, 'modern');
-    assert.equal(fallback.folderEditorMode, 'modern');
-    assert.equal(explicitLegacy.folderEditorMode, 'modern');
-    assert.equal(explicitLegacy.folderEditorModeExplicit, false);
-    assert.equal(utils.normalizeFolderEditorMode('modern'), 'modern');
-    assert.equal(utils.normalizeFolderEditorMode('legacy'), 'modern');
-    assert.equal(utils.normalizeFolderEditorMode('broken'), 'modern');
+    assert.equal(Object.hasOwn(prefs, 'folderEditorMode'), false);
+    assert.equal(Object.hasOwn(prefs, 'folderEditorModeExplicit'), false);
+    assert.equal(Object.hasOwn(utils, 'normalizeFolderEditorMode'), false);
 });
 
 test('summarizeImport reports creates updates and deletes for replace mode', () => {

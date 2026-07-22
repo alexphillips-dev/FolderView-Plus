@@ -18,7 +18,6 @@
             ? deps.previewModule
             : null;
         const type = String(deps.type || '').trim();
-        const modernEditorEnabled = deps.modernEditorEnabled === true;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
         const getIncludedMemberNames = typeof deps.getIncludedMemberNames === 'function' ? deps.getIncludedMemberNames : (() => []);
         const getPreviewMemberNames = typeof deps.getPreviewMemberNames === 'function'
@@ -86,10 +85,6 @@
         const updateSectionStateIndicators = typeof deps.updateSectionStateIndicators === 'function'
             ? deps.updateSectionStateIndicators
             : (() => {});
-        const enforceLeftAlignedSettingsLayout = typeof deps.enforceLeftAlignedSettingsLayout === 'function'
-            ? deps.enforceLeftAlignedSettingsLayout
-            : (() => {});
-
         let previewApi = null;
         let previewRenderTimer = null;
 
@@ -100,8 +95,8 @@
             previewApi = previewModule.createApi({
                 $,
                 type,
-                shouldRender: () => modernEditorEnabled,
-                shouldUpdate: () => modernEditorEnabled,
+                shouldRender: () => true,
+                shouldUpdate: () => true,
                 getForm,
                 getIncludedMemberNames,
                 getPreviewMemberNames,
@@ -220,7 +215,6 @@
             $('.fv-section-shell[data-section-shell="preview"]').toggleClass('is-preview-disabled', String(form.preview?.value) === '0');
             $('.fv-section-shell[data-section-shell="chevron"]').toggleClass('is-boxed', normalizeDropdownStyle(form.dropdown_style?.value) === 'boxed');
 
-            enforceLeftAlignedSettingsLayout();
             updateInheritedFieldIndicators();
             renderLivePreviewCanvas();
         };

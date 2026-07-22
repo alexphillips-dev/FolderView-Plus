@@ -49,9 +49,6 @@ try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorTypePrefs = readTypePrefs($folderEditorPageType);
     $folderEditorTypePrefs['_metadata'] = readConfigMetadata($folderEditorPageType, true);
-    $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
-    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
-    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']

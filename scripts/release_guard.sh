@@ -453,10 +453,6 @@ for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
   fi
 done
 
-if ! grep -q 'fv-force-left-v2 marker' "${SOURCE_FOLDER_JS}"; then
-  echo "ERROR: Source folder.js is missing the alignment regression marker comment." >&2
-  exit 1
-fi
 if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
   echo "ERROR: Source folderviewplus.js is missing mobile section-toggle header binding." >&2
   exit 1
@@ -832,11 +828,6 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH}" > "${T
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" > "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"
 
 if ! env_truthy "${FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:-0}"; then
-  if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
-    echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
-    exit 1
-  fi
-
   if ! text_files_match "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
     fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
   fi

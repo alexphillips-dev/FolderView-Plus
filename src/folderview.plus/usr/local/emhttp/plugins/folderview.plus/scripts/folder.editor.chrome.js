@@ -1,8 +1,5 @@
 (function folderEditorChromeBootstrap(root) {
-    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'modern').trim().toLowerCase();
-    if (editorPageMode !== 'modern') {
-        return;
-    }
+    const editorPageMode = 'modern';
     const editorRuntimePerformanceTelemetry = root.FolderViewPlusRuntimePerformanceTelemetry?.getOrCreate?.('folder-editor', {
         window: root,
         document: root.document

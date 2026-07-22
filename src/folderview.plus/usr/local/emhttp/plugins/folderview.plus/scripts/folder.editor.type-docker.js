@@ -224,19 +224,6 @@
         const buildSmartDefaultSuggestions = ({ selectedMembers = [], form } = {}) => {
             const members = Array.isArray(selectedMembers) ? selectedMembers : [];
             const suggestions = [];
-            const composeProjects = Array.from(new Set(
-                members
-                    .map((member) => String(member?.ComposeProject || '').trim())
-                    .filter((value) => value !== '')
-            ));
-            if (composeProjects.length === 1) {
-                suggestions.push({
-                    key: 'compose',
-                    label: 'Compose project',
-                    value: composeProjects[0],
-                    apply: () => {}
-                });
-            }
             const updateCount = members.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
             suggestions.push({
                 key: 'updates',
@@ -251,8 +238,6 @@
             return suggestions;
         };
 
-        const applyPreviewConstraints = () => {};
-
         return Object.freeze({
             buildComparableFolder,
             shouldSyncAfterSave,
@@ -262,8 +247,7 @@
             applySectionTags,
             getPreviewSignals,
             getRulesConfig,
-            buildSmartDefaultSuggestions,
-            applyPreviewConstraints
+            buildSmartDefaultSuggestions
         });
     };
 

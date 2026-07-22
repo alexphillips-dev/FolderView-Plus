@@ -3598,8 +3598,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
     min-height: 112px;
 }
 
-.fv-modern-field-row > dl,
-.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl {
+.fv-modern-field-row > dl {
     display: flex !important;
     flex-direction: column;
     align-items: flex-start;
@@ -3610,9 +3609,7 @@ body[data-fvplus-host-theme="white"] .ui-multiselect-menu.multiselect-container,
 }
 
 .fv-modern-field-row > dl > dt,
-.fv-modern-field-row > dl > dd,
-.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl > dt,
-.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl > dd {
+.fv-modern-field-row > dl > dd {
     float: none !important;
     width: auto !important;
     margin: 0 !important;

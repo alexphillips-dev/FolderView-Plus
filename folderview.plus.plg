@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.22.06">
-<!ENTITY md5 "b16c07a77d31524cc21a51a3e739caf4">
+<!ENTITY version "2026.07.22.08">
+<!ENTITY md5 "c7be835f66a38f0d57af6ffa92e70e20">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.22.08
+- Fix: Removed the Docker editor's misleading Compose-project smart-default suggestion, which had no corresponding setting and could never apply a change.
+- Maintenance: Removed the orphaned Docker member-menu module and its stale privacy selectors after confirming that current Docker menus use the shared command and context-menu runtimes.
+- Maintenance: Removed retired folder-editor mode preferences, impossible legacy-editor branches, duplicate action-bar construction, and obsolete runtime alignment overrides while preserving the modern editor contract.
+- Maintenance: Removed abandoned settings-table drag-resize persistence and runtime cleanup paths while retaining the supported visibility, density, Name width, and Actions width presets.
+- Localization: Pruned two retired generated UI phrases from all 18 locale catalogs and refreshed the extraction totals.
+- Quality: Expanded regression coverage for the removed assets, executable smart-default suggestions, modern-only editor behavior, preference normalization, and preset-driven table widths.
+
 
 ###2026.07.22.06
 - Fix: Docker advanced preview context, activation, graph mode, and graph duration settings now save immediately and reach the Dashboard preview runtime.

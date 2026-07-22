@@ -253,7 +253,6 @@ const folderEditorTypeVmModule = window.FolderViewPlusFolderEditorTypeVm || null
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
-const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'modern').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -1135,7 +1134,6 @@ const getFolderEditorRulesApi = () => {
         utils,
         escapeHtml,
         extractAjaxErrorMessage,
-        shouldRender: () => modernFolderEditorEnabled,
         getActiveFolderId: () => activeFolderEditorFolderId,
         getLegacyRuleContext: () => ({
             pattern: String(getForm()?.regex?.value || ''),
@@ -1354,7 +1352,6 @@ const getFolderEditorStateApi = () => {
     folderEditorStateApi = folderEditorStateModule.createApi({
         window,
         $,
-        modernEditorEnabled: modernFolderEditorEnabled,
         getForm,
         getInitialSnapshot: () => initialSnapshot,
         setInitialSnapshot: (value) => {
@@ -1459,37 +1456,6 @@ const applySectionDefaults = (sectionKey) => {
 
 const applyEditorPluginDefaults = () => {
     getFolderEditorStateApi()?.applyEditorPluginDefaults();
-};
-
-const buildEditorActionBar = () => {
-    getFolderEditorStateApi()?.buildEditorActionBar();
-};
-
-const buildSectionCards = () => {
-    const form = $('div.canvas > form');
-    if (!form.length) {
-        return;
-    }
-    const actionBar = $('#fvEditorActionBar');
-    Object.entries(SECTION_META).forEach(([sectionKey, section]) => {
-        const heading = $(`#fv-section-${sectionKey}`);
-        const rows = $(`[data-editor-section="${sectionKey}"]`);
-        if (!heading.length || !rows.length) {
-            return;
-        }
-
-        let shell = form.children(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
-        if (!shell.length) {
-            shell = $(`<section class="fv-section-shell${section.advanced ? ' is-advanced-shell' : ''}" data-section-shell="${sectionKey}"><div class="fv-section-shell-body"></div></section>`);
-        }
-        if (actionBar.length) {
-            actionBar.before(shell);
-        } else {
-            form.append(shell);
-        }
-        shell.append(heading);
-        shell.find('.fv-section-shell-body').append(rows);
-    });
 };
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
@@ -1630,7 +1596,6 @@ const getFolderEditorPreviewRuntimeApi = () => {
         $,
         previewModule: folderEditorPreview,
         type,
-        modernEditorEnabled: modernFolderEditorEnabled,
         getForm,
         getIncludedMemberNames,
         getPreviewMemberNames,
@@ -1655,7 +1620,6 @@ const getFolderEditorPreviewRuntimeApi = () => {
         updateInheritedFieldIndicators: () => updateInheritedFieldIndicators(),
         updateChangeSummaryPanel: () => updateChangeSummaryPanel(),
         updateSectionStateIndicators: () => updateSectionStateIndicators(),
-        enforceLeftAlignedSettingsLayout: () => enforceLeftAlignedSettingsLayout(),
         defaultBorderColor: DEFAULT_BORDER_COLOR,
         defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
         defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
@@ -2515,9 +2479,6 @@ const toggleAdvancedSectionCollapse = (sectionKey) => {
 };
 
 const applyAdvancedMode = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
     editorMode = normalizeEditorMode(editorMode);
     const showAdvanced = true;
     activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
@@ -2548,139 +2509,6 @@ const applyAdvancedMode = () => {
     });
 
     $('.fv-advanced-setting').removeClass('fv-advanced-hidden');
-};
-
-const enforceLeftAlignedSettingsLayout = () => {
-    if (modernFolderEditorEnabled) {
-        return;
-    }
-    try {
-        const isMobile = window.innerWidth <= 980;
-        const form = document.querySelector('div.canvas > form.folder-editor-form');
-        if (!form) {
-            return;
-        }
-
-        // fv-force-left-v2 marker: retained for release guard compatibility.
-        // fv-force-left-v3 marker: hard-force stable left grid layout.
-        form.classList.add('fv-force-left-v3');
-
-        const setImportant = (el, property, value) => {
-            if (!el) {
-                return;
-            }
-            el.style.setProperty(property, value, 'important');
-        };
-
-        const layoutRows = [
-            ...Array.from(form.children),
-            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-editor-panel .fv-editor-panel-body > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
-        ];
-        layoutRows.forEach((row) => {
-            const isBasicRow = row.classList?.contains('basic') || row.classList?.contains('order-section');
-            const isListRow = row.tagName === 'UL';
-            if (!isBasicRow && !isListRow) {
-                return;
-            }
-            setImportant(row, 'width', 'calc(100% - 2em)');
-            setImportant(row, 'max-width', 'none');
-            setImportant(row, 'margin-left', '1em');
-            setImportant(row, 'margin-right', '0');
-            setImportant(row, 'box-sizing', 'border-box');
-        });
-
-        form.querySelectorAll('ul .basic').forEach((row) => {
-            if (row.classList.contains('order-section')) {
-                return;
-            }
-            setImportant(row, 'width', '100%');
-            setImportant(row, 'max-width', 'none');
-            setImportant(row, 'margin-left', '0');
-            setImportant(row, 'margin-right', '0');
-        });
-
-        form.querySelectorAll('.fv-section-shell .fv-editor-panel-body > .basic').forEach((row) => {
-            setImportant(row, 'width', '100%');
-            setImportant(row, 'max-width', 'none');
-            setImportant(row, 'margin-left', '0');
-            setImportant(row, 'margin-right', '0');
-        });
-
-        form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
-            const modernFieldRow = dl.closest('.fv-modern-field-row');
-            if (modernFieldRow) {
-                setImportant(dl, 'display', 'flex');
-                setImportant(dl, 'flex-direction', 'column');
-                setImportant(dl, 'align-items', 'flex-start');
-                setImportant(dl, 'justify-content', 'flex-start');
-                setImportant(dl, 'grid-template-columns', 'none');
-                setImportant(dl, 'column-gap', '0');
-                setImportant(dl, 'row-gap', '0');
-                setImportant(dl, 'gap', '0.52em');
-                setImportant(dl, 'width', '100%');
-                setImportant(dl, 'max-width', 'none');
-                setImportant(dl, 'margin-left', '0');
-                setImportant(dl, 'margin-right', '0');
-            } else {
-                setImportant(dl, 'display', 'grid');
-                setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
-                setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
-                setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
-                setImportant(dl, 'align-items', 'center');
-                setImportant(dl, 'justify-content', 'start');
-                setImportant(dl, 'width', '100%');
-                setImportant(dl, 'max-width', 'none');
-                setImportant(dl, 'margin-left', '0');
-                setImportant(dl, 'margin-right', '0');
-            }
-
-            const dt = dl.getElementsByTagName('dt')[0];
-            setImportant(dt, 'float', 'none');
-            setImportant(dt, 'width', 'auto');
-            setImportant(dt, 'text-align', 'left');
-            setImportant(dt, 'margin', '0');
-            setImportant(dt, 'padding', '0');
-
-            const dd = dl.getElementsByTagName('dd')[0];
-            setImportant(dd, 'float', 'none');
-            const modernToggleRow = Boolean(modernFieldRow && modernFieldRow.classList.contains('is-toggle-row'));
-            setImportant(dd, 'width', modernFieldRow ? (modernToggleRow ? 'auto' : '100%') : 'auto');
-            setImportant(dd, 'margin', '0');
-            setImportant(dd, 'min-width', '0');
-            setImportant(dd, 'text-align', 'left');
-            if (modernFieldRow) {
-                setImportant(dd, 'padding-top', '0.08em');
-            }
-            if (modernToggleRow) {
-                setImportant(dd, 'display', 'inline-flex');
-                setImportant(dd, 'align-items', 'flex-start');
-                setImportant(dd, 'flex-wrap', 'wrap');
-                setImportant(dd, 'gap', '0.42em');
-                setImportant(dd, 'max-width', '100%');
-            }
-
-            if (dd) {
-                dd.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach((field) => {
-                    setImportant(field, 'margin-left', '0');
-                    setImportant(field, 'margin-right', 'auto');
-                });
-                dd.querySelectorAll('.switch-button').forEach((toggle) => {
-                    setImportant(toggle, 'margin-left', '0');
-                    setImportant(toggle, 'margin-right', modernToggleRow ? '0' : 'auto');
-                    setImportant(toggle, 'float', 'none');
-                });
-            }
-        });
-
-        form.querySelectorAll('.basic > blockquote.inline_help').forEach((help) => {
-            setImportant(help, 'width', '100%');
-            setImportant(help, 'max-width', 'none');
-            setImportant(help, 'margin-left', '0');
-            setImportant(help, 'margin-right', '0');
-        });
-    } catch (_error) {
-        // Do not block folder editor if layout overrides fail on older browsers.
-    }
 };
 
 const getIncludedMemberNames = () => $('input[name*="containers"]:checked').map((_, el) => String($(el).val() || '')).get();
@@ -2895,9 +2723,6 @@ const updateRegexSimulator = () => {
 };
 
 const applySectionTags = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
     $('[data-editor-section]').removeAttr('data-editor-section');
     $('.fv-advanced-setting').removeClass('fv-advanced-setting');
 
@@ -2964,50 +2789,7 @@ const applySectionTags = () => {
     getFolderEditorTypeApi()?.applySectionTags?.({ markSection, markAdvanced });
 };
 
-const pruneEmptyEditorContainers = () => {
-    const form = $('div.canvas > form');
-    if (!form.length) {
-        return;
-    }
-    form.find('li').each((_, item) => {
-        const entry = $(item);
-        if (entry.children().length === 0 && entry.text().trim() === '') {
-            entry.remove();
-        }
-    });
-    form.find('ul').each((_, list) => {
-        const entry = $(list);
-        const hasContent = entry.children().filter((_, child) => {
-            const element = $(child);
-            return element.is('.basic, li') || element.find('.basic, :input, button.custom-action').length > 0 || element.text().trim() !== '';
-        }).length > 0;
-        if (!hasContent) {
-            entry.remove();
-        }
-    });
-};
-
-const hideUnsectionedEditorRows = () => {
-    const form = $('div.canvas > form.folder-editor-form');
-    if (!form.length) {
-        return;
-    }
-    form.children('.basic, ul').each((_, element) => {
-        const row = $(element);
-        if (row.closest('.fv-section-shell').length > 0) {
-            return;
-        }
-        if (row.is('.basic.order-section')) {
-            return;
-        }
-        row.addClass('fv-orphan-editor-row').hide();
-    });
-};
-
 const initEditorChrome = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
     const form = $('div.canvas > form');
     if (!form.length) {
         return;
@@ -3156,53 +2938,14 @@ const initEditorChrome = () => {
         `);
     }
 
-    if (modernFolderEditorEnabled) {
-        if (typeof window.FolderViewPlusRefreshModernEditorChromeLayout === 'function') {
-            window.FolderViewPlusRefreshModernEditorChromeLayout();
-        }
-        $('.fv-section-nav button')
-            .off('click.fvEditorSectionSync')
-            .on('click.fvEditorSectionSync', function onModernSectionClick() {
-                setActiveEditorSection($(this).data('target'));
-            });
-    } else {
-        $('.fv-section-heading').remove();
-        Object.entries(SECTION_META).forEach(([key, section]) => {
-            const first = $(`[data-editor-section="${key}"]`).first();
-            if (!first.length) {
-                return;
-            }
-            first.before(`
-                <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
-                    <div class="fv-section-heading-title-row">
-                        <div class="fv-section-heading-copy">
-                            <div class="fv-section-heading-kicker">
-                                <i class="fa ${section.icon}" aria-hidden="true"></i>
-                                <span>${section.advanced ? 'Advanced section' : 'Core section'}</span>
-                            </div>
-                            <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
-                            <p>${section.description}</p>
-                        </div>
-                        <div class="fv-section-heading-tools">
-                            <span id="fvSectionState-${key}" class="fv-section-state-badge is-clean">Saved</span>
-                            ${section.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${key}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
-                            ${section.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${key}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
-                            ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
-                        </div>
-                    </div>
-                </div>
-            `);
-        });
-
-        buildSectionCards();
-        pruneEmptyEditorContainers();
-        hideUnsectionedEditorRows();
-        buildEditorActionBar();
-
-        $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
+    if (typeof window.FolderViewPlusRefreshModernEditorChromeLayout === 'function') {
+        window.FolderViewPlusRefreshModernEditorChromeLayout();
+    }
+    $('.fv-section-nav button')
+        .off('click.fvEditorSectionSync')
+        .on('click.fvEditorSectionSync', function onModernSectionClick() {
             setActiveEditorSection($(this).data('target'));
         });
-    }
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
     $('#fvMemberFilter').off('change').on('change', applyMemberFilters);
@@ -3261,11 +3004,8 @@ const initEditorChrome = () => {
         }
     });
 
-    enforceLeftAlignedSettingsLayout();
     ensureInheritedFieldControls();
     void refreshFolderAutoRulesPanel();
-    setTimeout(enforceLeftAlignedSettingsLayout, 50);
-    setTimeout(enforceLeftAlignedSettingsLayout, 250);
 };
 
 getForm().preview_border.checked = true;
@@ -3430,7 +3170,6 @@ const startFolderEditorRuntime = async () => {
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'shell-ready';
     updateForm();
     applyAdvancedMode();
-    enforceLeftAlignedSettingsLayout();
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
@@ -3690,7 +3429,6 @@ const startFolderEditorRuntime = async () => {
     initEditorChrome();
     updateForm();
     applyAdvancedMode();
-    enforceLeftAlignedSettingsLayout();
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
@@ -3699,7 +3437,7 @@ const startFolderEditorRuntime = async () => {
     });
     markCleanState();
     isFormInitialized = true;
-    if (modernFolderEditorEnabled && typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
+    if (typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
         window.FolderViewPlusRevealModernEditorStage();
     }
 
@@ -3722,9 +3460,7 @@ const startFolderEditorRuntime = async () => {
         }
         if (fieldName === 'name') {
             if (event.type === 'input') {
-                if (modernFolderEditorEnabled) {
-                    $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
-                }
+                $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
                 markUnsavedIndicatorDirty();
                 return;
             }
@@ -3751,8 +3487,6 @@ const startFolderEditorRuntime = async () => {
         }
         scheduleEditorRecalculation(event.type === 'input' ? EDITOR_INPUT_RECALC_DEBOUNCE_MS : 0);
     });
-
-    window.addEventListener('resize', enforceLeftAlignedSettingsLayout);
 };
 
 /**
@@ -4423,9 +4157,6 @@ const getFolderEditorParentPickerApi = (() => {
 })();
 const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
     populateParentFolderOptions(foldersMap, selectedParentId, blockedIds);
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
     const parentPickerApi = getFolderEditorParentPickerApi();
     if (!parentPickerApi || typeof parentPickerApi.render !== 'function') {
         return;

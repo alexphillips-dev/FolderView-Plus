@@ -550,19 +550,14 @@ test('nested folder branch actions stay context-aware while integrity tools rema
 });
 
 test('settings table layout uses preset-driven widths instead of drag-resize controls', () => {
-    assert.match(script, /const captureCurrentColumnWidths = \(type\) =>/);
-    assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
-    assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
     assert.match(script, /const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object\.freeze\(\{/);
     assert.match(script, /const buildEffectiveSettingsTableWidths = \(type\) => \{/);
     assert.match(script, /changeSettingsTableColumnWidthPreset = async \(type, key, value\) => \{/);
     assert.match(script, /settingsTableWidthPresetByType\[resolvedType\]\[targetKey\] = normalizeSettingsTableColumnWidthPreset\(value\);/);
-    assert.match(script, /table\.querySelectorAll\('th\.fv-col-resizable'\)\.forEach\(\(header\) => header\.classList\.remove\('fv-col-resizable'\)\);/);
     assert.doesNotMatch(script, /const stopActiveTableColumnResize = \(persist = true\) =>/);
     assert.doesNotMatch(script, /const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';/);
-    assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
-    assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
-    assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
+    assert.doesNotMatch(script, /(?:captureCurrentColumnWidths|syncResizableTableLayout|bindTableColumnResizers)/);
+    assert.doesNotMatch(script, /(?:columnWidthsByType|columnWidthModeByType|normalizeSettingsTableWidthMode)/);
     assert.match(script, /\$\(`\[data-fv-table-preset\^="\$\{resolvedType\}:"\]`\)\.removeClass\('is-active'\);/);
     assert.match(page, /id="docker-table-name-width"/);
     assert.match(page, /id="docker-table-actions-width"/);

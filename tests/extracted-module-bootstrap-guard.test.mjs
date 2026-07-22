@@ -7,7 +7,6 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const runtimeStateObserversJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
-const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderEditorPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js');
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
@@ -29,7 +28,6 @@ const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plug
 test('extracted helper modules use a safe global fallback instead of out-of-scope root references', () => {
     for (const source of [
         runtimeStateObserversJs,
-        dockerMemberMenuJs,
         folderIconApiJs,
         folderEditorPreviewRuntimeJs,
         folderEditorStateJs,

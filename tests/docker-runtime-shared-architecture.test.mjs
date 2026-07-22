@@ -29,6 +29,7 @@ test('retired Docker Tree Explorer and Orbit assets are absent from the plugin p
     for (const relativePath of [
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.tree-explorer.js',
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.orbit-view.js',
+        'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js',
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.tree-explorer.css',
         'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.orbit-view.css'
     ]) {

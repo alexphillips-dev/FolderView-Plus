@@ -42,6 +42,26 @@ test('shared docker update helper accepts normalized update flags outside the Do
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(\.\.\.args\) => getSettingsHealthApi\(\)\.isDockerUpdateAvailable\(\.\.\.args\);/);
 });
 
+test('Docker smart defaults expose only suggestions that apply a real editor change', () => {
+    const form = { preview_update: { checked: false } };
+    const api = dockerTypeModule.createApi({
+        isDockerUpdateAvailableInEditor: (member) => member.UpdateAvailable === true
+    });
+    const suggestions = api.buildSmartDefaultSuggestions({
+        selectedMembers: [
+            { ComposeProject: 'media', UpdateAvailable: true },
+            { ComposeProject: 'media', UpdateAvailable: false }
+        ],
+        form
+    });
+
+    assert.deepEqual(suggestions.map((entry) => entry.key), ['updates']);
+    assert.equal(typeof suggestions[0].apply, 'function');
+    suggestions[0].apply();
+    assert.equal(form.preview_update.checked, true);
+    assert.equal(Object.hasOwn(api, 'applyPreviewConstraints'), false);
+});
+
 test('modern folder editor docker mapper accepts lightweight state-mode read_info entries', () => {
     const api = dockerTypeModule.createApi({
         getFolderLabelValue: (labels) => labels['net.unraid.docker.folder'] || '',

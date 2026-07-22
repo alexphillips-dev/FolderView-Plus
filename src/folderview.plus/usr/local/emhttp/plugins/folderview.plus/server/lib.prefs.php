@@ -12,8 +12,6 @@
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
-            'folderEditorMode' => 'modern',
-            'folderEditorModeExplicit' => false,
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -74,10 +72,8 @@
                 'warnStoppedPercent' => 60
             ],
             'settingsTable' => [
-                'widthMode' => 'auto',
                 'preset' => 'balanced',
                 'columns' => [],
-                'columnWidths' => [],
                 'nameWidth' => 'standard',
                 'actionsWidth' => 'standard'
             ],
@@ -310,21 +306,6 @@
         return 'standard';
     }
 
-    function normalizeFolderEditorMode($value): string {
-        return 'modern';
-    }
-
-    function resolveFolderEditorModePreference(array $prefs): array {
-        return [
-            'mode' => normalizeFolderEditorMode('modern'),
-            'source' => 'modern-only'
-        ];
-    }
-
-    function resolveTypeFolderEditorModePreference(string $type): array {
-        return resolveFolderEditorModePreference(readTypePrefs($type));
-    }
-
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix', 'embossed'], true)) {
@@ -449,9 +430,6 @@
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
-        $resolvedFolderEditorMode = resolveFolderEditorModePreference($prefs);
-        $normalized['folderEditorModeExplicit'] = false;
-        $normalized['folderEditorMode'] = (string)($resolvedFolderEditorMode['mode'] ?? 'modern');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';
@@ -605,10 +583,6 @@
             'warnStoppedPercent' => normalizeIntInRange($statusIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
         ];
         $settingsTableIncoming = is_array($prefs['settingsTable'] ?? null) ? $prefs['settingsTable'] : [];
-        $settingsTableWidthMode = strtolower(trim((string)($settingsTableIncoming['widthMode'] ?? 'auto')));
-        if (!in_array($settingsTableWidthMode, ['auto', 'custom'], true)) {
-            $settingsTableWidthMode = 'auto';
-        }
         $settingsTablePreset = strtolower(trim((string)($settingsTableIncoming['preset'] ?? 'balanced')));
         if (!in_array($settingsTablePreset, ['compact', 'balanced', 'detailed', 'custom'], true)) {
             $settingsTablePreset = 'balanced';
@@ -623,10 +597,8 @@
             $settingsTableActionsWidth = 'standard';
         }
         $normalized['settingsTable'] = [
-            'widthMode' => 'auto',
             'preset' => $settingsTablePreset,
             'columns' => $settingsTableColumns,
-            'columnWidths' => [],
             'nameWidth' => $settingsTableNameWidth,
             'actionsWidth' => $settingsTableActionsWidth
         ];

@@ -248,15 +248,10 @@ test('lib.php can resolve requested folder editor context for bootstrap hydratio
     assert.match(libPhp, /normalizeFolderContentPayload\(\$folders\[\$safeCandidateId\] \?\? \[\]\)/);
 });
 
-test('lib.php centralizes folder editor mode preference resolution', () => {
+test('lib.php no longer carries retired folder editor mode preference resolution', () => {
     assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
-    assert.match(libPrefsPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
-    assert.match(libPrefsPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
-    assert.match(libPrefsPhp, /'source'\s*=>\s*'modern-only'/);
-    assert.match(libPrefsPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
-    assert.match(libPrefsPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
-    assert.match(libPrefsPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
-    assert.match(libPrefsPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+    assert.doesNotMatch(libPrefsPhp, /function (?:normalize|resolve(?:Type)?)FolderEditorMode/);
+    assert.doesNotMatch(libPrefsPhp, /folderEditorMode(?:Explicit)?/);
 });
 
 test('diagnostics endpoint emits support bundle v2 shape only', () => {

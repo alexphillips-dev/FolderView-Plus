@@ -50,7 +50,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /const scheduleEditorPreviewRender = \(\) =>/);
     assert.match(folderJs, /const isLivePreviewColorField = fieldName === 'dropdown_color'/);
     assert.match(folderJs, /if \(event\.type === 'input' && isLivePreviewColorField\) \{[\s\S]*scheduleEditorPreviewRender\(\);[\s\S]*markUnsavedIndicatorDirty\(\);/);
-    assert.match(folderJs, /const modernToggleRow = Boolean\(modernFieldRow && modernFieldRow\.classList\.contains\('is-toggle-row'\)\);/);
+    assert.doesNotMatch(folderJs, /const modernToggleRow = Boolean\(modernFieldRow && modernFieldRow\.classList\.contains\('is-toggle-row'\)\);/);
     assert.match(folderJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
     assert.match(folderJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);

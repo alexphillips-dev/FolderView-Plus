@@ -39,10 +39,6 @@
         return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
     };
 
-    const normalizeSettingsTableWidthMode = (value) => (
-        String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'
-    );
-
     const normalizeSettingsTablePreset = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return ['compact', 'balanced', 'detailed', 'custom'].includes(normalized) ? normalized : 'balanced';
@@ -127,20 +123,6 @@
         return Math.round(Math.min(max, Math.max(min, parsed)));
     };
 
-    const normalizeColumnWidthsForType = (type, value = null) => {
-        const resolvedType = type === 'vm' ? 'vm' : 'docker';
-        const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-        const source = value && typeof value === 'object' ? value : {};
-        const normalized = {};
-        keys.forEach((key) => {
-            const width = normalizeSingleColumnWidth(resolvedType, key, source[key]);
-            if (width !== null) {
-                normalized[key] = width;
-            }
-        });
-        return normalized;
-    };
-
     const buildDefaultColumnWidthsForType = (type) => {
         const resolvedType = type === 'vm' ? 'vm' : 'docker';
         const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
@@ -172,12 +154,10 @@
         TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE,
         TABLE_COLUMN_RESIZE_KEYS_BY_TYPE,
         normalizeSettingsTableColumnWidthPreset,
-        normalizeSettingsTableWidthMode,
         normalizeSettingsTablePreset,
         buildPresetColumnVisibilityForType,
         normalizeColumnVisibilityForType,
         normalizeSingleColumnWidth,
-        normalizeColumnWidthsForType,
         buildDefaultColumnWidthsForType,
         buildEffectiveSettingsTableWidths
     });

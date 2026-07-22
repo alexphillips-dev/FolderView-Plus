@@ -916,11 +916,6 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     font-size: 1.01rem;
 }
 
-.fv-mini-action-btn.is-active {
-    box-shadow: inset 0 0 0 1px rgba(84, 166, 255, 0.48);
-    background: rgba(48, 96, 168, 0.22);
-}
-
 .runtime-dependent.is-hidden {
     display: none !important;
 }
@@ -2067,8 +2062,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
 }
 
 /* Desktop widths are JS-driven. Do not reintroduce fixed nth-child widths here,
-   or the browser will fight the column runtime when users switch between auto,
-   presets, and custom resize mode. */
+   or the browser will fight the column runtime when users switch presets. */
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {
@@ -3399,8 +3393,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .fv-theme-import-row,
-.fv-theme-customize-actions,
-.fv-folder-defaults-actions {
+.fv-theme-customize-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -3657,21 +3650,10 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     background: linear-gradient(to top, var(--fvplus-graph-cpu), var(--fvplus-graph-mem));
 }
 
-.fv-folder-defaults-actions button,
 .fv-theme-customize-actions button,
 .fv-theme-import-row button,
 .fv-theme-workspace-entry-actions button {
     white-space: nowrap;
-}
-
-#fv-settings-root .fv-folder-defaults-actions > button {
-    border: 0 !important;
-    border-radius: 8px !important;
-    background: var(--fvplus-settings-button-bg-top) !important;
-    color: var(--fvplus-settings-button-fg) !important;
-    box-shadow: var(--fvplus-settings-button-shadow) !important;
-    text-shadow: none !important;
-    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 #fv-settings-root .fv-theme-import-row > button,
@@ -3703,24 +3685,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
 }
 
-#fv-settings-root .fv-folder-defaults-actions > button:hover,
-#fv-settings-root .fv-folder-defaults-actions > button:focus-visible {
-    background: var(--fvplus-settings-button-hover-top) !important;
-    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
-}
-
-#fv-settings-root .fv-folder-defaults-actions > button:active {
-    background: var(--fvplus-settings-button-active-top) !important;
-    box-shadow: var(--fvplus-settings-button-shadow-active) !important;
-    transform: translateY(0);
-}
-
-#fv-settings-root .fv-folder-defaults-actions > button:disabled {
-    opacity: 0.56;
-    box-shadow: none !important;
-    transform: none !important;
-}
-
 .fv-theme-workspace-entry-actions {
     display: flex;
     flex-wrap: wrap;
@@ -3736,7 +3700,6 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
     .fv-theme-import-row,
     .fv-theme-customize-actions,
-    .fv-folder-defaults-actions,
     .fv-theme-workspace-entry-head {
         flex-direction: column;
         align-items: stretch;
@@ -12490,7 +12453,6 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root :is(
     .folder-quick-filters > button.is-active,
-    .fv-mini-action-btn.is-active,
     [data-fv-rules-source-toggle].is-active,
     [data-fv-operations-source-toggle].is-active
 ),

@@ -914,8 +914,8 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 }
 
 .fv-view-settings-panel > .toolbar-sort-toggle {
-    min-height: 64px;
-    padding: 0 20px;
+    min-height: 50px;
+    padding: 0 16px;
     border-bottom: 1px solid transparent;
 }
 
@@ -924,31 +924,31 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 }
 
 .fv-view-settings-panel .toolbar-sort-toggle-main {
-    gap: 14px;
+    gap: 10px;
 }
 
 .fv-view-settings-heading-icon {
-    width: 24px;
+    width: 18px;
     color: var(--fvplus-settings-accent);
-    font-size: 23px;
+    font-size: 17px;
     text-align: center;
 }
 
 .fv-view-settings-heading-copy {
     display: grid;
-    gap: 3px;
+    gap: 1px;
 }
 
 .fv-view-settings-heading-copy > strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 17px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1.15;
 }
 
 .fv-view-settings-heading-copy > small {
     color: var(--fvplus-settings-text-muted);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 400;
     line-height: 1.2;
 }
@@ -1455,16 +1455,16 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
 
 @media (max-width: 760px) {
     .fv-view-settings-panel > .toolbar-sort-toggle {
-        min-height: 60px;
-        padding: 0 12px;
+        min-height: 48px;
+        padding: 0 10px;
     }
 
     .fv-view-settings-heading-copy > strong {
-        font-size: 15px;
+        font-size: 13px;
     }
 
     .fv-view-settings-heading-copy > small {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .fv-view-settings-panel .toolbar-sort-body {

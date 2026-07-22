@@ -4460,6 +4460,14 @@ const normalizeSingleColumnWidth = typeof settingsTableModule?.normalizeSingleCo
         return Math.round(Math.min(max, Math.max(min, parsed)));
     });
 
+const normalizeHealthSeverityFilterMode = (mode) => {
+    const normalized = String(mode || '').trim().toLowerCase();
+    if (normalized === 'good' || normalized === 'maintenance' || normalized === 'warn' || normalized === 'critical' || normalized === 'empty') {
+        return normalized;
+    }
+    return 'all';
+};
+
 const buildTableUiStatePayload = () => ({
     filters: {
         docker: { ...(filtersByType.docker || {}) },
@@ -4715,14 +4723,6 @@ const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoAct
 const syncRulesWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRulesWorkspaceUi(...args);
 const exportEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().exportEnvironmentSnapshot(...args);
 const importEnvironmentSnapshot = (...args) => getSettingsWorkspacesApi().importEnvironmentSnapshot(...args);
-
-const normalizeHealthSeverityFilterMode = (mode) => {
-    const normalized = String(mode || '').trim().toLowerCase();
-    if (normalized === 'good' || normalized === 'maintenance' || normalized === 'warn' || normalized === 'critical' || normalized === 'empty') {
-        return normalized;
-    }
-    return 'all';
-};
 
 const getHealthSeverityFilterLabel = (mode) => {
     if (mode === 'good') {

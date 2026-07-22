@@ -2226,7 +2226,11 @@
                         : 'maintenance',
                     'allStoppedMode' => in_array(strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical'))), ['critical', 'warn'], true)
                         ? strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical')))
-                        : 'critical'
+                        : 'critical',
+                    'vmResourceWarnVcpus' => normalizeIntInRange($prefs['health']['vmResourceWarnVcpus'] ?? 16, 1, 512, 16),
+                    'vmResourceCriticalVcpus' => normalizeIntInRange($prefs['health']['vmResourceCriticalVcpus'] ?? 32, 1, 512, 32),
+                    'vmResourceWarnGiB' => normalizeIntInRange($prefs['health']['vmResourceWarnGiB'] ?? 32, 1, 1024, 32),
+                    'vmResourceCriticalGiB' => normalizeIntInRange($prefs['health']['vmResourceCriticalGiB'] ?? 64, 1, 1024, 64)
                 ],
                 'status' => [
                     'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)

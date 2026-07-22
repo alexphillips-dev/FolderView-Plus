@@ -594,7 +594,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card fv-settings-card-privacy">
                     <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
-                    <div class="setting-note">Mask names and icons to protect sensitive information across the UI.</div>
+                    <div class="setting-note">These masks apply while Privacy is enabled on the Docker page.</div>
                     <div class="settings-privacy-section">
                         <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
                             <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
@@ -889,7 +889,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card fv-settings-card-privacy">
                     <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
-                    <div class="setting-note">Mask names and icons to protect sensitive information across the UI.</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"><span class="fv-setting-copy"><strong>Enable VM privacy</strong><small>Apply the selected masks to VM and Dashboard views</small></span></label>
+                    <div class="fv-settings-divider"></div>
                     <div class="settings-privacy-section">
                         <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
                             <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "cs",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Důvody zápasu",
     "legacy.surface.222731e08221fabd": "0 složek",
     "legacy.surface.2252d5cf93767a43": "Efekt",
+    "legacy.surface.226d172b26fa2ead": "Tyto masky se použijí, když je na stránce Docker povoleno soukromí.",
     "legacy.surface.2276a481f482182f": "Použijte průvodce",
     "legacy.surface.227718e1b8cf13f2": "Odložte velké náhledy",
     "legacy.surface.227c5d7066780ff6": "Otevřete rozhraní WebUI",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Rozbalit řádek",
     "legacy.surface.878435f93019a5b4": "spuštěno / pozastaveno / zastaveno",
     "legacy.surface.87bb3f655699e277": "Nastavení filtrů a zobrazení",
+    "legacy.surface.87e1a304c507182a": "Použijte vybrané masky na zobrazení virtuálního počítače a řídicího panelu",
     "legacy.surface.8800d080ce54094d": "Tomuto filtru neodpovídají žádné položky.",
     "legacy.surface.8851aaa7d08ca1ae": "Sloučit",
     "legacy.surface.886f54ba3524b20d": "Složky jsou seřazeny podle názvu od Z do A. Vnořené složky stále zůstávají ve své nadřazené větvi.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Varování zastaveno (%)",
     "legacy.surface.a47f71e5d94fec54": "Odebrat „$1“ z úložiště vlastních ikon?",
     "legacy.surface.a4c666d1e28e0c35": "Vyberte alespoň jednu položku, kterou chcete přiřadit.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Zakryjte názvy a ikony pro ochranu citlivých informací v celém uživatelském rozhraní.",
     "legacy.surface.a511909161e1b84f": "Rozložení",
     "legacy.surface.a5290dba9a138e99": "Neznámá chyba zobrazení příkazu.",
     "legacy.surface.a52ace420f2175d0": "všechny",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Aktualizace funkcí",
     "legacy.surface.f0bc48436028ff10": "Kontrolujte pořadí, které Unraid používá, když se kontejnery Docker spouštějí při spouštění.",
     "legacy.surface.f0e9d121661289cf": "Znovu otestujte výkon",
+    "legacy.surface.f11c2c4219438105": "Povolit soukromí virtuálního počítače",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Docker table shell",
     "legacy.surface.f152520c624ef926": "Podporované formáty",

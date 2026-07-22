@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "ja",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "一致理由",
     "legacy.surface.222731e08221fabd": "0 フォルダー",
     "legacy.surface.2252d5cf93767a43": "効果",
+    "legacy.surface.226d172b26fa2ead": "これらのマスクは、Docker ページでプライバシーが有効になっているときに適用されます。",
     "legacy.surface.2276a481f482182f": "ウィザード適用",
     "legacy.surface.227718e1b8cf13f2": "大規模なプレビューを延期する",
     "legacy.surface.227c5d7066780ff6": "オープン WebUI",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "行を展開する",
     "legacy.surface.878435f93019a5b4": "開始/一時停止/停止",
     "legacy.surface.87bb3f655699e277": "フィルターと表示設定",
+    "legacy.surface.87e1a304c507182a": "選択したマスクを VM ビューとダッシュボード ビューに適用します",
     "legacy.surface.8800d080ce54094d": "このフィルターに一致するアイテムはありません。",
     "legacy.surface.8851aaa7d08ca1ae": "マージ",
     "legacy.surface.886f54ba3524b20d": "フォルダーは、Z から A までの名前で並べ替えられます。ネストされたフォルダーは、親ブランチ内に残ります。",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "警告停止 (%)",
     "legacy.surface.a47f71e5d94fec54": "カスタム アイコン ストレージから「$1」を削除しますか?",
     "legacy.surface.a4c666d1e28e0c35": "割り当てる項目を少なくとも 1 つ選択します。",
-    "legacy.surface.a4d24fddbf3cb7e0": "名前とアイコンをマスクして、UI 全体で機密情報を保護します。",
     "legacy.surface.a511909161e1b84f": "レイアウト",
     "legacy.surface.a5290dba9a138e99": "不明なコマンド ビュー エラー。",
     "legacy.surface.a52ace420f2175d0": "すべて",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "機能アップデート",
     "legacy.surface.f0bc48436028ff10": "Docker コンテナーが起動時に開始するときに Unraid が使用する順序を制御します。",
     "legacy.surface.f0e9d121661289cf": "再テストのパフォーマンス",
+    "legacy.surface.f11c2c4219438105": "VM プライバシーを有効にする",
     "legacy.surface.f130559f0e7ff9f8": "対",
     "legacy.surface.f13f53aeb179dad9": "Dockerテーブルシェル",
     "legacy.surface.f152520c624ef926": "サポートされている形式",

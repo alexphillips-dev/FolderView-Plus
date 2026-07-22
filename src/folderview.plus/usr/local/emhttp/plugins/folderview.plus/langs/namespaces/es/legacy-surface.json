@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "es",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Razones del partido",
     "legacy.surface.222731e08221fabd": "0 carpetas",
     "legacy.surface.2252d5cf93767a43": "Efecto",
+    "legacy.surface.226d172b26fa2ead": "Estas máscaras se aplican mientras la Privacidad está habilitada en la página de Docker.",
     "legacy.surface.2276a481f482182f": "Aplicar asistente",
     "legacy.surface.227718e1b8cf13f2": "Aplazar vistas previas grandes",
     "legacy.surface.227c5d7066780ff6": "Abrir interfaces de usuario web",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Expandir fila",
     "legacy.surface.878435f93019a5b4": "iniciado/pausado/detenido",
     "legacy.surface.87bb3f655699e277": "Filtros y configuración de visualización",
+    "legacy.surface.87e1a304c507182a": "Aplicar las máscaras seleccionadas a las vistas de VM y Dashboard",
     "legacy.surface.8800d080ce54094d": "Ningún artículo coincide con este filtro.",
     "legacy.surface.8851aaa7d08ca1ae": "fusionar",
     "legacy.surface.886f54ba3524b20d": "Las carpetas se ordenan por nombre de Z a A. Las carpetas anidadas aún permanecen dentro de su rama principal.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Advertencia detenida (%)",
     "legacy.surface.a47f71e5d94fec54": "¿Eliminar \"$1\" del almacenamiento de íconos personalizados?",
     "legacy.surface.a4c666d1e28e0c35": "Seleccione al menos un elemento para asignar.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Enmascare nombres e íconos para proteger la información confidencial en la interfaz de usuario.",
     "legacy.surface.a511909161e1b84f": "Diseño",
     "legacy.surface.a5290dba9a138e99": "Error de vista de comando desconocido.",
     "legacy.surface.a52ace420f2175d0": "Todos",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Actualización de funciones",
     "legacy.surface.f0bc48436028ff10": "Controle el orden que utiliza Unraid cuando los contenedores Docker se inician en el arranque.",
     "legacy.surface.f0e9d121661289cf": "Volver a probar el rendimiento",
+    "legacy.surface.f11c2c4219438105": "Habilitar la privacidad de la máquina virtual",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Carcasa de la mesa acoplable",
     "legacy.surface.f152520c624ef926": "Formatos soportados",

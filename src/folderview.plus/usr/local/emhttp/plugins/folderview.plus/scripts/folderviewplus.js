@@ -3616,23 +3616,24 @@ const normalizeHealthPrefs = (type, prefsOverride = null) => {
     const allStoppedModeRaw = String(incoming.allStoppedMode || '').trim().toLowerCase();
     const allStoppedMode = ['critical', 'warn'].includes(allStoppedModeRaw) ? allStoppedModeRaw : 'critical';
     const warnVcpusRaw = Number(incoming.vmResourceWarnVcpus);
-    const warnVcpus = Number.isFinite(warnVcpusRaw) ? Math.min(512, Math.max(1, Math.round(warnVcpusRaw))) : 16;
+    let warnVcpus = Number.isFinite(warnVcpusRaw) ? Math.min(512, Math.max(1, Math.round(warnVcpusRaw))) : 16;
     const criticalVcpusRaw = Number(incoming.vmResourceCriticalVcpus);
     let criticalVcpus = Number.isFinite(criticalVcpusRaw) ? Math.min(512, Math.max(1, Math.round(criticalVcpusRaw))) : 32;
     if (criticalVcpus <= warnVcpus) {
+        warnVcpus = Math.min(511, warnVcpus);
         criticalVcpus = Math.min(512, warnVcpus + 1);
     }
     const warnGiBRaw = Number(incoming.vmResourceWarnGiB);
-    const warnGiB = Number.isFinite(warnGiBRaw) ? Math.min(1024, Math.max(1, Math.round(warnGiBRaw))) : 32;
+    let warnGiB = Number.isFinite(warnGiBRaw) ? Math.min(1024, Math.max(1, Math.round(warnGiBRaw))) : 32;
     const criticalGiBRaw = Number(incoming.vmResourceCriticalGiB);
     let criticalGiB = Number.isFinite(criticalGiBRaw) ? Math.min(1024, Math.max(1, Math.round(criticalGiBRaw))) : 64;
     if (criticalGiB <= warnGiB) {
+        warnGiB = Math.min(1023, warnGiB);
         criticalGiB = Math.min(1024, warnGiB + 1);
     }
     return {
         cardsEnabled: incoming.cardsEnabled !== false,
         runtimeBadgeEnabled: incoming.runtimeBadgeEnabled === true,
-        compact: incoming.compact === true,
         warnStoppedPercent,
         criticalStoppedPercent,
         profile,
@@ -5189,10 +5190,8 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
         allStopped,
         hasUpdates,
         allStoppedCritical,
-        allStoppedWarn,
         stoppedCritical,
         stoppedWarn,
-        updateWarn,
         updateMaintenance,
         updateCritical,
         severity,
@@ -7726,6 +7725,7 @@ const renderDashboardControls = (type) => {
         $('#docker-dashboard-preview-graph').val(String(dashboard.previewGraph));
         $('#docker-dashboard-preview-graph-time').val(String(dashboard.previewGraphTime));
     } else {
+        $('#vm-dashboard-privacy-mode').prop('checked', dashboard.privacyMode === true);
         $('#vm-dashboard-privacy-mask-disk-paths').prop('checked', dashboard.privacyMaskVmDiskPaths !== false);
         $('#vm-dashboard-privacy-mask-mac-addresses').prop('checked', dashboard.privacyMaskMacAddresses !== false);
         $('#vm-dashboard-privacy-mask-public-ips').prop('checked', dashboard.privacyMaskPublicIps !== false);
@@ -10788,9 +10788,11 @@ const changeHealthPref = async (type, key, value) => {
         return;
     }
     if (nextHealth.vmResourceCriticalVcpus <= nextHealth.vmResourceWarnVcpus) {
+        nextHealth.vmResourceWarnVcpus = Math.min(511, nextHealth.vmResourceWarnVcpus);
         nextHealth.vmResourceCriticalVcpus = Math.min(512, nextHealth.vmResourceWarnVcpus + 1);
     }
     if (nextHealth.vmResourceCriticalGiB <= nextHealth.vmResourceWarnGiB) {
+        nextHealth.vmResourceWarnGiB = Math.min(1023, nextHealth.vmResourceWarnGiB);
         nextHealth.vmResourceCriticalGiB = Math.min(1024, nextHealth.vmResourceWarnGiB + 1);
     }
 
@@ -10920,6 +10922,20 @@ const changeDashboardPref = async (type, key, value) => {
         nextDashboard.greyscale = value === true;
     } else if (key === 'folderLabel') {
         nextDashboard.folderLabel = value === true;
+    } else if (key === 'previewContext' && type === 'docker') {
+        nextDashboard.previewContext = String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'native';
+    } else if (key === 'previewTrigger' && type === 'docker') {
+        nextDashboard.previewTrigger = String(value || '').trim().toLowerCase() === 'hover' ? 'hover' : 'click';
+    } else if (key === 'previewGraph' && type === 'docker') {
+        const parsed = Number(value);
+        nextDashboard.previewGraph = Number.isFinite(parsed)
+            ? Math.min(4, Math.max(0, Math.round(parsed)))
+            : dashboard.previewGraph;
+    } else if (key === 'previewGraphTime' && type === 'docker') {
+        const parsed = Number(value);
+        nextDashboard.previewGraphTime = Number.isFinite(parsed)
+            ? Math.min(600, Math.max(5, Math.round(parsed)))
+            : dashboard.previewGraphTime;
     } else if (key === 'privacyMode') {
         nextDashboard.privacyMode = value === true;
     } else if (key === 'privacyMaskNames') {
@@ -10954,7 +10970,7 @@ const changeDashboardPref = async (type, key, value) => {
             }
         }, {
             render: () => renderDashboardControls(type),
-            immediate: key === 'layout' || key.startsWith('privacyMask')
+            immediate: key === 'layout' || key === 'privacyMode' || key.startsWith('privacyMask') || key.startsWith('preview')
         });
         if (key === 'layout') {
             const committedLayout = normalizeDashboardPrefsForType(type, savedPrefs).layout;

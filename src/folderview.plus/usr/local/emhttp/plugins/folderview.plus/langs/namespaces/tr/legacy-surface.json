@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "tr",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Eşleşme nedenleri",
     "legacy.surface.222731e08221fabd": "0 klasör",
     "legacy.surface.2252d5cf93767a43": "Etki",
+    "legacy.surface.226d172b26fa2ead": "Bu maskeler, Docker sayfasında Gizlilik etkinleştirildiğinde geçerlidir.",
     "legacy.surface.2276a481f482182f": "Sihirbaz uygula",
     "legacy.surface.227718e1b8cf13f2": "Büyük önizlemeleri ertele",
     "legacy.surface.227c5d7066780ff6": "WebUI'ları açın",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Satırı genişlet",
     "legacy.surface.878435f93019a5b4": "başlatıldı / duraklatıldı / durduruldu",
     "legacy.surface.87bb3f655699e277": "Filtreler ve görünüm ayarları",
+    "legacy.surface.87e1a304c507182a": "Seçilen maskeleri VM ve Kontrol Paneli görünümlerine uygulayın",
     "legacy.surface.8800d080ce54094d": "Bu filtreyle eşleşen öğe yok.",
     "legacy.surface.8851aaa7d08ca1ae": "Birleştir",
     "legacy.surface.886f54ba3524b20d": "Klasörler Z'den A'ya kadar ada göre sıralanır. İç içe geçmiş klasörler hâlâ ana dallarının içinde kalır.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Uyarı durduruldu (%)",
     "legacy.surface.a47f71e5d94fec54": "\"$1\" özel simge deposundan kaldırılsın mı?",
     "legacy.surface.a4c666d1e28e0c35": "Atamak için en az bir öğe seçin.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Kullanıcı arayüzündeki hassas bilgileri korumak için adları ve simgeleri maskeleyin.",
     "legacy.surface.a511909161e1b84f": "Düzen",
     "legacy.surface.a5290dba9a138e99": "Bilinmeyen komut görüntüleme hatası.",
     "legacy.surface.a52ace420f2175d0": "Hepsi",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Özellik Güncellemesi",
     "legacy.surface.f0bc48436028ff10": "Docker kapsayıcıları önyükleme sırasında başlatıldığında Unraid'in kullanacağı sırayı kontrol edin.",
     "legacy.surface.f0e9d121661289cf": "Performansı yeniden test edin",
+    "legacy.surface.f11c2c4219438105": "VM gizliliğini etkinleştir",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Docker tablo kabuğu",
     "legacy.surface.f152520c624ef926": "Desteklenen formatlar",

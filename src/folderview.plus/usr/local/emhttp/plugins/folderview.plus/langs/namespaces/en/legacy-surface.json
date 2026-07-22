@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "en",
         "namespace": "legacy-surface"
     },
@@ -132,6 +132,7 @@
     "legacy.surface.d5aab43d88316433": "Apply smart defaults?",
     "legacy.surface.ff0863770fbe2bba": "Apply suggestions",
     "legacy.surface.4c184cff075e9309": "Apply template?",
+    "legacy.surface.87e1a304c507182a": "Apply the selected masks to VM and Dashboard views",
     "legacy.surface.e3248784451162bb": "Apply to folder",
     "legacy.surface.728d7c1bd5897c06": "Apply unavailable",
     "legacy.surface.7ab52733c917451a": "Apply usage defaults",
@@ -468,6 +469,7 @@
     "legacy.surface.c6c094bc0054f9cb": "Empty",
     "legacy.surface.ca1fd4548524cb2e": "Empty folder",
     "legacy.surface.acbe86705fdb8c7b": "Enable and color the optional folder accent bar.",
+    "legacy.surface.f11c2c4219438105": "Enable VM privacy",
     "legacy.surface.fc203569fa858e0e": "Ends with",
     "legacy.surface.35db7c928e9a9773": "Enter a folder name. You can change icon/settings after create.",
     "legacy.surface.eae13f96aceda529": "Enter a GitHub source",
@@ -761,7 +763,6 @@
     "legacy.surface.fed998e279241658": "Mask image registries",
     "legacy.surface.8600edb883562f2c": "Mask LAN IPs",
     "legacy.surface.b4821c91bd342819": "Mask names and icons",
-    "legacy.surface.a4d24fddbf3cb7e0": "Mask names and icons to protect sensitive information across the UI.",
     "legacy.surface.1ee2a4164436061f": "Mask network interfaces",
     "legacy.surface.41165767ffef7bf8": "Mask ports",
     "legacy.surface.f50e929462d8c056": "Mask public IPs",
@@ -1439,6 +1440,7 @@
     "legacy.surface.f9f4365a1e954fe5": "There are no other $1 folders to update yet.",
     "legacy.surface.572a51ca7a2fd213": "There are no valid folders to move this folder under.",
     "legacy.surface.7b7fc468168d9a3d": "These advanced rules use the plugin-wide engine and still run in global priority order. Use the full Rules workspace to reorder rules or build label-based matches.",
+    "legacy.surface.226d172b26fa2ead": "These masks apply while Privacy is enabled on the Docker page.",
     "legacy.surface.88cb29d82b214d0a": "These settings control sorting, empty folders, and status details for Docker and VM folder views. They only affect FolderView display and can be changed later.",
     "legacy.surface.1eb79602411ef02c": "this",
     "legacy.surface.b545dd165128ac73": "This cannot be undone.",

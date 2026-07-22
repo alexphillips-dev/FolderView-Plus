@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "ro",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Motivele potrivirii",
     "legacy.surface.222731e08221fabd": "0 foldere",
     "legacy.surface.2252d5cf93767a43": "Efect",
+    "legacy.surface.226d172b26fa2ead": "Aceste măști se aplică în timp ce confidențialitatea este activată pe pagina Docker.",
     "legacy.surface.2276a481f482182f": "Se aplică expertul",
     "legacy.surface.227718e1b8cf13f2": "Amânați previzualizările mari",
     "legacy.surface.227c5d7066780ff6": "Deschideți WebUI-uri",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Extindeți rândul",
     "legacy.surface.878435f93019a5b4": "început / întrerupt / oprit",
     "legacy.surface.87bb3f655699e277": "Filtre și setări de vizualizare",
+    "legacy.surface.87e1a304c507182a": "Aplicați măștile selectate în vizualizările VM și tablou de bord",
     "legacy.surface.8800d080ce54094d": "Niciun articol nu se potrivește cu acest filtru.",
     "legacy.surface.8851aaa7d08ca1ae": "Îmbinați",
     "legacy.surface.886f54ba3524b20d": "Folderele sunt sortate după nume de la Z la A. Folderele imbricate rămân în continuare în ramura lor părinte.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Avertisment oprit (%)",
     "legacy.surface.a47f71e5d94fec54": "Eliminați „$1” din stocarea pictogramelor personalizate?",
     "legacy.surface.a4c666d1e28e0c35": "Selectați cel puțin un articol de atribuit.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Mascați numele și pictogramele pentru a proteja informațiile sensibile în interfața de utilizare.",
     "legacy.surface.a511909161e1b84f": "Aspect",
     "legacy.surface.a5290dba9a138e99": "Eroare necunoscută de vizualizare a comenzii.",
     "legacy.surface.a52ace420f2175d0": "Toate",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Actualizare caracteristică",
     "legacy.surface.f0bc48436028ff10": "Controlați ordinea pe care Unraid o folosește atunci când containerele Docker pornesc la pornire.",
     "legacy.surface.f0e9d121661289cf": "Retestați performanța",
+    "legacy.surface.f11c2c4219438105": "Activați confidențialitatea VM",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Carcasă de masă Docker",
     "legacy.surface.f152520c624ef926": "Formate acceptate",

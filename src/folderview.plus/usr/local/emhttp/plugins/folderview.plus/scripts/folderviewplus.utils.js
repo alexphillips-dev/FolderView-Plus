@@ -894,9 +894,11 @@
             )
         };
         if (health.vmResourceCriticalVcpus <= health.vmResourceWarnVcpus) {
+            health.vmResourceWarnVcpus = Math.min(511, health.vmResourceWarnVcpus);
             health.vmResourceCriticalVcpus = Math.min(512, health.vmResourceWarnVcpus + 1);
         }
         if (health.vmResourceCriticalGiB <= health.vmResourceWarnGiB) {
+            health.vmResourceWarnGiB = Math.min(1023, health.vmResourceWarnGiB);
             health.vmResourceCriticalGiB = Math.min(1024, health.vmResourceWarnGiB + 1);
         }
         const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};

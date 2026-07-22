@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "ko",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "일치 이유",
     "legacy.surface.222731e08221fabd": "폴더 0개",
     "legacy.surface.2252d5cf93767a43": "효과",
+    "legacy.surface.226d172b26fa2ead": "이러한 마스크는 Docker 페이지에서 개인 정보 보호가 활성화되어 있는 동안 적용됩니다.",
     "legacy.surface.2276a481f482182f": "마법사 적용",
     "legacy.surface.227718e1b8cf13f2": "대규모 미리보기 연기",
     "legacy.surface.227c5d7066780ff6": "WebUI 열기",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "행 펼치기",
     "legacy.surface.878435f93019a5b4": "시작됨/일시중지됨/중지됨",
     "legacy.surface.87bb3f655699e277": "필터 및 보기 설정",
+    "legacy.surface.87e1a304c507182a": "VM 및 대시보드 보기에 선택한 마스크 적용",
     "legacy.surface.8800d080ce54094d": "이 필터와 일치하는 항목이 없습니다.",
     "legacy.surface.8851aaa7d08ca1ae": "병합",
     "legacy.surface.886f54ba3524b20d": "폴더는 이름을 기준으로 Z부터 A까지 정렬됩니다. 중첩된 폴더는 여전히 상위 분기 내에 남아 있습니다.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "경고 중지됨(%)",
     "legacy.surface.a47f71e5d94fec54": "맞춤 아이콘 저장소에서 '$1'을 삭제하시겠습니까?",
     "legacy.surface.a4c666d1e28e0c35": "할당할 항목을 하나 이상 선택하세요.",
-    "legacy.surface.a4d24fddbf3cb7e0": "UI 전체에서 민감한 정보를 보호하기 위해 이름과 아이콘을 마스크합니다.",
     "legacy.surface.a511909161e1b84f": "레이아웃",
     "legacy.surface.a5290dba9a138e99": "알 수 없는 명령 보기 오류입니다.",
     "legacy.surface.a52ace420f2175d0": "모두",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "기능 업데이트",
     "legacy.surface.f0bc48436028ff10": "부팅 시 Docker 컨테이너가 시작될 때 Unraid가 사용하는 순서를 제어합니다.",
     "legacy.surface.f0e9d121661289cf": "성능 재테스트",
+    "legacy.surface.f11c2c4219438105": "VM 개인정보 보호 활성화",
     "legacy.surface.f130559f0e7ff9f8": "대",
     "legacy.surface.f13f53aeb179dad9": "도커 테이블 셸",
     "legacy.surface.f152520c624ef926": "지원되는 형식",

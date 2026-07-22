@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "nl",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Match redenen",
     "legacy.surface.222731e08221fabd": "0 mappen",
     "legacy.surface.2252d5cf93767a43": "Effect",
+    "legacy.surface.226d172b26fa2ead": "Deze maskers zijn van toepassing terwijl Privacy is ingeschakeld op de Docker-pagina.",
     "legacy.surface.2276a481f482182f": "Tovenaar van toepassing",
     "legacy.surface.227718e1b8cf13f2": "Stel grote voorbeelden uit",
     "legacy.surface.227c5d7066780ff6": "Open WebUI's",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Rij uitvouwen",
     "legacy.surface.878435f93019a5b4": "gestart/gepauzeerd/gestopt",
     "legacy.surface.87bb3f655699e277": "Filters en weergave-instellingen",
+    "legacy.surface.87e1a304c507182a": "Pas de geselecteerde maskers toe op VM- en dashboardweergaven",
     "legacy.surface.8800d080ce54094d": "Er zijn geen artikelen die overeenkomen met dit filter.",
     "legacy.surface.8851aaa7d08ca1ae": "Samenvoegen",
     "legacy.surface.886f54ba3524b20d": "Mappen worden op naam gesorteerd van Z tot A. Geneste mappen blijven nog steeds binnen hun bovenliggende vertakking.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Waarschuw gestopt (%)",
     "legacy.surface.a47f71e5d94fec54": "'$1' verwijderen uit aangepaste pictogramopslag?",
     "legacy.surface.a4c666d1e28e0c35": "Selecteer ten minste één item om toe te wijzen.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Masker namen en pictogrammen om gevoelige informatie in de gebruikersinterface te beschermen.",
     "legacy.surface.a511909161e1b84f": "Indeling",
     "legacy.surface.a5290dba9a138e99": "Onbekende opdrachtweergavefout.",
     "legacy.surface.a52ace420f2175d0": "Allemaal",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Functie-update",
     "legacy.surface.f0bc48436028ff10": "Beheer de volgorde die Unraid gebruikt wanneer Docker-containers starten bij het opstarten.",
     "legacy.surface.f0e9d121661289cf": "Prestaties opnieuw testen",
+    "legacy.surface.f11c2c4219438105": "Schakel VM-privacy in",
     "legacy.surface.f130559f0e7ff9f8": "versus",
     "legacy.surface.f13f53aeb179dad9": "Docker-tafelschaal",
     "legacy.surface.f152520c624ef926": "Ondersteunde formaten",

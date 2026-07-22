@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "fr",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Raisons du jumelage",
     "legacy.surface.222731e08221fabd": "0 dossiers",
     "legacy.surface.2252d5cf93767a43": "Effet",
+    "legacy.surface.226d172b26fa2ead": "Ces masques s'appliquent lorsque la confidentialité est activée sur la page Docker.",
     "legacy.surface.2276a481f482182f": "Assistant appliquer",
     "legacy.surface.227718e1b8cf13f2": "Différer les grands aperçus",
     "legacy.surface.227c5d7066780ff6": "Ouvrir les interfaces Web",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Développer la ligne",
     "legacy.surface.878435f93019a5b4": "démarré / mis en pause / arrêté",
     "legacy.surface.87bb3f655699e277": "Filtres et paramètres d'affichage",
+    "legacy.surface.87e1a304c507182a": "Appliquer les masques sélectionnés aux vues VM et Tableau de bord",
     "legacy.surface.8800d080ce54094d": "Aucun élément ne correspond à ce filtre.",
     "legacy.surface.8851aaa7d08ca1ae": "Fusionner",
     "legacy.surface.886f54ba3524b20d": "Les dossiers sont triés par nom de Z à A. Les dossiers imbriqués restent toujours dans leur branche parent.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Avertissement arrêté (%)",
     "legacy.surface.a47f71e5d94fec54": "Supprimer « $1 » du stockage des icônes personnalisées ?",
     "legacy.surface.a4c666d1e28e0c35": "Sélectionnez au moins un élément à attribuer.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Masquez les noms et les icônes pour protéger les informations sensibles dans l’interface utilisateur.",
     "legacy.surface.a511909161e1b84f": "Disposition",
     "legacy.surface.a5290dba9a138e99": "Erreur d'affichage de commande inconnue.",
     "legacy.surface.a52ace420f2175d0": "Tout",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Mise à jour des fonctionnalités",
     "legacy.surface.f0bc48436028ff10": "Contrôlez l'ordre utilisé par Unraid lorsque les conteneurs Docker démarrent au démarrage.",
     "legacy.surface.f0e9d121661289cf": "Retester les performances",
+    "legacy.surface.f11c2c4219438105": "Activer la confidentialité des VM",
     "legacy.surface.f130559f0e7ff9f8": "contre",
     "legacy.surface.f13f53aeb179dad9": "Coque de table Docker",
     "legacy.surface.f152520c624ef926": "Formats pris en charge",

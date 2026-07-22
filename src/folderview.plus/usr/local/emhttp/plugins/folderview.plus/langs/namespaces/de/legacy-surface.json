@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "de",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Übereinstimmungsgründe",
     "legacy.surface.222731e08221fabd": "0 Ordner",
     "legacy.surface.2252d5cf93767a43": "Wirkung",
+    "legacy.surface.226d172b26fa2ead": "Diese Masken gelten, solange der Datenschutz auf der Docker-Seite aktiviert ist.",
     "legacy.surface.2276a481f482182f": "Assistent anwenden",
     "legacy.surface.227718e1b8cf13f2": "Verschieben Sie große Vorschauen",
     "legacy.surface.227c5d7066780ff6": "Öffnen Sie WebUIs",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Zeile erweitern",
     "legacy.surface.878435f93019a5b4": "gestartet / pausiert / gestoppt",
     "legacy.surface.87bb3f655699e277": "Filter und Ansichtseinstellungen",
+    "legacy.surface.87e1a304c507182a": "Wenden Sie die ausgewählten Masken auf VM- und Dashboard-Ansichten an",
     "legacy.surface.8800d080ce54094d": "Keine Artikel entsprechen diesem Filter.",
     "legacy.surface.8851aaa7d08ca1ae": "Zusammenführen",
     "legacy.surface.886f54ba3524b20d": "Ordner werden nach Namen von Z bis A sortiert. Verschachtelte Ordner bleiben weiterhin in ihrem übergeordneten Zweig.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Warnung gestoppt (%)",
     "legacy.surface.a47f71e5d94fec54": "„$1“ aus benutzerdefiniertem Symbolspeicher entfernen?",
     "legacy.surface.a4c666d1e28e0c35": "Wählen Sie mindestens ein Element zum Zuweisen aus.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Maskieren Sie Namen und Symbole, um vertrauliche Informationen auf der gesamten Benutzeroberfläche zu schützen.",
     "legacy.surface.a511909161e1b84f": "Layout",
     "legacy.surface.a5290dba9a138e99": "Unbekannter Fehler in der Befehlsansicht.",
     "legacy.surface.a52ace420f2175d0": "Alle",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Funktionsaktualisierung",
     "legacy.surface.f0bc48436028ff10": "Steuern Sie die Reihenfolge, die Unraid verwendet, wenn Docker-Container beim Booten gestartet werden.",
     "legacy.surface.f0e9d121661289cf": "Leistung erneut testen",
+    "legacy.surface.f11c2c4219438105": "Aktivieren Sie den VM-Datenschutz",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Docker-Tisch-Shell",
     "legacy.surface.f152520c624ef926": "Unterstützte Formate",

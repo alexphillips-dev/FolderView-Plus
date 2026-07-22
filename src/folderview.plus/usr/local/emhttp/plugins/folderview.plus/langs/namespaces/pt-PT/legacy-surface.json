@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "pt-PT",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Razões da partida",
     "legacy.surface.222731e08221fabd": "0 pastas",
     "legacy.surface.2252d5cf93767a43": "Efeito",
+    "legacy.surface.226d172b26fa2ead": "Essas máscaras se aplicam enquanto a privacidade está habilitada na página Docker.",
     "legacy.surface.2276a481f482182f": "Assistente de aplicação",
     "legacy.surface.227718e1b8cf13f2": "Adiar visualizações grandes",
     "legacy.surface.227c5d7066780ff6": "Abra WebUIs",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Expandir linha",
     "legacy.surface.878435f93019a5b4": "iniciado / pausado / parado",
     "legacy.surface.87bb3f655699e277": "Filtros e configurações de visualização",
+    "legacy.surface.87e1a304c507182a": "Aplicar as máscaras selecionadas às visualizações VM e Dashboard",
     "legacy.surface.8800d080ce54094d": "Nenhum item corresponde a este filtro.",
     "legacy.surface.8851aaa7d08ca1ae": "Mesclar",
     "legacy.surface.886f54ba3524b20d": "As pastas são classificadas por nome de Z a A. As pastas aninhadas ainda permanecem dentro de sua ramificação pai.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Avisar parado (%)",
     "legacy.surface.a47f71e5d94fec54": "Remover \"$1\" do armazenamento de ícones personalizados?",
     "legacy.surface.a4c666d1e28e0c35": "Selecione pelo menos um item para atribuir.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Mascare nomes e ícones para proteger informações confidenciais na IU.",
     "legacy.surface.a511909161e1b84f": "Disposição",
     "legacy.surface.a5290dba9a138e99": "Erro desconhecido de visualização de comando.",
     "legacy.surface.a52ace420f2175d0": "Todos",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Atualização de recursos",
     "legacy.surface.f0bc48436028ff10": "Controle a ordem que o Unraid usa quando os contêineres do Docker iniciam na inicialização.",
     "legacy.surface.f0e9d121661289cf": "Testar novamente o desempenho",
+    "legacy.surface.f11c2c4219438105": "Ativar privacidade da VM",
     "legacy.surface.f130559f0e7ff9f8": "contra",
     "legacy.surface.f13f53aeb179dad9": "Concha da tabela Docker",
     "legacy.surface.f152520c624ef926": "Formatos suportados",

@@ -55,7 +55,7 @@ test('settings page exposes granular privacy mask controls in dedicated privacy 
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-lan-ips"/);
     assert.match(settingsPage, /data-i18n="settings\.privacy\.mask-lan-ips">Mask LAN IPs<\/span><\/label>/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-ports"/);
-    assert.doesNotMatch(settingsPage, /id="vm-dashboard-privacy-mode"/);
+    assert.match(settingsPage, /id="vm-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-mask-names"/);
     assert.match(settingsPage, /class="settings-mini-card fv-settings-card-privacy"[\s\S]*id="docker-dashboard-privacy-options"/);
@@ -65,10 +65,10 @@ test('settings page exposes granular privacy mask controls in dedicated privacy 
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskLocalIps', this\.checked\)/);
     assert.doesNotMatch(settingsPage, /changeDashboardPref\('docker', 'privacyMaskContainerIps', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskPorts', this\.checked\)/);
-    assert.doesNotMatch(settingsPage, /changeDashboardPref\('vm', 'privacyMode', this\.checked\)/);
+    assert.match(settingsPage, /changeDashboardPref\('vm', 'privacyMode', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('vm', 'privacyMaskNames', this\.checked\)/);
     assert.doesNotMatch(settingsJs, /#\$\{type\}-dashboard-privacy-options`\)\.toggleClass\('is-hidden', prefs\.privacyMode !== true\)/);
-    assert.doesNotMatch(settingsJs, /#\$\{type\}-dashboard-privacy-mode/);
+    assert.match(settingsJs, /#vm-dashboard-privacy-mode/);
     assert.match(settingsJs, /#\$\{type\}-dashboard-privacy-mask-names/);
     assert.match(settingsJs, /#docker-dashboard-privacy-mask-lan-ips/);
     assert.doesNotMatch(settingsJs, /#docker-dashboard-privacy-mask-container-ips/);
@@ -86,7 +86,7 @@ test('privacy mask settings toggle runtime body classes and existing mask select
     assert.match(settingsJs, /else if \(key === 'privacyMaskContainerIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskLocalIps' && type === 'docker'\) \{/);
     assert.match(settingsJs, /else if \(key === 'privacyMaskPorts' && type === 'docker'\) \{/);
-    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}\s*\},\s*\{[\s\S]*immediate: key === 'layout' \|\| key\.startsWith\('privacyMask'\)/);
+    assert.match(settingsJs, /await updatePrefsPartial\(type,\s*\{\s*dashboard:\s*\{\s*\[key\]: nextDashboard\[key\]\s*\}\s*\},\s*\{[\s\S]*immediate: key === 'layout' \|\| key === 'privacyMode' \|\| key\.startsWith\('privacyMask'\) \|\| key\.startsWith\('preview'\)/);
     assert.match(settingsJs, /postPrefs\(resolvedType, partial,\s*\{\s*currentPrefs: next,\s*immediate: options\.immediate === true/);
     assert.match(dockerJs, /dockerPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'docker'[\s\S]*applyRuntimePrefs\(nextPrefs\)/);
     assert.match(vmJs, /vmPrefsCoordinator\.subscribe\(\(snapshot\) =>[\s\S]*snapshot\?\.type !== 'vm'[\s\S]*applyRuntimePrefs\(folderTypePrefs\)/);

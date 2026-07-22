@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.22.05">
-<!ENTITY md5 "a8632b3a3fff8c5305e4f67ac279b3cc">
+<!ENTITY version "2026.07.22.06">
+<!ENTITY md5 "b16c07a77d31524cc21a51a3e739caf4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.22.06
+- Fix: Docker advanced preview context, activation, graph mode, and graph duration settings now save immediately and reach the Dashboard preview runtime.
+- Fix: VM resource warning and critical thresholds now survive server normalization, remain correctly ordered at maximum values, and appear in diagnostics snapshots.
+- Feature: VM privacy masking now has a visible master switch that updates open VM and Dashboard views through live preference broadcasts.
+- UI/UX: Privacy cards now explain where masking is active, while the retired Compact card layout preference and its final runtime residue have been removed.
+- Localization: Added the revised privacy guidance across all 18 shipped locales and advanced the catalog to revision 2026.07.22.2.
+- Test: Added a complete Filter and view settings inventory contract, PHP preference round trips, threshold boundary coverage, privacy activation checks, and Docker advanced-preview persistence coverage.
+
 
 ###2026.07.22.05
 - UI/UX: Health summary visibility now controls the current Docker and VM summary cards, Docker-only scoring controls are clearly separated from VM resource thresholds, and the retired Compact card layout option was removed.

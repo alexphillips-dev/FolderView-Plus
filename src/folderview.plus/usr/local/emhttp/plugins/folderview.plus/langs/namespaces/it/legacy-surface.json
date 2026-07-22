@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "it",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Ragioni della corrispondenza",
     "legacy.surface.222731e08221fabd": "0 cartelle",
     "legacy.surface.2252d5cf93767a43": "Effetto",
+    "legacy.surface.226d172b26fa2ead": "Queste maschere si applicano mentre la Privacy è abilitata nella pagina Docker.",
     "legacy.surface.2276a481f482182f": "Si applica la procedura guidata",
     "legacy.surface.227718e1b8cf13f2": "Rimandare anteprime di grandi dimensioni",
     "legacy.surface.227c5d7066780ff6": "Apri WebUI",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Espandi riga",
     "legacy.surface.878435f93019a5b4": "avviato/in pausa/interrotto",
     "legacy.surface.87bb3f655699e277": "Filtri e impostazioni di visualizzazione",
+    "legacy.surface.87e1a304c507182a": "Applica le maschere selezionate alle visualizzazioni VM e Dashboard",
     "legacy.surface.8800d080ce54094d": "Nessun elemento corrisponde a questo filtro.",
     "legacy.surface.8851aaa7d08ca1ae": "Unisci",
     "legacy.surface.886f54ba3524b20d": "Le cartelle sono ordinate per nome dalla Z alla A. Le cartelle nidificate rimangono comunque all'interno del ramo principale.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Avviso interrotto (%)",
     "legacy.surface.a47f71e5d94fec54": "Rimuovere \"$1\" dalla memoria delle icone personalizzate?",
     "legacy.surface.a4c666d1e28e0c35": "Seleziona almeno un elemento da assegnare.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Maschera nomi e icone per proteggere le informazioni sensibili nell'interfaccia utente.",
     "legacy.surface.a511909161e1b84f": "Disposizione",
     "legacy.surface.a5290dba9a138e99": "Errore di visualizzazione comandi sconosciuto.",
     "legacy.surface.a52ace420f2175d0": "Tutto",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Aggiornamento delle funzionalità",
     "legacy.surface.f0bc48436028ff10": "Controlla l'ordine utilizzato da Unraid quando i contenitori Docker vengono avviati all'avvio.",
     "legacy.surface.f0e9d121661289cf": "Ritestare le prestazioni",
+    "legacy.surface.f11c2c4219438105": "Abilita la privacy della VM",
     "legacy.surface.f130559f0e7ff9f8": "contro",
     "legacy.surface.f13f53aeb179dad9": "Struttura della tabella Docker",
     "legacy.surface.f152520c624ef926": "Formati supportati",

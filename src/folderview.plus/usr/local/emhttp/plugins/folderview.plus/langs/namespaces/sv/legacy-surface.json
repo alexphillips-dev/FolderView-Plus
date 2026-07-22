@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "sv",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "Matchningsskäl",
     "legacy.surface.222731e08221fabd": "0 mappar",
     "legacy.surface.2252d5cf93767a43": "Effekt",
+    "legacy.surface.226d172b26fa2ead": "Dessa masker gäller medan sekretess är aktiverat på Docker-sidan.",
     "legacy.surface.2276a481f482182f": "Wizard tillämpas",
     "legacy.surface.227718e1b8cf13f2": "Skjut upp stora förhandsvisningar",
     "legacy.surface.227c5d7066780ff6": "Öppna WebUIs",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "Expandera raden",
     "legacy.surface.878435f93019a5b4": "startade / pausade / stoppade",
     "legacy.surface.87bb3f655699e277": "Filter och vyinställningar",
+    "legacy.surface.87e1a304c507182a": "Använd de valda maskerna på VM- och Dashboard-vyerna",
     "legacy.surface.8800d080ce54094d": "Inga objekt matchar detta filter.",
     "legacy.surface.8851aaa7d08ca1ae": "Slå samman",
     "legacy.surface.886f54ba3524b20d": "Mappar sorteras efter namn från Z till A. Kapslade mappar finns fortfarande kvar i sin överordnade gren.",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "Varning stoppad (%)",
     "legacy.surface.a47f71e5d94fec54": "Ta bort \"$1\" från anpassad ikonlagring?",
     "legacy.surface.a4c666d1e28e0c35": "Välj minst ett objekt att tilldela.",
-    "legacy.surface.a4d24fddbf3cb7e0": "Maskera namn och ikoner för att skydda känslig information i gränssnittet.",
     "legacy.surface.a511909161e1b84f": "Layout",
     "legacy.surface.a5290dba9a138e99": "Okänt kommando-vy-fel.",
     "legacy.surface.a52ace420f2175d0": "Alla",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "Funktionsuppdatering",
     "legacy.surface.f0bc48436028ff10": "Kontrollera vilken ordning Unraid använder när Docker-containrar startar vid uppstart.",
     "legacy.surface.f0e9d121661289cf": "Testa om prestanda",
+    "legacy.surface.f11c2c4219438105": "Aktivera VM-sekretess",
     "legacy.surface.f130559f0e7ff9f8": "vs",
     "legacy.surface.f13f53aeb179dad9": "Docker bordsskal",
     "legacy.surface.f152520c624ef926": "Format som stöds",

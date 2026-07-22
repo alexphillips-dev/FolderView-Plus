@@ -111,7 +111,7 @@ test('settings exposes dashboard layout controls for docker and vm', () => {
 });
 
 test('dashboard layout preference commits are narrow, immediate, verified, and hydration-gated', () => {
-    assert.match(settingsScript, /immediate: key === 'layout' \|\| key\.startsWith\('privacyMask'\)/);
+    assert.match(settingsScript, /immediate: key === 'layout' \|\| key === 'privacyMode' \|\| key\.startsWith\('privacyMask'\) \|\| key\.startsWith\('preview'\)/);
     assert.match(settingsScript, /Dashboard layout save mismatch: requested \$\{nextDashboard\.layout\}, received \$\{committedLayout\}/);
     assert.match(settingsScript, /protectDashboardLayoutFromBroadPrefsWrite/);
     assert.match(dashboardScript, /const patch = \{ dashboard: \{ layout: normalizedLayout \} \};/);

@@ -60,7 +60,11 @@
                 'criticalStoppedPercent' => 90,
                 'profile' => 'balanced',
                 'updatesMode' => 'maintenance',
-                'allStoppedMode' => 'critical'
+                'allStoppedMode' => 'critical',
+                'vmResourceWarnVcpus' => 16,
+                'vmResourceCriticalVcpus' => 32,
+                'vmResourceWarnGiB' => 32,
+                'vmResourceCriticalGiB' => 64
             ],
             'status' => [
                 'mode' => 'summary',
@@ -553,6 +557,18 @@
         if (!in_array($healthAllStoppedMode, ['critical', 'warn'], true)) {
             $healthAllStoppedMode = 'critical';
         }
+        $healthVmResourceWarnVcpus = normalizeIntInRange($healthIncoming['vmResourceWarnVcpus'] ?? 16, 1, 512, 16);
+        $healthVmResourceCriticalVcpus = normalizeIntInRange($healthIncoming['vmResourceCriticalVcpus'] ?? 32, 1, 512, 32);
+        if ($healthVmResourceCriticalVcpus <= $healthVmResourceWarnVcpus) {
+            $healthVmResourceWarnVcpus = min(511, $healthVmResourceWarnVcpus);
+            $healthVmResourceCriticalVcpus = min(512, $healthVmResourceWarnVcpus + 1);
+        }
+        $healthVmResourceWarnGiB = normalizeIntInRange($healthIncoming['vmResourceWarnGiB'] ?? 32, 1, 1024, 32);
+        $healthVmResourceCriticalGiB = normalizeIntInRange($healthIncoming['vmResourceCriticalGiB'] ?? 64, 1, 1024, 64);
+        if ($healthVmResourceCriticalGiB <= $healthVmResourceWarnGiB) {
+            $healthVmResourceWarnGiB = min(1023, $healthVmResourceWarnGiB);
+            $healthVmResourceCriticalGiB = min(1024, $healthVmResourceWarnGiB + 1);
+        }
         $normalized['health'] = [
             'cardsEnabled' => !array_key_exists('cardsEnabled', $healthIncoming)
                 ? true
@@ -562,7 +578,11 @@
             'criticalStoppedPercent' => normalizeIntInRange($healthIncoming['criticalStoppedPercent'] ?? 90, 0, 100, 90),
             'profile' => $healthProfile,
             'updatesMode' => $healthUpdatesMode,
-            'allStoppedMode' => $healthAllStoppedMode
+            'allStoppedMode' => $healthAllStoppedMode,
+            'vmResourceWarnVcpus' => $healthVmResourceWarnVcpus,
+            'vmResourceCriticalVcpus' => $healthVmResourceCriticalVcpus,
+            'vmResourceWarnGiB' => $healthVmResourceWarnGiB,
+            'vmResourceCriticalGiB' => $healthVmResourceCriticalGiB
         ];
         $statusIncoming = is_array($prefs['status'] ?? null) ? $prefs['status'] : [];
         $statusMode = strtolower(trim((string)($statusIncoming['mode'] ?? 'summary')));

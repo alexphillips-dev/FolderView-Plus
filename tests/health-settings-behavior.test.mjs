@@ -104,9 +104,26 @@ test('retired compact health-card preference and misleading VM Docker policy con
     const normalized = utils.normalizePrefs({ health: { compact: true } });
     assert.equal(Object.prototype.hasOwnProperty.call(normalized.health, 'compact'), false);
     assert.doesNotMatch(page, /health-compact|Compact card layout/);
+    assert.doesNotMatch(settingsJs, /compact:\s*incoming\.compact/);
     assert.doesNotMatch(page, /id="vm-health-(?:warn-threshold|critical-threshold|profile|updates-mode|all-stopped-mode)"/);
     assert.match(page, /Health summary &amp; Docker scoring/);
     assert.match(page, /Health summary &amp; VM resources/);
+});
+
+test('VM resource threshold normalization preserves an ordered pair at maximum bounds', () => {
+    const prefs = utils.normalizePrefs({
+        health: {
+            vmResourceWarnVcpus: 512,
+            vmResourceCriticalVcpus: 512,
+            vmResourceWarnGiB: 1024,
+            vmResourceCriticalGiB: 1024
+        }
+    });
+
+    assert.equal(prefs.health.vmResourceWarnVcpus, 511);
+    assert.equal(prefs.health.vmResourceCriticalVcpus, 512);
+    assert.equal(prefs.health.vmResourceWarnGiB, 1023);
+    assert.equal(prefs.health.vmResourceCriticalGiB, 1024);
 });
 
 test('settings rerender summary cards and runtime pages apply badge preference broadcasts live', () => {

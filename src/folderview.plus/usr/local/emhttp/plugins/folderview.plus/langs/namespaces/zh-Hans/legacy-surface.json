@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.1",
+        "catalog-version": "2026.07.22.2",
         "locale": "zh-Hans",
         "namespace": "legacy-surface"
     },
@@ -236,6 +236,7 @@
     "legacy.surface.21d033f5b75dfd7e": "比赛原因",
     "legacy.surface.222731e08221fabd": "0 个文件夹",
     "legacy.surface.2252d5cf93767a43": "效果",
+    "legacy.surface.226d172b26fa2ead": "当在 Docker 页面上启用隐私时，这些掩码适用。",
     "legacy.surface.2276a481f482182f": "向导申请",
     "legacy.surface.227718e1b8cf13f2": "推迟大型预览",
     "legacy.surface.227c5d7066780ff6": "打开 WebUI",
@@ -834,6 +835,7 @@
     "legacy.surface.876357438df52eb5": "展开行",
     "legacy.surface.878435f93019a5b4": "开始/暂停/停止",
     "legacy.surface.87bb3f655699e277": "过滤器和视图设置",
+    "legacy.surface.87e1a304c507182a": "将选定的掩码应用到虚拟机和仪表板视图",
     "legacy.surface.8800d080ce54094d": "没有项目与此过滤器匹配。",
     "legacy.surface.8851aaa7d08ca1ae": "合并",
     "legacy.surface.886f54ba3524b20d": "文件夹按名称从 Z 到 A 排序。嵌套文件夹仍保留在其父分支内。",
@@ -1017,7 +1019,6 @@
     "legacy.surface.a44aad4482e3ee39": "警告停止(%)",
     "legacy.surface.a47f71e5d94fec54": "从自定义图标存储中删除“$1”？",
     "legacy.surface.a4c666d1e28e0c35": "至少选择一项进行分配。",
-    "legacy.surface.a4d24fddbf3cb7e0": "屏蔽名称和图标以保护 UI 中的敏感信息。",
     "legacy.surface.a511909161e1b84f": "布局",
     "legacy.surface.a5290dba9a138e99": "未知的命令视图错误。",
     "legacy.surface.a52ace420f2175d0": "全部",
@@ -1486,6 +1487,7 @@
     "legacy.surface.f0b16fbcd35eba3c": "功能更新",
     "legacy.surface.f0bc48436028ff10": "控制 Docker 容器在引导时启动时 Unraid 使用的顺序。",
     "legacy.surface.f0e9d121661289cf": "重新测试性能",
+    "legacy.surface.f11c2c4219438105": "启用虚拟机隐私",
     "legacy.surface.f130559f0e7ff9f8": "与",
     "legacy.surface.f13f53aeb179dad9": "Docker 表 shell",
     "legacy.surface.f152520c624ef926": "支持的格式",

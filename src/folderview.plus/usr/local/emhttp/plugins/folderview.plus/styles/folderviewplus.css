@@ -900,6 +900,609 @@ body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-emp
     display: none !important;
 }
 
+/* Filters and view settings workspace */
+.fv-view-settings-panel {
+    margin-top: 12px;
+    padding: 0;
+    overflow: hidden;
+    border-color: var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 22% 0%, var(--fvplus-settings-surface-strong), transparent 34%),
+        var(--fvplus-settings-surface-panel);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-view-settings-panel > .toolbar-sort-toggle {
+    min-height: 74px;
+    padding: 0 24px;
+    border-bottom: 1px solid transparent;
+}
+
+.fv-view-settings-panel[open] > .toolbar-sort-toggle {
+    border-bottom-color: var(--fvplus-settings-border-faint);
+}
+
+.fv-view-settings-panel .toolbar-sort-toggle-main {
+    gap: 17px;
+}
+
+.fv-view-settings-heading-icon {
+    width: 28px;
+    color: var(--fvplus-settings-accent);
+    font-size: 27px;
+    text-align: center;
+}
+
+.fv-view-settings-heading-copy {
+    display: grid;
+    gap: 4px;
+}
+
+.fv-view-settings-heading-copy > strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.fv-view-settings-heading-copy > small {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.fv-view-settings-panel .toolbar-sort-toggle-note {
+    display: none;
+    padding: 0;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.fv-view-settings-panel[open] .toolbar-sort-toggle-note {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+}
+
+.fv-view-settings-panel .toolbar-sort-body {
+    gap: 14px;
+    margin: 0;
+    padding: 16px 20px 20px;
+    border-top: 0;
+}
+
+.fv-view-settings-toolbar {
+    gap: 14px 30px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-view-settings-toolbar .tree-visibility-controls {
+    gap: 12px;
+}
+
+.fv-view-settings-toolbar .tree-management-controls {
+    padding-left: 28px;
+    border-left: 1px solid var(--fvplus-settings-border-faint);
+}
+
+#fv-settings-root .fv-view-settings-toolbar button {
+    min-height: 40px;
+    padding: 7px 16px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.fv-view-settings-toolbar button > i {
+    min-width: 16px;
+    margin-right: 7px;
+    font-size: 16px;
+}
+
+.fv-view-settings-panel > .toolbar-sort-body > .folder-quick-filters {
+    gap: 7px;
+    padding: 7px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--fvplus-settings-surface-card) 76%, transparent);
+}
+
+#fv-settings-root .fv-view-settings-panel .folder-quick-filters > button {
+    min-height: 34px;
+    padding: 5px 21px;
+    border-radius: 999px;
+    clip-path: inset(0 round 999px);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.fv-view-settings-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.fv-view-settings-grid > .settings-mini-card {
+    min-width: 0;
+    min-height: 300px;
+    gap: 8px;
+    padding: 17px 18px;
+    border-color: var(--fvplus-settings-border-subtle);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--fvplus-settings-surface-card) 92%, var(--fvplus-settings-surface-panel));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--fvplus-settings-text-primary) 3%, transparent);
+}
+
+.fv-view-settings-grid > .fv-settings-card-health,
+.fv-view-settings-grid > .fv-settings-card-privacy,
+.fv-view-settings-grid > .fv-settings-card-columns {
+    min-height: 330px;
+}
+
+.fv-view-settings-grid > .fv-settings-card-health {
+    gap: 5px;
+}
+
+#fv-settings-root .fv-view-settings-grid .fv-view-settings-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+    text-transform: none;
+    opacity: 1;
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title::before {
+    display: inline-block;
+    width: 18px;
+    color: var(--fvplus-settings-accent);
+    font-family: FontAwesome;
+    font-size: 17px;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    text-align: center;
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-layout::before {
+    content: "\f1de";
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-folder::before {
+    content: "\f114";
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-runtime::before {
+    content: "\f017";
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-health::before {
+    content: "\f21e";
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-privacy::before {
+    content: "\f132";
+}
+
+.fv-view-settings-grid .fv-view-settings-card-title.is-columns::before {
+    content: "\f0ce";
+}
+
+.fv-view-settings-grid .setting-select {
+    grid-template-columns: minmax(108px, 0.62fr) minmax(125px, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+}
+
+.fv-view-settings-grid .setting-select > span {
+    opacity: 1;
+}
+
+#fv-settings-root .fv-view-settings-grid select,
+#fv-settings-root .fv-view-settings-grid input[type="number"] {
+    box-sizing: border-box;
+    min-height: 30px;
+    margin: 0;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 6px;
+    background: var(--fvplus-settings-surface-field);
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+}
+
+.fv-view-settings-grid .setting-help,
+.fv-view-settings-grid .setting-note {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 12px;
+    line-height: 1.35;
+    opacity: 1;
+}
+
+.fv-view-settings-grid .setting-help {
+    margin-top: auto;
+}
+
+.fv-settings-divider {
+    height: 0;
+    margin: 1px 0;
+    border-top: 1px solid var(--fvplus-settings-border-faint);
+}
+
+.fv-setting-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.fv-setting-copy > strong {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.fv-setting-copy > small {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.fv-view-settings-grid .setting-toggle {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+    white-space: normal;
+}
+
+.fv-view-settings-grid .fv-setting-checkbox-row {
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.fv-view-settings-panel input[type="checkbox"] {
+    appearance: none;
+    position: relative;
+    box-sizing: border-box;
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid color-mix(in srgb, var(--fvplus-settings-text-muted) 70%, transparent);
+    border-radius: 4px;
+    background: var(--fvplus-settings-surface-field);
+    cursor: pointer;
+}
+
+.fv-view-settings-panel input[type="checkbox"]:checked {
+    border-color: var(--fvplus-settings-accent);
+    background-color: var(--fvplus-settings-accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='m3 8 3 3 7-7'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 15px;
+}
+
+.fv-view-settings-panel input[type="checkbox"]:focus-visible,
+.fv-view-settings-panel input[type="range"]:focus-visible,
+.fv-view-settings-panel select:focus-visible,
+.fv-view-settings-panel input[type="number"]:focus-visible {
+    outline: 2px solid var(--fvplus-settings-focus-ring);
+    outline-offset: 2px;
+}
+
+.fv-setting-switch {
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.fv-view-settings-panel .fv-setting-switch > input[type="checkbox"] {
+    width: 39px;
+    min-width: 39px;
+    height: 22px;
+    border-radius: 999px;
+    background-image: none;
+}
+
+.fv-view-settings-panel .fv-setting-switch > input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--fvplus-settings-text-muted);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: left 120ms ease, background 120ms ease;
+}
+
+.fv-view-settings-panel .fv-setting-switch > input[type="checkbox"]:checked::after {
+    left: 19px;
+    background: #fff;
+}
+
+.fv-setting-inline-pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.fv-setting-compact-number {
+    gap: 4px;
+}
+
+#fv-settings-root .fv-setting-compact-number > input[type="number"] {
+    width: 64px;
+    padding-right: 5px;
+}
+
+.fv-setting-compact-number > span {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 12px;
+}
+
+.fv-setting-range-row {
+    display: grid;
+    grid-template-columns: minmax(104px, 0.7fr) minmax(130px, 1fr);
+    gap: 10px;
+    min-height: 31px;
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+}
+
+.fv-setting-range-control {
+    display: grid;
+    grid-template-columns: minmax(54px, 1fr) 54px auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.fv-setting-range-control > input[type="range"] {
+    width: 100%;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--fvplus-settings-accent);
+    cursor: pointer;
+}
+
+#fv-settings-root .fv-setting-range-control > input[type="number"] {
+    width: 54px;
+    min-height: 30px;
+    padding: 4px 6px;
+    text-align: center;
+}
+
+.fv-setting-range-control > span {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 12px;
+}
+
+.fv-view-settings-grid .settings-privacy-section,
+.fv-view-settings-grid .settings-privacy-options {
+    gap: 7px;
+}
+
+.fv-view-settings-grid .settings-privacy-options {
+    margin: 0;
+    padding: 0;
+    border-left: 0;
+}
+
+.fv-view-settings-grid .settings-privacy-options .setting-toggle {
+    gap: 9px;
+    font-size: 13px;
+}
+
+.fv-view-settings-grid .fv-view-defaults-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 3px;
+}
+
+#fv-settings-root .fv-view-settings-grid .fv-view-defaults-actions > button {
+    min-width: 0;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid var(--fvplus-settings-button-outline);
+    border-radius: 6px;
+    background: var(--fvplus-settings-button-bg-top);
+    color: var(--fvplus-settings-button-fg);
+    box-shadow: var(--fvplus-settings-button-shadow);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.fv-view-settings-grid .fv-folder-defaults-save {
+    grid-column: 1 / -1;
+    width: 56%;
+}
+
+#fv-settings-root .fv-view-settings-grid .fv-folder-defaults-apply {
+    background: var(--fvplus-settings-accent);
+    color: #fff;
+}
+
+.fv-settings-density-label {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 13px;
+}
+
+.fv-settings-density-control {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+}
+
+#fv-settings-root .fv-settings-density-control > button {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 34px;
+    border: 1px solid var(--fvplus-settings-button-outline);
+    border-radius: 0;
+    background: var(--fvplus-settings-button-bg-top);
+    color: var(--fvplus-settings-button-fg);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#fv-settings-root .fv-settings-density-control > button:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+#fv-settings-root .fv-settings-density-control > button:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+#fv-settings-root .fv-settings-density-control > button + button {
+    margin-left: -1px;
+}
+
+.fv-settings-reset-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+#fv-settings-root .fv-settings-reset-actions > button {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 34px;
+    padding: 5px 8px;
+    border: 1px solid var(--fvplus-settings-button-outline);
+    border-radius: 6px;
+    background: var(--fvplus-settings-button-bg-top);
+    color: var(--fvplus-settings-button-fg);
+    box-shadow: var(--fvplus-settings-button-shadow);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+#fv-settings-root .fv-settings-reset-actions > button::before {
+    display: inline-block;
+    min-width: 15px;
+    margin-right: 6px;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+}
+
+#fv-settings-root [id$="-table-reset-visibility"]::before {
+    content: "\f070";
+}
+
+#fv-settings-root [id$="-table-reset-widths"]::before {
+    content: "\f07e";
+}
+
+.fv-settings-column-toggles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 12px;
+}
+
+.fv-settings-card-columns .setting-help,
+.fv-settings-card-privacy .setting-help,
+.fv-settings-card-dashboard .setting-help {
+    margin-top: 3px;
+}
+
+#fv-settings-root :is(#docker-view-settings, #vm-view-settings) .folder-quick-filters > button.is-active,
+#fv-settings-root :is(#docker-view-settings, #vm-view-settings) .fv-settings-density-control > button.is-active {
+    isolation: isolate;
+    position: relative;
+    color: #fff;
+}
+
+#fv-settings-root :is(#docker-view-settings, #vm-view-settings) .folder-quick-filters > button.is-active::before,
+#fv-settings-root :is(#docker-view-settings, #vm-view-settings) .fv-settings-density-control > button.is-active::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -1px;
+    border-radius: inherit;
+    background: var(--fvplus-settings-accent);
+}
+
+@media (max-width: 1450px) {
+    .fv-view-settings-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .fv-view-settings-panel > .toolbar-sort-toggle {
+        min-height: 66px;
+        padding: 0 14px;
+    }
+
+    .fv-view-settings-heading-copy > strong {
+        font-size: 17px;
+    }
+
+    .fv-view-settings-heading-copy > small {
+        font-size: 12px;
+    }
+
+    .fv-view-settings-panel .toolbar-sort-body {
+        padding: 12px;
+    }
+
+    .fv-view-settings-toolbar,
+    .fv-view-settings-toolbar .tree-visibility-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .fv-view-settings-toolbar .tree-management-controls {
+        padding-top: 12px;
+        padding-left: 0;
+        border-top: 1px solid var(--fvplus-settings-border-faint);
+        border-left: 0;
+    }
+
+    .fv-view-settings-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fv-view-settings-grid > .settings-mini-card {
+        min-height: 0;
+    }
+
+    .fv-view-settings-grid .setting-select,
+    .fv-setting-range-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fv-view-settings-grid .fv-folder-defaults-save {
+        width: 100%;
+    }
+}
+
 .table-wrap {
     width: 100%;
     box-sizing: border-box;

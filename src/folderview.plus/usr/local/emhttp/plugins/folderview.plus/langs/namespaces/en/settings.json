@@ -21,7 +21,7 @@
     "settings.tabs.basic": "Basic",
     "settings.tabs.advanced": "Advanced",
     "settings.tabs.wizard": "Wizard",
-    "settings.privacy.title": "Privacy mode",
+    "settings.privacy.title": "Privacy masking",
     "settings.privacy.mask-names": "Mask names and icons",
     "settings.privacy.mask-lan-ips": "Mask LAN IPs",
     "settings.privacy.mask-ports": "Mask ports",

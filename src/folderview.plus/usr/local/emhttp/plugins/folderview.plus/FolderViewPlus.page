@@ -357,14 +357,19 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </div>
     <div id="docker-basic-summary" class="fv-basic-summary-grid" aria-label="Docker folder summary"></div>
-    <details id="docker-view-settings" class="toolbar-sort toolbar-sort-wide">
+    <details id="docker-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel">
         <summary class="toolbar-sort-toggle">
-            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Filters and view settings</span>
-            <span class="toolbar-sort-toggle-note">Collapsed by default</span>
+            <span class="toolbar-sort-toggle-main">
+                <i class="fa fa-sliders fv-view-settings-heading-icon" aria-hidden="true"></i>
+                <span class="fv-view-settings-heading-copy">
+                    <strong>Filters and view settings</strong>
+                    <small>Customize folder views, defaults, and visibility.</small>
+                </span>
+            </span>
+            <span class="toolbar-sort-toggle-note" aria-hidden="true"><i class="fa fa-times"></i></span>
         </summary>
         <div class="toolbar-sort-body">
-            <div class="sort-row">
-                <span class="sort-hint-chip" title="Use manual mode with the drag handle for same-level order and Tree move for nesting."><i class="fa fa-info-circle"></i> Manual uses drag handle + tree move in Order column</span>
+            <div class="sort-row fv-view-settings-toolbar">
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
@@ -385,10 +390,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('docker','no-rules')">No rules</button>
                 <button type="button" data-filter="has-updates" onclick="setQuickFolderFilter('docker','has-updates')">Has updates</button>
             </div>
-            <div class="settings-cards-grid">
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Layout</div>
-                    <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+            <div class="settings-cards-grid fv-view-settings-grid">
+                <div class="settings-mini-card fv-settings-card-layout">
+                    <div class="fv-view-settings-card-title is-layout">Layout</div>
                     <label class="setting-select" for="docker-app-column-width">
                         <span>Application width</span>
                         <select id="docker-app-column-width" onchange="changeVisibilityPref('docker', 'appColumnWidth', this.value)">
@@ -413,22 +417,33 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </select>
                     </label>
                     <label id="docker-status-trend-row" class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
-                    <label class="setting-toggle"><input id="docker-status-attention-accent" type="checkbox" onchange="changeStatusPref('docker', 'attentionAccent', this.checked)"> Attention accent</label>
-                    <label id="docker-status-warn-threshold-row" class="setting-inline-number">
-                        <span>Status warn (%)</span>
-                        <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
+                    <div class="fv-settings-divider"></div>
+                    <label class="setting-toggle fv-setting-switch">
+                        <span class="fv-setting-copy"><strong>Attention accent</strong><small>Highlight important items</small></span>
+                        <input id="docker-status-attention-accent" type="checkbox" onchange="changeStatusPref('docker', 'attentionAccent', this.checked)">
                     </label>
-                    <div class="setting-help">Simple shows one chip, Balanced shows primary + mini counters, and Detailed adds trend. Attention accent highlights folders crossing your warn threshold.</div>
-                    <div class="setting-note">Pin folders with the star button in the Actions column.</div>
+                    <label id="docker-status-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
+                        <span class="fv-setting-copy"><strong>Status warn (%)</strong><small>Warn threshold for attention</small></span>
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-status-warn-threshold" aria-label="Status warning threshold">
+                            <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
+                    </label>
+                    <label class="setting-toggle fv-setting-checkbox-row">
+                        <input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
+                        <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
+                    </label>
+                    <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Folder badges</div>
-                    <label class="setting-toggle"><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
-                    <label class="setting-toggle"><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"> Stopped</label>
-                    <label class="setting-toggle"><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"> Updates</label>
+                <div class="settings-mini-card fv-settings-card-badges">
+                    <div class="fv-view-settings-card-title is-folder">Folder badges</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"><span class="fv-setting-copy"><strong>Updates</strong><small>Show updates badge</small></span></label>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Runtime</div>
+                <div class="settings-mini-card fv-settings-card-runtime">
+                    <div class="fv-view-settings-card-title is-runtime">Runtime</div>
                     <label class="setting-select" for="docker-page-view-mode">
                         <span>Docker page view</span>
                         <select id="docker-page-view-mode" onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
@@ -437,11 +452,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="command">Command view</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
-                    <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
-                        <span>Interval (sec)</span>
-                        <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
-                    </label>
+                    <div class="fv-setting-inline-pair">
+                        <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
+                        <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent fv-setting-compact-number">
+                            <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
+                            <span aria-hidden="true">s</span>
+                        </label>
+                    </div>
                     <label class="setting-select" for="docker-performance-profile">
                         <span>Performance profile</span>
                         <select id="docker-performance-profile" onchange="changeRuntimePref('docker', 'performanceProfile', this.value)">
@@ -450,7 +467,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="maximum">Maximum performance</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Defer large previews</label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
                     <label id="docker-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Preview threshold</span>
                         <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
@@ -467,22 +484,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div id="docker-performance-policy-summary" class="setting-help fv-performance-policy-summary"></div>
                     <div class="setting-help">Adaptive responds to library size. Deferred previews hydrate near the viewport without changing saved folder settings.</div>
                 </div>
-                <div class="settings-mini-card fv-folder-defaults-card">
-                    <div class="settings-mini-title">Folder defaults</div>
+                <div class="settings-mini-card fv-folder-defaults-card fv-settings-card-defaults">
+                    <div class="fv-view-settings-card-title is-folder">Folder defaults</div>
                     <label class="setting-select" for="docker-folder-defaults-source">
                         <span>Source folder</span>
                         <select id="docker-folder-defaults-source"></select>
                     </label>
                     <div id="docker-folder-defaults-summary" class="setting-help">No Docker folder defaults saved yet.</div>
-                    <div class="fv-folder-defaults-actions">
-                        <button type="button" onclick="saveFolderDefaultsFromSelection('docker')"><i class="fa fa-bookmark"></i> Save as defaults</button>
-                        <button type="button" onclick="applySavedFolderDefaultsToAll('docker')"><i class="fa fa-repeat"></i> Apply to all</button>
-                        <button type="button" onclick="clearFolderDefaults('docker')"><i class="fa fa-eraser"></i> Clear</button>
+                    <div class="fv-view-defaults-actions">
+                        <button type="button" class="fv-folder-defaults-save" onclick="saveFolderDefaultsFromSelection('docker')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" class="fv-folder-defaults-apply" onclick="applySavedFolderDefaultsToAll('docker')"><i class="fa fa-check"></i> Apply to all</button>
+                        <button type="button" class="fv-folder-defaults-clear" onclick="clearFolderDefaults('docker')"><i class="fa fa-eraser"></i> Clear</button>
                     </div>
                     <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Dashboard</div>
+                <div class="settings-mini-card fv-settings-card-dashboard">
+                    <div class="fv-view-settings-card-title is-layout">Dashboard</div>
                     <label class="setting-select" for="docker-dashboard-layout">
                         <span>Layout mode</span>
                         <select id="docker-dashboard-layout" onchange="changeDashboardPref('docker', 'layout', this.value)">
@@ -527,33 +544,28 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <input id="docker-dashboard-preview-graph-time" type="number" min="5" max="600" step="5" onchange="changeDashboardPref('docker', 'previewGraphTime', this.value)">
                     </label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
-                    <div class="settings-privacy-section">
-                        <div class="settings-privacy-title" data-i18n="settings.privacy.title">Privacy mode</div>
-                        <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> <span data-i18n="settings.privacy.mask-lan-ips">Mask LAN IPs</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> <span data-i18n="settings.privacy.mask-ports">Mask ports</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
-                        </div>
-                        <div class="setting-help" data-i18n="settings.privacy.lan-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
-                    </div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Health cards</div>
-                    <label class="setting-toggle"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"> Show health cards</label>
-                    <label class="setting-toggle"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
-                    <label class="setting-toggle"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"> Compact card layout</label>
-                    <label id="docker-health-warn-threshold-row" class="setting-inline-number">
+                <div class="settings-mini-card fv-settings-card-health">
+                    <div class="fv-view-settings-card-title is-health">Health cards</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health cards</strong><small>Display health card summary</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Runtime summary badge</strong><small>Show runtime summary badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"><span class="fv-setting-copy"><strong>Compact card layout</strong><small>Use compact card layout</small></span></label>
+                    <div class="fv-settings-divider"></div>
+                    <label id="docker-health-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Warn stopped (%)</span>
-                        <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-health-warn-threshold" aria-label="Stopped warning threshold">
+                            <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
                     </label>
-                    <label id="docker-health-critical-threshold-row" class="setting-inline-number">
+                    <label id="docker-health-critical-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Critical stopped (%)</span>
-                        <input id="docker-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'criticalStoppedPercent', this.value)">
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-health-critical-threshold" aria-label="Stopped critical threshold">
+                            <input id="docker-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'criticalStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
                     </label>
                     <label id="docker-health-policy-profile-row" class="setting-select">
                         <span>Profile</span>
@@ -580,8 +592,25 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Columns</div>
+                <div class="settings-mini-card fv-settings-card-privacy">
+                    <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
+                    <div class="setting-note">Mask names and icons to protect sensitive information across the UI.</div>
+                    <div class="settings-privacy-section">
+                        <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> <span data-i18n="settings.privacy.mask-lan-ips">Mask LAN IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> <span data-i18n="settings.privacy.mask-ports">Mask ports</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
+                        </div>
+                        <div class="setting-help" data-i18n="settings.privacy.lan-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
+                    </div>
+                </div>
+                <div class="settings-mini-card fv-settings-card-columns">
+                    <div class="fv-view-settings-card-title is-columns">Columns</div>
                     <label class="setting-select" for="docker-table-name-width">
                         <span>Name width</span>
                         <select id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'name', this.value)">
@@ -598,21 +627,25 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
-                    <div class="setting-button-row setting-button-row-compact">
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:compact" onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:balanced" onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:detailed" onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
+                    <div class="fv-settings-density-label">View density</div>
+                    <div class="fv-settings-density-control">
+                        <button type="button" data-fv-table-preset="docker:compact" onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
+                        <button type="button" data-fv-table-preset="docker:balanced" onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
+                        <button type="button" data-fv-table-preset="docker:detailed" onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
                     </div>
-                    <div class="setting-button-row setting-button-row-compact">
-                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-visibility" onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
-                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-widths" onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
+                    <div class="fv-settings-divider"></div>
+                    <div class="fv-settings-reset-actions">
+                        <button type="button" id="docker-table-reset-visibility" onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
+                        <button type="button" id="docker-table-reset-widths" onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
                     </div>
-                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
-                    <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
-                    <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
-                    <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
-                    <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
-                    <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
+                    <div class="fv-settings-column-toggles">
+                        <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
+                        <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
+                        <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
+                        <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
+                        <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
+                        <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
+                    </div>
                     <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>
@@ -680,14 +713,19 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </div>
     <div id="vm-basic-summary" class="fv-basic-summary-grid" aria-label="VM folder summary"></div>
-    <details id="vm-view-settings" class="toolbar-sort toolbar-sort-wide">
+    <details id="vm-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel">
         <summary class="toolbar-sort-toggle">
-            <span class="toolbar-sort-toggle-main"><i class="fa fa-caret-right toolbar-sort-caret" aria-hidden="true"></i> Filters and view settings</span>
-            <span class="toolbar-sort-toggle-note">Collapsed by default</span>
+            <span class="toolbar-sort-toggle-main">
+                <i class="fa fa-sliders fv-view-settings-heading-icon" aria-hidden="true"></i>
+                <span class="fv-view-settings-heading-copy">
+                    <strong>Filters and view settings</strong>
+                    <small>Customize folder views, defaults, and visibility.</small>
+                </span>
+            </span>
+            <span class="toolbar-sort-toggle-note" aria-hidden="true"><i class="fa fa-times"></i></span>
         </summary>
         <div class="toolbar-sort-body">
-            <div class="sort-row">
-                <span class="sort-hint-chip" title="Use manual mode with the drag handle for same-level order and Tree move for nesting."><i class="fa fa-info-circle"></i> Manual uses drag handle + tree move in Order column</span>
+            <div class="sort-row fv-view-settings-toolbar">
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
@@ -707,10 +745,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <button type="button" data-filter="empty" onclick="setQuickFolderFilter('vm','empty')">Empty</button>
                 <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('vm','no-rules')">No rules</button>
             </div>
-            <div class="settings-cards-grid">
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Layout</div>
-                    <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+            <div class="settings-cards-grid fv-view-settings-grid">
+                <div class="settings-mini-card fv-settings-card-layout">
+                    <div class="fv-view-settings-card-title is-layout">Layout</div>
                     <label class="setting-select" for="vm-app-column-width">
                         <span>Application width</span>
                         <select id="vm-app-column-width" onchange="changeVisibilityPref('vm', 'appColumnWidth', this.value)">
@@ -735,26 +772,39 @@ if (!empty($fvplusRuntimeConflicts)) {
                         </select>
                     </label>
                     <label id="vm-status-trend-row" class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
-                    <label class="setting-toggle"><input id="vm-status-attention-accent" type="checkbox" onchange="changeStatusPref('vm', 'attentionAccent', this.checked)"> Attention accent</label>
-                    <label id="vm-status-warn-threshold-row" class="setting-inline-number">
-                        <span>Status warn (%)</span>
-                        <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
+                    <div class="fv-settings-divider"></div>
+                    <label class="setting-toggle fv-setting-switch">
+                        <span class="fv-setting-copy"><strong>Attention accent</strong><small>Highlight important items</small></span>
+                        <input id="vm-status-attention-accent" type="checkbox" onchange="changeStatusPref('vm', 'attentionAccent', this.checked)">
                     </label>
-                    <div class="setting-help">Simple shows one chip, Balanced shows primary + mini counters, and Detailed adds trend. Attention accent highlights folders crossing your warn threshold.</div>
-                    <div class="setting-note">Pin folders with the star button in the Actions column.</div>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Folder badges</div>
-                    <label class="setting-toggle"><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
-                    <label class="setting-toggle"><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"> Stopped</label>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Runtime</div>
-                    <label class="setting-toggle"><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
-                    <label id="vm-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
-                        <span>Interval (sec)</span>
-                        <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
+                    <label id="vm-status-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
+                        <span class="fv-setting-copy"><strong>Status warn (%)</strong><small>Warn threshold for attention</small></span>
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-status-warn-threshold" aria-label="Status warning threshold">
+                            <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
                     </label>
+                    <label class="setting-toggle fv-setting-checkbox-row">
+                        <input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)">
+                        <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
+                    </label>
+                    <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
+                </div>
+                <div class="settings-mini-card fv-settings-card-badges">
+                    <div class="fv-view-settings-card-title is-folder">Folder badges</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
+                </div>
+                <div class="settings-mini-card fv-settings-card-runtime">
+                    <div class="fv-view-settings-card-title is-runtime">Runtime</div>
+                    <div class="fv-setting-inline-pair">
+                        <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
+                        <label id="vm-live-refresh-seconds-row" class="setting-inline-number runtime-dependent fv-setting-compact-number">
+                            <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
+                            <span aria-hidden="true">s</span>
+                        </label>
+                    </div>
                     <label class="setting-select" for="vm-performance-profile">
                         <span>Performance profile</span>
                         <select id="vm-performance-profile" onchange="changeRuntimePref('vm', 'performanceProfile', this.value)">
@@ -763,7 +813,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="maximum">Maximum performance</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Defer large previews</label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
                     <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Preview threshold</span>
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
@@ -780,22 +830,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div id="vm-performance-policy-summary" class="setting-help fv-performance-policy-summary"></div>
                     <div class="setting-help">Adaptive responds to library size. Deferred previews hydrate near the viewport without changing saved folder settings.</div>
                 </div>
-                <div class="settings-mini-card fv-folder-defaults-card">
-                    <div class="settings-mini-title">Folder defaults</div>
+                <div class="settings-mini-card fv-folder-defaults-card fv-settings-card-defaults">
+                    <div class="fv-view-settings-card-title is-folder">Folder defaults</div>
                     <label class="setting-select" for="vm-folder-defaults-source">
                         <span>Source folder</span>
                         <select id="vm-folder-defaults-source"></select>
                     </label>
                     <div id="vm-folder-defaults-summary" class="setting-help">No VM folder defaults saved yet.</div>
-                    <div class="fv-folder-defaults-actions">
-                        <button type="button" onclick="saveFolderDefaultsFromSelection('vm')"><i class="fa fa-bookmark"></i> Save as defaults</button>
-                        <button type="button" onclick="applySavedFolderDefaultsToAll('vm')"><i class="fa fa-repeat"></i> Apply to all</button>
-                        <button type="button" onclick="clearFolderDefaults('vm')"><i class="fa fa-eraser"></i> Clear</button>
+                    <div class="fv-view-defaults-actions">
+                        <button type="button" class="fv-folder-defaults-save" onclick="saveFolderDefaultsFromSelection('vm')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" class="fv-folder-defaults-apply" onclick="applySavedFolderDefaultsToAll('vm')"><i class="fa fa-check"></i> Apply to all</button>
+                        <button type="button" class="fv-folder-defaults-clear" onclick="clearFolderDefaults('vm')"><i class="fa fa-eraser"></i> Clear</button>
                     </div>
                     <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Dashboard</div>
+                <div class="settings-mini-card fv-settings-card-dashboard">
+                    <div class="fv-view-settings-card-title is-layout">Dashboard</div>
                     <label class="setting-select" for="vm-dashboard-layout">
                         <span>Layout mode</span>
                         <select id="vm-dashboard-layout" onchange="changeDashboardPref('vm', 'layout', this.value)">
@@ -812,30 +862,28 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
                     <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
-                    <div class="settings-privacy-section">
-                        <div class="settings-privacy-title" data-i18n="settings.privacy.title">Privacy mode</div>
-                        <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
-                        </div>
-                    </div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Health cards</div>
-                    <label class="setting-toggle"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"> Show health cards</label>
-                    <label class="setting-toggle"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
-                    <label class="setting-toggle"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"> Compact card layout</label>
-                    <label id="vm-health-warn-threshold-row" class="setting-inline-number">
+                <div class="settings-mini-card fv-settings-card-health">
+                    <div class="fv-view-settings-card-title is-health">Health cards</div>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health cards</strong><small>Display health card summary</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Runtime summary badge</strong><small>Show runtime summary badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"><span class="fv-setting-copy"><strong>Compact card layout</strong><small>Use compact card layout</small></span></label>
+                    <div class="fv-settings-divider"></div>
+                    <label id="vm-health-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Warn stopped (%)</span>
-                        <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-health-warn-threshold" aria-label="Stopped warning threshold">
+                            <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
                     </label>
-                    <label id="vm-health-critical-threshold-row" class="setting-inline-number">
+                    <label id="vm-health-critical-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Critical stopped (%)</span>
-                        <input id="vm-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'criticalStoppedPercent', this.value)">
+                        <span class="fv-setting-range-control">
+                            <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-health-critical-threshold" aria-label="Stopped critical threshold">
+                            <input id="vm-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'criticalStoppedPercent', this.value)">
+                            <span aria-hidden="true">%</span>
+                        </span>
                     </label>
                     <label id="vm-health-policy-profile-row" class="setting-select">
                         <span>Profile</span>
@@ -878,8 +926,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
                 </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Columns</div>
+                <div class="settings-mini-card fv-settings-card-privacy">
+                    <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
+                    <div class="setting-note">Mask names and icons to protect sensitive information across the UI.</div>
+                    <div class="settings-privacy-section">
+                        <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-mini-card fv-settings-card-columns">
+                    <div class="fv-view-settings-card-title is-columns">Columns</div>
                     <label class="setting-select" for="vm-table-name-width">
                         <span>Name width</span>
                         <select id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'name', this.value)">
@@ -896,22 +958,26 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
-                    <div class="setting-button-row setting-button-row-compact">
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:compact" onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:balanced" onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
-                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:detailed" onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
+                    <div class="fv-settings-density-label">View density</div>
+                    <div class="fv-settings-density-control">
+                        <button type="button" data-fv-table-preset="vm:compact" onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
+                        <button type="button" data-fv-table-preset="vm:balanced" onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
+                        <button type="button" data-fv-table-preset="vm:detailed" onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
                     </div>
-                    <div class="setting-button-row setting-button-row-compact">
-                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-visibility" onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
-                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-widths" onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
+                    <div class="fv-settings-divider"></div>
+                    <div class="fv-settings-reset-actions">
+                        <button type="button" id="vm-table-reset-visibility" onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
+                        <button type="button" id="vm-table-reset-widths" onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
                     </div>
-                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
-                    <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
-                    <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
-                    <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
-                    <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
-                    <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
-                    <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
+                    <div class="fv-settings-column-toggles">
+                        <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
+                        <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
+                        <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
+                        <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
+                        <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
+                        <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
+                        <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
+                    </div>
                     <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>

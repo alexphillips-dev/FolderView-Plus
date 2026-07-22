@@ -142,12 +142,12 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /<option value="command">Command view<\/option>/);
     assert.doesNotMatch(page, /<option value="tree-explorer">/);
     assert.doesNotMatch(page, /<option value="orbit">/);
-    const dockerSortRowStart = page.indexOf('<div class="sort-row">');
+    const dockerSortRowStart = page.indexOf('<div class="sort-row fv-view-settings-toolbar">');
     const dockerSortRowEnd = page.indexOf('<div id="docker-quick-filters"');
     assert.ok(dockerSortRowStart >= 0 && dockerSortRowEnd > dockerSortRowStart, 'docker sort row slice should be present');
     const dockerSortRow = page.slice(dockerSortRowStart, dockerSortRowEnd);
     assert.doesNotMatch(dockerSortRow, /id="docker-page-view-mode"/);
-    assert.match(page, /<div class="settings-mini-title">Runtime<\/div>[\s\S]*id="docker-page-view-mode"/);
+    assert.match(page, /<div class="fv-view-settings-card-title is-runtime">Runtime<\/div>[\s\S]*id="docker-page-view-mode"/);
     assert.match(page, /id="docker-theme-compat-mode"/);
     assert.match(page, /id="vm-theme-compat-mode"/);
     assert.match(page, /Theme fallback mode/);
@@ -583,6 +583,21 @@ test('status detail controls support simple balanced and detailed modes', () => 
     assert.match(script, /if \(key === 'mode'\) \{[\s\S]*\} else if \(key === 'displayMode'\) \{/);
     assert.match(script, /status-display-mode/);
     assert.match(script, /const showTrendControl = status\.displayMode === 'detailed';/);
+});
+
+test('filter and view settings use responsive cards with synchronized threshold sliders', () => {
+    assert.match(page, /id="docker-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel"/);
+    assert.match(page, /id="vm-view-settings" class="toolbar-sort toolbar-sort-wide fv-view-settings-panel"/);
+    assert.match(page, /Customize folder views, defaults, and visibility\./);
+    assert.match(page, /class="settings-cards-grid fv-view-settings-grid"/);
+    assert.match(page, /class="settings-mini-card fv-settings-card-privacy"/);
+    assert.match(page, /data-fv-number-target="docker-status-warn-threshold"/);
+    assert.match(page, /data-fv-number-target="vm-health-critical-threshold"/);
+    assert.match(script, /const syncViewSettingsRangeControls = \(type = ''\) =>/);
+    assert.match(script, /numberInput\.dispatchEvent\(new Event\('change', \{ bubbles: true \}\)\)/);
+    assert.match(settingsCss, /\.fv-view-settings-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+    assert.match(settingsCss, /@media \(max-width: 1450px\)[\s\S]*\.fv-view-settings-grid\s*\{[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.fv-view-settings-grid\s*\{[\s\S]*minmax\(0, 1fr\)/);
 });
 
 test('settings mode switches persist the user basic or advanced view choice', () => {

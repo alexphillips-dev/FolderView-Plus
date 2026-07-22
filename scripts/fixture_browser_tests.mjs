@@ -223,7 +223,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1565);
+    assert.equal(snapshot.autoBoundMessageCount, 1580);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -685,6 +685,50 @@ test('Settings chrome keeps search and mode controls aligned without clipping', 
     await page.locator('#fv-settings-clear-search').evaluate((button) => { button.hidden = false; });
     const clearBox = await page.locator('#fv-settings-clear-search').boundingBox();
     assert.ok(clearBox.width <= 40 && clearBox.height <= 40, 'clear search control must stay compact');
+});
+
+test('Filters and view settings uses the responsive card workspace without clipping', async ({ page }) => {
+    const readLayout = async () => page.evaluate(async () => {
+        await window.fixtureSettings.viewSettingsReady;
+        const panel = document.getElementById('docker-view-settings');
+        const grid = panel.querySelector('.fv-view-settings-grid');
+        const cards = [...grid.children];
+        const panelRect = panel.getBoundingClientRect();
+        const gridColumns = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+        return {
+            cardCount: cards.length,
+            gridColumns,
+            panelWidth: panelRect.width,
+            cardsInsidePanel: cards.every((card) => {
+                const rect = card.getBoundingClientRect();
+                return rect.left >= panelRect.left - 1 && rect.right <= panelRect.right + 1;
+            }),
+            privacyIsCard: document.getElementById('docker-dashboard-privacy-options')?.closest('.fv-settings-card-privacy') !== null,
+            scrollWidth: document.documentElement.scrollWidth,
+            clientWidth: document.documentElement.clientWidth
+        };
+    });
+
+    await page.setViewportSize({ width: 1700, height: 980 });
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    let layout = await readLayout();
+    assert.equal(layout.cardCount, 8);
+    assert.equal(layout.gridColumns, 4);
+    assert.equal(layout.cardsInsidePanel, true);
+    assert.equal(layout.privacyIsCard, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop panel must not cause horizontal overflow');
+
+    await page.setViewportSize({ width: 1200, height: 900 });
+    layout = await readLayout();
+    assert.equal(layout.gridColumns, 2);
+    assert.equal(layout.cardsInsidePanel, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'tablet panel must not cause horizontal overflow');
+
+    await page.setViewportSize({ width: 700, height: 900 });
+    layout = await readLayout();
+    assert.equal(layout.gridColumns, 1);
+    assert.equal(layout.cardsInsidePanel, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'mobile panel must not cause horizontal overflow');
 });
 
 test('Folder action sheet uses the compact retained action set and accessible dialog', async ({ page }) => {

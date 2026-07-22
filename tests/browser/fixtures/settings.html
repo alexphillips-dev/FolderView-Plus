@@ -18,11 +18,43 @@
         <div id="fv-settings-topbar"></div>
         <section data-fixture-setting="docker"><h2>Docker folders</h2><label>Hide empty folders <input type="checkbox"></label></section>
         <section data-fixture-setting="privacy"><h2>Privacy mode</h2><label>Mask LAN IPs <input type="checkbox"></label></section>
+        <section id="view-settings-fixture" aria-label="Filters and view settings fixture"></section>
     </main>
     <script src="/plugin/scripts/folderviewplus.chrome.js"></script>
     <script>
         document.getElementById('fv-settings-topbar').innerHTML = window.FolderViewPlusSettingsChrome.getTopbarHtml();
-        window.fixtureSettings = { ready: true };
+        const loadViewSettingsFixture = async () => {
+            const source = await fetch('/plugin/FolderViewPlus.page').then((response) => response.text());
+            const start = source.indexOf('<details id="docker-view-settings"');
+            const end = source.indexOf('</details>', start);
+            if (start < 0 || end < 0) throw new Error('Docker view settings panel markup was not found.');
+            document.getElementById('view-settings-fixture').innerHTML = source.slice(start, end + '</details>'.length);
+            const panel = document.getElementById('docker-view-settings');
+            panel.open = true;
+            panel.querySelector('[data-filter="all"]')?.classList.add('is-active');
+            panel.querySelector('[data-fv-table-preset="docker:balanced"]')?.classList.add('is-active');
+            for (const id of [
+                'docker-status-trend-row',
+                'docker-lazy-preview-threshold-row',
+                'docker-dashboard-expand-toggle-row',
+                'docker-dashboard-greyscale-row',
+                'docker-dashboard-folder-label-row',
+                'docker-dashboard-preview-trigger-row',
+                'docker-dashboard-preview-graph-row',
+                'docker-dashboard-preview-graph-time-row'
+            ]) document.getElementById(id)?.classList.add('is-hidden');
+            panel.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = true; });
+            document.getElementById('docker-hide-empty-folders').checked = false;
+            document.getElementById('docker-status-warn-threshold').value = '60';
+            document.getElementById('docker-health-warn-threshold').value = '60';
+            document.getElementById('docker-health-critical-threshold').value = '90';
+            document.getElementById('docker-live-refresh-seconds').value = '20';
+            panel.querySelectorAll('[data-fv-number-target]').forEach((range) => {
+                range.value = document.getElementById(range.dataset.fvNumberTarget)?.value || range.value;
+            });
+            return panel;
+        };
+        window.fixtureSettings = { ready: true, viewSettingsReady: loadViewSettingsFixture() };
     </script>
 </body>
 </html>

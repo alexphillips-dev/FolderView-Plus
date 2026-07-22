@@ -46,7 +46,7 @@ test('privacy mode persists in prefs normalization on server and client', () => 
     assert.match(utilsJs, /privacyMaskPorts:\s*![\s\S]*hasOwnProperty\.call\(incomingDashboard, 'privacyMaskPorts'\)[\s\S]*incomingDashboard\.privacyMaskPorts !== false/);
 });
 
-test('settings page exposes granular privacy mask controls under a privacy mode section', () => {
+test('settings page exposes granular privacy mask controls in dedicated privacy cards', () => {
     assert.doesNotMatch(settingsPage, /id="docker-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="docker-dashboard-privacy-mask-names"/);
@@ -58,7 +58,8 @@ test('settings page exposes granular privacy mask controls under a privacy mode 
     assert.doesNotMatch(settingsPage, /id="vm-dashboard-privacy-mode"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-options"/);
     assert.match(settingsPage, /id="vm-dashboard-privacy-mask-names"/);
-    assert.match(settingsPage, /<div class="setting-help">Non-classic layouts can show[\s\S]*<div class="settings-privacy-title"[^>]*>Privacy mode<\/div>/);
+    assert.match(settingsPage, /class="settings-mini-card fv-settings-card-privacy"[\s\S]*id="docker-dashboard-privacy-options"/);
+    assert.match(settingsPage, /class="settings-mini-card fv-settings-card-privacy"[\s\S]*id="vm-dashboard-privacy-options"/);
     assert.doesNotMatch(settingsPage, /changeDashboardPref\('docker', 'privacyMode', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskNames', this\.checked\)/);
     assert.match(settingsPage, /changeDashboardPref\('docker', 'privacyMaskLocalIps', this\.checked\)/);

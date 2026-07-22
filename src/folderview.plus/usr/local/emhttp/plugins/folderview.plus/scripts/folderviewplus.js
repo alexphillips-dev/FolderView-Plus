@@ -7608,6 +7608,61 @@ const renderRuntimeControls = (type) => {
     applySettingsResolvedThemeTokens(`render-runtime-${type}`);
 };
 
+let viewSettingsRangeControlsBound = false;
+
+const updateViewSettingsRangeValue = (range, value) => {
+    if (!(range instanceof HTMLInputElement)) {
+        return;
+    }
+    const min = Number(range.min || 0);
+    const max = Number(range.max || 100);
+    const nextValue = Math.max(min, Math.min(max, Number(value) || 0));
+    range.value = String(nextValue);
+    range.style.setProperty('--fv-range-percent', `${max > min ? ((nextValue - min) / (max - min)) * 100 : 0}%`);
+};
+
+const syncViewSettingsRangeControls = (type = '') => {
+    const prefix = type ? `${type}-` : '';
+    document.querySelectorAll('[data-fv-number-target]').forEach((range) => {
+        const targetId = String(range.dataset.fvNumberTarget || '');
+        if (prefix && !targetId.startsWith(prefix)) {
+            return;
+        }
+        const numberInput = document.getElementById(targetId);
+        if (numberInput) {
+            updateViewSettingsRangeValue(range, numberInput.value);
+        }
+    });
+};
+
+const bindViewSettingsRangeControls = () => {
+    if (viewSettingsRangeControlsBound) {
+        return;
+    }
+    viewSettingsRangeControlsBound = true;
+    $(document)
+        .on('input.fvViewSettingsRange', '[data-fv-number-target]', function () {
+            const numberInput = document.getElementById(String(this.dataset.fvNumberTarget || ''));
+            if (!numberInput) {
+                return;
+            }
+            numberInput.value = this.value;
+            updateViewSettingsRangeValue(this, this.value);
+        })
+        .on('change.fvViewSettingsRange', '[data-fv-number-target]', function () {
+            const numberInput = document.getElementById(String(this.dataset.fvNumberTarget || ''));
+            if (numberInput) {
+                numberInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        })
+        .on('input.fvViewSettingsRange', '.fv-setting-range-control > input[type="number"]', function () {
+            const range = this.parentElement?.querySelector(`[data-fv-number-target="${this.id}"]`);
+            if (range) {
+                updateViewSettingsRangeValue(range, this.value);
+            }
+        });
+};
+
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
     $(`#${type}-status-mode`).val(status.mode);
@@ -7617,6 +7672,8 @@ const renderStatusControls = (type) => {
     $(`#${type}-status-warn-threshold`).val(String(status.warnStoppedPercent));
     const showTrendControl = status.displayMode === 'detailed';
     $(`#${type}-status-trend-row`).toggleClass('is-hidden', !showTrendControl);
+    bindViewSettingsRangeControls();
+    syncViewSettingsRangeControls(type);
 };
 
 const renderHealthControls = (type) => {
@@ -7647,6 +7704,8 @@ const renderHealthControls = (type) => {
     if (health.cardsEnabled !== true) {
         healthFilterByType[type] = 'all';
     }
+    bindViewSettingsRangeControls();
+    syncViewSettingsRangeControls(type);
 };
 
 const renderVisibilityControls = (type) => {

@@ -1789,14 +1789,14 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
     // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const cutomOrder = order.filter((e) => {
+    const customOrder = order.filter((e) => {
         return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
 
     // loop over the containers
     for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
-        const index = cutomOrder.indexOf(container);
+        const index = customOrder.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-preview', {detail: {
@@ -1820,7 +1820,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             }
 
             // remove the containers from the order
-            cutomOrder.splice(index, 1);
+            customOrder.splice(index, 1);
             order.splice(offsetIndex, 1);
             const ct = containersInfo[container];
 
@@ -2067,14 +2067,14 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
     // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const cutomOrder = order.filter((e) => {
+    const customOrder = order.filter((e) => {
         return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
 
     // loop over the containers
     for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
-        const index = cutomOrder.indexOf(container);
+        const index = customOrder.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-preview', {detail: {
@@ -2098,7 +2098,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
             }
 
             // remove the containers from the order
-            cutomOrder.splice(index, 1);
+            customOrder.splice(index, 1);
             order.splice(offsetIndex, 1);
 
             // add the id to the container name 

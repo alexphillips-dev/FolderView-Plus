@@ -66,7 +66,6 @@
             || (deps.treeIntegrityModule && typeof deps.treeIntegrityModule.createApi === 'function'
                 ? deps.treeIntegrityModule.createApi(deps)
                 : null);
-        const scanFolderTreeIntegrity = (...args) => treeIntegrityApi?.scan(...args);
         const runTreeIntegrityCheck = (...args) => treeIntegrityApi?.run(...args);
 
         const setFolderBranchPinned = async (type, folderId, pinned = true) => {
@@ -337,7 +336,6 @@
             setFolderBranchPinned,
             exportFolderBranch,
             importFolderBranch,
-            scanFolderTreeIntegrity,
             runTreeIntegrityCheck,
             previewFolderRuntimeAction,
             applyFolderRuntimeAction

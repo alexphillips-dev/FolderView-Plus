@@ -571,14 +571,6 @@ let filtersByType = {
         bulk: ''
     }
 };
-let healthMetricsByType = {
-    docker: null,
-    vm: null
-};
-let healthFilterByType = {
-    docker: 'all',
-    vm: 'all'
-};
 let healthSeverityFilterByType = {
     docker: 'all',
     vm: 'all'
@@ -3579,11 +3571,6 @@ const isFolderPinned = (type, folderId) => {
     return pinned.includes(String(folderId || ''));
 };
 
-const normalizeHealthFilterMode = (value) => {
-    const mode = String(value || 'all').trim().toLowerCase();
-    return ['all', 'attention', 'empty', 'stopped', 'conflict'].includes(mode) ? mode : 'all';
-};
-
 const normalizeHealthPrefs = (type, prefsOverride = null) => {
     const source = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
     const incoming = source?.health && typeof source.health === 'object' ? source.health : {};
@@ -3935,8 +3922,7 @@ const getSettingsHealthApi = (() => {
             getItemRuntimeStateKind,
             deriveFolderStatusKey,
             evaluateDockerFolderHealth,
-            valueIsTruthy,
-            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all'
+            valueIsTruthy
         });
         return cachedApi;
     };
@@ -4259,8 +4245,6 @@ const collectVmFolderResources = (...args) => getSettingsHealthApi().collectVmFo
 const evaluateVmResourceBadge = (...args) => getSettingsHealthApi().evaluateVmResourceBadge(...args);
 const hasInvalidFolderRegex = (...args) => getSettingsHealthApi().hasInvalidFolderRegex(...args);
 const buildTypeHealthMetrics = (...args) => getSettingsHealthApi().buildTypeHealthMetrics(...args);
-const folderMatchesHealthFilter = (...args) => getSettingsHealthApi().folderMatchesHealthFilter(...args);
-const getHealthFilterLabel = (...args) => getSettingsHealthApi().getHealthFilterLabel(...args);
 
 const getEffectiveMemberSnapshot = (type, folders) => {
     const info = infoByType[type] || {};
@@ -4467,10 +4451,6 @@ const buildTableUiStatePayload = () => ({
         docker: normalizeQuickFolderFilterMode(quickFolderFilterByType.docker, 'docker'),
         vm: normalizeQuickFolderFilterMode(quickFolderFilterByType.vm, 'vm')
     },
-    health: {
-        docker: normalizeHealthFilterMode(healthFilterByType.docker),
-        vm: normalizeHealthFilterMode(healthFilterByType.vm)
-    },
     healthSeverity: {
         docker: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.docker),
         vm: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.vm)
@@ -4510,7 +4490,6 @@ const restoreTableUiState = () => {
         const source = parsed && typeof parsed === 'object' ? parsed : {};
         const sourceFilters = source.filters && typeof source.filters === 'object' ? source.filters : {};
         const sourceQuick = source.quick && typeof source.quick === 'object' ? source.quick : {};
-        const sourceHealth = source.health && typeof source.health === 'object' ? source.health : {};
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
@@ -4527,7 +4506,6 @@ const restoreTableUiState = () => {
                 bulk: normalizedFilter(perTypeFilters.bulk)
             };
             quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
-            healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
             healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
             // Status filters are intentionally session-only. Older Status Details
             // popups persisted this value and could make saved folders appear missing.
@@ -5187,7 +5165,6 @@ const clearFolderTableFilters = (type = 'docker') => {
         filtersByType[resolvedType].folders = '';
         $(`#${resolvedType}-folder-filter`).val('');
     }
-    healthFilterByType[resolvedType] = 'all';
     healthSeverityFilterByType[resolvedType] = 'all';
     statusFilterByType[resolvedType] = 'all';
     quickFolderFilterByType[resolvedType] = 'all';
@@ -6864,7 +6841,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const statusPrefs = normalizeStatusPrefs(type);
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
-    const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
     const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
     const statusFilterMode = normalizeStatusFilterMode(statusFilterByType[type]);
     const quickFilterMode = normalizeQuickFolderFilterMode(quickFolderFilterByType[type], type);
@@ -6930,9 +6906,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const totalMemberCount = totalMembersSet.size;
         if (hideEmptyFolders && members.length === 0) {
-            continue;
-        }
-        if (runtimeReady && !folderMatchesHealthFilter(type, id, healthMetrics)) {
             continue;
         }
         const pinned = isFolderPinned(type, id);
@@ -7314,9 +7287,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     }
     if (rows.length === 0) {
         const suffixes = [];
-        if (healthFilterMode !== 'all') {
-            suffixes.push(`${getHealthFilterLabel(healthFilterMode)} filter`);
-        }
         if (isDockerType && dockerUpdatesOnlyFilter) {
             suffixes.push('updates only');
         }
@@ -7332,7 +7302,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
         const showClearFilters = Boolean(
             filter
-            || healthFilterMode !== 'all'
             || statusFilterMode !== 'all'
             || quickFilterMode !== 'all'
             || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all'))
@@ -7674,9 +7643,6 @@ const renderHealthControls = (type) => {
     $(`#${type}-resource-critical-vcpu-row`).toggleClass('is-hidden', !showVmResourceThresholds);
     $(`#${type}-resource-warn-gib-row`).toggleClass('is-hidden', !showVmResourceThresholds);
     $(`#${type}-resource-critical-gib-row`).toggleClass('is-hidden', !showVmResourceThresholds);
-    if (health.cardsEnabled !== true) {
-        healthFilterByType[type] = 'all';
-    }
     bindViewSettingsRangeControls();
     syncViewSettingsRangeControls(type);
 };
@@ -9408,7 +9374,6 @@ const renderTable = (type) => {
     const healthMetrics = runtimeReady
         ? buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type])
         : null;
-    healthMetricsByType[type] = healthMetrics;
     const basicSummaryHost = document.getElementById(`${type}-basic-summary`);
     if (runtimeReady) {
         basicSummaryHost?.setAttribute('aria-busy', 'false');
@@ -10457,15 +10422,6 @@ const changeStatusPref = async (type, key, value) => {
     }
 };
 
-const setHealthFolderFilter = (type, mode) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const nextMode = normalizeHealthFilterMode(mode);
-    const healthPrefs = normalizeHealthPrefs(resolvedType);
-    healthFilterByType[resolvedType] = healthPrefs.cardsEnabled ? nextMode : 'all';
-    persistTableUiState();
-    scheduleTableRender(resolvedType);
-};
-
 const changeColumnVisibility = async (type, key, checked) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const normalized = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
@@ -10606,10 +10562,6 @@ const changeHealthPref = async (type, key, value) => {
     if (nextHealth.vmResourceCriticalGiB <= nextHealth.vmResourceWarnGiB) {
         nextHealth.vmResourceWarnGiB = Math.min(1023, nextHealth.vmResourceWarnGiB);
         nextHealth.vmResourceCriticalGiB = Math.min(1024, nextHealth.vmResourceWarnGiB + 1);
-    }
-
-    if (!nextHealth.cardsEnabled) {
-        healthFilterByType[resolvedType] = 'all';
     }
 
     try {
@@ -12076,7 +12028,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     toggleStatusFilter,
     clearFolderTableFilters,
     setQuickFolderFilter,
-    setHealthFolderFilter,
     changeColumnVisibility,
     changeSettingsTableColumnWidthPreset,
     applySettingsTablePreset,

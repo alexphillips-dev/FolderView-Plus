@@ -571,7 +571,6 @@
         };
 
         return {
-            enhance,
             queueEnhance
         };
     };
@@ -768,11 +767,7 @@
         };
         const flush = () => Array.from(pending.keys()).forEach((target) => hydrate(target));
         const snapshot = () => Object.freeze({ pending: pending.size, rootMargin });
-        const disconnect = () => {
-            flush();
-            observer?.disconnect();
-        };
-        return Object.freeze({ defer, hydrate, flush, snapshot, disconnect });
+        return Object.freeze({ defer, flush, snapshot });
     };
 
     /**

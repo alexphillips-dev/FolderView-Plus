@@ -353,10 +353,6 @@
         }
     };
 
-    const resetDockerOrganizerSync = () => {
-        organizerSyncDone = false;
-    };
-
     const getStatus = () => ({
         schemaVersion: STATUS_SCHEMA_VERSION,
         apiAvailable,
@@ -374,7 +370,6 @@
         checkCapabilities,
         graphQL,
         syncDockerOrganizer,
-        resetDockerOrganizerSync,
         resetCapabilityCache,
         sanitizeFailure,
         getStatus,

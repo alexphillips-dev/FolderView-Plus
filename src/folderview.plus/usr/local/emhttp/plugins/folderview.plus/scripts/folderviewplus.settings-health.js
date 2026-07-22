@@ -117,7 +117,6 @@
             ? deps.evaluateDockerFolderHealth
             : (() => ({ severity: 'good', score: 100, filterSeverity: 'good', isMaintenance: false }));
         const valueIsTruthy = typeof deps.valueIsTruthy === 'function' ? deps.valueIsTruthy : ((value) => Boolean(value));
-        const getHealthFilterMode = typeof deps.getHealthFilterMode === 'function' ? deps.getHealthFilterMode : (() => 'all');
 
         const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
             const snapshot = {};
@@ -313,24 +312,6 @@
             const prefs = typeof utils.normalizePrefs === 'function' ? utils.normalizePrefs(prefsSource) : (prefsSource && typeof prefsSource === 'object' ? prefsSource : {});
             const healthPrefs = normalizeHealthPrefs(normalizedType, prefs);
             const info = getInfoByType(normalizedType) || {};
-            const pinnedSet = new Set(Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds : []);
-            const regexRuleKinds = new Set(['name_regex', 'image_regex', 'compose_project_regex']);
-            const invalidRuleRegexCount = (prefs.autoRules || []).reduce((count, rule) => {
-                if (!regexRuleKinds.has(String(rule?.kind || ''))) {
-                    return count;
-                }
-                const pattern = String(rule?.pattern || '').trim();
-                if (!pattern) {
-                    return count;
-                }
-                try {
-                    // eslint-disable-next-line no-new
-                    new RegExp(pattern);
-                    return count;
-                } catch (_error) {
-                    return count + 1;
-                }
-            }, 0);
             const conflictReport = typeof utils.getConflictReport === 'function'
                 ? utils.getConflictReport({
                     type: normalizedType,
@@ -352,22 +333,13 @@
                 }
             }
 
-            const memberTotals = { total: 0, started: 0, paused: 0, stopped: 0 };
-            const folderStatusTotals = { started: 0, paused: 0, stopped: 0, empty: 0 };
-            const folderIssues = {};
-            const healthScoreTotals = {
-                sum: 0,
-                count: 0
-            };
+            const folderStatusTotals = { empty: 0 };
+            let attentionCount = 0;
             const healthSeverityTotals = {
-                good: 0,
                 maintenance: 0,
                 warn: 0,
-                critical: 0,
-                empty: 0
+                critical: 0
             };
-            let invalidFolderRegexCount = 0;
-
             for (const [folderId, folder] of Object.entries(folderMap)) {
                 const members = Array.isArray(memberSnapshot?.[folderId]?.members) ? memberSnapshot[folderId].members : [];
                 let started = 0;
@@ -383,11 +355,6 @@
                         stopped += 1;
                     }
                 }
-                memberTotals.total += members.length;
-                memberTotals.started += started;
-                memberTotals.paused += paused;
-                memberTotals.stopped += stopped;
-
                 const isEmpty = members.length === 0;
                 const isStoppedOnly = members.length > 0 && started === 0 && paused === 0;
                 const hasConflict = conflictFolderIds.has(String(folderId));
@@ -409,16 +376,9 @@
                         Number(healthPrefs.warnStoppedPercent) || 60
                     );
                     if (dockerHealth && typeof dockerHealth === 'object') {
-                        const score = Number(dockerHealth.score);
-                        if (Number.isFinite(score)) {
-                            healthScoreTotals.sum += score;
-                            healthScoreTotals.count += 1;
-                        }
                         const severityKey = String(dockerHealth.filterSeverity || dockerHealth.severity || '').trim().toLowerCase();
-                        if (Object.prototype.hasOwnProperty.call(healthSeverityTotals, severityKey)) {
+                        if (['maintenance', 'warn', 'critical'].includes(severityKey)) {
                             healthSeverityTotals[severityKey] += 1;
-                        } else if (severityKey === 'warn') {
-                            healthSeverityTotals.warn += 1;
                         }
                         needsAttention = (dockerHealth.severity === 'warn' || dockerHealth.severity === 'critical')
                             || hasConflict
@@ -428,104 +388,19 @@
 
                 if (isEmpty) {
                     folderStatusTotals.empty += 1;
-                } else if (started > 0) {
-                    folderStatusTotals.started += 1;
-                } else if (paused > 0) {
-                    folderStatusTotals.paused += 1;
-                } else {
-                    folderStatusTotals.stopped += 1;
                 }
-                if (invalidRegex) {
-                    invalidFolderRegexCount += 1;
+                if (needsAttention) {
+                    attentionCount += 1;
                 }
-
-                folderIssues[String(folderId)] = {
-                    empty: isEmpty,
-                    stoppedOnly: isStoppedOnly,
-                    conflict: hasConflict,
-                    invalidRegex,
-                    attention: needsAttention,
-                    memberCount: members.length,
-                    healthSeverity: dockerHealth?.severity || '',
-                    healthFilterSeverity: dockerHealth?.filterSeverity || dockerHealth?.severity || '',
-                    healthScore: Number.isFinite(Number(dockerHealth?.score)) ? Number(dockerHealth.score) : null,
-                    healthMaintenance: dockerHealth?.isMaintenance === true
-                };
             }
-
-            const stoppedPercent = memberTotals.total > 0
-                ? Math.round((memberTotals.stopped / memberTotals.total) * 100)
-                : 0;
-            const attentionCount = Object.values(folderIssues).filter((issue) => issue.attention).length;
-            let severity = 'ok';
-            if (invalidFolderRegexCount > 0 || invalidRuleRegexCount > 0 || conflictReport.conflictingItems > 0) {
-                severity = 'danger';
-            } else if (healthSeverityTotals.critical > 0 || healthSeverityTotals.warn > 0 || stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
-                severity = 'warning';
-            }
-            const averageHealthScore = healthScoreTotals.count > 0
-                ? Math.round(healthScoreTotals.sum / healthScoreTotals.count)
-                : 0;
 
             return {
-                type: normalizedType,
-                severity,
                 folderCount: Object.keys(folderMap).length,
-                pinnedCount: Array.from(pinnedSet).filter((id) => Object.prototype.hasOwnProperty.call(folderMap, id)).length,
                 ruleCount: (prefs.autoRules || []).length,
-                invalidFolderRegexCount,
-                invalidRuleRegexCount,
-                conflictItemCount: Number(conflictReport.conflictingItems || 0),
-                stoppedPercent,
-                averageHealthScore,
-                memberTotals,
                 folderStatusTotals,
                 attentionCount,
-                healthSeverityTotals,
-                folderIssues
+                healthSeverityTotals
             };
-        };
-
-        const normalizeHealthFilterMode = (value) => {
-            const mode = String(value || 'all').trim().toLowerCase();
-            return ['all', 'attention', 'empty', 'stopped', 'conflict'].includes(mode) ? mode : 'all';
-        };
-
-        const folderMatchesHealthFilter = (type, folderId, healthMetrics) => {
-            const mode = normalizeHealthFilterMode(getHealthFilterMode(normalizeType(type)));
-            if (mode === 'all') {
-                return true;
-            }
-            const issue = healthMetrics?.folderIssues?.[String(folderId)] || {};
-            if (mode === 'attention') {
-                return issue.attention === true;
-            }
-            if (mode === 'empty') {
-                return issue.empty === true;
-            }
-            if (mode === 'stopped') {
-                return issue.stoppedOnly === true;
-            }
-            if (mode === 'conflict') {
-                return issue.conflict === true;
-            }
-            return true;
-        };
-
-        const getHealthFilterLabel = (mode) => {
-            if (mode === 'attention') {
-                return 'needs attention';
-            }
-            if (mode === 'empty') {
-                return 'empty';
-            }
-            if (mode === 'stopped') {
-                return 'stopped';
-            }
-            if (mode === 'conflict') {
-                return 'conflicts';
-            }
-            return 'all';
         };
 
         return Object.freeze({
@@ -536,9 +411,7 @@
             collectVmFolderResources,
             evaluateVmResourceBadge,
             hasInvalidFolderRegex,
-            buildTypeHealthMetrics,
-            folderMatchesHealthFilter,
-            getHealthFilterLabel
+            buildTypeHealthMetrics
         });
     };
 

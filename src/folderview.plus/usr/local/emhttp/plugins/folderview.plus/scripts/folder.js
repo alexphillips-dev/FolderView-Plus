@@ -2023,12 +2023,7 @@ const normalizeFolderRecordForEditor = (folder) => {
     return normalized;
 };
 
-const createNoopFolderEditorTypeApi = () => Object.freeze({
-    shouldSyncAfterSave: () => false,
-    flushPostSaveSync: async () => {},
-    getRulesConfig: () => null,
-    buildSmartDefaultSuggestions: () => []
-});
+const createEmptyFolderEditorTypeApi = () => Object.freeze({});
 
 const resolveFolderEditorTypeModule = () => {
     if (type === 'docker') {
@@ -2046,7 +2041,7 @@ const getFolderEditorTypeApi = () => {
     }
     const typeModule = resolveFolderEditorTypeModule();
     if (!typeModule || typeof typeModule.createApi !== 'function') {
-        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+        folderEditorTypeApi = createEmptyFolderEditorTypeApi();
         return folderEditorTypeApi;
     }
     folderEditorTypeApi = typeModule.createApi({
@@ -2059,7 +2054,7 @@ const getFolderEditorTypeApi = () => {
         isDockerUpdateAvailableInEditor
     });
     if (!folderEditorTypeApi || typeof folderEditorTypeApi !== 'object') {
-        folderEditorTypeApi = createNoopFolderEditorTypeApi();
+        folderEditorTypeApi = createEmptyFolderEditorTypeApi();
     }
     return folderEditorTypeApi;
 };

@@ -181,28 +181,6 @@
             return null;
         };
 
-        const clearClipboardEntry = (expectedType = '') => {
-            const existing = readClipboardEntry(expectedType);
-            if (!existing) {
-                return false;
-            }
-            try {
-                if (typeof win?.sessionStorage !== 'undefined') {
-                    win.sessionStorage.removeItem(CLIPBOARD_STORAGE_KEY);
-                }
-            } catch (_error) {
-                // Best effort only.
-            }
-            try {
-                if (typeof win?.localStorage !== 'undefined') {
-                    win.localStorage.removeItem(CLIPBOARD_LOCAL_STORAGE_KEY);
-                }
-            } catch (_error) {
-                // Best effort only.
-            }
-            return true;
-        };
-
         const summarizeClipboardEntry = (entry) => {
             const source = entry && typeof entry === 'object' ? entry : {};
             const meta = source.meta && typeof source.meta === 'object' ? source.meta : {};
@@ -226,7 +204,6 @@
             buildClipboardEntry,
             writeClipboardEntry,
             readClipboardEntry,
-            clearClipboardEntry,
             summarizeClipboardEntry
         });
     };

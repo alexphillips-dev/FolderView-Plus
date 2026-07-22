@@ -77,27 +77,8 @@
         });
     };
 
-    const createPreviewModel = (input = {}) => {
-        const folder = input.folder && typeof input.folder === 'object' ? input.folder : {};
-        const childFolders = Array.isArray(input.childFolders)
-            ? input.childFolders.map((entry) => createChildFolderPreviewModel(entry))
-            : [];
-        return Object.freeze({
-            folderId: toSafeString(input.folderId ?? folder.id),
-            name: toSafeString(input.name ?? folder.name, 'Folder'),
-            icon: toSafeString(input.icon ?? folder.icon),
-            source: toSafeString(input.source),
-            previewMode: normalizeCount(input.previewMode ?? folder.settings?.preview, 1),
-            rows: normalizeCount(input.rows ?? folder.settings?.preview_rows ?? folder.settings?.previewRows, 1),
-            showChildFoldersInCollapsedPreview: input.showChildFoldersInCollapsedPreview === true,
-            childFolders,
-            members: Array.isArray(input.members) ? input.members : []
-        });
-    };
-
     return Object.freeze({
         createChildFolderPreviewModel,
-        createPreviewModel,
         formatMemberCountLabel,
         formatRuntimeCountLabel
     });

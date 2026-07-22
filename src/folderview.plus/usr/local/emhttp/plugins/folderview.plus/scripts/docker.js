@@ -513,7 +513,7 @@ const createDockerAsyncActionBoundary = typeof dockerRuntimeShared.createAsyncAc
     });
 const createDockerContextMenuQuickStripAdapter = typeof dockerRuntimeShared.createContextMenuQuickStripAdapter === 'function'
     ? dockerRuntimeShared.createContextMenuQuickStripAdapter
-    : () => ({ enhance: () => false, queueEnhance: () => {} });
+    : () => ({ queueEnhance: () => {} });
 const createDockerRuntimePerfTelemetry = typeof dockerRuntimeShared.createRuntimePerfTelemetry === 'function'
     ? dockerRuntimeShared.createRuntimePerfTelemetry
     : () => ({ enabled: false, begin: () => {}, end: () => 0, snapshot: () => ({}) });
@@ -530,7 +530,7 @@ const resolveDockerRuntimePerformanceProfile = typeof dockerRuntimeShared.resolv
     });
 const createDockerDeferredPreviewController = typeof dockerRuntimeShared.createDeferredPreviewController === 'function'
     ? dockerRuntimeShared.createDeferredPreviewController
-    : () => ({ defer: () => false, hydrate: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+    : () => ({ defer: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
 const dockerDeferredPreviewController = createDockerDeferredPreviewController();
 const runtimeContracts = dockerRuntimeShared.runtimeContracts && typeof dockerRuntimeShared.runtimeContracts === 'object'
     ? dockerRuntimeShared.runtimeContracts
@@ -4158,8 +4158,6 @@ const FOLDER_VIEW_TOUCH_MODE = (() => {
 const dockerPerf = typeof dockerModules.createPerfTracker === 'function'
     ? dockerModules.createPerfTracker('folderview-plus.docker', FOLDER_VIEW_PERF_MODE)
     : {
-        enabled: false,
-        stamp: () => {},
         begin: () => {},
         end: () => 0
     };
@@ -6102,12 +6100,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let newFolder = {};
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized newFolder for processed containers.`);
 
-    // Note: `cutomOrder` is not used in the critical logic below, but kept for potential other uses or debugging.
+    // Preserve the saved folder order index in lifecycle event details for host integrations.
     const mappedFoldersDone = foldersDone.map(e => 'folder-'+e);
-    const cutomOrder = orderSnapshotAtFolderStart.filter((e) => { // Based on snapshot, as original code
+    const customOrder = orderSnapshotAtFolderStart.filter((e) => {
         return e && (mappedFoldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): (Informational) Filtered cutomOrder based on orderSnapshotAtFolderStart:`, [...cutomOrder]);
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Filtered customOrder based on orderSnapshotAtFolderStart:`, [...customOrder]);
 
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Starting loop to process ${combinedContainers.length} combinedContainers.`);
@@ -6119,7 +6117,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] createFolder (id: ${id}): CRITICAL - Container info for '${container_name_in_folder}' not found in containersInfo! Skipping further processing for this container.`);
             continue; // Skip this container if info is missing
         }
-        const indexInCustomOrder = cutomOrder.indexOf(container_name_in_folder);
+        const indexInCustomOrder = customOrder.indexOf(container_name_in_folder);
         const indexInLiveOrderArray = liveOrderArray.indexOf(container_name_in_folder);
 
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Processing container from combinedContainers: ${container_name_in_folder}`);

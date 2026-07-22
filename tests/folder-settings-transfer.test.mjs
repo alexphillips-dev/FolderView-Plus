@@ -101,7 +101,7 @@ test('folder settings transfer disables override_default_actions when copied act
     assert.equal(normalized.meta.droppedMemberBoundActionCount, 1);
 });
 
-test('folder settings transfer clipboard is type-scoped for docker and vm', () => {
+test('folder settings transfer clipboard reads are type-scoped for docker and vm', () => {
     const { api } = loadApi();
     const dockerEntry = api.buildClipboardEntry('docker', {
         icon: 'docker.png',
@@ -115,7 +115,4 @@ test('folder settings transfer clipboard is type-scoped for docker and vm', () =
     assert.equal(api.writeClipboardEntry(dockerEntry), true);
     assert.equal(api.readClipboardEntry('docker')?.sourceId, 'docker-folder');
     assert.equal(api.readClipboardEntry('vm'), null);
-    assert.equal(api.clearClipboardEntry('vm'), false);
-    assert.equal(api.clearClipboardEntry('docker'), true);
-    assert.equal(api.readClipboardEntry('docker'), null);
 });

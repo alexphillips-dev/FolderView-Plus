@@ -1042,10 +1042,6 @@ const runScheduledBackup = async (type) => {
     return response.schedules || {};
 };
 
-const syncDockerOrder = async () => {
-    await apiPostText('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
-};
-
 const setUpdateStatus = (text) => {
     $('#update-check-status').text(text || '');
 };
@@ -2684,7 +2680,6 @@ Object.assign(window, {
     restoreLatestUndo,
     executeFolderRuntimeAction,
     runScheduledBackup,
-    syncDockerOrder,
     setUpdateStatus,
     setRollbackStatus,
     formatActivityTimestamp,

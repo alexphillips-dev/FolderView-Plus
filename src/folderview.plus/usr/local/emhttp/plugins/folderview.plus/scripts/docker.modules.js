@@ -12,16 +12,7 @@
     const createPerfTracker = (namespace = 'fv.docker', enabled = false) => {
         const marks = new Map();
         const on = Boolean(enabled && typeof performance !== 'undefined');
-        const stamp = (label, data = {}) => {
-            if (!on) {
-                return;
-            }
-            const time = performance.now().toFixed(2);
-            console.debug(`[FV_PERF][${namespace}] ${label} @${time}ms`, data);
-        };
         return {
-            enabled: on,
-            stamp,
             begin: (key) => {
                 if (!on) {
                     return;
@@ -43,22 +34,6 @@
                 return elapsed;
             }
         };
-    };
-
-    const summarizeRuntimeState = (containersByName) => {
-        const source = containersByName && typeof containersByName === 'object' ? containersByName : {};
-        const counts = { started: 0, paused: 0, stopped: 0, total: 0 };
-        Object.values(source).forEach((entry) => {
-            counts.total += 1;
-            if (entry?.pause) {
-                counts.paused += 1;
-            } else if (entry?.state) {
-                counts.started += 1;
-            } else {
-                counts.stopped += 1;
-            }
-        });
-        return counts;
     };
 
     const escapeClassToken = (value) => {
@@ -381,7 +356,6 @@
     window.FolderViewDockerModules = {
         createDebugLogger,
         createPerfTracker,
-        summarizeRuntimeState,
         createRowCenteringTools
     };
 })();

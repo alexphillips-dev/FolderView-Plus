@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.22.08">
-<!ENTITY md5 "c7be835f66a38f0d57af6ffa92e70e20">
+<!ENTITY version "2026.07.22.09">
+<!ENTITY md5 "15ebf3d55f950aaeffec46b1102943a7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.22.09
+- Maintenance: Removed dormant folder-editor no-op contracts, unused runtime performance fields, unconsumed helper exports, and unreachable reset/scan wrappers.
+- Maintenance: Removed the retired health summary category-filter state and reduced settings health metrics to values consumed by the current cards, chips, and counters.
+- Maintenance: Corrected stale custom-order naming across Docker, VM, and Dashboard runtimes while preserving folder ordering and lifecycle event behavior.
+- Quality: Expanded cleanup regression coverage and completed repository-wide reachability, handler, preference, API, localization, legacy-support, duplication, and tooling-entry audits.
+
 
 ###2026.07.22.08
 - Fix: Removed the Docker editor's misleading Compose-project smart-default suggestion, which had no corresponding setting and could never apply a change.

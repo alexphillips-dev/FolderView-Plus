@@ -446,7 +446,7 @@ const resolveVmRuntimePerformanceProfile = typeof runtimeShared.resolveRuntimePe
     });
 const createVmDeferredPreviewController = typeof runtimeShared.createDeferredPreviewController === 'function'
     ? runtimeShared.createDeferredPreviewController
-    : () => ({ defer: () => false, hydrate: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
+    : () => ({ defer: () => false, flush: () => {}, snapshot: () => ({ pending: 0 }) });
 const vmDeferredPreviewController = createVmDeferredPreviewController();
 const vmRuntimeStateStore = createVmRuntimeStateStore({
     expandedFolderIds: [],
@@ -1971,7 +1971,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     foldersDone = foldersDone.map(e => 'folder-'+e);
 
     // remove the undone folders from the order, needed because they can cause an offset when grabbing the containers
-    const cutomOrder = order.filter((e) => {
+    const customOrder = order.filter((e) => {
         return e && (foldersDone.includes(e) || !(folderRegex.test(e) && e !== `folder-${id}`));
     });
 
@@ -1980,7 +1980,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     for (const container of combinedMembers) {
 
         // get both index, tis is needed for removing from the orders later
-        const index = cutomOrder.indexOf(container);
+        const index = customOrder.indexOf(container);
         const offsetIndex = order.indexOf(container);
 
         folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-preview', {detail: {
@@ -2009,7 +2009,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
             }
 
             // remove the containers from the order
-            cutomOrder.splice(index, 1);
+            customOrder.splice(index, 1);
             order.splice(offsetIndex, 1);
 
             // add the id to the container name

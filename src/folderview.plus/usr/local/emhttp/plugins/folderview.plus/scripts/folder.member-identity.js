@@ -251,24 +251,11 @@
         return { folders: output, patches, diagnostics };
     };
 
-    const buildIdentityMapForMembers = (type, names, runtimeEntries) => {
-        const runtimeByName = buildRuntimeIndex(type, runtimeEntries);
-        const result = {};
-        uniqueStrings(names).forEach((name) => {
-            const live = runtimeByName.get(name);
-            if (live && hasUsefulIdentity(live.identity)) {
-                result[name] = live.identity;
-            }
-        });
-        return result;
-    };
-
     return Object.freeze({
         normalizeMemberIdentity,
         normalizeIdentityMap,
         buildRuntimeIdentity,
         buildRuntimeIndex,
-        buildIdentityMapForMembers,
         resolveRenameCandidate,
         reconcileFolders,
         renameListEntry,

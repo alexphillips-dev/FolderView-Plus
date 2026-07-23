@@ -147,9 +147,14 @@
                 localization: translate('diagnostics.domains.localization', 'Localization'),
                 update: translate('diagnostics.domains.update', 'Update')
             };
-            const entries = Object.entries(labels).map(([key, label]) => {
+            const domainEntries = Object.entries(labels).map(([key, label]) => {
                 const domain = domains[key] || { status: 'unavailable', issueCount: 0 };
                 const status = String(domain.status || 'unavailable');
+                return { domain, key, label, status };
+            });
+            const unavailableCount = domainEntries.filter((entry) => entry.status === 'unavailable').length;
+            const entries = domainEntries.filter((entry) => entry.status !== 'unavailable').map((entry) => {
+                const { domain, label, status } = entry;
                 return `
                     <span class="fv-support-bundle-domain is-${escapeHtml(status)}">
                         <strong>${escapeHtml(label)}</strong>
@@ -159,13 +164,22 @@
                     </span>
                 `;
             }).join('');
+            const pending = unavailableCount > 0 ? `
+                <div class="fv-support-bundle-domain-pending">
+                    <i class="fa fa-stethoscope" aria-hidden="true"></i>
+                    <span>${escapeHtml(translate(
+                        'diagnostics.summary.empty-title',
+                        'Run health check to inspect the plugin state.'
+                    ))}</span>
+                </div>
+            ` : '';
             return `
                 <div class="fv-support-bundle-domains">
                     <div>
                         <strong>${escapeHtml(translate('diagnostics.domains.title', 'Troubleshooting domains'))}</strong>
                         <span>${escapeHtml(translate('diagnostics.domains.help', 'Reported problems are separated so unrelated configuration findings do not obscure layout evidence.'))}</span>
                     </div>
-                    <div class="fv-support-bundle-domain-grid">${entries}</div>
+                    <div class="fv-support-bundle-domain-grid">${entries}${pending}</div>
                 </div>
             `;
         };

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.04">
-<!ENTITY md5 "4700a967a44bc93f6bab5c7bce7e2292">
+<!ENTITY version "2026.07.23.05">
+<!ENTITY md5 "045c50c41913b00eb498a8848ec570bb">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.05
+- Diagnostics: Support-bundle previews now reuse the latest completed health-check summary so configuration, storage, custom-icon, and update domains show their assessed status.
+- UX: Replaced repeated `unavailable` domain cards with one clear health-check prompt until server-side health has been assessed.
+- Quality: Added regression coverage for preview-only summary enrichment, full-export isolation, pending-domain presentation, and fully assessed previews.
+
 
 ###2026.07.23.04
 - Diagnostics: Fixed the Settings support-bundle preview so its first refresh immediately merges browser-stored Dashboard layout evidence instead of waiting for a support-bundle export.

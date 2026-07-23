@@ -72,6 +72,32 @@ test('support bundle preview keeps troubleshooting domains separate', () => {
     assert.match(html, /2 issue\(s\)/);
     assert.match(html, /Configuration integrity/);
     assert.match(html, /is-healthy/);
+    assert.doesNotMatch(html, /unavailable/);
+    assert.match(html, /Run health check to inspect the plugin state/);
+    assert.match(html, /fv-support-bundle-domain-pending/);
+});
+
+test('support bundle preview removes the health-check prompt when every domain is assessed', () => {
+    const assessedDomain = { status: 'healthy', issueCount: 0 };
+    const html = api.buildDiagnosticDomainsHtml({
+        healthAndHistory: {
+            diagnosticDomains: {
+                domains: {
+                    layoutRendering: assessedDomain,
+                    configurationIntegrity: assessedDomain,
+                    runtimeRequests: assessedDomain,
+                    storage: assessedDomain,
+                    customIcons: assessedDomain,
+                    theme: assessedDomain,
+                    localization: assessedDomain,
+                    update: assessedDomain
+                }
+            }
+        }
+    });
+
+    assert.doesNotMatch(html, /Run health check/);
+    assert.doesNotMatch(html, /fv-support-bundle-domain-pending/);
 });
 
 test('support bundle preview enriches browser telemetry before its first render', async () => {

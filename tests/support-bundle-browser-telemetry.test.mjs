@@ -371,6 +371,49 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     assert.equal(payload.redactionManifest.privacySelfCheck.violationCount, 0);
 });
 
+test('support bundle preview uses the latest completed health summary without changing full exports', () => {
+    const diagnosticsSummary = {
+        cards: [
+            { key: 'docker', status: 'healthy', count: 0 },
+            { key: 'vm', status: 'healthy', count: 0 },
+            { key: 'storage', status: 'healthy', count: 0 },
+            { key: 'custom_icons', status: 'warning', count: 2 },
+            { key: 'update', status: 'healthy', count: 0 }
+        ]
+    };
+    const telemetryModule = loadTelemetryModule({});
+    const api = telemetryModule.createApi({
+        normalizeSupportBundleV2Payload: (bundle) => ({
+            ...bundle,
+            bundleMeta: { ...(bundle.bundleMeta || {}) },
+            uiTelemetry: { ...(bundle.uiTelemetry || {}) },
+            healthAndHistory: { ...(bundle.healthAndHistory || {}) },
+            redactionManifest: { ...(bundle.redactionManifest || {}) }
+        }),
+        getDiagnosticsSummary: () => diagnosticsSummary
+    });
+
+    const preview = api.collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized', previewOnly: true },
+        healthAndHistory: { summary: {} }
+    });
+    const full = api.collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized', previewOnly: false },
+        healthAndHistory: {
+            summary: {
+                cards: [{ key: 'storage', status: 'error', count: 1 }]
+            }
+        }
+    });
+
+    assert.equal(preview.healthAndHistory.diagnosticDomains.domains.configurationIntegrity.status, 'healthy');
+    assert.equal(preview.healthAndHistory.diagnosticDomains.domains.storage.status, 'healthy');
+    assert.equal(preview.healthAndHistory.diagnosticDomains.domains.customIcons.status, 'warning');
+    assert.equal(preview.healthAndHistory.diagnosticDomains.domains.customIcons.issueCount, 2);
+    assert.equal(preview.healthAndHistory.diagnosticDomains.domains.update.status, 'healthy');
+    assert.equal(full.healthAndHistory.diagnosticDomains.domains.storage.status, 'error');
+});
+
 test('support bundle privacy self-check reports aggregate violations without leaking values', () => {
     const telemetryModule = loadTelemetryModule({});
     const failed = telemetryModule.buildUiTelemetryPrivacySelfCheck({

@@ -717,6 +717,7 @@ const getSupportBundleTelemetryApi = () => {
                 activeLocale: document.documentElement?.lang || 'en',
                 initialized: false
             },
+            getDiagnosticsSummary: () => lastDiagnostics?.summary || null,
             readClientDiagnosticsStorageRecord,
             storageKeys: {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,

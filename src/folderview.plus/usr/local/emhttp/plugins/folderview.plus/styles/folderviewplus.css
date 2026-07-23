@@ -7087,6 +7087,23 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: var(--fvplus-settings-surface-strong);
 }
 
+.fv-support-bundle-domain-pending {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding: 0.45rem 0.5rem;
+    border: 1px dashed var(--fvplus-settings-border-subtle);
+    border-radius: 6px;
+    color: var(--fvplus-settings-text-muted);
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-support-bundle-domain-pending > i {
+    color: var(--fvplus-settings-chip-info);
+}
+
 .fv-support-bundle-domain.is-error {
     border-color: color-mix(in srgb, var(--fvplus-settings-chip-danger) 55%, var(--fvplus-settings-border-subtle));
 }

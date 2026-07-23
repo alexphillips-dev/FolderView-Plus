@@ -334,6 +334,9 @@
         const getLocalizationDiagnosticsSnapshot = typeof deps.getLocalizationDiagnosticsSnapshot === 'function'
             ? deps.getLocalizationDiagnosticsSnapshot
             : (() => ({ requestedLocale: 'en', resolvedLocale: 'en', activeLocale: 'en', initialized: false }));
+        const getDiagnosticsSummary = typeof deps.getDiagnosticsSummary === 'function'
+            ? deps.getDiagnosticsSummary
+            : (() => null);
         const readClientDiagnosticsStorageRecord = typeof deps.readClientDiagnosticsStorageRecord === 'function'
             ? deps.readClientDiagnosticsStorageRecord
             : (() => null);
@@ -545,6 +548,15 @@
             payload.healthAndHistory = (
                 payload.healthAndHistory && typeof payload.healthAndHistory === 'object' && !Array.isArray(payload.healthAndHistory)
             ) ? payload.healthAndHistory : {};
+            const diagnosticsSummary = getDiagnosticsSummary();
+            if (
+                payload.bundleMeta?.previewOnly === true
+                && diagnosticsSummary
+                && typeof diagnosticsSummary === 'object'
+                && !Array.isArray(diagnosticsSummary)
+            ) {
+                payload.healthAndHistory.summary = { ...diagnosticsSummary };
+            }
             payload.healthAndHistory.diagnosticDomains = buildDiagnosticDomains(payload);
             payload.redactionManifest.privacySelfCheck = buildUiTelemetryPrivacySelfCheck(
                 existingUiTelemetry,

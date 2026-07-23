@@ -101,7 +101,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
+    assert.match(diagnosticsJs, /getDiagnosticsSummary:\s*\(\) => lastDiagnostics\?\.summary \|\| null/);
     assert.match(diagnosticsJs, /enrichSupportBundlePreview:\s*collectSupportBundleUiTelemetry/);
+    assert.match(supportBundleTelemetryJs, /payload\.bundleMeta\?\.previewOnly === true/);
+    assert.match(supportBundleTelemetryJs, /payload\.healthAndHistory\.summary = \{ \.\.\.diagnosticsSummary \};/);
     assert.match(supportBundlePreviewJs, /lastSupportBundlePreview = await enrichSupportBundlePreview\(bundle\)/);
     assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsEscapeHtml = \(value\) => \{/);

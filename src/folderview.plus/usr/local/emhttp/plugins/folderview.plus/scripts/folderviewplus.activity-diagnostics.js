@@ -791,6 +791,7 @@ const getSupportBundlePreviewApi = () => {
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
             getSupportBundlePreview,
+            enrichSupportBundlePreview: collectSupportBundleUiTelemetry,
             showError: diagnosticsShowError,
             t: diagnosticsT
         });

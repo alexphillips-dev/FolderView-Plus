@@ -58,6 +58,9 @@
         const getSupportBundlePreview = typeof deps.getSupportBundlePreview === 'function'
             ? deps.getSupportBundlePreview
             : (typeof deps.getSupportBundle === 'function' ? deps.getSupportBundle : async () => null);
+        const enrichSupportBundlePreview = typeof deps.enrichSupportBundlePreview === 'function'
+            ? deps.enrichSupportBundlePreview
+            : ((bundle) => bundle);
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
         const translate = (key, fallback = '', ...params) => (
             typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
@@ -301,7 +304,8 @@
 
         const refreshSupportBundlePreview = async ({ privacy = 'sanitized', quiet = true } = {}) => {
             try {
-                lastSupportBundlePreview = await getSupportBundlePreview(privacy);
+                const bundle = await getSupportBundlePreview(privacy);
+                lastSupportBundlePreview = await enrichSupportBundlePreview(bundle);
                 renderSupportBundlePreview(lastSupportBundlePreview);
                 return lastSupportBundlePreview;
             } catch (error) {

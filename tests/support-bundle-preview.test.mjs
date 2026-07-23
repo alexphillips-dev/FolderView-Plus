@@ -73,3 +73,37 @@ test('support bundle preview keeps troubleshooting domains separate', () => {
     assert.match(html, /Configuration integrity/);
     assert.match(html, /is-healthy/);
 });
+
+test('support bundle preview enriches browser telemetry before its first render', async () => {
+    let enrichmentCalls = 0;
+    const lifecycleApi = previewModule.createApi({
+        getSupportBundlePreview: async () => ({
+            bundleMeta: {
+                generatedAt: '2026-07-23T15:08:13Z',
+                privacyMode: 'sanitized'
+            },
+            uiTelemetry: {}
+        }),
+        enrichSupportBundlePreview(bundle) {
+            enrichmentCalls += 1;
+            return {
+                ...bundle,
+                uiTelemetry: {
+                    ...bundle.uiTelemetry,
+                    dashboardVisual: {
+                        docker: {
+                            available: true,
+                            freshness: 'fresh'
+                        }
+                    }
+                }
+            };
+        }
+    });
+
+    const preview = await lifecycleApi.refreshSupportBundlePreview();
+
+    assert.equal(enrichmentCalls, 1);
+    assert.equal(preview.uiTelemetry.dashboardVisual.docker.available, true);
+    assert.equal(lifecycleApi.getLastSupportBundlePreview(), preview);
+});

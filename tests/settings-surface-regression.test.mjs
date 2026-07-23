@@ -101,6 +101,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
+    assert.match(diagnosticsJs, /enrichSupportBundlePreview:\s*collectSupportBundleUiTelemetry/);
+    assert.match(supportBundlePreviewJs, /lastSupportBundlePreview = await enrichSupportBundlePreview\(bundle\)/);
     assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsEscapeHtml = \(value\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsToPrettyJson = \(value\) =>/);

@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "de",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnose",
     "diagnostics.panel.title": "Fehlerbehebung und Weitergabe",
-    "diagnostics.panel.description": "Führen Sie eine Gesundheitsprüfung durch, überprüfen Sie, was tatsächlich Aufmerksamkeit erfordert, und verwenden Sie erst dann Korrekturen oder Support-Exporte.",
+    "diagnostics.panel.description": "Führen Sie eine Gesundheitsprüfung durch, überprüfen Sie, was tatsächlich Aufmerksamkeit erfordert, und exportieren Sie Supportdetails, wenn eine tiefergehende Fehlerbehebung erforderlich ist.",
     "diagnostics.actions.run": "Führen Sie eine Gesundheitsprüfung durch",
-    "diagnostics.fixes.title": "Vorgeschlagene Korrekturen",
-    "diagnostics.fixes.description": "Hier werden nur Aktionen angezeigt, die mit der aktuellen Gesundheitsprüfung übereinstimmen.",
-    "diagnostics.fixes.empty-title": "Noch keine empfohlenen Korrekturen.",
-    "diagnostics.fixes.empty-description": "Führen Sie zuerst eine Gesundheitsprüfung durch, damit FolderView Plus den richtigen Reparaturpfad vorschlagen kann.",
     "diagnostics.summary.empty-title": "Führen Sie eine Gesundheitsprüfung durch, um den Plugin-Status zu überprüfen.",
     "diagnostics.summary.empty-description": "In der Zusammenfassung werden Docker, VM, Speicher-, Symbol- und Update-Probleme angezeigt, ohne vorher Rohdaten von JSON zu löschen.",
     "diagnostics.support.title": "Mit dem Support teilen",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Aktualisieren Sie den Verlauf nach dem Speichern, Importieren, Wiederherstellen oder Rückgängigmachen, um die neuesten wiederherstellungssicheren Ereignisse zu überprüfen.",
     "diagnostics.history.empty-title": "Noch keine Timeline-Einträge.",
     "diagnostics.history.empty-description": "Hier werden die Karten mit den letzten Änderungen für die ausgewählte Wiederherstellungsquelle angezeigt.",
-    "diagnostics.fixes.none-title": "Derzeit werden keine Reparaturmaßnahmen empfohlen.",
-    "diagnostics.fixes.none-description": "Die aktuelle Gesundheitsprüfung schlägt keine Ein-Klick-Lösungen vor.",
     "diagnostics.cards.technical-details": "Technische Details",
     "diagnostics.theme.live-title": "Die Themendiagnose erfolgt live vor einem vollständigen Gesundheitscheck.",
     "diagnostics.theme.live-description": "Führen Sie eine Gesundheitsprüfung durch, um die Karten Docker, VM, Speicher, Symbol und Aktualisierung zu aktualisieren. Die untenstehende Themenkarte wird beim Laden der Seite sofort aktualisiert.",

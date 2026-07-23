@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "ja",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "診断",
     "diagnostics.panel.title": "トラブルシューティングして共有する",
-    "diagnostics.panel.description": "1回のヘルスチェックを実行し、実際に注意が必要な点を確認してから、修正やサポートのエクスポートを使用してください。",
+    "diagnostics.panel.description": "ヘルスチェックを 1 つ実行し、実際に注意が必要なものを確認し、より詳細なトラブルシューティングが必要な場合はサポートの詳細をエクスポートします。",
     "diagnostics.actions.run": "ヘルスチェックを実行する",
-    "diagnostics.fixes.title": "提案された修正",
-    "diagnostics.fixes.description": "現在のヘルスチェックに一致するアクションのみがここに表示されます。",
-    "diagnostics.fixes.empty-title": "まだ推奨される修正はありません。",
-    "diagnostics.fixes.empty-description": "まずヘルスチェックを実行して、FolderView Plusが適切な修復方法を提案できるようにしてください。",
     "diagnostics.summary.empty-title": "プラグインの状態を確認するためにヘルスチェックを実行します。",
     "diagnostics.summary.empty-description": "要約では、生のJSONを最初に出力することなく、Docker、VM、ストレージ、アイコン、アップデートの問題を指摘します。",
     "diagnostics.support.title": "サポートと共有",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "保存、インポート、復元、または元に戻す操作の後に履歴を更新して、最新の復元可能なイベントを確認してください。",
     "diagnostics.history.empty-title": "タイムラインのエントリーはまだありません。",
     "diagnostics.history.empty-description": "選択した復元元の最近の変更カードはここに表示されます。",
-    "diagnostics.fixes.none-title": "現在、修復操作は推奨されていません。",
-    "diagnostics.fixes.none-description": "現在の健康診断ではワンクリック修正は推奨されていません。",
     "diagnostics.cards.technical-details": "技術的詳細",
     "diagnostics.theme.live-title": "テーマ診断は、完全な健康診断の前にライブで実行されます。",
     "diagnostics.theme.live-description": "健康診断を実行して、Docker、VM、ストレージ、アイコン、および更新カードを最新にしてください。下記のテーマカードはページロード時に即時更新されます。",

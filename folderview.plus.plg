@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.05">
-<!ENTITY md5 "045c50c41913b00eb498a8848ec570bb">
+<!ENTITY version "2026.07.23.06">
+<!ENTITY md5 "ca071035fa08ee5933fa1981d597e5dd">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.06
+- UX: Removed the Suggested fixes section from Advanced > Diagnostics so the tab moves directly from the health summary to support tools.
+- Maintenance: Removed the retired recommendation renderer, one-click repair mappings, styles, and localization entries while preserving health-card rechecks and support-bundle diagnostic evidence.
+- Localization: Published catalog revision `2026.07.23.2` across all 18 locales and completed the required one/few/many import summary forms.
+- Quality: Added regression guards that prevent the Suggested fixes markup, renderer, styles, and translation keys from returning.
+
 
 ###2026.07.23.05
 - Diagnostics: Support-bundle previews now reuse the latest completed health-check summary so configuration, storage, custom-icon, and update domains show their assessed status.

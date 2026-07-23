@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "ko",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "진단",
     "diagnostics.panel.title": "문제 해결 및 공유",
-    "diagnostics.panel.description": "한 번 건강 검사를 실행하고, 실제로 주의가 필요한 항목을 검토한 후에만 수정이나 지원 내보내기를 사용하십시오.",
+    "diagnostics.panel.description": "상태 확인을 한 번 실행하고, 실제로 주의가 필요한 사항을 검토하고, 더 심층적인 문제 해결이 필요한 경우 지원 세부 정보를 내보냅니다.",
     "diagnostics.actions.run": "건강 검진 실행",
-    "diagnostics.fixes.title": "제안된 수정",
-    "diagnostics.fixes.description": "현재 건강 상태 확인과 일치하는 동작만 여기에 표시됩니다.",
-    "diagnostics.fixes.empty-title": "아직 권장되는 수정 사항이 없습니다.",
-    "diagnostics.fixes.empty-description": "먼저 건강 상태를 확인하여 FolderView Plus가 올바른 수리 경로를 제안할 수 있도록 하세요.",
     "diagnostics.summary.empty-title": "플러그인 상태를 확인하기 위해 건강 검사를 실행하십시오.",
     "diagnostics.summary.empty-description": "요약에서는 먼저 원시 JSON를 덤프하지 않고 Docker, VM, 저장소, 아이콘, 업데이트 문제를 호출합니다.",
     "diagnostics.support.title": "지원팀과 공유하기",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "저장, 가져오기, 복원 또는 실행 취소 후 기록을 새로 고쳐 최신 복구 안전 이벤트를 검토하세요.",
     "diagnostics.history.empty-title": "아직 타임라인 항목이 없습니다.",
     "diagnostics.history.empty-description": "선택한 복구 소스의 최근 변경 카드가 여기에 나타납니다.",
-    "diagnostics.fixes.none-title": "현재 권장되는 수리 작업이 없습니다.",
-    "diagnostics.fixes.none-description": "현재 상태 점검에서는 원클릭 수정이 제안되지 않습니다.",
     "diagnostics.cards.technical-details": "기술 세부 정보",
     "diagnostics.theme.live-title": "테마 진단은 전체 상태 점검 전에 실시간으로 이루어집니다.",
     "diagnostics.theme.live-description": "상태 점검을 실행하여 Docker, VM, 저장소, 아이콘 및 업데이트 카드를 새로 고치세요. 아래 테마 카드는 페이지가 로드될 때 즉시 업데이트됩니다.",

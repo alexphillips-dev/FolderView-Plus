@@ -162,7 +162,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
     assert.match(script, /const getEffectiveThemeCompatibilityMode = \(\) =>/);
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
-    assert.match(script, /run_theme_self_heal/);
+    assert.doesNotMatch(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
     assert.match(page, /folderviewplus\.prefs-store\.js/);
     assert.match(script, /const prefsStoreModule = window\.FolderViewPlusPrefsStore \|\| null;/);

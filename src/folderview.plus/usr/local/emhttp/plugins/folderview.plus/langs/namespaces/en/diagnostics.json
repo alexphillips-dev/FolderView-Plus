@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "en",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostics",
     "diagnostics.panel.title": "Troubleshoot and share",
-    "diagnostics.panel.description": "Run one health check, review what actually needs attention, and only then use fixes or support exports.",
+    "diagnostics.panel.description": "Run one health check, review what actually needs attention, and export support details when deeper troubleshooting is needed.",
     "diagnostics.actions.run": "Run health check",
-    "diagnostics.fixes.title": "Suggested fixes",
-    "diagnostics.fixes.description": "Only actions that match the current health check are shown here.",
-    "diagnostics.fixes.empty-title": "No recommended fixes yet.",
-    "diagnostics.fixes.empty-description": "Run health check first so FolderView Plus can suggest the right repair path.",
     "diagnostics.summary.empty-title": "Run health check to inspect the plugin state.",
     "diagnostics.summary.empty-description": "The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.",
     "diagnostics.support.title": "Share with support",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.",
     "diagnostics.history.empty-title": "No timeline entries yet.",
     "diagnostics.history.empty-description": "Recent change cards will appear here for the selected recovery source.",
-    "diagnostics.fixes.none-title": "No repair actions are recommended right now.",
-    "diagnostics.fixes.none-description": "The current health check does not suggest any one-click fixes.",
     "diagnostics.cards.technical-details": "Technical details",
     "diagnostics.theme.live-title": "Theme diagnostics are live before a full health check.",
     "diagnostics.theme.live-description": "Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.",

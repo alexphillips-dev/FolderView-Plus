@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "pl",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostyka",
     "diagnostics.panel.title": "Rozwiązywanie problemów i udostępnianie",
-    "diagnostics.panel.description": "Przeprowadź jedną kontrolę stanu, sprawdź, co naprawdę wymaga uwagi, a dopiero potem użyj poprawek lub eksportu wsparcia.",
+    "diagnostics.panel.description": "Przeprowadź jedną kontrolę stanu, sprawdź, co faktycznie wymaga uwagi i wyeksportuj szczegóły pomocy technicznej, gdy konieczne będzie głębsze rozwiązywanie problemów.",
     "diagnostics.actions.run": "Uruchom kontrolę stanu zdrowia",
-    "diagnostics.fixes.title": "Sugerowane poprawki",
-    "diagnostics.fixes.description": "Tutaj wyświetlane są tylko działania zgodne z aktualnym sprawdzeniem stanu zdrowia.",
-    "diagnostics.fixes.empty-title": "Nie ma jeszcze zalecanych poprawek.",
-    "diagnostics.fixes.empty-description": "Najpierw uruchom kontrolę stanu, aby FolderView Plus mógł zasugerować odpowiednią ścieżkę naprawy.",
     "diagnostics.summary.empty-title": "Uruchom kontrolę zdrowia, aby sprawdzić stan wtyczki.",
     "diagnostics.summary.empty-description": "Podsumowanie wskaże Docker, VM, problemy ze storagem, ikoną i aktualizacją bez najpierw zrzucania surowego JSON.",
     "diagnostics.support.title": "Udostępnij wsparciu",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Odśwież historię po zapisaniu, imporcie, przywracaniu lub cofnięciu, aby zobaczyć najnowsze zdarzenia bezpieczne dla odzyskiwania.",
     "diagnostics.history.empty-title": "Brak wpisów w osi czasu.",
     "diagnostics.history.empty-description": "Ostatnie karty zmian pojawią się tutaj dla wybranego źródła odzyskiwania.",
-    "diagnostics.fixes.none-title": "W tym momencie nie zaleca się żadnych działań naprawczych.",
-    "diagnostics.fixes.none-description": "Aktualny test stanu nie sugeruje żadnych napraw jednym kliknięciem.",
     "diagnostics.cards.technical-details": "Szczegóły techniczne",
     "diagnostics.theme.live-title": "Diagnostyka motywu jest aktywna przed pełnym testem stanu.",
     "diagnostics.theme.live-description": "Uruchom test stanu, aby odświeżyć Docker, VM, pamięć, ikonę i karty aktualizacji. Poniższa karta motywu aktualizuje się natychmiast podczas ładowania strony.",

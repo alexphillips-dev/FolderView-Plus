@@ -3,17 +3,17 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "direction": "ltr",
         "last-reviewed": "2026-07-23",
         "last-updated": "2026-07-23",
         "locale": "uk",
         "native-name": "Українська",
         "reviewed": true,
-        "source-revision": "2026.07.23.1",
+        "source-revision": "2026.07.23.2",
         "status": "complete",
-        "translated-messages": 2040,
-        "total-source-messages": 2040
+        "translated-messages": 2027,
+        "total-source-messages": 2027
     },
     "add-folder": "Додати папку",
     "up-to-date": "актуально",

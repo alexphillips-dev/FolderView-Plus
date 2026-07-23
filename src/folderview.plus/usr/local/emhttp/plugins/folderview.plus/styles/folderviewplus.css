@@ -6919,34 +6919,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-info);
 }
 
-.fv-diagnostics-action-list {
-    display: grid;
-    gap: 0.65rem;
-    align-content: start;
-}
-
-.fv-diagnostics-action-card {
-    display: grid;
-    gap: 0.42rem;
-    padding: 0.72rem 0.8rem;
-    border-radius: 8px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    background: var(--fvplus-settings-surface-strong);
-}
-
-.fv-diagnostics-action-title {
-    color: var(--fvplus-settings-text-primary);
-    font-weight: 700;
-}
-
-.fv-diagnostics-action-copy {
-    color: var(--fvplus-settings-text-muted);
-}
-
-.fv-diagnostics-action-card .backup-actions {
-    margin: 0.1rem 0 0 0;
-}
-
 .fv-diagnostics-share-actions {
     margin: 0.1rem 0 0 0;
 }

@@ -1756,25 +1756,13 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div class="rules-panel fv-diagnostics-panel">
         <div class="rules-header">
             <h3 data-i18n="diagnostics.panel.title">Troubleshoot and share</h3>
-            <span class="rules-help" data-i18n="diagnostics.panel.description">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
+            <span class="rules-help" data-i18n="diagnostics.panel.description">Run one health check, review what actually needs attention, and export support details when deeper troubleshooting is needed.</span>
         </div>
         <div class="fv-diagnostics-section-body">
             <div class="backup-actions fv-diagnostics-primary-actions">
                 <button type="button" class="fv-ui-button" data-fv-ui-action="diagnostics-run"><i class="fa fa-stethoscope"></i> <span data-i18n="diagnostics.actions.run">Run health check</span></button>
             </div>
             <div class="fv-diagnostics-workbench">
-                <div class="fv-diagnostics-lane">
-                    <div class="fv-diagnostics-lane-head">
-                        <strong data-i18n="diagnostics.fixes.title">Suggested fixes</strong>
-                        <span class="rules-help" data-i18n="diagnostics.fixes.description">Only actions that match the current health check are shown here.</span>
-                    </div>
-                    <div id="fv-diagnostics-actions" class="fv-diagnostics-action-list">
-                        <div class="fv-diagnostics-empty-state fv-ui-empty-state is-compact">
-                            <strong data-i18n="diagnostics.fixes.empty-title">No recommended fixes yet.</strong>
-                            <span data-i18n="diagnostics.fixes.empty-description">Run health check first so FolderView Plus can suggest the right repair path.</span>
-                        </div>
-                    </div>
-                </div>
                 <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
                     <div class="fv-diagnostics-empty-state fv-ui-empty-state">
                         <strong data-i18n="diagnostics.summary.empty-title">Run health check to inspect the plugin state.</strong>

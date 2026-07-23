@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "uk",
         "namespace": "import"
     },
@@ -14,7 +14,7 @@
     "import.mode.replace.title": "Замінити точно",
     "import.mode.replace.description": "Відповідати експорту. Папки, відсутні в ньому, можуть бути видалені.",
     "import.review.title": "Переглянути заплановані зміни",
-    "import.review.count": "Перегляньте {{PLURAL:$1|одну заплановану зміну|$1 заплановані зміни}}",
+    "import.review.count": "Перегляньте {{PLURAL:$1|одну заплановану зміну|$1 заплановані зміни|$1 запланованих змін}}",
     "import.review.folders-fields": "Папки та поля",
     "import.review.choose": "Виберіть, які зміни включити",
     "import.safety.title": "Параметри безпеки",
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|зміна папки|зміни папок|змін папок}}",
     "import.summary.planned-change": "{{PLURAL:$1|запланована зміна|заплановані зміни|запланованих змін}} у попередньому перегляді",
     "import.summary.new": "$1 нових",
-    "import.summary.update": "{{PLURAL:$1|одне оновлення|$1 оновлення}}",
-    "import.summary.delete": "{{PLURAL:$1|одне видалення|$1 видалення}}",
+    "import.summary.update": "{{PLURAL:$1|одне оновлення|$1 оновлення|$1 оновлень}}",
+    "import.summary.delete": "{{PLURAL:$1|одне видалення|$1 видалення|$1 видалень}}",
     "import.kind.docker-folder": "Docker папка",
     "import.kind.vm-folder": "VM папок",
     "import.dialog.docker-title": "Імпорт Docker папок",

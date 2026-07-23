@@ -111,41 +111,6 @@ const DIAGNOSTICS_STATUS_CONFIG = Object.freeze({
     error: Object.freeze({ label: 'Needs action', icon: 'fa-times-circle' })
 });
 const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
-    sync_docker_order: Object.freeze({
-        label: 'Rebuild Docker order index',
-        icon: 'fa-sort',
-        handler: "repairDiagnostics('sync_docker_order')"
-    }),
-    normalize_prefs: Object.freeze({
-        label: 'Validate and normalize prefs',
-        icon: 'fa-wrench',
-        handler: "repairDiagnostics('normalize_prefs')"
-    }),
-    repair_config_metadata: Object.freeze({
-        label: 'Rebuild configuration metadata',
-        icon: 'fa-database',
-        handler: "repairDiagnostics('repair_config_metadata')"
-    }),
-    repair_paths: Object.freeze({
-        label: 'Repair plugin paths',
-        icon: 'fa-folder-open',
-        handler: "repairDiagnostics('repair_paths')"
-    }),
-    repair_missing_custom_icons: Object.freeze({
-        label: 'Reset missing custom icon refs',
-        icon: 'fa-picture-o',
-        handler: "repairDiagnostics('repair_missing_custom_icons')"
-    }),
-    repair_orphaned_members: Object.freeze({
-        label: 'Remove orphaned member refs',
-        icon: 'fa-chain-broken',
-        handler: "repairDiagnostics('repair_orphaned_members')"
-    }),
-    run_theme_self_heal: Object.freeze({
-        label: 'Theme self-heal now',
-        icon: 'fa-magic',
-        handler: 'runThemeSelfHeal()'
-    }),
     check_native_organizer: Object.freeze({
         label: 'Check again',
         icon: 'fa-refresh',
@@ -1526,8 +1491,7 @@ const buildThemeDiagnosticsSummaryCard = () => {
             : 'Theme compatibility checks did not report any warnings.',
         count: warnings.length,
         freshness: `Theme checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
-        technicalDetails: warnings,
-        recommendedAction: status === 'warning' ? 'run_theme_self_heal' : ''
+        technicalDetails: warnings
     };
 };
 
@@ -1803,93 +1767,6 @@ const buildLocalizationDiagnosticsSummaryCard = () => {
     };
 };
 
-const resolveDiagnosticsRecommendedActions = (diagnostics) => {
-    const summary = diagnostics?.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
-    const actions = Array.isArray(summary.recommendedActions) ? [...summary.recommendedActions] : [];
-    const themeCard = buildThemeDiagnosticsSummaryCard();
-    if (themeCard?.recommendedAction) {
-        actions.push({
-            action: themeCard.recommendedAction,
-            label: 'Theme self-heal now',
-            reason: themeCard.headline
-        });
-    }
-    const deduped = [];
-    const seen = new Set();
-    for (const action of actions) {
-        const key = String(action?.action || '').trim();
-        if (!key || seen.has(key)) {
-            continue;
-        }
-        seen.add(key);
-        deduped.push({
-            action: key,
-            label: String(action?.label || DIAGNOSTICS_ACTION_CONFIG[key]?.label || 'Run fix'),
-            reason: String(action?.reason || '').trim()
-        });
-    }
-    const repairPathsAction = deduped.find((action) => action.action === 'repair_paths');
-    const repairMissingIconsAction = deduped.find((action) => action.action === 'repair_missing_custom_icons');
-    if (repairPathsAction && repairMissingIconsAction) {
-        repairMissingIconsAction.parentAction = 'repair_paths';
-    }
-    return deduped;
-};
-
-const renderDiagnosticsActionCards = (actions) => {
-    const actionHost = $('#fv-diagnostics-actions');
-    if (!actionHost.length) {
-        return;
-    }
-    if (!Array.isArray(actions) || actions.length === 0) {
-        actionHost.html(`
-            <div class="fv-diagnostics-empty-state is-compact">
-                <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.fixes.none-title', 'No repair actions are recommended right now.'))}</strong>
-                <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.fixes.none-description', 'The current health check does not suggest any one-click fixes.'))}</span>
-            </div>
-        `);
-        return;
-    }
-
-    const grouped = [];
-    const byAction = new Map();
-    for (const action of actions) {
-        const entry = { ...action, children: [] };
-        byAction.set(action.action, entry);
-    }
-    for (const action of actions) {
-        const entry = byAction.get(action.action);
-        if (!entry) {
-            continue;
-        }
-        const parentKey = String(action.parentAction || '').trim();
-        if (parentKey && parentKey !== action.action && byAction.has(parentKey)) {
-            byAction.get(parentKey).children.push(entry);
-            continue;
-        }
-        grouped.push(entry);
-    }
-
-    actionHost.html(grouped.map((action) => {
-        const buttonConfigs = [action, ...(Array.isArray(action.children) ? action.children : [])]
-            .map((entry) => ({
-                action: entry.action,
-                config: DIAGNOSTICS_ACTION_CONFIG[entry.action] || DIAGNOSTICS_ACTION_CONFIG.normalize_prefs
-            }));
-        return `
-            <div class="fv-diagnostics-action-card">
-                <div class="fv-diagnostics-action-title">${diagnosticsEscapeHtml(action.label)}</div>
-                <div class="fv-diagnostics-action-copy">${diagnosticsEscapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
-                <div class="backup-actions">
-                    ${buttonConfigs.map(({ config }) => `
-                        <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${diagnosticsEscapeHtml(config.label)}</button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }).join(''));
-};
-
 const buildDiagnosticsCardMetaHtml = (card, status, countValue) => {
     let primaryMeta = 'No extra action needed';
     if (Number.isFinite(countValue) && countValue > 0) {
@@ -1996,7 +1873,6 @@ const renderDiagnosticsSummary = (diagnostics) => {
                     <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.summary.empty-description', 'The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.'))}</span>
                 </div>
             `);
-            renderDiagnosticsActionCards([]);
             return;
         }
 
@@ -2021,7 +1897,6 @@ const renderDiagnosticsSummary = (diagnostics) => {
                 })}
             </div>
         `);
-        renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions({ summary: { recommendedActions: [] } }));
         return;
     }
 
@@ -2105,8 +1980,6 @@ const renderDiagnosticsSummary = (diagnostics) => {
         </div>
         <div class="fv-diagnostics-card-sections">${cardSectionsHtml}</div>
     `);
-
-    renderDiagnosticsActionCards(resolveDiagnosticsRecommendedActions(diagnostics));
 };
 
 const renderDiagnostics = (diagnostics) => {

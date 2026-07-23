@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "pl",
         "namespace": "import"
     },
@@ -14,7 +14,7 @@
     "import.mode.replace.title": "Zastąp dokładnie",
     "import.mode.replace.description": "Dopasuj do eksportu. Foldery, które w nim nie występują, mogą zostać usunięte.",
     "import.review.title": "Przejrzyj planowane zmiany",
-    "import.review.count": "Przejrzyj {{PLURAL:$1|jedna planowana zmiana|$1 planowane zmiany}}",
+    "import.review.count": "Przejrzyj {{PLURAL:$1|jedną planowaną zmianę|$1 planowane zmiany|$1 planowanych zmian}}",
     "import.review.folders-fields": "Foldery i pola",
     "import.review.choose": "Wybierz, które zmiany uwzględnić",
     "import.safety.title": "Opcje bezpieczeństwa",
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|zmiana folderu|zmiany folderów|zmian folderów}}",
     "import.summary.planned-change": "{{PLURAL:$1|planowana zmiana|planowane zmiany|planowanych zmian}} w podglądzie",
     "import.summary.new": "$1 nowe",
-    "import.summary.update": "{{PLURAL:$1|jedna aktualizacja|$1 aktualizacje}}",
-    "import.summary.delete": "{{PLURAL:$1|jedno usunięcie|$1 usunięcie}}",
+    "import.summary.update": "{{PLURAL:$1|jedna aktualizacja|$1 aktualizacje|$1 aktualizacji}}",
+    "import.summary.delete": "{{PLURAL:$1|jedno usunięcie|$1 usunięcia|$1 usunięć}}",
     "import.kind.docker-folder": "Docker folder",
     "import.kind.vm-folder": "VM folder",
     "import.dialog.docker-title": "Import Docker folderów",

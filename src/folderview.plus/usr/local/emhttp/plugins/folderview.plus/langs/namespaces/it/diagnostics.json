@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "it",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostica",
     "diagnostics.panel.title": "Risolvi problemi e condividi",
-    "diagnostics.panel.description": "Esegui un controllo della salute, verifica cosa necessita effettivamente di attenzione e solo allora utilizza le correzioni o le esportazioni di supporto.",
+    "diagnostics.panel.description": "Esegui un controllo dello stato, esamina ciò che effettivamente richiede attenzione ed esporta i dettagli del supporto quando è necessaria una risoluzione dei problemi più approfondita.",
     "diagnostics.actions.run": "Esegui controllo salute",
-    "diagnostics.fixes.title": "Correzioni suggerite",
-    "diagnostics.fixes.description": "Qui vengono mostrati solo le azioni che corrispondono al controllo dello stato attuale.",
-    "diagnostics.fixes.empty-title": "Ancora nessuna correzione consigliata.",
-    "diagnostics.fixes.empty-description": "Esegui prima il controllo dello stato di salute in modo che FolderView Plus possa suggerire il percorso di riparazione corretto.",
     "diagnostics.summary.empty-title": "Esegui il controllo dello stato di salute per ispezionare lo stato del plugin.",
     "diagnostics.summary.empty-description": "Il riepilogo segnalerà Docker, VM, problemi di archiviazione, icona e aggiornamento senza prima scaricare i dati grezzi JSON.",
     "diagnostics.support.title": "Condividi con il supporto",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Aggiorna la cronologia dopo un salvataggio, importazione, ripristino o annullamento per rivedere gli ultimi eventi sicuri per il recupero.",
     "diagnostics.history.empty-title": "Nessuna voce della timeline ancora.",
     "diagnostics.history.empty-description": "Le schede delle modifiche recenti appariranno qui per la sorgente di recupero selezionata.",
-    "diagnostics.fixes.none-title": "Al momento non sono consigliate azioni di riparazione.",
-    "diagnostics.fixes.none-description": "L'attuale controllo dello stato non suggerisce correzioni con un solo clic.",
     "diagnostics.cards.technical-details": "Dettagli tecnici",
     "diagnostics.theme.live-title": "La diagnostica del tema è attiva prima di un controllo completo dello stato.",
     "diagnostics.theme.live-description": "Esegui il controllo dello stato per aggiornare Docker, VM, archiviazione, icona e schede di aggiornamento. La scheda del tema qui sotto si aggiorna immediatamente al caricamento della pagina.",

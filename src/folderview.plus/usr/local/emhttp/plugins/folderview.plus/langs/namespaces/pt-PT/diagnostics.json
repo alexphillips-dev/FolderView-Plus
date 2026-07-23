@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "pt-PT",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnósticos",
     "diagnostics.panel.title": "Solução de problemas e partilha",
-    "diagnostics.panel.description": "Execute uma verificação de saúde, reveja o que realmente precisa de atenção e só então use correções ou exportações de suporte.",
+    "diagnostics.panel.description": "Execute uma verificação de integridade, analise o que realmente precisa de atenção e exporte detalhes de suporte quando for necessária uma solução de problemas mais profunda.",
     "diagnostics.actions.run": "Executar verificação de saúde",
-    "diagnostics.fixes.title": "Sugestões de correções",
-    "diagnostics.fixes.description": "Só são mostradas aqui as ações que correspondem à verificação de saúde atual.",
-    "diagnostics.fixes.empty-title": "Ainda não existem correções recomendadas.",
-    "diagnostics.fixes.empty-description": "Execute primeiro a verificação de saúde para que FolderView Plus possa sugerir o caminho de reparação correto.",
     "diagnostics.summary.empty-title": "Execute uma verificação de saúde para inspecionar o estado do plugin.",
     "diagnostics.summary.empty-description": "O resumo irá assinalar Docker, VM, armazenamento, ícone e problemas de atualização sem despejar JSON cru primeiro.",
     "diagnostics.support.title": "Partilhar com o suporte",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Atualize o histórico após guardar, importar, restaurar ou desfazer para rever os eventos mais recentes seguros para recuperação.",
     "diagnostics.history.empty-title": "Ainda sem entradas na linha temporal.",
     "diagnostics.history.empty-description": "Os cartões de alterações recentes aparecerão aqui para a fonte de recuperação selecionada.",
-    "diagnostics.fixes.none-title": "Nenhuma ação de reparação é recomendada neste momento.",
-    "diagnostics.fixes.none-description": "A verificação de saúde atual não sugere quaisquer correções com um só clique.",
     "diagnostics.cards.technical-details": "Detalhes técnicos",
     "diagnostics.theme.live-title": "Os diagnósticos do tema estão ativos antes de uma verificação completa de saúde.",
     "diagnostics.theme.live-description": "Execute a verificação de saúde para atualizar Docker, VM, armazenamento, ícones e cartões de atualização. O cartão do tema abaixo atualiza imediatamente ao carregar a página.",

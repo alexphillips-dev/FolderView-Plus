@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "cs",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostika",
     "diagnostics.panel.title": "Odstraňte problémy a sdílejte",
-    "diagnostics.panel.description": "Proveďte jednu kontrolu stavu, zkontrolujte, co skutečně vyžaduje pozornost, a teprve potom použijte opravy nebo podporu exportů.",
+    "diagnostics.panel.description": "Proveďte jednu kontrolu stavu, zkontrolujte, co skutečně vyžaduje pozornost, a exportujte podrobnosti o podpoře, když je potřeba hlubší řešení problémů.",
     "diagnostics.actions.run": "Spusťte kontrolu stavu",
-    "diagnostics.fixes.title": "Navrhované opravy",
-    "diagnostics.fixes.description": "Zde jsou zobrazeny pouze akce, které odpovídají aktuální kontrole stavu.",
-    "diagnostics.fixes.empty-title": "Zatím žádné doporučené opravy.",
-    "diagnostics.fixes.empty-description": "Nejprve spusťte kontrolu stavu, aby FolderView Plus mohl navrhnout správnou cestu opravy.",
     "diagnostics.summary.empty-title": "Spusťte kontrolu stavu a zkontrolujte stav pluginu.",
     "diagnostics.summary.empty-description": "Souhrn vyvolá Docker, VM, problémy s úložištěm, ikonou a aktualizací, aniž by nejprve vysypal raw JSON.",
     "diagnostics.support.title": "Sdílejte s podporou",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Obnovte historii po uložení, importu, obnovení nebo vrácení zpět, abyste si mohli prohlédnout nejnovější události bezpečné pro obnovení.",
     "diagnostics.history.empty-title": "Zatím žádné záznamy na časové ose.",
     "diagnostics.history.empty-description": "Zde se zobrazí karty posledních změn pro vybraný zdroj obnovy.",
-    "diagnostics.fixes.none-title": "Momentálně nejsou doporučeny žádné opravy.",
-    "diagnostics.fixes.none-description": "Aktuální kontrola stavu nenavrhuje žádné opravy na jedno kliknutí.",
     "diagnostics.cards.technical-details": "Technické detaily",
     "diagnostics.theme.live-title": "Diagnostika tématu je živá před úplnou zdravotní kontrolou.",
     "diagnostics.theme.live-description": "Spusťte kontrolu stavu pro obnovení Docker, VM, úložiště, ikony a aktualizačních karet. Karta motivu níže se aktualizuje okamžitě po načtení stránky.",

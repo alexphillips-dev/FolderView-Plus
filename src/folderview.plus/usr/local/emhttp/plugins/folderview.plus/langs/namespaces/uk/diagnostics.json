@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "uk",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Діагностика",
     "diagnostics.panel.title": "Вирішіть проблеми та поділіться",
-    "diagnostics.panel.description": "Запустіть одну перевірку стану, перегляньте, що насправді потребує уваги, і лише потім використовуйте виправлення або експорт підтримки.",
+    "diagnostics.panel.description": "Виконайте одну перевірку працездатності, перегляньте, що насправді потребує уваги, і експортуйте деталі підтримки, коли потрібне глибше усунення несправностей.",
     "diagnostics.actions.run": "Запустити перевірку стану здоров'я",
-    "diagnostics.fixes.title": "Рекомендовані виправлення",
-    "diagnostics.fixes.description": "Тут показані лише дії, які відповідають поточній перевірці стану здоров'я.",
-    "diagnostics.fixes.empty-title": "Ще немає рекомендованих виправлень.",
-    "diagnostics.fixes.empty-description": "Спочатку виконайте перевірку стану здоров'я, щоб FolderView Plus міг запропонувати правильний шлях ремонту.",
     "diagnostics.summary.empty-title": "Запустіть перевірку стану здоров’я, щоб перевірити стан плагіна.",
     "diagnostics.summary.empty-description": "У резюме будуть виділені Docker, VM, питання збереження, значок та оновлення без попереднього виводу сирого JSON.",
     "diagnostics.support.title": "Поділитися з підтримкою",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Оновіть історію після збереження, імпорту, відновлення або скасування, щоб переглянути останні безпечні для відновлення події.",
     "diagnostics.history.empty-title": "Ще немає записів у хронології.",
     "diagnostics.history.empty-description": "Карти останніх змін з’являться тут для вибраного джерела відновлення.",
-    "diagnostics.fixes.none-title": "Немає рекомендованих дій з ремонту на цей момент.",
-    "diagnostics.fixes.none-description": "Поточна перевірка стану не пропонує жодних одноразових виправлень.",
     "diagnostics.cards.technical-details": "Технічні деталі",
     "diagnostics.theme.live-title": "Діагностика тем відбувається в реальному часі перед повною перевіркою стану.",
     "diagnostics.theme.live-description": "Запустіть перевірку стану, щоб оновити Docker, VM, сховище, значки та карти оновлень. Карта теми нижче оновлюється одразу при завантаженні сторінки.",

@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "nl",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostiek",
     "diagnostics.panel.title": "Problemen oplossen en delen",
-    "diagnostics.panel.description": "Voer één gezondheidscontrole uit, bekijk wat daadwerkelijk aandacht nodig heeft, en gebruik alleen daarna oplossingen of ondersteunende exports.",
+    "diagnostics.panel.description": "Voer één statuscheck uit, bekijk wat daadwerkelijk aandacht nodig heeft en exporteer ondersteuningsgegevens wanneer diepere probleemoplossing nodig is.",
     "diagnostics.actions.run": "Voer gezondheidscontrole uit",
-    "diagnostics.fixes.title": "Voorgestelde oplossingen",
-    "diagnostics.fixes.description": "Alleen acties die overeenkomen met de huidige gezondheidscontrole worden hier weergegeven.",
-    "diagnostics.fixes.empty-title": "Nog geen aanbevolen oplossingen.",
-    "diagnostics.fixes.empty-description": "Voer eerst een gezondheidscontrole uit zodat FolderView Plus het juiste herstelpad kan voorstellen.",
     "diagnostics.summary.empty-title": "Voer een gezondheidscontrole uit om de status van de plug-in te controleren.",
     "diagnostics.summary.empty-description": "Het overzicht zal Docker, VM, opslag, pictogram en updateproblemen aangeven zonder eerst ruwe JSON te dumpen.",
     "diagnostics.support.title": "Delen met ondersteuning",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Ververs de geschiedenis na een opslaan, import, herstel of ongedaan maken om de nieuwste herstel-veilige gebeurtenissen te bekijken.",
     "diagnostics.history.empty-title": "Nog geen tijdlijnitems.",
     "diagnostics.history.empty-description": "Recente wijzigingskaarten verschijnen hier voor de geselecteerde herstelbron.",
-    "diagnostics.fixes.none-title": "Er worden momenteel geen reparatieacties aanbevolen.",
-    "diagnostics.fixes.none-description": "De huidige gezondheidscontrole stelt geen één-klik-oplossingen voor.",
     "diagnostics.cards.technical-details": "Technische details",
     "diagnostics.theme.live-title": "Thema-diagnostiek is actief voordat een volledige gezondheidscontrole wordt uitgevoerd.",
     "diagnostics.theme.live-description": "Voer een gezondheidscontrole uit om Docker, VM, opslag, pictogram en updatekaarten te verversen. De thema-kaart hieronder wordt onmiddellijk bijgewerkt bij het laden van de pagina.",

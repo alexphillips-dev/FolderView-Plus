@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "ru",
         "namespace": "import"
     },
@@ -14,7 +14,7 @@
     "import.mode.replace.title": "Точное замещение",
     "import.mode.replace.description": "Соответствовать экспорту. Папки, отсутствующие в экспорте, могут быть удалены.",
     "import.review.title": "Просмотреть запланированные изменения",
-    "import.review.count": "Просмотрите {{PLURAL:$1|одно запланированное изменение|$1 запланированные изменения}}",
+    "import.review.count": "Просмотрите {{PLURAL:$1|одно запланированное изменение|$1 запланированных изменения|$1 запланированных изменений}}",
     "import.review.folders-fields": "Папки и поля",
     "import.review.choose": "Выберите, какие изменения включить",
     "import.safety.title": "Параметры безопасности",
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|изменение папки|изменения папок|изменений папок}}",
     "import.summary.planned-change": "{{PLURAL:$1|запланированное изменение|запланированных изменения|запланированных изменений}} в предварительном просмотре",
     "import.summary.new": "$1 новый",
-    "import.summary.update": "{{PLURAL:$1|одно обновление|$1 обновления}}",
-    "import.summary.delete": "{{PLURAL:$1|одно удаление|$1 удаление}}",
+    "import.summary.update": "{{PLURAL:$1|одно обновление|$1 обновления|$1 обновлений}}",
+    "import.summary.delete": "{{PLURAL:$1|одно удаление|$1 удаления|$1 удалений}}",
     "import.kind.docker-folder": "Docker папка",
     "import.kind.vm-folder": "VM папка",
     "import.dialog.docker-title": "Импортировать Docker папок",

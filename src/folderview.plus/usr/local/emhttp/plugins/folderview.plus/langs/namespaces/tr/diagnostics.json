@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "tr",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Teşhis",
     "diagnostics.panel.title": "Sorun gider ve paylaş",
-    "diagnostics.panel.description": "Bir sağlık kontrolü yapın, gerçekten neye dikkat edilmesi gerektiğini gözden geçirin ve ancak o zaman düzeltmeleri veya destek çıktıları kullanın.",
+    "diagnostics.panel.description": "Bir durum denetimi çalıştırın, gerçekte nelere dikkat edilmesi gerektiğini inceleyin ve daha ayrıntılı sorun giderme gerektiğinde destek ayrıntılarını dışa aktarın.",
     "diagnostics.actions.run": "Sağlık kontrolü yap",
-    "diagnostics.fixes.title": "Önerilen düzeltmeler",
-    "diagnostics.fixes.description": "Burada yalnızca mevcut sağlık kontrolüyle eşleşen işlemler gösterilir.",
-    "diagnostics.fixes.empty-title": "Henüz önerilen düzeltme yok.",
-    "diagnostics.fixes.empty-description": "Önce sağlık kontrolünü çalıştırın, böylece FolderView Plus doğru onarım yolunu önerebilir.",
     "diagnostics.summary.empty-title": "Eklenti durumunu incelemek için sağlık kontrolünü çalıştırın.",
     "diagnostics.summary.empty-description": "Özet, ham JSON dökmeden önce Docker, VM, depolama, simge ve güncelleme sorunlarını belirtecektir.",
     "diagnostics.support.title": "Destek ile paylaş",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "En son kurtarma güvenli olayları gözden geçirmek için kaydetme, içe aktarma, geri yükleme veya geri alma işleminden sonra geçmişi yenileyin.",
     "diagnostics.history.empty-title": "Henüz zaman çizelgesi girdisi yok.",
     "diagnostics.history.empty-description": "Seçilen kurtarma kaynağı için son değişiklik kartları burada görünecektir.",
-    "diagnostics.fixes.none-title": "Şu anda onarım işlemleri önerilmiyor.",
-    "diagnostics.fixes.none-description": "Mevcut sağlık kontrolü herhangi bir tek tıklamalı düzeltme önermiyor.",
     "diagnostics.cards.technical-details": "Teknik detaylar",
     "diagnostics.theme.live-title": "Tema tanılama, tam bir sağlık kontrolünden önce canlıdır.",
     "diagnostics.theme.live-description": "Docker, VM, depolama, simge ve güncelleme kartlarını yenilemek için sağlık kontrolünü çalıştırın. Aşağıdaki tema kartı sayfa yüklendiğinde hemen güncellenir.",

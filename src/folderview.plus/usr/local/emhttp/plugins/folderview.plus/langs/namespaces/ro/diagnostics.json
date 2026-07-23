@@ -1,17 +1,13 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "ro",
         "namespace": "diagnostics"
     },
     "diagnostics.title": "Diagnostic",
     "diagnostics.panel.title": "Depanați și împărtășiți",
-    "diagnostics.panel.description": "Rulează un control de sănătate, verifică ce trebuie cu adevărat atenție, și abia apoi folosește corecții sau exporturi de suport.",
+    "diagnostics.panel.description": "Efectuați o singură verificare a stării de sănătate, examinați ceea ce necesită de fapt atenție și exportați detaliile de asistență atunci când este nevoie de o depanare mai profundă.",
     "diagnostics.actions.run": "Rulează verificarea sănătății",
-    "diagnostics.fixes.title": "Îmbunătățiri sugerate",
-    "diagnostics.fixes.description": "Aici sunt afișate doar acțiunile care corespund verificării actuale a stării de sănătate.",
-    "diagnostics.fixes.empty-title": "Încă nu există remedieri recomandate.",
-    "diagnostics.fixes.empty-description": "Rulează mai întâi verificarea stării de sănătate pentru ca FolderView Plus să poată sugera calea corectă de reparare.",
     "diagnostics.summary.empty-title": "Rulează verificarea stării pentru a inspecta starea pluginului.",
     "diagnostics.summary.empty-description": "Rezumatul va semnala problemele legate de Docker, VM, stocare, pictogramă și actualizare fără a afișa mai întâi JSON brut.",
     "diagnostics.support.title": "Distribuie cu suportul",
@@ -52,8 +48,6 @@
     "diagnostics.history.refresh-description": "Actualizează istoricul după salvare, import, restaurare sau anulare pentru a revizui cele mai recente evenimente sigure de recuperare.",
     "diagnostics.history.empty-title": "Nicio intrare în cronologie până acum.",
     "diagnostics.history.empty-description": "Cardurile cu modificări recente vor apărea aici pentru sursa de recuperare selectată.",
-    "diagnostics.fixes.none-title": "Nu sunt recomandate acțiuni de reparație în acest moment.",
-    "diagnostics.fixes.none-description": "Verificarea actuală a stării nu sugerează remedieri rapide cu un singur clic.",
     "diagnostics.cards.technical-details": "Detalii tehnice",
     "diagnostics.theme.live-title": "Diagnosticele temei sunt active înainte de o verificare completă a stării.",
     "diagnostics.theme.live-description": "Rulează verificarea stării pentru a actualiza Docker, VM, stocarea, pictograma și cardurile de actualizare. Cardul temei de mai jos se actualizează imediat la încărcarea paginii.",

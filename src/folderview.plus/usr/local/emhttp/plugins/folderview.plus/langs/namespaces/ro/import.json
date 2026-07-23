@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.23.1",
+        "catalog-version": "2026.07.23.2",
         "locale": "ro",
         "namespace": "import"
     },
@@ -14,7 +14,7 @@
     "import.mode.replace.title": "Înlocuiți exact",
     "import.mode.replace.description": "Potriviți cu exportul. Folderele absente în acesta pot fi șterse.",
     "import.review.title": "Revizuiește modificările planificate",
-    "import.review.count": "Examinați {{PLURAL:$1|o modificare planificată|$1 modificări planificate}}",
+    "import.review.count": "Examinați {{PLURAL:$1|o modificare planificată|$1 modificări planificate|$1 de modificări planificate}}",
     "import.review.folders-fields": "Foldere și câmpuri",
     "import.review.choose": "Alegeți ce modificări să includeți",
     "import.safety.title": "Opțiuni de siguranță",
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|schimbare de folder|schimbări de foldere|schimbări de foldere}}",
     "import.summary.planned-change": "{{PLURAL:$1|modificare planificată|modificări planificate|modificări planificate}} în previzualizare",
     "import.summary.new": "$1 nou",
-    "import.summary.update": "{{PLURAL:$1|o actualizare|$1 actualizări}}",
-    "import.summary.delete": "{{PLURAL:$1|o ștergere|$1 ștergere}}",
+    "import.summary.update": "{{PLURAL:$1|o actualizare|$1 actualizări|$1 de actualizări}}",
+    "import.summary.delete": "{{PLURAL:$1|o ștergere|$1 ștergeri|$1 de ștergeri}}",
     "import.kind.docker-folder": "Docker folder",
     "import.kind.vm-folder": "VM folder",
     "import.dialog.docker-title": "Importă Docker foldere",

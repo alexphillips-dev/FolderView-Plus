@@ -160,7 +160,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);
     assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
-    assert.match(diagnosticsJs, /const renderDiagnosticsActionCards = \(actions\) =>/);
+    assert.doesNotMatch(diagnosticsJs, /resolveDiagnosticsRecommendedActions|renderDiagnosticsActionCards|fv-diagnostics-actions|diagnostics\.fixes\./);
     assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
     assert.match(diagnosticsJs, /const buildNativeOrganizerDiagnosticsSummaryCard = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /Native organizer sync status is waiting for the Docker page/);
@@ -175,7 +175,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const exportFullDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
     assert.match(settingsPage, /id="fv-diagnostics-summary"/);
-    assert.match(settingsPage, /id="fv-diagnostics-actions"/);
+    assert.doesNotMatch(settingsPage, /Suggested fixes|fv-diagnostics-actions|diagnostics\.fixes\./);
     assert.match(settingsPage, /id="fv-support-bundle-preview" class="fv-support-bundle-preview"/);
     assert.doesNotMatch(settingsPage, /id="fv-diagnostics-technical"/);
     assert.doesNotMatch(settingsPage, /id="folder-editor-diagnostics-output"/);
@@ -223,9 +223,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /Integrity details:/);
     assert.match(diagnosticsJs, /surfaceSummary/);
     assert.match(diagnosticsJs, /Bootstrap banner:/);
-    assert.match(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{/);
-    assert.match(diagnosticsJs, /repair_orphaned_members:\s*Object\.freeze\(\{/);
-    assert.match(diagnosticsJs, /repairMissingIconsAction\.parentAction = 'repair_paths';/);
+    assert.doesNotMatch(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{|repair_orphaned_members:\s*Object\.freeze\(\{|repairMissingIconsAction/);
     assert.match(diagnosticsJs, /Theme diagnostics are live before a full health check\./);
     assert.match(diagnosticsJs, /return response;/);
     assert.match(diagnosticsJs, /runThemeDiagnostics\(\);\s*initializeClientDiagnosticsPanels\(\);/);
@@ -435,19 +433,18 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
 });
 
 test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
-    const suggestedFixesIndex = settingsPage.indexOf('>Suggested fixes</strong>');
     const diagnosticsSummaryIndex = settingsPage.indexOf('id="fv-diagnostics-summary"');
     const shareWithSupportIndex = settingsPage.indexOf('>Share with support</strong>');
     assert.match(settingsPage, /<div class="fv-diagnostics-module-wrap">/);
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
-    assert.ok(suggestedFixesIndex >= 0, 'suggested fixes module is missing');
-    assert.ok(diagnosticsSummaryIndex > suggestedFixesIndex, 'suggested fixes should render above the health summary');
+    assert.ok(diagnosticsSummaryIndex >= 0, 'diagnostics summary is missing');
     assert.ok(shareWithSupportIndex > diagnosticsSummaryIndex, 'share with support should remain below the health summary');
+    assert.doesNotMatch(settingsPage, /Suggested fixes|fv-diagnostics-actions|diagnostics\.fixes\./);
+    assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
     assert.match(settingsCss, /\.fv-diagnostics-module-wrap\s*>\s*\.rules-panel\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
     assert.match(settingsCss, /\.fv-diagnostics-workbench\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\);[\s\S]*align-items:\s*start;/);
     assert.match(settingsCss, /\.fv-diagnostics-lane\s*\{[\s\S]*align-content:\s*start;/);
-    assert.match(settingsCss, /\.fv-diagnostics-action-list\s*\{[\s\S]*align-content:\s*start;/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card,[\s\S]*\.fv-support-bundle-redaction-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);

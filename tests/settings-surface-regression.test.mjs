@@ -429,13 +429,15 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     const shareWithSupportIndex = settingsPage.indexOf('>Share with support</h3>');
     assert.match(settingsPage, /id="fv-diagnostics-workspace" class="fv-diagnostics-workspace"/);
     assert.match(settingsPage, /class="fv-diagnostics-toolbar"/);
+    assert.match(settingsPage, /class="fv-ui-button is-export" data-fv-ui-action="diagnostics-export-bundle"/);
     assert.ok(diagnosticsSummaryIndex >= 0, 'diagnostics summary is missing');
     assert.ok(shareWithSupportIndex > diagnosticsSummaryIndex, 'share with support should remain below the health summary');
     assert.doesNotMatch(settingsPage, /Suggested fixes|fv-diagnostics-actions|diagnostics\.fixes\./);
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
     assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[\s\S]*background:\s*var\(--fvplus-settings-button-bg-top\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[\s\S]*border-color:\s*var\(--fvplus-settings-border-subtle\)[\s\S]*color:\s*var\(--fvplus-settings-text-primary\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-export\s*\{[\s\S]*--fv-diagnostics-action-color:\s*var\(--fvplus-settings-chip-info\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics dt\s*\{[\s\S]*font-size:\s*1\.3rem;[\s\S]*text-align:\s*center;/);
     assert.match(settingsCss, /\.fv-diagnostics-core-progress\s*\{[\s\S]*height:\s*8px;/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*2rem;/);
@@ -443,7 +445,7 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-icon\.is-health\s*\{[\s\S]*--fv-support-section-icon-color:/);
-    assert.match(settingsCss, /\.fv-support-bundle-privacy-summary\s*\{[\s\S]*justify-content:\s*center;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-summary\s*\{[\s\S]*justify-content:\s*flex-start;[\s\S]*text-align:\s*left;/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item strong\s*\{[\s\S]*border-radius:\s*6px;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-details > summary\s*\{[\s\S]*color:\s*var\(--fvplus-settings-accent-strong\) !important;/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item\.is-truncated strong\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-danger\);/);

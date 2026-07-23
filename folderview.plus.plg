@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.10">
-<!ENTITY md5 "62a3218621c9042d8b1c813a7f4fcb13">
+<!ENTITY version "2026.07.23.11">
+<!ENTITY md5 "744aa57dbc3e8752f6494524c4c1ae68">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.11
+- UX: Made Run health check match the regular Diagnostics buttons at rest while retaining the orange hover and keyboard-focus treatment.
+- UI/UX: Gave Export support bundle a consistent information-blue border, label, and upload icon so the export action is easy to identify.
+- UI/UX: Rebuilt Privacy and sanitization as a compact, vertically centered row with left-aligned content and a right-aligned data-handling disclosure.
+- Accessibility: Matched Hashed, Masked, Omitted, and Truncated badge heights to Sanitized while preserving their distinct status colors and subtle corners.
+- Quality: Added dark/light rendered assertions for toolbar rest and hover states, export action colors, privacy alignment, matching badge heights, compact row height, and responsive overflow.
+
 
 ###2026.07.23.10
 - Accessibility: Restored a clearly visible, theme-safe Learn more about data handling disclosure with readable hover and keyboard-focus states.

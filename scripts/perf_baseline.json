@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-23T19:06:54.552Z",
+  "generatedAt": "2026-07-23T19:23:15.903Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
@@ -96,8 +96,8 @@
       "gzipBytes": 13323
     },
     "styles/folderviewplus.css": {
-      "bytes": 371943,
-      "gzipBytes": 43718
+      "bytes": 373464,
+      "gzipBytes": 43850
     },
     "scripts/docker.runtime.hierarchy.js": {
       "bytes": 43004,
@@ -130,9 +130,9 @@
   },
   "totals": {
     "totalJs": 3739741,
-    "totalCss": 647305,
+    "totalCss": 648826,
     "totalJsGzip": 741840,
-    "totalCssGzip": 86009,
+    "totalCssGzip": 86141,
     "settingsRuntimeJs": 1345700,
     "settingsRuntimeJsGzip": 261296
   }

@@ -788,14 +788,18 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
         const privacyCard = workspace.querySelector('.fv-support-bundle-redaction-card');
         const privacySummary = workspace.querySelector('.fv-support-bundle-privacy-summary');
+        const privacyStatusBadge = workspace.querySelector('.fv-support-bundle-privacy-summary .fv-diagnostics-status-badge');
         const privacyLink = workspace.querySelector('.fv-support-bundle-privacy-details > summary');
         const readableText = [...workspace.querySelectorAll(
             '.fv-diagnostics-health-card-foot, .fv-diagnostics-health-card-detail, .fv-diagnostics-metrics small, .fv-support-bundle-preview-meta'
         )];
         const primaryButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button.is-primary');
-        const neutralButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button:not(.is-primary)');
+        const neutralButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button:not(.is-primary):not(.is-export)');
+        const exportButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button.is-export');
+        const exportIcon = exportButton?.querySelector('i, .fv-ui-svg-icon');
         const primaryStyle = getComputedStyle(primaryButton);
         const neutralStyle = getComputedStyle(neutralButton);
+        const exportStyle = getComputedStyle(exportButton);
         const accentProbe = document.createElement('span');
         accentProbe.style.color = 'var(--fvplus-settings-accent)';
         workspace.append(accentProbe);
@@ -816,6 +820,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             }, { left: Number.POSITIVE_INFINITY, right: Number.NEGATIVE_INFINITY })
             : null;
         const privacyCardRect = privacyCard?.getBoundingClientRect();
+        const privacySummaryRect = privacySummary?.getBoundingClientRect();
+        const privacyStatusBadgeRect = privacyStatusBadge?.getBoundingClientRect();
         const privacyLinkRect = privacyLink?.getBoundingClientRect();
         return {
             coreCards: coreGrid?.children.length || 0,
@@ -856,21 +862,32 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
                 return style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.borderTopColor !== 'rgba(0, 0, 0, 0)';
             }),
             privacyBadgeRadii: privacyBadges.map((badge) => parseFloat(getComputedStyle(badge).borderTopLeftRadius)),
-            privacyContentCentered: Boolean(privacyContentBounds && privacyCardRect)
+            privacyContentLeftAligned: Boolean(privacyContentBounds && privacyCardRect)
+                && privacyContentBounds.left - privacyCardRect.left <= 18,
+            privacyContentVerticallyCentered: Boolean(privacySummaryRect && privacyCardRect)
                 && Math.abs(
-                    ((privacyContentBounds.left + privacyContentBounds.right) / 2)
-                    - (privacyCardRect.left + (privacyCardRect.width / 2))
+                    (privacySummaryRect.top + (privacySummaryRect.height / 2))
+                    - (privacyCardRect.top + (privacyCardRect.height / 2))
                 ) <= 2,
+            privacyBadgesMatchStatusHeight: Boolean(privacyStatusBadgeRect)
+                && privacyBadges.every((badge) => (
+                    Math.abs(badge.getBoundingClientRect().height - privacyStatusBadgeRect.height) <= 1
+                )),
+            privacyCardHeight: privacyCardRect?.height || 0,
             privacyLinkUsesAccent: getComputedStyle(privacyLink).color === accentStrong,
             privacyLinkVisible: Boolean(privacyLinkRect)
                 && privacyLinkRect.width > 0
                 && privacyLinkRect.height > 0
                 && getComputedStyle(privacyLink).opacity === '1',
             smallestSupportingTextPx: Math.min(...readableText.map((element) => parseFloat(getComputedStyle(element).fontSize))),
-            primaryUsesSubtleOutline: primaryStyle.backgroundImage === 'none'
+            primaryRestMatchesNeutral: primaryStyle.backgroundImage === 'none'
                 && primaryStyle.backgroundColor === neutralStyle.backgroundColor
-                && primaryStyle.borderTopColor !== neutralStyle.borderTopColor
-                && primaryStyle.color !== neutralStyle.color,
+                && primaryStyle.borderTopColor === neutralStyle.borderTopColor
+                && primaryStyle.color === neutralStyle.color,
+            exportUsesSemanticColor: Boolean(exportIcon)
+                && exportStyle.color === getComputedStyle(exportIcon).color
+                && exportStyle.color !== neutralStyle.color
+                && exportStyle.borderTopColor !== neutralStyle.borderTopColor,
             neutralAvoidsAccentTreatment: neutralStyle.color !== accent && neutralStyle.borderTopColor !== accent,
             cardsInsideWorkspace: cards.every((card) => {
                 const rect = card.getBoundingClientRect();
@@ -906,14 +923,36 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.privacyBadgeCount, 4);
     assert.equal(layout.privacyBadgesAreColored, true);
     assert.equal(layout.privacyBadgeRadii.every((radius) => radius >= 5.9 && radius <= 6.1), true);
-    assert.equal(layout.privacyContentCentered, true);
+    assert.equal(layout.privacyContentLeftAligned, true);
+    assert.equal(layout.privacyContentVerticallyCentered, true);
+    assert.equal(layout.privacyBadgesMatchStatusHeight, true);
+    assert.ok(layout.privacyCardHeight < 60, 'privacy row should remain compact');
     assert.equal(layout.privacyLinkUsesAccent, true);
     assert.equal(layout.privacyLinkVisible, true);
     assert.ok(layout.smallestSupportingTextPx >= 17, 'supporting diagnostics text must remain readable');
-    assert.equal(layout.primaryUsesSubtleOutline, true);
+    assert.equal(layout.primaryRestMatchesNeutral, true);
+    assert.equal(layout.exportUsesSemanticColor, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop diagnostics must not overflow');
+
+    await page.locator('.fv-diagnostics-toolbar .fv-ui-button.is-primary').hover();
+    await page.waitForTimeout(250);
+    const healthHoverUsesAccent = await page.evaluate(() => {
+        const workspace = document.getElementById('fv-diagnostics-workspace');
+        const button = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button.is-primary');
+        const neutral = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button:not(.is-primary):not(.is-export)');
+        const accentProbe = document.createElement('span');
+        accentProbe.style.color = 'var(--fvplus-settings-accent-strong)';
+        workspace.append(accentProbe);
+        const accentStrong = getComputedStyle(accentProbe).color;
+        accentProbe.remove();
+        return getComputedStyle(button).color === accentStrong
+            && getComputedStyle(button).borderTopColor !== getComputedStyle(neutral).borderTopColor;
+    });
+    assert.equal(healthHoverUsesAccent, true);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
 
     await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
     layout = await readDiagnosticsLayout();
@@ -924,7 +963,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.privacyBadgesAreColored, true);
     assert.equal(layout.privacyLinkUsesAccent, true);
     assert.equal(layout.privacyLinkVisible, true);
-    assert.equal(layout.primaryUsesSubtleOutline, true);
+    assert.equal(layout.primaryRestMatchesNeutral, true);
+    assert.equal(layout.exportUsesSemanticColor, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
 
     await page.setViewportSize({ width: 1000, height: 1100 });

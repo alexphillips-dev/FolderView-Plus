@@ -776,6 +776,23 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const additionalGrid = workspace.querySelector('.fv-diagnostics-card-section.is-additional .fv-diagnostics-health-grid');
         const workspaceRect = workspace.getBoundingClientRect();
         const cards = [...workspace.querySelectorAll('.fv-diagnostics-health-card')];
+        const coreProgress = workspace.querySelector('.fv-diagnostics-core-progress');
+        const coreProgressFill = coreProgress?.firstElementChild;
+        const systemIcons = [...workspace.querySelectorAll('.fv-diagnostics-health-card-icon .fv-ui-svg-icon')];
+        const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
+        const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
+        const readableText = [...workspace.querySelectorAll(
+            '.fv-diagnostics-health-card-foot, .fv-diagnostics-health-card-detail, .fv-diagnostics-metrics small, .fv-support-bundle-preview-meta'
+        )];
+        const primaryButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button.is-primary');
+        const neutralButton = workspace.querySelector('.fv-diagnostics-toolbar .fv-ui-button:not(.is-primary)');
+        const primaryStyle = getComputedStyle(primaryButton);
+        const neutralStyle = getComputedStyle(neutralButton);
+        const accentProbe = document.createElement('span');
+        accentProbe.style.color = 'var(--fvplus-settings-accent)';
+        workspace.append(accentProbe);
+        const accent = getComputedStyle(accentProbe).color;
+        accentProbe.remove();
         return {
             coreCards: coreGrid?.children.length || 0,
             additionalCards: additionalGrid?.children.length || 0,
@@ -783,6 +800,28 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             additionalColumns: getComputedStyle(additionalGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
             hasHealthySummary: workspace.querySelector('.fv-diagnostics-hero.is-healthy') !== null,
             hasClearFindings: workspace.querySelector('.fv-diagnostics-findings.is-clear') !== null,
+            metricSvgIcons: workspace.querySelectorAll('.fv-diagnostics-metric.has-icon > .fv-ui-svg-icon').length,
+            systemSvgIcons: systemIcons.length,
+            systemIconColors: systemIcons.map((icon) => getComputedStyle(icon).color),
+            coreProgressRatio: coreProgress && coreProgressFill
+                ? coreProgressFill.getBoundingClientRect().width / coreProgress.getBoundingClientRect().width
+                : 0,
+            supportSvgIcons: workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon').length,
+            supportIconColors: [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')]
+                .map((icon) => getComputedStyle(icon).color),
+            supportIconsAreLeft: supportCards.every((card) => {
+                const icon = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
+                const copy = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
+                return icon && copy && icon.left < copy.left;
+            }),
+            privacyBadgeCount: privacyBadges.length,
+            privacyBadgesAreColored: privacyBadges.every((badge) => {
+                const style = getComputedStyle(badge);
+                return style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.borderTopColor !== 'rgba(0, 0, 0, 0)';
+            }),
+            smallestSupportingTextPx: Math.min(...readableText.map((element) => parseFloat(getComputedStyle(element).fontSize))),
+            primaryUsesAccentFill: primaryStyle.backgroundImage.includes('linear-gradient') && primaryStyle.backgroundColor !== 'rgb(0, 0, 0)',
+            neutralAvoidsAccentTreatment: neutralStyle.color !== accent && neutralStyle.borderTopColor !== accent,
             cardsInsideWorkspace: cards.every((card) => {
                 const rect = card.getBoundingClientRect();
                 return rect.left >= workspaceRect.left - 1 && rect.right <= workspaceRect.right + 1;
@@ -801,8 +840,27 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.additionalColumns, 3);
     assert.equal(layout.hasHealthySummary, true);
     assert.equal(layout.hasClearFindings, true);
+    assert.equal(layout.metricSvgIcons, 3);
+    assert.equal(layout.systemSvgIcons, 9);
+    assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.ok(layout.coreProgressRatio > 0.98, 'healthy core progress bar should span the metric');
+    assert.equal(layout.supportSvgIcons, 7);
+    assert.equal(layout.supportIconsAreLeft, true);
+    assert.equal(layout.privacyBadgeCount, 4);
+    assert.equal(layout.privacyBadgesAreColored, true);
+    assert.ok(layout.smallestSupportingTextPx >= 15, 'supporting diagnostics text must remain readable');
+    assert.equal(layout.primaryUsesAccentFill, true);
+    assert.equal(layout.neutralAvoidsAccentTreatment, true);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop diagnostics must not overflow');
+
+    await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
+    layout = await readDiagnosticsLayout();
+    assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(layout.supportIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(layout.privacyBadgesAreColored, true);
+    assert.equal(layout.primaryUsesAccentFill, true);
+    assert.equal(layout.neutralAvoidsAccentTreatment, true);
 
     await page.setViewportSize({ width: 700, height: 1000 });
     layout = await readDiagnosticsLayout();

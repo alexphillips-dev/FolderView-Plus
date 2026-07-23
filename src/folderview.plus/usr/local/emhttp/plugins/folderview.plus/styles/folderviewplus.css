@@ -35,6 +35,7 @@
     --fvplus-settings-surface-card: var(--fvplus-theme-surface-card, var(--fvplus-settings-safe-surface-card));
     --fvplus-settings-surface-field: var(--fvplus-settings-safe-surface-field);
     --fvplus-settings-accent: var(--fvplus-theme-accent, var(--fvplus-settings-safe-accent));
+    --fvplus-settings-accent-strong: var(--fvplus-ui-accent-strong, var(--fvplus-graphite-accent-strong, #ff9d36));
     --fvplus-settings-accent-soft: var(--fvplus-theme-accent-soft, var(--fvplus-settings-safe-accent-soft));
     --fvplus-settings-warning: #ffd26f;
     --fvplus-settings-warning-soft: rgba(255, 193, 94, 0.08);
@@ -509,7 +510,7 @@ body.fv-mobile-compact #fv-settings-root .fv-mobile-reorder-help {
     border-radius: 5px;
     background: var(--fvplus-settings-surface-field);
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.92rem;
+    font-size: 0.96rem;
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;
@@ -6783,6 +6784,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 1rem;
     margin-inline: var(--fv-advanced-side-padding);
     color: var(--fvplus-settings-text-primary);
+    font-size: 1.1rem;
+    line-height: 1.42;
 }
 
 .fv-diagnostics-workspace-head {
@@ -6797,6 +6800,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-workspace-head > p {
     margin: 0;
     color: var(--fvplus-settings-text-muted);
+    font-size: 1.12rem;
 }
 
 .fv-diagnostics-toolbar {
@@ -6806,16 +6810,39 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.55rem;
 }
 
-.fv-diagnostics-toolbar .fv-ui-button {
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button {
     min-height: 38px;
     margin: 0 !important;
+    border: 1px solid var(--fvplus-settings-border-subtle) !important;
+    background: var(--fvplus-settings-button-bg-top) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
     white-space: nowrap;
 }
 
-.fv-diagnostics-toolbar .fv-ui-button.is-primary {
-    border-color: var(--fvplus-settings-accent) !important;
-    background: var(--fvplus-settings-accent) !important;
-    color: #111 !important;
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button:hover:not(:disabled),
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button:focus-visible:not(:disabled) {
+    border-color: var(--fvplus-settings-border-strong) !important;
+    background: var(--fvplus-settings-button-hover-top) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
+}
+
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary,
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary:hover:not(:disabled),
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary:focus-visible:not(:disabled) {
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 82%, #fff) !important;
+    background: linear-gradient(180deg, var(--fvplus-settings-accent-strong), var(--fvplus-settings-accent)) !important;
+    color: #21170d !important;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--fvplus-settings-accent) 28%, transparent) !important;
+}
+
+#fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary:disabled {
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 52%, var(--fvplus-settings-border-subtle)) !important;
+    background: color-mix(in srgb, var(--fvplus-settings-accent) 68%, var(--fvplus-settings-surface-strong)) !important;
+    color: color-mix(in srgb, #21170d 82%, var(--fvplus-settings-text-primary)) !important;
+    opacity: 0.68;
 }
 
 .fv-diagnostics-summary-surface {
@@ -6865,8 +6892,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: var(--fvplus-settings-surface-strong);
 }
 
-.fv-diagnostics-status-ring i {
-    font-size: 2.5rem;
+.fv-diagnostics-status-ring .fv-ui-svg-icon {
+    width: 2.5rem;
+    height: 2.5rem;
 }
 
 .fv-diagnostics-hero.is-healthy .fv-diagnostics-status-ring,
@@ -6887,7 +6915,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: block;
     margin-bottom: 0.16rem;
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.88rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -6907,6 +6935,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-support-bundle-overview > p {
     margin: 0.28rem 0 0;
     color: var(--fvplus-settings-text-muted);
+    font-size: 1.08rem;
 }
 
 .fv-diagnostics-overall-chip,
@@ -6919,7 +6948,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.18rem 0.52rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 999px;
-    font-size: 0.88rem;
+    font-size: 0.96rem;
     font-weight: 700;
     white-space: nowrap;
 }
@@ -6967,19 +6996,91 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-left: 1px solid var(--fvplus-settings-border-faint);
 }
 
+.fv-diagnostics-metric.has-icon {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+        "icon label"
+        "icon value"
+        "icon detail";
+    column-gap: 0.75rem;
+}
+
+.fv-diagnostics-metric.has-icon .fv-diagnostics-metric-icon {
+    grid-area: icon;
+    align-self: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--fvplus-settings-chip-info);
+}
+
+.fv-diagnostics-metric.is-checked .fv-diagnostics-metric-icon {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-diagnostics-metric.is-version .fv-diagnostics-metric-icon {
+    color: var(--fvplus-settings-accent);
+}
+
+.fv-diagnostics-metric.has-icon dt {
+    grid-area: label;
+}
+
+.fv-diagnostics-metric.has-icon dd {
+    grid-area: value;
+}
+
+.fv-diagnostics-metric.has-icon small {
+    grid-area: detail;
+}
+
 .fv-diagnostics-metrics dt,
 .fv-diagnostics-metrics small {
     overflow-wrap: anywhere;
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.88rem;
+    font-size: 1rem;
 }
 
 .fv-diagnostics-metrics dd {
     overflow-wrap: anywhere;
     margin: 0;
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.05rem;
+    font-size: 1.16rem;
     font-weight: 700;
+}
+
+.fv-diagnostics-metric.is-core {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.fv-diagnostics-core-progress {
+    display: block;
+    width: 100%;
+    height: 8px;
+    margin-top: 0.42rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--fvplus-settings-surface-strong);
+    box-shadow: inset 0 0 0 1px var(--fvplus-settings-border-faint);
+}
+
+.fv-diagnostics-core-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--fvplus-settings-chip-info);
+    transition: width 180ms ease;
+}
+
+.fv-diagnostics-metric.is-core.is-healthy .fv-diagnostics-core-progress > span {
+    background: var(--fvplus-settings-chip-success);
+}
+
+.fv-diagnostics-metric.is-core.is-warning .fv-diagnostics-core-progress > span {
+    background: var(--fvplus-settings-chip-warning);
+}
+
+.fv-diagnostics-metric.is-core.is-error .fv-diagnostics-core-progress > span {
+    background: var(--fvplus-settings-chip-danger);
 }
 
 .fv-diagnostics-state-banner {
@@ -7043,13 +7144,13 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-section-heading h3 {
     margin: 0;
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.15rem;
+    font-size: 1.22rem;
 }
 
 .fv-diagnostics-findings-head > span,
 .fv-diagnostics-section-heading > span {
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .fv-diagnostics-clear-result {
@@ -7059,9 +7160,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.8rem;
 }
 
-.fv-diagnostics-clear-result > i {
+.fv-diagnostics-clear-result > .fv-ui-svg-icon {
+    width: 1.6rem;
+    height: 1.6rem;
     color: var(--fvplus-settings-chip-success);
-    font-size: 1.6rem;
 }
 
 .fv-diagnostics-clear-result > span {
@@ -7071,6 +7173,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-clear-result small {
     color: var(--fvplus-settings-text-muted);
+    font-size: 1.04rem;
 }
 
 .fv-diagnostics-findings-list {
@@ -7097,6 +7200,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-finding small {
     overflow: hidden;
     color: var(--fvplus-settings-text-muted);
+    font-size: 1rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -7158,13 +7262,45 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-diagnostics-health-card-head > strong {
     overflow: hidden;
+    font-size: 1.1rem;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .fv-diagnostics-health-card-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--fvplus-settings-chip-info);
+}
+
+.fv-diagnostics-health-card-icon .fv-ui-svg-icon {
+    width: 1.55rem;
+    height: 1.55rem;
+}
+
+.fv-diagnostics-health-card-icon.is-vm,
+.fv-diagnostics-health-card-icon.is-theme {
+    color: color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-chip-info));
+}
+
+.fv-diagnostics-health-card-icon.is-storage,
+.fv-diagnostics-health-card-icon.is-update {
     color: var(--fvplus-settings-accent);
-    font-size: 1.28rem;
+}
+
+.fv-diagnostics-health-card-icon.is-custom_icons,
+.fv-diagnostics-health-card-icon.is-localization {
+    color: var(--fvplus-settings-chip-info);
+}
+
+.fv-diagnostics-health-card-icon.is-performance_budget {
+    color: var(--fvplus-settings-chip-success);
+}
+
+.fv-diagnostics-health-card-icon.is-native_organizer {
+    color: var(--fvplus-settings-chip-warning);
 }
 
 .fv-diagnostics-health-card.is-healthy {
@@ -7182,12 +7318,13 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-health-card-headline,
 .fv-diagnostics-health-card-detail {
     margin: 0;
+    font-size: 1.06rem;
     line-height: 1.35;
 }
 
 .fv-diagnostics-health-card-detail {
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.92rem;
+    font-size: 1rem;
 }
 
 .fv-diagnostics-health-card-foot {
@@ -7198,13 +7335,20 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     margin-top: auto;
     padding-top: 0.45rem;
     color: var(--fvplus-settings-text-dim);
-    font-size: 0.84rem;
+    font-size: 0.96rem;
 }
 
 .fv-diagnostics-health-card-foot > span {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+}
+
+.fv-diagnostics-health-card-foot .fv-ui-svg-icon,
+.fv-diagnostics-context-action .fv-ui-svg-icon,
+.fv-diagnostics-status-badge .fv-ui-svg-icon {
+    width: 1em;
+    height: 1em;
 }
 
 .fv-diagnostics-context-action {
@@ -7243,6 +7387,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-section-heading.is-support p {
     margin: 0;
     color: var(--fvplus-settings-text-muted);
+    font-size: 1.06rem;
 }
 
 .fv-support-bundle-preview {
@@ -7271,9 +7416,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.5rem;
 }
 
-.fv-diagnostics-support-card-head > div > i {
+.fv-diagnostics-support-card-head > div > :is(i, .fv-ui-svg-icon) {
+    width: 1.25rem;
+    height: 1.25rem;
     color: var(--fvplus-settings-accent);
-    font-size: 1.15rem;
+    font-size: 1.25rem;
 }
 
 .fv-dashboard-capture-steps {
@@ -7315,6 +7462,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-dashboard-capture-steps small {
     color: var(--fvplus-settings-text-muted);
+    font-size: 0.98rem;
     line-height: 1.3;
 }
 
@@ -7335,7 +7483,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-support-bundle-capture-row span,
 .fv-support-bundle-capture-warning {
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .fv-support-bundle-capture-warning {
@@ -7344,7 +7492,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-support-bundle-preview-meta {
     color: var(--fvplus-settings-text-muted);
-    font-size: 0.86rem;
+    font-size: 0.98rem;
 }
 
 .fv-support-bundle-preview-meta > span + span::before {
@@ -7360,17 +7508,32 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-support-bundle-section-card {
     display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 0.3rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    align-content: center;
+    justify-items: stretch;
+    gap: 0.35rem 0.55rem;
     min-width: 0;
-    padding: 0.55rem 0.4rem;
-    text-align: center;
+    min-height: 64px;
+    padding: 0.62rem;
+    text-align: left;
 }
 
 .fv-support-bundle-section-icon {
-    color: var(--fvplus-settings-accent);
-    font-size: 1.18rem;
+    display: inline-grid;
+    grid-row: 1 / span 2;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 7px;
+    background: var(--fvplus-settings-accent-soft);
+    color: var(--fvplus-settings-accent-strong);
+}
+
+.fv-support-bundle-section-icon .fv-ui-svg-icon {
+    width: 1.35rem;
+    height: 1.35rem;
 }
 
 .fv-support-bundle-section-copy {
@@ -7380,7 +7543,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-support-bundle-section-copy strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.87rem;
+    font-size: 1rem;
+    line-height: 1.2;
 }
 
 .fv-support-bundle-section-copy > span {
@@ -7388,6 +7552,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-support-bundle-section-badge {
+    grid-column: 2;
+    justify-self: start;
     margin-top: auto;
 }
 
@@ -7409,24 +7575,58 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.45rem;
 }
 
-.fv-support-bundle-privacy-summary > div:first-child > i {
+.fv-support-bundle-privacy-summary > div:first-child > :is(i, .fv-ui-svg-icon) {
+    width: 1.2rem;
+    height: 1.2rem;
     color: var(--fvplus-settings-accent);
 }
 
 .fv-support-bundle-privacy-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
+    gap: 0.55rem 0.75rem;
 }
 
 .fv-support-bundle-privacy-item {
     display: inline-flex;
-    align-items: baseline;
-    gap: 0.3rem;
+    align-items: center;
+    gap: 0.38rem;
+}
+
+.fv-support-bundle-privacy-item strong {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0.16rem 0.58rem;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    border-radius: 999px;
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-size: 0.96rem;
+    line-height: 1;
+}
+
+.fv-support-bundle-privacy-item.is-masked strong {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
+    color: var(--fvplus-settings-chip-warning);
+}
+
+.fv-support-bundle-privacy-item.is-omitted strong {
+    border-color: color-mix(in srgb, var(--fvplus-settings-accent) 46%, var(--fvplus-settings-border-subtle));
+    background: var(--fvplus-settings-accent-soft);
+    color: var(--fvplus-settings-accent-strong);
+}
+
+.fv-support-bundle-privacy-item.is-truncated strong {
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
+    color: var(--fvplus-settings-chip-danger);
 }
 
 .fv-support-bundle-privacy-item small {
     color: var(--fvplus-settings-text-muted);
+    font-size: 0.96rem;
 }
 
 .fv-support-bundle-privacy-details {
@@ -7436,6 +7636,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-support-bundle-privacy-details summary {
     cursor: pointer;
     color: var(--fvplus-settings-accent);
+    font-size: 1rem;
     list-style: none;
 }
 
@@ -7520,8 +7721,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         border-width: 4px;
     }
 
-    .fv-diagnostics-status-ring i {
-        font-size: 1.8rem;
+    .fv-diagnostics-status-ring .fv-ui-svg-icon {
+        width: 1.8rem;
+        height: 1.8rem;
     }
 
     .fv-diagnostics-overall h3,

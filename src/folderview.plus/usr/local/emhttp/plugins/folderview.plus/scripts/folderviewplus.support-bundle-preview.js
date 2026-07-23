@@ -10,37 +10,37 @@
         bundleMeta: Object.freeze({
             label: 'Bundle metadata',
             detail: 'Schema, version, build channel, and privacy policy.',
-            icon: 'fa-file-text-o'
+            icon: 'document'
         }),
         system: Object.freeze({
             label: 'System snapshot',
             detail: 'Unraid, PHP, kernel, request, and path health details.',
-            icon: 'fa-desktop'
+            icon: 'monitor'
         }),
         pluginState: Object.freeze({
             label: 'Plugin state',
             detail: 'Preferences, folder counts, templates, and backups.',
-            icon: 'fa-puzzle-piece'
+            icon: 'puzzle'
         }),
         runtimeState: Object.freeze({
             label: 'Runtime state',
             detail: 'Docker and VM summaries, hierarchy, and conflicts.',
-            icon: 'fa-server'
+            icon: 'server'
         }),
         uiTelemetry: Object.freeze({
             label: 'Browser/UI telemetry',
             detail: 'Performance, request errors, and visual evidence.',
-            icon: 'fa-globe'
+            icon: 'globe'
         }),
         healthAndHistory: Object.freeze({
             label: 'Health and history',
             detail: 'Health findings, timeline, and change history.',
-            icon: 'fa-heartbeat'
+            icon: 'heart'
         }),
         redactionManifest: Object.freeze({
             label: 'Redaction manifest',
             detail: 'The privacy operations applied to sensitive fields.',
-            icon: 'fa-shield'
+            icon: 'shield'
         })
     });
 
@@ -72,6 +72,9 @@
         const translate = (key, fallback = '', ...params) => (
             typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
         );
+        const svgIcon = typeof deps.svgIcon === 'function'
+            ? deps.svgIcon
+            : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
 
         let lastSupportBundlePreview = null;
         const formatAge = (ageMs) => {
@@ -95,7 +98,7 @@
                 return `
                     <article class="fv-diagnostics-capture-card is-missing">
                         <div class="fv-diagnostics-support-card-head">
-                            <div><i class="fa fa-desktop" aria-hidden="true"></i><strong>${escapeHtml(translate('diagnostics.capture.guide-title', 'Capture Dashboard evidence in 3 easy steps'))}</strong></div>
+                            <div>${svgIcon('monitor')}<strong>${escapeHtml(translate('diagnostics.capture.guide-title', 'Capture Dashboard evidence in 3 easy steps'))}</strong></div>
                             <span class="fv-diagnostics-status-badge is-warning">${escapeHtml(translate('diagnostics.capture.missing', 'Missing'))}</span>
                         </div>
                         <ol class="fv-dashboard-capture-steps">
@@ -141,7 +144,7 @@
             return `
                 <article class="fv-diagnostics-capture-card">
                     <div class="fv-diagnostics-support-card-head">
-                        <div><i class="fa fa-desktop" aria-hidden="true"></i><strong>${escapeHtml(translate('diagnostics.capture.title', 'Dashboard visual evidence'))}</strong></div>
+                        <div>${svgIcon('monitor')}<strong>${escapeHtml(translate('diagnostics.capture.title', 'Dashboard visual evidence'))}</strong></div>
                         <span class="fv-diagnostics-status-badge ${needsCaptureReview ? 'is-warning' : 'is-healthy'}">${escapeHtml(needsCaptureReview ? translate('diagnostics.capture.review', 'Review') : translate('diagnostics.capture.ready', 'Ready'))}</span>
                     </div>
                     <p>${escapeHtml(translate('diagnostics.capture.help', 'These captures preserve the rendered Dashboard geometry after navigation to Settings.'))}</p>
@@ -168,12 +171,12 @@
                 const statusClass = hasObjectPayload ? 'is-ready' : 'is-pending';
                 return `
                     <article class="fv-support-bundle-section-card ${statusClass}">
-                        <div class="fv-support-bundle-section-icon" aria-hidden="true"><i class="fa ${escapeHtml(sectionConfig.icon)}"></i></div>
+                        <div class="fv-support-bundle-section-icon" aria-hidden="true">${svgIcon(sectionConfig.icon)}</div>
                         <div class="fv-support-bundle-section-copy">
                             <strong>${escapeHtml(sectionConfig.label)}</strong>
                             <span>${escapeHtml(sectionConfig.detail)}</span>
                         </div>
-                        <span class="fv-support-bundle-section-badge"><i class="fa ${hasObjectPayload ? 'fa-check-circle' : 'fa-clock-o'}" aria-hidden="true"></i>${escapeHtml(statusLabel)}</span>
+                        <span class="fv-support-bundle-section-badge">${svgIcon(hasObjectPayload ? 'check-circle' : 'clock')}${escapeHtml(statusLabel)}</span>
                     </article>
                 `;
             }).join('');
@@ -204,16 +207,17 @@
             ).trim();
             const previewOnly = manifest.previewOnly === true || normalized.bundleMeta?.previewOnly === true;
             const redactionItems = Object.entries(SUPPORT_BUNDLE_REDACTION_LABELS).map(([fieldKey, label]) => {
+                const badgeTone = String(fieldKey).replace(/Fields$/, '').toLowerCase();
                 const count = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].length : 0;
                 const examples = Array.isArray(manifest[fieldKey]) ? manifest[fieldKey].slice(0, 3) : [];
                 const stateCopy = previewOnly ? 'on export' : String(count);
                 if (previewOnly) {
-                    return `<span class="fv-support-bundle-privacy-item" title="${escapeHtml(`${label} fields are calculated when the export is created.`)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
+                    return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(`${label} fields are calculated when the export is created.`)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
                 }
                 const title = examples.length
                     ? `${label}: ${examples.join(', ')}${count > examples.length ? ', ...' : ''}`
                     : `${label}: none reported`;
-                return `<span class="fv-support-bundle-privacy-item" title="${escapeHtml(title)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
+                return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(title)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
             }).join('');
             const modeCopy = mode === 'full'
                 ? 'Full export keeps raw fields and only records truncation metadata.'
@@ -223,7 +227,7 @@
                 : `Salt scope: ${saltScope}${saltHash ? ` - salt hash ${saltHash}` : ''}.`;
             return `
                 <div class="fv-support-bundle-privacy-summary">
-                    <div><i class="fa fa-shield" aria-hidden="true"></i><strong>${escapeHtml(mode === 'full' ? 'Full export' : 'Privacy and sanitization')}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? 'Full mode' : 'Sanitized')}</span></div>
+                    <div>${svgIcon('shield')}<strong>${escapeHtml(mode === 'full' ? 'Full export' : 'Privacy and sanitization')}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? 'Full mode' : 'Sanitized')}</span></div>
                     <div class="fv-support-bundle-privacy-items">${redactionItems}</div>
                 </div>
                 <details class="fv-support-bundle-privacy-details">
@@ -268,7 +272,7 @@
                     ${buildDashboardCaptureStatusHtml(normalized)}
                     <article class="fv-support-bundle-overview">
                         <div class="fv-diagnostics-support-card-head">
-                            <div><i class="fa fa-life-ring" aria-hidden="true"></i><strong>${escapeHtml(translate('diagnostics.support.overview-title', 'Support bundle overview'))}</strong></div>
+                            <div>${svgIcon('support')}<strong>${escapeHtml(translate('diagnostics.support.overview-title', 'Support bundle overview'))}</strong></div>
                             <span class="fv-diagnostics-status-badge ${privacyMode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(privacyMode === 'full' ? 'Full mode' : 'Sanitized')}</span>
                         </div>
                         <p>${escapeHtml(translate('diagnostics.support.overview-description', 'Your bundle is sanitized by default to protect sensitive data.'))}</p>

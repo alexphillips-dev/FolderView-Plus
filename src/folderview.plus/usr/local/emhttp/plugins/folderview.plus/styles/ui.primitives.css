@@ -17,6 +17,15 @@
 
 body.fv-ui-modal-open { overflow: hidden; }
 
+.fv-ui-svg-icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 1em;
+    height: 1em;
+    overflow: visible;
+    color: inherit;
+}
+
 .fv-ui-button {
     appearance: none;
     align-items: center;

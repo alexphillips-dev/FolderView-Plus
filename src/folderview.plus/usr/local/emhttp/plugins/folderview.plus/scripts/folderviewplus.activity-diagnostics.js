@@ -745,6 +745,7 @@ const getSupportBundlePreviewApi = () => {
             getSupportBundlePreview,
             enrichSupportBundlePreview: collectSupportBundleUiTelemetry,
             showError: diagnosticsShowError,
+            svgIcon: window.FolderViewPlusUI?.svgIcon,
             t: diagnosticsT
         });
     }
@@ -1757,6 +1758,7 @@ const getDiagnosticsViewApi = () => {
     }
     diagnosticsViewApi = diagnosticsViewModule.createApi({
         escapeHtml: diagnosticsEscapeHtml,
+        svgIcon: window.FolderViewPlusUI?.svgIcon,
         t: diagnosticsT
     });
     return diagnosticsViewApi;

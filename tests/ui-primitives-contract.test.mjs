@@ -13,7 +13,7 @@ const css = fs.readFileSync(path.join(root, 'src/folderview.plus/usr/local/emhtt
 
 test('shared UI renderer exposes every required primitive with escaped output', () => {
     for (const method of [
-        'button', 'iconButton', 'badge', 'disclosure', 'field', 'dropdown', 'multiselect',
+        'svgIcon', 'button', 'iconButton', 'badge', 'disclosure', 'field', 'dropdown', 'multiselect',
         'emptyState', 'loadingState', 'openPopover', 'openModal', 'openActionSheet', 'confirm', 'alert',
         'toast', 'progress', 'registerAction', 'dispatchAction', 'installDelegation'
     ]) assert.equal(typeof ui[method], 'function', `${method} must be public`);
@@ -27,11 +27,14 @@ test('shared UI renderer exposes every required primitive with escaped output', 
     assert.match(ui.multiselect({ options: ['One', 'Two'], value: ['Two'] }), /multiple/);
     assert.match(ui.emptyState({ title: 'Nothing here' }), /fv-ui-empty-state/);
     assert.match(ui.loadingState({ label: 'Loading rows' }), /role="status"/);
+    assert.match(ui.svgIcon('shield'), /<svg[^>]+data-fv-icon="shield"/);
+    assert.match(ui.svgIcon('shield'), /stroke="currentColor"/);
+    assert.match(ui.svgIcon('unknown-icon'), /data-fv-icon="info-circle"/);
 });
 
 test('shared primitive stylesheet is tokenized, responsive, and specificity-safe', () => {
     for (const selector of [
-        '.fv-ui-button', '.fv-ui-icon-button', '.fv-ui-badge', '.fv-ui-disclosure', '.fv-ui-field',
+        '.fv-ui-svg-icon', '.fv-ui-button', '.fv-ui-icon-button', '.fv-ui-badge', '.fv-ui-disclosure', '.fv-ui-field',
         '.fv-ui-select', '.fv-ui-popover', '.fv-ui-modal-backdrop', '.fv-ui-toast-region', '.fv-ui-progress-state',
         '.fv-ui-empty-state', '.fv-ui-loading-state'
     ]) assert.ok(css.includes(selector), `${selector} must be styled`);

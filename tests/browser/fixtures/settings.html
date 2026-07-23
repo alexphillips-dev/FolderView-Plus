@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FolderView Plus Settings fixture</title>
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
+    <link rel="stylesheet" href="/plugin/styles/ui.primitives.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
     <style>
         body { margin: 0; background: #171717; color: #eee; font-family: Arial, sans-serif; }
@@ -21,12 +22,22 @@
         <section id="view-settings-fixture" aria-label="Filters and view settings fixture"></section>
         <section id="diagnostics-fixture" aria-label="Diagnostics fixture">
             <div id="fv-diagnostics-workspace" class="fv-diagnostics-workspace">
+                <header class="fv-diagnostics-workspace-head">
+                    <p>Monitor plugin health.</p>
+                    <div class="fv-diagnostics-toolbar">
+                        <button type="button" class="fv-ui-button is-primary">Run health check</button>
+                        <button type="button" class="fv-ui-button">Retest performance</button>
+                    </div>
+                </header>
                 <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface" aria-live="polite"></div>
+                <div id="fv-support-visual-fixture"></div>
             </div>
         </section>
     </main>
+    <script src="/plugin/scripts/folderviewplus.ui.js"></script>
     <script src="/plugin/scripts/folderviewplus.mobile-reorder.js"></script>
     <script src="/plugin/scripts/folderviewplus.chrome.js"></script>
+    <script src="/plugin/scripts/folderviewplus.support-bundle-preview.js"></script>
     <script src="/plugin/scripts/folderviewplus.diagnostics-view-model.js"></script>
     <script src="/plugin/scripts/folderviewplus.diagnostics-view.js"></script>
     <script>
@@ -87,8 +98,34 @@
             escapeHtml: (value) => String(value ?? '')
                 .replaceAll('&', '&amp;')
                 .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
+                .replaceAll('>', '&gt;'),
+            svgIcon: window.FolderViewPlusUI.svgIcon
         }).render(document.getElementById('fv-diagnostics-summary'), diagnosticsModel);
+        const supportBundlePreview = window.FolderViewPlusSupportBundlePreview.createApi({
+            svgIcon: window.FolderViewPlusUI.svgIcon
+        });
+        const supportFixtureBundle = {
+            bundleMeta: { privacyMode: 'sanitized' },
+            system: {},
+            pluginState: {},
+            runtimeState: {},
+            uiTelemetry: {},
+            healthAndHistory: {},
+            redactionManifest: {
+                hashedFields: ['one'],
+                maskedFields: ['two'],
+                omittedFields: ['three'],
+                truncatedFields: ['four']
+            }
+        };
+        document.getElementById('fv-support-visual-fixture').innerHTML = `
+            <div class="fv-support-bundle-section-grid">
+                ${supportBundlePreview.buildSupportBundlePreviewSectionCards(supportFixtureBundle)}
+            </div>
+            <div class="fv-support-bundle-redaction-card">
+                ${supportBundlePreview.buildSupportBundleRedactionPreviewHtml(supportFixtureBundle)}
+            </div>
+        `;
         window.fixtureSettings = {
             ready: true,
             viewSettingsReady: loadViewSettingsFixture(),

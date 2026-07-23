@@ -8,6 +8,14 @@ const modelModule = require(path.resolve(
     process.cwd(),
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js'
 ));
+const viewModule = require(path.resolve(
+    process.cwd(),
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js'
+));
+const uiModule = require(path.resolve(
+    process.cwd(),
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.ui.js'
+));
 
 const healthyCoreCards = [
     { key: 'docker', label: 'Docker config', status: 'healthy', headline: 'No issues detected.' },
@@ -87,4 +95,30 @@ test('failed refresh preserves prior results while exposing the failure state', 
     assert.equal(model.state, 'error');
     assert.equal(model.errorMessage, 'Request timed out');
     assert.equal(model.metrics.coreTotal, 6);
+});
+
+test('diagnostics renderer provides SVG metric and card icons with a complete core progress bar', () => {
+    const model = modelModule.buildDiagnosticsViewModel({
+        hasResults: true,
+        checkedAtLabel: 'just now',
+        pluginVersion: '2026.07.23.08',
+        coreCards: healthyCoreCards,
+        additionalCards: []
+    });
+    const view = viewModule.createApi({
+        escapeHtml: uiModule.escapeHtml,
+        svgIcon: uiModule.svgIcon
+    });
+    const hero = view.buildHero(model);
+    const card = view.buildCard(healthyCoreCards[0]);
+
+    assert.equal((hero.match(/fv-diagnostics-metric-icon/g) || []).length, 3);
+    assert.match(hero, /data-fv-icon="info-circle"/);
+    assert.match(hero, /data-fv-icon="calendar"/);
+    assert.match(hero, /data-fv-icon="package"/);
+    assert.match(hero, /role="progressbar"/);
+    assert.match(hero, /aria-valuenow="6"/);
+    assert.match(hero, /style="width: 100%"/);
+    assert.match(card, /fv-diagnostics-health-card-icon is-docker/);
+    assert.match(card, /data-fv-icon="boxes"/);
 });

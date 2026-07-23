@@ -33,6 +33,41 @@
         host?.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
     );
 
+    const SVG_ICON_PATHS = Object.freeze({
+        'activity': '<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"></polyline>',
+        'alert-triangle': '<path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
+        'boxes': '<rect x="3" y="4" width="7" height="7" rx="1"></rect><rect x="14" y="4" width="7" height="7" rx="1"></rect><rect x="8.5" y="14" width="7" height="7" rx="1"></rect>',
+        'calendar': '<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path>',
+        'check-circle': '<circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16.5 8.5"></path>',
+        'clock': '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+        'document': '<path d="M6 3h8l4 4v14H6z"></path><path d="M14 3v5h5M9 13h6M9 17h6"></path>',
+        'folder': '<path d="M3 6h7l2 2h9v11H3z"></path>',
+        'globe': '<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"></path>',
+        'heart': '<path d="M20.8 5.8a5 5 0 0 0-7.1 0L12 7.5l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.1a5 5 0 0 0 0-7.1Z"></path>',
+        'image': '<rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m4 17 5-5 4 4 2-2 5 5"></path>',
+        'info-circle': '<circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7h.01"></path>',
+        'minus-circle': '<circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path>',
+        'monitor': '<rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path>',
+        'package': '<path d="m4 7 8-4 8 4-8 4z"></path><path d="M4 7v10l8 4 8-4V7M12 11v10"></path>',
+        'paintbrush': '<path d="m14 4 6 6-8.5 8.5a3 3 0 0 1-4.2-4.2Z"></path><path d="m12 6 6 6M7.3 14.3c-3-.3-4.8 1.2-4.3 4.7 2.5.2 4.2-.6 5.1-2.4"></path>',
+        'puzzle': '<path d="M8 3h5v4a2 2 0 1 0 4 0V3h4v6h-4a2 2 0 1 0 0 4h4v8h-7v-4a2 2 0 1 0-4 0v4H3v-7h4a2 2 0 1 0 0-4H3V3z"></path>',
+        'refresh': '<path d="M20 7v5h-5"></path><path d="M19 12a7 7 0 1 1-2-5"></path>',
+        'server': '<rect x="3" y="4" width="18" height="6" rx="1"></rect><rect x="3" y="14" width="18" height="6" rx="1"></rect><path d="M7 7h.01M7 17h.01M11 7h7M11 17h7"></path>',
+        'shield': '<path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"></path><path d="m9 12 2 2 4-4"></path>',
+        'support': '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><path d="m5.6 5.6 4.3 4.3M14.1 14.1l4.3 4.3M18.4 5.6l-4.3 4.3M9.9 14.1l-4.3 4.3"></path>',
+        'upload': '<path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path>',
+        'x-circle': '<circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6M15 9l-6 6"></path>'
+    });
+
+    const svgIcon = (name, { className = '', title = '' } = {}) => {
+        const iconName = Object.prototype.hasOwnProperty.call(SVG_ICON_PATHS, name) ? name : 'info-circle';
+        const safeTitle = String(title || '').trim();
+        const accessibility = safeTitle
+            ? `role="img" aria-label="${escapeHtml(safeTitle)}"`
+            : 'aria-hidden="true"';
+        return `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false" data-fv-icon="${escapeHtml(iconName)}" ${accessibility}>${SVG_ICON_PATHS[iconName]}</svg>`;
+    };
+
     const iconMarkup = (icon) => icon
         ? `<i class="fa ${escapeHtml(icon)}" aria-hidden="true"></i>`
         : '';
@@ -458,6 +493,7 @@
 
     return Object.freeze({
         escapeHtml,
+        svgIcon,
         button,
         iconButton,
         badge,

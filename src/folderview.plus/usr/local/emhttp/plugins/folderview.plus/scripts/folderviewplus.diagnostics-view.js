@@ -7,22 +7,22 @@
     root.FolderViewPlusDiagnosticsViewModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const STATUS_CONFIG = Object.freeze({
-        unchecked: Object.freeze({ label: 'Not checked', icon: 'fa-minus-circle' }),
-        healthy: Object.freeze({ label: 'Healthy', icon: 'fa-check-circle' }),
-        info: Object.freeze({ label: 'Notice', icon: 'fa-info-circle' }),
-        warning: Object.freeze({ label: 'Follow up', icon: 'fa-exclamation-triangle' }),
-        error: Object.freeze({ label: 'Needs attention', icon: 'fa-times-circle' })
+        unchecked: Object.freeze({ label: 'Not checked', icon: 'minus-circle' }),
+        healthy: Object.freeze({ label: 'Healthy', icon: 'check-circle' }),
+        info: Object.freeze({ label: 'Notice', icon: 'info-circle' }),
+        warning: Object.freeze({ label: 'Follow up', icon: 'alert-triangle' }),
+        error: Object.freeze({ label: 'Needs attention', icon: 'x-circle' })
     });
     const CARD_CONFIG = Object.freeze({
-        docker: Object.freeze({ icon: 'fa-cubes' }),
-        vm: Object.freeze({ icon: 'fa-desktop' }),
-        storage: Object.freeze({ icon: 'fa-folder-o' }),
-        custom_icons: Object.freeze({ icon: 'fa-picture-o' }),
-        update: Object.freeze({ icon: 'fa-upload' }),
-        theme: Object.freeze({ icon: 'fa-paint-brush' }),
-        performance_budget: Object.freeze({ icon: 'fa-line-chart' }),
-        native_organizer: Object.freeze({ icon: 'fa-puzzle-piece', action: 'diagnostics-check-native-organizer' }),
-        localization: Object.freeze({ icon: 'fa-globe' })
+        docker: Object.freeze({ icon: 'boxes' }),
+        vm: Object.freeze({ icon: 'monitor' }),
+        storage: Object.freeze({ icon: 'folder' }),
+        custom_icons: Object.freeze({ icon: 'image' }),
+        update: Object.freeze({ icon: 'upload' }),
+        theme: Object.freeze({ icon: 'paintbrush' }),
+        performance_budget: Object.freeze({ icon: 'activity' }),
+        native_organizer: Object.freeze({ icon: 'puzzle', action: 'diagnostics-check-native-organizer' }),
+        localization: Object.freeze({ icon: 'globe' })
     });
 
     const createApi = (deps = {}) => {
@@ -32,6 +32,9 @@
         const translate = (key, fallback = '', ...params) => (
             typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
         );
+        const svgIcon = typeof deps.svgIcon === 'function'
+            ? deps.svgIcon
+            : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
         const statusConfig = (status) => STATUS_CONFIG[status] || STATUS_CONFIG.healthy;
         const cardId = (key) => `fv-diagnostics-card-${String(key || 'status').replace(/[^a-z0-9_-]/gi, '-')}`;
 
@@ -47,24 +50,25 @@
 
         const buildCard = (card) => {
             const status = statusConfig(card.status);
-            const config = CARD_CONFIG[card.key] || { icon: 'fa-stethoscope' };
+            const config = CARD_CONFIG[card.key] || { icon: 'info-circle' };
+            const iconTone = `is-${String(card.key || 'status').replace(/[^a-z0-9_-]/gi, '-')}`;
             const action = config.action ? `
                 <button type="button" class="fv-diagnostics-context-action" data-fv-ui-action="${escapeHtml(config.action)}">
-                    <i class="fa fa-refresh" aria-hidden="true"></i>
+                    ${svgIcon('refresh')}
                     ${escapeHtml(translate('diagnostics.actions.check-again', 'Check again'))}
                 </button>
             ` : '';
             return `
                 <article id="${escapeHtml(cardId(card.key))}" class="fv-diagnostics-health-card is-${escapeHtml(card.status)}" tabindex="-1" data-fv-diagnostics-card="${escapeHtml(card.key)}">
                     <div class="fv-diagnostics-health-card-head">
-                        <span class="fv-diagnostics-health-card-icon" aria-hidden="true"><i class="fa ${config.icon}"></i></span>
+                        <span class="fv-diagnostics-health-card-icon ${escapeHtml(iconTone)}" aria-hidden="true">${svgIcon(config.icon)}</span>
                         <strong>${escapeHtml(card.label)}</strong>
-                        <span class="fv-diagnostics-status-badge is-${escapeHtml(card.status)}"><i class="fa ${status.icon}" aria-hidden="true"></i>${escapeHtml(card.badgeLabel || status.label)}</span>
+                        <span class="fv-diagnostics-status-badge is-${escapeHtml(card.status)}">${svgIcon(status.icon)}${escapeHtml(card.badgeLabel || status.label)}</span>
                     </div>
                     <p class="fv-diagnostics-health-card-headline">${escapeHtml(card.headline)}</p>
                     ${card.detail ? `<p class="fv-diagnostics-health-card-detail">${escapeHtml(card.detail)}</p>` : ''}
                     <div class="fv-diagnostics-health-card-foot">
-                        ${card.freshness ? `<span><i class="fa fa-clock-o" aria-hidden="true"></i>${escapeHtml(card.freshness)}</span>` : ''}
+                        ${card.freshness ? `<span>${svgIcon('clock')}${escapeHtml(card.freshness)}</span>` : ''}
                         ${action}
                     </div>
                     ${buildTechnicalDetails(card)}
@@ -75,11 +79,14 @@
         const buildHero = (model) => {
             const status = statusConfig(model.overall.status);
             const metrics = model.metrics;
+            const corePercent = metrics.coreTotal > 0
+                ? Math.max(0, Math.min(100, Math.round((metrics.coreHealthy / metrics.coreTotal) * 100)))
+                : 0;
             return `
                 <section class="fv-diagnostics-hero is-${escapeHtml(model.overall.status)}" aria-labelledby="fv-diagnostics-overall-title">
                     <div class="fv-diagnostics-overall">
                         <span class="fv-diagnostics-status-ring" role="img" aria-label="${escapeHtml(model.overall.label)}">
-                            <i class="fa ${status.icon}" aria-hidden="true"></i>
+                            ${svgIcon(status.icon)}
                         </span>
                         <div>
                             <span class="fv-diagnostics-eyebrow">${escapeHtml(translate('diagnostics.overall.label', 'Overall health'))}</span>
@@ -89,10 +96,29 @@
                         </div>
                     </div>
                     <dl class="fv-diagnostics-metrics">
-                        <div><dt>${escapeHtml(translate('diagnostics.metrics.notices', 'Optional notices'))}</dt><dd>${escapeHtml(metrics.optionalCount)}</dd><small>${escapeHtml(translate('diagnostics.metrics.informational', 'Informational only'))}</small></div>
-                        <div><dt>${escapeHtml(translate('diagnostics.metrics.last-check', 'Last checked'))}</dt><dd>${escapeHtml(metrics.checkedAtLabel)}</dd></div>
-                        <div><dt>${escapeHtml(translate('diagnostics.metrics.version', 'Current version'))}</dt><dd>${escapeHtml(metrics.pluginVersion)}</dd><small>${escapeHtml(metrics.updateLabel)}</small></div>
-                        <div><dt>${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}</dt><dd>${escapeHtml(`${metrics.coreHealthy} / ${metrics.coreTotal}`)}</dd><small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small></div>
+                        <div class="fv-diagnostics-metric has-icon is-notices">
+                            ${svgIcon('info-circle', { className: 'fv-diagnostics-metric-icon' })}
+                            <dt>${escapeHtml(translate('diagnostics.metrics.notices', 'Optional notices'))}</dt>
+                            <dd>${escapeHtml(metrics.optionalCount)}</dd>
+                            <small>${escapeHtml(translate('diagnostics.metrics.informational', 'Informational only'))}</small>
+                        </div>
+                        <div class="fv-diagnostics-metric has-icon is-checked">
+                            ${svgIcon('calendar', { className: 'fv-diagnostics-metric-icon' })}
+                            <dt>${escapeHtml(translate('diagnostics.metrics.last-check', 'Last checked'))}</dt>
+                            <dd>${escapeHtml(metrics.checkedAtLabel)}</dd>
+                        </div>
+                        <div class="fv-diagnostics-metric has-icon is-version">
+                            ${svgIcon('package', { className: 'fv-diagnostics-metric-icon' })}
+                            <dt>${escapeHtml(translate('diagnostics.metrics.version', 'Current version'))}</dt>
+                            <dd>${escapeHtml(metrics.pluginVersion)}</dd>
+                            <small>${escapeHtml(metrics.updateLabel)}</small>
+                        </div>
+                        <div class="fv-diagnostics-metric is-core is-${escapeHtml(model.overall.status)}">
+                            <dt>${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}</dt>
+                            <dd>${escapeHtml(`${metrics.coreHealthy} / ${metrics.coreTotal}`)}</dd>
+                            <small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small>
+                            <span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span style="width: ${corePercent}%"></span></span>
+                        </div>
                     </dl>
                 </section>
             `;
@@ -104,10 +130,10 @@
                 banners.push(`<div class="fv-diagnostics-state-banner is-running" role="status"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i><span><strong>${escapeHtml(translate('diagnostics.state.running-title', 'Health check in progress'))}</strong>${escapeHtml(translate('diagnostics.state.running-detail', 'The latest complete results will remain visible while checks refresh.'))}</span></div>`);
             }
             if (model.errorMessage) {
-                banners.push(`<div class="fv-diagnostics-state-banner is-error" role="alert"><i class="fa fa-exclamation-circle" aria-hidden="true"></i><span><strong>${escapeHtml(translate('diagnostics.state.failed-title', 'The latest health check failed.'))}</strong>${escapeHtml(model.errorMessage)}</span></div>`);
+                banners.push(`<div class="fv-diagnostics-state-banner is-error" role="alert">${svgIcon('x-circle')}<span><strong>${escapeHtml(translate('diagnostics.state.failed-title', 'The latest health check failed.'))}</strong>${escapeHtml(model.errorMessage)}</span></div>`);
             }
             if (model.stale) {
-                banners.push(`<div class="fv-diagnostics-state-banner is-stale" role="status"><i class="fa fa-clock-o" aria-hidden="true"></i><span><strong>${escapeHtml(translate('diagnostics.state.stale-title', 'These results may be out of date.'))}</strong>${escapeHtml(translate('diagnostics.state.stale-detail', 'Run the health check again to refresh checks older than 15 minutes.'))}</span></div>`);
+                banners.push(`<div class="fv-diagnostics-state-banner is-stale" role="status">${svgIcon('clock')}<span><strong>${escapeHtml(translate('diagnostics.state.stale-title', 'These results may be out of date.'))}</strong>${escapeHtml(translate('diagnostics.state.stale-detail', 'Run the health check again to refresh checks older than 15 minutes.'))}</span></div>`);
             }
             return banners.join('');
         };
@@ -119,7 +145,7 @@
                         <div class="fv-diagnostics-findings-head">
                             <h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3>
                         </div>
-                        <div class="fv-diagnostics-clear-result"><i class="fa fa-check-circle" aria-hidden="true"></i><span><strong>${escapeHtml(translate('diagnostics.findings.none-title', 'No urgent issues detected'))}</strong><small>${escapeHtml(translate('diagnostics.findings.none-detail', 'Your system is operating normally.'))}</small></span></div>
+                        <div class="fv-diagnostics-clear-result">${svgIcon('check-circle')}<span><strong>${escapeHtml(translate('diagnostics.findings.none-title', 'No urgent issues detected'))}</strong><small>${escapeHtml(translate('diagnostics.findings.none-detail', 'Your system is operating normally.'))}</small></span></div>
                     </section>
                 `;
             }
@@ -129,7 +155,7 @@
                     <div class="fv-diagnostics-findings-list">
                         ${model.findings.map((finding) => {
                             const status = statusConfig(finding.status);
-                            return `<a href="#${escapeHtml(cardId(finding.key))}" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}"><i class="fa ${status.icon}" aria-hidden="true"></i><span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span><i class="fa fa-angle-right" aria-hidden="true"></i></a>`;
+                            return `<a href="#${escapeHtml(cardId(finding.key))}" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}">${svgIcon(status.icon)}<span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span><i class="fa fa-angle-right" aria-hidden="true"></i></a>`;
                         }).join('')}
                     </div>
                 </section>
@@ -158,7 +184,7 @@
                 host.innerHTML = `
                     ${buildBanners(model)}
                     <section class="fv-diagnostics-unchecked is-${escapeHtml(model.overall.status)}">
-                        <span class="fv-diagnostics-status-ring" aria-hidden="true"><i class="fa ${statusConfig(model.overall.status).icon}"></i></span>
+                        <span class="fv-diagnostics-status-ring" aria-hidden="true">${svgIcon(statusConfig(model.overall.status).icon)}</span>
                         <div><span class="fv-diagnostics-eyebrow">${escapeHtml(model.overall.label)}</span><h3>${escapeHtml(model.overall.headline)}</h3><p>${escapeHtml(model.overall.detail)}</p></div>
                     </section>
                 `;

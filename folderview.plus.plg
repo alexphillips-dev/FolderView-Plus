@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.07">
-<!ENTITY md5 "cec276b476f421550e23b71a339bda33">
+<!ENTITY version "2026.07.23.08">
+<!ENTITY md5 "c5520b5ba4acfa1aaf6e994d5b36f722">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.08
+- UX: Corrected the Diagnostics toolbar hierarchy so Run health check uses the primary orange treatment while Retest performance, Copy issue report, and Export support bundle remain neutral controls.
+- Accessibility: Increased supporting text sizes throughout Diagnostics and added a visible status bar beneath the core-check count.
+- UI/UX: Replaced theme-sensitive font icons with inline SVG icons for hero metrics, system health cards, Dashboard evidence, support-bundle sections, and privacy status surfaces.
+- Privacy: Restyled Hashed, Masked, Omitted, and Truncated as distinct colored badges with their export state or count kept beside each badge.
+- Quality: Added dark/light desktop and mobile browser assertions for button colors, SVG visibility, icon placement, progress width, readable type, privacy badges, and overflow safety.
+
 
 ###2026.07.23.07
 - UX: Rebuilt Advanced > Diagnostics as a compact workspace with one action toolbar, an overall-health summary, priority findings, six core system checks, and three clearly separated additional diagnostics.

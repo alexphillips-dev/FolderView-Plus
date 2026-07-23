@@ -76,6 +76,34 @@ test('support bundle preview keeps diagnostic domain data out of the normal work
     assert.doesNotMatch(html, /diagnosticDomains/);
 });
 
+test('support bundle overview uses semantic SVG icons and colored privacy badge hooks', () => {
+    const bundle = {
+        bundleMeta: { privacyMode: 'sanitized' },
+        system: {},
+        pluginState: {},
+        runtimeState: {},
+        uiTelemetry: {},
+        healthAndHistory: {},
+        redactionManifest: {
+            hashedFields: ['hashed'],
+            maskedFields: ['masked'],
+            omittedFields: ['omitted'],
+            truncatedFields: ['truncated']
+        }
+    };
+    const sectionHtml = api.buildSupportBundlePreviewSectionCards(bundle);
+    const redactionHtml = api.buildSupportBundleRedactionPreviewHtml(bundle);
+
+    assert.match(sectionHtml, /data-fv-icon="document"/);
+    assert.match(sectionHtml, /data-fv-icon="monitor"/);
+    assert.match(sectionHtml, /data-fv-icon="shield"/);
+    assert.match(sectionHtml, /data-fv-icon="check-circle"/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-item is-hashed/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-item is-masked/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-item is-omitted/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-item is-truncated/);
+});
+
 test('support bundle preview enriches browser telemetry before its first render', async () => {
     let enrichmentCalls = 0;
     const lifecycleApi = previewModule.createApi({

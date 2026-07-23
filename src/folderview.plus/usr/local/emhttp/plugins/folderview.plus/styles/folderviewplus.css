@@ -7059,6 +7059,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-diagnostics-metrics > div {
+    position: relative;
     display: grid;
     align-content: center;
     justify-items: center;
@@ -7069,18 +7070,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     text-align: center;
 }
 
-.fv-diagnostics-metric.has-icon {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-        "icon"
-        "label"
-        "value"
-        "detail";
-}
-
 .fv-diagnostics-metric.has-icon .fv-diagnostics-metric-icon {
-    grid-area: icon;
-    justify-self: center;
+    position: absolute;
+    top: 0.65rem;
+    left: 0.75rem;
     width: 2.6rem;
     height: 2.6rem;
     color: var(--fvplus-settings-chip-info);
@@ -7091,19 +7084,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-diagnostics-metric.is-version .fv-diagnostics-metric-icon {
-    color: var(--fvplus-settings-accent);
-}
-
-.fv-diagnostics-metric.has-icon dt {
-    grid-area: label;
-}
-
-.fv-diagnostics-metric.has-icon dd {
-    grid-area: value;
-}
-
-.fv-diagnostics-metric.has-icon small {
-    grid-area: detail;
+    color: var(--fvplus-settings-chip-success);
 }
 
 .fv-diagnostics-metrics dt {

@@ -11944,7 +11944,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     repairDiagnostics,
     exportDiagnostics,
     exportSupportBundle,
-    copyIssueReport,
     runConflictInspector,
     checkForUpdatesNow,
     showDevForceRefreshHelper,
@@ -12017,7 +12016,6 @@ if (window.FolderViewPlusUI?.registerAction) {
     window.FolderViewPlusUI.registerAction('diagnostics-run', () => runDiagnostics());
     window.FolderViewPlusUI.registerAction('diagnostics-retest-performance', () => retestPerformanceDiagnostics());
     window.FolderViewPlusUI.registerAction('diagnostics-check-native-organizer', () => checkNativeOrganizerDiagnostics());
-    window.FolderViewPlusUI.registerAction('diagnostics-copy-report', () => copyIssueReport());
     window.FolderViewPlusUI.registerAction('diagnostics-export-bundle', () => exportSupportBundle());
 }
 

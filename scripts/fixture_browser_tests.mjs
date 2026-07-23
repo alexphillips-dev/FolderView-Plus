@@ -840,11 +840,41 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             hasClearFindings: workspace.querySelector('.fv-diagnostics-findings.is-clear') !== null,
             metricSvgIcons: metricIcons.length,
             metricIconWidths: metricIcons.map((icon) => icon.getBoundingClientRect().width),
+            metricIconColors: metricIcons.map((icon) => getComputedStyle(icon).color),
             metricTitleSizes: metricTitles.map((title) => parseFloat(getComputedStyle(title).fontSize)),
-            metricsAreCentered: metrics.every((metric) => {
+            metricIconsAreTopLeft: metricIcons.every((icon) => {
+                const metricRect = icon.closest('.fv-diagnostics-metric').getBoundingClientRect();
+                const iconRect = icon.getBoundingClientRect();
+                const leftOffset = iconRect.left - metricRect.left;
+                const topOffset = iconRect.top - metricRect.top;
+                return leftOffset >= 8 && leftOffset <= 16 && topOffset >= 8 && topOffset <= 16;
+            }),
+            metricCopyIsHorizontallyCentered: metrics
+                .filter((metric) => metric.classList.contains('has-icon'))
+                .every((metric) => {
+                    const metricRect = metric.getBoundingClientRect();
+                    const center = metricRect.left + (metricRect.width / 2);
+                    return [...metric.querySelectorAll('dt, dd, small')].every((element) => {
+                        const rect = element.getBoundingClientRect();
+                        return Math.abs((rect.left + (rect.width / 2)) - center) <= 1;
+                    });
+                }),
+            metricCopyIsVerticallyCentered: metrics
+                .filter((metric) => metric.classList.contains('has-icon'))
+                .every((metric) => {
+                    const metricRect = metric.getBoundingClientRect();
+                    const copy = [...metric.querySelectorAll('dt, dd, small')];
+                    const copyTop = Math.min(...copy.map((element) => element.getBoundingClientRect().top));
+                    const copyBottom = Math.max(...copy.map((element) => element.getBoundingClientRect().bottom));
+                    return Math.abs(
+                        ((copyTop + copyBottom) / 2)
+                        - (metricRect.top + (metricRect.height / 2))
+                    ) <= 2;
+                }),
+            metricTextIsCentered: metrics.every((metric) => {
                 const metricRect = metric.getBoundingClientRect();
                 const center = metricRect.left + (metricRect.width / 2);
-                return [...metric.querySelectorAll('dt, dd, small, .fv-diagnostics-metric-icon')].every((element) => {
+                return [...metric.querySelectorAll('dt, dd, small')].every((element) => {
                     const rect = element.getBoundingClientRect();
                     return Math.abs((rect.left + (rect.width / 2)) - center) <= 1;
                 });
@@ -854,6 +884,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             systemIconColors: systemIcons.map((icon) => getComputedStyle(icon).color),
             storageUpdateIconColors: storageUpdateIcons.map((icon) => getComputedStyle(icon).color),
             supportHeaderIconColors: supportHeaderIcons.map((icon) => getComputedStyle(icon).color),
+            toolbarButtonCount: toolbarButtons.length,
+            toolbarButtonLabels: toolbarButtons.map((button) => button.textContent.trim()),
             toolbarButtonHeights: toolbarButtons.map((button) => button.getBoundingClientRect().height),
             coreProgressRatio: coreProgress && coreProgressFill
                 ? coreProgressFill.getBoundingClientRect().width / coreProgress.getBoundingClientRect().width
@@ -920,8 +952,12 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.hasClearFindings, true);
     assert.equal(layout.metricSvgIcons, 3);
     assert.equal(layout.metricIconWidths.every((width) => width >= 41), true);
+    assert.equal(layout.metricIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.metricTitleSizes.every((size) => size >= 20.7), true);
-    assert.equal(layout.metricsAreCentered, true);
+    assert.equal(layout.metricIconsAreTopLeft, true);
+    assert.equal(layout.metricCopyIsHorizontallyCentered, true);
+    assert.equal(layout.metricCopyIsVerticallyCentered, true);
+    assert.equal(layout.metricTextIsCentered, true);
     assert.equal(layout.systemSvgIcons, 9);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
@@ -930,6 +966,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.supportHeaderIconColors.length, 2);
     assert.equal(layout.supportHeaderIconColors.every((color) => color !== 'rgb(0, 0, 0)' && color !== layout.accentColor), true);
     assert.equal(new Set(layout.supportHeaderIconColors).size, 2);
+    assert.equal(layout.toolbarButtonCount, 3);
+    assert.equal(layout.toolbarButtonLabels.some((label) => label === 'Copy issue report'), false);
     assert.equal(layout.toolbarButtonHeights.every((height) => height >= 35 && height <= 37), true);
     assert.ok(
         Math.max(...layout.toolbarButtonHeights) - Math.min(...layout.toolbarButtonHeights) <= 1,
@@ -977,6 +1015,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
 
     await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
     layout = await readDiagnosticsLayout();
+    assert.equal(layout.metricIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.storageUpdateIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.supportHeaderIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
@@ -994,7 +1033,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     layout = await readDiagnosticsLayout();
     assert.equal(layout.coreColumns, 3);
     assert.equal(layout.additionalColumns, 3);
-    assert.equal(layout.metricsAreCentered, true);
+    assert.equal(layout.metricIconsAreTopLeft, true);
+    assert.equal(layout.metricCopyIsHorizontallyCentered, true);
+    assert.equal(layout.metricCopyIsVerticallyCentered, true);
+    assert.equal(layout.metricTextIsCentered, true);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'tablet diagnostics must not overflow');
 

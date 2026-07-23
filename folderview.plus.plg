@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.12">
-<!ENTITY md5 "31850f34e9946efcfc3a65694f859d3d">
+<!ENTITY version "2026.07.23.13">
+<!ENTITY md5 "0bbc516393b4f5ebe4f0a7ff5fd0dae2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.13
+- UX: Removed Copy issue report from the Diagnostics toolbar so the action row stays focused on health checks, performance retesting, and sanitized support-bundle export.
+- UI/UX: Anchored the Optional notices, Last checked, and Current version icons in the top-left of their summary panels while centering each panel's title, value, and supporting text independently.
+- Accessibility: Replaced the Current version icon's host-accent color with the theme-aware success token so it remains visible in dark and light themes.
+- Quality: Added rendered desktop, tablet, mobile, and light-theme assertions for the three-button toolbar, top-left metric icon placement, centered metric text, and readable semantic icon colors.
+
 
 ###2026.07.23.12
 - Accessibility: Replaced accent-dependent dark-mode icons with readable semantic colors for Storage and paths, Update check, Dashboard visual evidence, and Support bundle overview.

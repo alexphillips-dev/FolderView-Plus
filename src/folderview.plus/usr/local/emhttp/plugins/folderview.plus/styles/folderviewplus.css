@@ -7563,14 +7563,73 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-support-bundle-section-icon {
+    --fv-support-section-icon-color: var(--fvplus-settings-chip-info);
+
     display: inline-grid;
     grid-row: 1 / span 2;
     place-items: center;
     width: 2.6rem;
     height: 2.6rem;
     border-radius: 7px;
-    background: var(--fvplus-settings-accent-soft);
-    color: var(--fvplus-settings-accent-strong);
+    background: color-mix(
+        in srgb,
+        var(--fv-support-section-icon-color) 13%,
+        var(--fvplus-settings-surface-strong)
+    );
+    color: var(--fv-support-section-icon-color);
+    box-shadow: inset 0 0 0 1px color-mix(
+        in srgb,
+        var(--fv-support-section-icon-color) 28%,
+        transparent
+    );
+}
+
+.fv-support-bundle-section-icon.is-bundle {
+    --fv-support-section-icon-color: var(--fvplus-settings-chip-info);
+}
+
+.fv-support-bundle-section-icon.is-system {
+    --fv-support-section-icon-color: color-mix(
+        in srgb,
+        var(--fvplus-settings-chip-info) 58%,
+        var(--fvplus-settings-chip-success)
+    );
+}
+
+.fv-support-bundle-section-icon.is-plugin {
+    --fv-support-section-icon-color: color-mix(
+        in srgb,
+        var(--fvplus-settings-chip-info) 62%,
+        #b76cff
+    );
+}
+
+.fv-support-bundle-section-icon.is-runtime {
+    --fv-support-section-icon-color: color-mix(
+        in srgb,
+        var(--fvplus-settings-chip-info) 76%,
+        #6678ff
+    );
+}
+
+.fv-support-bundle-section-icon.is-browser {
+    --fv-support-section-icon-color: color-mix(
+        in srgb,
+        var(--fvplus-settings-chip-info) 58%,
+        #22c7c7
+    );
+}
+
+.fv-support-bundle-section-icon.is-health {
+    --fv-support-section-icon-color: color-mix(
+        in srgb,
+        var(--fvplus-settings-chip-danger) 56%,
+        #d86fbd
+    );
+}
+
+.fv-support-bundle-section-icon.is-redaction {
+    --fv-support-section-icon-color: var(--fvplus-settings-chip-success);
 }
 
 .fv-support-bundle-section-icon .fv-ui-svg-icon {
@@ -7600,20 +7659,27 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-support-bundle-redaction-card {
+    position: relative;
+    align-content: center;
     gap: 0.45rem;
-    padding: 0.65rem 0.8rem;
+    min-height: 76px;
+    padding: 0.85rem 1rem 2.45rem;
 }
 
 .fv-support-bundle-privacy-summary {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.8rem 1.2rem;
+    width: 100%;
     flex-wrap: wrap;
+    text-align: center;
 }
 
 .fv-support-bundle-privacy-summary > div:first-child {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.45rem;
 }
 
@@ -7626,6 +7692,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-support-bundle-privacy-items {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.55rem 0.75rem;
 }
 
@@ -7641,7 +7708,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     min-height: 24px;
     padding: 0.16rem 0.58rem;
     border: 1px solid var(--fvplus-settings-chip-info-border);
-    border-radius: 999px;
+    border-radius: 6px;
     background: var(--fvplus-settings-chip-info-bg);
     color: var(--fvplus-settings-chip-info);
     font-size: 1.08rem;
@@ -7671,22 +7738,50 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     font-size: 1.08rem;
 }
 
-.fv-support-bundle-privacy-details {
-    margin-left: auto;
+.fv-support-bundle-privacy-summary .fv-diagnostics-status-badge {
+    border-radius: 6px;
 }
 
-.fv-support-bundle-privacy-details summary {
+.fv-support-bundle-privacy-details {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.62rem;
+    margin: 0;
+}
+
+#fv-settings-root .fv-support-bundle-redaction-card .fv-support-bundle-privacy-details > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     cursor: pointer;
-    color: var(--fvplus-settings-accent);
+    color: var(--fvplus-settings-accent-strong) !important;
+    -webkit-text-fill-color: currentColor !important;
     font-size: 1.12rem;
     list-style: none;
+    opacity: 1;
+    text-shadow: none !important;
 }
 
-.fv-support-bundle-privacy-details summary::-webkit-details-marker {
+#fv-settings-root .fv-support-bundle-redaction-card .fv-support-bundle-privacy-details > summary:hover,
+#fv-settings-root .fv-support-bundle-redaction-card .fv-support-bundle-privacy-details > summary:focus-visible {
+    color: color-mix(
+        in srgb,
+        var(--fvplus-settings-accent-strong) 78%,
+        var(--fvplus-settings-text-primary)
+    ) !important;
+}
+
+.fv-support-bundle-privacy-details > summary > i {
+    color: currentColor;
+}
+
+.fv-support-bundle-privacy-details > summary::-webkit-details-marker {
     display: none;
 }
 
 .fv-support-bundle-privacy-details[open] {
+    position: static;
+    justify-self: stretch;
     width: 100%;
     margin-left: 0;
     padding-top: 0.45rem;
@@ -7810,8 +7905,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 
     .fv-support-bundle-privacy-details {
+        position: static;
+        justify-self: center;
         width: 100%;
         margin-left: 0;
+        text-align: center;
+    }
+
+    .fv-support-bundle-redaction-card {
+        padding: 0.85rem;
     }
 }
 

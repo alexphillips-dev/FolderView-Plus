@@ -784,7 +784,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const metrics = [...workspace.querySelectorAll('.fv-diagnostics-metrics > div')];
         const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
         const supportIcons = [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')];
+        const supportIconTiles = [...workspace.querySelectorAll('.fv-support-bundle-section-icon')];
         const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
+        const privacyCard = workspace.querySelector('.fv-support-bundle-redaction-card');
+        const privacySummary = workspace.querySelector('.fv-support-bundle-privacy-summary');
+        const privacyLink = workspace.querySelector('.fv-support-bundle-privacy-details > summary');
         const readableText = [...workspace.querySelectorAll(
             '.fv-diagnostics-health-card-foot, .fv-diagnostics-health-card-detail, .fv-diagnostics-metrics small, .fv-support-bundle-preview-meta'
         )];
@@ -797,6 +801,22 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         workspace.append(accentProbe);
         const accent = getComputedStyle(accentProbe).color;
         accentProbe.remove();
+        const accentStrongProbe = document.createElement('span');
+        accentStrongProbe.style.color = 'var(--fvplus-settings-accent-strong)';
+        workspace.append(accentStrongProbe);
+        const accentStrong = getComputedStyle(accentStrongProbe).color;
+        accentStrongProbe.remove();
+        const privacyContentBounds = privacySummary
+            ? [...privacySummary.children].reduce((bounds, child) => {
+                const rect = child.getBoundingClientRect();
+                return {
+                    left: Math.min(bounds.left, rect.left),
+                    right: Math.max(bounds.right, rect.right)
+                };
+            }, { left: Number.POSITIVE_INFINITY, right: Number.NEGATIVE_INFINITY })
+            : null;
+        const privacyCardRect = privacyCard?.getBoundingClientRect();
+        const privacyLinkRect = privacyLink?.getBoundingClientRect();
         return {
             coreCards: coreGrid?.children.length || 0,
             additionalCards: additionalGrid?.children.length || 0,
@@ -824,6 +844,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             supportSvgIcons: supportIcons.length,
             supportIconWidths: supportIcons.map((icon) => icon.getBoundingClientRect().width),
             supportIconColors: supportIcons.map((icon) => getComputedStyle(icon).color),
+            supportIconBackgrounds: supportIconTiles.map((icon) => getComputedStyle(icon).backgroundColor),
             supportIconsAreLeft: supportCards.every((card) => {
                 const icon = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
                 const copy = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
@@ -834,6 +855,17 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
                 const style = getComputedStyle(badge);
                 return style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.borderTopColor !== 'rgba(0, 0, 0, 0)';
             }),
+            privacyBadgeRadii: privacyBadges.map((badge) => parseFloat(getComputedStyle(badge).borderTopLeftRadius)),
+            privacyContentCentered: Boolean(privacyContentBounds && privacyCardRect)
+                && Math.abs(
+                    ((privacyContentBounds.left + privacyContentBounds.right) / 2)
+                    - (privacyCardRect.left + (privacyCardRect.width / 2))
+                ) <= 2,
+            privacyLinkUsesAccent: getComputedStyle(privacyLink).color === accentStrong,
+            privacyLinkVisible: Boolean(privacyLinkRect)
+                && privacyLinkRect.width > 0
+                && privacyLinkRect.height > 0
+                && getComputedStyle(privacyLink).opacity === '1',
             smallestSupportingTextPx: Math.min(...readableText.map((element) => parseFloat(getComputedStyle(element).fontSize))),
             primaryUsesSubtleOutline: primaryStyle.backgroundImage === 'none'
                 && primaryStyle.backgroundColor === neutralStyle.backgroundColor
@@ -868,9 +900,15 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.ok(layout.coreProgressRatio > 0.98, 'healthy core progress bar should span the metric');
     assert.equal(layout.supportSvgIcons, 7);
     assert.equal(layout.supportIconWidths.every((width) => width >= 28), true);
+    assert.equal(new Set(layout.supportIconColors).size, 7);
+    assert.equal(new Set(layout.supportIconBackgrounds).size, 7);
     assert.equal(layout.supportIconsAreLeft, true);
     assert.equal(layout.privacyBadgeCount, 4);
     assert.equal(layout.privacyBadgesAreColored, true);
+    assert.equal(layout.privacyBadgeRadii.every((radius) => radius >= 5.9 && radius <= 6.1), true);
+    assert.equal(layout.privacyContentCentered, true);
+    assert.equal(layout.privacyLinkUsesAccent, true);
+    assert.equal(layout.privacyLinkVisible, true);
     assert.ok(layout.smallestSupportingTextPx >= 17, 'supporting diagnostics text must remain readable');
     assert.equal(layout.primaryUsesSubtleOutline, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
@@ -881,7 +919,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     layout = await readDiagnosticsLayout();
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.supportIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(new Set(layout.supportIconColors).size, 7);
+    assert.equal(new Set(layout.supportIconBackgrounds).size, 7);
     assert.equal(layout.privacyBadgesAreColored, true);
+    assert.equal(layout.privacyLinkUsesAccent, true);
+    assert.equal(layout.privacyLinkVisible, true);
     assert.equal(layout.primaryUsesSubtleOutline, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
 

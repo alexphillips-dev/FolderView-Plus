@@ -10,37 +10,44 @@
         bundleMeta: Object.freeze({
             label: 'Bundle metadata',
             detail: 'Schema, version, build channel, and privacy policy.',
-            icon: 'document'
+            icon: 'document',
+            tone: 'bundle'
         }),
         system: Object.freeze({
             label: 'System snapshot',
             detail: 'Unraid, PHP, kernel, request, and path health details.',
-            icon: 'monitor'
+            icon: 'monitor',
+            tone: 'system'
         }),
         pluginState: Object.freeze({
             label: 'Plugin state',
             detail: 'Preferences, folder counts, templates, and backups.',
-            icon: 'puzzle'
+            icon: 'puzzle',
+            tone: 'plugin'
         }),
         runtimeState: Object.freeze({
             label: 'Runtime state',
             detail: 'Docker and VM summaries, hierarchy, and conflicts.',
-            icon: 'server'
+            icon: 'server',
+            tone: 'runtime'
         }),
         uiTelemetry: Object.freeze({
             label: 'Browser/UI telemetry',
             detail: 'Performance, request errors, and visual evidence.',
-            icon: 'globe'
+            icon: 'globe',
+            tone: 'browser'
         }),
         healthAndHistory: Object.freeze({
             label: 'Health and history',
             detail: 'Health findings, timeline, and change history.',
-            icon: 'heart'
+            icon: 'heart',
+            tone: 'health'
         }),
         redactionManifest: Object.freeze({
             label: 'Redaction manifest',
             detail: 'The privacy operations applied to sensitive fields.',
-            icon: 'shield'
+            icon: 'shield',
+            tone: 'redaction'
         })
     });
 
@@ -171,7 +178,7 @@
                 const statusClass = hasObjectPayload ? 'is-ready' : 'is-pending';
                 return `
                     <article class="fv-support-bundle-section-card ${statusClass}">
-                        <div class="fv-support-bundle-section-icon" aria-hidden="true">${svgIcon(sectionConfig.icon)}</div>
+                        <div class="fv-support-bundle-section-icon is-${escapeHtml(sectionConfig.tone)}" aria-hidden="true">${svgIcon(sectionConfig.icon)}</div>
                         <div class="fv-support-bundle-section-copy">
                             <strong>${escapeHtml(sectionConfig.label)}</strong>
                             <span>${escapeHtml(sectionConfig.detail)}</span>

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.09">
-<!ENTITY md5 "12a9d64610eaa81ccaf029f9543d5a38">
+<!ENTITY version "2026.07.23.10">
+<!ENTITY md5 "62a3218621c9042d8b1c813a7f4fcb13">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.10
+- Accessibility: Restored a clearly visible, theme-safe Learn more about data handling disclosure with readable hover and keyboard-focus states.
+- UI/UX: Centered the Privacy and sanitization summary row and changed its status badges to compact rectangles with subtle rounded corners.
+- UI/UX: Gave each support-bundle overview module a distinct semantic SVG color and matching low-contrast icon tile instead of the shared orange treatment.
+- Quality: Added dark/light browser assertions for disclosure visibility, privacy alignment, badge geometry, semantic icon colors, responsive layout, and overflow safety.
+
 
 ###2026.07.23.09
 - UX: Refined Run health check into a restrained orange outline treatment with the same theme-aware interior as the neutral Diagnostics actions.

@@ -98,6 +98,13 @@ test('support bundle overview uses semantic SVG icons and colored privacy badge 
     assert.match(sectionHtml, /data-fv-icon="monitor"/);
     assert.match(sectionHtml, /data-fv-icon="shield"/);
     assert.match(sectionHtml, /data-fv-icon="check-circle"/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-bundle/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-system/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-plugin/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-runtime/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-browser/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-health/);
+    assert.match(sectionHtml, /fv-support-bundle-section-icon is-redaction/);
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-hashed/);
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-masked/);
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-omitted/);

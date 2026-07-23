@@ -435,9 +435,10 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
     assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary[\s\S]*background:\s*linear-gradient\(/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[\s\S]*background:\s*var\(--fvplus-settings-button-bg-top\)/);
+    assert.match(settingsCss, /\.fv-diagnostics-metrics dt\s*\{[\s\S]*font-size:\s*1\.3rem;[\s\S]*text-align:\s*center;/);
     assert.match(settingsCss, /\.fv-diagnostics-core-progress\s*\{[\s\S]*height:\s*8px;/);
-    assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*1\.55rem;/);
+    assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*2rem;/);
     assert.match(settingsCss, /\.fv-diagnostics-support-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*0\.72fr\)\s*minmax\(0,\s*1\.5fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);

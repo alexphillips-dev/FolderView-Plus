@@ -779,7 +779,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const coreProgress = workspace.querySelector('.fv-diagnostics-core-progress');
         const coreProgressFill = coreProgress?.firstElementChild;
         const systemIcons = [...workspace.querySelectorAll('.fv-diagnostics-health-card-icon .fv-ui-svg-icon')];
+        const metricIcons = [...workspace.querySelectorAll('.fv-diagnostics-metric.has-icon > .fv-ui-svg-icon')];
+        const metricTitles = [...workspace.querySelectorAll('.fv-diagnostics-metrics dt')];
+        const metrics = [...workspace.querySelectorAll('.fv-diagnostics-metrics > div')];
         const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
+        const supportIcons = [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')];
         const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
         const readableText = [...workspace.querySelectorAll(
             '.fv-diagnostics-health-card-foot, .fv-diagnostics-health-card-detail, .fv-diagnostics-metrics small, .fv-support-bundle-preview-meta'
@@ -800,15 +804,26 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             additionalColumns: getComputedStyle(additionalGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
             hasHealthySummary: workspace.querySelector('.fv-diagnostics-hero.is-healthy') !== null,
             hasClearFindings: workspace.querySelector('.fv-diagnostics-findings.is-clear') !== null,
-            metricSvgIcons: workspace.querySelectorAll('.fv-diagnostics-metric.has-icon > .fv-ui-svg-icon').length,
+            metricSvgIcons: metricIcons.length,
+            metricIconWidths: metricIcons.map((icon) => icon.getBoundingClientRect().width),
+            metricTitleSizes: metricTitles.map((title) => parseFloat(getComputedStyle(title).fontSize)),
+            metricsAreCentered: metrics.every((metric) => {
+                const metricRect = metric.getBoundingClientRect();
+                const center = metricRect.left + (metricRect.width / 2);
+                return [...metric.querySelectorAll('dt, dd, small, .fv-diagnostics-metric-icon')].every((element) => {
+                    const rect = element.getBoundingClientRect();
+                    return Math.abs((rect.left + (rect.width / 2)) - center) <= 1;
+                });
+            }),
             systemSvgIcons: systemIcons.length,
+            systemIconWidths: systemIcons.map((icon) => icon.getBoundingClientRect().width),
             systemIconColors: systemIcons.map((icon) => getComputedStyle(icon).color),
             coreProgressRatio: coreProgress && coreProgressFill
                 ? coreProgressFill.getBoundingClientRect().width / coreProgress.getBoundingClientRect().width
                 : 0,
-            supportSvgIcons: workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon').length,
-            supportIconColors: [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')]
-                .map((icon) => getComputedStyle(icon).color),
+            supportSvgIcons: supportIcons.length,
+            supportIconWidths: supportIcons.map((icon) => icon.getBoundingClientRect().width),
+            supportIconColors: supportIcons.map((icon) => getComputedStyle(icon).color),
             supportIconsAreLeft: supportCards.every((card) => {
                 const icon = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
                 const copy = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
@@ -820,7 +835,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
                 return style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.borderTopColor !== 'rgba(0, 0, 0, 0)';
             }),
             smallestSupportingTextPx: Math.min(...readableText.map((element) => parseFloat(getComputedStyle(element).fontSize))),
-            primaryUsesAccentFill: primaryStyle.backgroundImage.includes('linear-gradient') && primaryStyle.backgroundColor !== 'rgb(0, 0, 0)',
+            primaryUsesSubtleOutline: primaryStyle.backgroundImage === 'none'
+                && primaryStyle.backgroundColor === neutralStyle.backgroundColor
+                && primaryStyle.borderTopColor !== neutralStyle.borderTopColor
+                && primaryStyle.color !== neutralStyle.color,
             neutralAvoidsAccentTreatment: neutralStyle.color !== accent && neutralStyle.borderTopColor !== accent,
             cardsInsideWorkspace: cards.every((card) => {
                 const rect = card.getBoundingClientRect();
@@ -841,15 +859,20 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.hasHealthySummary, true);
     assert.equal(layout.hasClearFindings, true);
     assert.equal(layout.metricSvgIcons, 3);
+    assert.equal(layout.metricIconWidths.every((width) => width >= 41), true);
+    assert.equal(layout.metricTitleSizes.every((size) => size >= 20.7), true);
+    assert.equal(layout.metricsAreCentered, true);
     assert.equal(layout.systemSvgIcons, 9);
+    assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.ok(layout.coreProgressRatio > 0.98, 'healthy core progress bar should span the metric');
     assert.equal(layout.supportSvgIcons, 7);
+    assert.equal(layout.supportIconWidths.every((width) => width >= 28), true);
     assert.equal(layout.supportIconsAreLeft, true);
     assert.equal(layout.privacyBadgeCount, 4);
     assert.equal(layout.privacyBadgesAreColored, true);
-    assert.ok(layout.smallestSupportingTextPx >= 15, 'supporting diagnostics text must remain readable');
-    assert.equal(layout.primaryUsesAccentFill, true);
+    assert.ok(layout.smallestSupportingTextPx >= 17, 'supporting diagnostics text must remain readable');
+    assert.equal(layout.primaryUsesSubtleOutline, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop diagnostics must not overflow');
@@ -859,8 +882,16 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.supportIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.privacyBadgesAreColored, true);
-    assert.equal(layout.primaryUsesAccentFill, true);
+    assert.equal(layout.primaryUsesSubtleOutline, true);
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
+
+    await page.setViewportSize({ width: 1000, height: 1100 });
+    layout = await readDiagnosticsLayout();
+    assert.equal(layout.coreColumns, 3);
+    assert.equal(layout.additionalColumns, 3);
+    assert.equal(layout.metricsAreCentered, true);
+    assert.equal(layout.cardsInsideWorkspace, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'tablet diagnostics must not overflow');
 
     await page.setViewportSize({ width: 700, height: 1000 });
     layout = await readDiagnosticsLayout();

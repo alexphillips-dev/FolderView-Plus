@@ -73,10 +73,8 @@ test('one extreme warm sample requests follow-up and samples outside the evaluat
 
 test('health summary separates core, advisory, and optional card lanes', () => {
     assert.match(diagnosticsSource, /const coreCards =/);
-    assert.match(diagnosticsSource, /const advisoryCards = performanceBudgetCard/);
-    assert.match(diagnosticsSource, /const localizationCard = buildLocalizationDiagnosticsSummaryCard\(\)/);
-    assert.match(diagnosticsSource, /const optionalCards = \[nativeOrganizerCard, localizationCard\]\.filter\(Boolean\)/);
-    assert.match(diagnosticsSource, /const errorCount = coreErrorCount;/);
-    assert.match(diagnosticsSource, /const warningCount = coreWarningCount \+ advisoryWarningCount;/);
-    assert.match(diagnosticsSource, /Availability notices here do not change core plugin health\./);
+    assert.match(diagnosticsSource, /advisoryCards: performanceCard \? \[performanceCard\] : \[\]/);
+    assert.match(diagnosticsSource, /buildLocalizationDiagnosticsSummaryCard\(\)/);
+    assert.match(diagnosticsSource, /buildNativeOrganizerDiagnosticsSummaryCard\(diagnostics\)/);
+    assert.match(diagnosticsSource, /diagnosticsViewModelModule\.buildDiagnosticsViewModel\(\{/);
 });

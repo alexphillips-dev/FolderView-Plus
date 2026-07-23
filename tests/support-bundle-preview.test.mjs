@@ -25,8 +25,11 @@ const api = previewModule.createApi({
 
 test('support bundle preview explains how to obtain missing Dashboard visual evidence', () => {
     const html = api.buildDashboardCaptureStatusHtml({ uiTelemetry: { dashboardVisual: {} } });
-    assert.match(html, /No recent Dashboard visual capture is available/);
-    assert.match(html, /expand the affected folder/);
+    assert.match(html, /Capture Dashboard evidence in 3 easy steps/);
+    assert.match(html, /Open the Dashboard/);
+    assert.match(html, /Capture the issue/);
+    assert.match(html, /Return here/);
+    assert.match(html, /Open Dashboard to capture/);
     assert.match(html, /is-missing/);
 });
 
@@ -56,48 +59,21 @@ test('support bundle preview flags stale or mismatched Dashboard captures', () =
     assert.match(html, /is-attention/);
 });
 
-test('support bundle preview keeps troubleshooting domains separate', () => {
-    const html = api.buildDiagnosticDomainsHtml({
+test('support bundle preview keeps diagnostic domain data out of the normal workspace', () => {
+    assert.equal(api.buildDiagnosticDomainsHtml, undefined);
+    const html = api.buildSupportBundlePreviewSectionCards({
+        bundleMeta: { privacyMode: 'sanitized' },
         healthAndHistory: {
             diagnosticDomains: {
                 domains: {
-                    layoutRendering: { status: 'error', issueCount: 2 },
-                    configurationIntegrity: { status: 'healthy', issueCount: 0 }
+                    layoutRendering: { status: 'error', issueCount: 2 }
                 }
             }
         }
     });
-    assert.match(html, /Layout and rendering/);
-    assert.match(html, /is-error/);
-    assert.match(html, /2 issue\(s\)/);
-    assert.match(html, /Configuration integrity/);
-    assert.match(html, /is-healthy/);
+    assert.doesNotMatch(html, /Layout and rendering/);
     assert.doesNotMatch(html, /unavailable/);
-    assert.match(html, /Run health check to inspect the plugin state/);
-    assert.match(html, /fv-support-bundle-domain-pending/);
-});
-
-test('support bundle preview removes the health-check prompt when every domain is assessed', () => {
-    const assessedDomain = { status: 'healthy', issueCount: 0 };
-    const html = api.buildDiagnosticDomainsHtml({
-        healthAndHistory: {
-            diagnosticDomains: {
-                domains: {
-                    layoutRendering: assessedDomain,
-                    configurationIntegrity: assessedDomain,
-                    runtimeRequests: assessedDomain,
-                    storage: assessedDomain,
-                    customIcons: assessedDomain,
-                    theme: assessedDomain,
-                    localization: assessedDomain,
-                    update: assessedDomain
-                }
-            }
-        }
-    });
-
-    assert.doesNotMatch(html, /Run health check/);
-    assert.doesNotMatch(html, /fv-support-bundle-domain-pending/);
+    assert.doesNotMatch(html, /diagnosticDomains/);
 });
 
 test('support bundle preview enriches browser telemetry before its first render', async () => {

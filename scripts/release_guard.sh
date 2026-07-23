@@ -418,6 +418,8 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js"
@@ -491,6 +493,14 @@ if ! grep -q 'folderviewplus\.support-bundle-preview\.js' "${SOURCE_SETTINGS_PAG
 fi
 if ! grep -q 'folderviewplus\.support-bundle-telemetry\.js' "${SOURCE_SETTINGS_PAGE}"; then
   echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.support-bundle-telemetry.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.diagnostics-view-model\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.diagnostics-view-model.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.diagnostics-view\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.diagnostics-view.js include." >&2
   exit 1
 fi
 if ! grep -q 'folderviewplus\.activity-diagnostics\.js' "${SOURCE_SETTINGS_PAGE}"; then

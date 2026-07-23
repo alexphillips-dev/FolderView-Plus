@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.06">
-<!ENTITY md5 "ca071035fa08ee5933fa1981d597e5dd">
+<!ENTITY version "2026.07.23.07">
+<!ENTITY md5 "cec276b476f421550e23b71a339bda33">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.07
+- UX: Rebuilt Advanced > Diagnostics as a compact workspace with one action toolbar, an overall-health summary, priority findings, six core system checks, and three clearly separated additional diagnostics.
+- Reliability: Added explicit unchecked, running, current, stale, and failed-refresh states so partial or outdated results are never presented as a fresh healthy check.
+- Diagnostics: Reworked Dashboard evidence capture, support-bundle contents, and privacy handling into a guided two-panel flow; detailed redaction mechanics now stay behind an optional disclosure.
+- Maintenance: Extracted a pure diagnostics view model and renderer, removed the visible troubleshooting-domain grid, and kept contextual native-organizer and performance rechecks on the shared action lifecycle.
+- Accessibility: Added semantic sections, live and busy states, keyboard targets for findings, focus-visible result cards, responsive touch targets, reduced-motion handling, and theme-token-based status styling.
+- Localization: Published catalog revision `2026.07.23.3` with the redesigned Diagnostics workspace translated across all 18 shipped locales.
+- Quality: Added health-state unit coverage and deterministic desktop/mobile browser fixtures for card counts, state rendering, responsive columns, and overflow safety.
+
 
 ###2026.07.23.06
 - UX: Removed the Suggested fixes section from Advanced > Diagnostics so the tab moves directly from the health summary to support tools.

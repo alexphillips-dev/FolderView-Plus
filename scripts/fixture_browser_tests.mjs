@@ -223,7 +223,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1591);
+    assert.equal(snapshot.autoBoundMessageCount, 1579);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -766,6 +766,50 @@ test('Filters and view settings uses the responsive card workspace without clipp
     assert.equal(layout.gridColumns, 1);
     assert.equal(layout.cardsInsidePanel, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'mobile panel must not cause horizontal overflow');
+});
+
+test('Diagnostics workspace renders stable health states without desktop or mobile overflow', async ({ page }) => {
+    const readDiagnosticsLayout = async () => page.evaluate(async () => {
+        await window.fixtureSettings.diagnosticsReady;
+        const workspace = document.getElementById('fv-diagnostics-workspace');
+        const coreGrid = workspace.querySelector('.fv-diagnostics-card-section.is-system .fv-diagnostics-health-grid');
+        const additionalGrid = workspace.querySelector('.fv-diagnostics-card-section.is-additional .fv-diagnostics-health-grid');
+        const workspaceRect = workspace.getBoundingClientRect();
+        const cards = [...workspace.querySelectorAll('.fv-diagnostics-health-card')];
+        return {
+            coreCards: coreGrid?.children.length || 0,
+            additionalCards: additionalGrid?.children.length || 0,
+            coreColumns: getComputedStyle(coreGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
+            additionalColumns: getComputedStyle(additionalGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
+            hasHealthySummary: workspace.querySelector('.fv-diagnostics-hero.is-healthy') !== null,
+            hasClearFindings: workspace.querySelector('.fv-diagnostics-findings.is-clear') !== null,
+            cardsInsideWorkspace: cards.every((card) => {
+                const rect = card.getBoundingClientRect();
+                return rect.left >= workspaceRect.left - 1 && rect.right <= workspaceRect.right + 1;
+            }),
+            scrollWidth: document.documentElement.scrollWidth,
+            clientWidth: document.documentElement.clientWidth
+        };
+    });
+
+    await page.setViewportSize({ width: 1700, height: 1100 });
+    await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
+    let layout = await readDiagnosticsLayout();
+    assert.equal(layout.coreCards, 6);
+    assert.equal(layout.additionalCards, 3);
+    assert.equal(layout.coreColumns, 6);
+    assert.equal(layout.additionalColumns, 3);
+    assert.equal(layout.hasHealthySummary, true);
+    assert.equal(layout.hasClearFindings, true);
+    assert.equal(layout.cardsInsideWorkspace, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop diagnostics must not overflow');
+
+    await page.setViewportSize({ width: 700, height: 1000 });
+    layout = await readDiagnosticsLayout();
+    assert.equal(layout.coreColumns, 1);
+    assert.equal(layout.additionalColumns, 1);
+    assert.equal(layout.cardsInsideWorkspace, true);
+    assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'mobile diagnostics must not overflow');
 });
 
 test('Mobile reorder persists click state and isolates Docker and VM controls', async ({ page }) => {

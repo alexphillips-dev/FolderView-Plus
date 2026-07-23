@@ -69,6 +69,8 @@ const expectedOrder = [
   'folderviewplus.support-bundle-preview.js',
   'folderviewplus.support-bundle-browser.js',
   'folderviewplus.support-bundle-telemetry.js',
+  'folderviewplus.diagnostics-view-model.js',
+  'folderviewplus.diagnostics-view.js',
   'folderviewplus.activity-diagnostics.js',
   'folderviewplus.settings-tree.js',
   'folderviewplus.tree-integrity.js',

@@ -296,7 +296,8 @@ test('Dashboard visual diagnostics loads before runtime and captures bounded pri
     assert.match(dashboardQuickRailScript, /deps\.onVisualDiagnostics/);
     assert.match(dashboardScript, /dashboardVisualDiagnosticsModule\.createController/);
     assert.match(dashboardScript, /dashboardBootstrapMissingModules\.push\('dashboard\.visual-diagnostics\.js'\)/);
-    assert.match(settingsPage, /class="fv-dashboard-capture-guide"/);
+    assert.match(settingsPage, /id="fv-support-bundle-preview" class="fv-support-bundle-preview"/);
+    assert.match(settingsPage, /folderviewplus\.support-bundle-preview\.js/);
 });
 
 test('Dashboard Started only reconciles folder members without a full widget reload', () => {

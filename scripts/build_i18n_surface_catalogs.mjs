@@ -8,7 +8,7 @@ const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const langDir = path.join(pluginDir, 'langs');
 const namespaceRoot = path.join(langDir, 'namespaces');
-const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.23.2';
+const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.23.3';
 const catalogDate = process.env.FVPLUS_I18N_CATALOG_DATE || new Date().toISOString().slice(0, 10);
 const translateMissing = process.argv.includes('--translate');
 const locales = fs.readdirSync(langDir)
@@ -23,7 +23,9 @@ const targetLocales = Object.freeze({
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const writeJson = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 4)}\n`, 'utf8');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const placeholderSignature = (value) => (String(value || '').match(/\$\d+/g) || []).sort().join('|');
+const placeholderSignature = (value) => (
+    [...new Set(String(value || '').match(/\$\d+/g) || [])].sort().join('|')
+);
 const protectPlaceholders = (value) => String(value || '').replace(/\$(\d+)/g, '__FVPLUS_PARAM_$1__');
 const restorePlaceholders = (value) => String(value || '').replace(/__FVPLUS_PARAM_(\d+)__/gi, '$$$1');
 const { byPhrase, fileCounts } = tools.collectSurfaceCandidates(pluginDir);

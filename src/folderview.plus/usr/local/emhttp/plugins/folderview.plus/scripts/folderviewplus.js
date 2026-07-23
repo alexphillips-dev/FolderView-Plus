@@ -402,6 +402,24 @@ if (window.FolderViewPlusStarterTemplatesModuleLoaded !== true) {
 } else {
     setFatalBannerModuleStatus('folderviewplus.starter-templates.js', 'ok');
 }
+if (
+    window.FolderViewPlusDiagnosticsViewModelModuleLoaded !== true
+    || typeof window.FolderViewPlusDiagnosticsViewModel?.buildDiagnosticsViewModel !== 'function'
+) {
+    bootstrapMissingModules.push('folderviewplus.diagnostics-view-model.js');
+    setFatalBannerModuleStatus('folderviewplus.diagnostics-view-model.js', 'missing', 'diagnostics view model unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.diagnostics-view-model.js', 'ok', 'diagnostics view model ready');
+}
+if (
+    window.FolderViewPlusDiagnosticsViewModuleLoaded !== true
+    || typeof window.FolderViewPlusDiagnosticsView?.createApi !== 'function'
+) {
+    bootstrapMissingModules.push('folderviewplus.diagnostics-view.js');
+    setFatalBannerModuleStatus('folderviewplus.diagnostics-view.js', 'missing', 'diagnostics renderer unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.diagnostics-view.js', 'ok', 'diagnostics renderer ready');
+}
 if (window.FolderViewPlusDiagnosticsModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.activity-diagnostics.js');
     setFatalBannerModuleStatus('folderviewplus.activity-diagnostics.js', 'missing');
@@ -11997,6 +12015,8 @@ settingsActionSupportModule.registerWindowActions(window, {
 
 if (window.FolderViewPlusUI?.registerAction) {
     window.FolderViewPlusUI.registerAction('diagnostics-run', () => runDiagnostics());
+    window.FolderViewPlusUI.registerAction('diagnostics-retest-performance', () => retestPerformanceDiagnostics());
+    window.FolderViewPlusUI.registerAction('diagnostics-check-native-organizer', () => checkNativeOrganizerDiagnostics());
     window.FolderViewPlusUI.registerAction('diagnostics-copy-report', () => copyIssueReport());
     window.FolderViewPlusUI.registerAction('diagnostics-export-bundle', () => exportSupportBundle());
 }

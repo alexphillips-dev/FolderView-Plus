@@ -9,6 +9,8 @@ const diagnosticsPrefsCoordinator = diagnosticsPrefsStoreModule && typeof diagno
     : null;
 const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
 const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
+const diagnosticsViewModelModule = window.FolderViewPlusDiagnosticsViewModel || null;
+const diagnosticsViewModule = window.FolderViewPlusDiagnosticsView || null;
 const diagnosticsT = (key, fallback = '', ...params) => (
     window.FolderViewPlusI18n?.t?.(key, fallback, ...params) || fallback || key
 );
@@ -104,24 +106,8 @@ let lastDiagnostics = null;
 let lastThemeDiagnostics = null;
 let supportBundlePreviewApi = null;
 let supportBundleTelemetryApi = null;
-const DIAGNOSTICS_STATUS_CONFIG = Object.freeze({
-    healthy: Object.freeze({ label: 'Healthy', icon: 'fa-check-circle' }),
-    info: Object.freeze({ label: 'Optional', icon: 'fa-info-circle' }),
-    warning: Object.freeze({ label: 'Follow up', icon: 'fa-exclamation-triangle' }),
-    error: Object.freeze({ label: 'Needs action', icon: 'fa-times-circle' })
-});
-const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
-    check_native_organizer: Object.freeze({
-        label: 'Check again',
-        icon: 'fa-refresh',
-        handler: 'checkNativeOrganizerDiagnostics()'
-    }),
-    retest_performance: Object.freeze({
-        label: 'Retest performance',
-        icon: 'fa-clock-o',
-        handler: 'retestPerformanceDiagnostics()'
-    })
-});
+let diagnosticsViewApi = null;
+let diagnosticsRunState = Object.freeze({ running: false, errorMessage: '' });
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const ACTIVITY_FEED_AUTO_CLEAR_MS = 10000;
 let activityFeedAutoClearTimer = null;
@@ -1454,11 +1440,6 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     return true;
 };
 
-const normalizeDiagnosticsStatus = (value) => {
-    const status = String(value || '').trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(DIAGNOSTICS_STATUS_CONFIG, status) ? status : 'healthy';
-};
-
 const formatCheckedAtLabel = (value) => {
     const date = new Date(String(value || '').trim());
     if (Number.isNaN(date.getTime())) {
@@ -1767,219 +1748,66 @@ const buildLocalizationDiagnosticsSummaryCard = () => {
     };
 };
 
-const buildDiagnosticsCardMetaHtml = (card, status, countValue) => {
-    let primaryMeta = 'No extra action needed';
-    if (Number.isFinite(countValue) && countValue > 0) {
-        primaryMeta = `${countValue} related issue${countValue === 1 ? '' : 's'}`;
-    } else if (status === 'info') {
-        primaryMeta = String(card?.meta || 'Informational only');
-    } else if (card?.meta) {
-        primaryMeta = String(card.meta);
+const getDiagnosticsViewApi = () => {
+    if (diagnosticsViewApi) {
+        return diagnosticsViewApi;
     }
-    const freshness = String(card?.freshness || '').trim();
-    return [
-        `<span>${diagnosticsEscapeHtml(primaryMeta)}</span>`,
-        freshness ? `<span><i class="fa fa-clock-o" aria-hidden="true"></i>${diagnosticsEscapeHtml(freshness)}</span>` : ''
-    ].filter(Boolean).join('');
+    if (!diagnosticsViewModule || typeof diagnosticsViewModule.createApi !== 'function') {
+        return null;
+    }
+    diagnosticsViewApi = diagnosticsViewModule.createApi({
+        escapeHtml: diagnosticsEscapeHtml,
+        t: diagnosticsT
+    });
+    return diagnosticsViewApi;
 };
 
-const buildDiagnosticsCardDetailsHtml = (card) => {
-    const details = Array.isArray(card?.technicalDetails)
-        ? card.technicalDetails.map((detail) => String(detail || '').trim()).filter(Boolean)
+const setDiagnosticsWorkspaceBusy = (busy) => {
+    const workspace = document.getElementById('fv-diagnostics-workspace');
+    workspace?.setAttribute('aria-busy', busy ? 'true' : 'false');
+    document.querySelectorAll('[data-fv-ui-action^="diagnostics-"]').forEach((button) => {
+        button.disabled = busy;
+    });
+};
+
+const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
+    const summaryHost = document.getElementById('fv-diagnostics-summary');
+    const viewApi = getDiagnosticsViewApi();
+    if (!summaryHost || !viewApi || !diagnosticsViewModelModule?.buildDiagnosticsViewModel) {
+        return;
+    }
+    const hasResults = Boolean(diagnostics && typeof diagnostics === 'object');
+    const checkedAt = hasResults ? formatCheckedAtLabel(diagnostics.checkedAt) : '';
+    const summary = hasResults && diagnostics.summary && typeof diagnostics.summary === 'object'
+        ? diagnostics.summary
+        : {};
+    const coreCards = hasResults
+        ? (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
+            ...card,
+            freshness: String(card?.freshness || '').trim() || `Checked ${checkedAt}`
+        }))
         : [];
-    if (!details.length) {
-        return '';
-    }
-    return `
-        <details class="fv-diagnostics-card-details">
-            <summary>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.cards.technical-details', 'Technical details'))}</summary>
-            <ul>${details.map((detail) => `<li>${diagnosticsEscapeHtml(detail)}</li>`).join('')}</ul>
-        </details>
-    `;
-};
-
-const buildDiagnosticsCardActionHtml = (card) => {
-    const actionKey = String(card?.actionKey || '').trim();
-    const config = DIAGNOSTICS_ACTION_CONFIG[actionKey];
-    if (!actionKey || !config) return '';
-    return `
-        <div class="fv-diagnostics-card-action">
-            <button type="button" data-fv-diagnostics-card-action="${diagnosticsEscapeHtml(actionKey)}" onclick="${config.handler}">
-                <i class="fa ${config.icon}" aria-hidden="true"></i> ${diagnosticsEscapeHtml(config.label)}
-            </button>
-        </div>
-    `;
-};
-
-const buildDiagnosticsCardHtml = (card) => {
-    const status = normalizeDiagnosticsStatus(card?.status);
-    const config = DIAGNOSTICS_STATUS_CONFIG[status];
-    const badgeLabel = String(card?.badgeLabel || config.label).trim() || config.label;
-    const countValue = Number(card?.count);
-    return `
-        <div class="fv-diagnostics-card is-${status}" data-fv-diagnostics-card="${diagnosticsEscapeHtml(String(card?.key || 'status'))}">
-            <div class="fv-diagnostics-card-top">
-                <span class="fv-diagnostics-card-label">${diagnosticsEscapeHtml(String(card?.label || card?.key || 'Status'))}</span>
-                <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(badgeLabel)}</span>
-            </div>
-            <div class="fv-diagnostics-card-headline">${diagnosticsEscapeHtml(String(card?.headline || 'No summary available.'))}</div>
-            <div class="fv-diagnostics-card-detail">${diagnosticsEscapeHtml(String(card?.detail || ''))}</div>
-            <div class="fv-diagnostics-card-meta">${buildDiagnosticsCardMetaHtml(card, status, countValue)}</div>
-            ${buildDiagnosticsCardDetailsHtml(card)}
-            ${buildDiagnosticsCardActionHtml(card)}
-        </div>
-    `;
-};
-
-const buildDiagnosticsCardSectionHtml = ({ key, label, description, cards }) => {
-    const safeCards = Array.isArray(cards) ? cards.filter(Boolean) : [];
-    if (!safeCards.length) {
-        return '';
-    }
-    const healthyCount = safeCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'healthy').length;
-    const followUpCount = safeCards.filter((card) => ['warning', 'error'].includes(normalizeDiagnosticsStatus(card?.status))).length;
-    const sectionSummary = key === 'core'
-        ? `${healthyCount}/${safeCards.length} healthy`
-        : (followUpCount > 0
-            ? `${followUpCount} ${followUpCount === 1 ? 'needs' : 'need'} follow-up`
-            : (key === 'advisory' && healthyCount === safeCards.length
-                ? `${healthyCount}/${safeCards.length} within target`
-                : `${safeCards.length} ${key === 'optional' ? 'notice' : 'observation'}${safeCards.length === 1 ? '' : 's'}`));
-    return `
-        <section class="fv-diagnostics-card-section is-${diagnosticsEscapeHtml(key)}${healthyCount === safeCards.length ? ' is-all-healthy' : ''}">
-            <div class="fv-diagnostics-card-section-head">
-                <div>
-                    <strong>${diagnosticsEscapeHtml(label)}</strong>
-                    <span>${diagnosticsEscapeHtml(description)}</span>
-                </div>
-                <span class="fv-diagnostics-card-section-summary">${diagnosticsEscapeHtml(sectionSummary)}</span>
-            </div>
-            <div class="fv-diagnostics-card-grid">${safeCards.map((card) => buildDiagnosticsCardHtml(card)).join('')}</div>
-        </section>
-    `;
-};
-
-const renderDiagnosticsSummary = (diagnostics) => {
-    const summaryHost = $('#fv-diagnostics-summary');
-    if (!summaryHost.length) {
-        return;
-    }
-    const themeCard = buildThemeDiagnosticsSummaryCard();
-    if (!diagnostics || typeof diagnostics !== 'object') {
-        if (!themeCard) {
-            summaryHost.html(`
-                <div class="fv-diagnostics-empty-state">
-                    <strong>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.summary.empty-title', 'Run health check to inspect the plugin state.'))}</strong>
-                    <span>${diagnosticsEscapeHtml(diagnosticsT('diagnostics.summary.empty-description', 'The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.'))}</span>
-                </div>
-            `);
-            return;
-        }
-
-        const status = normalizeDiagnosticsStatus(themeCard.status);
-        const config = DIAGNOSTICS_STATUS_CONFIG[status];
-        const themeCheckedAt = formatCheckedAtLabel(lastThemeDiagnostics?.generatedAt);
-        summaryHost.html(`
-            <div class="fv-diagnostics-overview is-${status}">
-                <div class="fv-diagnostics-overview-label"><i class="fa ${config.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(config.label)}</div>
-                <div class="fv-diagnostics-overview-headline">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.theme.live-title', 'Theme diagnostics are live before a full health check.'))}</div>
-                <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(diagnosticsT('diagnostics.theme.live-description', 'Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.'))}</div>
-                <div class="fv-diagnostics-overview-meta">
-                    <span class="fv-diagnostics-pill">Theme checked ${diagnosticsEscapeHtml(themeCheckedAt)}</span>
-                </div>
-            </div>
-            <div class="fv-diagnostics-card-sections">
-                ${buildDiagnosticsCardSectionHtml({
-                    key: 'core',
-                    label: 'Core health',
-                    description: 'Configuration and runtime checks that affect normal plugin operation.',
-                    cards: [themeCard]
-                })}
-            </div>
-        `);
-        return;
-    }
-
-    const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
-    const checkedAt = formatCheckedAtLabel(diagnostics.checkedAt);
-    const coreCards = (Array.isArray(summary.cards) ? summary.cards : []).map((card) => ({
-        ...card,
-        freshness: String(card?.freshness || '').trim() || `Health check ${checkedAt}`
-    }));
-    const nativeOrganizerCard = buildNativeOrganizerDiagnosticsSummaryCard(diagnostics);
-    const performanceBudgetCard = buildPerformanceBudgetDiagnosticsSummaryCard();
-    const localizationCard = buildLocalizationDiagnosticsSummaryCard();
+    const themeCard = hasResults ? buildThemeDiagnosticsSummaryCard() : null;
     if (themeCard) {
         coreCards.push(themeCard);
     }
-    const advisoryCards = performanceBudgetCard ? [performanceBudgetCard] : [];
-    const optionalCards = [nativeOrganizerCard, localizationCard].filter(Boolean);
-    const coreErrorCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'error').length;
-    const coreWarningCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'warning').length;
-    const coreHealthyCount = coreCards.filter((card) => normalizeDiagnosticsStatus(card?.status) === 'healthy').length;
-    const advisoryWarningCount = advisoryCards.filter((card) => ['warning', 'error'].includes(normalizeDiagnosticsStatus(card?.status))).length;
-    const errorCount = coreErrorCount;
-    const warningCount = coreWarningCount + advisoryWarningCount;
-    const overallStatus = normalizeDiagnosticsStatus(
-        errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : 'healthy')
-    );
-    const overallConfig = DIAGNOSTICS_STATUS_CONFIG[overallStatus];
-    const totalIssues = Number(summary.totalIssues) || 0;
-    const overallHeadline = coreErrorCount > 0
-        ? 'Core plugin health needs attention.'
-        : (coreWarningCount > 0 ? 'Core plugin health needs follow-up.' : 'Core plugin health is good.');
-    const detailParts = [];
-    if (coreErrorCount > 0 || coreWarningCount > 0) {
-        detailParts.push(String(summary.detail || 'Review the core health cards below.'));
-    } else {
-        detailParts.push('No actionable configuration, storage, update, icon, or theme issue was detected.');
-    }
-    if (advisoryWarningCount > 0) {
-        detailParts.push(`${advisoryWarningCount} performance ${advisoryWarningCount === 1 ? 'advisory needs' : 'advisories need'} follow-up.`);
-    } else if (performanceBudgetCard?.status === 'info') {
-        detailParts.push('An isolated performance observation is being watched but does not affect core health.');
-    }
-    if (optionalCards.length > 0) {
-        detailParts.push(`${optionalCards.length} optional integration ${optionalCards.length === 1 ? 'notice is' : 'notices are'} informational only.`);
-    }
-    const overallDetail = detailParts.join(' ');
-    const pills = [
-        `${coreHealthyCount}/${coreCards.length} core checks healthy`,
-        totalIssues > 0 ? `${totalIssues} core issue${totalIssues === 1 ? '' : 's'}` : '',
-        advisoryWarningCount > 0 ? `${advisoryWarningCount} performance ${advisoryWarningCount === 1 ? 'advisory' : 'advisories'}` : '',
-        optionalCards.length > 0 ? `${optionalCards.length} optional ${optionalCards.length === 1 ? 'notice' : 'notices'}` : '',
-        `Checked ${checkedAt}`
-    ].filter(Boolean);
-    const cardSectionsHtml = [
-        buildDiagnosticsCardSectionHtml({
-            key: 'core',
-            label: 'Core health',
-            description: 'Configuration and runtime checks that affect normal plugin operation.',
-            cards: coreCards
-        }),
-        buildDiagnosticsCardSectionHtml({
-            key: 'advisory',
-            label: 'Performance advisories',
-            description: 'Repeated warm measurements can request follow-up; isolated and cold-load samples remain informational.',
-            cards: advisoryCards
-        }),
-        buildDiagnosticsCardSectionHtml({
-            key: 'optional',
-            label: 'Optional integrations',
-            description: 'Availability notices here do not change core plugin health.',
-            cards: optionalCards
-        })
-    ].filter(Boolean).join('');
-
-    summaryHost.html(`
-        <div class="fv-diagnostics-overview is-${overallStatus}">
-            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${diagnosticsEscapeHtml(overallConfig.label)}</div>
-            <div class="fv-diagnostics-overview-headline">${diagnosticsEscapeHtml(overallHeadline)}</div>
-            <div class="fv-diagnostics-overview-detail">${diagnosticsEscapeHtml(overallDetail)}</div>
-            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${diagnosticsEscapeHtml(pill)}</span>`).join('')}</div>
-        </div>
-        <div class="fv-diagnostics-card-sections">${cardSectionsHtml}</div>
-    `);
+    const performanceCard = hasResults ? buildPerformanceBudgetDiagnosticsSummaryCard() : null;
+    const additionalCards = hasResults
+        ? [buildNativeOrganizerDiagnosticsSummaryCard(diagnostics), buildLocalizationDiagnosticsSummaryCard()].filter(Boolean)
+        : [];
+    const model = diagnosticsViewModelModule.buildDiagnosticsViewModel({
+        hasResults,
+        running: diagnosticsRunState.running,
+        errorMessage: diagnosticsRunState.errorMessage,
+        checkedAt: diagnostics?.checkedAt,
+        checkedAtLabel: checkedAt,
+        pluginVersion: diagnostics?.pluginVersion,
+        coreCards,
+        advisoryCards: performanceCard ? [performanceCard] : [],
+        additionalCards
+    });
+    viewApi.render(summaryHost, model);
+    setDiagnosticsWorkspaceBusy(diagnosticsRunState.running);
 };
 
 const renderDiagnostics = (diagnostics) => {
@@ -1995,21 +1823,32 @@ const renderDiagnostics = (diagnostics) => {
 };
 
 const runDiagnostics = async () => {
+    if (diagnosticsRunState.running) {
+        return;
+    }
     const startedAt = perfNowMs();
+    diagnosticsRunState = Object.freeze({ running: true, errorMessage: '' });
+    renderDiagnosticsSummary(lastDiagnostics);
     try {
         const diagnostics = await getDiagnostics();
+        diagnosticsRunState = Object.freeze({ running: false, errorMessage: '' });
         renderDiagnostics(diagnostics);
         runThemeDiagnostics();
         recordPerformanceDiagnosticsSample('settings', 'diagnostics', perfNowMs() - startedAt, {
             source: 'health-check'
         });
     } catch (error) {
+        diagnosticsRunState = Object.freeze({
+            running: false,
+            errorMessage: String(error?.message || error || 'Unknown diagnostics error')
+        });
+        renderDiagnosticsSummary(lastDiagnostics);
         diagnosticsShowError('Diagnostics failed', error);
     }
 };
 
 const retestPerformanceDiagnostics = async () => {
-    const buttons = Array.from(document.querySelectorAll('[data-fv-diagnostics-card-action="retest_performance"]'));
+    const buttons = Array.from(document.querySelectorAll('[data-fv-ui-action="diagnostics-retest-performance"]'));
     buttons.forEach((button) => { button.disabled = true; });
     try {
         if (typeof window.FolderViewPlusRefreshCoreData !== 'function') {
@@ -2032,7 +1871,7 @@ const retestPerformanceDiagnostics = async () => {
 
 const checkNativeOrganizerDiagnostics = async () => {
     const organizerModule = window.FolderViewPlusNativeOrganizer || null;
-    const buttons = Array.from(document.querySelectorAll('[data-fv-diagnostics-card-action="check_native_organizer"]'));
+    const buttons = Array.from(document.querySelectorAll('[data-fv-ui-action="diagnostics-check-native-organizer"]'));
     buttons.forEach((button) => { button.disabled = true; });
     try {
         if (!organizerModule || typeof organizerModule.checkCapabilities !== 'function') {
@@ -2058,7 +1897,7 @@ const checkNativeOrganizerDiagnostics = async () => {
         diagnosticsShowError('Native organizer check failed', error);
         return null;
     } finally {
-        document.querySelectorAll('[data-fv-diagnostics-card-action="check_native_organizer"]').forEach((button) => {
+        document.querySelectorAll('[data-fv-ui-action="diagnostics-check-native-organizer"]').forEach((button) => {
             button.disabled = false;
         });
     }

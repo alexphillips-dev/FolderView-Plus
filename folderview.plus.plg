@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.11">
-<!ENTITY md5 "744aa57dbc3e8752f6494524c4c1ae68">
+<!ENTITY version "2026.07.23.12">
+<!ENTITY md5 "31850f34e9946efcfc3a65694f859d3d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.12
+- Accessibility: Replaced accent-dependent dark-mode icons with readable semantic colors for Storage and paths, Update check, Dashboard visual evidence, and Support bundle overview.
+- UI/UX: Reduced all four Diagnostics toolbar actions to a consistent compact 36px height while preserving the larger, readable label and icon sizing.
+- Quality: Added dark/light rendered assertions that the affected SVG icons remain visible independently of the host accent token and that every toolbar action shares the compact height.
+
 
 ###2026.07.23.11
 - UX: Made Run health check match the regular Diagnostics buttons at rest while retaining the orange hover and keyboard-focus treatment.

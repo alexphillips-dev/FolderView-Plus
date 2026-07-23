@@ -6817,8 +6817,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button {
-    min-height: 42px;
+    min-height: 36px;
     margin: 0 !important;
+    padding: 0.42rem 0.75rem !important;
     border: 1px solid var(
         --fv-diagnostics-action-border,
         var(--fvplus-settings-border-subtle)
@@ -7371,9 +7372,12 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: color-mix(in srgb, var(--fvplus-settings-accent) 58%, var(--fvplus-settings-chip-info));
 }
 
-.fv-diagnostics-health-card-icon.is-storage,
 .fv-diagnostics-health-card-icon.is-update {
-    color: var(--fvplus-settings-accent);
+    color: var(--fvplus-settings-chip-info);
+}
+
+.fv-diagnostics-health-card-icon.is-storage {
+    color: var(--fvplus-settings-chip-warning);
 }
 
 .fv-diagnostics-health-card-icon.is-custom_icons,
@@ -7510,8 +7514,12 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-diagnostics-support-card-head > div > :is(i, .fv-ui-svg-icon) {
     width: 1.6rem;
     height: 1.6rem;
-    color: var(--fvplus-settings-accent);
+    color: var(--fvplus-settings-chip-info);
     font-size: 1.6rem;
+}
+
+.fv-diagnostics-support-card-head > div > .fv-ui-svg-icon[data-fv-icon="support"] {
+    color: var(--fvplus-settings-chip-success);
 }
 
 .fv-dashboard-capture-steps {

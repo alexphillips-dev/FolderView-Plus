@@ -440,11 +440,15 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-export\s*\{[\s\S]*--fv-diagnostics-action-color:\s*var\(--fvplus-settings-chip-info\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics dt\s*\{[\s\S]*font-size:\s*1\.3rem;[\s\S]*text-align:\s*center;/);
     assert.match(settingsCss, /\.fv-diagnostics-core-progress\s*\{[\s\S]*height:\s*8px;/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\s*\{[\s\S]*min-height:\s*36px;[\s\S]*padding:\s*0\.42rem 0\.75rem !important;/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*2rem;/);
+    assert.match(settingsCss, /\.fv-diagnostics-health-card-icon\.is-storage\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-warning\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-health-card-icon\.is-update\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-info\);/);
     assert.match(settingsCss, /\.fv-diagnostics-support-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*0\.72fr\)\s*minmax\(0,\s*1\.5fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-icon\.is-health\s*\{[\s\S]*--fv-support-section-icon-color:/);
+    assert.match(settingsCss, /\.fv-diagnostics-support-card-head > div > \.fv-ui-svg-icon\[data-fv-icon="support"\]\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-summary\s*\{[\s\S]*justify-content:\s*flex-start;[\s\S]*text-align:\s*left;/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item strong\s*\{[\s\S]*border-radius:\s*6px;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-details > summary\s*\{[\s\S]*color:\s*var\(--fvplus-settings-accent-strong\) !important;/);

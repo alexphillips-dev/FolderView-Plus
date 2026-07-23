@@ -776,15 +776,22 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const additionalGrid = workspace.querySelector('.fv-diagnostics-card-section.is-additional .fv-diagnostics-health-grid');
         const workspaceRect = workspace.getBoundingClientRect();
         const cards = [...workspace.querySelectorAll('.fv-diagnostics-health-card')];
+        const toolbarButtons = [...workspace.querySelectorAll('.fv-diagnostics-toolbar > .fv-ui-button')];
         const coreProgress = workspace.querySelector('.fv-diagnostics-core-progress');
         const coreProgressFill = coreProgress?.firstElementChild;
         const systemIcons = [...workspace.querySelectorAll('.fv-diagnostics-health-card-icon .fv-ui-svg-icon')];
+        const storageUpdateIcons = [...workspace.querySelectorAll(
+            '.fv-diagnostics-health-card-icon:is(.is-storage, .is-update) .fv-ui-svg-icon'
+        )];
         const metricIcons = [...workspace.querySelectorAll('.fv-diagnostics-metric.has-icon > .fv-ui-svg-icon')];
         const metricTitles = [...workspace.querySelectorAll('.fv-diagnostics-metrics dt')];
         const metrics = [...workspace.querySelectorAll('.fv-diagnostics-metrics > div')];
         const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
         const supportIcons = [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')];
         const supportIconTiles = [...workspace.querySelectorAll('.fv-support-bundle-section-icon')];
+        const supportHeaderIcons = [...workspace.querySelectorAll(
+            '.fv-diagnostics-support-card-head > div > .fv-ui-svg-icon'
+        )];
         const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
         const privacyCard = workspace.querySelector('.fv-support-bundle-redaction-card');
         const privacySummary = workspace.querySelector('.fv-support-bundle-privacy-summary');
@@ -824,6 +831,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const privacyStatusBadgeRect = privacyStatusBadge?.getBoundingClientRect();
         const privacyLinkRect = privacyLink?.getBoundingClientRect();
         return {
+            accentColor: accent,
             coreCards: coreGrid?.children.length || 0,
             additionalCards: additionalGrid?.children.length || 0,
             coreColumns: getComputedStyle(coreGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
@@ -844,6 +852,9 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             systemSvgIcons: systemIcons.length,
             systemIconWidths: systemIcons.map((icon) => icon.getBoundingClientRect().width),
             systemIconColors: systemIcons.map((icon) => getComputedStyle(icon).color),
+            storageUpdateIconColors: storageUpdateIcons.map((icon) => getComputedStyle(icon).color),
+            supportHeaderIconColors: supportHeaderIcons.map((icon) => getComputedStyle(icon).color),
+            toolbarButtonHeights: toolbarButtons.map((button) => button.getBoundingClientRect().height),
             coreProgressRatio: coreProgress && coreProgressFill
                 ? coreProgressFill.getBoundingClientRect().width / coreProgress.getBoundingClientRect().width
                 : 0,
@@ -914,6 +925,16 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.systemSvgIcons, 9);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(layout.storageUpdateIconColors.length, 2);
+    assert.equal(layout.storageUpdateIconColors.every((color) => color !== 'rgb(0, 0, 0)' && color !== layout.accentColor), true);
+    assert.equal(layout.supportHeaderIconColors.length, 2);
+    assert.equal(layout.supportHeaderIconColors.every((color) => color !== 'rgb(0, 0, 0)' && color !== layout.accentColor), true);
+    assert.equal(new Set(layout.supportHeaderIconColors).size, 2);
+    assert.equal(layout.toolbarButtonHeights.every((height) => height >= 35 && height <= 37), true);
+    assert.ok(
+        Math.max(...layout.toolbarButtonHeights) - Math.min(...layout.toolbarButtonHeights) <= 1,
+        'diagnostics toolbar buttons should share one compact height'
+    );
     assert.ok(layout.coreProgressRatio > 0.98, 'healthy core progress bar should span the metric');
     assert.equal(layout.supportSvgIcons, 7);
     assert.equal(layout.supportIconWidths.every((width) => width >= 28), true);
@@ -957,6 +978,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
     layout = await readDiagnosticsLayout();
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(layout.storageUpdateIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.equal(layout.supportHeaderIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.supportIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(new Set(layout.supportIconColors).size, 7);
     assert.equal(new Set(layout.supportIconBackgrounds).size, 7);

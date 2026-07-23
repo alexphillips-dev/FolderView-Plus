@@ -106,6 +106,10 @@
                 docker: 0,
                 vm: 0
             },
+            compactMatrixCaptureTriggerByType: {
+                docker: 'render',
+                vm: 'render'
+            },
             compactMatrixMetricsByType: {
                 docker: null,
                 vm: null
@@ -303,8 +307,9 @@
             }
         };
 
-        const scheduleDashboardCompactMatrixSyncForType = (type) => {
+        const scheduleDashboardCompactMatrixSyncForType = (type, trigger = 'resize') => {
             const resolvedType = normalizeDashboardType(type);
+            state.compactMatrixCaptureTriggerByType[resolvedType] = String(trigger || 'resize').trim().slice(0, 40) || 'resize';
             if (state.compactMatrixResizeRafByType[resolvedType]) {
                 return;
             }
@@ -313,7 +318,11 @@
                 const layout = typeof deps.normalizeDashboardPrefsForType === 'function'
                     ? deps.normalizeDashboardPrefsForType(resolvedType).layout
                     : 'classic';
-                syncDashboardCompactMatrixOrderFlowForType(resolvedType, layout);
+                syncDashboardCompactMatrixOrderFlowForType(
+                    resolvedType,
+                    layout,
+                    state.compactMatrixCaptureTriggerByType[resolvedType]
+                );
             };
             state.compactMatrixResizeRafByType[resolvedType] = typeof win.requestAnimationFrame === 'function'
                 ? win.requestAnimationFrame(callback)
@@ -340,13 +349,13 @@
                 return;
             }
             const observer = new win.ResizeObserver(() => {
-                scheduleDashboardCompactMatrixSyncForType(resolvedType);
+                scheduleDashboardCompactMatrixSyncForType(resolvedType, 'resize-observer');
             });
             observer.observe(containerNode);
             state.compactMatrixResizeObserverByType[resolvedType] = observer;
         };
 
-        const syncDashboardCompactMatrixOrderFlowForType = (type, layout) => {
+        const syncDashboardCompactMatrixOrderFlowForType = (type, layout, trigger = 'layout-apply') => {
             const resolvedType = normalizeDashboardType(type);
             const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
             if (!$container.length) {
@@ -359,6 +368,10 @@
                 $container.css('--fv-dashboard-compactmatrix-rows', '');
                 $container.css('--fv-dashboard-compactmatrix-member-columns', '');
                 $container.removeAttr('data-fv-compactmatrix-folder-columns data-fv-compactmatrix-member-columns');
+                deps.onVisualDiagnostics?.(resolvedType, {
+                    trigger,
+                    minimumMemberWidthPx: COMPACT_MATRIX_LAYOUT.minMemberWidth
+                });
                 return;
             }
             const directCardCount = $container.children('.folder-showcase-outer').length;
@@ -372,6 +385,10 @@
             $container.attr('data-fv-compactmatrix-folder-columns', String(metrics.folderColumns));
             $container.attr('data-fv-compactmatrix-member-columns', String(metrics.memberColumns));
             publishDashboardCompactMatrixTelemetry(resolvedType, layout, metrics);
+            deps.onVisualDiagnostics?.(resolvedType, {
+                trigger,
+                minimumMemberWidthPx: COMPACT_MATRIX_LAYOUT.minMemberWidth
+            });
         };
 
         const isDashboardNodeVisible = (node) => {
@@ -686,6 +703,7 @@
                         </div>
                     </section>
                     <footer>
+                        <button type="button" class="fv-dashboard-view-footer-action" data-fv-view-action="capture-diagnostics"><i class="fa fa-camera" aria-hidden="true"></i><span>${escapeHtml(translate('dashboard.quick.capture-diagnostics', 'Capture layout diagnostics'))}</span></button>
                         <button type="button" class="fv-dashboard-view-footer-action" data-fv-view-action="reset-view"><i class="fa fa-undo" aria-hidden="true"></i><span>${escapeHtml(translate('dashboard.quick.reset-view', 'Reset view'))}</span></button>
                         <button type="button" class="fv-dashboard-view-footer-action" data-fv-view-action="open-settings"><i class="fa fa-cog" aria-hidden="true"></i><span>${escapeHtml(translate('dashboard.quick.open-settings', 'Open settings'))}</span></button>
                     </footer>
@@ -764,6 +782,17 @@
                 } else if (action === 'reset-view') {
                     popover.close('reset');
                     deps.onResetView?.(resolvedType);
+                } else if (action === 'capture-diagnostics') {
+                    const snapshot = deps.onCaptureDiagnostics?.(resolvedType);
+                    ui?.toast?.({
+                        title: snapshot
+                            ? translate('dashboard.quick.capture-success-title', 'Layout diagnostics captured')
+                            : translate('dashboard.quick.capture-unavailable-title', 'Layout diagnostics unavailable'),
+                        message: snapshot
+                            ? translate('dashboard.quick.capture-success-message', 'Reproduce the issue, then export a support bundle from FolderView Plus Settings.')
+                            : translate('dashboard.quick.capture-unavailable-message', 'Expand the affected folder and try the capture again.'),
+                        tone: snapshot ? 'success' : 'warning'
+                    });
                 } else if (action === 'open-settings') {
                     popover.close('settings', { restoreFocus: false });
                     deps.onOpenSettings?.();
@@ -941,7 +970,7 @@
             $tbody.toggleClass('fv-dashboard-hide-folder-label', folderCardLayout && dashboardPrefs.folderLabel === false);
             $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', typeof deps.readDashboardHealthEmphasisStateForType === 'function' && deps.readDashboardHealthEmphasisStateForType(meta.type));
             $tbody.toggleClass('fv-dashboard-density-compact', typeof deps.readDashboardCompactDensityStateForType === 'function' && deps.readDashboardCompactDensityStateForType(meta.type));
-            syncDashboardCompactMatrixOrderFlowForType(meta.type, layout);
+            syncDashboardCompactMatrixOrderFlowForType(meta.type, layout, 'layout-apply');
             ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
             $tbody.find('.folder-showcase-outer').each((_, node) => {
                 const $card = jq(node);
@@ -1056,11 +1085,12 @@
                 scheduleDashboardWidgetVisibilitySyncForType('docker', 220);
                 scheduleDashboardWidgetVisibilitySyncForType('vm', 220);
             });
-            jq(win).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', () => {
+            jq(win).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', (event) => {
                 scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
                 scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
-                scheduleDashboardCompactMatrixSyncForType('docker');
-                scheduleDashboardCompactMatrixSyncForType('vm');
+                const trigger = String(event?.type || 'resize');
+                scheduleDashboardCompactMatrixSyncForType('docker', trigger);
+                scheduleDashboardCompactMatrixSyncForType('vm', trigger);
             });
             state.quickActionSyncBound = true;
         };

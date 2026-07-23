@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "tr",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "devre dışı",
     "dashboard.quick.expand-all-short": "Tüm klasörleri genişlet",
     "dashboard.quick.view-options": "Seçenekleri görüntüle",
+    "dashboard.quick.capture-diagnostics": "Yakalama düzeni teşhisleri",
+    "dashboard.quick.capture-success-title": "Yakalanan düzen teşhisi",
+    "dashboard.quick.capture-success-message": "Sorunu yeniden oluşturun ve ardından FolderView Plus Ayarları'ndan bir destek paketini dışarı aktarın.",
+    "dashboard.quick.capture-unavailable-title": "Düzen teşhisi kullanılamıyor",
+    "dashboard.quick.capture-unavailable-message": "Etkilenen klasörü genişletin ve yakalamayı yeniden deneyin.",
     "dashboard.layout.classic": "Klasik",
     "dashboard.layout.legacy": "Eski",
     "dashboard.layout.fullwidth": "Tam Genişlik",

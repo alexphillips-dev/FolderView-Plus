@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "cs",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Technické detaily",
     "diagnostics.theme.live-title": "Diagnostika tématu je živá před úplnou zdravotní kontrolou.",
     "diagnostics.theme.live-description": "Spusťte kontrolu stavu pro obnovení Docker, VM, úložiště, ikony a aktualizačních karet. Karta motivu níže se aktualizuje okamžitě po načtení stránky.",
-    "diagnostics.actions.retry": "Zkuste to znovu"
+    "diagnostics.actions.retry": "Zkuste to znovu",
+    "diagnostics.capture.age-unknown": "věk neznámý",
+    "diagnostics.capture.age-under-minute": "mladší než 1 min",
+    "diagnostics.capture.age-minutes": "$1 min staré",
+    "diagnostics.capture.age-hours": "$1 h staré",
+    "diagnostics.capture.none-title": "Není k dispozici žádné nedávné vizuální zachycení panelu Dashboard.",
+    "diagnostics.capture.none-help": "Otevřete Dashboard, rozbalte postiženou složku, reprodukujte problém a před exportem se vraťte sem.",
+    "diagnostics.capture.viewport-unavailable": "výřez není k dispozici",
+    "diagnostics.capture.touch": "dotykový",
+    "diagnostics.capture.non-touch": "nedotykové",
+    "diagnostics.capture.vm": "Řídicí panel VM",
+    "diagnostics.capture.docker": "Docker Dashboard",
+    "diagnostics.capture.environment-warning": "Exportní prostředí se liší od alespoň jednoho zachyceného prostředí Dashboard.",
+    "diagnostics.capture.title": "Vizuální důkaz palubní desky",
+    "diagnostics.capture.help": "Tyto snímky zachovají vykreslenou geometrii řídicího panelu po navigaci do Nastavení.",
+    "diagnostics.domains.layout": "Rozložení a vykreslování",
+    "diagnostics.domains.configuration": "Integrita konfigurace",
+    "diagnostics.domains.runtime": "Doba běhu a požadavky",
+    "diagnostics.domains.storage": "Skladování",
+    "diagnostics.domains.icons": "Vlastní ikony",
+    "diagnostics.domains.theme": "téma",
+    "diagnostics.domains.localization": "Lokalizace",
+    "diagnostics.domains.update": "Aktualizovat",
+    "diagnostics.domains.issue-count": "– $1 problémů",
+    "diagnostics.domains.title": "Odstraňování problémů s doménami",
+    "diagnostics.domains.help": "Nahlášené problémy jsou odděleny, takže nesouvisející konfigurační nálezy nezakrývají důkazy o uspořádání."
 }

@@ -13,6 +13,8 @@ FolderView Plus uses English as its source catalog and falls back to English whe
 
 Message keys describe meaning instead of copying English wording. New keys should use a feature namespace, for example `docker.privacy.mask-lan-ips` or `wizard.navigation.review`. Do not rename a key solely because the English sentence was edited.
 
+`scripts/build_i18n_surface_catalogs.mjs --translate` also fills missing explicit namespace keys from the English catalog and validates parameter placeholders. This keeps new Dashboard and diagnostics messages aligned across supported locales while preserving existing translations.
+
 ## Translation status
 
 - `source`: authoritative English source.

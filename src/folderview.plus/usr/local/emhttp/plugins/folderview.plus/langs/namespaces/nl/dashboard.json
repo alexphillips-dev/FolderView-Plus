@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "nl",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "uitgeschakeld",
     "dashboard.quick.expand-all-short": "Vouw alle mappen uit",
     "dashboard.quick.view-options": "Bekijk opties",
+    "dashboard.quick.capture-diagnostics": "Leg lay-outdiagnostiek vast",
+    "dashboard.quick.capture-success-title": "Lay-outdiagnostiek vastgelegd",
+    "dashboard.quick.capture-success-message": "Reproduceer het probleem en exporteer vervolgens een ondersteuningsbundel vanuit FolderView Plus-instellingen.",
+    "dashboard.quick.capture-unavailable-title": "Lay-outdiagnostiek niet beschikbaar",
+    "dashboard.quick.capture-unavailable-message": "Vouw de betreffende map uit en probeer de opname opnieuw.",
     "dashboard.layout.classic": "Klassiek",
     "dashboard.layout.legacy": "erfenis",
     "dashboard.layout.fullwidth": "Volledige breedte",

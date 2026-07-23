@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "es",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Detalles técnicos",
     "diagnostics.theme.live-title": "Los diagnósticos del tema están activos antes de una verificación completa de estado.",
     "diagnostics.theme.live-description": "Ejecute la verificación de estado para actualizar Docker, VM, almacenamiento, icono y tarjetas de actualización. La tarjeta del tema a continuación se actualiza inmediatamente al cargar la página.",
-    "diagnostics.actions.retry": "Reintentar"
+    "diagnostics.actions.retry": "Reintentar",
+    "diagnostics.capture.age-unknown": "edad desconocida",
+    "diagnostics.capture.age-under-minute": "menos de 1 min de edad",
+    "diagnostics.capture.age-minutes": "$1 min de antigüedad",
+    "diagnostics.capture.age-hours": "$1 hora de antigüedad",
+    "diagnostics.capture.none-title": "No hay ninguna captura visual reciente del Panel disponible.",
+    "diagnostics.capture.none-help": "Abra el Panel, expanda la carpeta afectada, reproduzca el problema y regrese aquí antes de exportar.",
+    "diagnostics.capture.viewport-unavailable": "ventana gráfica no disponible",
+    "diagnostics.capture.touch": "táctil",
+    "diagnostics.capture.non-touch": "sin contacto",
+    "diagnostics.capture.vm": "Panel de máquina virtual",
+    "diagnostics.capture.docker": "Panel acoplable",
+    "diagnostics.capture.environment-warning": "El entorno de exportación difiere de al menos un entorno de panel capturado.",
+    "diagnostics.capture.title": "Evidencia visual del tablero",
+    "diagnostics.capture.help": "Estas capturas conservan la geometría del panel renderizada después de navegar a Configuración.",
+    "diagnostics.domains.layout": "Diseño y renderizado",
+    "diagnostics.domains.configuration": "Integridad de la configuración",
+    "diagnostics.domains.runtime": "Tiempo de ejecución y solicitudes",
+    "diagnostics.domains.storage": "Almacenamiento",
+    "diagnostics.domains.icons": "Iconos personalizados",
+    "diagnostics.domains.theme": "Tema",
+    "diagnostics.domains.localization": "Localización",
+    "diagnostics.domains.update": "Actualizar",
+    "diagnostics.domains.issue-count": "- $1 problema(s)",
+    "diagnostics.domains.title": "Solución de problemas de dominios",
+    "diagnostics.domains.help": "Los problemas informados se separan para que los hallazgos de configuración no relacionados no oculten la evidencia del diseño."
 }

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ja",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "技術的詳細",
     "diagnostics.theme.live-title": "テーマ診断は、完全な健康診断の前にライブで実行されます。",
     "diagnostics.theme.live-description": "健康診断を実行して、Docker、VM、ストレージ、アイコン、および更新カードを最新にしてください。下記のテーマカードはページロード時に即時更新されます。",
-    "diagnostics.actions.retry": "再試行"
+    "diagnostics.actions.retry": "再試行",
+    "diagnostics.capture.age-unknown": "年齢不詳",
+    "diagnostics.capture.age-under-minute": "生後1分未満",
+    "diagnostics.capture.age-minutes": "$1 分前",
+    "diagnostics.capture.age-hours": "$1 時間前",
+    "diagnostics.capture.none-title": "最近のダッシュボードのビジュアル キャプチャは利用できません。",
+    "diagnostics.capture.none-help": "ダッシュボードを開き、影響を受けるフォルダーを展開して問題を再現し、エクスポートする前にここに戻ってください。",
+    "diagnostics.capture.viewport-unavailable": "ビューポートは使用できません",
+    "diagnostics.capture.touch": "タッチ対応",
+    "diagnostics.capture.non-touch": "非接触",
+    "diagnostics.capture.vm": "VM ダッシュボード",
+    "diagnostics.capture.docker": "Docker ダッシュボード",
+    "diagnostics.capture.environment-warning": "エクスポート環境は、キャプチャされた少なくとも 1 つのダッシュボード環境とは異なります。",
+    "diagnostics.capture.title": "ダッシュボードの視覚的証拠",
+    "diagnostics.capture.help": "これらのキャプチャでは、[設定] に移動した後、レンダリングされたダッシュボード ジオメトリが保持されます。",
+    "diagnostics.domains.layout": "レイアウトとレンダリング",
+    "diagnostics.domains.configuration": "構成の整合性",
+    "diagnostics.domains.runtime": "ランタイムとリクエスト",
+    "diagnostics.domains.storage": "ストレージ",
+    "diagnostics.domains.icons": "カスタムアイコン",
+    "diagnostics.domains.theme": "テーマ",
+    "diagnostics.domains.localization": "ローカリゼーション",
+    "diagnostics.domains.update": "アップデート",
+    "diagnostics.domains.issue-count": "- $1 の問題",
+    "diagnostics.domains.title": "ドメインのトラブルシューティング",
+    "diagnostics.domains.help": "報告された問題は分離されるため、関連のない構成の結果によってレイアウトの証拠が曖昧になることはありません。"
 }

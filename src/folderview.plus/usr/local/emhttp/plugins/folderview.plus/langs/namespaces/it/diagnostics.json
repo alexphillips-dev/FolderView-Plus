@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "it",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Dettagli tecnici",
     "diagnostics.theme.live-title": "La diagnostica del tema è attiva prima di un controllo completo dello stato.",
     "diagnostics.theme.live-description": "Esegui il controllo dello stato per aggiornare Docker, VM, archiviazione, icona e schede di aggiornamento. La scheda del tema qui sotto si aggiorna immediatamente al caricamento della pagina.",
-    "diagnostics.actions.retry": "Riprova"
+    "diagnostics.actions.retry": "Riprova",
+    "diagnostics.capture.age-unknown": "età sconosciuta",
+    "diagnostics.capture.age-under-minute": "meno di 1 minuto di età",
+    "diagnostics.capture.age-minutes": "$1 min",
+    "diagnostics.capture.age-hours": "$1 ore",
+    "diagnostics.capture.none-title": "Non è disponibile alcuna acquisizione visiva recente della dashboard.",
+    "diagnostics.capture.none-help": "Apri Dashboard, espandi la cartella interessata, riproduci il problema e torna qui prima di esportare.",
+    "diagnostics.capture.viewport-unavailable": "vista non disponibile",
+    "diagnostics.capture.touch": "con funzionalità touch",
+    "diagnostics.capture.non-touch": "senza tocco",
+    "diagnostics.capture.vm": "Pannello di controllo della VM",
+    "diagnostics.capture.docker": "Pannello di controllo Docker",
+    "diagnostics.capture.environment-warning": "L'ambiente di esportazione è diverso da almeno un ambiente Dashboard acquisito.",
+    "diagnostics.capture.title": "Evidenze visive sul cruscotto",
+    "diagnostics.capture.help": "Queste acquisizioni preservano la geometria della dashboard sottoposta a rendering dopo la navigazione in Impostazioni.",
+    "diagnostics.domains.layout": "Impaginazione e rendering",
+    "diagnostics.domains.configuration": "Integrità della configurazione",
+    "diagnostics.domains.runtime": "Runtime e richieste",
+    "diagnostics.domains.storage": "Stoccaggio",
+    "diagnostics.domains.icons": "Icone personalizzate",
+    "diagnostics.domains.theme": "Tema",
+    "diagnostics.domains.localization": "Localizzazione",
+    "diagnostics.domains.update": "Aggiorna",
+    "diagnostics.domains.issue-count": "- $1 problema/i",
+    "diagnostics.domains.title": "Risoluzione dei problemi relativi ai domini",
+    "diagnostics.domains.help": "I problemi segnalati vengono separati in modo che i risultati della configurazione non correlati non oscurino le prove del layout."
 }

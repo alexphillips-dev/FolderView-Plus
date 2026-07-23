@@ -310,6 +310,18 @@ if (!dashboardRuntimeSurfaceModule || typeof dashboardRuntimeSurfaceModule.creat
 if (!dashboardExpandedStateStore) {
     dashboardBootstrapMissingModules.push('dashboard.state-store.js');
 }
+if (
+    !window.FolderViewPlusDashboardLayoutQuickRail
+    || typeof window.FolderViewPlusDashboardLayoutQuickRail.createController !== 'function'
+) {
+    dashboardBootstrapMissingModules.push('dashboard.layout-quickrail.js');
+}
+if (
+    !window.FolderViewPlusDashboardVisualDiagnostics
+    || typeof window.FolderViewPlusDashboardVisualDiagnostics.createController !== 'function'
+) {
+    dashboardBootstrapMissingModules.push('dashboard.visual-diagnostics.js');
+}
 if (dashboardBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus Dashboard bootstrap failed. Missing modules: ${dashboardBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
@@ -556,6 +568,7 @@ const normalizeDashboardOverflowMode = typeof utils.normalizeDashboardOverflowMo
         return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
     });
 const dashboardLayoutQuickRailModule = window.FolderViewPlusDashboardLayoutQuickRail || null;
+const dashboardVisualDiagnosticsModule = window.FolderViewPlusDashboardVisualDiagnostics || null;
 const normalizeDashboardPrefsForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const prefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
@@ -592,6 +605,26 @@ const dashboardTypeMeta = (type) => {
     };
 };
 let dashboardQuickRailController = null;
+let dashboardVisualDiagnosticsController = null;
+const getDashboardVisualDiagnosticsController = () => {
+    if (dashboardVisualDiagnosticsController) {
+        return dashboardVisualDiagnosticsController;
+    }
+    if (
+        !dashboardVisualDiagnosticsModule
+        || typeof dashboardVisualDiagnosticsModule.createController !== 'function'
+        || typeof dashboardLayoutQuickRailModule?.deriveCompactMatrixLayout !== 'function'
+    ) {
+        return null;
+    }
+    dashboardVisualDiagnosticsController = dashboardVisualDiagnosticsModule.createController({
+        window,
+        document,
+        deriveCompactMatrixLayout: dashboardLayoutQuickRailModule.deriveCompactMatrixLayout,
+        minimumMemberWidthPx: dashboardLayoutQuickRailModule.COMPACT_MATRIX_LAYOUT?.minMemberWidth || 220
+    });
+    return dashboardVisualDiagnosticsController;
+};
 const getDashboardQuickRailController = () => {
     if (dashboardQuickRailController) {
         return dashboardQuickRailController;
@@ -631,7 +664,16 @@ const getDashboardQuickRailController = () => {
         },
         onResetView: (type) => resetDashboardWidgetViewStateForType(type),
         onOpenSettings: () => openFolderViewPlusSettings(),
-        onLayoutTelemetry: (type, snapshot) => persistDashboardLayoutTelemetry(type, snapshot)
+        onLayoutTelemetry: (type, snapshot) => persistDashboardLayoutTelemetry(type, snapshot),
+        onVisualDiagnostics: (type, options = {}) => (
+            getDashboardVisualDiagnosticsController()?.scheduleCapture?.(type, options)
+        ),
+        onCaptureDiagnostics: (type) => (
+            getDashboardVisualDiagnosticsController()?.capture?.(type, {
+                trigger: 'manual-capture',
+                minimumMemberWidthPx: dashboardLayoutQuickRailModule.COMPACT_MATRIX_LAYOUT?.minMemberWidth || 220
+            }) || null
+        )
     });
     return dashboardQuickRailController;
 };

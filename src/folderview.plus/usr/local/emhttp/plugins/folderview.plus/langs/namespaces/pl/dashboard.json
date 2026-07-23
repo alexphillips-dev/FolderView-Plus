@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "pl",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "wyłączone",
     "dashboard.quick.expand-all-short": "Rozwiń wszystkie foldery",
     "dashboard.quick.view-options": "Wyświetl opcje",
+    "dashboard.quick.capture-diagnostics": "Przechwytywanie diagnostyki układu",
+    "dashboard.quick.capture-success-title": "Przechwycono diagnostykę układu",
+    "dashboard.quick.capture-success-message": "Odtwórz problem, a następnie wyeksportuj pakiet pomocy z ustawień FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnostyka układu jest niedostępna",
+    "dashboard.quick.capture-unavailable-message": "Rozwiń folder, którego dotyczy problem, i spróbuj ponownie przechwycić.",
     "dashboard.layout.classic": "Klasyczny",
     "dashboard.layout.legacy": "Dziedzictwo",
     "dashboard.layout.fullwidth": "Pełna szerokość",

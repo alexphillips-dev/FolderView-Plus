@@ -25,7 +25,7 @@
         }),
         uiTelemetry: Object.freeze({
             label: 'Browser/UI telemetry',
-            detail: 'Client perf samples, sanitized request activity and errors, folder editor bootstrap debug, and theme telemetry.'
+            detail: 'Client performance, sanitized requests and errors, Dashboard visual evidence, folder editor bootstrap debug, and theme telemetry.'
         }),
         healthAndHistory: Object.freeze({
             label: 'Health and history',
@@ -59,8 +59,113 @@
             ? deps.getSupportBundlePreview
             : (typeof deps.getSupportBundle === 'function' ? deps.getSupportBundle : async () => null);
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
+        const translate = (key, fallback = '', ...params) => (
+            typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
+        );
 
         let lastSupportBundlePreview = null;
+        const formatAge = (ageMs) => {
+            const numeric = Number(ageMs);
+            if (!Number.isFinite(numeric) || numeric < 0) return translate('diagnostics.capture.age-unknown', 'age unknown');
+            if (numeric < 60 * 1000) return translate('diagnostics.capture.age-under-minute', 'under 1 min old');
+            const minutes = Math.round(numeric / (60 * 1000));
+            if (minutes < 60) return translate('diagnostics.capture.age-minutes', '$1 min old', minutes);
+            const hours = Math.round(minutes / 60);
+            return translate('diagnostics.capture.age-hours', '$1 hr old', hours);
+        };
+
+        const buildDashboardCaptureStatusHtml = (bundle) => {
+            const visual = bundle?.uiTelemetry?.dashboardVisual || {};
+            const entries = ['docker', 'vm'].map((type) => ({
+                type,
+                value: visual?.[type] || {}
+            }));
+            const available = entries.filter((entry) => entry.value?.available === true);
+            if (!available.length) {
+                return `
+                    <div class="fv-support-bundle-capture-status is-missing">
+                        <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                        <div>
+                            <strong>${escapeHtml(translate('diagnostics.capture.none-title', 'No recent Dashboard visual capture is available.'))}</strong>
+                            <span>${escapeHtml(translate('diagnostics.capture.none-help', 'Open Dashboard, expand the affected folder, reproduce the issue, and return here before exporting.'))}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            const rows = available.map(({ type, value }) => {
+                const latest = value.latest || {};
+                const verdict = String(latest.verdict?.status || 'unknown');
+                const viewport = latest.environment?.viewport || {};
+                const viewportLabel = viewport.width && viewport.height
+                    ? `${viewport.width} x ${viewport.height}`
+                    : translate('diagnostics.capture.viewport-unavailable', 'viewport unavailable');
+                const touchLabel = value.capturedOnTouchCapableDevice
+                    ? translate('diagnostics.capture.touch', 'touch-capable')
+                    : translate('diagnostics.capture.non-touch', 'non-touch');
+                const freshness = String(value.freshness || 'unknown');
+                const statusClass = freshness === 'fresh' && verdict === 'healthy'
+                    ? 'is-ready'
+                    : (verdict === 'error' ? 'is-error' : 'is-attention');
+                return `
+                    <div class="fv-support-bundle-capture-row ${statusClass}">
+                        <strong>${escapeHtml(type === 'vm'
+                            ? translate('diagnostics.capture.vm', 'VM Dashboard')
+                            : translate('diagnostics.capture.docker', 'Docker Dashboard'))}</strong>
+                        <span>${escapeHtml(`${freshness}; ${formatAge(value.ageMs)}; ${viewportLabel}; ${touchLabel}; render ${verdict}.`)}</span>
+                    </div>
+                `;
+            }).join('');
+            const hasEnvironmentMismatch = available.some((entry) => entry.value?.environmentComparison?.differs === true);
+            const mismatch = hasEnvironmentMismatch
+                ? `<span class="fv-support-bundle-capture-warning">${escapeHtml(translate('diagnostics.capture.environment-warning', 'The export environment differs from at least one captured Dashboard environment.'))}</span>`
+                : '';
+            return `
+                <div class="fv-support-bundle-capture-status">
+                    <i class="fa fa-desktop" aria-hidden="true"></i>
+                    <div>
+                        <strong>${escapeHtml(translate('diagnostics.capture.title', 'Dashboard visual evidence'))}</strong>
+                        <span>${escapeHtml(translate('diagnostics.capture.help', 'These captures preserve the rendered Dashboard geometry after navigation to Settings.'))}</span>
+                        <div class="fv-support-bundle-capture-rows">${rows}</div>
+                        ${mismatch}
+                    </div>
+                </div>
+            `;
+        };
+
+        const buildDiagnosticDomainsHtml = (bundle) => {
+            const domains = bundle?.healthAndHistory?.diagnosticDomains?.domains || {};
+            const labels = {
+                layoutRendering: translate('diagnostics.domains.layout', 'Layout and rendering'),
+                configurationIntegrity: translate('diagnostics.domains.configuration', 'Configuration integrity'),
+                runtimeRequests: translate('diagnostics.domains.runtime', 'Runtime and requests'),
+                storage: translate('diagnostics.domains.storage', 'Storage'),
+                customIcons: translate('diagnostics.domains.icons', 'Custom icons'),
+                theme: translate('diagnostics.domains.theme', 'Theme'),
+                localization: translate('diagnostics.domains.localization', 'Localization'),
+                update: translate('diagnostics.domains.update', 'Update')
+            };
+            const entries = Object.entries(labels).map(([key, label]) => {
+                const domain = domains[key] || { status: 'unavailable', issueCount: 0 };
+                const status = String(domain.status || 'unavailable');
+                return `
+                    <span class="fv-support-bundle-domain is-${escapeHtml(status)}">
+                        <strong>${escapeHtml(label)}</strong>
+                        <span>${escapeHtml(status)}${Number(domain.issueCount) > 0
+                            ? escapeHtml(translate('diagnostics.domains.issue-count', ' - $1 issue(s)', Number(domain.issueCount)))
+                            : ''}</span>
+                    </span>
+                `;
+            }).join('');
+            return `
+                <div class="fv-support-bundle-domains">
+                    <div>
+                        <strong>${escapeHtml(translate('diagnostics.domains.title', 'Troubleshooting domains'))}</strong>
+                        <span>${escapeHtml(translate('diagnostics.domains.help', 'Reported problems are separated so unrelated configuration findings do not obscure layout evidence.'))}</span>
+                    </div>
+                    <div class="fv-support-bundle-domain-grid">${entries}</div>
+                </div>
+            `;
+        };
 
         const buildSupportBundlePreviewSectionCards = (bundle) => {
             const normalized = normalizeSupportBundleV2Payload(
@@ -183,6 +288,8 @@
                         <span class="fv-diagnostics-pill">Previewed ${escapeHtml(generatedAt)}</span>
                     </div>
                 </div>
+                ${buildDashboardCaptureStatusHtml(normalized)}
+                ${buildDiagnosticDomainsHtml(normalized)}
                 <div class="fv-support-bundle-section-grid">
                     ${buildSupportBundlePreviewSectionCards(normalized)}
                 </div>
@@ -220,6 +327,8 @@
         return Object.freeze({
             buildSupportBundlePreviewSectionCards,
             buildSupportBundleRedactionPreviewHtml,
+            buildDashboardCaptureStatusHtml,
+            buildDiagnosticDomainsHtml,
             renderSupportBundlePreview,
             refreshSupportBundlePreview,
             getLastSupportBundlePreview,

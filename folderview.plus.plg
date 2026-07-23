@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.22.11">
-<!ENTITY md5 "7ed0fd851a32065d31f257b157ce158b">
+<!ENTITY version "2026.07.23.02">
+<!ENTITY md5 "6dade1f25a63a5c73f4383838505f1d0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.23.02
+- Diagnostics: Added privacy-safe Dashboard visual snapshots that record viewport, orientation, touch capability, browser scale, rendered card geometry, grid-column agreement, and overflow verdicts for Docker and VM widgets.
+- UX: Added a `Capture layout diagnostics` action to Dashboard View options plus a guided Settings workflow and freshness/environment warnings in the support-bundle preview.
+- Diagnostics: Split support findings into layout/rendering, configuration, runtime/request, storage, custom-icon, theme, localization, and update domains so unrelated warnings no longer obscure visual evidence.
+- Privacy: Kept Dashboard captures bounded to 12 distinct snapshots per widget and eight sampled problem labels, using per-page salted fingerprints and length buckets instead of screenshots, DOM dumps, or raw names.
+- Localization: Added translated Dashboard-capture and diagnostic-domain messages across all 18 supported locales and taught the catalog builder to synchronize missing explicit namespace keys with placeholder validation.
+- Quality: Added unit, integration, browser, portrait/landscape viewport, privacy, stale-version, and support-preview coverage for the complete capture-to-export workflow.
+
 
 ###2026.07.22.11
 - Fix: Initialized the health-severity filter normalizer before constructing the Filter and View UI-state store, preventing `FVPLUS-SET-RUNTIME-001` from aborting the Settings page during bootstrap.

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "pt-PT",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Detalhes técnicos",
     "diagnostics.theme.live-title": "Os diagnósticos do tema estão ativos antes de uma verificação completa de saúde.",
     "diagnostics.theme.live-description": "Execute a verificação de saúde para atualizar Docker, VM, armazenamento, ícones e cartões de atualização. O cartão do tema abaixo atualiza imediatamente ao carregar a página.",
-    "diagnostics.actions.retry": "Tentar novamente"
+    "diagnostics.actions.retry": "Tentar novamente",
+    "diagnostics.capture.age-unknown": "idade desconhecida",
+    "diagnostics.capture.age-under-minute": "menos de 1 minuto de idade",
+    "diagnostics.capture.age-minutes": "$1 min de idade",
+    "diagnostics.capture.age-hours": "$1 horas de idade",
+    "diagnostics.capture.none-title": "Nenhuma captura visual recente do Dashboard está disponível.",
+    "diagnostics.capture.none-help": "Abra o Dashboard, expanda a pasta afetada, reproduza o problema e volte aqui antes de exportar.",
+    "diagnostics.capture.viewport-unavailable": "janela de visualização indisponível",
+    "diagnostics.capture.touch": "compatível com toque",
+    "diagnostics.capture.non-touch": "sem toque",
+    "diagnostics.capture.vm": "Painel da VM",
+    "diagnostics.capture.docker": "Painel Docker",
+    "diagnostics.capture.environment-warning": "O ambiente de exportação difere de pelo menos um ambiente do Dashboard capturado.",
+    "diagnostics.capture.title": "Evidência visual do painel",
+    "diagnostics.capture.help": "Essas capturas preservam a geometria renderizada do painel após navegar até Configurações.",
+    "diagnostics.domains.layout": "Layout e renderização",
+    "diagnostics.domains.configuration": "Integridade da configuração",
+    "diagnostics.domains.runtime": "Tempo de execução e solicitações",
+    "diagnostics.domains.storage": "Armazenamento",
+    "diagnostics.domains.icons": "Ícones personalizados",
+    "diagnostics.domains.theme": "Tema",
+    "diagnostics.domains.localization": "Localização",
+    "diagnostics.domains.update": "Atualizar",
+    "diagnostics.domains.issue-count": "- $1 problema(s)",
+    "diagnostics.domains.title": "Solução de problemas de domínios",
+    "diagnostics.domains.help": "Os problemas relatados são separados para que descobertas de configuração não relacionadas não obscureçam as evidências de layout."
 }

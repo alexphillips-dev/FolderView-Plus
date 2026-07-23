@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "技术细节",
     "diagnostics.theme.live-title": "主题诊断在完整健康检查前实时进行。",
     "diagnostics.theme.live-description": "运行健康检查以刷新 Docker、VM、存储、图标和更新卡。下面的主题卡在页面加载时立即更新。",
-    "diagnostics.actions.retry": "重试"
+    "diagnostics.actions.retry": "重试",
+    "diagnostics.capture.age-unknown": "年龄未知",
+    "diagnostics.capture.age-under-minute": "不到 1 分钟",
+    "diagnostics.capture.age-minutes": "$1 分钟旧",
+    "diagnostics.capture.age-hours": "$1 小时旧",
+    "diagnostics.capture.none-title": "没有最新的仪表板视觉捕获可用。",
+    "diagnostics.capture.none-help": "打开仪表板，展开受影响的文件夹，重现问题，然后在导出之前返回此处。",
+    "diagnostics.capture.viewport-unavailable": "视口不可用",
+    "diagnostics.capture.touch": "触摸功能",
+    "diagnostics.capture.non-touch": "非接触式",
+    "diagnostics.capture.vm": "虚拟机仪表板",
+    "diagnostics.capture.docker": "码头工人仪表板",
+    "diagnostics.capture.environment-warning": "导出环境与至少一个捕获的仪表板环境不同。",
+    "diagnostics.capture.title": "仪表板视觉证据",
+    "diagnostics.capture.help": "这些捕获在导航到“设置”后保留渲染的仪表板几何形状。",
+    "diagnostics.domains.layout": "布局和渲染",
+    "diagnostics.domains.configuration": "配置完整性",
+    "diagnostics.domains.runtime": "运行时和请求",
+    "diagnostics.domains.storage": "存储",
+    "diagnostics.domains.icons": "自定义图标",
+    "diagnostics.domains.theme": "主题",
+    "diagnostics.domains.localization": "本地化",
+    "diagnostics.domains.update": "更新",
+    "diagnostics.domains.issue-count": "- $1 问题",
+    "diagnostics.domains.title": "域故障排除",
+    "diagnostics.domains.help": "报告的问题是分开的，因此不相关的配置结果不会掩盖布局证据。"
 }

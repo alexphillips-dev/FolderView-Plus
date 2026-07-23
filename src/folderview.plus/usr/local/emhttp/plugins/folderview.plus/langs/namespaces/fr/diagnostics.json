@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "fr",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Détails techniques",
     "diagnostics.theme.live-title": "Les diagnostics du thème sont actifs avant un contrôle complet de santé.",
     "diagnostics.theme.live-description": "Exécutez le contrôle de santé pour actualiser Docker, VM, le stockage, les icônes et les cartes de mise à jour. La carte de thème ci-dessous se met à jour immédiatement au chargement de la page.",
-    "diagnostics.actions.retry": "Réessayer"
+    "diagnostics.actions.retry": "Réessayer",
+    "diagnostics.capture.age-unknown": "âge inconnu",
+    "diagnostics.capture.age-under-minute": "il y a moins d'une minute",
+    "diagnostics.capture.age-minutes": "$1 min vieux",
+    "diagnostics.capture.age-hours": "$1 heure",
+    "diagnostics.capture.none-title": "Aucune capture visuelle récente du tableau de bord n'est disponible.",
+    "diagnostics.capture.none-help": "Ouvrez le tableau de bord, développez le dossier concerné, reproduisez le problème et revenez ici avant d'exporter.",
+    "diagnostics.capture.viewport-unavailable": "fenêtre indisponible",
+    "diagnostics.capture.touch": "tactile",
+    "diagnostics.capture.non-touch": "sans contact",
+    "diagnostics.capture.vm": "Tableau de bord de la machine virtuelle",
+    "diagnostics.capture.docker": "Tableau de bord Docker",
+    "diagnostics.capture.environment-warning": "L'environnement d'exportation diffère d'au moins un environnement de tableau de bord capturé.",
+    "diagnostics.capture.title": "Preuve visuelle du tableau de bord",
+    "diagnostics.capture.help": "Ces captures préservent la géométrie rendue du tableau de bord après la navigation vers les paramètres.",
+    "diagnostics.domains.layout": "Mise en page et rendu",
+    "diagnostics.domains.configuration": "Intégrité de la configuration",
+    "diagnostics.domains.runtime": "Durée d'exécution et requêtes",
+    "diagnostics.domains.storage": "Stockage",
+    "diagnostics.domains.icons": "Icônes personnalisées",
+    "diagnostics.domains.theme": "Thème",
+    "diagnostics.domains.localization": "Localisation",
+    "diagnostics.domains.update": "Mise à jour",
+    "diagnostics.domains.issue-count": "- $1 problème(s)",
+    "diagnostics.domains.title": "Domaines de dépannage",
+    "diagnostics.domains.help": "Les problèmes signalés sont séparés afin que les résultats de configuration sans rapport n'obscurcissent pas les preuves de configuration."
 }

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "fr",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Par défaut",
     "legacy.surface.21d033f5b75dfd7e": "Raisons du jumelage",
     "legacy.surface.222731e08221fabd": "0 dossiers",
+    "legacy.surface.223f8fc57de30082": "Ouvrez le tableau de bord sur l'appareil concerné et développez le dossier du problème.",
     "legacy.surface.2252d5cf93767a43": "Effet",
     "legacy.surface.226d172b26fa2ead": "Ces masques s'appliquent lorsque la confidentialité est activée sur la page Docker.",
     "legacy.surface.2276a481f482182f": "Assistant appliquer",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Actualisation des diagnostics",
     "legacy.surface.2893151ea19e03e8": "Règles de dépannage du sélecteur de source",
     "legacy.surface.28decfc8127a9ff7": "Mettez à jour les paramètres, les dossiers et les règles maintenant.",
+    "legacy.surface.292b50bf35608517": "Pour les rapports de dimensionnement, de découpage ou mobiles, capturez le tableau de bord concerné immédiatement avant l'exportation.",
     "legacy.surface.292c06f0045a45d0": "Catégorie",
     "legacy.surface.294586e0b56aff59": "Dossiers actifs actuels",
     "legacy.surface.29875c13b4032f83": "Aucun paramètre de dossier copié",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Étape $1 de $2",
     "legacy.surface.3d94368daada51ef": "Choisissez un instantané stocké, puis restaurez-le, téléchargez-le ou supprimez-le.",
     "legacy.surface.3e19908f65fdcd60": "Aucun avertissement.",
+    "legacy.surface.3e221173b7667c94": "Dépannage de la disposition du tableau de bord",
     "legacy.surface.3e3d627f94ea6805": "Nombre total d'étapes",
     "legacy.surface.3e4d15d46dc7aa48": "Aucun paramètre trouvé",
     "legacy.surface.3e8f775cea5b1f40": "Seuil d'avertissement d'état",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "L’aperçu de la récupération se chargera une fois le chargement des sauvegardes terminé.",
     "legacy.surface.f18012429c19cdae": "Progrès $1%",
     "legacy.surface.f189411452ed2860": "Tous les états",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduisez le problème, puis redimensionnez ou faites pivoter une fois si nécessaire.",
     "legacy.surface.f20c879465551f0d": "Épinglé",
     "legacy.surface.f27310598a5421a8": "Nom de la VM de test (exemple : prod-db)",
     "legacy.surface.f29c915c2762ae74": "Les dossiers les plus anciens se déplacent vers le haut tandis que les dossiers les plus récents se déplacent vers le bas.",

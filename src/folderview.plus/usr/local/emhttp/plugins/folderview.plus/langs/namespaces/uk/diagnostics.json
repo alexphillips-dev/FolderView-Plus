@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "uk",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Технічні деталі",
     "diagnostics.theme.live-title": "Діагностика тем відбувається в реальному часі перед повною перевіркою стану.",
     "diagnostics.theme.live-description": "Запустіть перевірку стану, щоб оновити Docker, VM, сховище, значки та карти оновлень. Карта теми нижче оновлюється одразу при завантаженні сторінки.",
-    "diagnostics.actions.retry": "Спробувати ще раз"
+    "diagnostics.actions.retry": "Спробувати ще раз",
+    "diagnostics.capture.age-unknown": "вік невідомий",
+    "diagnostics.capture.age-under-minute": "менше 1 хв",
+    "diagnostics.capture.age-minutes": "$1 хв",
+    "diagnostics.capture.age-hours": "$1 год",
+    "diagnostics.capture.none-title": "Немає нещодавнього візуального запису інформаційної панелі.",
+    "diagnostics.capture.none-help": "Відкрийте інформаційну панель, розгорніть відповідну папку, відтворіть проблему та поверніться сюди перед експортом.",
+    "diagnostics.capture.viewport-unavailable": "область перегляду недоступна",
+    "diagnostics.capture.touch": "сенсорний",
+    "diagnostics.capture.non-touch": "без дотику",
+    "diagnostics.capture.vm": "Інформаційна панель VM",
+    "diagnostics.capture.docker": "Інформаційна панель Docker",
+    "diagnostics.capture.environment-warning": "Середовище експорту відрізняється від принаймні одного захопленого середовища Dashboard.",
+    "diagnostics.capture.title": "Візуальний доказ панелі приладів",
+    "diagnostics.capture.help": "Ці знімки зберігають відтворену геометрію інформаційної панелі після переходу до налаштувань.",
+    "diagnostics.domains.layout": "Макет і візуалізація",
+    "diagnostics.domains.configuration": "Цілісність конфігурації",
+    "diagnostics.domains.runtime": "Час виконання та запити",
+    "diagnostics.domains.storage": "Зберігання",
+    "diagnostics.domains.icons": "Спеціальні іконки",
+    "diagnostics.domains.theme": "Тема",
+    "diagnostics.domains.localization": "Локалізація",
+    "diagnostics.domains.update": "оновлення",
+    "diagnostics.domains.issue-count": "- $1 проблема(и)",
+    "diagnostics.domains.title": "Усунення проблем доменів",
+    "diagnostics.domains.help": "Проблеми, про які повідомляється, відокремлюються, тому незв’язані знахідки конфігурації не приховують доказів макета."
 }

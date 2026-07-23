@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "es",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "desactivado",
     "dashboard.quick.expand-all-short": "Expandir todas las carpetas",
     "dashboard.quick.view-options": "Ver opciones",
+    "dashboard.quick.capture-diagnostics": "Diagnóstico de diseño de captura",
+    "dashboard.quick.capture-success-title": "Diagnóstico de diseño capturado",
+    "dashboard.quick.capture-success-message": "Reproduzca el problema y luego exporte un paquete de soporte desde la configuración de FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnóstico de diseño no disponible",
+    "dashboard.quick.capture-unavailable-message": "Expanda la carpeta afectada e intente la captura nuevamente.",
     "dashboard.layout.classic": "Clásico",
     "dashboard.layout.legacy": "Legado",
     "dashboard.layout.fullwidth": "Ancho completo",

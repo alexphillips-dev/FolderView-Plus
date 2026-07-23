@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "de",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Standard",
     "legacy.surface.21d033f5b75dfd7e": "Übereinstimmungsgründe",
     "legacy.surface.222731e08221fabd": "0 Ordner",
+    "legacy.surface.223f8fc57de30082": "Öffnen Sie Dashboard auf dem betroffenen Gerät und erweitern Sie den Problemordner.",
     "legacy.surface.2252d5cf93767a43": "Wirkung",
     "legacy.surface.226d172b26fa2ead": "Diese Masken gelten, solange der Datenschutz auf der Docker-Seite aktiviert ist.",
     "legacy.surface.2276a481f482182f": "Assistent anwenden",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Aktualisierung der Diagnose",
     "legacy.surface.2893151ea19e03e8": "Regeln zur Fehlerbehebung beim Quellenumschalter",
     "legacy.surface.28decfc8127a9ff7": "Aktualisieren Sie jetzt Einstellungen, Ordner und Regeln.",
+    "legacy.surface.292b50bf35608517": "Für Größen-, Clipping- oder mobile Berichte erfassen Sie das betroffene Dashboard unmittelbar vor dem Exportieren.",
     "legacy.surface.292c06f0045a45d0": "Kategorie",
     "legacy.surface.294586e0b56aff59": "Aktuelle Live-Ordner",
     "legacy.surface.29875c13b4032f83": "Keine Ordnereinstellungen kopiert",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Schritt $1 von $2",
     "legacy.surface.3d94368daada51ef": "Wählen Sie einen gespeicherten Snapshot aus und stellen Sie ihn dann wieder her, laden Sie ihn herunter oder löschen Sie ihn.",
     "legacy.surface.3e19908f65fdcd60": "Keine Warnungen.",
+    "legacy.surface.3e221173b7667c94": "Fehlerbehebung beim Dashboard-Layout",
     "legacy.surface.3e3d627f94ea6805": "Gesamtschritte",
     "legacy.surface.3e4d15d46dc7aa48": "Keine Einstellungen gefunden",
     "legacy.surface.3e8f775cea5b1f40": "Schwellenwert für Statuswarnung",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Die Wiederherstellungsübersicht wird geladen, nachdem das Laden der Sicherungen abgeschlossen ist.",
     "legacy.surface.f18012429c19cdae": "Fortschritt $1%",
     "legacy.surface.f189411452ed2860": "Alle Staaten",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduzieren Sie das Problem und ändern Sie dann gegebenenfalls die Größe oder drehen Sie es einmal.",
     "legacy.surface.f20c879465551f0d": "Angepinnt",
     "legacy.surface.f27310598a5421a8": "Name der Test-VM (Beispiel: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Ältere Ordner werden nach oben verschoben, während neuere Ordner nach unten verschoben werden.",

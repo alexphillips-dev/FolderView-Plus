@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ko",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "비활성화됨",
     "dashboard.quick.expand-all-short": "모든 폴더 확장",
     "dashboard.quick.view-options": "옵션 보기",
+    "dashboard.quick.capture-diagnostics": "레이아웃 진단 캡처",
+    "dashboard.quick.capture-success-title": "캡처된 레이아웃 진단",
+    "dashboard.quick.capture-success-message": "문제를 재현한 다음 FolderView Plus 설정에서 지원 번들을 내보냅니다.",
+    "dashboard.quick.capture-unavailable-title": "레이아웃 진단을 사용할 수 없음",
+    "dashboard.quick.capture-unavailable-message": "영향을 받은 폴더를 확장하고 캡처를 다시 시도하십시오.",
     "dashboard.layout.classic": "클래식",
     "dashboard.layout.legacy": "레거시",
     "dashboard.layout.fullwidth": "전체 폭",

@@ -223,7 +223,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1594);
+    assert.equal(snapshot.autoBoundMessageCount, 1598);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -265,6 +265,12 @@ test('Compact Matrix responds to the Dashboard widget width without clipping lon
     assert.equal(wide.horizontalOverflow, false);
     assert.equal(wide.telemetry.folderColumns, 3);
     assert.ok(wide.telemetry.widgetWidthPx > 1000);
+    const wideVisual = await page.evaluate(() => window.fixtureDashboardLayout.captureVisual('wide-fixture'));
+    assert.equal(wideVisual.layout.folderGrid.expectedColumns, 3);
+    assert.equal(wideVisual.layout.folderGrid.appliedColumns, 3);
+    assert.equal(wideVisual.layout.folderGrid.renderedColumns, 3);
+    assert.equal(wideVisual.environment.viewportClass, 'desktop-size');
+    assert.equal(wideVisual.verdict.noUnexpectedClipping, true);
 
     await page.evaluate(() => window.fixtureDashboardLayout.resize(900));
     await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 2);
@@ -279,6 +285,11 @@ test('Compact Matrix responds to the Dashboard widget width without clipping lon
     assert.equal(mobile.memberColumns, 1);
     assert.equal(mobile.horizontalOverflow, false);
     assert.ok(mobile.tileWidths.every((width) => width > 300), 'mobile member tiles should use the full folder width');
+    const narrowVisual = await page.evaluate(() => window.fixtureDashboardLayout.captureVisual('narrow-widget-fixture'));
+    assert.equal(narrowVisual.layout.folderGrid.expectedColumns, 1);
+    assert.equal(narrowVisual.layout.folderGrid.renderedColumns, 1);
+    assert.equal(narrowVisual.layout.memberGrid.renderedColumns, 1);
+    assert.equal(narrowVisual.verdict.noUnexpectedClipping, true);
 
     await page.evaluate(() => window.fixtureDashboardLayout.resize(1000));
     await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 2);
@@ -286,6 +297,24 @@ test('Compact Matrix responds to the Dashboard widget width without clipping lon
     assert.equal(restored.folderColumns, 2);
     assert.equal(restored.memberColumns, 2);
     assert.ok(restored.tileWidths.slice(0, 3).every((width) => width >= 220));
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => window.fixtureDashboardLayout.resize(1180));
+    await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 1);
+    const portraitVisual = await page.evaluate(() => window.fixtureDashboardLayout.captureVisual('phone-portrait-fixture'));
+    assert.equal(portraitVisual.environment.viewportClass, 'phone-size');
+    assert.equal(portraitVisual.environment.viewport.width, 390);
+    assert.equal(portraitVisual.layout.folderGrid.renderedColumns, 1);
+    assert.equal(portraitVisual.layout.memberGrid.renderedColumns, 1);
+    assert.equal(portraitVisual.verdict.noUnexpectedClipping, true);
+
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForFunction(() => window.fixtureDashboardLayout.snapshot().folderColumns === 2);
+    const landscapeVisual = await page.evaluate(() => window.fixtureDashboardLayout.captureVisual('phone-landscape-fixture'));
+    assert.equal(landscapeVisual.environment.viewportClass, 'tablet-size');
+    assert.equal(landscapeVisual.environment.viewport.width, 844);
+    assert.equal(landscapeVisual.layout.folderGrid.renderedColumns, 2);
+    assert.equal(landscapeVisual.verdict.noUnexpectedClipping, true);
 });
 
 test('Dashboard action rail exposes accessible primary controls and a keyboard-safe view popover', async ({ page }) => {
@@ -353,6 +382,14 @@ test('Dashboard action rail exposes accessible primary controls and a keyboard-s
     assert.equal(await layoutTrigger.getAttribute('data-fv-layout'), 'classic');
 
     await rail.locator('[data-fv-quick-action="view-options"]').click();
+    const capture = popover.locator('[data-fv-view-action="capture-diagnostics"]');
+    assert.equal(await capture.count(), 1);
+    await capture.click();
+    assert.equal(await page.evaluate(() => window.fixtureDashboardLayout.state.captureCount), 1);
+    assert.equal(
+        await page.evaluate(() => window.fixtureDashboardLayout.visualRecord().latest.trigger),
+        'manual'
+    );
     const reset = popover.locator('[data-fv-view-action="reset-view"]');
     assert.equal(await reset.isDisabled(), false);
     await reset.click();

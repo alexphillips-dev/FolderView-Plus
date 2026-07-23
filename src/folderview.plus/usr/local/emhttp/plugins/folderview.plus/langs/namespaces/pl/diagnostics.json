@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "pl",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Szczegóły techniczne",
     "diagnostics.theme.live-title": "Diagnostyka motywu jest aktywna przed pełnym testem stanu.",
     "diagnostics.theme.live-description": "Uruchom test stanu, aby odświeżyć Docker, VM, pamięć, ikonę i karty aktualizacji. Poniższa karta motywu aktualizuje się natychmiast podczas ładowania strony.",
-    "diagnostics.actions.retry": "Ponów próbę"
+    "diagnostics.actions.retry": "Ponów próbę",
+    "diagnostics.capture.age-unknown": "wiek nieznany",
+    "diagnostics.capture.age-under-minute": "poniżej 1 minuty",
+    "diagnostics.capture.age-minutes": "$1 min",
+    "diagnostics.capture.age-hours": "$1 godz",
+    "diagnostics.capture.none-title": "Nie jest dostępne żadne najnowsze przechwytywanie wizualizacji pulpitu nawigacyjnego.",
+    "diagnostics.capture.none-help": "Otwórz Panel kontrolny, rozwiń folder, którego dotyczy problem, odtwórz problem i wróć tutaj przed eksportem.",
+    "diagnostics.capture.viewport-unavailable": "rzutnia niedostępna",
+    "diagnostics.capture.touch": "obsługujący dotyk",
+    "diagnostics.capture.non-touch": "bezdotykowy",
+    "diagnostics.capture.vm": "Panel maszyny wirtualnej",
+    "diagnostics.capture.docker": "Panel Dockera",
+    "diagnostics.capture.environment-warning": "Środowisko eksportu różni się od co najmniej jednego przechwyconego środowiska Dashboard.",
+    "diagnostics.capture.title": "Dowody wizualne na desce rozdzielczej",
+    "diagnostics.capture.help": "Te przechwycenia zachowują wyrenderowaną geometrię pulpitu nawigacyjnego po przejściu do Ustawień.",
+    "diagnostics.domains.layout": "Układ i renderowanie",
+    "diagnostics.domains.configuration": "Integralność konfiguracji",
+    "diagnostics.domains.runtime": "Środowisko wykonawcze i żądania",
+    "diagnostics.domains.storage": "Przechowywanie",
+    "diagnostics.domains.icons": "Niestandardowe ikony",
+    "diagnostics.domains.theme": "Temat",
+    "diagnostics.domains.localization": "Lokalizacja",
+    "diagnostics.domains.update": "Aktualizacja",
+    "diagnostics.domains.issue-count": "- $1 problemy",
+    "diagnostics.domains.title": "Rozwiązywanie problemów z domenami",
+    "diagnostics.domains.help": "Zgłaszane problemy są oddzielane, więc niepowiązane wyniki konfiguracji nie przesłaniają dowodów na układ."
 }

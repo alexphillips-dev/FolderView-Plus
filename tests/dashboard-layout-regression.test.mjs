@@ -37,6 +37,10 @@ const dashboardQuickRailScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.layout-quickrail.js'
 );
+const dashboardVisualDiagnosticsScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.visual-diagnostics.js'
+);
 const dashboardAdvancedPreviewScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.advanced-preview.js'
@@ -79,6 +83,7 @@ const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
 const dashboardQuickRailScript = fs.readFileSync(dashboardQuickRailScriptPath, 'utf8');
+const dashboardVisualDiagnosticsScript = fs.readFileSync(dashboardVisualDiagnosticsScriptPath, 'utf8');
 const dashboardAdvancedPreviewScript = fs.readFileSync(dashboardAdvancedPreviewScriptPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dashboardPage = fs.readFileSync(dashboardPagePath, 'utf8');
@@ -275,6 +280,25 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /bindDashboardQuickActionSyncHandlers/);
 });
 
+test('Dashboard visual diagnostics loads before runtime and captures bounded privacy-safe layout evidence', () => {
+    const quickRailIndex = dashboardPage.indexOf('dashboard.layout-quickrail.js');
+    const visualIndex = dashboardPage.indexOf('dashboard.visual-diagnostics.js');
+    const runtimeIndex = dashboardPage.indexOf('scripts/dashboard.js');
+    assert.ok(quickRailIndex >= 0 && visualIndex > quickRailIndex && runtimeIndex > visualIndex);
+    assert.match(dashboardPage, /FolderViewPlusDashboardPluginVersion/);
+    assert.match(dashboardVisualDiagnosticsScript, /const HISTORY_LIMIT = 12;/);
+    assert.match(dashboardVisualDiagnosticsScript, /const PROBLEM_SAMPLE_LIMIT = 8;/);
+    assert.match(dashboardVisualDiagnosticsScript, /labelFingerprint: fingerprintValue\(text, sessionSalt\)/);
+    assert.doesNotMatch(dashboardVisualDiagnosticsScript, /labelText:/);
+    assert.match(dashboardVisualDiagnosticsScript, /folder-column-mismatch/);
+    assert.match(dashboardVisualDiagnosticsScript, /unexpected-label-clipping/);
+    assert.match(dashboardQuickRailScript, /data-fv-view-action="capture-diagnostics"/);
+    assert.match(dashboardQuickRailScript, /deps\.onVisualDiagnostics/);
+    assert.match(dashboardScript, /dashboardVisualDiagnosticsModule\.createController/);
+    assert.match(dashboardScript, /dashboardBootstrapMissingModules\.push\('dashboard\.visual-diagnostics\.js'\)/);
+    assert.match(settingsPage, /class="fv-dashboard-capture-guide"/);
+});
+
 test('Dashboard Started only reconciles folder members without a full widget reload', () => {
     assert.match(dashboardQuickRailScript, /const applyDashboardStartedOnlyFilterForType = \(type\) =>/);
     assert.match(dashboardQuickRailScript, /span\.folder-element-vm/);
@@ -347,12 +371,12 @@ test('dashboard quick rail collapse detection is row-visibility based and not ic
     assert.match(dashboardQuickRailScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
     assert.match(dashboardQuickRailScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
     assert.match(dashboardQuickRailScript, /return !isDashboardNodeVisible\(updatedNode\);/);
-    assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout\) =>/);
+    assert.match(dashboardQuickRailScript, /const syncDashboardCompactMatrixOrderFlowForType = \(type, layout, trigger = 'layout-apply'\) =>/);
     assert.match(dashboardQuickRailScript, /const deriveCompactMatrixLayout = \(\{ containerWidth = 0, folderCount = 0 \} = \{\}\) =>/);
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-columns/);
     assert.match(dashboardQuickRailScript, /--fv-dashboard-compactmatrix-member-columns/);
     assert.match(dashboardQuickRailScript, /new win\.ResizeObserver/);
-    assert.match(dashboardQuickRailScript, /syncDashboardCompactMatrixOrderFlowForType\(meta\.type, layout\);/);
+    assert.match(dashboardQuickRailScript, /syncDashboardCompactMatrixOrderFlowForType\(meta\.type, layout, 'layout-apply'\);/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('angle-down'\)/);
     assert.doesNotMatch(dashboardQuickRailScript, /iconClass\.includes\('chevron-down'\)/);
 });

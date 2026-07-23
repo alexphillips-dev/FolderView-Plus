@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "en",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "disabled",
     "dashboard.quick.expand-all-short": "Expand all folders",
     "dashboard.quick.view-options": "View options",
+    "dashboard.quick.capture-diagnostics": "Capture layout diagnostics",
+    "dashboard.quick.capture-success-title": "Layout diagnostics captured",
+    "dashboard.quick.capture-success-message": "Reproduce the issue, then export a support bundle from FolderView Plus Settings.",
+    "dashboard.quick.capture-unavailable-title": "Layout diagnostics unavailable",
+    "dashboard.quick.capture-unavailable-message": "Expand the affected folder and try the capture again.",
     "dashboard.layout.classic": "Classic",
     "dashboard.layout.legacy": "Legacy",
     "dashboard.layout.fullwidth": "Full Width",

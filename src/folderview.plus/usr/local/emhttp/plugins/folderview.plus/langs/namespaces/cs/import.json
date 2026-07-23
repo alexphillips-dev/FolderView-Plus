@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "cs",
         "namespace": "import"
     },
@@ -14,7 +14,7 @@
     "import.mode.replace.title": "Vyměňte přesně",
     "import.mode.replace.description": "Přizpůsobte export. Složky, které v něm chybí, mohou být smazány.",
     "import.review.title": "Zkontrolovat plánované změny",
-    "import.review.count": "Zkontrolovat {{PLURAL:$1|jednu plánovanou změnu|$1 plánované změny|$1 plánovaných změn}}",
+    "import.review.count": "Zkontrolujte {{PLURAL:$1|jednu plánovanou změnu|$1 plánované změny}}",
     "import.review.folders-fields": "Složky a pole",
     "import.review.choose": "Vyberte, které změny chcete zahrnout",
     "import.safety.title": "Bezpečnostní možnosti",
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|změna složky|změny složek|změn složek}}",
     "import.summary.planned-change": "{{PLURAL:$1|plánovaná změna|plánované změny|plánovaných změn}} v náhledu",
     "import.summary.new": "$1 nové",
-    "import.summary.update": "{{PLURAL:$1|jedna aktualizace|$1 aktualizace|$1 aktualizací}}",
-    "import.summary.delete": "{{PLURAL:$1|jedno smazání|$1 smazání|$1 smazání}}",
+    "import.summary.update": "{{PLURAL:$1|jedna aktualizace|$1 aktualizace}}",
+    "import.summary.delete": "{{PLURAL:$1|jedno smazání|$1 smazání}}",
     "import.kind.docker-folder": "složka Docker",
     "import.kind.vm-folder": "složka VM",
     "import.dialog.docker-title": "Import Docker složek",

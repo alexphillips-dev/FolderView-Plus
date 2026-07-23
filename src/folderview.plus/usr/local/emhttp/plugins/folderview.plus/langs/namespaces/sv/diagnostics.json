@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "sv",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Tekniska detaljer",
     "diagnostics.theme.live-title": "Temadiagnostik är aktiv före en fullständig hälsokontroll.",
     "diagnostics.theme.live-description": "Kör hälsokontroll för att uppdatera Docker, VM, lagring, ikon och uppdateringskort. Temakortet nedan uppdateras omedelbart vid sidladdning.",
-    "diagnostics.actions.retry": "Försök igen"
+    "diagnostics.actions.retry": "Försök igen",
+    "diagnostics.capture.age-unknown": "ålder okänd",
+    "diagnostics.capture.age-under-minute": "under 1 min gammal",
+    "diagnostics.capture.age-minutes": "$1 min gammal",
+    "diagnostics.capture.age-hours": "$1 timmar gammal",
+    "diagnostics.capture.none-title": "Det finns ingen ny visuell insamling av Dashboard.",
+    "diagnostics.capture.none-help": "Öppna Dashboard, expandera den berörda mappen, återskapa problemet och återvänd hit innan du exporterar.",
+    "diagnostics.capture.viewport-unavailable": "visningsport ej tillgänglig",
+    "diagnostics.capture.touch": "beröringsförmåga",
+    "diagnostics.capture.non-touch": "icke-beröring",
+    "diagnostics.capture.vm": "VM Dashboard",
+    "diagnostics.capture.docker": "Docker Dashboard",
+    "diagnostics.capture.environment-warning": "Exportmiljön skiljer sig från minst en inhämtad Dashboard-miljö.",
+    "diagnostics.capture.title": "Dashboard visuella bevis",
+    "diagnostics.capture.help": "Dessa fångar bevarar den renderade instrumentpanelsgeometrin efter navigering till Inställningar.",
+    "diagnostics.domains.layout": "Layout och rendering",
+    "diagnostics.domains.configuration": "Konfigurationsintegritet",
+    "diagnostics.domains.runtime": "Körtid och förfrågningar",
+    "diagnostics.domains.storage": "Förvaring",
+    "diagnostics.domains.icons": "Anpassade ikoner",
+    "diagnostics.domains.theme": "Tema",
+    "diagnostics.domains.localization": "Lokalisering",
+    "diagnostics.domains.update": "Uppdatering",
+    "diagnostics.domains.issue-count": "- $1 problem",
+    "diagnostics.domains.title": "Felsökning av domäner",
+    "diagnostics.domains.help": "Rapporterade problem är åtskilda så orelaterade konfigurationsfynd inte skymmer layoutbevis."
 }

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "pt-BR",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Padrão",
     "legacy.surface.21d033f5b75dfd7e": "Razões da partida",
     "legacy.surface.222731e08221fabd": "0 pastas",
+    "legacy.surface.223f8fc57de30082": "Abra o Dashboard no dispositivo afetado e expanda a pasta do problema.",
     "legacy.surface.2252d5cf93767a43": "Efeito",
     "legacy.surface.226d172b26fa2ead": "Essas máscaras se aplicam enquanto a privacidade está habilitada na página Docker.",
     "legacy.surface.2276a481f482182f": "Assistente de aplicação",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Atualização de diagnóstico",
     "legacy.surface.2893151ea19e03e8": "Solução de problemas de regras do alternador de origem",
     "legacy.surface.28decfc8127a9ff7": "Atualize configurações, pastas e regras agora.",
+    "legacy.surface.292b50bf35608517": "Para relatórios de dimensionamento, recorte ou dispositivos móveis, capture o painel afetado imediatamente antes de exportar.",
     "legacy.surface.292c06f0045a45d0": "Categoria",
     "legacy.surface.294586e0b56aff59": "Pastas ativas atuais",
     "legacy.surface.29875c13b4032f83": "Nenhuma configuração de pasta foi copiada",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Etapa $1 de $2",
     "legacy.surface.3d94368daada51ef": "Escolha um instantâneo armazenado e restaure-o, baixe-o ou exclua-o.",
     "legacy.surface.3e19908f65fdcd60": "Sem avisos.",
+    "legacy.surface.3e221173b7667c94": "Solução de problemas de layout do painel",
     "legacy.surface.3e3d627f94ea6805": "Total de etapas",
     "legacy.surface.3e4d15d46dc7aa48": "Nenhuma configuração encontrada",
     "legacy.surface.3e8f775cea5b1f40": "Limite de aviso de status",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "A visão geral da recuperação será carregada após o término do carregamento dos backups.",
     "legacy.surface.f18012429c19cdae": "Progresso $1%",
     "legacy.surface.f189411452ed2860": "Todos os estados",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduza o problema e redimensione ou gire uma vez quando for relevante.",
     "legacy.surface.f20c879465551f0d": "Fixado",
     "legacy.surface.f27310598a5421a8": "Testar o nome da VM (exemplo: prod-db)",
     "legacy.surface.f29c915c2762ae74": "As pastas mais antigas movem-se para o topo, enquanto as pastas mais recentes movem-se para baixo.",

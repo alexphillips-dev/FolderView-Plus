@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ru",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Технические детали",
     "diagnostics.theme.live-title": "Диагностика темы активна до полной проверки состояния.",
     "diagnostics.theme.live-description": "Запустите проверку состояния, чтобы обновить Docker, VM, хранилище, значки и карточки обновлений. Карточка темы ниже обновляется сразу при загрузке страницы.",
-    "diagnostics.actions.retry": "Повторить"
+    "diagnostics.actions.retry": "Повторить",
+    "diagnostics.capture.age-unknown": "возраст неизвестен",
+    "diagnostics.capture.age-under-minute": "менее 1 минуты назад",
+    "diagnostics.capture.age-minutes": "$1 мин. назад",
+    "diagnostics.capture.age-hours": "$1 час назад",
+    "diagnostics.capture.none-title": "Недавний визуальный снимок панели мониторинга недоступен.",
+    "diagnostics.capture.none-help": "Откройте панель мониторинга, разверните затронутую папку, воспроизведите проблему и вернитесь сюда перед экспортом.",
+    "diagnostics.capture.viewport-unavailable": "область просмотра недоступна",
+    "diagnostics.capture.touch": "сенсорный",
+    "diagnostics.capture.non-touch": "бесконтактный",
+    "diagnostics.capture.vm": "Панель управления виртуальной машиной",
+    "diagnostics.capture.docker": "Панель управления Докером",
+    "diagnostics.capture.environment-warning": "Среда экспорта отличается по крайней мере от одной захваченной среды информационной панели.",
+    "diagnostics.capture.title": "Визуальное свидетельство приборной панели",
+    "diagnostics.capture.help": "Эти снимки сохраняют визуализированную геометрию информационной панели после перехода к настройкам.",
+    "diagnostics.domains.layout": "Верстка и рендеринг",
+    "diagnostics.domains.configuration": "Целостность конфигурации",
+    "diagnostics.domains.runtime": "Время выполнения и запросы",
+    "diagnostics.domains.storage": "Хранение",
+    "diagnostics.domains.icons": "Пользовательские значки",
+    "diagnostics.domains.theme": "Тема",
+    "diagnostics.domains.localization": "Локализация",
+    "diagnostics.domains.update": "Обновить",
+    "diagnostics.domains.issue-count": "- $1 проблем",
+    "diagnostics.domains.title": "Устранение неполадок с доменами",
+    "diagnostics.domains.help": "Сообщаемые проблемы разделены, поэтому несвязанные результаты конфигурации не скрывают доказательства компоновки."
 }

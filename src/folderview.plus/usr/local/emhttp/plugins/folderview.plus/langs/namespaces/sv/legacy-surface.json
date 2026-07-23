@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "sv",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Standard",
     "legacy.surface.21d033f5b75dfd7e": "Matchningsskäl",
     "legacy.surface.222731e08221fabd": "0 mappar",
+    "legacy.surface.223f8fc57de30082": "Öppna Dashboard på den berörda enheten och expandera problemmappen.",
     "legacy.surface.2252d5cf93767a43": "Effekt",
     "legacy.surface.226d172b26fa2ead": "Dessa masker gäller medan sekretess är aktiverat på Docker-sidan.",
     "legacy.surface.2276a481f482182f": "Wizard tillämpas",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Diagnostik uppdateras",
     "legacy.surface.2893151ea19e03e8": "Felsökning av regler för källväxling",
     "legacy.surface.28decfc8127a9ff7": "Uppdatera inställningar, mappar och regler nu.",
+    "legacy.surface.292b50bf35608517": "För dimensionering, klippning eller mobilrapporter, fånga den berörda instrumentpanelen omedelbart före export.",
     "legacy.surface.292c06f0045a45d0": "Kategori",
     "legacy.surface.294586e0b56aff59": "Aktuella livemappar",
     "legacy.surface.29875c13b4032f83": "Inga mappinställningar kopierade",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Steg $1 av $2",
     "legacy.surface.3d94368daada51ef": "Välj en lagrad ögonblicksbild och återställ, ladda ner eller radera den.",
     "legacy.surface.3e19908f65fdcd60": "Inga varningar.",
+    "legacy.surface.3e221173b7667c94": "Felsökning av instrumentpanelens layout",
     "legacy.surface.3e3d627f94ea6805": "Totalt antal steg",
     "legacy.surface.3e4d15d46dc7aa48": "Inga inställningar hittades",
     "legacy.surface.3e8f775cea5b1f40": "Statusvarningströskel",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Återställningsöversikten kommer att laddas efter att säkerhetskopiorna är klara.",
     "legacy.surface.f18012429c19cdae": "Framsteg $1%",
     "legacy.surface.f189411452ed2860": "Alla stater",
+    "legacy.surface.f1f762ce0a7d26dc": "Återskapa problemet och ändra sedan storleken eller rotera en gång när det är relevant.",
     "legacy.surface.f20c879465551f0d": "Fäst",
     "legacy.surface.f27310598a5421a8": "Testa VM-namn (exempel: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Äldre mappar flyttas uppåt medan nyare mappar flyttas lägre.",

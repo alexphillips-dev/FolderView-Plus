@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ja",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "無効",
     "dashboard.quick.expand-all-short": "すべてのフォルダーを展開します",
     "dashboard.quick.view-options": "オプションを表示する",
+    "dashboard.quick.capture-diagnostics": "キャプチャレイアウト診断",
+    "dashboard.quick.capture-success-title": "キャプチャされたレイアウト診断",
+    "dashboard.quick.capture-success-message": "問題を再現し、FolderView Plus 設定からサポート バンドルをエクスポートします。",
+    "dashboard.quick.capture-unavailable-title": "レイアウト診断は利用できません",
+    "dashboard.quick.capture-unavailable-message": "影響を受けるフォルダーを展開し、キャプチャを再試行します。",
     "dashboard.layout.classic": "クラシック",
     "dashboard.layout.legacy": "レガシー",
     "dashboard.layout.fullwidth": "全幅",

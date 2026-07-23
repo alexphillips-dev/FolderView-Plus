@@ -75,6 +75,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildDashboardCaptureStatusHtml = \(bundle\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildDiagnosticDomainsHtml = \(bundle\) =>/);
     assert.match(supportBundleBrowserJs, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
     assert.match(supportBundleBrowserJs, /const readCookieValue = \(name\) => \{/);
     assert.match(supportBundleBrowserJs, /dockerListViewModeCookie: normalizeDockerListViewMode\(readCookieValue\('docker_listview_mode'\)\),/);

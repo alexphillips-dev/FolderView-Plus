@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "zh-Hans",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "已禁用",
     "dashboard.quick.expand-all-short": "展开所有文件夹",
     "dashboard.quick.view-options": "查看选项",
+    "dashboard.quick.capture-diagnostics": "捕获布局诊断",
+    "dashboard.quick.capture-success-title": "捕获的布局诊断",
+    "dashboard.quick.capture-success-message": "重现问题，然后从FolderView Plus 设置导出支持包。",
+    "dashboard.quick.capture-unavailable-title": "布局诊断不可用",
+    "dashboard.quick.capture-unavailable-message": "展开受影响的文件夹并再次尝试捕获。",
     "dashboard.layout.classic": "经典",
     "dashboard.layout.legacy": "遗产",
     "dashboard.layout.fullwidth": "全宽",

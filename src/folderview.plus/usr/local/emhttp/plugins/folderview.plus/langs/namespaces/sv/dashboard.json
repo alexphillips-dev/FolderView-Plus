@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "sv",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "inaktiverat",
     "dashboard.quick.expand-all-short": "Expandera alla mappar",
     "dashboard.quick.view-options": "Visa alternativ",
+    "dashboard.quick.capture-diagnostics": "Fånga layoutdiagnostik",
+    "dashboard.quick.capture-success-title": "Layoutdiagnostik har registrerats",
+    "dashboard.quick.capture-success-message": "Återskapa problemet och exportera sedan ett supportpaket från FolderView Plus Settings.",
+    "dashboard.quick.capture-unavailable-title": "Layoutdiagnostik är inte tillgänglig",
+    "dashboard.quick.capture-unavailable-message": "Expandera den berörda mappen och försök fånga igen.",
     "dashboard.layout.classic": "Klassisk",
     "dashboard.layout.legacy": "Arv",
     "dashboard.layout.fullwidth": "Full bredd",

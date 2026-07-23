@@ -180,6 +180,69 @@ test('support bundle browser telemetry includes aggregate preference save health
     assert.equal(JSON.stringify(clientStorage.preferenceSaves).includes('privacyMode'), false);
 });
 
+test('support bundle browser telemetry exports fresh privacy-safe Dashboard visual evidence', () => {
+    const capturedAt = new Date(Date.now() - 60_000).toISOString();
+    const record = {
+        schemaVersion: 1,
+        type: 'docker',
+        latest: {
+            schemaVersion: 1,
+            type: 'docker',
+            capturedAt,
+            pluginVersion: '2026.07.23.01',
+            origin: { route: '/Dashboard', surface: 'dashboard' },
+            environment: {
+                viewport: { width: 390, height: 844 },
+                viewportClass: 'phone-size',
+                input: { touchPoints: 5, coarsePointer: true, mobileHint: true }
+            },
+            overflow: {
+                labels: {
+                    unexpectedClipCount: 0,
+                    samples: [{
+                        labelFingerprint: '0123456789abcdef',
+                        labelLengthBucket: '25-40',
+                        overflowPx: 12,
+                        intentionalEllipsis: true
+                    }]
+                }
+            },
+            verdict: { status: 'healthy', codes: ['intentional-ellipsis-only'] }
+        },
+        snapshots: []
+    };
+    record.snapshots.push(record.latest);
+    const root = {
+        innerWidth: 390,
+        innerHeight: 844,
+        devicePixelRatio: 3,
+        navigator: { maxTouchPoints: 5, userAgentData: { mobile: true } },
+        location: { pathname: '/Settings/FolderViewPlus' },
+        matchMedia: () => ({ matches: true })
+    };
+    const collectors = loadBrowserModule(root).createCollectors({
+        storageKeys: {
+            dashboardVisualDocker: 'dashboard-visual-docker',
+            dashboardVisualVm: 'dashboard-visual-vm'
+        },
+        readClientDiagnosticsStorageRecord(key) {
+            return key === 'dashboard-visual-docker' ? record : null;
+        }
+    });
+    const visual = collectors.collectDashboardVisualDiagnostics(null, {
+        pluginVersion: '2026.07.23.01'
+    });
+
+    assert.equal(visual.docker.available, true);
+    assert.equal(visual.docker.freshness, 'fresh');
+    assert.equal(visual.docker.captureQuality.status, 'ready');
+    assert.equal(visual.docker.environmentComparison.differs, false);
+    assert.equal(visual.docker.latest.verdict.status, 'healthy');
+    assert.equal(visual.docker.historyCount, 1);
+    assert.equal(visual.vm.available, false);
+    assert.equal(JSON.stringify(visual).includes('private-container'), false);
+});
+
 test('browser error telemetry separates current-session failures from historical records', () => {
     const root = {
         FolderViewPlusFatalBanner: {
@@ -300,6 +363,9 @@ test('support bundle export telemetry keeps the docker list view mode in uiTelem
     assert.equal(payload.uiTelemetry.runtimePerformance.available, true);
     assert.equal(payload.uiTelemetry.runtimePerformance.surfaces.docker.operations.folderGrouping.p95Ms, 51.7);
     assert.equal(payload.uiTelemetry.runtimePerformance.surfaces.settings.available, false);
+    assert.equal(payload.uiTelemetry.dashboardVisual.docker.available, false);
+    assert.equal(payload.healthAndHistory.diagnosticDomains.domains.layoutRendering.status, 'unavailable');
+    assert.equal(payload.healthAndHistory.diagnosticDomains.domains.runtimeRequests.status, 'healthy');
     assert.equal(payload.redactionManifest.privacySelfCheck.status, 'passed');
     assert.equal(payload.redactionManifest.privacySelfCheck.scope, 'uiTelemetry');
     assert.equal(payload.redactionManifest.privacySelfCheck.violationCount, 0);

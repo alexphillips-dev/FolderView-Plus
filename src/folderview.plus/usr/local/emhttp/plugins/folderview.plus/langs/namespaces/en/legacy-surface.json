@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "en",
         "namespace": "legacy-surface"
     },
@@ -365,6 +365,7 @@
     "legacy.surface.70f70c881ecd73ee": "Customization layer",
     "legacy.surface.765d699957990120": "Customize folder views, defaults, and visibility.",
     "legacy.surface.67b696468610b879": "Dashboard",
+    "legacy.surface.3e221173b7667c94": "Dashboard layout troubleshooting",
     "legacy.surface.19e207a2e38b8c28": "Dashboard overflow mode:",
     "legacy.surface.cec3a9b89b2e3913": "Data",
     "legacy.surface.fa7fe67124e94375": "Database",
@@ -596,6 +597,7 @@
     "legacy.surface.e4ad55ec01a52991": "For 3rd-party icon folders, place files under",
     "legacy.surface.f85c1f8a053beb8c": "For example",
     "legacy.surface.de7682fbdb8da593": "For example, names starting with a folder keyword.",
+    "legacy.surface.292b50bf35608517": "For sizing, clipping, or mobile reports, capture the affected Dashboard immediately before exporting.",
     "legacy.surface.2c818551e3e39f39": "Force host theme",
     "legacy.surface.dd5d2aa05862f14e": "Force safe palette",
     "legacy.surface.ecfea99fd1ceabf4": "Force update branch ($1)",
@@ -933,6 +935,7 @@
     "legacy.surface.00e32ea2ab786253": "Only icon",
     "legacy.surface.2360b3431f8550a4": "Only members currently available to this folder are listed.",
     "legacy.surface.a759d24fa1d32402": "Open all WebUIs",
+    "legacy.surface.223f8fc57de30082": "Open Dashboard on the affected device and expand the problem folder.",
     "legacy.surface.ea9a3b1d3b52f525": "Open full Rules workspace",
     "legacy.surface.a61d4689dae96946": "Open health details",
     "legacy.surface.2faa63295b1de460": "Open Plugins",
@@ -1120,6 +1123,7 @@
     "legacy.surface.8153067e249b4498": "Replace (delete missing)",
     "legacy.surface.e49b3feb195b7a0d": "Replace (sync exactly, delete missing)",
     "legacy.surface.b6aa51891dc4fe4c": "Replace same name",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduce the issue, then resize or rotate once when relevant.",
     "legacy.surface.2d9e28289facab94": "Requested",
     "legacy.surface.5f088c4ebeb2b3ee": "Required plugin asset failed to load.",
     "legacy.surface.a1f7c73a84d92b49": "Requires Save",

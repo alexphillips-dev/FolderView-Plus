@@ -374,6 +374,9 @@ body.fvplus-privacy-vm-dashboard-mask-names tbody#vm_view .folder-showcase > spa
     grid-template-columns: 1fr 1fr;
     padding: 7px 8px;
 }
+.fv-dashboard-view-footer-action[data-fv-view-action="capture-diagnostics"] {
+    grid-column: 1 / -1;
+}
 .fv-dashboard-view-footer-action {
     align-items: center;
     display: inline-flex;

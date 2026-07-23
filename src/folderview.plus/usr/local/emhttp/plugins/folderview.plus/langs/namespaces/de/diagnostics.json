@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "de",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Technische Details",
     "diagnostics.theme.live-title": "Die Themendiagnose erfolgt live vor einem vollständigen Gesundheitscheck.",
     "diagnostics.theme.live-description": "Führen Sie eine Gesundheitsprüfung durch, um die Karten Docker, VM, Speicher, Symbol und Aktualisierung zu aktualisieren. Die untenstehende Themenkarte wird beim Laden der Seite sofort aktualisiert.",
-    "diagnostics.actions.retry": "Versuchen Sie es noch einmal"
+    "diagnostics.actions.retry": "Versuchen Sie es noch einmal",
+    "diagnostics.capture.age-unknown": "Alter unbekannt",
+    "diagnostics.capture.age-under-minute": "unter 1 Minute alt",
+    "diagnostics.capture.age-minutes": "$1 Min. alt",
+    "diagnostics.capture.age-hours": "$1 Stunden alt",
+    "diagnostics.capture.none-title": "Es ist keine aktuelle visuelle Dashboard-Erfassung verfügbar.",
+    "diagnostics.capture.none-help": "Öffnen Sie das Dashboard, erweitern Sie den betroffenen Ordner, reproduzieren Sie das Problem und kehren Sie vor dem Export hierher zurück.",
+    "diagnostics.capture.viewport-unavailable": "Ansichtsfenster nicht verfügbar",
+    "diagnostics.capture.touch": "Touch-fähig",
+    "diagnostics.capture.non-touch": "Nicht berührungslos",
+    "diagnostics.capture.vm": "VM-Dashboard",
+    "diagnostics.capture.docker": "Docker-Dashboard",
+    "diagnostics.capture.environment-warning": "Die Exportumgebung unterscheidet sich von mindestens einer erfassten Dashboard-Umgebung.",
+    "diagnostics.capture.title": "Visuelle Beweise im Dashboard",
+    "diagnostics.capture.help": "Bei diesen Aufnahmen bleibt die gerenderte Dashboard-Geometrie nach der Navigation zu den Einstellungen erhalten.",
+    "diagnostics.domains.layout": "Layout und Rendering",
+    "diagnostics.domains.configuration": "Konfigurationsintegrität",
+    "diagnostics.domains.runtime": "Laufzeit und Anfragen",
+    "diagnostics.domains.storage": "Lagerung",
+    "diagnostics.domains.icons": "Benutzerdefinierte Symbole",
+    "diagnostics.domains.theme": "Thema",
+    "diagnostics.domains.localization": "Lokalisierung",
+    "diagnostics.domains.update": "Aktualisieren",
+    "diagnostics.domains.issue-count": "- $1 Problem(e)",
+    "diagnostics.domains.title": "Fehlerbehebung bei Domänen",
+    "diagnostics.domains.help": "Gemeldete Probleme werden getrennt, sodass unabhängige Konfigurationsergebnisse die Layoutbeweise nicht verdecken."
 }

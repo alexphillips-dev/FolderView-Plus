@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "zh-Hans",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "默认",
     "legacy.surface.21d033f5b75dfd7e": "比赛原因",
     "legacy.surface.222731e08221fabd": "0 个文件夹",
+    "legacy.surface.223f8fc57de30082": "打开受影响设备上的仪表板并展开问题文件夹。",
     "legacy.surface.2252d5cf93767a43": "效果",
     "legacy.surface.226d172b26fa2ead": "当在 Docker 页面上启用隐私时，这些掩码适用。",
     "legacy.surface.2276a481f482182f": "向导申请",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "诊断刷新",
     "legacy.surface.2893151ea19e03e8": "源切换器故障排除规则",
     "legacy.surface.28decfc8127a9ff7": "立即更新设置、文件夹和规则。",
+    "legacy.surface.292b50bf35608517": "对于大小调整、剪切或移动报告，请在导出之前立即捕获受影响的仪表板。",
     "legacy.surface.292c06f0045a45d0": "类别",
     "legacy.surface.294586e0b56aff59": "当前活动文件夹",
     "legacy.surface.29875c13b4032f83": "未复制文件夹设置",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "步骤 $1，共 $2",
     "legacy.surface.3d94368daada51ef": "选择一个存储的快照，然后恢复、下载或删除它。",
     "legacy.surface.3e19908f65fdcd60": "没有警告。",
+    "legacy.surface.3e221173b7667c94": "仪表板布局故障排除",
     "legacy.surface.3e3d627f94ea6805": "总步数",
     "legacy.surface.3e4d15d46dc7aa48": "没有找到设置",
     "legacy.surface.3e8f775cea5b1f40": "状态警告阈值",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "备份加载完成后将加载恢复概述。",
     "legacy.surface.f18012429c19cdae": "进度 $1%",
     "legacy.surface.f189411452ed2860": "所有州",
+    "legacy.surface.f1f762ce0a7d26dc": "重现问题，然后在相关时调整大小或旋转一次。",
     "legacy.surface.f20c879465551f0d": "已固定",
     "legacy.surface.f27310598a5421a8": "测试虚拟机名称（示例：prod-db）",
     "legacy.surface.f29c915c2762ae74": "较旧的文件夹移至顶部，而较新的文件夹移至下方。",

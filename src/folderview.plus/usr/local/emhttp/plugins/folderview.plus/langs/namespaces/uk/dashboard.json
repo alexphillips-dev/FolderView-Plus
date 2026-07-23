@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "uk",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "вимкнено",
     "dashboard.quick.expand-all-short": "Розгорнути всі папки",
     "dashboard.quick.view-options": "Переглянути параметри",
+    "dashboard.quick.capture-diagnostics": "Діагностика макета захоплення",
+    "dashboard.quick.capture-success-title": "Діагностика макета зафіксована",
+    "dashboard.quick.capture-success-message": "Відтворіть проблему, а потім експортуйте комплект підтримки з налаштувань FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Діагностика макета недоступна",
+    "dashboard.quick.capture-unavailable-message": "Розгорніть уражену папку та повторіть спробу захоплення.",
     "dashboard.layout.classic": "класичний",
     "dashboard.layout.legacy": "Спадщина",
     "dashboard.layout.fullwidth": "Повна ширина",

@@ -102,6 +102,19 @@ Host list should restore one copy of every native Unraid Docker row. FolderView 
 
 Do not repeatedly switch views while an Update All operation is still reconciling.
 
+### Dashboard Cards Or Names Are Clipped
+
+Dashboard layout problems must be captured on the affected Dashboard because a support bundle exported later from Settings cannot reconstruct the earlier viewport or rendered card geometry.
+
+1. Open Dashboard in the browser and device where the problem occurs.
+2. Expand the affected Docker or VM folder and reproduce the clipping.
+3. Open the widget's `View options` menu and select `Capture layout diagnostics`.
+4. If orientation or browser zoom changes the result, capture once in each failing state. The bounded history keeps the distinct layouts.
+5. Return to `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
+6. Confirm the support-bundle preview shows a fresh Docker or VM Dashboard capture, then export a sanitized bundle.
+
+The capture records viewport, touch capability, orientation, browser scale, widget/card widths, expected/applied/rendered grid columns, overflow counts, and a layout verdict. It also distinguishes deliberate ellipsis from unexpected clipping. A capture older than 30 minutes, made on another plugin version, or made in a different viewport/input class is identified in the preview instead of being presented as current evidence.
+
 ### Privacy Choice Is Not Applied
 
 An individual mask only takes effect while Privacy is enabled. Verify both the main Privacy toggle and the specific option.
@@ -125,6 +138,8 @@ Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`, then review the s
 Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
 
 The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
+
+It also includes bounded Dashboard visual-layout snapshots. Its troubleshooting-domain summary keeps layout/rendering evidence separate from configuration, runtime/request, storage, icon, theme, localization, and update findings.
 
 Share the full export only if you intentionally need raw troubleshooting fields.
 

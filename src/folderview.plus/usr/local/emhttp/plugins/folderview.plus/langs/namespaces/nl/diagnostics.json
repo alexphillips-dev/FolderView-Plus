@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "nl",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Technische details",
     "diagnostics.theme.live-title": "Thema-diagnostiek is actief voordat een volledige gezondheidscontrole wordt uitgevoerd.",
     "diagnostics.theme.live-description": "Voer een gezondheidscontrole uit om Docker, VM, opslag, pictogram en updatekaarten te verversen. De thema-kaart hieronder wordt onmiddellijk bijgewerkt bij het laden van de pagina.",
-    "diagnostics.actions.retry": "Opnieuw proberen"
+    "diagnostics.actions.retry": "Opnieuw proberen",
+    "diagnostics.capture.age-unknown": "leeftijd onbekend",
+    "diagnostics.capture.age-under-minute": "jonger dan 1 minuut",
+    "diagnostics.capture.age-minutes": "$1 min oud",
+    "diagnostics.capture.age-hours": "$1 uur oud",
+    "diagnostics.capture.none-title": "Er is geen recente visuele Dashboard-opname beschikbaar.",
+    "diagnostics.capture.none-help": "Open Dashboard, vouw de betreffende map uit, reproduceer het probleem en kom hier terug voordat u gaat exporteren.",
+    "diagnostics.capture.viewport-unavailable": "kijkvenster niet beschikbaar",
+    "diagnostics.capture.touch": "geschikt voor aanraking",
+    "diagnostics.capture.non-touch": "niet aanraken",
+    "diagnostics.capture.vm": "VM-dashboard",
+    "diagnostics.capture.docker": "Docker-dashboard",
+    "diagnostics.capture.environment-warning": "De exportomgeving verschilt van ten minste één vastgelegde Dashboard-omgeving.",
+    "diagnostics.capture.title": "Visueel bewijs op het dashboard",
+    "diagnostics.capture.help": "Deze opnames behouden de weergegeven Dashboard-geometrie na navigatie naar Instellingen.",
+    "diagnostics.domains.layout": "Lay-out en weergave",
+    "diagnostics.domains.configuration": "Configuratie-integriteit",
+    "diagnostics.domains.runtime": "Runtime en verzoeken",
+    "diagnostics.domains.storage": "Opslag",
+    "diagnostics.domains.icons": "Aangepaste pictogrammen",
+    "diagnostics.domains.theme": "Thema",
+    "diagnostics.domains.localization": "Lokalisatie",
+    "diagnostics.domains.update": "Bijwerken",
+    "diagnostics.domains.issue-count": "- $1 probleem(en)",
+    "diagnostics.domains.title": "Problemen met domeinen oplossen",
+    "diagnostics.domains.help": "Gerapporteerde problemen worden gescheiden, zodat niet-gerelateerde configuratiebevindingen het lay-outbewijs niet vertroebelen."
 }

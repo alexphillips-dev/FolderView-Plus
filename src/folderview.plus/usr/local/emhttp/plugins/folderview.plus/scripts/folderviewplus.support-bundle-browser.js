@@ -8,6 +8,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const CONSOLE_ERROR_STORAGE_KEY = 'fv.support.bundle.consoleErrors.v1';
     const CONSOLE_ERROR_LIMIT = 30;
+    const DASHBOARD_VISUAL_STALE_AFTER_MS = 30 * 60 * 1000;
     const NATIVE_ORGANIZER_SOURCES = new Set(['detect', 'docker-page', 'dashboard-page', 'settings', 'diagnostics']);
     const NATIVE_ORGANIZER_REASONS = new Set([
         '',
@@ -366,6 +367,107 @@
             };
         };
 
+        const collectDashboardVisualDiagnostics = (uiRedactor, options = {}) => {
+            const currentPluginVersion = String(options.pluginVersion || '').trim();
+            const currentCapabilities = collectBrowserCapabilities();
+            const collectType = (type, storageKey) => {
+                const record = readClientDiagnosticsStorageRecord(storageKey || '');
+                if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                    return {
+                        available: false,
+                        freshness: 'unavailable',
+                        captureQuality: {
+                            status: 'missing',
+                            reasons: ['no-dashboard-visual-snapshot']
+                        }
+                    };
+                }
+                const latest = record.latest && typeof record.latest === 'object' && !Array.isArray(record.latest)
+                    ? record.latest
+                    : null;
+                if (!latest) {
+                    return {
+                        available: false,
+                        freshness: 'unavailable',
+                        captureQuality: {
+                            status: 'missing',
+                            reasons: ['no-dashboard-visual-snapshot']
+                        }
+                    };
+                }
+                const capturedAtMs = Date.parse(String(latest.capturedAt || ''));
+                const ageMs = Number.isFinite(capturedAtMs) ? Math.max(0, Date.now() - capturedAtMs) : null;
+                const capturedPluginVersion = String(latest.pluginVersion || '').trim();
+                const versionMismatch = Boolean(
+                    currentPluginVersion
+                    && capturedPluginVersion
+                    && currentPluginVersion !== capturedPluginVersion
+                );
+                const stale = ageMs === null || ageMs > DASHBOARD_VISUAL_STALE_AFTER_MS;
+                const capturedTouchCapable = Boolean(
+                    Number(latest.environment?.input?.touchPoints || 0) > 0
+                    || latest.environment?.input?.coarsePointer === true
+                    || latest.environment?.input?.mobileHint === true
+                );
+                const currentTouchCapable = Boolean(
+                    Number(currentCapabilities.touchPoints || 0) > 0
+                    || root?.matchMedia?.('(pointer: coarse)')?.matches === true
+                    || root?.navigator?.userAgentData?.mobile === true
+                );
+                const environmentMismatch = capturedTouchCapable !== currentTouchCapable
+                    || String(latest.environment?.viewportClass || '') !== (
+                        currentCapabilities.viewport?.width <= 600
+                            ? 'phone-size'
+                            : (currentCapabilities.viewport?.width <= 1024 ? 'tablet-size' : 'desktop-size')
+                    );
+                const reasons = [];
+                if (versionMismatch) reasons.push('plugin-version-mismatch');
+                if (stale) reasons.push('stale-dashboard-snapshot');
+                if (environmentMismatch) reasons.push('export-environment-differs');
+                if (latest.verdict?.status === 'error') reasons.push('render-verdict-error');
+                if (latest.verdict?.status === 'warning') reasons.push('render-verdict-warning');
+                const freshness = versionMismatch ? 'version-mismatch' : (stale ? 'stale' : 'fresh');
+                const result = {
+                    available: true,
+                    schemaVersion: Math.max(1, Number(record.schemaVersion) || 1),
+                    type,
+                    capturedAt: String(latest.capturedAt || '') || null,
+                    ageMs,
+                    freshness,
+                    capturedPluginVersion: capturedPluginVersion || null,
+                    currentPluginVersion: currentPluginVersion || null,
+                    capturedOnTouchCapableDevice: capturedTouchCapable,
+                    capturedViewportClass: String(latest.environment?.viewportClass || '') || null,
+                    environmentComparison: {
+                        currentRoute: String(root?.location?.pathname || ''),
+                        capturedRoute: String(latest.origin?.route || latest.environment?.route || ''),
+                        currentTouchCapable,
+                        capturedTouchCapable,
+                        differs: environmentMismatch
+                    },
+                    captureQuality: {
+                        status: reasons.length === 0 ? 'ready' : (latest.verdict?.status === 'error' ? 'error' : 'attention'),
+                        reasons
+                    },
+                    latest,
+                    historyCount: Array.isArray(record.snapshots) ? record.snapshots.length : 0,
+                    snapshots: Array.isArray(record.snapshots) ? record.snapshots.slice(-12) : []
+                };
+                return sanitizeUiRecord(
+                    uiRedactor,
+                    `uiTelemetry.dashboardVisual.${type}`,
+                    type,
+                    result
+                );
+            };
+            return {
+                schemaVersion: 1,
+                staleAfterMs: DASHBOARD_VISUAL_STALE_AFTER_MS,
+                docker: collectType('docker', storageKeys.dashboardVisualDocker),
+                vm: collectType('vm', storageKeys.dashboardVisualVm)
+            };
+        };
+
         const collectDashboardLifecycleDiagnostics = (uiRedactor) => {
             const record = readClientDiagnosticsStorageRecord(storageKeys.dashboardLifecycle || '');
             if (!record || typeof record !== 'object' || Array.isArray(record)) {
@@ -399,6 +501,7 @@
             collectDockerRequestBundleTrace,
             collectDockerTraceHealth,
             collectDashboardLayoutDiagnostics,
+            collectDashboardVisualDiagnostics,
             collectDashboardLifecycleDiagnostics,
             collectVmLifecycleDiagnostics
         });
@@ -408,6 +511,7 @@
         createCollectors,
         clientStorageIsAvailable,
         CONSOLE_ERROR_STORAGE_KEY,
-        CONSOLE_ERROR_LIMIT
+        CONSOLE_ERROR_LIMIT,
+        DASHBOARD_VISUAL_STALE_AFTER_MS
     });
 }));

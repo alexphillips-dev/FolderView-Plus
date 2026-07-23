@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "it",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "disabilitato",
     "dashboard.quick.expand-all-short": "Espandi tutte le cartelle",
     "dashboard.quick.view-options": "Visualizza le opzioni",
+    "dashboard.quick.capture-diagnostics": "Acquisisci la diagnostica del layout",
+    "dashboard.quick.capture-success-title": "Diagnostica del layout acquisita",
+    "dashboard.quick.capture-success-message": "Riproduci il problema, quindi esporta un pacchetto di supporto dalle Impostazioni di FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnostica del layout non disponibile",
+    "dashboard.quick.capture-unavailable-message": "Espandi la cartella interessata e prova di nuovo l'acquisizione.",
     "dashboard.layout.classic": "Classico",
     "dashboard.layout.legacy": "Eredità",
     "dashboard.layout.fullwidth": "Larghezza intera",

@@ -4,8 +4,26 @@
         layout: 'compactmatrix',
         health: false,
         density: false,
-        settingsOpened: false
+        settingsOpened: false,
+        captureCount: 0
     };
+    const visualController = window.FolderViewPlusDashboardVisualDiagnostics.createController({
+        window,
+        storage: window.localStorage,
+        deriveCompactMatrixLayout: ({ containerWidth }) => {
+            const width = Math.max(0, Number(containerWidth) || 0);
+            const folderColumns = width >= 1080 ? 3 : (width >= 700 ? 2 : 1);
+            const estimatedFolderWidth = folderColumns > 0 ? width / folderColumns : width;
+            const memberColumns = estimatedFolderWidth >= 440 ? 2 : 1;
+            return {
+                folderColumns,
+                memberColumns,
+                estimatedFolderWidth,
+                estimatedMemberWidth: estimatedFolderWidth / memberColumns
+            };
+        },
+        minimumMemberWidthPx: 220
+    });
     const controller = window.FolderViewPlusDashboardLayoutQuickRail.createController({
         window,
         $: window.jQuery,
@@ -54,7 +72,12 @@
             controller.syncDashboardWidgetLayoutQuickControlForType('docker');
         },
         onOpenSettings: () => { state.settingsOpened = true; },
-        onLayoutTelemetry: (_type, snapshot) => telemetry.push(snapshot)
+        onLayoutTelemetry: (_type, snapshot) => telemetry.push(snapshot),
+        onVisualDiagnostics: (type, options) => visualController.scheduleCapture(type, options),
+        onCaptureDiagnostics: (type) => {
+            state.captureCount += 1;
+            return visualController.capture(type, { trigger: 'manual' });
+        }
     });
     controller.bindDashboardQuickActionSyncHandlers();
     controller.applyDashboardLayoutStateForType('docker');
@@ -62,6 +85,7 @@
 
     window.fixtureDashboardLayout = {
         controller,
+        visualController,
         telemetry,
         state,
         applyStartedOnly: () => controller.applyDashboardStartedOnlyFilterForType('docker'),
@@ -76,6 +100,8 @@
             document.querySelector('#fixture-widget').style.width = `${Math.max(280, Number(width) || 0)}px`;
             window.dispatchEvent(new Event('resize'));
         },
+        captureVisual: (trigger = 'fixture') => visualController.capture('docker', { trigger }),
+        visualRecord: () => visualController.read('docker'),
         snapshot: () => {
             const host = document.querySelector('#fixture-dashboard-host');
             const memberTiles = [...host.querySelectorAll('.folder-showcase > span.outer')];

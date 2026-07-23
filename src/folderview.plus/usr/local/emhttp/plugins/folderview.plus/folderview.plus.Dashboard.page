@@ -41,6 +41,8 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.layout-quickrail.js')?>"></script>
+<script>window.FolderViewPlusDashboardPluginVersion = <?=json_encode(readInstalledVersion(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>;</script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.visual-diagnostics.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.folder-match-cache.js')?>"></script>
 <script>
 window.FolderViewPlusAssetUrls = Object.freeze({ chartStack: [

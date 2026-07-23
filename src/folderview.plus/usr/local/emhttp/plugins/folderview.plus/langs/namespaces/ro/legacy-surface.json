@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ro",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Implicit",
     "legacy.surface.21d033f5b75dfd7e": "Motivele potrivirii",
     "legacy.surface.222731e08221fabd": "0 foldere",
+    "legacy.surface.223f8fc57de30082": "Deschideți Dashboard pe dispozitivul afectat și extindeți folderul cu probleme.",
     "legacy.surface.2252d5cf93767a43": "Efect",
     "legacy.surface.226d172b26fa2ead": "Aceste măști se aplică în timp ce confidențialitatea este activată pe pagina Docker.",
     "legacy.surface.2276a481f482182f": "Se aplică expertul",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Reîmprospătarea diagnosticelor",
     "legacy.surface.2893151ea19e03e8": "Reguli de depanare a comutatorului de sursă",
     "legacy.surface.28decfc8127a9ff7": "Actualizați setările, folderele și regulile acum.",
+    "legacy.surface.292b50bf35608517": "Pentru dimensionare, decupare sau rapoarte mobile, capturați tabloul de bord afectat imediat înainte de export.",
     "legacy.surface.292c06f0045a45d0": "categorie",
     "legacy.surface.294586e0b56aff59": "Dosarele live actuale",
     "legacy.surface.29875c13b4032f83": "Nu au fost copiate setări ale folderului",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Pasul $1 din $2",
     "legacy.surface.3d94368daada51ef": "Alegeți un instantaneu stocat, apoi restaurați-l, descărcați-l sau ștergeți-l.",
     "legacy.surface.3e19908f65fdcd60": "Fără avertismente.",
+    "legacy.surface.3e221173b7667c94": "Depanarea aspectului tabloului de bord",
     "legacy.surface.3e3d627f94ea6805": "Pași totali",
     "legacy.surface.3e4d15d46dc7aa48": "Nu s-au găsit setări",
     "legacy.surface.3e8f775cea5b1f40": "Pragul de avertizare de stare",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Prezentarea generală a recuperării se va încărca după ce backup-urile se termină de încărcat.",
     "legacy.surface.f18012429c19cdae": "Progres $1%",
     "legacy.surface.f189411452ed2860": "Toate statele",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduceți problema, apoi redimensionați sau rotiți o dată când este relevant.",
     "legacy.surface.f20c879465551f0d": "Fixat",
     "legacy.surface.f27310598a5421a8": "Testează numele VM (exemplu: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Dosarele mai vechi se deplasează în partea de sus, în timp ce dosarele mai noi se deplasează în jos.",

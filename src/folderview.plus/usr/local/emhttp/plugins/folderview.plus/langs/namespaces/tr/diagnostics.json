@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "tr",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Teknik detaylar",
     "diagnostics.theme.live-title": "Tema tanılama, tam bir sağlık kontrolünden önce canlıdır.",
     "diagnostics.theme.live-description": "Docker, VM, depolama, simge ve güncelleme kartlarını yenilemek için sağlık kontrolünü çalıştırın. Aşağıdaki tema kartı sayfa yüklendiğinde hemen güncellenir.",
-    "diagnostics.actions.retry": "Yeniden dene"
+    "diagnostics.actions.retry": "Yeniden dene",
+    "diagnostics.capture.age-unknown": "yaşı bilinmiyor",
+    "diagnostics.capture.age-under-minute": "1 dakikadan kısa",
+    "diagnostics.capture.age-minutes": "$1 dk eski",
+    "diagnostics.capture.age-hours": "$1 saat eski",
+    "diagnostics.capture.none-title": "Yeni Kontrol Paneli görsel yakalaması mevcut değil.",
+    "diagnostics.capture.none-help": "Kontrol Paneli'ni açın, etkilenen klasörü genişletin, sorunu yeniden oluşturun ve dışa aktarmadan önce buraya geri dönün.",
+    "diagnostics.capture.viewport-unavailable": "görünüm alanı kullanılamıyor",
+    "diagnostics.capture.touch": "dokunmatik özellikli",
+    "diagnostics.capture.non-touch": "dokunmatik olmayan",
+    "diagnostics.capture.vm": "VM Kontrol Paneli",
+    "diagnostics.capture.docker": "Docker Kontrol Paneli",
+    "diagnostics.capture.environment-warning": "Dışa aktarma ortamı, yakalanan en az bir Kontrol Paneli ortamından farklı.",
+    "diagnostics.capture.title": "Kontrol paneli görsel kanıtı",
+    "diagnostics.capture.help": "Bu yakalamalar, Ayarlar'a gittikten sonra oluşturulan Kontrol Paneli geometrisini korur.",
+    "diagnostics.domains.layout": "Düzen ve oluşturma",
+    "diagnostics.domains.configuration": "Yapılandırma bütünlüğü",
+    "diagnostics.domains.runtime": "Çalışma zamanı ve istekler",
+    "diagnostics.domains.storage": "Depolama",
+    "diagnostics.domains.icons": "Özel simgeler",
+    "diagnostics.domains.theme": "Tema",
+    "diagnostics.domains.localization": "Yerelleştirme",
+    "diagnostics.domains.update": "Güncelleme",
+    "diagnostics.domains.issue-count": "- $1 sorun(lar)",
+    "diagnostics.domains.title": "Alanlarla ilgili sorunları giderme",
+    "diagnostics.domains.help": "Bildirilen sorunlar, ilgisiz yapılandırma bulgularının düzen kanıtlarını gölgelemeyeceği şekilde ayrılmıştır."
 }

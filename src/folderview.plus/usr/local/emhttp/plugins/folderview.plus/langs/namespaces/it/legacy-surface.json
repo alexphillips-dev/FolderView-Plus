@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "it",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Predefinito",
     "legacy.surface.21d033f5b75dfd7e": "Ragioni della corrispondenza",
     "legacy.surface.222731e08221fabd": "0 cartelle",
+    "legacy.surface.223f8fc57de30082": "Apri Dashboard sul dispositivo interessato ed espandi la cartella del problema.",
     "legacy.surface.2252d5cf93767a43": "Effetto",
     "legacy.surface.226d172b26fa2ead": "Queste maschere si applicano mentre la Privacy è abilitata nella pagina Docker.",
     "legacy.surface.2276a481f482182f": "Si applica la procedura guidata",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Aggiornamento della diagnostica",
     "legacy.surface.2893151ea19e03e8": "Regole per la risoluzione dei problemi del commutatore di origine",
     "legacy.surface.28decfc8127a9ff7": "Aggiorna subito impostazioni, cartelle e regole.",
+    "legacy.surface.292b50bf35608517": "Per ridimensionare, ritagliare o report mobili, acquisisci la dashboard interessata immediatamente prima dell'esportazione.",
     "legacy.surface.292c06f0045a45d0": "Categoria",
     "legacy.surface.294586e0b56aff59": "Cartelle live attuali",
     "legacy.surface.29875c13b4032f83": "Nessuna impostazione della cartella copiata",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Passo $1 di $2",
     "legacy.surface.3d94368daada51ef": "Scegli uno snapshot archiviato, quindi ripristinalo, scaricalo o eliminalo.",
     "legacy.surface.3e19908f65fdcd60": "Nessun avvertimento.",
+    "legacy.surface.3e221173b7667c94": "Risoluzione dei problemi relativi al layout della dashboard",
     "legacy.surface.3e3d627f94ea6805": "Passi totali",
     "legacy.surface.3e4d15d46dc7aa48": "Nessuna impostazione trovata",
     "legacy.surface.3e8f775cea5b1f40": "Soglia di avviso di stato",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "La panoramica del ripristino verrà caricata al termine del caricamento dei backup.",
     "legacy.surface.f18012429c19cdae": "Avanzamento $1%",
     "legacy.surface.f189411452ed2860": "Tutti gli stati",
+    "legacy.surface.f1f762ce0a7d26dc": "Riproduci il problema, quindi ridimensionalo o ruotalo una volta quando pertinente.",
     "legacy.surface.f20c879465551f0d": "Appuntato",
     "legacy.surface.f27310598a5421a8": "Nome della VM di prova (esempio: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Le cartelle più vecchie si spostano verso l'alto mentre le cartelle più recenti si spostano verso il basso.",

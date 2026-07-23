@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "pl",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Domyślne",
     "legacy.surface.21d033f5b75dfd7e": "Dopasuj powody",
     "legacy.surface.222731e08221fabd": "0 folderów",
+    "legacy.surface.223f8fc57de30082": "Otwórz Panel kontrolny na urządzeniu, którego dotyczy problem, i rozwiń folder powodujący problem.",
     "legacy.surface.2252d5cf93767a43": "Efekt",
     "legacy.surface.226d172b26fa2ead": "Maski te mają zastosowanie, gdy na stronie Docker włączona jest opcja Prywatność.",
     "legacy.surface.2276a481f482182f": "Kreator zastosuj",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Odświeżanie diagnostyki",
     "legacy.surface.2893151ea19e03e8": "Zasady rozwiązywania problemów z przełącznikiem źródła",
     "legacy.surface.28decfc8127a9ff7": "Zaktualizuj teraz ustawienia, foldery i reguły.",
+    "legacy.surface.292b50bf35608517": "W celu zmiany rozmiaru, przycięcia lub raportów mobilnych przechwyć odpowiedni pulpit nawigacyjny bezpośrednio przed eksportem.",
     "legacy.surface.292c06f0045a45d0": "Kategoria",
     "legacy.surface.294586e0b56aff59": "Aktualne foldery na żywo",
     "legacy.surface.29875c13b4032f83": "Nie skopiowano żadnych ustawień folderu",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Krok $1 z $2",
     "legacy.surface.3d94368daada51ef": "Wybierz jedną zapisaną migawkę, a następnie przywróć ją, pobierz lub usuń.",
     "legacy.surface.3e19908f65fdcd60": "Żadnych ostrzeżeń.",
+    "legacy.surface.3e221173b7667c94": "Rozwiązywanie problemów z układem pulpitu nawigacyjnego",
     "legacy.surface.3e3d627f94ea6805": "Suma kroków",
     "legacy.surface.3e4d15d46dc7aa48": "Nie znaleziono ustawień",
     "legacy.surface.3e8f775cea5b1f40": "Próg ostrzegawczy stanu",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Przegląd odzyskiwania zostanie załadowany po zakończeniu ładowania kopii zapasowych.",
     "legacy.surface.f18012429c19cdae": "Postęp $1%",
     "legacy.surface.f189411452ed2860": "Wszystkie stany",
+    "legacy.surface.f1f762ce0a7d26dc": "Odtwórz problem, a następnie zmień rozmiar lub obróć raz, jeśli ma to zastosowanie.",
     "legacy.surface.f20c879465551f0d": "Przypięty",
     "legacy.surface.f27310598a5421a8": "Testowa nazwa maszyny wirtualnej (przykład: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Starsze foldery przesuwają się w górę, a nowsze foldery w dół.",

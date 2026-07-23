@@ -71,6 +71,9 @@ The sanitized bundle preserves troubleshooting structure such as:
 - Recent bounded activity and error telemetry.
 - Loaded asset identity and version queries.
 - Localization, theme, storage, performance, and host-integration diagnostics.
+- Bounded Dashboard geometry snapshots, including viewport class, card widths, grid-column agreement, and overflow counts.
+
+Dashboard visual diagnostics do not capture screenshots, DOM dumps, or raw Docker/VM/folder labels. Only labels involved in an overflow sample receive a per-page salted fingerprint and a broad length bucket, allowing repeated geometry problems within that browser session to be correlated without exporting the label. At most 12 distinct snapshots per Docker or VM Dashboard are retained in browser storage, and each snapshot limits problem samples to eight.
 
 Sanitization is intentionally conservative, but no automated export can understand every user-supplied string. Review the preview before downloading and inspect the JSON before posting it publicly.
 

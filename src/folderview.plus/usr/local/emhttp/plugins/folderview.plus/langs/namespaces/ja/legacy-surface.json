@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ja",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "デフォルト",
     "legacy.surface.21d033f5b75dfd7e": "一致理由",
     "legacy.surface.222731e08221fabd": "0 フォルダー",
+    "legacy.surface.223f8fc57de30082": "影響を受けるデバイスでダッシュボードを開き、問題のあるフォルダーを展開します。",
     "legacy.surface.2252d5cf93767a43": "効果",
     "legacy.surface.226d172b26fa2ead": "これらのマスクは、Docker ページでプライバシーが有効になっているときに適用されます。",
     "legacy.surface.2276a481f482182f": "ウィザード適用",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "診断の更新",
     "legacy.surface.2893151ea19e03e8": "ルールのトラブルシューティング ソース スイッチャー",
     "legacy.surface.28decfc8127a9ff7": "今すぐ設定、フォルダー、ルールを更新してください。",
+    "legacy.surface.292b50bf35608517": "サイズ変更、クリッピング、またはモバイル レポートの場合は、エクスポートする直前に、影響を受けるダッシュボードをキャプチャします。",
     "legacy.surface.292c06f0045a45d0": "カテゴリ",
     "legacy.surface.294586e0b56aff59": "現在のライブフォルダー",
     "legacy.surface.29875c13b4032f83": "フォルダー設定はコピーされませんでした",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "ステップ $1/$2",
     "legacy.surface.3d94368daada51ef": "保存されているスナップショットを 1 つ選択し、それを復元、ダウンロード、または削除します。",
     "legacy.surface.3e19908f65fdcd60": "警告はありません。",
+    "legacy.surface.3e221173b7667c94": "ダッシュボードレイアウトのトラブルシューティング",
     "legacy.surface.3e3d627f94ea6805": "総ステップ数",
     "legacy.surface.3e4d15d46dc7aa48": "設定が見つかりません",
     "legacy.surface.3e8f775cea5b1f40": "ステータス警告しきい値",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "バックアップのロードが完了すると、リカバリの概要がロードされます。",
     "legacy.surface.f18012429c19cdae": "進捗 $1%",
     "legacy.surface.f189411452ed2860": "すべての州",
+    "legacy.surface.f1f762ce0a7d26dc": "問題を再現し、必要に応じて一度サイズ変更または回転します。",
     "legacy.surface.f20c879465551f0d": "固定された",
     "legacy.surface.f27310598a5421a8": "テスト VM 名 (例: prod-db)",
     "legacy.surface.f29c915c2762ae74": "古いフォルダーは上に移動し、新しいフォルダーは下に移動します。",

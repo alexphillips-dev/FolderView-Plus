@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "cs",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Výchozí",
     "legacy.surface.21d033f5b75dfd7e": "Důvody zápasu",
     "legacy.surface.222731e08221fabd": "0 složek",
+    "legacy.surface.223f8fc57de30082": "Otevřete Dashboard na postiženém zařízení a rozbalte složku problémů.",
     "legacy.surface.2252d5cf93767a43": "Efekt",
     "legacy.surface.226d172b26fa2ead": "Tyto masky se použijí, když je na stránce Docker povoleno soukromí.",
     "legacy.surface.2276a481f482182f": "Použijte průvodce",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Obnovení diagnostiky",
     "legacy.surface.2893151ea19e03e8": "Přepínač pro odstraňování problémů s pravidly",
     "legacy.surface.28decfc8127a9ff7": "Aktualizujte nastavení, složky a pravidla.",
+    "legacy.surface.292b50bf35608517": "Chcete-li provést změny velikosti, oříznutí nebo mobilní sestavy, zachyťte dotčený řídicí panel bezprostředně před exportem.",
     "legacy.surface.292c06f0045a45d0": "Kategorie",
     "legacy.surface.294586e0b56aff59": "Aktuální živé složky",
     "legacy.surface.29875c13b4032f83": "Nebyla zkopírována žádná nastavení složky",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Krok $1 z $2",
     "legacy.surface.3d94368daada51ef": "Vyberte jeden uložený snímek a poté jej obnovte, stáhněte nebo odstraňte.",
     "legacy.surface.3e19908f65fdcd60": "Žádná varování.",
+    "legacy.surface.3e221173b7667c94": "Odstraňování problémů s rozložením řídicího panelu",
     "legacy.surface.3e3d627f94ea6805": "Celkový počet kroků",
     "legacy.surface.3e4d15d46dc7aa48": "Nebyla nalezena žádná nastavení",
     "legacy.surface.3e8f775cea5b1f40": "Práh upozornění na stav",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Přehled obnovy se načte po dokončení načítání záloh.",
     "legacy.surface.f18012429c19cdae": "Pokrok $1%",
     "legacy.surface.f189411452ed2860": "Všechny státy",
+    "legacy.surface.f1f762ce0a7d26dc": "Zopakujte problém a poté, pokud je to relevantní, změňte jeho velikost nebo jednou otočte.",
     "legacy.surface.f20c879465551f0d": "Připnuto",
     "legacy.surface.f27310598a5421a8": "Testovací název virtuálního počítače (příklad: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Starší složky se posunou nahoru, zatímco novější složky se posunou níže.",

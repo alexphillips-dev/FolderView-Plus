@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "en",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Technical details",
     "diagnostics.theme.live-title": "Theme diagnostics are live before a full health check.",
     "diagnostics.theme.live-description": "Run health check to refresh Docker, VM, storage, icon, and update cards. The theme card below updates immediately on page load.",
-    "diagnostics.actions.retry": "Retry"
+    "diagnostics.actions.retry": "Retry",
+    "diagnostics.capture.age-unknown": "age unknown",
+    "diagnostics.capture.age-under-minute": "under 1 min old",
+    "diagnostics.capture.age-minutes": "$1 min old",
+    "diagnostics.capture.age-hours": "$1 hr old",
+    "diagnostics.capture.none-title": "No recent Dashboard visual capture is available.",
+    "diagnostics.capture.none-help": "Open Dashboard, expand the affected folder, reproduce the issue, and return here before exporting.",
+    "diagnostics.capture.viewport-unavailable": "viewport unavailable",
+    "diagnostics.capture.touch": "touch-capable",
+    "diagnostics.capture.non-touch": "non-touch",
+    "diagnostics.capture.vm": "VM Dashboard",
+    "diagnostics.capture.docker": "Docker Dashboard",
+    "diagnostics.capture.environment-warning": "The export environment differs from at least one captured Dashboard environment.",
+    "diagnostics.capture.title": "Dashboard visual evidence",
+    "diagnostics.capture.help": "These captures preserve the rendered Dashboard geometry after navigation to Settings.",
+    "diagnostics.domains.layout": "Layout and rendering",
+    "diagnostics.domains.configuration": "Configuration integrity",
+    "diagnostics.domains.runtime": "Runtime and requests",
+    "diagnostics.domains.storage": "Storage",
+    "diagnostics.domains.icons": "Custom icons",
+    "diagnostics.domains.theme": "Theme",
+    "diagnostics.domains.localization": "Localization",
+    "diagnostics.domains.update": "Update",
+    "diagnostics.domains.issue-count": " - $1 issue(s)",
+    "diagnostics.domains.title": "Troubleshooting domains",
+    "diagnostics.domains.help": "Reported problems are separated so unrelated configuration findings do not obscure layout evidence."
 }

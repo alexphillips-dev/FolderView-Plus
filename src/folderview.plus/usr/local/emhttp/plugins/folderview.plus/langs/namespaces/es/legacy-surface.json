@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "es",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Predeterminado",
     "legacy.surface.21d033f5b75dfd7e": "Razones del partido",
     "legacy.surface.222731e08221fabd": "0 carpetas",
+    "legacy.surface.223f8fc57de30082": "Abra el Panel de control en el dispositivo afectado y expanda la carpeta del problema.",
     "legacy.surface.2252d5cf93767a43": "Efecto",
     "legacy.surface.226d172b26fa2ead": "Estas máscaras se aplican mientras la Privacidad está habilitada en la página de Docker.",
     "legacy.surface.2276a481f482182f": "Aplicar asistente",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Actualización de diagnóstico",
     "legacy.surface.2893151ea19e03e8": "Reglas para solucionar problemas del conmutador de fuente",
     "legacy.surface.28decfc8127a9ff7": "Actualice la configuración, las carpetas y las reglas ahora.",
+    "legacy.surface.292b50bf35608517": "Para informes móviles, de recorte o de tamaño, capture el panel afectado inmediatamente antes de exportarlo.",
     "legacy.surface.292c06f0045a45d0": "categoría",
     "legacy.surface.294586e0b56aff59": "Carpetas activas actuales",
     "legacy.surface.29875c13b4032f83": "No se copia ninguna configuración de carpeta",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Paso $1 de $2",
     "legacy.surface.3d94368daada51ef": "Elija una instantánea almacenada y luego restáurela, descárguela o elimínela.",
     "legacy.surface.3e19908f65fdcd60": "Sin advertencias.",
+    "legacy.surface.3e221173b7667c94": "Solución de problemas de diseño del panel",
     "legacy.surface.3e3d627f94ea6805": "Pasos totales",
     "legacy.surface.3e4d15d46dc7aa48": "No se encontraron configuraciones",
     "legacy.surface.3e8f775cea5b1f40": "Umbral de advertencia de estado",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "La descripción general de la recuperación se cargará después de que terminen de cargarse las copias de seguridad.",
     "legacy.surface.f18012429c19cdae": "Progreso $1%",
     "legacy.surface.f189411452ed2860": "Todos los estados",
+    "legacy.surface.f1f762ce0a7d26dc": "Reproduzca el problema y luego cambie el tamaño o gírelo una vez cuando sea relevante.",
     "legacy.surface.f20c879465551f0d": "Fijado",
     "legacy.surface.f27310598a5421a8": "Nombre de la máquina virtual de prueba (ejemplo: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Las carpetas más antiguas se mueven hacia la parte superior mientras que las carpetas más nuevas se mueven hacia abajo.",

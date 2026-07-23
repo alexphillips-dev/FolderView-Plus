@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ro",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "dezactivat",
     "dashboard.quick.expand-all-short": "Extindeți toate folderele",
     "dashboard.quick.view-options": "Vizualizați opțiunile",
+    "dashboard.quick.capture-diagnostics": "Capturați diagnosticarea aspectului",
+    "dashboard.quick.capture-success-title": "Diagnosticarea aspectului a fost capturată",
+    "dashboard.quick.capture-success-message": "Reproduceți problema, apoi exportați un pachet de asistență din Setări FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnosticarea aspectului nu este disponibilă",
+    "dashboard.quick.capture-unavailable-message": "Extindeți folderul afectat și încercați din nou capturarea.",
     "dashboard.layout.classic": "Clasic",
     "dashboard.layout.legacy": "Moștenire",
     "dashboard.layout.fullwidth": "Lățime completă",

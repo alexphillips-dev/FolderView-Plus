@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ro",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "Detalii tehnice",
     "diagnostics.theme.live-title": "Diagnosticele temei sunt active înainte de o verificare completă a stării.",
     "diagnostics.theme.live-description": "Rulează verificarea stării pentru a actualiza Docker, VM, stocarea, pictograma și cardurile de actualizare. Cardul temei de mai jos se actualizează imediat la încărcarea paginii.",
-    "diagnostics.actions.retry": "Încearcă din nou"
+    "diagnostics.actions.retry": "Încearcă din nou",
+    "diagnostics.capture.age-unknown": "vârstă necunoscută",
+    "diagnostics.capture.age-under-minute": "mai puțin de 1 minut",
+    "diagnostics.capture.age-minutes": "$1 min",
+    "diagnostics.capture.age-hours": "$1 oră",
+    "diagnostics.capture.none-title": "Nu este disponibilă nicio captură vizuală recentă din tabloul de bord.",
+    "diagnostics.capture.none-help": "Deschideți Dashboard, extindeți folderul afectat, reproduceți problema și reveniți aici înainte de a exporta.",
+    "diagnostics.capture.viewport-unavailable": "fereastra de vizualizare indisponibilă",
+    "diagnostics.capture.touch": "capabil de atingere",
+    "diagnostics.capture.non-touch": "non-atingere",
+    "diagnostics.capture.vm": "Tabloul de bord VM",
+    "diagnostics.capture.docker": "Tabloul de bord Docker",
+    "diagnostics.capture.environment-warning": "Mediul de export diferă de cel puțin un mediu de tablou de bord capturat.",
+    "diagnostics.capture.title": "Dovezi vizuale pe tabloul de bord",
+    "diagnostics.capture.help": "Aceste capturi păstrează geometria tabloului de bord redată după navigarea la Setări.",
+    "diagnostics.domains.layout": "Aspect și randare",
+    "diagnostics.domains.configuration": "Integritatea configurației",
+    "diagnostics.domains.runtime": "Timp de rulare și solicitări",
+    "diagnostics.domains.storage": "Depozitare",
+    "diagnostics.domains.icons": "Pictograme personalizate",
+    "diagnostics.domains.theme": "Temă",
+    "diagnostics.domains.localization": "Localizare",
+    "diagnostics.domains.update": "Actualizare",
+    "diagnostics.domains.issue-count": "- $1 probleme",
+    "diagnostics.domains.title": "Depanarea domeniilor",
+    "diagnostics.domains.help": "Problemele raportate sunt separate, astfel încât constatările de configurare fără legătură să nu ascund dovezile de aspect."
 }

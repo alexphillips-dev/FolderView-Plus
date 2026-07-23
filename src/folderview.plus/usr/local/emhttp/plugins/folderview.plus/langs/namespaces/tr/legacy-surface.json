@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "tr",
         "namespace": "legacy-surface"
     },
@@ -235,6 +235,7 @@
     "legacy.surface.21b111cbfe6e8fca": "Varsayılan",
     "legacy.surface.21d033f5b75dfd7e": "Eşleşme nedenleri",
     "legacy.surface.222731e08221fabd": "0 klasör",
+    "legacy.surface.223f8fc57de30082": "Etkilenen cihazda Kontrol Panelini açın ve sorunlu klasörü genişletin.",
     "legacy.surface.2252d5cf93767a43": "Etki",
     "legacy.surface.226d172b26fa2ead": "Bu maskeler, Docker sayfasında Gizlilik etkinleştirildiğinde geçerlidir.",
     "legacy.surface.2276a481f482182f": "Sihirbaz uygula",
@@ -270,6 +271,7 @@
     "legacy.surface.2879bfe0c4426cb0": "Teşhis yenileme",
     "legacy.surface.2893151ea19e03e8": "Kaynak değiştiricide kural sorunlarını giderme",
     "legacy.surface.28decfc8127a9ff7": "Ayarları, klasörleri ve kuralları şimdi güncelleyin.",
+    "legacy.surface.292b50bf35608517": "Boyutlandırma, kırpma veya mobil raporlar için, etkilenen Kontrol Panelini dışa aktarmadan hemen önce yakalayın.",
     "legacy.surface.292c06f0045a45d0": "Kategori",
     "legacy.surface.294586e0b56aff59": "Mevcut canlı klasörler",
     "legacy.surface.29875c13b4032f83": "Hiçbir klasör ayarı kopyalanmadı",
@@ -392,6 +394,7 @@
     "legacy.surface.3d7512a84492be8a": "Adım $1 / $2",
     "legacy.surface.3d94368daada51ef": "Saklanan bir anlık görüntüyü seçin, ardından geri yükleyin, indirin veya silin.",
     "legacy.surface.3e19908f65fdcd60": "Hiçbir uyarı yok.",
+    "legacy.surface.3e221173b7667c94": "Kontrol paneli düzeni sorunlarını giderme",
     "legacy.surface.3e3d627f94ea6805": "Toplam adım",
     "legacy.surface.3e4d15d46dc7aa48": "Hiçbir ayar bulunamadı",
     "legacy.surface.3e8f775cea5b1f40": "Durum uyarı eşiği",
@@ -1492,6 +1495,7 @@
     "legacy.surface.f17174e7e88e2141": "Yedeklemelerin yüklenmesi tamamlandıktan sonra kurtarmaya genel bakış yüklenecektir.",
     "legacy.surface.f18012429c19cdae": "İlerleme %$1",
     "legacy.surface.f189411452ed2860": "Tüm eyaletler",
+    "legacy.surface.f1f762ce0a7d26dc": "Sorunu yeniden oluşturun, ardından uygun olduğunda yeniden boyutlandırın veya döndürün.",
     "legacy.surface.f20c879465551f0d": "Sabitlendi",
     "legacy.surface.f27310598a5421a8": "VM adını test edin (örnek: prod-db)",
     "legacy.surface.f29c915c2762ae74": "Daha eski klasörler yukarıya, yeni klasörler ise aşağıya doğru taşınır.",

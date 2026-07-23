@@ -729,6 +729,8 @@ const getSupportBundleTelemetryApi = () => {
                 dockerTraceHealth: 'fv.support.bundle.docker.traceHealth.v1',
                 dashboardLayoutDocker: 'fv.support.bundle.dashboard.layout.docker.v1',
                 dashboardLayoutVm: 'fv.support.bundle.dashboard.layout.vm.v1',
+                dashboardVisualDocker: 'fv.support.bundle.dashboard.visual.docker.v1',
+                dashboardVisualVm: 'fv.support.bundle.dashboard.visual.vm.v1',
                 dashboardLifecycle: 'fv.support.bundle.dashboard.lifecycle.v1',
                 vmLifecycle: 'fv.support.bundle.vm.lifecycle.v1',
                 runtimePerformance: {
@@ -789,7 +791,8 @@ const getSupportBundlePreviewApi = () => {
             formatCheckedAtLabel,
             normalizeSupportBundleV2Payload,
             getSupportBundlePreview,
-            showError: diagnosticsShowError
+            showError: diagnosticsShowError,
+            t: diagnosticsT
         });
     }
     return supportBundlePreviewApi;

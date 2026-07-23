@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ru",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "отключено",
     "dashboard.quick.expand-all-short": "Развернуть все папки",
     "dashboard.quick.view-options": "Посмотреть варианты",
+    "dashboard.quick.capture-diagnostics": "Захват диагностики макета",
+    "dashboard.quick.capture-success-title": "Записана диагностика макета",
+    "dashboard.quick.capture-success-message": "Воспроизведите проблему, а затем экспортируйте пакет поддержки из настроек FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Диагностика макета недоступна.",
+    "dashboard.quick.capture-unavailable-message": "Разверните затронутую папку и повторите попытку захвата.",
     "dashboard.layout.classic": "Классический",
     "dashboard.layout.legacy": "Наследие",
     "dashboard.layout.fullwidth": "Полная ширина",

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "fr",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "désactivé",
     "dashboard.quick.expand-all-short": "Développer tous les dossiers",
     "dashboard.quick.view-options": "Afficher les options",
+    "dashboard.quick.capture-diagnostics": "Capturer les diagnostics de mise en page",
+    "dashboard.quick.capture-success-title": "Diagnostics de mise en page capturés",
+    "dashboard.quick.capture-success-message": "Reproduisez le problème, puis exportez un ensemble de support à partir des paramètres de FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnostic de mise en page indisponible",
+    "dashboard.quick.capture-unavailable-message": "Développez le dossier concerné et réessayez la capture.",
     "dashboard.layout.classic": "Classique",
     "dashboard.layout.legacy": "Héritage",
     "dashboard.layout.fullwidth": "Pleine largeur",

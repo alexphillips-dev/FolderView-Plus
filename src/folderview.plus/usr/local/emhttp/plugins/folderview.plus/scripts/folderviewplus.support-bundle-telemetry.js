@@ -382,6 +382,11 @@
             docker: { available: false },
             vm: { available: false }
         }));
+        const collectDashboardVisualDiagnostics = browserCollectors?.collectDashboardVisualDiagnostics || (() => ({
+            schemaVersion: 1,
+            docker: { available: false, freshness: 'unavailable' },
+            vm: { available: false, freshness: 'unavailable' }
+        }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
         const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
         const collectRuntimePerformanceDiagnostics = (uiRedactor) => {
@@ -395,6 +400,86 @@
                 available: Object.values(surfaces).some((surface) => surface.available),
                 surfaces
             });
+        };
+        const buildDiagnosticDomains = (payload) => {
+            const healthSummary = payload.healthAndHistory?.summary || {};
+            const cards = Array.isArray(healthSummary.cards) ? healthSummary.cards : [];
+            const cardByKey = Object.fromEntries(cards.map((card) => [String(card?.key || ''), card]));
+            const visualTypes = ['docker', 'vm']
+                .map((type) => payload.uiTelemetry?.dashboardVisual?.[type])
+                .filter((entry) => entry?.available === true);
+            const visualErrorCount = visualTypes.filter((entry) => entry.latest?.verdict?.status === 'error').length;
+            const visualWarningCount = visualTypes.filter((entry) => (
+                entry.latest?.verdict?.status === 'warning'
+                || entry.captureQuality?.status === 'attention'
+            )).length;
+            const configurationCards = ['docker', 'vm'].map((key) => cardByKey[key]).filter(Boolean);
+            const configurationIssueCount = configurationCards.reduce((total, card) => total + Math.max(0, Number(card?.count) || 0), 0);
+            const configurationErrors = configurationCards.filter((card) => card?.status === 'error').length;
+            const configurationWarnings = configurationCards.filter((card) => card?.status === 'warning').length;
+            const requestFailures = Math.max(0, Number(payload.uiTelemetry?.requestActivity?.failures) || 0);
+            const requestErrors = Math.max(0, Number(payload.uiTelemetry?.requestErrors?.count) || 0);
+            const currentConsoleErrors = Math.max(0, Number(payload.uiTelemetry?.browserConsoleErrors?.currentSessionCount) || 0);
+            const themeWarnings = Array.isArray(payload.uiTelemetry?.theme?.warnings)
+                ? payload.uiTelemetry.theme.warnings.length
+                : 0;
+            const localizationLoadErrors = Array.isArray(payload.uiTelemetry?.localization?.loadErrors)
+                ? payload.uiTelemetry.localization.loadErrors.length
+                : 0;
+            const localizationMissing = Math.max(0, Number(payload.uiTelemetry?.localization?.missingKeyCount) || 0);
+            const statusForCount = (errorCount, warningCount = 0) => (
+                errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : 'healthy')
+            );
+            const storageCard = cardByKey.storage || null;
+            const updateCard = cardByKey.update || null;
+            const iconCard = cardByKey.custom_icons || null;
+            return {
+                schemaVersion: 1,
+                domains: {
+                    layoutRendering: {
+                        status: visualTypes.length === 0
+                            ? 'unavailable'
+                            : statusForCount(visualErrorCount, visualWarningCount),
+                        issueCount: visualErrorCount + visualWarningCount,
+                        evidenceCount: visualTypes.length,
+                        dockerFreshness: payload.uiTelemetry?.dashboardVisual?.docker?.freshness || 'unavailable',
+                        vmFreshness: payload.uiTelemetry?.dashboardVisual?.vm?.freshness || 'unavailable'
+                    },
+                    configurationIntegrity: {
+                        status: configurationCards.length === 0
+                            ? 'unavailable'
+                            : statusForCount(configurationErrors, configurationWarnings),
+                        issueCount: configurationIssueCount
+                    },
+                    runtimeRequests: {
+                        status: statusForCount(requestFailures + requestErrors + currentConsoleErrors),
+                        issueCount: requestFailures + requestErrors + currentConsoleErrors,
+                        requestFailures,
+                        requestErrors,
+                        currentConsoleErrors
+                    },
+                    storage: {
+                        status: String(storageCard?.status || 'unavailable'),
+                        issueCount: Math.max(0, Number(storageCard?.count) || 0)
+                    },
+                    customIcons: {
+                        status: String(iconCard?.status || 'unavailable'),
+                        issueCount: Math.max(0, Number(iconCard?.count) || 0)
+                    },
+                    theme: {
+                        status: statusForCount(0, themeWarnings),
+                        issueCount: themeWarnings
+                    },
+                    localization: {
+                        status: statusForCount(localizationLoadErrors, localizationMissing),
+                        issueCount: localizationLoadErrors + localizationMissing
+                    },
+                    update: {
+                        status: String(updateCard?.status || 'unavailable'),
+                        issueCount: Math.max(0, Number(updateCard?.count) || 0)
+                    }
+                }
+            };
         };
 
         const collectSupportBundleUiTelemetry = (bundle) => {
@@ -439,6 +524,9 @@
                 traceHealth: collectDockerTraceHealth(uiRedactor)
             };
             existingUiTelemetry.dashboardLayout = collectDashboardLayoutDiagnostics(uiRedactor);
+            existingUiTelemetry.dashboardVisual = collectDashboardVisualDiagnostics(uiRedactor, {
+                pluginVersion: payload.bundleMeta?.pluginVersion || ''
+            });
             existingUiTelemetry.dashboardLifecycle = collectDashboardLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.vmLifecycle = collectVmLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.runtimePerformance = collectRuntimePerformanceDiagnostics(uiRedactor);
@@ -454,6 +542,10 @@
                 getLocalizationDiagnosticsSnapshot()
             );
             payload.uiTelemetry = existingUiTelemetry;
+            payload.healthAndHistory = (
+                payload.healthAndHistory && typeof payload.healthAndHistory === 'object' && !Array.isArray(payload.healthAndHistory)
+            ) ? payload.healthAndHistory : {};
+            payload.healthAndHistory.diagnosticDomains = buildDiagnosticDomains(payload);
             payload.redactionManifest.privacySelfCheck = buildUiTelemetryPrivacySelfCheck(
                 existingUiTelemetry,
                 privacyMode

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "zh-Hans",
         "namespace": "import"
     },
@@ -35,8 +35,8 @@
     "import.summary.folder-change": "{{PLURAL:$1|文件夹更改|文件夹更改}}",
     "import.summary.planned-change": "预览中的 {{PLURAL:$1|计划更改|计划更改}}",
     "import.summary.new": "$1 全新",
-    "import.summary.update": "{{PLURAL:$1|一次更新|多次更新}}",
-    "import.summary.delete": "{{PLURAL:$1|一次删除|多次删除}}",
+    "import.summary.update": "{{复数：$1|一项更新|$1 更新}}",
+    "import.summary.delete": "{{复数：$1|一个删除|$1删除}}",
     "import.kind.docker-folder": "Docker 文件夹",
     "import.kind.vm-folder": "VM 文件夹",
     "import.dialog.docker-title": "导入 Docker 个文件夹",

@@ -8,7 +8,8 @@ const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const langDir = path.join(pluginDir, 'langs');
 const namespaceRoot = path.join(langDir, 'namespaces');
-const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.22.2';
+const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.23.1';
+const catalogDate = process.env.FVPLUS_I18N_CATALOG_DATE || new Date().toISOString().slice(0, 10);
 const translateMissing = process.argv.includes('--translate');
 const locales = fs.readdirSync(langDir)
     .filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))
@@ -134,6 +135,36 @@ await Promise.all(Array.from({ length: workers }, async () => {
 }));
 
 const namespaceNames = fs.readdirSync(path.join(namespaceRoot, 'en')).filter((name) => name.endsWith('.json')).sort();
+for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-surface.json')) {
+    const englishCatalog = readJson(path.join(namespaceRoot, 'en', namespaceName));
+    const englishEntries = Object.entries(englishCatalog).filter(([key, value]) => (
+        key !== '@metadata' && typeof value === 'string'
+    ));
+    for (const locale of locales.filter((name) => name !== 'en')) {
+        const namespaceFile = path.join(namespaceRoot, locale, namespaceName);
+        const catalog = readJson(namespaceFile);
+        const missing = englishEntries.filter(([key, english]) => (
+            typeof catalog[key] !== 'string'
+            || !catalog[key].trim()
+            || placeholderSignature(catalog[key]) !== placeholderSignature(english)
+        ));
+        if (missing.length > 0 && !translateMissing) {
+            throw new Error(`${locale}/${namespaceName} is missing ${missing.length} translations; rerun with --translate.`);
+        }
+        for (const batch of batchesFor(missing)) {
+            Object.assign(catalog, await translateBatch(batch, targetLocales[locale] || locale));
+        }
+        const ordered = Object.fromEntries([
+            ['@metadata', catalog['@metadata']],
+            ...englishEntries.map(([key]) => [key, catalog[key]])
+        ]);
+        writeJson(namespaceFile, ordered);
+        if (missing.length > 0) {
+            console.log(`Completed ${locale}/${namespaceName}: translated ${missing.length} missing messages.`);
+        }
+    }
+}
+
 let aggregateCount = 0;
 for (const namespaceName of namespaceNames) {
     const catalog = readJson(path.join(namespaceRoot, 'en', namespaceName));
@@ -146,8 +177,8 @@ for (const locale of locales) {
     const rootCatalog = readJson(rootFile);
     rootCatalog['@metadata']['catalog-version'] = catalogVersion;
     rootCatalog['@metadata']['source-revision'] = catalogVersion;
-    rootCatalog['@metadata']['last-updated'] = '2026-07-22';
-    rootCatalog['@metadata']['last-reviewed'] = '2026-07-22';
+    rootCatalog['@metadata']['last-updated'] = catalogDate;
+    rootCatalog['@metadata']['last-reviewed'] = catalogDate;
     rootCatalog['@metadata']['translated-messages'] = aggregateCount;
     rootCatalog['@metadata']['total-source-messages'] = aggregateCount;
     writeJson(rootFile, rootCatalog);
@@ -162,7 +193,7 @@ for (const locale of locales) {
 const largestSurfaces = Object.fromEntries(Object.entries(fileCounts).sort((left, right) => right[1] - left[1]).slice(0, 10));
 writeJson(path.join(langDir, 'extraction-report.json'), {
     'catalog-version': catalogVersion,
-    'generated-at': '2026-07-22',
+    'generated-at': catalogDate,
     'candidate-count': 0,
     'auto-bound-message-count': phrases.length,
     'catalog-message-count': aggregateCount,

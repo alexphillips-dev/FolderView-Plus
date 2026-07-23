@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "ko",
         "namespace": "diagnostics"
     },
@@ -57,5 +57,30 @@
     "diagnostics.cards.technical-details": "기술 세부 정보",
     "diagnostics.theme.live-title": "테마 진단은 전체 상태 점검 전에 실시간으로 이루어집니다.",
     "diagnostics.theme.live-description": "상태 점검을 실행하여 Docker, VM, 저장소, 아이콘 및 업데이트 카드를 새로 고치세요. 아래 테마 카드는 페이지가 로드될 때 즉시 업데이트됩니다.",
-    "diagnostics.actions.retry": "다시 시도"
+    "diagnostics.actions.retry": "다시 시도",
+    "diagnostics.capture.age-unknown": "나이 알 수 없음",
+    "diagnostics.capture.age-under-minute": "1분 미만",
+    "diagnostics.capture.age-minutes": "$1분 전",
+    "diagnostics.capture.age-hours": "$1시간 전",
+    "diagnostics.capture.none-title": "최근 대시보드 시각적 캡처를 사용할 수 없습니다.",
+    "diagnostics.capture.none-help": "대시보드를 열고 영향을 받은 폴더를 확장한 후 문제를 재현하고 내보내기 전에 여기로 돌아오세요.",
+    "diagnostics.capture.viewport-unavailable": "뷰포트를 사용할 수 없음",
+    "diagnostics.capture.touch": "터치 가능",
+    "diagnostics.capture.non-touch": "비터치",
+    "diagnostics.capture.vm": "VM 대시보드",
+    "diagnostics.capture.docker": "도커 대시보드",
+    "diagnostics.capture.environment-warning": "내보내기 환경은 캡처된 하나 이상의 대시보드 환경과 다릅니다.",
+    "diagnostics.capture.title": "대시보드 시각적 증거",
+    "diagnostics.capture.help": "이러한 캡처는 설정으로 이동한 후 렌더링된 대시보드 형상을 유지합니다.",
+    "diagnostics.domains.layout": "레이아웃 및 렌더링",
+    "diagnostics.domains.configuration": "구성 무결성",
+    "diagnostics.domains.runtime": "런타임 및 요청",
+    "diagnostics.domains.storage": "저장",
+    "diagnostics.domains.icons": "맞춤 아이콘",
+    "diagnostics.domains.theme": "테마",
+    "diagnostics.domains.localization": "현지화",
+    "diagnostics.domains.update": "업데이트",
+    "diagnostics.domains.issue-count": "- $1 문제",
+    "diagnostics.domains.title": "도메인 문제 해결",
+    "diagnostics.domains.help": "보고된 문제는 분리되어 관련 없는 구성 결과로 인해 레이아웃 증거가 모호해지지 않습니다."
 }

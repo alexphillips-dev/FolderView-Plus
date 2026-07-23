@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.22.2",
+        "catalog-version": "2026.07.23.1",
         "locale": "cs",
         "namespace": "dashboard"
     },
@@ -30,6 +30,11 @@
     "dashboard.quick.disabled": "zakázáno",
     "dashboard.quick.expand-all-short": "Rozbalte všechny složky",
     "dashboard.quick.view-options": "Zobrazit možnosti",
+    "dashboard.quick.capture-diagnostics": "Zachyťte diagnostiku rozložení",
+    "dashboard.quick.capture-success-title": "Diagnostika rozložení zachycena",
+    "dashboard.quick.capture-success-message": "Zopakujte problém a poté exportujte balíček podpory z nastavení FolderView Plus.",
+    "dashboard.quick.capture-unavailable-title": "Diagnostika rozložení není k dispozici",
+    "dashboard.quick.capture-unavailable-message": "Rozbalte postiženou složku a zkuste zachycení znovu.",
     "dashboard.layout.classic": "klasické",
     "dashboard.layout.legacy": "Legacy",
     "dashboard.layout.fullwidth": "Plná šířka",

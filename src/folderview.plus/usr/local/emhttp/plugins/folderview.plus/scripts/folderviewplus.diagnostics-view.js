@@ -19,9 +19,7 @@
         storage: Object.freeze({ icon: 'folder' }),
         custom_icons: Object.freeze({ icon: 'image' }),
         update: Object.freeze({ icon: 'upload' }),
-        theme: Object.freeze({ icon: 'paintbrush' }),
-        performance_budget: Object.freeze({ icon: 'activity' }),
-        localization: Object.freeze({ icon: 'globe' })
+        theme: Object.freeze({ icon: 'paintbrush' })
     });
 
     const createApi = (deps = {}) => {
@@ -148,29 +146,30 @@
                     </section>
                 `;
             }
+            const coreCardKeys = new Set(model.coreCards.map((card) => card.key));
             return `
                 <section class="fv-diagnostics-findings" aria-labelledby="fv-diagnostics-findings-title">
                     <div class="fv-diagnostics-findings-head"><h3 id="fv-diagnostics-findings-title">${escapeHtml(translate('diagnostics.findings.title', 'Priority findings'))}</h3><span>${escapeHtml(`${model.findings.length} ${model.findings.length === 1 ? 'finding' : 'findings'}`)}</span></div>
                     <div class="fv-diagnostics-findings-list">
                         ${model.findings.map((finding) => {
                             const status = statusConfig(finding.status);
-                            return `<a href="#${escapeHtml(cardId(finding.key))}" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}">${svgIcon(status.icon)}<span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span><i class="fa fa-angle-right" aria-hidden="true"></i></a>`;
+                            const content = `${svgIcon(status.icon)}<span><strong>${escapeHtml(finding.label)}</strong><small>${escapeHtml(finding.headline)}</small></span>`;
+                            if (coreCardKeys.has(finding.key)) {
+                                return `<a href="#${escapeHtml(cardId(finding.key))}" class="fv-diagnostics-finding is-${escapeHtml(finding.status)}">${content}<i class="fa fa-angle-right" aria-hidden="true"></i></a>`;
+                            }
+                            return `<div class="fv-diagnostics-finding is-${escapeHtml(finding.status)} is-summary-only">${content}</div>`;
                         }).join('')}
                     </div>
                 </section>
             `;
         };
 
-        const buildSection = (id, title, cards, additional = false) => {
+        const buildSection = (id, title, cards) => {
             if (!cards.length) return '';
             const healthy = cards.filter((card) => card.status === 'healthy').length;
-            const notices = cards.filter((card) => card.status === 'info').length;
-            const badge = additional
-                ? `${notices} ${notices === 1 ? 'notice' : 'notices'}`
-                : `${healthy} of ${cards.length} healthy`;
             return `
-                <section class="fv-diagnostics-card-section is-${additional ? 'additional' : 'system'}" aria-labelledby="${escapeHtml(id)}">
-                    <div class="fv-diagnostics-section-heading"><h3 id="${escapeHtml(id)}">${escapeHtml(title)}</h3><span>${escapeHtml(badge)}</span></div>
+                <section class="fv-diagnostics-card-section is-system" aria-labelledby="${escapeHtml(id)}">
+                    <div class="fv-diagnostics-section-heading"><h3 id="${escapeHtml(id)}">${escapeHtml(title)}</h3><span>${escapeHtml(`${healthy} of ${cards.length} healthy`)}</span></div>
                     <div class="fv-diagnostics-health-grid">${cards.map(buildCard).join('')}</div>
                 </section>
             `;
@@ -194,7 +193,6 @@
                 ${buildHero(model)}
                 ${buildFindings(model)}
                 ${buildSection('fv-diagnostics-system-title', translate('diagnostics.sections.system', 'System health'), model.coreCards)}
-                ${buildSection('fv-diagnostics-additional-title', translate('diagnostics.sections.additional', 'Additional diagnostics'), [...model.advisoryCards, ...model.additionalCards], true)}
             `;
         };
 

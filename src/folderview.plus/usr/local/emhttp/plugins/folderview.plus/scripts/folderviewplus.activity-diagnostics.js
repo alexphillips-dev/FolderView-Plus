@@ -1561,13 +1561,19 @@ const buildLocalizationDiagnosticsSummaryCard = () => {
     const total = Math.max(0, Number(report?.totalSourceMessages) || Number(snapshot.catalogSummary?.sourceMessageCount) || 0);
     const missing = Math.max(0, Number(report?.missingMessages) || (total - translated));
     const stale = Math.max(0, Number(report?.potentiallyStaleMessages) || 0);
+    const loadErrorCount = Array.isArray(snapshot.loadErrors) ? snapshot.loadErrors.length : 0;
+    const runtimeMissingCount = Math.max(0, Number(snapshot.missingKeyCount) || 0);
     const isSource = resolvedLocale === 'en' && requestedLocale === 'en';
     const usesFallback = requestedLocale !== resolvedLocale;
     const reviewedCurrent = report?.reviewedAgainstCurrentSource === true;
-    const status = snapshot.loadErrors?.length > 0 ? 'warning' : (isSource || (coverage === 100 && reviewedCurrent) ? 'healthy' : 'info');
+    const status = loadErrorCount > 0 || runtimeMissingCount > 0
+        ? 'warning'
+        : (isSource || (coverage === 100 && reviewedCurrent) ? 'healthy' : 'info');
     let headline = diagnosticsT('diagnostics.localization.healthy', 'The active language catalog is current.');
-    if (snapshot.loadErrors?.length > 0) {
+    if (loadErrorCount > 0) {
         headline = diagnosticsT('diagnostics.localization.load-error', 'One or more language catalogs could not be loaded.');
+    } else if (runtimeMissingCount > 0) {
+        headline = diagnosticsT('diagnostics.localization.runtime-missing', '$1 missing keys were observed in this page session.', runtimeMissingCount);
     } else if (usesFallback) {
         headline = diagnosticsT('diagnostics.localization.fallback', '$1 is using the $2 fallback.', requestedLocale, resolvedLocale);
     } else if (!reviewedCurrent) {
@@ -1606,7 +1612,7 @@ const buildLocalizationDiagnosticsSummaryCard = () => {
         badgeLabel: isSource ? diagnosticsT('diagnostics.localization.source', 'Source') : `${coverage}%`,
         headline,
         detail,
-        count: snapshot.loadErrors?.length || 0,
+        count: loadErrorCount + runtimeMissingCount,
         meta: isSource
             ? diagnosticsT('diagnostics.localization.current', 'Current source catalog')
             : diagnosticsT('diagnostics.localization.progress', '$1 of $2 messages', translated, total),
@@ -1660,9 +1666,9 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
         coreCards.push(themeCard);
     }
     const performanceCard = hasResults ? buildPerformanceBudgetDiagnosticsSummaryCard() : null;
-    const additionalCards = hasResults
-        ? [buildLocalizationDiagnosticsSummaryCard()].filter(Boolean)
-        : [];
+    const localizationCard = hasResults ? buildLocalizationDiagnosticsSummaryCard() : null;
+    const advisoryCards = [performanceCard, localizationCard]
+        .filter((card) => card && ['warning', 'error'].includes(card.status));
     const model = diagnosticsViewModelModule.buildDiagnosticsViewModel({
         hasResults,
         running: diagnosticsRunState.running,
@@ -1671,8 +1677,7 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
         checkedAtLabel: checkedAt,
         pluginVersion: diagnostics?.pluginVersion,
         coreCards,
-        advisoryCards: performanceCard ? [performanceCard] : [],
-        additionalCards
+        advisoryCards
     });
     viewApi.render(summaryHost, model);
     setDiagnosticsWorkspaceBusy(diagnosticsRunState.running);

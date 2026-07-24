@@ -121,3 +121,51 @@ test('diagnostics renderer provides SVG metric and card icons with a complete co
     assert.match(card, /fv-diagnostics-health-card-icon is-docker/);
     assert.match(card, /data-fv-icon="boxes"/);
 });
+
+test('diagnostics renderer omits healthy advisory and optional cards from the workspace', () => {
+    const model = modelModule.buildDiagnosticsViewModel({
+        hasResults: true,
+        checkedAtLabel: 'just now',
+        pluginVersion: '2026.07.24.04',
+        coreCards: healthyCoreCards,
+        advisoryCards: [
+            { key: 'performanceBudget', label: 'Performance Budgets', status: 'healthy', headline: 'Within budget.', technicalDetails: ['Timing detail'] }
+        ],
+        additionalCards: [
+            { key: 'localization', label: 'Localization', status: 'info', headline: 'Catalog loaded.', technicalDetails: ['Catalog detail'] }
+        ]
+    });
+    const view = viewModule.createApi({
+        escapeHtml: uiModule.escapeHtml,
+        svgIcon: uiModule.svgIcon
+    });
+    const host = {
+        innerHTML: '',
+        setAttribute() {}
+    };
+
+    view.render(host, model);
+
+    assert.match(host.innerHTML, /System health/);
+    assert.doesNotMatch(host.innerHTML, /Additional diagnostics/);
+    assert.doesNotMatch(host.innerHTML, /Performance Budgets|Localization|Technical details/);
+});
+
+test('advisory findings remain visible without linking to a hidden card', () => {
+    const model = modelModule.buildDiagnosticsViewModel({
+        hasResults: true,
+        coreCards: healthyCoreCards,
+        advisoryCards: [
+            { key: 'performanceBudget', label: 'Performance Budgets', status: 'warning', headline: 'Repeated slowdown.' }
+        ]
+    });
+    const view = viewModule.createApi({
+        escapeHtml: uiModule.escapeHtml,
+        svgIcon: uiModule.svgIcon
+    });
+    const findings = view.buildFindings(model);
+
+    assert.match(findings, /fv-diagnostics-finding is-warning is-summary-only/);
+    assert.match(findings, /Performance Budgets/);
+    assert.doesNotMatch(findings, /href="#fv-diagnostics-card-performanceBudget"/);
+});

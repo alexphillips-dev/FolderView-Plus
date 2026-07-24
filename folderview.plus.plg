@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.03">
-<!ENTITY md5 "281e64db06d9eae297a5ea2c773f0e87">
+<!ENTITY version "2026.07.24.04">
+<!ENTITY md5 "7ad438d1d939e39e1871c54c20f7beb9">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.04
+- UI/UX: Removed the healthy Performance Budgets and Localization cards, their Technical details disclosures, and the empty Additional diagnostics section so the workspace stays focused on six core System health checks.
+- Diagnostics: Kept Performance and Localization collectors and sanitized support-bundle telemetry active while surfacing only warning/error outcomes as non-linking Priority findings.
+- Localization: Removed the retired Additional diagnostics heading and Copy issue report label from all 18 locale namespaces, then regenerated the versioned catalogs at 2032 aggregate messages.
+
 
 ###2026.07.24.03
 - Fix: Anchored every System health card's checked timestamp to the bottom-left so cards with different description lengths remain visually aligned.

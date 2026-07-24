@@ -14,6 +14,7 @@ const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugin
 const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
 const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
+const diagnosticsViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js');
 const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
@@ -140,14 +141,14 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /coldLoad:\s*row\?\.details\?\.coldLoad === true/);
     assert.match(diagnosticsJs, /const buildPerformanceBudgetDiagnosticsSummaryCard = \(\) => \{/);
     assert.match(diagnosticsJs, /label:\s*'Performance Budgets'/);
-    assert.match(diagnosticsJs, /advisoryCards: performanceCard \? \[performanceCard\] : \[\]/);
-    assert.match(diagnosticsJs, /additionalCards/);
+    assert.match(diagnosticsJs, /const advisoryCards = \[performanceCard, localizationCard\][\s\S]*\['warning', 'error'\]\.includes\(card\.status\)/);
+    assert.doesNotMatch(diagnosticsViewJs, /diagnostics\.sections\.additional|fv-diagnostics-additional-title|is-additional/);
     assert.match(diagnosticsJs, /const retestPerformanceDiagnostics = async \(\) => \{/);
     assert.match(diagnosticsJs, /window\.FolderViewPlusRefreshCoreData/);
     assert.match(settingsJs, /window\.FolderViewPlusRefreshCoreData = async \(\) => \{[\s\S]*await result\?\.runtimeHydrationPromise;/);
     assert.match(settingsJs, /coldLoad: settingsUiState\.initialized !== true/);
     assert.match(settingsCss, /\.fv-diagnostics-health-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\);/);
-    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-additional \.fv-diagnostics-health-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\);/);
+    assert.doesNotMatch(settingsCss, /\.fv-diagnostics-card-section\.is-additional/);
     assert.match(settingsPage, /id="fv-diagnostics-support-title"[\s\S]*?>Share with support<\/h3>/);
     assert.match(settingsPage, /data-fv-ui-action="diagnostics-retest-performance"/);
     assert.match(settingsCss, /\.fv-diagnostics-card-details\s*\{/);

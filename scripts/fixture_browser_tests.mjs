@@ -825,7 +825,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         await window.fixtureSettings.diagnosticsReady;
         const workspace = document.getElementById('fv-diagnostics-workspace');
         const coreGrid = workspace.querySelector('.fv-diagnostics-card-section.is-system .fv-diagnostics-health-grid');
-        const additionalGrid = workspace.querySelector('.fv-diagnostics-card-section.is-additional .fv-diagnostics-health-grid');
+        const additionalSection = workspace.querySelector('.fv-diagnostics-card-section.is-additional');
         const workspaceRect = workspace.getBoundingClientRect();
         const cards = [...workspace.querySelectorAll('.fv-diagnostics-health-card')];
         const systemCards = [...coreGrid.querySelectorAll('.fv-diagnostics-health-card')];
@@ -888,9 +888,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         return {
             accentColor: accent,
             coreCards: coreGrid?.children.length || 0,
-            additionalCards: additionalGrid?.children.length || 0,
+            additionalSectionVisible: additionalSection !== null,
+            secondaryHealthCardsVisible: [...workspace.querySelectorAll('.fv-diagnostics-health-card-head > strong')]
+                .some((label) => ['Performance advisories', 'Localization'].includes(label.textContent.trim())),
+            technicalDetailsCount: workspace.querySelectorAll('.fv-diagnostics-card-details').length,
             coreColumns: getComputedStyle(coreGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
-            additionalColumns: getComputedStyle(additionalGrid).gridTemplateColumns.split(' ').filter(Boolean).length,
             hasHealthySummary: workspace.querySelector('.fv-diagnostics-hero.is-healthy') !== null,
             hasClearFindings: workspace.querySelector('.fv-diagnostics-findings.is-clear') !== null,
             metricSvgIcons: metricIcons.length,
@@ -1007,9 +1009,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readDiagnosticsLayout();
     assert.equal(layout.coreCards, 6);
-    assert.equal(layout.additionalCards, 2);
+    assert.equal(layout.additionalSectionVisible, false);
+    assert.equal(layout.secondaryHealthCardsVisible, false);
+    assert.equal(layout.technicalDetailsCount, 0);
     assert.equal(layout.coreColumns, 6);
-    assert.equal(layout.additionalColumns, 3);
     assert.equal(layout.hasHealthySummary, true);
     assert.equal(layout.hasClearFindings, true);
     assert.equal(layout.metricSvgIcons, 3);
@@ -1020,7 +1023,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
     assert.equal(layout.metricTextIsCentered, true);
-    assert.equal(layout.systemSvgIcons, 8);
+    assert.equal(layout.systemSvgIcons, 6);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.ok(
@@ -1104,7 +1107,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.setViewportSize({ width: 1000, height: 1100 });
     layout = await readDiagnosticsLayout();
     assert.equal(layout.coreColumns, 3);
-    assert.equal(layout.additionalColumns, 3);
+    assert.equal(layout.additionalSectionVisible, false);
     assert.equal(layout.metricIconsAreTopLeft, true);
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
@@ -1117,7 +1120,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.setViewportSize({ width: 700, height: 1000 });
     layout = await readDiagnosticsLayout();
     assert.equal(layout.coreColumns, 1);
-    assert.equal(layout.additionalColumns, 1);
+    assert.equal(layout.additionalSectionVisible, false);
     assert.ok(Math.max(...layout.systemFooterBottomInsets) - Math.min(...layout.systemFooterBottomInsets) <= 1);
     assert.ok(Math.max(...layout.systemFooterLeftInsets) - Math.min(...layout.systemFooterLeftInsets) <= 1);
     assert.equal(layout.cardsInsideWorkspace, true);

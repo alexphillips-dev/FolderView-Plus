@@ -71,10 +71,12 @@ test('one extreme warm sample requests follow-up and samples outside the evaluat
     assert.equal(expired, null);
 });
 
-test('health summary separates core, advisory, and optional card lanes', () => {
+test('healthy secondary diagnostics stay hidden while actionable results become advisories', () => {
     assert.match(diagnosticsSource, /const coreCards =/);
-    assert.match(diagnosticsSource, /advisoryCards: performanceCard \? \[performanceCard\] : \[\]/);
+    assert.match(diagnosticsSource, /const advisoryCards = \[performanceCard, localizationCard\][\s\S]*\.filter\(\(card\) => card && \['warning', 'error'\]\.includes\(card\.status\)\);/);
     assert.match(diagnosticsSource, /buildLocalizationDiagnosticsSummaryCard\(\)/);
+    assert.match(diagnosticsSource, /loadErrorCount > 0 \|\| runtimeMissingCount > 0[\s\S]*\? 'warning'/);
+    assert.doesNotMatch(diagnosticsSource, /additionalCards/);
     assert.doesNotMatch(diagnosticsSource, /NativeOrganizer|nativeOrganizer|native_organizer/);
     assert.match(diagnosticsSource, /diagnosticsViewModelModule\.buildDiagnosticsViewModel\(\{/);
 });

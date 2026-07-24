@@ -109,6 +109,26 @@ test('support bundle overview uses semantic SVG icons and colored privacy badge 
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-masked/);
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-omitted/);
     assert.match(redactionHtml, /fv-support-bundle-privacy-item is-truncated/);
+    assert.match(redactionHtml, /summary class="fv-support-bundle-privacy-header"/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-disclosure/);
+    assert.match(redactionHtml, /fa-angle-right/);
+    assert.match(redactionHtml, /fv-support-bundle-privacy-explanation/);
+    assert.match(redactionHtml, /One-way identifiers link matching values/);
+    assert.match(redactionHtml, /Partial context remains/);
+    assert.match(redactionHtml, /Unneeded diagnostic fields are removed/);
+    assert.match(redactionHtml, /Long values or lists are shortened and marked incomplete/);
+    assert.match(redactionHtml, /fresh salt changes identifiers between bundles/);
+});
+
+test('support bundle privacy explanation clearly warns about full export handling', () => {
+    const html = api.buildSupportBundleRedactionPreviewHtml({
+        bundleMeta: { privacyMode: 'full' },
+        redactionManifest: { mode: 'full' }
+    });
+
+    assert.match(html, /Full exports may contain sensitive data/);
+    assert.match(html, /Share only through a trusted channel/);
+    assert.match(html, /Full mode does not hash fields/);
 });
 
 test('support bundle preview enriches browser telemetry before its first render', async () => {

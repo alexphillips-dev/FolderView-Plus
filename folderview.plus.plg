@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.04">
-<!ENTITY md5 "7ad438d1d939e39e1871c54c20f7beb9">
+<!ENTITY version "2026.07.24.05">
+<!ENTITY md5 "089df3e8e3ae7868384f9ba43d86fae0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.05
+- Fix: Kept the Learn more about data handling disclosure anchored to the Privacy and sanitization header when its explanation is expanded.
+- UI/UX: Centered the Hashed, Masked, Omitted, and Truncated badges, restored a visible Omitted outline, and added concise definitions for every privacy treatment and hash scope.
+- Accessibility: Rotated the disclosure arrow downward while open, preserved keyboard and reduced-motion behavior, and added responsive header and explanation layouts for narrow screens.
+- Localization: Added the expanded privacy guidance to all 18 locale namespaces and regenerated the catalogs at 2040 aggregate messages.
+
 
 ###2026.07.24.04
 - UI/UX: Removed the healthy Performance Budgets and Localization cards, their Technical details disclosures, and the empty Additional diagnostics section so the workspace stays focused on six core System health checks.

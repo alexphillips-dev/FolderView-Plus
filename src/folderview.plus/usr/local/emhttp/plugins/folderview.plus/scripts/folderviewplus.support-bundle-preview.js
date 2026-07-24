@@ -207,11 +207,6 @@
                 || normalized.bundleMeta?.bundleSaltScope
                 || (mode === 'full' ? 'none' : 'per-bundle')
             ).trim() || 'per-bundle';
-            const saltHash = String(
-                manifest.saltHash
-                || normalized.bundleMeta?.bundleSaltHash
-                || ''
-            ).trim();
             const previewOnly = manifest.previewOnly === true || normalized.bundleMeta?.previewOnly === true;
             const redactionItems = Object.entries(SUPPORT_BUNDLE_REDACTION_LABELS).map(([fieldKey, label]) => {
                 const badgeTone = String(fieldKey).replace(/Fields$/, '').toLowerCase();
@@ -227,20 +222,29 @@
                 return `<span class="fv-support-bundle-privacy-item is-${escapeHtml(badgeTone)}" title="${escapeHtml(title)}"><strong>${escapeHtml(label)}</strong><small>${escapeHtml(stateCopy)}</small></span>`;
             }).join('');
             const modeCopy = mode === 'full'
-                ? 'Full export keeps raw fields and only records truncation metadata.'
-                : 'Sanitized export replaces sensitive names/paths/request metadata with per-bundle hashes, masks, or omissions.';
+                ? translate('diagnostics.support.data-handling-full', 'Full exports may contain sensitive data. Share only through a trusted channel.')
+                : translate('diagnostics.support.data-handling-sanitized', 'Sanitized bundles keep useful context while protecting sensitive data.');
+            const handlingDescriptionsHtml = [
+                ['hashed', 'hashedFields', translate('diagnostics.support.data-handling-hashed', 'One-way identifiers link matching values without revealing them.')],
+                ['masked', 'maskedFields', translate('diagnostics.support.data-handling-masked', 'Partial context remains while sensitive content is obscured.')],
+                ['omitted', 'omittedFields', translate('diagnostics.support.data-handling-omitted', 'Unneeded diagnostic fields are removed.')],
+                ['truncated', 'truncatedFields', translate('diagnostics.support.data-handling-truncated', 'Long values or lists are shortened and marked incomplete.')]
+            ].map(([tone, labelKey, description]) => `<div class="is-${tone}"><dt>${escapeHtml(SUPPORT_BUNDLE_REDACTION_LABELS[labelKey])}</dt><dd>${escapeHtml(description)}</dd></div>`).join('');
             const saltCopy = mode === 'full'
-                ? 'Salt scope: none for full exports.'
-                : `Salt scope: ${saltScope}${saltHash ? ` - salt hash ${saltHash}` : ''}.`;
+                ? translate('diagnostics.support.data-handling-full-scope', 'Full mode does not hash fields; large collections can still be shortened.')
+                : translate('diagnostics.support.data-handling-salt', 'Hash scope: $1. A fresh salt changes identifiers between bundles.', saltScope);
             return `
-                <div class="fv-support-bundle-privacy-summary">
-                    <div>${svgIcon('shield')}<strong>${escapeHtml(mode === 'full' ? 'Full export' : 'Privacy and sanitization')}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? 'Full mode' : 'Sanitized')}</span></div>
-                    <div class="fv-support-bundle-privacy-items">${redactionItems}</div>
-                </div>
                 <details class="fv-support-bundle-privacy-details">
-                    <summary>${escapeHtml(translate('diagnostics.support.data-handling', 'Learn more about data handling'))} <i class="fa fa-angle-right" aria-hidden="true"></i></summary>
-                    <p>${escapeHtml(modeCopy)}</p>
-                    <p>${escapeHtml(saltCopy)}</p>
+                    <summary class="fv-support-bundle-privacy-header">
+                        <span class="fv-support-bundle-privacy-summary">${svgIcon('shield')}<strong>${escapeHtml(mode === 'full' ? 'Full export' : 'Privacy and sanitization')}</strong><span class="fv-diagnostics-status-badge ${mode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(mode === 'full' ? 'Full mode' : 'Sanitized')}</span></span>
+                        <span class="fv-support-bundle-privacy-items">${redactionItems}</span>
+                        <span class="fv-support-bundle-privacy-disclosure">${escapeHtml(translate('diagnostics.support.data-handling', 'Learn more about data handling'))} <i class="fa fa-angle-right" aria-hidden="true"></i></span>
+                    </summary>
+                    <div class="fv-support-bundle-privacy-explanation">
+                        <p>${escapeHtml(modeCopy)}</p>
+                        <dl>${handlingDescriptionsHtml}</dl>
+                        <p class="fv-support-bundle-privacy-scope">${escapeHtml(saltCopy)}</p>
+                    </div>
                 </details>
             `;
         };

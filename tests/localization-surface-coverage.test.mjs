@@ -50,7 +50,7 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     assert.equal(report['catalog-version'], '2026.07.24.1');
     assert.equal(report['candidate-count'], 0);
     assert.equal(report['auto-bound-message-count'], 1581);
-    assert.equal(report['catalog-message-count'], 2032);
+    assert.equal(report['catalog-message-count'], 2040);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);

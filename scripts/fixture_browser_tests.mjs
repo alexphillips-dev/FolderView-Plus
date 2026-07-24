@@ -850,8 +850,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const privacyBadges = [...workspace.querySelectorAll('.fv-support-bundle-privacy-item > strong')];
         const privacyCard = workspace.querySelector('.fv-support-bundle-redaction-card');
         const privacySummary = workspace.querySelector('.fv-support-bundle-privacy-summary');
+        const privacyItems = workspace.querySelector('.fv-support-bundle-privacy-items');
         const privacyStatusBadge = workspace.querySelector('.fv-support-bundle-privacy-summary .fv-diagnostics-status-badge');
-        const privacyLink = workspace.querySelector('.fv-support-bundle-privacy-details > summary');
+        const privacyLink = workspace.querySelector('.fv-support-bundle-privacy-disclosure');
+        const privacyOmittedBadge = workspace.querySelector('.fv-support-bundle-privacy-item.is-omitted > strong');
         const readableText = [...workspace.querySelectorAll(
             '.fv-diagnostics-health-card-foot, .fv-diagnostics-health-card-detail, .fv-diagnostics-metrics small, .fv-support-bundle-preview-meta'
         )];
@@ -883,8 +885,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             : null;
         const privacyCardRect = privacyCard?.getBoundingClientRect();
         const privacySummaryRect = privacySummary?.getBoundingClientRect();
+        const privacyItemsRect = privacyItems?.getBoundingClientRect();
         const privacyStatusBadgeRect = privacyStatusBadge?.getBoundingClientRect();
         const privacyLinkRect = privacyLink?.getBoundingClientRect();
+        const privacyOmittedStyle = privacyOmittedBadge ? getComputedStyle(privacyOmittedBadge) : null;
         return {
             accentColor: accent,
             coreCards: coreGrid?.children.length || 0,
@@ -980,6 +984,15 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
                 && privacyBadges.every((badge) => (
                     Math.abs(badge.getBoundingClientRect().height - privacyStatusBadgeRect.height) <= 1
                 )),
+            privacyBadgesCentered: Boolean(privacyItemsRect && privacyCardRect)
+                && Math.abs(
+                    (privacyItemsRect.left + (privacyItemsRect.width / 2))
+                    - (privacyCardRect.left + (privacyCardRect.width / 2))
+                ) <= 2,
+            privacyOmittedBorderVisible: Boolean(privacyOmittedStyle)
+                && parseFloat(privacyOmittedStyle.borderTopWidth) >= 1
+                && privacyOmittedStyle.borderTopColor !== 'rgba(0, 0, 0, 0)'
+                && privacyOmittedStyle.borderTopColor !== privacyOmittedStyle.backgroundColor,
             privacyCardHeight: privacyCardRect?.height || 0,
             privacyLinkUsesAccent: getComputedStyle(privacyLink).color === accentStrong,
             privacyLinkVisible: Boolean(privacyLinkRect)
@@ -1060,6 +1073,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.privacyContentLeftAligned, true);
     assert.equal(layout.privacyContentVerticallyCentered, true);
     assert.equal(layout.privacyBadgesMatchStatusHeight, true);
+    assert.equal(layout.privacyBadgesCentered, true);
+    assert.equal(layout.privacyOmittedBorderVisible, true);
     assert.ok(layout.privacyCardHeight < 60, 'privacy row should remain compact');
     assert.equal(layout.privacyLinkUsesAccent, true);
     assert.equal(layout.privacyLinkVisible, true);
@@ -1069,6 +1084,61 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.neutralAvoidsAccentTreatment, true);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'desktop diagnostics must not overflow');
+
+    const collapsedPrivacyDisclosure = await page.locator('.fv-support-bundle-privacy-disclosure').boundingBox();
+    const collapsedPrivacyCard = await page.locator('.fv-support-bundle-redaction-card').boundingBox();
+    await page.locator('.fv-support-bundle-privacy-header').click();
+    const expandedPrivacy = await page.evaluate(() => {
+        const details = document.querySelector('.fv-support-bundle-privacy-details');
+        const card = document.querySelector('.fv-support-bundle-redaction-card');
+        const disclosure = document.querySelector('.fv-support-bundle-privacy-disclosure');
+        const arrow = disclosure?.querySelector('i');
+        const explanation = document.querySelector('.fv-support-bundle-privacy-explanation');
+        const cardRect = card?.getBoundingClientRect();
+        const disclosureRect = disclosure?.getBoundingClientRect();
+        return {
+            open: details?.open === true,
+            cardRect: cardRect ? {
+                left: cardRect.left,
+                top: cardRect.top,
+                right: cardRect.right,
+                bottom: cardRect.bottom
+            } : null,
+            disclosureRect: disclosureRect ? {
+                left: disclosureRect.left,
+                top: disclosureRect.top,
+                width: disclosureRect.width,
+                height: disclosureRect.height
+            } : null,
+            arrowTransform: arrow ? getComputedStyle(arrow).transform : 'none',
+            definitionCount: explanation?.querySelectorAll('dt').length || 0,
+            descriptionCount: explanation?.querySelectorAll('dd').length || 0,
+            text: explanation?.textContent || ''
+        };
+    });
+    assert.equal(expandedPrivacy.open, true);
+    assert.ok(collapsedPrivacyDisclosure && collapsedPrivacyCard && expandedPrivacy.disclosureRect && expandedPrivacy.cardRect);
+    assert.ok(
+        Math.abs(
+            (collapsedPrivacyCard.x + collapsedPrivacyCard.width)
+            - (collapsedPrivacyDisclosure.x + collapsedPrivacyDisclosure.width)
+            - (expandedPrivacy.cardRect.right - (expandedPrivacy.disclosureRect.left + expandedPrivacy.disclosureRect.width))
+        ) <= 1
+            && Math.abs(
+                (collapsedPrivacyDisclosure.y - collapsedPrivacyCard.y)
+                - (expandedPrivacy.disclosureRect.top - expandedPrivacy.cardRect.top)
+            ) <= 1,
+        'privacy disclosure should remain anchored when expanded'
+    );
+    assert.notEqual(expandedPrivacy.arrowTransform, 'none', 'expanded privacy arrow should point down');
+    assert.equal(expandedPrivacy.definitionCount, 4);
+    assert.equal(expandedPrivacy.descriptionCount, 4);
+    assert.match(expandedPrivacy.text, /One-way identifiers link matching values/);
+    assert.match(expandedPrivacy.text, /Partial context remains/);
+    assert.match(expandedPrivacy.text, /Unneeded diagnostic fields are removed/);
+    assert.match(expandedPrivacy.text, /Long values or lists are shortened and marked incomplete/);
+    assert.match(expandedPrivacy.text, /fresh salt changes identifiers between bundles/);
+    await page.locator('.fv-support-bundle-privacy-header').click();
 
     await page.locator('.fv-diagnostics-toolbar .fv-ui-button.is-primary').hover();
     await page.waitForTimeout(250);

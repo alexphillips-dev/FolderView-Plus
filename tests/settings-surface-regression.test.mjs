@@ -451,9 +451,13 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-icon\.is-health\s*\{[\s\S]*--fv-support-section-icon-color:/);
     assert.match(settingsCss, /\.fv-diagnostics-support-card-head > div > \.fv-ui-svg-icon\[data-fv-icon="support"\]\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
-    assert.match(settingsCss, /\.fv-support-bundle-privacy-summary\s*\{[\s\S]*justify-content:\s*flex-start;[\s\S]*text-align:\s*left;/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-header\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto\s*minmax\(0,\s*1fr\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-summary\s*\{[\s\S]*justify-content:\s*flex-start;[\s\S]*justify-self:\s*start;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-items\s*\{[\s\S]*justify-content:\s*center;[\s\S]*justify-self:\s*center;/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item strong\s*\{[\s\S]*border-radius:\s*6px;/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-details > summary\s*\{[\s\S]*color:\s*var\(--fvplus-settings-accent-strong\) !important;/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-disclosure\s*\{[\s\S]*color:\s*var\(--fvplus-settings-accent-strong\) !important;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-details\[open\] \.fv-support-bundle-privacy-disclosure > i\s*\{[\s\S]*transform:\s*rotate\(90deg\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-item\.is-omitted strong\s*\{[\s\S]*border-color:\s*var\(--fvplus-settings-accent-strong\);[\s\S]*box-shadow:/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item\.is-truncated strong\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-danger\);/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
 });

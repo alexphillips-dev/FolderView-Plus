@@ -7314,6 +7314,20 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.72rem;
 }
 
+.fv-diagnostics-card-section.is-system .fv-diagnostics-health-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.fv-diagnostics-card-section.is-system .fv-diagnostics-card-details {
+    order: 1;
+}
+
+.fv-diagnostics-card-section.is-system .fv-diagnostics-health-card-foot {
+    order: 2;
+    justify-content: flex-start;
+}
+
 .fv-diagnostics-health-card:target,
 .fv-diagnostics-health-card:focus-visible {
     border-color: var(--fvplus-settings-accent);

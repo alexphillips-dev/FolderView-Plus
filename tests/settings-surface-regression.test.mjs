@@ -440,6 +440,11 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*2rem;/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon\.is-storage\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-warning\);/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon\.is-update\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-info\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-system \.fv-diagnostics-health-card\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-direction:\s*column;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-system \.fv-diagnostics-card-details\s*\{[\s\S]*order:\s*1;/);
+    assert.match(settingsCss, /\.fv-diagnostics-card-section\.is-system \.fv-diagnostics-health-card-foot\s*\{[\s\S]*order:\s*2;[\s\S]*justify-content:\s*flex-start;/);
+    assert.match(diagnosticsJs, /freshness:\s*`Checked \$\{formatCheckedAtLabel\(lastThemeDiagnostics\.generatedAt\)\}`/);
+    assert.doesNotMatch(diagnosticsJs, /Theme checked \$\{formatCheckedAtLabel\(lastThemeDiagnostics\.generatedAt\)\}/);
     assert.match(settingsCss, /\.fv-diagnostics-support-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*0\.72fr\)\s*minmax\(0,\s*1\.5fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);

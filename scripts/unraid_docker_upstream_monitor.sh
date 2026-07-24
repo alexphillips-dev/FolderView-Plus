@@ -82,7 +82,7 @@ RELEASE_NOTES_DIR="$(normalize_local_path "${RELEASE_NOTES_DIR}")"
 GITHUB_OUTPUT_FILE="$(normalize_local_path "${GITHUB_OUTPUT_FILE}")"
 
 TEMP_DIR=""
-# shellcheck disable=SC2329 # Invoked indirectly by the EXIT trap.
+# shellcheck disable=SC2317,SC2329 # Invoked indirectly by the EXIT trap.
 cleanup() {
   if [[ -n "${TEMP_DIR}" && -d "${TEMP_DIR}" ]]; then
     rm -rf -- "${TEMP_DIR}"

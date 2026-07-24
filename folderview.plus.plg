@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.02">
-<!ENTITY md5 "7b349cca47f619a9a628ce7ee4a24822">
+<!ENTITY version "2026.07.24.03">
+<!ENTITY md5 "281e64db06d9eae297a5ea2c773f0e87">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.03
+- Fix: Anchored every System health card's checked timestamp to the bottom-left so cards with different description lengths remain visually aligned.
+- UI/UX: Standardized the Theme health card timestamp label to `Checked`, matching Docker, VM, storage, custom icon, and update checks.
+- Maintenance: Extended the upstream Docker monitor's EXIT-trap ShellCheck annotation for compatible linting without changing cleanup behavior.
+
 
 ###2026.07.24.02
 - Compatibility: Added capability-based detection for the current legacy Docker table, Unraid's developing native Docker component, and unknown host shapes; native and unknown pages remain owned and rendered by Unraid without a duplicate FolderView overlay.

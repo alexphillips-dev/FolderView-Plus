@@ -1471,7 +1471,7 @@ const buildThemeDiagnosticsSummaryCard = () => {
             ? `Effective mode: ${appliedMode}.`
             : 'Theme compatibility checks did not report any warnings.',
         count: warnings.length,
-        freshness: `Theme checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
+        freshness: `Checked ${formatCheckedAtLabel(lastThemeDiagnostics.generatedAt)}`,
         technicalDetails: warnings
     };
 };

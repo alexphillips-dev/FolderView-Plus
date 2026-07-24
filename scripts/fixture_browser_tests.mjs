@@ -828,6 +828,9 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const additionalGrid = workspace.querySelector('.fv-diagnostics-card-section.is-additional .fv-diagnostics-health-grid');
         const workspaceRect = workspace.getBoundingClientRect();
         const cards = [...workspace.querySelectorAll('.fv-diagnostics-health-card')];
+        const systemCards = [...coreGrid.querySelectorAll('.fv-diagnostics-health-card')];
+        const systemFooters = systemCards.map((card) => card.querySelector('.fv-diagnostics-health-card-foot'));
+        const themeFooter = coreGrid.querySelector('[data-fv-diagnostics-card="theme"] .fv-diagnostics-health-card-foot');
         const toolbarButtons = [...workspace.querySelectorAll('.fv-diagnostics-toolbar > .fv-ui-button')];
         const coreProgress = workspace.querySelector('.fv-diagnostics-core-progress');
         const coreProgressFill = coreProgress?.firstElementChild;
@@ -934,6 +937,13 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             systemSvgIcons: systemIcons.length,
             systemIconWidths: systemIcons.map((icon) => icon.getBoundingClientRect().width),
             systemIconColors: systemIcons.map((icon) => getComputedStyle(icon).color),
+            systemFooterBottomInsets: systemCards.map((card, index) => (
+                card.getBoundingClientRect().bottom - systemFooters[index].getBoundingClientRect().bottom
+            )),
+            systemFooterLeftInsets: systemCards.map((card, index) => (
+                systemFooters[index].getBoundingClientRect().left - card.getBoundingClientRect().left
+            )),
+            themeFooterLabel: themeFooter?.textContent.trim() || '',
             storageUpdateIconColors: storageUpdateIcons.map((icon) => getComputedStyle(icon).color),
             supportHeaderIconColors: supportHeaderIcons.map((icon) => getComputedStyle(icon).color),
             toolbarButtonCount: toolbarButtons.length,
@@ -1013,6 +1023,16 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.systemSvgIcons, 8);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
+    assert.ok(
+        Math.max(...layout.systemFooterBottomInsets) - Math.min(...layout.systemFooterBottomInsets) <= 1,
+        'System health timestamps should share one bottom inset'
+    );
+    assert.ok(
+        Math.max(...layout.systemFooterLeftInsets) - Math.min(...layout.systemFooterLeftInsets) <= 1,
+        'System health timestamps should share one left inset'
+    );
+    assert.match(layout.themeFooterLabel, /^Checked\s/);
+    assert.doesNotMatch(layout.themeFooterLabel, /^Theme checked\s/);
     assert.equal(layout.storageUpdateIconColors.length, 2);
     assert.equal(layout.storageUpdateIconColors.every((color) => color !== 'rgb(0, 0, 0)' && color !== layout.accentColor), true);
     assert.equal(layout.supportHeaderIconColors.length, 2);
@@ -1089,6 +1109,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
     assert.equal(layout.metricTextIsCentered, true);
+    assert.ok(Math.max(...layout.systemFooterBottomInsets) - Math.min(...layout.systemFooterBottomInsets) <= 1);
+    assert.ok(Math.max(...layout.systemFooterLeftInsets) - Math.min(...layout.systemFooterLeftInsets) <= 1);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'tablet diagnostics must not overflow');
 
@@ -1096,6 +1118,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     layout = await readDiagnosticsLayout();
     assert.equal(layout.coreColumns, 1);
     assert.equal(layout.additionalColumns, 1);
+    assert.ok(Math.max(...layout.systemFooterBottomInsets) - Math.min(...layout.systemFooterBottomInsets) <= 1);
+    assert.ok(Math.max(...layout.systemFooterLeftInsets) - Math.min(...layout.systemFooterLeftInsets) <= 1);
     assert.equal(layout.cardsInsideWorkspace, true);
     assert.ok(layout.scrollWidth <= layout.clientWidth + 1, 'mobile diagnostics must not overflow');
 });

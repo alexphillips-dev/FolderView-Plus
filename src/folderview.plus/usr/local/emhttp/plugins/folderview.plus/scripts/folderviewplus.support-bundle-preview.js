@@ -76,14 +76,28 @@
             ? deps.enrichSupportBundlePreview
             : ((bundle) => bundle);
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
-        const translate = (key, fallback = '', ...params) => (
-            typeof deps.t === 'function' ? deps.t(key, fallback, ...params) : (fallback || key)
-        );
+        const translate = (key, fallback = '', ...params) => {
+            if (typeof deps.t === 'function') {
+                return deps.t(key, fallback, ...params);
+            }
+            return params.reduce(
+                (value, param, index) => String(value).replaceAll(`$${index + 1}`, String(param)),
+                fallback || key
+            );
+        };
         const svgIcon = typeof deps.svgIcon === 'function'
             ? deps.svgIcon
             : ((name, { className = '' } = {}) => `<svg class="fv-ui-svg-icon${className ? ` ${escapeHtml(className)}` : ''}" viewBox="0 0 24 24" aria-hidden="true" data-fv-icon="${escapeHtml(name)}"><circle cx="12" cy="12" r="9"></circle></svg>`);
 
         let lastSupportBundlePreview = null;
+        const hasSectionPayload = (bundle, sectionKey) => {
+            const sectionValue = bundle?.[sectionKey];
+            return Boolean(
+                sectionValue
+                && typeof sectionValue === 'object'
+                && !Array.isArray(sectionValue)
+            );
+        };
         const formatAge = (ageMs) => {
             const numeric = Number(ageMs);
             if (!Number.isFinite(numeric) || numeric < 0) return translate('diagnostics.capture.age-unknown', 'age unknown');
@@ -168,12 +182,7 @@
                 bundle?.bundleMeta?.privacyMode || 'sanitized'
             );
             return Object.entries(SUPPORT_BUNDLE_PREVIEW_SECTIONS).map(([sectionKey, sectionConfig]) => {
-                const sectionValue = normalized[sectionKey];
-                const hasObjectPayload = Boolean(
-                    sectionValue
-                    && typeof sectionValue === 'object'
-                    && !Array.isArray(sectionValue)
-                );
+                const hasObjectPayload = hasSectionPayload(normalized, sectionKey);
                 const statusLabel = hasObjectPayload ? 'Included' : 'Pending';
                 const statusClass = hasObjectPayload ? 'is-ready' : 'is-pending';
                 return `
@@ -187,6 +196,51 @@
                     </article>
                 `;
             }).join('');
+        };
+
+        const buildSupportBundleOverviewHtml = (bundle) => {
+            const normalized = normalizeSupportBundleV2Payload(
+                bundle || {},
+                bundle?.bundleMeta?.privacyMode || 'sanitized'
+            );
+            const generatedAt = formatCheckedAtLabel(normalized.bundleMeta?.generatedAt || '');
+            const bundleVersion = Number.isFinite(Number(normalized.bundleMeta?.bundleVersion))
+                ? Number(normalized.bundleMeta.bundleVersion)
+                : 2;
+            const privacyMode = String(normalized.bundleMeta?.privacyMode || 'sanitized').trim() === 'full'
+                ? 'full'
+                : 'sanitized';
+            const sectionKeys = Object.keys(SUPPORT_BUNDLE_PREVIEW_SECTIONS);
+            const sectionCount = sectionKeys.length;
+            const includedSectionCount = sectionKeys.filter((sectionKey) => (
+                hasSectionPayload(normalized, sectionKey)
+            )).length;
+            const description = privacyMode === 'full'
+                ? translate(
+                    'diagnostics.support.overview-description-full',
+                    'This preview summarizes diagnostic data prepared in Full mode. Raw names, paths, addresses, URLs, and request metadata may be included, so review every section before downloading or sharing.'
+                )
+                : translate(
+                    'diagnostics.support.overview-description',
+                    'This preview summarizes the diagnostic data prepared for support. Sensitive names, paths, addresses, request metadata, and oversized collections are protected by the sanitized privacy profile before download.'
+                );
+            return `
+                <article class="fv-support-bundle-overview">
+                    <div class="fv-diagnostics-support-card-head">
+                        <div>${svgIcon('support')}<strong>${escapeHtml(translate('diagnostics.support.overview-title', 'Support bundle overview'))}</strong></div>
+                        <span class="fv-diagnostics-status-badge ${privacyMode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(privacyMode === 'full' ? 'Full mode' : 'Sanitized')}</span>
+                    </div>
+                    <p>${escapeHtml(description)}</p>
+                    <div class="fv-support-bundle-preview-meta">
+                        <span>${escapeHtml(translate('diagnostics.support.meta-schema', 'Bundle schema: v$1', bundleVersion))}</span>
+                        <span>${escapeHtml(translate('diagnostics.support.meta-sections', 'Section coverage: $1 of $2 included', includedSectionCount, sectionCount))}</span>
+                        <span>${escapeHtml(translate('diagnostics.support.meta-previewed', 'Preview generated: $1', generatedAt))}</span>
+                    </div>
+                    <div class="fv-support-bundle-section-grid">
+                        ${buildSupportBundlePreviewSectionCards(normalized)}
+                    </div>
+                </article>
+            `;
         };
 
         const buildSupportBundleRedactionPreviewHtml = (bundle) => {
@@ -270,32 +324,10 @@
                 bundle,
                 bundle?.bundleMeta?.privacyMode || 'sanitized'
             );
-            const generatedAt = formatCheckedAtLabel(normalized.bundleMeta?.generatedAt || '');
-            const bundleVersion = Number.isFinite(Number(normalized.bundleMeta?.bundleVersion))
-                ? Number(normalized.bundleMeta.bundleVersion)
-                : 2;
-            const privacyMode = String(normalized.bundleMeta?.privacyMode || 'sanitized').trim() === 'full'
-                ? 'full'
-                : 'sanitized';
-            const sectionCount = Object.keys(SUPPORT_BUNDLE_PREVIEW_SECTIONS).length;
             previewHost.html(`
                 <div class="fv-diagnostics-support-grid">
                     ${buildDashboardCaptureStatusHtml(normalized)}
-                    <article class="fv-support-bundle-overview">
-                        <div class="fv-diagnostics-support-card-head">
-                            <div>${svgIcon('support')}<strong>${escapeHtml(translate('diagnostics.support.overview-title', 'Support bundle overview'))}</strong></div>
-                            <span class="fv-diagnostics-status-badge ${privacyMode === 'full' ? 'is-warning' : 'is-healthy'}">${escapeHtml(privacyMode === 'full' ? 'Full mode' : 'Sanitized')}</span>
-                        </div>
-                        <p>${escapeHtml(translate('diagnostics.support.overview-description', 'Your bundle is sanitized by default to protect sensitive data.'))}</p>
-                        <div class="fv-support-bundle-preview-meta">
-                            <span>${escapeHtml(`v${bundleVersion}`)}</span>
-                            <span>${escapeHtml(`${sectionCount} sections`)}</span>
-                            <span>${escapeHtml(`Previewed ${generatedAt}`)}</span>
-                        </div>
-                        <div class="fv-support-bundle-section-grid">
-                            ${buildSupportBundlePreviewSectionCards(normalized)}
-                        </div>
-                    </article>
+                    ${buildSupportBundleOverviewHtml(normalized)}
                 </div>
                 <div class="fv-support-bundle-redaction-card">
                     ${buildSupportBundleRedactionPreviewHtml(normalized)}
@@ -331,6 +363,7 @@
 
         return Object.freeze({
             buildSupportBundlePreviewSectionCards,
+            buildSupportBundleOverviewHtml,
             buildSupportBundleRedactionPreviewHtml,
             buildDashboardCaptureStatusHtml,
             renderSupportBundlePreview,

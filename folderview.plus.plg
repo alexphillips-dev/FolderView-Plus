@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.07">
-<!ENTITY md5 "5e9f2b62091c66674f0577ff46952c54">
+<!ENTITY version "2026.07.24.08">
+<!ENTITY md5 "8d6f07472245e9aa0f00a45d5626258f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.08
+- UI/UX: Top-aligned the Support bundle overview tile icons, titles, and status badges, removed the fixed tile height, and reduced chrome so the seven modules use substantially less vertical space.
+- Diagnostics: Expanded the overview with mode-aware privacy guidance plus labeled bundle schema, actual included-section coverage, and preview-generation metadata.
+- Localization: Added the richer Support bundle overview copy and four metadata labels across all 18 locale catalogs, increasing the validated aggregate catalog to 2044 messages.
+- Test: Added renderer, responsive browser-geometry, compact-height, icon-readability, section-coverage, and parameter-substitution regression contracts.
+- Quality: Refreshed the tracked asset-size baseline after accepting the tested Support bundle overview renderer and localization growth.
+
 
 ###2026.07.24.07
 - UI/UX: Vertically centered the four Diagnostics summary metrics within the overall-health hero row while preserving their centered copy and top-left status icons.

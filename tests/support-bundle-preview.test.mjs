@@ -121,6 +121,40 @@ test('support bundle overview uses semantic SVG icons and colored privacy badge 
     assert.match(redactionHtml, /fresh salt changes identifiers between bundles/);
 });
 
+test('support bundle overview reports privacy mode, schema, real section coverage, and preview time', () => {
+    const completeBundle = {
+        bundleMeta: {
+            privacyMode: 'sanitized',
+            bundleVersion: 2,
+            generatedAt: '2026-07-24T22:05:24Z'
+        },
+        system: {},
+        pluginState: {},
+        runtimeState: {},
+        uiTelemetry: {},
+        healthAndHistory: {},
+        redactionManifest: {}
+    };
+    const sanitizedHtml = api.buildSupportBundleOverviewHtml(completeBundle);
+    const fullHtml = api.buildSupportBundleOverviewHtml({
+        ...completeBundle,
+        bundleMeta: {
+            ...completeBundle.bundleMeta,
+            privacyMode: 'full'
+        },
+        uiTelemetry: null
+    });
+
+    assert.match(sanitizedHtml, /diagnostic data prepared for support/);
+    assert.match(sanitizedHtml, /sanitized privacy profile before download/);
+    assert.match(sanitizedHtml, /Bundle schema: v2/);
+    assert.match(sanitizedHtml, /Section coverage: 7 of 7 included/);
+    assert.match(sanitizedHtml, /Preview generated: 2026-07-24T22:05:24Z/);
+    assert.match(fullHtml, /diagnostic data prepared in Full mode/);
+    assert.match(fullHtml, /Raw names, paths, addresses, URLs, and request metadata may be included/);
+    assert.match(fullHtml, /Section coverage: 6 of 7 included/);
+});
+
 test('support bundle privacy explanation clearly warns about full export handling', () => {
     const html = api.buildSupportBundleRedactionPreviewHtml({
         bundleMeta: { privacyMode: 'full' },

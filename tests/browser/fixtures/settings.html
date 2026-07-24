@@ -105,7 +105,11 @@
             svgIcon: window.FolderViewPlusUI.svgIcon
         });
         const supportFixtureBundle = {
-            bundleMeta: { privacyMode: 'sanitized' },
+            bundleMeta: {
+                privacyMode: 'sanitized',
+                bundleVersion: 2,
+                generatedAt: '2026-07-24T22:05:24Z'
+            },
             system: {},
             pluginState: {},
             runtimeState: {},
@@ -122,12 +126,7 @@
             <div class="fv-diagnostics-support-card-head">
                 <div>${window.FolderViewPlusUI.svgIcon('monitor')}<strong>Dashboard visual evidence</strong></div>
             </div>
-            <div class="fv-diagnostics-support-card-head">
-                <div>${window.FolderViewPlusUI.svgIcon('support')}<strong>Support bundle overview</strong></div>
-            </div>
-            <div class="fv-support-bundle-section-grid">
-                ${supportBundlePreview.buildSupportBundlePreviewSectionCards(supportFixtureBundle)}
-            </div>
+            ${supportBundlePreview.buildSupportBundleOverviewHtml(supportFixtureBundle)}
             <div class="fv-support-bundle-redaction-card">
                 ${supportBundlePreview.buildSupportBundleRedactionPreviewHtml(supportFixtureBundle)}
             </div>

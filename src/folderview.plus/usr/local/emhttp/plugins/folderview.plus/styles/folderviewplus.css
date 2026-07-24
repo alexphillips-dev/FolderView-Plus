@@ -7596,13 +7596,13 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto auto;
-    align-items: center;
-    align-content: center;
+    align-items: start;
+    align-content: start;
     justify-items: stretch;
-    gap: 0.35rem 0.55rem;
+    gap: 0.08rem 0.38rem;
     min-width: 0;
-    min-height: 76px;
-    padding: 0.62rem;
+    min-height: 0;
+    padding: 0.38rem;
     text-align: left;
 }
 
@@ -7611,10 +7611,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     display: inline-grid;
     grid-row: 1 / span 2;
+    align-self: start;
     place-items: center;
-    width: 2.6rem;
-    height: 2.6rem;
-    border-radius: 7px;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 5px;
     background: color-mix(
         in srgb,
         var(--fv-support-section-icon-color) 13%,
@@ -7677,19 +7678,20 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-support-bundle-section-icon .fv-ui-svg-icon {
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 1.75rem;
+    height: 1.75rem;
 }
 
 .fv-support-bundle-section-copy {
     display: grid;
+    align-self: start;
     gap: 0.12rem;
 }
 
 .fv-support-bundle-section-copy strong {
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.14rem;
-    line-height: 1.2;
+    font-size: 1.06rem;
+    line-height: 1.15;
 }
 
 .fv-support-bundle-section-copy > span {
@@ -7698,8 +7700,12 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-support-bundle-section-badge {
     grid-column: 2;
+    align-self: start;
     justify-self: start;
-    margin-top: auto;
+    margin-top: 0;
+    padding: 0.1rem 0.36rem;
+    font-size: 1rem;
+    line-height: 1.15;
 }
 
 .fv-support-bundle-redaction-card {

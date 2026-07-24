@@ -847,6 +847,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
         const supportIcons = [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')];
         const supportIconTiles = [...workspace.querySelectorAll('.fv-support-bundle-section-icon')];
+        const supportOverviewDescription = workspace.querySelector('.fv-support-bundle-overview > p');
+        const supportOverviewMeta = [...workspace.querySelectorAll('.fv-support-bundle-preview-meta > span')];
         const supportHeaderIcons = [...workspace.querySelectorAll(
             '.fv-diagnostics-support-card-head > div > .fv-ui-svg-icon'
         )];
@@ -979,6 +981,24 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             supportIconWidths: supportIcons.map((icon) => icon.getBoundingClientRect().width),
             supportIconColors: supportIcons.map((icon) => getComputedStyle(icon).color),
             supportIconBackgrounds: supportIconTiles.map((icon) => getComputedStyle(icon).backgroundColor),
+            supportCardHeights: supportCards.map((card) => card.getBoundingClientRect().height),
+            supportCardContentStartsAtTop: supportCards.every((card) => {
+                const cardRect = card.getBoundingClientRect();
+                const iconRect = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
+                const copyRect = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
+                return iconRect
+                    && copyRect
+                    && iconRect.top - cardRect.top <= 9
+                    && copyRect.top - cardRect.top <= 9
+                    && Math.abs(iconRect.top - copyRect.top) <= 1;
+            }),
+            supportBadgesAlignWithCopy: supportCards.every((card) => {
+                const badgeRect = card.querySelector('.fv-support-bundle-section-badge')?.getBoundingClientRect();
+                const copyRect = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
+                return badgeRect && copyRect && Math.abs(badgeRect.left - copyRect.left) <= 1;
+            }),
+            supportOverviewDescription: supportOverviewDescription?.textContent.trim() || '',
+            supportOverviewMeta: supportOverviewMeta.map((item) => item.textContent.trim()),
             supportIconsAreLeft: supportCards.every((card) => {
                 const icon = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
                 const copy = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
@@ -1089,6 +1109,20 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(new Set(layout.supportIconColors).size, 7);
     assert.equal(new Set(layout.supportIconBackgrounds).size, 7);
     assert.equal(layout.supportIconsAreLeft, true);
+    assert.equal(layout.supportCardContentStartsAtTop, true);
+    assert.equal(layout.supportBadgesAlignWithCopy, true);
+    assert.equal(
+        layout.supportCardHeights.every((height) => height <= 82),
+        true,
+        `support bundle section cards should stay compact; measured ${layout.supportCardHeights.join(', ')}px`
+    );
+    assert.match(layout.supportOverviewDescription, /diagnostic data prepared for support/);
+    assert.match(layout.supportOverviewDescription, /sanitized privacy profile before download/);
+    assert.deepEqual(layout.supportOverviewMeta, [
+        'Bundle schema: v2',
+        'Section coverage: 7 of 7 included',
+        'Preview generated: 2026-07-24T22:05:24Z'
+    ]);
     assert.equal(layout.privacyBadgeCount, 4);
     assert.equal(layout.privacyBadgesAreColored, true);
     assert.equal(layout.privacyBadgeRadii.every((radius) => radius >= 5.9 && radius <= 6.1), true);

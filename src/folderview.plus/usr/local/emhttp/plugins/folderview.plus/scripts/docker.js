@@ -388,6 +388,7 @@ if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+    || typeof window.FolderViewDockerRuntimeShared.createStableToggleController !== 'function'
     || typeof createDockerRuntimeDiagnosticsBridge !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.shared.js');
@@ -4820,6 +4821,7 @@ let dockerRuntimePrivacyServerReconcileTimer = null;
 let dockerRuntimePrivacyStorageSyncBound = false;
 let dockerRuntimePrivacyMenuOpen = false;
 let dockerRuntimePrivacyMenuEventsBound = false;
+let dockerRuntimePrivacyToggleApi = null;
 
 const readStoredDockerRuntimePrivacyMode = () => {
     try {
@@ -5163,47 +5165,23 @@ const setDockerRuntimePrivacyMaskPreference = async (key, enabled) => {
     }
 };
 
-const renderDockerRuntimePrivacyToggle = () => {
-    const mount = resolveDockerRuntimePrivacyToggleMount();
-    if (!mount?.host) {
-        return;
-    }
-    document.querySelectorAll('.fvplus-docker-runtime-toggle-cluster').forEach((host) => {
-        if (host !== mount.host) {
-            host.classList.remove('fvplus-docker-runtime-toggle-cluster');
-        }
+const buildDockerRuntimePrivacyToggleMarkup = (state = {}) => {
+    const enabled = state.enabled === true;
+    const savePending = state.pending === true;
+    const menuOpen = state.menuOpen === true;
+    const menuOptionsHtml = buildDockerRuntimePrivacyMenuOptionsHtml({
+        dashboard: state.options || {}
     });
-    mount.host.classList.toggle('fvplus-docker-runtime-toggle-cluster', Boolean(mount.anchor));
-    let shell = document.getElementById(DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID);
-    if (shell && shell.parentElement !== mount.host) {
-        shell.remove();
-        shell = null;
-    }
-    if (!shell) {
-        shell = document.createElement('div');
-        shell.id = DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID;
-    }
-    shell.className = `fvplus-docker-runtime-toggle-shell${mount.anchor ? ' is-inline-cluster' : ''}${mount.fallback ? ' is-fallback' : ''}`;
-    if (mount.anchor) {
-        if (mount.anchor.nextElementSibling !== shell) {
-            mount.anchor.insertAdjacentElement('afterend', shell);
-        }
-    } else if (mount.host.firstElementChild !== shell) {
-        mount.host.insertBefore(shell, mount.host.firstChild);
-    }
-    const enabled = readDockerRuntimePrivacyMode();
-    const savePending = dockerRuntimePrivacyPersistPromise !== null;
-    const menuOptionsHtml = buildDockerRuntimePrivacyMenuOptionsHtml(folderTypePrefs);
-    shell.innerHTML = `
+    return `
         <span class="fvplus-docker-runtime-toggle-label">${escapeHtml(dockerT('docker.privacy.label', 'Privacy'))}</span>
         <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
         <button
             id="${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}"
-            class="fvplus-docker-runtime-privacy-menu-button${dockerRuntimePrivacyMenuOpen ? ' is-open' : ''}"
+            class="fvplus-docker-runtime-privacy-menu-button${menuOpen ? ' is-open' : ''}"
             type="button"
             aria-label="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
             aria-haspopup="dialog"
-            aria-expanded="${dockerRuntimePrivacyMenuOpen ? 'true' : 'false'}"
+            aria-expanded="${menuOpen ? 'true' : 'false'}"
             aria-controls="${DOCKER_RUNTIME_PRIVACY_MENU_ID}"
             title="${escapeHtml(dockerT('docker.privacy.options', 'Privacy options'))}"
         ><i class="fa fa-sliders" aria-hidden="true"></i><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
@@ -5212,40 +5190,83 @@ const renderDockerRuntimePrivacyToggle = () => {
             class="fvplus-docker-runtime-privacy-menu"
             role="dialog"
             aria-label="${escapeHtml(dockerT('docker.privacy.dialog-label', 'Docker privacy options'))}"
-            ${dockerRuntimePrivacyMenuOpen ? '' : 'hidden'}
+            ${menuOpen ? '' : 'hidden'}
         >
             <div class="fvplus-docker-runtime-privacy-menu-heading">${escapeHtml(dockerT('docker.privacy.title', 'Privacy mode'))}</div>
             <div class="fvplus-docker-runtime-privacy-menu-help">${escapeHtml(dockerT('docker.privacy.description', 'Choose what is hidden while Privacy is enabled.'))}</div>
             <div class="fvplus-docker-runtime-privacy-menu-options">${menuOptionsHtml}</div>
         </div>
     `;
-    bindDockerRuntimePrivacyMenuEvents();
-    const $input = $(`#${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}`);
-    if (!$input.length) {
-        return;
+};
+
+const getDockerRuntimePrivacyToggleApi = () => {
+    if (dockerRuntimePrivacyToggleApi) {
+        return dockerRuntimePrivacyToggleApi;
     }
-    if (typeof $input.switchButton === 'function') {
-        $input.switchButton({
-            labels_placement: 'right',
-            off_label: '',
-            on_label: '',
-            checked: enabled
+    dockerRuntimePrivacyToggleApi = dockerRuntimeShared.createStableToggleController({
+        window,
+        document,
+        jquery: $,
+        shellId: DOCKER_RUNTIME_PRIVACY_TOGGLE_SHELL_ID,
+        inputId: DOCKER_RUNTIME_PRIVACY_TOGGLE_ID,
+        menuButtonId: DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID,
+        menuId: DOCKER_RUNTIME_PRIVACY_MENU_ID,
+        optionAttribute: 'data-fvplus-privacy-option',
+        resolveMount: () => resolveDockerRuntimePrivacyToggleMount(),
+        prepareMount: (mount) => {
+            document.querySelectorAll('.fvplus-docker-runtime-toggle-cluster').forEach((host) => {
+                if (host !== mount.host) {
+                    host.classList.remove('fvplus-docker-runtime-toggle-cluster');
+                }
+            });
+            mount.host.classList.toggle('fvplus-docker-runtime-toggle-cluster', Boolean(mount.anchor));
+        },
+        getState: () => {
+            const dashboard = utils.normalizePrefs(folderTypePrefs || {}).dashboard || {};
+            return {
+                enabled: readDockerRuntimePrivacyMode(),
+                pending: dockerRuntimePrivacyPersistPromise !== null,
+                menuOpen: dockerRuntimePrivacyMenuOpen,
+                options: dashboard
+            };
+        },
+        getShellClass: (mount) => `fvplus-docker-runtime-toggle-shell${mount.anchor ? ' is-inline-cluster' : ''}${mount.fallback ? ' is-fallback' : ''}`,
+        buildMarkup: (state) => buildDockerRuntimePrivacyToggleMarkup(state),
+        initializePrimary: (input, state) => {
+            const $input = $(input);
+            if (typeof $input.switchButton !== 'function') {
+                return;
+            }
+            $input.switchButton({
+                labels_placement: 'right',
+                off_label: '',
+                on_label: '',
+                checked: state.enabled === true
+            });
+        },
+        onToggle: (enabled) => setDockerRuntimePrivacyMode(enabled),
+        onMenuToggle: () => setDockerRuntimePrivacyMenuOpen(!dockerRuntimePrivacyMenuOpen),
+        onOptionToggle: (key, enabled) => setDockerRuntimePrivacyMaskPreference(key, enabled),
+        onMount: () => bindDockerRuntimePrivacyMenuEvents(),
+        onError: (error) => {
+            if (FOLDER_VIEW_DEBUG_MODE) {
+                console.warn('[FV3_DEBUG] Docker privacy toggle interaction failed.', error);
+            }
+        }
+    });
+    return dockerRuntimePrivacyToggleApi;
+};
+
+const renderDockerRuntimePrivacyToggle = () => {
+    try {
+        getDockerRuntimePrivacyToggleApi()?.sync();
+    } catch (error) {
+        reportDockerDegradedRuntimeState(error, {
+            code: 'FVPLUS-DKR-PRIVACY-001',
+            phase: 'runtime-render',
+            category: 'degraded-mode'
         });
     }
-    $input.off('change.fvDockerRuntimePrivacy').on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyChange() {
-        void setDockerRuntimePrivacyMode($(this).is(':checked'));
-    });
-    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}`).off('click.fvDockerRuntimePrivacy').on('click.fvDockerRuntimePrivacy', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        setDockerRuntimePrivacyMenuOpen(!dockerRuntimePrivacyMenuOpen);
-    });
-    $(`#${DOCKER_RUNTIME_PRIVACY_MENU_ID} input[data-fvplus-privacy-option]`)
-        .off('change.fvDockerRuntimePrivacy')
-        .on('change.fvDockerRuntimePrivacy', function onDockerRuntimePrivacyOptionChange() {
-            const key = String($(this).attr('data-fvplus-privacy-option') || '');
-            void setDockerRuntimePrivacyMaskPreference(key, $(this).is(':checked'));
-        });
 };
 
 const queueDockerRuntimePrivacyToggleMount = () => {

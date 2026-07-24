@@ -194,6 +194,15 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     display: none !important;
 }
 
+.fvplus-docker-runtime-toggle-shell.is-save-pending .switch-button {
+    opacity: 0.72;
+}
+
+.fvplus-docker-runtime-toggle-shell.is-save-pending .switch-button-background {
+    cursor: wait;
+    pointer-events: none;
+}
+
 .fvplus-docker-runtime-privacy-menu-button {
     display: inline-flex;
     align-items: center;

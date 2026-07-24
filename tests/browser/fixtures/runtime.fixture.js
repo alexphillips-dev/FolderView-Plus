@@ -13,6 +13,116 @@
     const events = [];
     let refreshCount = 0;
     const hostAdapter = window.FolderViewPlusRuntimeHostAdapters.getOrCreate('docker', { window, document });
+    const privacyEvents = [];
+    let privacySwitchInitializeCount = 0;
+    let pendingPrivacySave = null;
+    let privacyState = {
+        enabled: false,
+        pending: false,
+        menuOpen: false,
+        options: {
+            privacyMaskNames: true,
+            privacyMaskLocalIps: true
+        }
+    };
+
+    $.fn.switchButton = function fixtureSwitchButton(options = {}) {
+        return this.each(function initializeFixtureSwitch() {
+            const input = this;
+            if (input.dataset.fixtureSwitchInitialized === 'true') {
+                return;
+            }
+            input.dataset.fixtureSwitchInitialized = 'true';
+            privacySwitchInitializeCount += 1;
+            const wrapper = document.createElement('span');
+            wrapper.className = 'switch-button';
+            const background = document.createElement('button');
+            background.type = 'button';
+            background.className = 'switch-button-background';
+            const thumb = document.createElement('span');
+            thumb.className = 'switch-button-button';
+            background.append(thumb);
+            input.parentElement.insertBefore(wrapper, input);
+            wrapper.append(input, background);
+            const refresh = () => {
+                wrapper.dataset.checked = input.checked ? 'true' : 'false';
+                wrapper.classList.toggle('is-checked', input.checked);
+            };
+            input.checked = options.checked === true;
+            input.addEventListener('change', refresh);
+            background.addEventListener('click', () => {
+                if (input.disabled) {
+                    return;
+                }
+                input.checked = !input.checked;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            refresh();
+        });
+    };
+
+    let privacyToggleApi = null;
+    privacyToggleApi = window.FolderViewDockerRuntimeShared.createStableToggleController({
+        window,
+        document,
+        jquery: $,
+        shellId: 'fixture-privacy-shell',
+        inputId: 'fixture-privacy-toggle',
+        menuButtonId: 'fixture-privacy-menu-button',
+        menuId: 'fixture-privacy-menu',
+        optionAttribute: 'data-fvplus-privacy-option',
+        resolveMount: () => ({
+            host: document.querySelector('.ToggleViewMode'),
+            anchor: document.querySelector('.ToggleViewMode > label'),
+            fallback: false
+        }),
+        getState: () => privacyState,
+        getShellClass: () => 'fvplus-docker-runtime-toggle-shell is-inline-cluster',
+        buildMarkup: (state) => `
+            <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
+            <input id="fixture-privacy-toggle" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${state.enabled ? 'checked' : ''} ${state.pending ? 'disabled' : ''}>
+            <button id="fixture-privacy-menu-button" type="button" aria-expanded="${state.menuOpen ? 'true' : 'false'}">Options</button>
+            <div id="fixture-privacy-menu" ${state.menuOpen ? '' : 'hidden'}>
+                <label><input type="checkbox" data-fvplus-privacy-option="privacyMaskNames" ${state.options.privacyMaskNames !== false ? 'checked' : ''}>Names</label>
+                <label><input type="checkbox" data-fvplus-privacy-option="privacyMaskLocalIps" ${state.options.privacyMaskLocalIps !== false ? 'checked' : ''}>LAN IPs</label>
+            </div>
+        `,
+        initializePrimary: (input, state) => {
+            $(input).switchButton({
+                labels_placement: 'right',
+                off_label: '',
+                on_label: '',
+                checked: state.enabled === true
+            });
+        },
+        onToggle: (enabled) => {
+            privacyEvents.push({ type: 'toggle', enabled });
+            privacyState = { ...privacyState, enabled, pending: true };
+            privacyToggleApi.sync();
+            return new Promise((resolve, reject) => {
+                pendingPrivacySave = { resolve, reject };
+            });
+        },
+        onMenuToggle: () => {
+            privacyState = { ...privacyState, menuOpen: !privacyState.menuOpen };
+            privacyToggleApi.sync();
+        },
+        onOptionToggle: (key, enabled) => {
+            privacyEvents.push({ type: 'option', key, enabled });
+            privacyState = {
+                ...privacyState,
+                options: {
+                    ...privacyState.options,
+                    [key]: enabled
+                }
+            };
+            privacyToggleApi.sync();
+        },
+        onError: (error) => {
+            privacyEvents.push({ type: 'error', message: String(error?.message || error) });
+        }
+    });
+    privacyToggleApi.sync();
 
     const normalizePrefs = (value = {}) => ({
         pageViewMode: ['host', 'command'].includes(String(value.pageViewMode || '')) ? value.pageViewMode : 'folderview',
@@ -69,6 +179,53 @@
     window.fixtureRuntime = {
         api,
         events,
+        privacyToggle: {
+            rememberIdentity: () => {
+                window.__fixturePrivacyShell = document.getElementById('fixture-privacy-shell');
+                window.__fixturePrivacyInput = document.getElementById('fixture-privacy-toggle');
+                window.__fixturePrivacyWidget = document.querySelector('#fixture-privacy-shell .switch-button');
+            },
+            snapshot: () => ({
+                ...privacyToggleApi.getSnapshot(),
+                state: {
+                    enabled: privacyState.enabled,
+                    pending: privacyState.pending,
+                    menuOpen: privacyState.menuOpen,
+                    options: { ...privacyState.options }
+                },
+                widgetChecked: document.querySelector('#fixture-privacy-shell .switch-button')?.dataset?.checked || '',
+                identityStable: (
+                    window.__fixturePrivacyShell === document.getElementById('fixture-privacy-shell')
+                    && window.__fixturePrivacyInput === document.getElementById('fixture-privacy-toggle')
+                    && window.__fixturePrivacyWidget === document.querySelector('#fixture-privacy-shell .switch-button')
+                ),
+                privacySwitchInitializeCount,
+                events: privacyEvents.map((entry) => ({ ...entry }))
+            }),
+            syncRepeatedly: (count = 5) => {
+                for (let index = 0; index < count; index += 1) {
+                    privacyToggleApi.sync();
+                }
+            },
+            resolveSave: () => {
+                const pending = pendingPrivacySave;
+                pendingPrivacySave = null;
+                privacyState = { ...privacyState, pending: false };
+                privacyToggleApi.sync();
+                pending?.resolve({ ok: true });
+            },
+            rejectSave: () => {
+                const pending = pendingPrivacySave;
+                pendingPrivacySave = null;
+                privacyState = { ...privacyState, pending: false };
+                privacyToggleApi.sync();
+                pending?.reject(new Error('fixture save failed'));
+            },
+            applyExternalState: (enabled) => {
+                privacyState = { ...privacyState, enabled: enabled === true, pending: false };
+                privacyToggleApi.sync();
+            }
+        },
         getPrefs: () => ({ ...prefs }),
         getRefreshCount: () => refreshCount,
         exerciseHostAdapters: () => {

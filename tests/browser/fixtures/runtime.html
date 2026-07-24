@@ -18,6 +18,9 @@
 </head>
 <body>
     <main class="canvas">
+        <div class="ToggleViewMode">
+            <label><span>Basic view</span><input id="fixture-basic-view" type="checkbox"></label>
+        </div>
         <table id="docker_containers">
             <thead><tr><th>Application</th><th>Version</th><th>Network</th><th>Container IP</th><th>Container port</th><th>LAN IP:PORT</th></tr></thead>
             <tbody id="docker_list">
@@ -43,6 +46,7 @@
     <script src="/plugin/scripts/runtime.privacy.js"></script>
     <script src="/plugin/scripts/folderviewplus.request.js"></script>
     <script src="/plugin/scripts/runtime.host-adapter.js"></script>
+    <script src="/plugin/scripts/docker.runtime.shared.js"></script>
     <script src="/plugin/scripts/docker.runtime.action-bar.js"></script>
     <script src="/plugin/scripts/docker.runtime.reconcile.js"></script>
     <script src="/fixtures/runtime.fixture.js"></script>

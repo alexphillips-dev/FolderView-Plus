@@ -11,6 +11,7 @@ const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const libPrefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
@@ -180,8 +181,17 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerJs, /const DOCKER_RUNTIME_PRIVACY_MODE_STORAGE_KEY = 'fvplus\.runtime\.privacy\.docker\.v1';/);
     assert.match(dockerJs, /const readDockerRuntimePrivacyMode = \(\) => resolveDockerRuntimePrivacyMode\(folderTypePrefs\);/);
     assert.match(dockerJs, /const stored = readStoredDockerRuntimePrivacyMode\(\);[\s\S]*if \(stored !== null\) \{[\s\S]*return stored;/);
-    assert.match(dockerJs, /const enabled = readDockerRuntimePrivacyMode\(\);/);
-    assert.match(dockerJs, /checked: enabled/);
+    assert.match(dockerJs, /enabled:\s*readDockerRuntimePrivacyMode\(\)/);
+    assert.match(dockerJs, /checked:\s*state\.enabled === true/);
+    assert.match(dockerJs, /dockerRuntimeShared\.createStableToggleController\(\{/);
+    assert.match(dockerJs, /getDockerRuntimePrivacyToggleApi\(\)\?\.sync\(\)/);
+    assert.doesNotMatch(dockerJs, /shell\.innerHTML/);
+    assert.match(dockerRuntimeSharedJs, /const createStableToggleController = \(options = \{\}\) =>/);
+    assert.match(dockerRuntimeSharedJs, /if \(!input \|\| !shell\.contains\(input\)\) \{[\s\S]*shell\.innerHTML = String\(buildMarkup\(state\) \|\| ''\);/);
+    assert.match(dockerRuntimeSharedJs, /const boundShells = new WeakSet\(\);/);
+    assert.match(dockerRuntimeSharedJs, /if \(!synchronizingPrimary\) \{[\s\S]*invoke\(onToggle, target\.checked === true\);/);
+    assert.match(dockerRuntimeSharedJs, /input\.dispatchEvent\(new EventConstructor\('change', \{ bubbles: true \}\)\);/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell\.is-save-pending \.switch-button-background\s*\{[\s\S]*pointer-events:\s*none;/);
     assert.match(dockerJs, /const basePrefs = previousPrefs;/);
     assert.doesNotMatch(dockerJs, /const setDockerRuntimePrivacyMode = async[\s\S]*?basePrefs = await fetchDockerBootstrapPrefs\(\);/);
     assert.match(dockerJs, /buildDockerRuntimePrivacyPrefsPayload\(nextEnabled, basePrefs\)/);

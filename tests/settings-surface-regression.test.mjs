@@ -431,12 +431,13 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.doesNotMatch(settingsCss, /\.fv-diagnostics-action-(?:list|card|title|copy)/);
     assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-metrics\s*\{[\s\S]*align-self:\s*center;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[\s\S]*border-color:\s*var\(--fvplus-settings-border-subtle\)[\s\S]*color:\s*var\(--fvplus-settings-text-primary\)/);
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-export\s*\{[\s\S]*--fv-diagnostics-action-color:\s*var\(--fvplus-settings-chip-info\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics dt\s*\{[\s\S]*font-size:\s*1\.3rem;[\s\S]*text-align:\s*center;/);
     assert.match(settingsCss, /\.fv-diagnostics-metric\.has-icon \.fv-diagnostics-metric-icon\s*\{[\s\S]*position:\s*absolute;[\s\S]*top:\s*0\.65rem;[\s\S]*left:\s*0\.75rem;/);
     assert.match(settingsCss, /\.fv-diagnostics-metric\.is-version \.fv-diagnostics-metric-icon\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
-    assert.match(settingsCss, /\.fv-diagnostics-core-progress\s*\{[\s\S]*height:\s*8px;/);
+    assert.match(settingsCss, /\.fv-diagnostics-core-progress\s*\{[\s\S]*width:\s*50%;[\s\S]*height:\s*8px;[\s\S]*margin:\s*0\.42rem auto 0;/);
     assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\s*\{[\s\S]*min-height:\s*36px;[\s\S]*padding:\s*0\.42rem 0\.75rem !important;/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon \.fv-ui-svg-icon\s*\{[\s\S]*width:\s*2rem;/);
     assert.match(settingsCss, /\.fv-diagnostics-health-card-icon\.is-storage\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-warning\);/);

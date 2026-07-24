@@ -832,8 +832,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const systemFooters = systemCards.map((card) => card.querySelector('.fv-diagnostics-health-card-foot'));
         const themeFooter = coreGrid.querySelector('[data-fv-diagnostics-card="theme"] .fv-diagnostics-health-card-foot');
         const toolbarButtons = [...workspace.querySelectorAll('.fv-diagnostics-toolbar > .fv-ui-button')];
+        const hero = workspace.querySelector('.fv-diagnostics-hero');
+        const metricsGrid = workspace.querySelector('.fv-diagnostics-metrics');
         const coreProgress = workspace.querySelector('.fv-diagnostics-core-progress');
         const coreProgressFill = coreProgress?.firstElementChild;
+        const coreMetric = coreProgress?.closest('.fv-diagnostics-metric');
         const systemIcons = [...workspace.querySelectorAll('.fv-diagnostics-health-card-icon .fv-ui-svg-icon')];
         const storageUpdateIcons = [...workspace.querySelectorAll(
             '.fv-diagnostics-health-card-icon:is(.is-storage, .is-update) .fv-ui-svg-icon'
@@ -955,8 +958,22 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             toolbarButtonCount: toolbarButtons.length,
             toolbarButtonLabels: toolbarButtons.map((button) => button.textContent.trim()),
             toolbarButtonHeights: toolbarButtons.map((button) => button.getBoundingClientRect().height),
+            metricsGridVerticallyCentered: Boolean(hero && metricsGrid)
+                && Math.abs(
+                    (metricsGrid.getBoundingClientRect().top + (metricsGrid.getBoundingClientRect().height / 2))
+                    - (hero.getBoundingClientRect().top + (hero.getBoundingClientRect().height / 2))
+                ) <= 1,
             coreProgressRatio: coreProgress && coreProgressFill
                 ? coreProgressFill.getBoundingClientRect().width / coreProgress.getBoundingClientRect().width
+                : 0,
+            coreProgressTrackRatio: coreProgress && coreMetric
+                ? (() => {
+                    const metricStyle = getComputedStyle(coreMetric);
+                    const metricContentWidth = coreMetric.clientWidth
+                        - parseFloat(metricStyle.paddingLeft)
+                        - parseFloat(metricStyle.paddingRight);
+                    return coreProgress.getBoundingClientRect().width / metricContentWidth;
+                })()
                 : 0,
             supportSvgIcons: supportIcons.length,
             supportIconWidths: supportIcons.map((icon) => icon.getBoundingClientRect().width),
@@ -1061,7 +1078,12 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         Math.max(...layout.toolbarButtonHeights) - Math.min(...layout.toolbarButtonHeights) <= 1,
         'diagnostics toolbar buttons should share one compact height'
     );
+    assert.equal(layout.metricsGridVerticallyCentered, true);
     assert.ok(layout.coreProgressRatio > 0.98, 'healthy core progress bar should span the metric');
+    assert.ok(
+        layout.coreProgressTrackRatio >= 0.49 && layout.coreProgressTrackRatio <= 0.51,
+        'core progress track should use half of the metric width'
+    );
     assert.equal(layout.supportSvgIcons, 7);
     assert.equal(layout.supportIconWidths.every((width) => width >= 28), true);
     assert.equal(new Set(layout.supportIconColors).size, 7);

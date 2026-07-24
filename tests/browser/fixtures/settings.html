@@ -123,10 +123,22 @@
             }
         };
         document.getElementById('fv-support-visual-fixture').innerHTML = `
-            <div class="fv-diagnostics-support-card-head">
-                <div>${window.FolderViewPlusUI.svgIcon('monitor')}<strong>Dashboard visual evidence</strong></div>
+            <div class="fv-diagnostics-support-grid">
+                <article class="fv-diagnostics-capture-card">
+                    <div class="fv-diagnostics-support-card-head">
+                        <div>${window.FolderViewPlusUI.svgIcon('monitor')}<strong>Dashboard visual evidence</strong></div>
+                    </div>
+                    <p>Captured Dashboard geometry remains available for support review.</p>
+                    <div class="fv-support-bundle-capture-rows">
+                        <div class="fv-support-bundle-capture-row is-ready">
+                            <strong>Docker Dashboard</strong>
+                            <span>fresh; under 1 min old; 1920 x 1080; render healthy.</span>
+                        </div>
+                    </div>
+                    <a class="fv-ui-button fv-dashboard-capture-guide-action" href="/Dashboard">Capture again</a>
+                </article>
+                ${supportBundlePreview.buildSupportBundleOverviewHtml(supportFixtureBundle)}
             </div>
-            ${supportBundlePreview.buildSupportBundleOverviewHtml(supportFixtureBundle)}
             <div class="fv-support-bundle-redaction-card">
                 ${supportBundlePreview.buildSupportBundleRedactionPreviewHtml(supportFixtureBundle)}
             </div>

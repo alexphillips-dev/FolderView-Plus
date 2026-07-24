@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.08">
-<!ENTITY md5 "8d6f07472245e9aa0f00a45d5626258f">
+<!ENTITY version "2026.07.24.09">
+<!ENTITY md5 "7cac156d81eb3a0ff1ce250b8b5813de">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.09
+- UI/UX: Stretched the seven Support bundle overview cards through the remaining overview height so the row reaches the card's bottom padding without moving titles away from the top.
+- UI/UX: Kept each SVG and title top-left while moving Included and Pending badges into a separate lower row centered across their cards.
+- Test: Reworked the Diagnostics browser fixture to reproduce the real two-card Support layout and verify equal card heights, bottom reach, top-aligned identity, and centered lower badges.
+
 
 ###2026.07.24.08
 - UI/UX: Top-aligned the Support bundle overview tile icons, titles, and status badges, removed the fixed tile height, and reduced chrome so the seven modules use substantially less vertical space.

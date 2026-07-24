@@ -847,6 +847,8 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const supportCards = [...workspace.querySelectorAll('.fv-support-bundle-section-card')];
         const supportIcons = [...workspace.querySelectorAll('.fv-support-bundle-section-icon .fv-ui-svg-icon')];
         const supportIconTiles = [...workspace.querySelectorAll('.fv-support-bundle-section-icon')];
+        const supportOverview = workspace.querySelector('.fv-support-bundle-overview');
+        const supportSectionGrid = workspace.querySelector('.fv-support-bundle-section-grid');
         const supportOverviewDescription = workspace.querySelector('.fv-support-bundle-overview > p');
         const supportOverviewMeta = [...workspace.querySelectorAll('.fv-support-bundle-preview-meta > span')];
         const supportHeaderIcons = [...workspace.querySelectorAll(
@@ -982,6 +984,9 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             supportIconColors: supportIcons.map((icon) => getComputedStyle(icon).color),
             supportIconBackgrounds: supportIconTiles.map((icon) => getComputedStyle(icon).backgroundColor),
             supportCardHeights: supportCards.map((card) => card.getBoundingClientRect().height),
+            supportCardsShareHeight: supportCards.length > 0
+                && Math.max(...supportCards.map((card) => card.getBoundingClientRect().height))
+                    - Math.min(...supportCards.map((card) => card.getBoundingClientRect().height)) <= 1,
             supportCardContentStartsAtTop: supportCards.every((card) => {
                 const cardRect = card.getBoundingClientRect();
                 const iconRect = card.querySelector('.fv-support-bundle-section-icon')?.getBoundingClientRect();
@@ -992,11 +997,21 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
                     && copyRect.top - cardRect.top <= 9
                     && Math.abs(iconRect.top - copyRect.top) <= 1;
             }),
-            supportBadgesAlignWithCopy: supportCards.every((card) => {
+            supportBadgesCenteredAndLower: supportCards.every((card) => {
+                const cardRect = card.getBoundingClientRect();
                 const badgeRect = card.querySelector('.fv-support-bundle-section-badge')?.getBoundingClientRect();
                 const copyRect = card.querySelector('.fv-support-bundle-section-copy')?.getBoundingClientRect();
-                return badgeRect && copyRect && Math.abs(badgeRect.left - copyRect.left) <= 1;
+                return badgeRect
+                    && copyRect
+                    && Math.abs(
+                        (badgeRect.left + (badgeRect.width / 2))
+                        - (cardRect.left + (cardRect.width / 2))
+                    ) <= 1
+                    && badgeRect.top >= copyRect.bottom + 4;
             }),
+            supportCardsReachOverviewBottom: Boolean(supportOverview && supportSectionGrid)
+                && supportOverview.getBoundingClientRect().bottom
+                    - supportSectionGrid.getBoundingClientRect().bottom <= 14,
             supportOverviewDescription: supportOverviewDescription?.textContent.trim() || '',
             supportOverviewMeta: supportOverviewMeta.map((item) => item.textContent.trim()),
             supportIconsAreLeft: supportCards.every((card) => {
@@ -1110,12 +1125,10 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(new Set(layout.supportIconBackgrounds).size, 7);
     assert.equal(layout.supportIconsAreLeft, true);
     assert.equal(layout.supportCardContentStartsAtTop, true);
-    assert.equal(layout.supportBadgesAlignWithCopy, true);
-    assert.equal(
-        layout.supportCardHeights.every((height) => height <= 82),
-        true,
-        `support bundle section cards should stay compact; measured ${layout.supportCardHeights.join(', ')}px`
-    );
+    assert.equal(layout.supportBadgesCenteredAndLower, true);
+    assert.equal(layout.supportCardsReachOverviewBottom, true);
+    assert.equal(layout.supportCardsShareHeight, true);
+    assert.equal(layout.supportCardHeights.every((height) => height >= 70), true);
     assert.match(layout.supportOverviewDescription, /diagnostic data prepared for support/);
     assert.match(layout.supportOverviewDescription, /sanitized privacy profile before download/);
     assert.deepEqual(layout.supportOverviewMeta, [

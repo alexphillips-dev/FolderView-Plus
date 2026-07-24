@@ -449,8 +449,9 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.doesNotMatch(diagnosticsJs, /Theme checked \$\{formatCheckedAtLabel\(lastThemeDiagnostics\.generatedAt\)\}/);
     assert.match(settingsCss, /\.fv-diagnostics-support-grid\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*0\.72fr\)\s*minmax\(0,\s*1\.5fr\);/);
     assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
-    assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);[\s\S]*align-items:\s*start;[\s\S]*align-content:\s*start;[\s\S]*min-height:\s*0;/);
-    assert.match(settingsCss, /\.fv-support-bundle-section-badge\s*\{[\s\S]*align-self:\s*start;[\s\S]*justify-self:\s*start;[\s\S]*margin-top:\s*0;/);
+    assert.match(settingsCss, /\.fv-support-bundle-overview\s*\{[\s\S]*grid-template-rows:\s*auto auto auto minmax\(0,\s*1fr\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-card\s*\{[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);[\s\S]*grid-template-rows:\s*auto minmax\(2\.1rem,\s*1fr\);[\s\S]*align-items:\s*start;[\s\S]*align-content:\s*stretch;[\s\S]*height:\s*100%;/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-badge\s*\{[\s\S]*grid-column:\s*1 \/ -1;[\s\S]*grid-row:\s*2;[\s\S]*align-self:\s*end;[\s\S]*justify-self:\s*center;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-icon\.is-health\s*\{[\s\S]*--fv-support-section-icon-color:/);
     assert.match(settingsCss, /\.fv-diagnostics-support-card-head > div > \.fv-ui-svg-icon\[data-fv-icon="support"\]\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
     assert.match(settingsCss, /#fv-settings-root \.fv-support-bundle-redaction-card \.fv-support-bundle-privacy-header\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto\s*minmax\(0,\s*1fr\);/);

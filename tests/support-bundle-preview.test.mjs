@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
@@ -129,6 +130,26 @@ test('support bundle privacy explanation clearly warns about full export handlin
     assert.match(html, /Full exports may contain sensitive data/);
     assert.match(html, /Share only through a trusted channel/);
     assert.match(html, /Full mode does not hash fields/);
+});
+
+test('English privacy guidance documents each verified redaction behavior in detail', () => {
+    const catalog = JSON.parse(fs.readFileSync(path.resolve(
+        process.cwd(),
+        'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/namespaces/en/diagnostics.json'
+    ), 'utf8'));
+
+    assert.match(catalog['diagnostics.support.data-handling-sanitized'], /counts, health state, timing, relationships/);
+    assert.match(catalog['diagnostics.support.data-handling-full'], /container or VM names, filesystem paths, network addresses/);
+    assert.match(catalog['diagnostics.support.data-handling-hashed'], /private salt and field context/);
+    assert.match(catalog['diagnostics.support.data-handling-hashed'], /same field path remain comparable within that bundle/);
+    assert.match(catalog['diagnostics.support.data-handling-masked'], /filename, URL path, value shape, or the first network prefix/);
+    assert.match(catalog['diagnostics.support.data-handling-omitted'], /manifest records the affected field path/);
+    assert.match(catalog['diagnostics.support.data-handling-omitted'], /removed value is not stored in the manifest/);
+    assert.match(catalog['diagnostics.support.data-handling-truncated'], /strings, arrays, histories, logs, or deeply nested details/);
+    assert.match(catalog['diagnostics.support.data-handling-truncated'], /size limit, not a sanitization failure/);
+    assert.match(catalog['diagnostics.support.data-handling-salt'], /fresh random salt/);
+    assert.match(catalog['diagnostics.support.data-handling-salt'], /short fingerprint, not the salt itself/);
+    assert.match(catalog['diagnostics.support.data-handling-full-scope'], /full mode is not intended for public issue reports/);
 });
 
 test('support bundle preview enriches browser telemetry before its first render', async () => {

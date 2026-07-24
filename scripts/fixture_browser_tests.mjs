@@ -1094,6 +1094,11 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
         const disclosure = document.querySelector('.fv-support-bundle-privacy-disclosure');
         const arrow = disclosure?.querySelector('i');
         const explanation = document.querySelector('.fv-support-bundle-privacy-explanation');
+        const definitionCards = [...(explanation?.querySelectorAll('dl > div') || [])];
+        const longestDescription = definitionCards[0]?.querySelector('dd');
+        if (longestDescription) {
+            longestDescription.append(` ${'Additional verified privacy-handling context. '.repeat(6)}`);
+        }
         const cardRect = card?.getBoundingClientRect();
         const disclosureRect = disclosure?.getBoundingClientRect();
         return {
@@ -1113,6 +1118,18 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
             arrowTransform: arrow ? getComputedStyle(arrow).transform : 'none',
             definitionCount: explanation?.querySelectorAll('dt').length || 0,
             descriptionCount: explanation?.querySelectorAll('dd').length || 0,
+            definitionCardHeights: definitionCards.map((definition) => definition.getBoundingClientRect().height),
+            definitionCardWidths: definitionCards.map((definition) => definition.getBoundingClientRect().width),
+            definitionTitlesLeftAligned: definitionCards.every((definition) => {
+                const title = definition.querySelector('dt');
+                const definitionRect = definition.getBoundingClientRect();
+                const titleRect = title?.getBoundingClientRect();
+                return title
+                    && titleRect
+                    && getComputedStyle(title).textAlign === 'left'
+                    && titleRect.left > definitionRect.left
+                    && titleRect.left - definitionRect.left <= 14;
+            }),
             text: explanation?.textContent || ''
         };
     });
@@ -1133,6 +1150,15 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.notEqual(expandedPrivacy.arrowTransform, 'none', 'expanded privacy arrow should point down');
     assert.equal(expandedPrivacy.definitionCount, 4);
     assert.equal(expandedPrivacy.descriptionCount, 4);
+    assert.equal(expandedPrivacy.definitionTitlesLeftAligned, true);
+    assert.ok(
+        Math.max(...expandedPrivacy.definitionCardHeights) - Math.min(...expandedPrivacy.definitionCardHeights) <= 1,
+        'privacy definition cards should have equal heights'
+    );
+    assert.ok(
+        Math.max(...expandedPrivacy.definitionCardWidths) - Math.min(...expandedPrivacy.definitionCardWidths) <= 1,
+        'privacy definition cards should have equal widths'
+    );
     assert.match(expandedPrivacy.text, /One-way identifiers link matching values/);
     assert.match(expandedPrivacy.text, /Partial context remains/);
     assert.match(expandedPrivacy.text, /Unneeded diagnostic fields are removed/);

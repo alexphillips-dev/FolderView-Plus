@@ -459,5 +459,9 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /\.fv-support-bundle-privacy-details\[open\] \.fv-support-bundle-privacy-disclosure > i\s*\{[\s\S]*transform:\s*rotate\(90deg\);/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item\.is-omitted strong\s*\{[\s\S]*border-color:\s*var\(--fvplus-settings-accent-strong\);[\s\S]*box-shadow:/);
     assert.match(settingsCss, /\.fv-support-bundle-privacy-item\.is-truncated strong\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-danger\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-explanation dl\s*\{[\s\S]*grid-auto-rows:\s*1fr;[\s\S]*align-items:\s*stretch;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-explanation dl > div\s*\{[\s\S]*height:\s*100%;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-explanation dt\s*\{[\s\S]*float:\s*none;[\s\S]*width:\s*auto;[\s\S]*text-align:\s*left;/);
+    assert.match(settingsCss, /\.fv-support-bundle-privacy-explanation dd\s*\{[\s\S]*float:\s*none;[\s\S]*width:\s*auto;[\s\S]*text-align:\s*left;/);
     assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
 });

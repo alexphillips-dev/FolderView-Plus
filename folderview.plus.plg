@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.05">
-<!ENTITY md5 "089df3e8e3ae7868384f9ba43d86fae0">
+<!ENTITY version "2026.07.24.06">
+<!ENTITY md5 "e7007a9e8793603bbe3283136212d8f0">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,13 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.06
+- Fix: Reset Unraid's inherited definition-list layout so the Hashed, Masked, Omitted, and Truncated card titles remain left-aligned in every theme.
+- UI/UX: Made all expanded privacy cards use equal dimensions across desktop and responsive grid rows, including when their descriptions have different lengths.
+- Privacy: Expanded the data-handling guidance with verified details about per-bundle hash correlation, masking behavior, omission records, truncation limits, and the risks of full exports.
+- Localization: Refreshed the eight privacy-guidance messages in all 18 locale namespaces while preserving the 2040-message catalog contract.
+
 
 ###2026.07.24.05
 - Fix: Kept the Learn more about data handling disclosure anchored to the Privacy and sanitization header when its explanation is expanded.

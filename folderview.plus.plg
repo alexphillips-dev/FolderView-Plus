@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.23.13">
-<!ENTITY md5 "0bbc516393b4f5ebe4f0a7ff5fd0dae2">
+<!ENTITY version "2026.07.24.01">
+<!ENTITY md5 "69a5510b9f712c4fd72ed58f728eac3c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.01
+- Fix: Removed the unsupported Native Docker Organizer GraphQL probes and mutations that could only report an unavailable optional integration.
+- Diagnostics: Removed the obsolete organizer notice, manual check action, server snapshot metadata, and support-bundle telemetry so health results only describe supported capabilities.
+- Reliability: Stopped automatic organizer probes from Docker and Dashboard rendering while preserving FolderView Plus folder behavior and the shared runtime transport used by supported features.
+- Maintenance: Added a bounded Settings cleanup for the retired browser status record and a deprecation guard that prevents the removed module, actions, and undocumented mutations from returning.
+- Localization: Regenerated all shipped catalogs after removing organizer-only interface text.
+
 
 ###2026.07.23.13
 - UX: Removed Copy issue report from the Diagnostics toolbar so the action row stays focused on health checks, performance retesting, and sanitized support-bundle export.

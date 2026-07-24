@@ -112,9 +112,6 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
         'preview changes'
     ]),
     'runtime-actions': Object.freeze([
-        'native organizer',
-        'docker organizer',
-        'sync dashboard folders',
         'runtime actions',
         'bulk start stop restart pause resume'
     ]),
@@ -127,8 +124,6 @@ const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object.freeze({
         'container start sequence'
     ]),
     diagnostics: Object.freeze([
-        'native organizer',
-        'docker organizer',
         'support bundle',
         'issue report',
         'health check',

@@ -38,7 +38,7 @@ test('unchecked diagnostics never report a partial live check as healthy', () =>
     assert.equal(model.findings.length, 0);
 });
 
-test('healthy results count six core checks and informational notices separately', () => {
+test('healthy results count six core checks and the informational notice separately', () => {
     const model = modelModule.buildDiagnosticsViewModel({
         hasResults: true,
         checkedAt: '2026-07-23T12:00:00Z',
@@ -48,7 +48,6 @@ test('healthy results count six core checks and informational notices separately
         coreCards: healthyCoreCards,
         advisoryCards: [{ key: 'performance_budget', status: 'healthy', headline: 'Within budget.' }],
         additionalCards: [
-            { key: 'native_organizer', status: 'info', headline: 'Optional integration unavailable.' },
             { key: 'localization', status: 'info', headline: 'Catalog loaded.' }
         ]
     });
@@ -57,7 +56,7 @@ test('healthy results count six core checks and informational notices separately
     assert.equal(model.overall.status, 'healthy');
     assert.equal(model.metrics.coreHealthy, 6);
     assert.equal(model.metrics.coreTotal, 6);
-    assert.equal(model.metrics.optionalCount, 2);
+    assert.equal(model.metrics.optionalCount, 1);
     assert.equal(model.metrics.updateLabel, 'Up to date');
     assert.equal(model.findings.length, 0);
     assert.equal(model.stale, false);
@@ -76,7 +75,7 @@ test('priority findings include core failures and performance advisories but exc
             { key: 'performance_budget', label: 'Performance advisories', status: 'warning', headline: 'Repeated slowdown.' }
         ],
         additionalCards: [
-            { key: 'native_organizer', label: 'Optional integrations', status: 'info', headline: 'Unavailable.' }
+            { key: 'localization', label: 'Localization', status: 'info', headline: 'Catalog loaded.' }
         ]
     });
 

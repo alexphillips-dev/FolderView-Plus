@@ -20,7 +20,6 @@ const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
-const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
@@ -64,24 +63,6 @@ test('docker preview graph listeners and dashboard cpu fallback are guarded', ()
     assert.match(dockerJs, /attachedTooltipStatsListener === 'sse' && window\.dockerload && typeof window\.dockerload\.removeEventListener === 'function'/);
     assert.match(dashboardJs, /refreshDashboardDockerCpuCores\(\);/);
     assert.match(dashboardJs, /window\.fvplusCpuCores = dashboardDockerCpuCores;/);
-});
-
-test('native organizer sync is best-effort and represented in diagnostics', () => {
-    assert.match(nativeOrganizerJs, /organizerSyncDone = true;/);
-    assert.match(nativeOrganizerJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
-    assert.match(nativeOrganizerJs, /const writeStatus = \(status = \{\}\) => \{/);
-    assert.match(nativeOrganizerJs, /root\.localStorage\?\.setItem\?\.\(NATIVE_ORGANIZER_STATUS_STORAGE_KEY, JSON\.stringify\(lastStatus\)\)/);
-    assert.match(nativeOrganizerJs, /const sanitizeFailure = \(error, stage = 'unknown'\) => \{/);
-    assert.match(nativeOrganizerJs, /failureCategory: failure\.failureCategory/);
-    assert.match(nativeOrganizerJs, /failureStage: failure\.failureStage/);
-    assert.match(nativeOrganizerJs, /httpStatus: failure\.httpStatus/);
-    assert.doesNotMatch(nativeOrganizerJs, /reason:\s*String\(error\?\.message/);
-    assert.match(nativeOrganizerJs, /'X-CSRF-Token': getCsrfToken\(\)/);
-    assert.match(libDiagnosticsPhp, /function diagnosticsBuildNativeOrganizerStatus\(\): array/);
-    assert.match(libDiagnosticsPhp, /'clientModule'\s*=>\s*'folderviewplus\.native-organizer\.js'/);
-    assert.match(libDiagnosticsPhp, /'statusSchemaVersion'\s*=>\s*2/);
-    assert.match(libDiagnosticsPhp, /'capabilityQuery'\s*=>/);
-    assert.match(libDiagnosticsPhp, /'nativeOrganizer'\s*=>\s*diagnosticsBuildNativeOrganizerStatus\(\)/);
 });
 
 test('plugin pages emit request token meta tag', () => {
@@ -153,7 +134,7 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
     assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
-    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);

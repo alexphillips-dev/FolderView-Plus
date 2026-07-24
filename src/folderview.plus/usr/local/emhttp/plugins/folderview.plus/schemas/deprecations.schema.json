@@ -52,6 +52,23 @@
       "removedRelease": "2026.07.22.10",
       "forbiddenPatterns": ["\\bfolderEditorMode(?:Explicit)?\\b"],
       "note": "The retired editor-mode preference is not accepted or emitted by the current preference contract."
+    },
+    {
+      "id": "integration.nativeDockerOrganizer",
+      "status": "removed",
+      "kind": "integration",
+      "announcedRelease": "2026.07.24.01",
+      "removedRelease": "2026.07.24.01",
+      "forbiddenPatterns": [
+        "FolderViewPlusNativeOrganizer",
+        "folderviewplus\\.native-organizer",
+        "Native Docker Organizer",
+        "createDockerFolderWithItems",
+        "setDockerFolderChildren",
+        "diagnostics-check-native-organizer",
+        "check_native_organizer"
+      ],
+      "note": "The undocumented organizer GraphQL probes and mutations were removed; the shared GraphQL transport remains available for supported runtime consumers."
     }
   ]
 }

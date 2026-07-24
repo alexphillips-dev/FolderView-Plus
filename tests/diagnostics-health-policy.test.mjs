@@ -75,6 +75,6 @@ test('health summary separates core, advisory, and optional card lanes', () => {
     assert.match(diagnosticsSource, /const coreCards =/);
     assert.match(diagnosticsSource, /advisoryCards: performanceCard \? \[performanceCard\] : \[\]/);
     assert.match(diagnosticsSource, /buildLocalizationDiagnosticsSummaryCard\(\)/);
-    assert.match(diagnosticsSource, /buildNativeOrganizerDiagnosticsSummaryCard\(diagnostics\)/);
+    assert.doesNotMatch(diagnosticsSource, /NativeOrganizer|nativeOrganizer|native_organizer/);
     assert.match(diagnosticsSource, /diagnosticsViewModelModule\.buildDiagnosticsViewModel\(\{/);
 });

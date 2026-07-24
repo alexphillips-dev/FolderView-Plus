@@ -318,13 +318,13 @@ test('Dashboard Started only reconciles folder members without a full widget rel
 });
 
 test('dashboard advanced preview module is loaded before dashboard runtime and exposes attach api', () => {
-    assert.match(dashboardPage, /chart\.min\.js[\s\S]*chartjs-plugin-streaming\.min\.js[\s\S]*dashboard\.advanced-preview\.js[\s\S]*folderviewplus\.native-organizer\.js[\s\S]*dashboard\.js/);
+    assert.match(dashboardPage, /chart\.min\.js[\s\S]*chartjs-plugin-streaming\.min\.js[\s\S]*dashboard\.advanced-preview\.js[\s\S]*dashboard\.js/);
     assert.match(dashboardAdvancedPreviewScript, /root\.FolderViewPlusDashboardAdvancedPreview = factory\(\)/);
     assert.match(dashboardAdvancedPreviewScript, /const attachAdvancedPreview = \(\{ triggerEl, ct, folder = \{\}, id = '', settings = \{\}, cpus = 1 \} = \{\}\) =>/);
     assert.match(dashboardAdvancedPreviewScript, /const parseStatsMessage = \(event, ct, cpus = 1\) =>/);
     assert.match(dashboardAdvancedPreviewScript, /attachedListener/);
     assert.match(dashboardAdvancedPreviewScript, /chart\.canvas/);
-    assert.match(dashboardScript, /FolderViewPlusNativeOrganizer\.syncDockerOrganizer\(globalFolders\.docker, \{ source: 'dashboard-page' \}\)/);
+    assert.doesNotMatch(dashboardScript, /FolderViewPlusNativeOrganizer|syncDockerOrganizer/);
 });
 
 test('shared fatal banner runtime is exposed on settings and runtime pages and exposes fatal reporting helpers', () => {

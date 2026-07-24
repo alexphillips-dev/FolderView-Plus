@@ -54,7 +54,6 @@ window.FolderViewPlusAssetUrls = Object.freeze({ chartStack: [
 </script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.asset-loader.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.advanced-preview.js')?>"></script>
-<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/dashboard.js')?>"></script>
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?php fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">

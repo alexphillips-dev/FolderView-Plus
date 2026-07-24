@@ -154,13 +154,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /diagnosticsT\('diagnostics\.performance\.budget', 'Budget'\)/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics = lastDiagnostics\) =>/);
     assert.doesNotMatch(diagnosticsJs, /resolveDiagnosticsRecommendedActions|renderDiagnosticsActionCards|fv-diagnostics-actions|diagnostics\.fixes\./);
-    assert.match(diagnosticsJs, /const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv\.native\.organizer\.status\.v1';/);
-    assert.match(diagnosticsJs, /const buildNativeOrganizerDiagnosticsSummaryCard = \(diagnostics\) =>/);
-    assert.match(diagnosticsJs, /Native organizer sync status is waiting for the Docker page/);
-    assert.match(diagnosticsJs, /const checkNativeOrganizerDiagnostics = async \(\) =>/);
-    assert.match(diagnosticsJs, /actionKey = 'check_native_organizer'/);
-    assert.match(diagnosticsJs, /status:\s*'info',[\s\S]{0,240}Optional native organizer integration is unavailable/);
-    assert.match(diagnosticsJs, /buildNativeOrganizerDiagnosticsSummaryCard\(diagnostics\)/);
+    assert.doesNotMatch(diagnosticsJs, /NativeOrganizer|nativeOrganizer|native_organizer/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const collectThemeTelemetrySnapshot = \(\) =>/);
@@ -182,9 +176,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
-    assert.match(supportBundleBrowserJs, /nativeOrganizerSource/);
-    assert.match(supportBundleBrowserJs, /failureCategory: normalizeEnum\(nativeOrganizerSource\.failureCategory, NATIVE_ORGANIZER_FAILURE_CATEGORIES\)/);
-    assert.match(diagnosticsJs, /nativeOrganizer: NATIVE_ORGANIZER_STATUS_STORAGE_KEY/);
+    assert.doesNotMatch(supportBundleBrowserJs, /nativeOrganizer|NATIVE_ORGANIZER/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);
     assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);
@@ -379,7 +371,7 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
     assert.match(settingsJs, /const buildOperationsOverviewHtml = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.buildOperationsOverviewHtml\(\.\.\.args\);/);
-    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => \{\s*const result = getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);[\s\S]*renderNativeDockerOrganizerStatus\(\);/);
+    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
     assert.match(settingsJs, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);

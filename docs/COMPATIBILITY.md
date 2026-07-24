@@ -54,10 +54,6 @@ Legacy compatibility is tested, but the old plugin runtime should not remain act
 
 ## Optional integrations
 
-### Native Docker organizer
-
-Native organizer integration is optional. An unavailable, unclassified, or unsupported organizer API is reported as an optional diagnostic notice and does not block FolderView Plus from using its own organization model.
-
 ### Compose Manager
 
 FolderView Plus isolates its Docker runtime and supports Compose-related matching data where available. Compose project auto-rules can use recognized Compose labels and fallbacks. Compose Manager remains a separate plugin; FolderView Plus does not manage its installation or guarantee compatibility with every future page override it may introduce.

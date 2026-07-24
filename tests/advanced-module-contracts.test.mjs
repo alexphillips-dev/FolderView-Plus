@@ -63,7 +63,7 @@ test('settings search includes user-facing aliases for recent support terms', ()
     assert.match(script, /const SETTINGS_SEARCH_ALIASES_BY_SECTION = Object\.freeze\(\{/);
     assert.match(script, /docker:\s*Object\.freeze\(\[[\s\S]*'webui console logs'[\s\S]*'hide status'[\s\S]*'dashboard overlap'/);
     assert.match(script, /'bulk-assignment':\s*Object\.freeze\(\[[\s\S]*'apply update'[\s\S]*'updating folder containers'/);
-    assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'native organizer'[\s\S]*'support bundle'/);
+    assert.match(script, /diagnostics:\s*Object\.freeze\(\[[\s\S]*'support bundle'/);
     assert.match(script, /const getSectionSearchAliases = \(section\) => \{/);
     assert.match(script, /const buildSettingsSearchIndex = \(\) => \{/);
     assert.match(script, /getPrivacySafeSettingsSearchText\(target\)/);

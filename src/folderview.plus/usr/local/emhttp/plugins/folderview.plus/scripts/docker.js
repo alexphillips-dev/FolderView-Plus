@@ -5679,13 +5679,6 @@ const createFolders = async () => {
     // Assign the folder done to the global object
     globalFolders = foldersDone;
     dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
-    if (window.FolderViewPlusNativeOrganizer && typeof window.FolderViewPlusNativeOrganizer.syncDockerOrganizer === 'function') {
-        window.FolderViewPlusNativeOrganizer.syncDockerOrganizer(globalFolders, { source: 'docker-page' }).then((result) => {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Native organizer sync result:', result);
-        }).catch((error) => {
-            if (FOLDER_VIEW_DEBUG_MODE) console.warn('[FV3_DEBUG] Native organizer sync failed:', error);
-        });
-    }
     applyNestedFolderHierarchy();
     syncDockerPinnedFolderUi();
     queueDockerPinnedFolderServerReconcile('post-render', 160);

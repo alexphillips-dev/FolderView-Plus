@@ -9,41 +9,6 @@
     const CONSOLE_ERROR_STORAGE_KEY = 'fv.support.bundle.consoleErrors.v1';
     const CONSOLE_ERROR_LIMIT = 30;
     const DASHBOARD_VISUAL_STALE_AFTER_MS = 30 * 60 * 1000;
-    const NATIVE_ORGANIZER_SOURCES = new Set(['detect', 'docker-page', 'dashboard-page', 'settings', 'diagnostics']);
-    const NATIVE_ORGANIZER_REASONS = new Set([
-        '',
-        'already_synced',
-        'base_api_unavailable',
-        'organizer_unavailable',
-        'organizer_unsupported',
-        'capability_available',
-        'no_organizer_views',
-        'sync_failed'
-    ]);
-    const NATIVE_ORGANIZER_FAILURE_CATEGORIES = new Set([
-        '',
-        'fetch_unavailable',
-        'network',
-        'authentication',
-        'endpoint_unavailable',
-        'http_error',
-        'schema_unsupported',
-        'graphql_error',
-        'invalid_response',
-        'aborted',
-        'unknown'
-    ]);
-    const NATIVE_ORGANIZER_FAILURE_STAGES = new Set([
-        '',
-        'base_api_probe',
-        'organizer_capability_probe',
-        'organizer_read',
-        'organizer_update',
-        'organizer_create',
-        'organizer_sync',
-        'unknown'
-    ]);
-
     const clientStorageIsAvailable = (kind) => {
         try {
             return typeof root?.[kind] !== 'undefined';
@@ -138,7 +103,6 @@
             } catch (_error) {
                 preferenceSaves = null;
             }
-            const nativeOrganizerSource = readClientDiagnosticsStorageRecord(storageKeys.nativeOrganizer || '');
             const normalizePerformancePolicy = (source) => {
                 if (!source || typeof source !== 'object' || Array.isArray(source)) return null;
                 return {
@@ -156,25 +120,6 @@
             };
             const dockerPerformancePolicy = normalizePerformancePolicy(readClientDiagnosticsStorageRecord(storageKeys.dockerPerformancePolicy || ''));
             const vmPerformancePolicy = normalizePerformancePolicy(readClientDiagnosticsStorageRecord(storageKeys.vmPerformancePolicy || ''));
-            const nativeOrganizer = nativeOrganizerSource && typeof nativeOrganizerSource === 'object'
-                ? {
-                    available: true,
-                    schemaVersion: Math.max(0, Number(nativeOrganizerSource.schemaVersion) || 0),
-                    checkedAt: normalizeIsoTimestamp(nativeOrganizerSource.checkedAt),
-                    ok: nativeOrganizerSource.ok === true,
-                    skipped: nativeOrganizerSource.skipped === true,
-                    requested: nativeOrganizerSource.requested === true,
-                    source: normalizeEnum(nativeOrganizerSource.source, NATIVE_ORGANIZER_SOURCES, 'detect'),
-                    reason: normalizeEnum(nativeOrganizerSource.reason, NATIVE_ORGANIZER_REASONS),
-                    failureCategory: normalizeEnum(nativeOrganizerSource.failureCategory, NATIVE_ORGANIZER_FAILURE_CATEGORIES),
-                    failureStage: normalizeEnum(nativeOrganizerSource.failureStage, NATIVE_ORGANIZER_FAILURE_STAGES),
-                    httpStatus: Math.max(0, Math.min(599, Number(nativeOrganizerSource.httpStatus) || 0)),
-                    apiAvailable: nativeOrganizerSource.apiAvailable === true,
-                    organizerApiAvailable: nativeOrganizerSource.organizerApiAvailable === true,
-                    created: Math.max(0, Number(nativeOrganizerSource.created) || 0),
-                    updated: Math.max(0, Number(nativeOrganizerSource.updated) || 0)
-                }
-                : { available: false };
             return {
                 localStorageAvailable: clientStorageIsAvailable('localStorage'),
                 sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
@@ -184,7 +129,6 @@
                     docker: dockerPerformancePolicy,
                     vm: vmPerformancePolicy
                 },
-                nativeOrganizer,
                 folderEditorDebug: {
                     launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),
                     bootstrapPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.bootstrap || '')),

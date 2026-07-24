@@ -7370,10 +7370,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     color: var(--fvplus-settings-chip-success);
 }
 
-.fv-diagnostics-health-card-icon.is-native_organizer {
-    color: var(--fvplus-settings-chip-warning);
-}
-
 .fv-diagnostics-health-card.is-healthy {
     border-color: color-mix(in srgb, var(--fvplus-settings-chip-success) 34%, var(--fvplus-settings-border-subtle));
 }

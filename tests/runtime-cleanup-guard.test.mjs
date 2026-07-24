@@ -17,7 +17,6 @@ const memberIdentityJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const previewModelJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.preview-model.js');
 const settingsTransferJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js');
 const activityDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
-const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const runtimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js');
 const settingsHealthJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
@@ -71,7 +70,6 @@ test('runtime helper APIs omit audited no-op and unconsumed surfaces', () => {
     assert.doesNotMatch(previewModelJs, /\bcreatePreviewModel\b/);
     assert.doesNotMatch(settingsTransferJs, /\bclearClipboardEntry\b/);
     assert.doesNotMatch(activityDiagnosticsJs, /\bsyncDockerOrder\b/);
-    assert.doesNotMatch(nativeOrganizerJs, /\bresetDockerOrganizerSync\b/);
     assert.doesNotMatch(runtimeActionsJs, /\bscanFolderTreeIntegrity\b/);
 });
 

@@ -309,7 +309,7 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /const normalizeOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(localStorage\.getItem\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => \{\s*const result = getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);[\s\S]*renderNativeDockerOrganizerStatus\(\);/);
+    assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
     assert.match(script, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
     assert.match(script, /const selectOperationsTemplate = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.selectOperationsTemplate\(\.\.\.args\);/);
     assert.match(script, /const exportTemplateEntry = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.exportTemplateEntry\(\.\.\.args\);/);
@@ -317,18 +317,6 @@ test('operations workspace remembers source and exposes the shared runtime-templ
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry[\s\S]*\}\);/);
-});
-
-test('operations workspace exposes native Docker organizer sync controls', () => {
-    assert.match(page, /folderviewplus\.native-organizer\.js/);
-    assert.match(page, /id="docker-native-organizer-stage"/);
-    assert.match(page, /onclick="refreshNativeDockerOrganizerStatus\(\)"/);
-    assert.match(page, /onclick="syncNativeDockerOrganizerFromSettings\(\)"/);
-    assert.match(script, /const nativeOrganizerModule = window\.FolderViewPlusNativeOrganizer \|\| null;/);
-    assert.match(script, /const buildNativeDockerOrganizerStatusHtml = \(status = null\) => \{/);
-    assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\('Sync native Docker organizer'\)\) \{/);
-    assert.match(script, /nativeOrganizerModule\.syncDockerOrganizer\(dockers,\s*\{\s*force:\s*true,\s*explicit:\s*true,\s*source:\s*'settings'/);
-    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*refreshNativeDockerOrganizerStatus[\s\S]*syncNativeDockerOrganizerFromSettings[\s\S]*\}\);/);
 });
 
 test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {

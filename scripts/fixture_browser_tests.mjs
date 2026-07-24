@@ -223,7 +223,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1579);
+    assert.equal(snapshot.autoBoundMessageCount, 1569);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -945,7 +945,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.goto(`${baseUrl}/settings`, { waitUntil: 'load' });
     let layout = await readDiagnosticsLayout();
     assert.equal(layout.coreCards, 6);
-    assert.equal(layout.additionalCards, 3);
+    assert.equal(layout.additionalCards, 2);
     assert.equal(layout.coreColumns, 6);
     assert.equal(layout.additionalColumns, 3);
     assert.equal(layout.hasHealthySummary, true);
@@ -958,7 +958,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     assert.equal(layout.metricCopyIsHorizontallyCentered, true);
     assert.equal(layout.metricCopyIsVerticallyCentered, true);
     assert.equal(layout.metricTextIsCentered, true);
-    assert.equal(layout.systemSvgIcons, 9);
+    assert.equal(layout.systemSvgIcons, 8);
     assert.equal(layout.systemIconWidths.every((width) => width >= 32), true);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.storageUpdateIconColors.length, 2);

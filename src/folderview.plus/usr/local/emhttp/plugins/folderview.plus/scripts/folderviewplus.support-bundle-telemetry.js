@@ -356,7 +356,6 @@
             localStorageAvailable: false,
             sessionStorageAvailable: false,
             dockerListViewModeCookie: null,
-            nativeOrganizer: { available: false },
             folderEditorDebug: {
                 launchPresent: false,
                 bootstrapPresent: false,

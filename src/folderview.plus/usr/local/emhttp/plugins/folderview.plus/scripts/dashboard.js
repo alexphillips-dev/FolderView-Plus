@@ -1502,9 +1502,6 @@ const createFolders = async (types = ['docker', 'vm']) => {
     
         // Assing the folder done to the global object
         globalFolders.docker = foldersDone;
-        if (window.FolderViewPlusNativeOrganizer && typeof window.FolderViewPlusNativeOrganizer.syncDockerOrganizer === 'function') {
-            window.FolderViewPlusNativeOrganizer.syncDockerOrganizer(globalFolders.docker, { source: 'dashboard-page' }).catch(() => {});
-        }
         dashboardFolderRenderCompleteByType.docker = true;
         scheduleDashboardLayoutApplyForType('docker');
         }

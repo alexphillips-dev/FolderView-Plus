@@ -2133,36 +2133,6 @@
         ];
     }
 
-    function diagnosticsBuildNativeOrganizerStatus(): array {
-        return [
-            'name' => 'Unraid Docker Organizer',
-            'graphqlEndpoint' => '/graphql',
-            'clientModule' => 'folderviewplus.native-organizer.js',
-            'mode' => 'best_effort_client_sync',
-            'nonFatal' => true,
-            'statusSchemaVersion' => 2,
-            'detectQuery' => '{ info { os { release } cpu { cores } } }',
-            'capabilityQuery' => '{ docker { organizer { views { id } } } }',
-            'organizerQuery' => '{ docker { organizer { views { id flatEntries { id type name childrenIds } } } } }',
-            'failureCategories' => [
-                'fetch_unavailable',
-                'network',
-                'authentication',
-                'endpoint_unavailable',
-                'http_error',
-                'schema_unsupported',
-                'graphql_error',
-                'invalid_response',
-                'aborted',
-                'unknown'
-            ],
-            'mutations' => [
-                'setDockerFolderChildren',
-                'createDockerFolderWithItems'
-            ]
-        ];
-    }
-
     function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
@@ -2263,7 +2233,6 @@
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
             'durableStorage' => getDurableStorageRuntimeSnapshot(),
-            'nativeOrganizer' => diagnosticsBuildNativeOrganizerStatus(),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
             'customIcons' => $customIcons,
             'importExportHistory' => [
@@ -2792,7 +2761,6 @@
                 'customIcons' => $customIcons
             ],
             'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
-            'nativeOrganizer' => is_array($diagnostics['nativeOrganizer'] ?? null) ? $diagnostics['nativeOrganizer'] : diagnosticsBuildNativeOrganizerStatus(),
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
     }

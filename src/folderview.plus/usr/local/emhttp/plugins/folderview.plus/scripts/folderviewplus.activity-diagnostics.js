@@ -140,7 +140,6 @@ const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
-const NATIVE_ORGANIZER_STATUS_STORAGE_KEY = 'fv.native.organizer.status.v1';
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
         if (typeof localStorage === 'undefined') {
@@ -674,7 +673,6 @@ const getSupportBundleTelemetryApi = () => {
                 launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
                 bootstrap: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
                 surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY,
-                nativeOrganizer: NATIVE_ORGANIZER_STATUS_STORAGE_KEY,
                 dockerPage: 'fv.support.bundle.docker.page.v1',
                 dockerBulkUpdateTrace: 'fv.support.bundle.docker.bulkUpdateTrace.v1',
                 dockerRequestBundleTrace: 'fv.support.bundle.docker.requestBundleTrace.v1',
@@ -1477,139 +1475,6 @@ const buildThemeDiagnosticsSummaryCard = () => {
     };
 };
 
-const buildNativeOrganizerDiagnosticsSummaryCard = (diagnostics) => {
-    const nativeConfig = diagnostics?.nativeOrganizer && typeof diagnostics.nativeOrganizer === 'object'
-        ? diagnostics.nativeOrganizer
-        : null;
-    if (!nativeConfig) {
-        return null;
-    }
-    const browserStatus = readClientDiagnosticsStorageRecord(NATIVE_ORGANIZER_STATUS_STORAGE_KEY);
-    const checkedAt = browserStatus?.checkedAt ? formatCheckedAtLabel(browserStatus.checkedAt) : '';
-    const reason = String(browserStatus?.reason || '').trim();
-    const source = String(browserStatus?.source || '').trim();
-    const created = Number(browserStatus?.created);
-    const updated = Number(browserStatus?.updated);
-    const syncedCount = (Number.isFinite(created) ? created : 0) + (Number.isFinite(updated) ? updated : 0);
-    const failureCategory = String(browserStatus?.failureCategory || '').trim().toLowerCase();
-    const failureStage = String(browserStatus?.failureStage || '').trim().toLowerCase();
-    const httpStatus = Number(browserStatus?.httpStatus);
-    const apiAvailable = browserStatus?.apiAvailable === true;
-    const organizerApiAvailable = browserStatus?.organizerApiAvailable === true;
-    const requested = browserStatus?.requested === true || source === 'settings';
-    const failureLabels = {
-        fetch_unavailable: 'Browser fetch support was unavailable',
-        network: 'The GraphQL request could not reach the API',
-        authentication: 'The GraphQL request was not authorized',
-        endpoint_unavailable: 'The GraphQL endpoint was not found',
-        http_error: 'The GraphQL endpoint returned an HTTP error',
-        schema_unsupported: 'This Unraid API does not expose Docker Organizer fields',
-        graphql_error: 'The GraphQL API rejected the organizer request',
-        invalid_response: 'The GraphQL endpoint returned an unexpected response',
-        aborted: 'The organizer check was interrupted',
-        unknown: 'The organizer check returned an unclassified result'
-    };
-    const failureLabel = failureLabels[failureCategory] || '';
-    const safeFailureDetail = [
-        failureLabel,
-        Number.isInteger(httpStatus) && httpStatus >= 100 && httpStatus <= 599 ? `HTTP ${httpStatus}` : '',
-        failureStage ? `stage ${failureStage.replace(/_/g, ' ')}` : ''
-    ].filter(Boolean).join('; ');
-    const actionKey = 'check_native_organizer';
-    const finalizeNativeOrganizerCard = (card) => ({
-        ...card,
-        freshness: browserStatus?.checkedAt
-            ? `Checked ${formatCheckedAtLabel(browserStatus.checkedAt)}`
-            : 'Not tested in this browser session',
-        technicalDetails: [
-            reason ? `Result: ${reason.replace(/_/g, ' ')}` : '',
-            source ? `Source: ${source}` : '',
-            safeFailureDetail ? `Probe detail: ${safeFailureDetail}` : ''
-        ].filter(Boolean)
-    });
-
-    if (!browserStatus) {
-        return finalizeNativeOrganizerCard({
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'info',
-            headline: 'Native organizer sync status is waiting for the Docker page.',
-            detail: 'This optional integration has not been checked in this browser yet.',
-            count: 0,
-            meta: 'Optional integration',
-            actionKey
-        });
-    }
-    if (browserStatus.ok === true && browserStatus.skipped !== true) {
-        return finalizeNativeOrganizerCard({
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'healthy',
-            headline: syncedCount > 0
-                ? `Native organizer synced ${syncedCount} folder change${syncedCount === 1 ? '' : 's'}.`
-                : 'Native organizer API detected; no folder changes were needed.',
-            detail: `Last sync ${checkedAt}${source ? ` from ${source}` : ''}.`,
-            count: 0,
-            actionKey
-        });
-    }
-    if (organizerApiAvailable && ['capability_available', 'already_synced', 'no_organizer_views'].includes(reason)) {
-        return finalizeNativeOrganizerCard({
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'healthy',
-            headline: reason === 'no_organizer_views'
-                ? 'Native organizer API detected; no organizer view is configured.'
-                : 'Native organizer API is available.',
-            detail: `Capability checked ${checkedAt || 'recently'}${source ? ` from ${source}` : ''}.`,
-            count: 0,
-            actionKey
-        });
-    }
-    const unavailable = reason === 'graphql_unavailable'
-        || reason === 'fetch_unavailable'
-        || reason === 'base_api_unavailable'
-        || reason === 'organizer_unavailable'
-        || reason === 'organizer_unsupported'
-        || apiAvailable !== true
-        || organizerApiAvailable !== true;
-    if (unavailable) {
-        return finalizeNativeOrganizerCard({
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'info',
-            headline: apiAvailable && reason === 'organizer_unsupported'
-                ? 'Native Docker Organizer is not exposed by this Unraid API.'
-                : 'Optional native organizer integration is unavailable.',
-            detail: 'FolderView Plus is unaffected and continues normally.',
-            count: 0,
-            meta: 'Optional integration',
-            actionKey
-        });
-    }
-    if (requested && organizerApiAvailable) {
-        return finalizeNativeOrganizerCard({
-            key: 'nativeOrganizer',
-            label: 'Native Docker Organizer',
-            status: 'warning',
-            headline: 'A requested native organizer sync failed.',
-            detail: `${safeFailureDetail || 'The organizer mutation was not completed'}. FolderView Plus data was not affected.`,
-            count: 1,
-            actionKey
-        });
-    }
-    return finalizeNativeOrganizerCard({
-        key: 'nativeOrganizer',
-        label: 'Native Docker Organizer',
-        status: 'info',
-        headline: 'Automatic native organizer sync was skipped.',
-        detail: `${safeFailureDetail || 'The optional background sync did not complete'}. FolderView Plus continues normally.`,
-        count: 0,
-        meta: 'Optional integration',
-        actionKey
-    });
-};
-
 const buildPerformanceBudgetDiagnosticsSummaryCard = () => {
     const telemetry = collectClientPerformanceTelemetry();
     const settingsTelemetry = telemetry?.settings && typeof telemetry.settings === 'object'
@@ -1795,7 +1660,7 @@ const renderDiagnosticsSummary = (diagnostics = lastDiagnostics) => {
     }
     const performanceCard = hasResults ? buildPerformanceBudgetDiagnosticsSummaryCard() : null;
     const additionalCards = hasResults
-        ? [buildNativeOrganizerDiagnosticsSummaryCard(diagnostics), buildLocalizationDiagnosticsSummaryCard()].filter(Boolean)
+        ? [buildLocalizationDiagnosticsSummaryCard()].filter(Boolean)
         : [];
     const model = diagnosticsViewModelModule.buildDiagnosticsViewModel({
         hasResults,
@@ -1868,40 +1733,6 @@ const retestPerformanceDiagnostics = async () => {
         diagnosticsShowError('Performance retest failed', error);
     } finally {
         buttons.forEach((button) => { button.disabled = false; });
-    }
-};
-
-const checkNativeOrganizerDiagnostics = async () => {
-    const organizerModule = window.FolderViewPlusNativeOrganizer || null;
-    const buttons = Array.from(document.querySelectorAll('[data-fv-ui-action="diagnostics-check-native-organizer"]'));
-    buttons.forEach((button) => { button.disabled = true; });
-    try {
-        if (!organizerModule || typeof organizerModule.checkCapabilities !== 'function') {
-            throw new Error('The native organizer capability checker is not loaded.');
-        }
-        const result = await organizerModule.checkCapabilities({
-            force: true,
-            requested: false,
-            source: 'diagnostics'
-        });
-        renderDiagnosticsSummary(lastDiagnostics);
-        void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
-        const available = result?.organizerApiAvailable === true;
-        diagnosticsShowToastMessage({
-            title: available ? 'Native organizer available' : 'Native organizer check complete',
-            message: available
-                ? 'The optional native Docker Organizer API is available.'
-                : 'The optional organizer API is not available; FolderView Plus continues normally.',
-            level: available ? 'success' : 'info'
-        });
-        return result;
-    } catch (error) {
-        diagnosticsShowError('Native organizer check failed', error);
-        return null;
-    } finally {
-        document.querySelectorAll('[data-fv-ui-action="diagnostics-check-native-organizer"]').forEach((button) => {
-            button.disabled = false;
-        });
     }
 };
 
@@ -2419,7 +2250,6 @@ Object.assign(window, {
     renderDiagnostics,
     runDiagnostics,
     retestPerformanceDiagnostics,
-    checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
     exportDiagnosticsByMode,
@@ -2458,7 +2288,6 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     renderDiagnostics,
     runDiagnostics,
     retestPerformanceDiagnostics,
-    checkNativeOrganizerDiagnostics,
     repairDiagnostics,
     renderDiagnosticsSummary,
     exportDiagnosticsByMode,

@@ -19,7 +19,6 @@ const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plu
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
 const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
-const nativeOrganizerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCommandViewCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.command-view.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
@@ -54,7 +53,6 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
-    const nativeOrganizerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.native-organizer.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const themeTokensCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/theme.tokens.css');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
@@ -76,7 +74,6 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(diagnosticsIndex >= 0, 'docker diagnostics script include is missing');
     assert.ok(reconcileIndex >= 0, 'docker reconcile script include is missing');
     assert.ok(commandViewIndex >= 0, 'docker command-view script include is missing');
-    assert.ok(nativeOrganizerIndex >= 0, 'native organizer script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(themeTokensCssIndex >= 0, 'shared theme token stylesheet include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
@@ -103,8 +100,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
     assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
-    assert.ok(commandViewIndex < nativeOrganizerIndex, 'docker command-view helpers must load before native organizer helper');
-    assert.ok(nativeOrganizerIndex < runtimeIndex, 'native organizer helper must load before docker.js');
+    assert.ok(commandViewIndex < runtimeIndex, 'docker command-view helpers must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
@@ -124,19 +120,6 @@ test('docker runtime uses the shared host adapter as its Unraid integration boun
     assert.match(dockerJs, /window\.getDockerHostAdapterSnapshot =/);
     assert.doesNotMatch(dockerRuntimeReconcileJs, /__fvplusDockerRuntimeStatePatched/);
     assert.match(dockerRuntimeReconcileJs, /wrapHostHook\('addDockerContainerContext'/);
-});
-
-test('native organizer helper exposes best-effort GraphQL sync contract', () => {
-    assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizer = factory\(root\);/);
-    assert.match(nativeOrganizerJs, /root\.FolderViewPlusNativeOrganizerModuleLoaded = true;/);
-    assert.match(nativeOrganizerJs, /const graphQL = async \(query, variables = null, options = \{\}\) =>/);
-    assert.match(nativeOrganizerJs, /fetch\('\/graphql'/);
-    assert.match(nativeOrganizerJs, /const detectOrganizerApi = async \(options = \{\}\) =>/);
-    assert.match(nativeOrganizerJs, /const checkCapabilities = async \(options = \{\}\) =>/);
-    assert.match(nativeOrganizerJs, /const syncDockerOrganizer = async \(folders = \{\}, options = \{\}\) =>/);
-    assert.match(nativeOrganizerJs, /setDockerFolderChildren/);
-    assert.match(nativeOrganizerJs, /createDockerFolderWithItems/);
-    assert.match(dockerJs, /FolderViewPlusNativeOrganizer\.syncDockerOrganizer\(globalFolders, \{ source: 'docker-page' \}\)/);
 });
 
 test('docker extracted helper modules export createApi entry points with safe global fallbacks', () => {

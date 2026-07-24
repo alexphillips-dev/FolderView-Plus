@@ -21,7 +21,6 @@
         update: Object.freeze({ icon: 'upload' }),
         theme: Object.freeze({ icon: 'paintbrush' }),
         performance_budget: Object.freeze({ icon: 'activity' }),
-        native_organizer: Object.freeze({ icon: 'puzzle', action: 'diagnostics-check-native-organizer' }),
         localization: Object.freeze({ icon: 'globe' })
     });
 

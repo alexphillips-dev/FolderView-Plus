@@ -63,7 +63,6 @@ const dockerDiagnosticsReports = [];
 const dockerUpdateFlowReports = [];
 const dockerPreviewStatusReports = [];
 const dashboardAdvancedPreviewReports = [];
-const nativeOrganizerDiagnosticsReports = [];
 const localizationReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
@@ -923,48 +922,6 @@ const runDockerPreviewStatusSmoke = async (page, { browserName, url }) => {
     };
 };
 
-const runNativeOrganizerDiagnosticsSmoke = async (page, { browserName, settingsUrl }) => {
-    await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-    await waitForSettingsShell(page);
-    const report = await page.evaluate(async () => {
-        localStorage.setItem('fv.native.organizer.status.v1', JSON.stringify({
-            checkedAt: new Date().toISOString(),
-            ok: false,
-            skipped: true,
-            reason: 'graphql_unavailable',
-            source: 'detect'
-        }));
-        if (typeof window.runDiagnostics === 'function') {
-            await window.runDiagnostics();
-        }
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        const summaryText = String(document.querySelector('#fv-diagnostics-summary')?.textContent || '');
-        const organizerCard = Array.from(document.querySelectorAll('#fv-diagnostics-summary .fv-diagnostics-card'))
-            .find((card) => /Native Docker Organizer/i.test(String(card.textContent || '')));
-        return {
-            cardPresent: /Native Docker Organizer/i.test(summaryText),
-            waitingStatePresent: /waiting for the Docker page/i.test(summaryText),
-            optionalStatePresent: organizerCard?.classList.contains('is-info') === true,
-            checkAgainPresent: Boolean(organizerCard?.querySelector('[data-fv-diagnostics-card-action="check_native_organizer"]')),
-            organizerIssueCountPresent: /related issue/i.test(String(organizerCard?.textContent || '')),
-            summaryTextLength: summaryText.length
-        };
-    });
-    if (report.cardPresent !== true) {
-        throw new Error(`Native organizer diagnostics card was not rendered for ${browserName}.`);
-    }
-    if (report.optionalStatePresent !== true || report.checkAgainPresent !== true || report.organizerIssueCountPresent === true) {
-        throw new Error(`Native organizer unavailability was not rendered as a non-issue optional state for ${browserName}.`);
-    }
-    console.log(`Native organizer diagnostics smoke passed: ${browserName} ${JSON.stringify(report)}`);
-    return {
-        browserName,
-        url: settingsUrl,
-        pass: true,
-        ...report
-    };
-};
-
 const waitForSettingsShell = async (page) => {
     await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
     await page.locator('#fv-settings-search').waitFor({ state: 'visible', timeout: timeoutMs });
@@ -1520,14 +1477,6 @@ const runBrowserSmoke = async (browserName, browserType) => {
             }
         }
 
-        const nativeOrganizerReport = await runNativeOrganizerDiagnosticsSmoke(page, {
-            browserName,
-            settingsUrl: targetUrl
-        });
-        if (nativeOrganizerReport) {
-            nativeOrganizerDiagnosticsReports.push(nativeOrganizerReport);
-        }
-
         for (const type of ['docker', 'vm']) {
             const folderEditorReport = await runFolderEditorToggleSmoke(page, {
                 browserName,
@@ -1571,7 +1520,6 @@ try {
         dockerPreviewStatusReports,
         dashboardReports,
         dashboardAdvancedPreviewReports,
-        nativeOrganizerDiagnosticsReports,
         localizationReports,
         folderEditorReports
     };

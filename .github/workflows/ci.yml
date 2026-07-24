@@ -74,6 +74,7 @@ jobs:
               - 'scripts/docs_metadata_guard.sh'
               - 'scripts/release_notes_consistency_guard.sh'
               - 'scripts/workflow_self_check.sh'
+              - 'scripts/unraid_docker_upstream_monitor.sh'
               - 'tests/versioning-guard.test.mjs'
             runtime:
               - 'src/**'

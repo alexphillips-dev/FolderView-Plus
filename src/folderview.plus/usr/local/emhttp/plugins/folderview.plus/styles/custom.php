@@ -1,5 +1,6 @@
 <?php
     require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
+    $conditionalDockerLegacyAssets = !empty($fvplusDockerLegacyConditionalAssets);
     $seen = [];
     foreach (getCustomOverrideDirs('styles') as $stylesDir) {
         $baseDir = realpath($stylesDir);
@@ -19,7 +20,9 @@
                 continue;
             }
             $seen[$resolved] = true;
-            echo "<link rel=\"stylesheet\" href=\"";
+            echo $conditionalDockerLegacyAssets
+                ? "<link rel=\"stylesheet\" media=\"not all\" data-fvplus-docker-legacy-style=\"true\" href=\""
+                : "<link rel=\"stylesheet\" href=\"";
             autov($resolved);
             echo  "\">";
         }

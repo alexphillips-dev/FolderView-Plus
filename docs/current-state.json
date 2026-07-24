@@ -100,7 +100,8 @@
       "docs/runtime-host-adapter.md",
       "docs/shared-ui-primitives.md",
       "docs/vm-runtime-architecture.md",
-      "docs/visual-runtime-contract.md"
+      "docs/visual-runtime-contract.md",
+      "docs/unraid-docker-interface-compatibility.md"
     ],
     "retiredTerms": [
       { "term": "saved indicator", "files": ["README.md"] },

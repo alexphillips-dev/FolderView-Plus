@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FolderView Plus future Docker host fixture</title>
+</head>
+<body>
+    <main id="native-host" class="unapi">
+        <unraid-docker-container-overview data-native-owner="unraid">
+            <section id="native-container-list">Native Docker UI remains authoritative.</section>
+        </unraid-docker-container-overview>
+    </main>
+    <script>
+        (() => {
+            const nativeFetch = window.fetch.bind(window);
+            const calls = [];
+            window.csrf_token = 'future-host-fixture-token';
+            window.loadlist = () => 'native-loadlist';
+            window.eventControl = undefined;
+            window.fixtureFutureDocker = {
+                calls,
+                originalLoadlist: window.loadlist,
+                nativeMarkupBefore: document.querySelector('#native-host').innerHTML,
+                fatalErrors: []
+            };
+            window.addEventListener('error', (event) => {
+                window.fixtureFutureDocker.fatalErrors.push(String(event.message || 'runtime error'));
+            });
+            window.fetch = async (input, options = {}) => {
+                if (!String(input).includes('/graphql')) return nativeFetch(input, options);
+                const body = JSON.parse(String(options.body || '{}'));
+                calls.push({
+                    operation: body.query.includes('FVPlusDockerCapabilities')
+                        ? 'capabilities'
+                        : (body.query.includes('FVPlusApiVersion') ? 'version' : 'other'),
+                    csrf: options.headers?.['x-csrf-token'] || ''
+                });
+                let data = { __typename: 'Query' };
+                if (body.query.includes('FVPlusDockerCapabilities')) {
+                    data = {
+                        queryType: { fields: [{ name: 'docker' }, { name: 'info' }] },
+                        mutationType: { fields: [{ name: 'docker' }, { name: 'createDockerFolder' }] },
+                        subscriptionType: { fields: [{ name: 'dockerContainerStats' }] },
+                        dockerType: { fields: [{ name: 'containers' }, { name: 'organizer' }] },
+                        dockerMutationsType: { fields: ['start', 'stop', 'restart', 'pause', 'unpause'].map((name) => ({ name })) }
+                    };
+                } else if (body.query.includes('FVPlusApiVersion')) {
+                    data = {
+                        info: {
+                            versions: {
+                                core: { unraid: '7.4.0-fixture', api: '4.40.0-fixture' }
+                            }
+                        }
+                    };
+                }
+                return new Response(JSON.stringify({ data }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            };
+        })();
+    </script>
+    <script src="/plugin/scripts/runtime.transport.js"></script>
+    <script src="/plugin/scripts/runtime.host-compatibility.js"></script>
+    <script>
+        window.FolderViewPlusDockerHostCompatibilityController =
+            window.FolderViewPlusHostCompatibility.getDefaultController({ window, document });
+        window.FolderViewPlusDockerHostCompatibilityDecision =
+            window.FolderViewPlusDockerHostCompatibilityController.evaluateDockerRuntime();
+    </script>
+    <script src="/plugin/scripts/docker.runtime.providers.js"></script>
+    <script>
+        window.FolderViewPlusDockerRuntimeAssetUrl = '/plugin/scripts/docker.js';
+        window.FolderViewPlusDockerCustomScriptsReady = Promise.resolve();
+    </script>
+    <script src="/plugin/scripts/docker.bootstrap.js"></script>
+    <link rel="stylesheet" media="not all" data-fvplus-docker-legacy-style="true" href="/plugin/styles/runtime.shared.css">
+    <script>
+        window.fixtureFutureDocker.snapshot = () => ({
+            compatibility: window.FolderViewPlusHostCompatibility.getDefaultController().getSnapshot(),
+            providers: window.FolderViewPlusDockerProviders.getDefaultRegistry().snapshot(),
+            nativeMarkupBefore: window.fixtureFutureDocker.nativeMarkupBefore,
+            nativeMarkupAfter: document.querySelector('#native-host').innerHTML,
+            loadlistUnchanged: window.loadlist === window.fixtureFutureDocker.originalLoadlist,
+            classicTableCount: document.querySelectorAll('table#docker_containers').length,
+            folderRowCount: document.querySelectorAll('tr.folder').length,
+            pluginActionBarCount: document.querySelectorAll('#fvplus-docker-action-bar').length,
+            enabledLegacyStyleCount: Array.from(
+                document.querySelectorAll('link[data-fvplus-docker-legacy-style="true"]')
+            ).filter((link) => link.media === 'all').length,
+            fatalBannerCount: document.querySelectorAll('.fvplus-fatal-banner').length,
+            legacyRuntimeExports: {
+                createFolderBtn: typeof window.createFolderBtn,
+                hostAdapterSnapshot: typeof window.getDockerHostAdapterSnapshot
+            }
+        });
+    </script>
+</body>
+</html>

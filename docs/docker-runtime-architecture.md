@@ -7,6 +7,16 @@ This document tracks the staged modularization of `docker.js` while preserving U
 - `scripts/runtime.host-adapter.js`
   - Defines the versioned Docker and VM host-page contracts.
   - Owns host table/body/row discovery, structure validation, row observation, and idempotent global hook wrapping.
+- `scripts/runtime.host-compatibility.js`
+  - Detects legacy table, native component, and unknown Docker host generations before the legacy runtime initializes.
+  - Owns the no-overlay coexistence decision and aggregate compatibility evidence.
+- `scripts/docker.runtime.providers.js`
+  - Defines legacy WebGUI, Unraid GraphQL, and unsupported providers for container listing, identity, subscriptions, actions, organization authority, and UI ownership.
+- `scripts/docker.bootstrap.js`
+  - Re-detects the fully parsed Docker host, prepares the selected provider, and loads the legacy runtime only after a complete legacy table contract is confirmed.
+  - Keeps legacy CSS and custom Docker overrides disabled on native and unknown hosts.
+- `scripts/runtime.transport.js`
+  - Owns CSRF-aware GraphQL requests, schema capability detection, typed Docker actions, bounded subscription reconnect, stale/abort handling, and privacy-safe transport diagnostics.
 - `scripts/docker.runtime.shared.js`
   - `createRuntimeStateStore`: single source of truth for runtime UI state.
   - `createAsyncActionBoundary`: normalized async error handling and user-safe messaging.
@@ -20,7 +30,8 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 ## Runtime Ownership
 
-- `docker.js` keeps Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter.
+- `docker.bootstrap.js` is the only production loader for `docker.js`, which starts only for the complete legacy table contract. The runtime keeps legacy Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter.
+- The native Docker component remains owned by Unraid. FolderView Plus does not overlay it or mutate the prerelease organizer.
 - `docker.runtime.host-guards.js` is the Docker diagnostics facade over the shared adapter; it does not implement a second hook or selector system.
 - Shared modules own reusable primitives so feature logic is testable without large-file rewrites.
 - Store-backed state currently includes:
@@ -39,7 +50,9 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 
 ## Guardrails
 
-- New shared module is loaded in `folderview.plus.Docker.page` before `docker.modules.js` and `docker.js`.
+- Shared modules load in `folderview.plus.Docker.page` before `docker.bootstrap.js`.
+- Bootstrap repeats host detection after parsing, then enables legacy styles, loads legacy custom overrides in sequence, and finally loads `docker.js` only for a confirmed complete table contract.
+- Native and unknown generations keep every legacy stylesheet inert and return before custom overrides, adapters, hooks, requests, observers, or jQuery prefilters are created.
 - Unraid lifecycle globals (`loadlist`, `listview`, `openDocker`, `eventControl`, and `addDockerContainerContext`) are wrapped idempotently by the adapter, with compatibility aliases retained for host/plugin interoperability.
 - Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
@@ -51,6 +64,10 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
   - `tests/runtime-host-adapter.test.mjs`
   - `tests/docker-folder-row-quick-actions.test.mjs`
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
+  - `tests/unraid-docker-future-compatibility.test.mjs`
+  - `tests/unraid-upstream-monitor.test.mjs`
+- Deterministic native-host browser coverage:
+  - `tests/browser/fixtures/future-docker-host.html`
 - Perf telemetry snapshot is exposed as:
   - `window.getDockerRuntimePerfTelemetrySnapshot()`
   - `window.getVmRuntimePerfTelemetrySnapshot()`

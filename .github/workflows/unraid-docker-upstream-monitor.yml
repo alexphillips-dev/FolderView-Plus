@@ -1,0 +1,53 @@
+name: Unraid Docker Upstream Monitor
+
+on:
+  schedule:
+    - cron: '43 9 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: folderview-plus-unraid-docker-upstream-monitor
+  cancel-in-progress: true
+
+jobs:
+  monitor:
+    name: Check native Docker page activation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout FolderView Plus
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch current Unraid release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/unraid/docs.git "${RUNNER_TEMP}/unraid-docs"
+          git -C "${RUNNER_TEMP}/unraid-docs" sparse-checkout set docs/unraid-os/release-notes
+
+      - name: Check upstream activation signals
+        id: monitor
+        shell: bash
+        run: |
+          bash scripts/unraid_docker_upstream_monitor.sh \
+            --release-notes-dir "${RUNNER_TEMP}/unraid-docs/docs/unraid-os/release-notes" \
+            --github-output "${GITHUB_OUTPUT}" \
+            --json
+
+      - name: Publish monitor summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Unraid Docker interface monitor"
+            echo
+            echo "- Status: \`${{ steps.monitor.outputs.status || 'unknown' }}\`"
+            echo "- Reason: \`${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}\`"
+            echo "- Source gate: \`${{ steps.monitor.outputs.source_gate || 'unknown' }}\`"
+            echo "- Release announcement: \`${{ steps.monitor.outputs.release_announcement || 'unknown' }}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"

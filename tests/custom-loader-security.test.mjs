@@ -22,3 +22,14 @@ test('custom script loader resolves and validates paths against base override di
     assert.match(scriptsCustomPhp, /strpos\(\$resolved, \$baseDir \. '\/'\) !== 0/);
     assert.match(scriptsCustomPhp, /autov\(\$resolved\)/);
 });
+
+test('Docker native compatibility mode keeps legacy custom assets inert', () => {
+    assert.match(stylesCustomPhp, /\$fvplusDockerLegacyConditionalAssets/);
+    assert.match(stylesCustomPhp, /media=\\"not all\\" data-fvplus-docker-legacy-style=\\"true\\"/);
+    assert.match(scriptsCustomPhp, /\$fvplusDockerLegacyConditionalAssets/);
+    assert.match(scriptsCustomPhp, /FolderViewPlusDockerLoadCustomScripts/);
+    assert.match(scriptsCustomPhp, /fvplusDockerCustomScriptsPromise/);
+    assert.match(scriptsCustomPhp, /JSON_HEX_TAG \| JSON_HEX_AMP \| JSON_HEX_APOS \| JSON_HEX_QUOT/);
+    assert.match(scriptsCustomPhp, /document\.createElement\("script"\)/);
+    assert.doesNotMatch(scriptsCustomPhp, /document\.write/);
+});

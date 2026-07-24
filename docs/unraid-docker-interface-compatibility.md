@@ -1,0 +1,105 @@
+# Unraid Docker Interface Compatibility
+
+This document defines how FolderView Plus coexists with the current table-based Unraid Docker page and the native component/API replacement being developed by Unraid.
+
+The upstream implementation was last reviewed on 2026-07-24. At that point, Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The implementation is therefore treated as prerelease and its organizer fields are not a stable third-party contract.
+
+## Host generations
+
+`scripts/runtime.host-compatibility.js` detects a Docker host from page capabilities and shape rather than an Unraid version string:
+
+| Generation | Required evidence | FolderView Plus behavior |
+| --- | --- | --- |
+| `legacy-docker-table` | Complete `#docker_containers`, `#docker_list`, and header contract | Start the existing FolderView Plus Docker runtime |
+| `native-docker-vue` | Native `unraid-docker-container-overview` component | Leave the Docker page owned by Unraid; do not add folders or wrap legacy hooks |
+| `unknown-docker-host` | Neither supported contract is complete | Leave the page untouched and record compatibility evidence |
+
+Native detection wins if native and legacy elements briefly coexist. This prevents duplicate folder systems during a transitional render.
+
+The detector records only aggregate booleans and versions. It does not record container names, IDs, paths, addresses, URLs, or native organizer contents.
+
+`scripts/docker.bootstrap.js` repeats detection after the page has parsed. Only a confirmed legacy host enables the FolderView Plus Docker styles, loads user Docker overrides, and loads `docker.js`. Native and unknown hosts therefore do not receive dormant legacy selectors or custom-script side effects.
+
+## Provider boundary
+
+`scripts/docker.runtime.providers.js` exposes the same operations through three providers:
+
+- `legacy-webgui`
+- `unraid-graphql`
+- `unsupported-unknown`
+
+The boundary covers:
+
+- List containers.
+- Resolve container identity.
+- Read status metadata.
+- Subscribe or poll for runtime changes.
+- Execute capability-approved lifecycle actions.
+- Describe the organization authority.
+- Describe whether FolderView Plus may own a UI surface.
+
+Dashboard actions resolve through this provider boundary. Current table-based hosts continue to use Unraid's `eventControl`. A host without that hook can use GraphQL only after the API schema confirms the required query and mutation.
+
+## GraphQL contract
+
+`scripts/runtime.transport.js` performs an availability and schema capability probe before using Docker API operations. It supports both:
+
+- Current schema shape: `docker { containers { ... } }`
+- Previously documented shape: `dockerContainers { ... }`
+
+Lifecycle mutations use Unraid's `DockerMutations` and pass the API-returned container identity as `PrefixedID`. `resume` maps to the schema's `unpause` mutation. Start, stop, restart, pause, and unpause are enabled independently; an older API without restart support does not receive a restart request.
+
+Requests:
+
+- Send the signed-in webGUI session cookies with same-origin credentials.
+- Send `x-csrf-token` when Unraid exposes `csrf_token`.
+- Distinguish authentication, permission, rate-limit, unavailable, timeout, abort, stale-response, partial-data, and schema-capability failures.
+- Abort or ignore stale work when a newer keyed request supersedes it.
+- Keep raw server messages, identifiers, endpoints, and request values out of transport diagnostics.
+
+Subscriptions cleanly close and have bounded exponential reconnect behavior. When a compatible Docker subscription is unavailable, a provider can use non-overlapping polling.
+
+## Native organizer coexistence
+
+Unraid owns organization on the native Docker page. FolderView Plus:
+
+- Does not overlay its folder rows on the native component.
+- Does not invoke native organizer mutations.
+- Does not read or write the organizer backing file directly.
+- Detects organizer query/mutation availability only for compatibility diagnostics.
+- Does not migrate FolderView Plus folders into native folders until Unraid publishes a stable supported schema and a separately reviewed migration design exists.
+
+FolderView Plus continues to own its saved folder data, rules, health policy, privacy policy, backups, Settings experience, diagnostics, and current Dashboard/VM features. Native Docker-page coexistence does not delete or rewrite those settings.
+
+## Compatibility evidence
+
+Sanitized support bundles include `uiTelemetry.dockerDiagnostics.compatibility` with:
+
+- Host generation and page-shape booleans.
+- Presence of supported classic hooks.
+- Selected provider and fallback state.
+- GraphQL endpoint availability and API/Unraid versions when queryable.
+- Container query shape.
+- Per-action mutation availability.
+- Subscription availability.
+- Native organizer query/mutation detection with the fixed `detect-only` policy.
+
+The browser fixture `future-docker-host.html` verifies that a native page:
+
+- Produces no fatal runtime error.
+- Receives no FolderView Plus folder rows or action bar.
+- Has no legacy host hooks wrapped.
+- Keeps its component markup unchanged.
+- Initializes sanitized capability evidence.
+- Releases provider resources on navigation.
+
+## Activation triggers
+
+`scripts/unraid_docker_upstream_monitor.sh` treats either of these as an activation signal:
+
+1. Upstream `docker-containers-page.modification.ts` changes to `shouldApply: true`.
+2. Supplied official release notes announce a native/new Docker page or interface.
+
+An unrecognizable source shape is also a blocking signal because silently assuming the replacement remains disabled would be unsafe. The scheduled workflow `.github/workflows/unraid-docker-upstream-monitor.yml` checks the source and current Unraid release notes weekly and can be run manually.
+
+See [Unraid Docker Prerelease Qualification](unraid-docker-prerelease-qualification.md) before changing the coexistence policy.

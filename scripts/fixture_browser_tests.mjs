@@ -93,6 +93,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'dashboard-lifecycle.html');
         } else if (requestUrl.pathname === '/vm-lifecycle') {
             filePath = path.join(fixtureDir, 'vm-lifecycle.html');
+        } else if (requestUrl.pathname === '/future-docker-host') {
+            filePath = path.join(fixtureDir, 'future-docker-host.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -223,7 +225,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1569);
+    assert.equal(snapshot.autoBoundMessageCount, 1581);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -253,6 +255,56 @@ test('Docker and VM host adapters share row, structure, and idempotent hook cont
         ['second-handler', 'refresh'],
         ['original', 'refresh']
     ]);
+});
+
+test('future native Docker host stays authoritative while compatibility diagnostics initialize', async ({ page }) => {
+    await page.goto(`${baseUrl}/future-docker-host`, { waitUntil: 'load' });
+    await page.waitForFunction(() => (
+        window.fixtureFutureDocker?.snapshot().compatibility?.provider?.state === 'ready'
+    ));
+    const snapshot = await page.evaluate(() => window.fixtureFutureDocker.snapshot());
+    assert.equal(snapshot.compatibility.hostGeneration, 'native-docker-vue');
+    assert.equal(snapshot.compatibility.runtimeActivationAllowed, false);
+    assert.equal(snapshot.compatibility.ownership.dockerPage, 'unraid-native');
+    assert.equal(snapshot.compatibility.ownership.folderOverlayAllowed, false);
+    assert.equal(snapshot.compatibility.ownership.nativeOrganizerMutationAllowed, false);
+    assert.equal(snapshot.compatibility.graphql.endpointAvailable, true);
+    assert.equal(snapshot.compatibility.graphql.apiVersion, '4.40.0-fixture');
+    assert.equal(snapshot.compatibility.graphql.queryShape, 'docker.containers');
+    assert.equal(snapshot.compatibility.graphql.mutations.restart, true);
+    assert.equal(snapshot.compatibility.graphql.organizer.policy, 'detect-only');
+    assert.equal(snapshot.providers.selected, 'unraid-graphql');
+    assert.deepEqual(snapshot.providers.availableProviders, ['unraid-graphql']);
+    assert.equal(snapshot.nativeMarkupAfter, snapshot.nativeMarkupBefore);
+    assert.equal(snapshot.loadlistUnchanged, true);
+    assert.equal(snapshot.classicTableCount, 0);
+    assert.equal(snapshot.folderRowCount, 0);
+    assert.equal(snapshot.pluginActionBarCount, 0);
+    assert.equal(snapshot.enabledLegacyStyleCount, 0);
+    assert.equal(snapshot.fatalBannerCount, 0);
+    assert.deepEqual(snapshot.legacyRuntimeExports, {
+        createFolderBtn: 'undefined',
+        hostAdapterSnapshot: 'undefined'
+    });
+    assert.deepEqual(
+        await page.evaluate(() => window.FolderViewPlusDockerBootstrapPromise),
+        {
+            loaded: false,
+            hostGeneration: 'native-docker-vue',
+            reason: 'compatibility-safe-mode'
+        }
+    );
+    assert.equal(await page.evaluate(() => window.fixtureFutureDocker.fatalErrors.length), 0);
+    assert.equal(
+        await page.evaluate(() => window.fixtureFutureDocker.calls.every((entry) => entry.csrf === 'future-host-fixture-token')),
+        true
+    );
+
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    assert.deepEqual(
+        await page.evaluate(() => window.FolderViewPlusDockerProviders.getDefaultRegistry().snapshot().availableProviders),
+        []
+    );
 });
 
 test('Compact Matrix responds to the Dashboard widget width without clipping long names', async ({ page }) => {

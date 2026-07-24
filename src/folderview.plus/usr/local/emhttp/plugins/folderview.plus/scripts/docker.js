@@ -2,6 +2,48 @@
 (function fvplusDockerRuntimeScope(window, $) {
 'use strict';
 
+const dockerHostCompatibilityModule = window.FolderViewPlusHostCompatibility || null;
+const dockerHostCompatibilityController = window.FolderViewPlusDockerHostCompatibilityController
+    || dockerHostCompatibilityModule?.getDefaultController?.({
+        window,
+        document: window.document
+    })
+    || null;
+const dockerHostCompatibilityDecision = window.FolderViewPlusDockerHostCompatibilityDecision
+    || dockerHostCompatibilityController?.evaluateDockerRuntime?.()
+    || {
+    hostGeneration: (
+        window.document?.querySelector?.('table#docker_containers')
+        && window.document?.querySelector?.('tbody#docker_list')
+        && window.document?.querySelector?.('#docker_containers > thead > tr')
+    ) ? 'legacy-docker-table' : 'unknown-docker-host',
+    runtimeActivationAllowed: Boolean(
+        window.document?.querySelector?.('table#docker_containers')
+        && window.document?.querySelector?.('tbody#docker_list')
+        && window.document?.querySelector?.('#docker_containers > thead > tr')
+    )
+    };
+const dockerProviderRegistry = window.FolderViewPlusDockerProviders?.getDefaultRegistry?.({
+    window,
+    document: window.document,
+    compatibilityModule: dockerHostCompatibilityModule,
+    compatibilityController: dockerHostCompatibilityController,
+    transport: window.FolderViewPlusRuntimeTransport || null
+}) || null;
+if (window.FolderViewPlusDockerBootstrapModuleLoaded !== true) {
+    void dockerProviderRegistry?.prepare?.({
+        hostGeneration: dockerHostCompatibilityDecision.hostGeneration
+    });
+}
+if (dockerHostCompatibilityDecision.runtimeActivationAllowed !== true) {
+    if (window.FolderViewPlusDockerBootstrapModuleLoaded !== true) {
+        window.addEventListener?.('pagehide', () => {
+            dockerProviderRegistry?.dispose?.();
+        }, { once: true });
+    }
+    return;
+}
+
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const pluginRequestClient = window.FolderViewPlusRequest || null;

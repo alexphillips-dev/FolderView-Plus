@@ -197,11 +197,35 @@
             const webUiUrl = getSafeWebUiUrl(state.WebUi);
             const shell = String(info.Shell || 'sh').trim() || 'sh';
             const $actions = $content.find('.fv-dashboard-advanced-preview-actions').first();
+            const dockerActionProvider = win?.FolderViewPlusDockerProviders?.getDefault?.() || null;
+            const runDockerAction = (action) => {
+                if (dockerActionProvider && typeof dockerActionProvider.executeAction === 'function') {
+                    return dockerActionProvider.executeAction({ action, container: shortId });
+                }
+                if (win?.FolderViewPlusRuntimeTransport?.runDockerAction) {
+                    return win.FolderViewPlusRuntimeTransport.runDockerAction({ action, container: shortId });
+                }
+                if (typeof win?.eventControl === 'function') {
+                    win.eventControl({ action, container: shortId }, 'loadlist');
+                    return Promise.resolve({ transport: 'host-event-control' });
+                }
+                return Promise.reject(new Error('No compatible Docker action provider is available.'));
+            };
             const addAction = (icon, label, handler, href = '#') => {
                 const $action = jq(`<a href="${href}" class="fv-dashboard-advanced-preview-action"><i class="fa fa-${icon}" aria-hidden="true"></i> ${escapeHtml(label)}</a>`);
                 $action.on('click', (event) => {
                     event.preventDefault();
-                    handler();
+                    Promise.resolve()
+                        .then(handler)
+                        .catch((error) => {
+                            if (win?.FolderViewPlusUI?.toast) {
+                                win.FolderViewPlusUI.toast({
+                                    title: 'FolderView action failed',
+                                    message: String(error?.message || 'FolderView action failed'),
+                                    level: 'danger'
+                                });
+                            }
+                        });
                 });
                 $actions.append($action);
             };
@@ -214,16 +238,26 @@
             if (containerName && typeof win?.openTerminal === 'function') {
                 addAction('navicon', i18n('logs', 'Logs'), () => win.openTerminal('docker', containerName, '.log'));
             }
-            if (typeof win?.eventControl === 'function' && shortId) {
+            if (
+                shortId
+                && (
+                    typeof win?.eventControl === 'function'
+                    || dockerActionProvider?.capabilities?.executeActions === true
+                    || (
+                        !dockerActionProvider
+                        && typeof win?.FolderViewPlusRuntimeTransport?.runDockerAction === 'function'
+                    )
+                )
+            ) {
                 if (state.Running !== true) {
-                    addAction('play', i18n('start', 'Start'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'start', container: shortId }) || win.eventControl({ action: 'start', container: shortId }, 'loadlist'));
+                    addAction('play', i18n('start', 'Start'), () => runDockerAction('start'));
                 } else if (state.Paused === true) {
-                    addAction('play', i18n('resume', 'Resume'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'resume', container: shortId }) || win.eventControl({ action: 'resume', container: shortId }, 'loadlist'));
+                    addAction('play', i18n('resume', 'Resume'), () => runDockerAction('resume'));
                 } else {
-                    addAction('stop', i18n('stop', 'Stop'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'stop', container: shortId }) || win.eventControl({ action: 'stop', container: shortId }, 'loadlist'));
-                    addAction('pause', i18n('pause', 'Pause'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'pause', container: shortId }) || win.eventControl({ action: 'pause', container: shortId }, 'loadlist'));
+                    addAction('stop', i18n('stop', 'Stop'), () => runDockerAction('stop'));
+                    addAction('pause', i18n('pause', 'Pause'), () => runDockerAction('pause'));
                 }
-                addAction('refresh', i18n('restart', 'Restart'), () => win.FolderViewPlusRuntimeTransport?.runDockerAction({ action: 'restart', container: shortId }) || win.eventControl({ action: 'restart', container: shortId }, 'loadlist'));
+                addAction('refresh', i18n('restart', 'Restart'), () => runDockerAction('restart'));
             }
         };
 

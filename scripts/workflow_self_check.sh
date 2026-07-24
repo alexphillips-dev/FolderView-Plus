@@ -31,6 +31,7 @@ for (const relativePath of [
   '.github/workflows/release-main.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/codeql.yml',
+  '.github/workflows/unraid-docker-upstream-monitor.yml',
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
   'scripts/fixture_browser_tests.sh',
@@ -52,6 +53,7 @@ const ciWorkflow = read('.github/workflows/ci.yml');
 const releaseMainWorkflow = read('.github/workflows/release-main.yml');
 const releaseOnMainWorkflow = read('.github/workflows/release-on-main.yml');
 const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
+const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
 const jobBlock = (workflow, jobName) => {
   const match = workflow.match(new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'));
   if (!match) {
@@ -173,12 +175,22 @@ if (!/Back-merge follow-up required/.test(backmergeWorkflow) ||
 if (/git push origin dev/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must not push directly to protected dev.');
 }
+if (!/schedule:/.test(upstreamMonitorWorkflow) || !/workflow_dispatch:/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid Docker upstream monitor must support scheduled and manual checks.');
+}
+if (!/scripts\/unraid_docker_upstream_monitor\.sh/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid Docker upstream monitor workflow must use the repository monitor script.');
+}
+if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid Docker upstream monitor must remain read-only.');
+}
 
 for (const workflowPath of [
   '.github/workflows/ci.yml',
   '.github/workflows/release-main.yml',
   '.github/workflows/release-on-main.yml',
-  '.github/workflows/backmerge-main-to-dev.yml'
+  '.github/workflows/backmerge-main-to-dev.yml',
+  '.github/workflows/unraid-docker-upstream-monitor.yml'
 ]) {
   const content = read(workflowPath);
   const scriptRefs = [...content.matchAll(/bash (scripts\/[A-Za-z0-9._/-]+\.sh)/g)].map((match) => match[1]);

@@ -9,12 +9,14 @@ This matrix is the minimum validation target before release packaging.
 - Mobile compact settings controls can pick up browser/theme button chrome (iPhone Safari) and render ghost box artifacts.
 - Mobile folder action sheet can clip at viewport edges on iPhone if safe-area bounds are not enforced.
 - Refresh/resize/font-load bursts can trigger width recalculation thrash if reflow debounce contracts regress.
+- A future native Unraid Docker component must not receive duplicate FolderView Plus folders, legacy hook wrappers, or host DOM mutations.
 
 ## Runtime Surfaces
 
 | Surface | Required checks |
 | --- | --- |
 | Docker tab | Long-name row, short-name row, dropdown alignment, Version gap, nested parent expand/collapse |
+| Native Docker component | Native ownership, no duplicate folders/action bar, no fatal banner, sanitized capability evidence, lifecycle cleanup |
 | VMs tab | Nested expand/collapse parity, status rendering, compact viewport behavior |
 | Dashboard widgets | Nested folder expansion and quick-action visibility without overflow clipping |
 | Settings basic/advanced | Mobile compact row controls, folder action sheet bounds, no ghost boxes |
@@ -31,7 +33,7 @@ This matrix is the minimum validation target before release packaging.
 
 ## Deterministic Browser Fixtures
 
-The required fixture suite loads the shipped Docker runtime, settings chrome, folder editor, import, privacy, and request modules against stable local HTML and API fixtures. It does not require a running Unraid server, so UI regressions fail consistently on pull requests and release builds.
+The required fixture suite loads the shipped Docker runtime, future native Docker compatibility gate, settings chrome, folder editor, import, privacy, and request modules against stable local HTML and API fixtures. It does not require a running Unraid server, so UI regressions fail consistently on pull requests and release builds.
 
 Run the default Chromium pass locally:
 

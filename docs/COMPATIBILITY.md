@@ -19,7 +19,9 @@ FolderView Plus is built against the standard Unraid webGUI structure. Diagnosti
 
 ### Docker
 
-The Docker page supports FolderView, Host list, and Command views. FolderView groups native rows; Host list restores the standard Unraid table; Command provides an alternate FolderView-owned control surface. FolderView Plus observes native lifecycle and update activity and reconciles affected rows incrementally.
+On the current table-based Unraid Docker page, FolderView Plus supports FolderView, Host list, and Command views. FolderView groups native rows; Host list restores the standard Unraid table; Command provides an alternate FolderView-owned control surface. FolderView Plus observes native lifecycle and update activity and reconciles affected rows incrementally.
+
+FolderView Plus also detects Unraid's developing native Docker component by page capability. When that component owns the Docker page, FolderView Plus does not overlay a second folder system or call the prerelease organizer mutations. It leaves the native page untouched, preserves saved FolderView Plus data and unaffected surfaces, and records sanitized compatibility evidence. See [Unraid Docker Interface Compatibility](unraid-docker-interface-compatibility.md) and [Unraid Docker Prerelease Qualification](unraid-docker-prerelease-qualification.md).
 
 ### VMs
 

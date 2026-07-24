@@ -26,6 +26,7 @@ This folder holds project documentation that does not need to stay at the reposi
 - [durable-storage.md](durable-storage.md)
 - [runtime-host-adapter.md](runtime-host-adapter.md)
 - [shared-ui-primitives.md](shared-ui-primitives.md)
+- [unraid-docker-interface-compatibility.md](unraid-docker-interface-compatibility.md)
 - [vm-runtime-architecture.md](vm-runtime-architecture.md)
 - [visual-runtime-contract.md](visual-runtime-contract.md)
 
@@ -33,6 +34,7 @@ This folder holds project documentation that does not need to stay at the reposi
 
 - [`current-state.json`](current-state.json) — machine-readable names and behavior contracts used to prevent documentation drift.
 - [edge-cases-test-matrix.md](edge-cases-test-matrix.md)
+- [unraid-docker-prerelease-qualification.md](unraid-docker-prerelease-qualification.md)
 - [runtime-performance-budgets.md](runtime-performance-budgets.md)
 - [images/README.md](images/README.md)
 - [images/screenshots/README.md](images/screenshots/README.md)

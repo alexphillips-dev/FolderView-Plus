@@ -377,6 +377,7 @@
             entries: []
         }));
         const collectDockerPageDiagnostics = browserCollectors?.collectDockerPageDiagnostics || (() => ({ available: false }));
+        const collectDockerCompatibilityDiagnostics = browserCollectors?.collectDockerCompatibilityDiagnostics || (() => ({ available: false }));
         const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
         const collectDockerRequestBundleTrace = browserCollectors?.collectDockerRequestBundleTrace || (() => ({ available: false }));
         const collectDockerTraceHealth = browserCollectors?.collectDockerTraceHealth || (() => ({ available: false }));
@@ -520,6 +521,7 @@
                 })
             );
             existingUiTelemetry.dockerDiagnostics = {
+                compatibility: collectDockerCompatibilityDiagnostics(uiRedactor),
                 pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
                 bulkUpdateTrace: collectDockerBulkUpdateTrace(uiRedactor),
                 requestBundleTrace: collectDockerRequestBundleTrace(uiRedactor),

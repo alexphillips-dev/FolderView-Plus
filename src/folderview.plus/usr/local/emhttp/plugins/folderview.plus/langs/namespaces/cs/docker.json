@@ -23,6 +23,8 @@
     "docker.actions.rules-workspace": "Pracovní prostor pravidel",
     "docker.actions.empty-filter-help": "Před filtrováním zobrazte prázdné složky z Nástroje.",
     "docker.actions.reset-view": "Obnovit zobrazení",
+    "docker.provider.hybrid-label": "Starší Unraid WebGUI s daty GraphQL",
+    "docker.health.api-summary": "Docker API: $1 aktualizace$2, $3 připraveno k opětovnému sestavení, $4 osiřelé, $5 konflikt portů$6",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Seznam hostitelů",
     "docker.views.command": "Příkaz",

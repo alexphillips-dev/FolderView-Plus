@@ -30,6 +30,10 @@ const dockerProviderRegistry = window.FolderViewPlusDockerProviders?.getDefaultR
     compatibilityController: dockerHostCompatibilityController,
     transport: window.FolderViewPlusRuntimeTransport || null
 }) || null;
+const dockerProviderHealthController = window.FolderViewPlusDockerProviderHealth?.createController?.({
+    window,
+    providerRegistry: dockerProviderRegistry
+}) || null;
 if (window.FolderViewPlusDockerBootstrapModuleLoaded !== true) {
     void dockerProviderRegistry?.prepare?.({
         hostGeneration: dockerHostCompatibilityDecision.hostGeneration
@@ -4066,7 +4070,6 @@ const removeRuntimeHealthBadge = () => {
         existing.parentNode.removeChild(existing);
     }
 };
-
 const renderRuntimeHealthBadge = (folders, prefs) => {
     const normalizedPrefs = utils.normalizePrefs(prefs || {});
     const healthPrefs = normalizedPrefs?.health && typeof normalizedPrefs.health === 'object'
@@ -4076,6 +4079,9 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
         removeRuntimeHealthBadge();
         return;
     }
+    const providerHealth = dockerProviderHealthController?.getModel?.({
+        onUpdate: () => renderRuntimeHealthBadge(folders, prefs)
+    }) || null;
 
     const folderMap = folders && typeof folders === 'object' ? folders : {};
     let startedFolders = 0;
@@ -4110,12 +4116,15 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
         host.insertBefore(badge, host.firstChild);
     }
     badge.classList.remove('is-warning', 'is-danger');
-    if (stoppedFolders > 0) {
+    if (stoppedFolders > 0 || providerHealth?.severity === 'danger') {
         badge.classList.add('is-danger');
-    } else if (pausedFolders > 0) {
+    } else if (pausedFolders > 0 || providerHealth?.severity === 'warning') {
         badge.classList.add('is-warning');
     }
-    badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
+    const providerDetail = providerHealth
+        ? ` | ${providerHealth.text}`
+        : '';
+    badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped${providerDetail}`;
 };
 
 const dockerModules = window.FolderViewDockerModules || {};
@@ -8859,6 +8868,7 @@ window.addEventListener('pagehide', () => {
     clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
     dockerRuntimeResizerObserver?.disconnect?.();
     dockerDeferredPreviewController.destroy();
+    dockerProviderHealthController?.dispose?.();
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
 }, { once: true });
 

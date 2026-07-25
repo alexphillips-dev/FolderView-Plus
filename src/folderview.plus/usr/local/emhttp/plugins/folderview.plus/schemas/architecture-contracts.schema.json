@@ -1,11 +1,15 @@
 {
   "schemaVersion": 1,
   "budgets": {
-    "maxBrowserGlobals": 510,
+    "maxBrowserGlobals": 512,
     "maxInlineActions": 79,
     "maxFileLines": {
       "scripts/folderviewplus.js": 12098,
-      "scripts/docker.js": 8867,
+      "scripts/docker.js": 8880,
+      "scripts/docker.runtime.providers.js": 1140,
+      "scripts/runtime.transport.js": 1060,
+      "scripts/docker.runtime.container-model.js": 220,
+      "scripts/docker.runtime.provider-health.js": 125,
       "styles/folderviewplus.css": 14515,
       "styles/folderviewplus.bootstrap.css": 59,
       "server/lib.php": 7610,
@@ -72,6 +76,23 @@
       "exports": ["normalizeFolderToken", "isFolderToken", "buildCustomOrder", "createOrderCursor"],
       "lifecycleFactories": [
         { "name": "createOrderCursor", "exports": ["destroy", "snapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.container-model.js",
+      "global": "FolderViewPlusDockerContainerModel",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["normalizeName", "deepFreeze", "normalizePort", "normalizeMount", "normalizeContainer", "identityTokens", "resolveContainerIdentity", "mergeContainers"]
+    },
+    {
+      "file": "scripts/docker.runtime.provider-health.js",
+      "global": "FolderViewPlusDockerProviderHealth",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createController"],
+      "lifecycleFactories": [
+        { "name": "createController", "exports": ["refresh", "getModel", "getSnapshot", "dispose"] }
       ]
     },
     {

@@ -23,6 +23,8 @@ On the current table-based Unraid Docker page, FolderView Plus supports FolderVi
 
 FolderView Plus also detects Unraid's developing native Docker component by page capability. When that component owns the Docker page, FolderView Plus does not overlay a second folder system or call the prerelease organizer mutations. It leaves the native page untouched, preserves saved FolderView Plus data and unaffected surfaces, and records sanitized compatibility evidence. See [Unraid Docker Interface Compatibility](unraid-docker-interface-compatibility.md) and [Unraid Docker Prerelease Qualification](unraid-docker-prerelease-qualification.md).
 
+On the current legacy Docker page, FolderView Plus uses a hybrid provider: schema-confirmed GraphQL reads and preview statistics are preferred when available, while Unraid's legacy host bridge continues to own lifecycle-button behavior and UI refresh. Older or unavailable API surfaces fall back to the existing DOM/PHP runtime. See [Unraid Docker API Integration](unraid-docker-api-integration.md).
+
 ### VMs
 
 The VM runtime uses the shared host-adapter contract with VM-specific row and lifecycle handling. If libvirt or the native VM page is unavailable, the VM configuration can remain stored but runtime controls cannot operate.

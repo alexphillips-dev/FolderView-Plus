@@ -3152,5 +3152,6 @@ window.addEventListener('pagehide', () => {
     clearTimeout(dashboardThemeReflowTimer);
     dashboardHostAdapterModule?.release?.({ window, restoreLoadlist: true });
     runtimeHostAdapters?.release?.('docker', { window, restoreHooks: true });
+    window.FolderViewPlusDockerProviders?.getDefaultRegistry?.()?.dispose?.();
 }, { once: true });
 })(window, window.jQuery || window.$);

@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   monitor:
-    name: Check native Docker page activation
+    name: Check Docker API and native page compatibility
     runs-on: ubuntu-latest
 
     steps:
@@ -51,6 +51,9 @@ jobs:
             echo "- Reason: \`${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}\`"
             echo "- Source gate: \`${{ steps.monitor.outputs.source_gate || 'unknown' }}\`"
             echo "- Release announcement: \`${{ steps.monitor.outputs.release_announcement || 'unknown' }}\`"
+            echo "- Docker schema: \`${{ steps.monitor.outputs.schema_status || 'unknown' }}\`"
+            echo "- Latest API release: \`${{ steps.monitor.outputs.latest_api_release || 'unknown' }}\`"
+            echo "- API release baseline: \`${{ steps.monitor.outputs.api_release_status || 'unknown' }}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Create or update compatibility alert
@@ -61,6 +64,10 @@ jobs:
           REASON: ${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}
           SOURCE_GATE: ${{ steps.monitor.outputs.source_gate || 'unknown' }}
           RELEASE_ANNOUNCEMENT: ${{ steps.monitor.outputs.release_announcement || 'unknown' }}
+          SCHEMA_STATUS: ${{ steps.monitor.outputs.schema_status || 'unknown' }}
+          SCHEMA_SIGNATURE: ${{ steps.monitor.outputs.schema_signature || 'unknown' }}
+          LATEST_API_RELEASE: ${{ steps.monitor.outputs.latest_api_release || 'unknown' }}
+          API_RELEASE_STATUS: ${{ steps.monitor.outputs.api_release_status || 'unknown' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -73,6 +80,10 @@ jobs:
             echo "- Reason: \`${REASON}\`"
             echo "- Source gate: \`${SOURCE_GATE}\`"
             echo "- Release announcement: \`${RELEASE_ANNOUNCEMENT}\`"
+            echo "- Docker schema: \`${SCHEMA_STATUS}\`"
+            echo "- Docker schema signature: \`${SCHEMA_SIGNATURE}\`"
+            echo "- Latest API release: \`${LATEST_API_RELEASE}\`"
+            echo "- API release baseline: \`${API_RELEASE_STATUS}\`"
             echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo
             echo "Follow \`docs/unraid-docker-prerelease-qualification.md\`. Keep native-page safe mode enabled until fixture and live-host qualification pass."

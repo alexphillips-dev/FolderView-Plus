@@ -23,6 +23,8 @@
     "docker.actions.rules-workspace": "Spațiu de lucru reguli",
     "docker.actions.empty-filter-help": "Afișează folderele goale din Instrumente înainte de a le filtra.",
     "docker.actions.reset-view": "Resetează vizualizarea",
+    "docker.provider.hybrid-label": "Legacy Unraid WebGUI cu date GraphQL",
+    "docker.health.api-summary": "API Docker: $1 actualizare$2, $3 pregătit pentru reconstrucție, $4 orfan, $5 conflict de port$6",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Lista gazdă",
     "docker.views.command": "Comandă",

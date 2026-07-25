@@ -23,6 +23,8 @@
     "docker.actions.rules-workspace": "Espacio de trabajo de reglas",
     "docker.actions.empty-filter-help": "Mostrar carpetas vacías desde Herramientas antes de filtrarlas.",
     "docker.actions.reset-view": "Restablecer vista",
+    "docker.provider.hybrid-label": "WebGUI heredada Unraid con datos GraphQL",
+    "docker.health.api-summary": "API de Docker: $1 actualización$2, $3 listo para reconstrucción, $4 huérfano, $5 conflicto de puerto$6",
     "docker.views.folderview": "Vista de Carpeta",
     "docker.views.host": "Lista de hosts",
     "docker.views.command": "Comando",

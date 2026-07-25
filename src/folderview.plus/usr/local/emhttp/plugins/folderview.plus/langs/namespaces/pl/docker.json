@@ -23,6 +23,8 @@
     "docker.actions.rules-workspace": "Obszar roboczy reguł",
     "docker.actions.empty-filter-help": "Pokaż puste foldery z narzędzi zanim je przefiltrujesz.",
     "docker.actions.reset-view": "Resetuj widok",
+    "docker.provider.hybrid-label": "Starszy interfejs WebGUI Unraid z danymi GraphQL",
+    "docker.health.api-summary": "Docker API: $1 aktualizacja$2, $3 gotowy do przebudowy, $4 osierocony, $5 konflikt portów$6",
     "docker.views.folderview": "Widok folderów",
     "docker.views.host": "Lista hostów",
     "docker.views.command": "Polecenie",

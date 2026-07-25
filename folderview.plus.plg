@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.25.04">
-<!ENTITY md5 "7d1f146e9bc5413c6226bdec0a0fa8fd">
+<!ENTITY version "2026.07.25.05">
+<!ENTITY md5 "03725fcc84b02f37855fa6ac805bb85c">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,29 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.25.05
+# FolderView Plus 2026.07.25.05
+This dev update prepares FolderView Plus for Unraid's evolving Docker API while preserving the current Docker page and its proven fallback paths.
+## Docker API compatibility
+- Feature: Add operation-level GraphQL capability discovery for Docker queries, mutations, subscriptions, argument signatures, return types, and deprecation metadata.
+- Feature: Introduce a hybrid legacy/GraphQL provider that keeps Unraid's current WebGUI in control while preferring schema-confirmed API reads, container statistics, health metadata, and supported mutations.
+- Compatibility: Normalize GraphQL, PHP runtime, and DOM container records into one immutable model with stable identity, ports, mounts, networks, template links, update state, orphan state, autostart metadata, and size fields.
+- Reliability: Keep legacy Docker startup non-blocking, fall back safely when GraphQL is unavailable or incomplete, reject stale responses, abort owned work on disposal, and avoid duplicate subscriptions across navigation.
+## Runtime data and health
+- Feature: Consume Docker statistics subscriptions in Dashboard previews with automatic fallback to Unraid's existing `docker_load` stream.
+- Feature: Add targeted single-container reconciliation and aggregate Docker health checks for updates, rebuild readiness, orphaned containers, and container or LAN port conflicts.
+- Feature: Add capability-gated update, digest refresh, removal, and autostart mutation adapters while keeping lifecycle buttons on the established Unraid host bridge.
+- Privacy: Keep logs bounded and on demand, expose only aggregate compatibility and health evidence to diagnostics, and prevent raw container metadata from entering sanitized support bundles.
+## Upstream readiness
+- Maintenance: Add a tracked Docker schema signature, latest Unraid API release baseline, and a cross-platform monitor that signals schema drift, new API releases, source-gate activation, release-note announcements, or unavailable upstream evidence.
+- Compatibility: Keep Native Docker Organizer integration qualification-only until the upstream page contract is explicitly enabled and validated; no prerelease organizer read or write mutation is activated.
+- Docs: Add the Docker API integration contract and update compatibility, runtime architecture, prerelease qualification, and repository-current-state guidance.
+- Localization: Add the hybrid-provider and aggregate-health messages across all 18 locale catalogs while preserving the zero-growth legacy localization budget.
+## Regression coverage
+- Regression guard: Cover capability discovery, partial and permission responses, subscription cleanup, normalized records, hybrid selection, targeted reconciliation, guarded mutations, aggregate health, privacy-safe diagnostics, page include order, and navigation disposal.
+- Regression guard: Cover upstream schema changes, newer API releases, unavailable schema evidence, source-gate activation, and release-note activation signals.
+
 
 ###2026.07.25.04
 # FolderView Plus 2026.07.25.04

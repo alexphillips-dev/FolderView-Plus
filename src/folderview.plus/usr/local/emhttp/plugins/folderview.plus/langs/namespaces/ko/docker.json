@@ -23,6 +23,8 @@
     "docker.actions.rules-workspace": "규칙 작업 공간",
     "docker.actions.empty-filter-help": "필터링하기 전에 도구에서 빈 폴더 표시.",
     "docker.actions.reset-view": "보기 초기화",
+    "docker.provider.hybrid-label": "GraphQL 데이터가 포함된 레거시 Unraid WebGUI",
+    "docker.health.api-summary": "Docker API: $1 업데이트$2, $3 재구축 준비, $4 고아, $5 포트 충돌$6",
     "docker.views.folderview": "폴더 보기",
     "docker.views.host": "호스트 목록",
     "docker.views.command": "명령",

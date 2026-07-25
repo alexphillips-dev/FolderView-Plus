@@ -1,0 +1,8 @@
+parameters:
+    level: 0
+    paths:
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.remote.php
+    fileExtensions:
+        - php
+    tmpDir: tmp/phpstan
+    reportUnmatchedIgnoredErrors: true

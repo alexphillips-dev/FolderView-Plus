@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
     <link rel="stylesheet" href="/plugin/styles/ui.primitives.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
+    <link rel="stylesheet" href="/plugin/styles/folderviewplus.bootstrap.css">
     <style>
         body { margin: 0; background: #171717; color: #eee; font-family: Arial, sans-serif; }
+        body[data-fv-theme-class="light"],
+        body[data-fvplus-host-theme="white"],
+        body[data-fv-host-theme="white"] { background: #f5f6f8; color: #2b3441; }
         #fv-settings-root { padding: 1rem; }
+        #fv-settings-root[data-fv-theme-class="light"] { min-height: 100vh; background: #f5f6f8; color: #2b3441; }
         button { min-height: 34px; padding: .3rem .55rem; box-sizing: border-box; font: inherit; }
         input, select { font: inherit; }
     </style>

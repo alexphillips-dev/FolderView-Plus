@@ -5174,7 +5174,7 @@ const buildDockerRuntimePrivacyToggleMarkup = (state = {}) => {
     });
     return `
         <span class="fvplus-docker-runtime-toggle-label">${escapeHtml(dockerT('docker.privacy.label', 'Privacy'))}</span>
-        <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
+        <input id="${DOCKER_RUNTIME_PRIVACY_TOGGLE_ID}" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" aria-label="${escapeHtml(dockerT('docker.privacy.label', 'Privacy'))}" ${enabled ? 'checked' : ''} ${savePending ? 'disabled' : ''}>
         <button
             id="${DOCKER_RUNTIME_PRIVACY_MENU_BUTTON_ID}"
             class="fvplus-docker-runtime-privacy-menu-button${menuOpen ? ' is-open' : ''}"

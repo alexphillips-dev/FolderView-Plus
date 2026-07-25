@@ -155,6 +155,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>">
 <script>
     window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     (function applySettingsHostThemeName(rawThemeName) {
@@ -1901,46 +1902,55 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
 </div>
 
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.view-settings.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>
+<script>
+window.FolderViewPlusSettingsLoaderManifest = Object.freeze({
+    foundation: Object.freeze([
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"
+    ]),
+    workspace: Object.freeze([
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.view-settings.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"
+    ])
+});
+</script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-loader.js')?>"></script>

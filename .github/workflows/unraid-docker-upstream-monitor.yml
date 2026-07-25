@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: folderview-plus-unraid-docker-upstream-monitor
@@ -19,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout FolderView Plus
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 1
 
@@ -51,3 +52,42 @@ jobs:
             echo "- Source gate: \`${{ steps.monitor.outputs.source_gate || 'unknown' }}\`"
             echo "- Release announcement: \`${{ steps.monitor.outputs.release_announcement || 'unknown' }}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Create or update compatibility alert
+        if: always() && steps.monitor.outputs.status != 'dormant'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS: ${{ steps.monitor.outputs.status || 'unknown' }}
+          REASON: ${{ steps.monitor.outputs.reason || 'monitor-did-not-complete' }}
+          SOURCE_GATE: ${{ steps.monitor.outputs.source_gate || 'unknown' }}
+          RELEASE_ANNOUNCEMENT: ${{ steps.monitor.outputs.release_announcement || 'unknown' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Unraid Docker upstream compatibility review required"
+          body_file="$(mktemp)"
+          {
+            echo "The scheduled FolderView Plus monitor detected an upstream Docker interface state that is no longer safely dormant."
+            echo
+            echo "- Status: \`${STATUS}\`"
+            echo "- Reason: \`${REASON}\`"
+            echo "- Source gate: \`${SOURCE_GATE}\`"
+            echo "- Release announcement: \`${RELEASE_ANNOUNCEMENT}\`"
+            echo "- Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo "Follow \`docs/unraid-docker-prerelease-qualification.md\`. Keep native-page safe mode enabled until fixture and live-host qualification pass."
+          } > "${body_file}"
+          issue_number="$(
+            gh issue list \
+              --state open \
+              --search "\"${title}\" in:title" \
+              --json number,title \
+              --jq ".[] | select(.title == \"${title}\") | .number" \
+              | head -n 1
+          )"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue comment "${issue_number}" --body-file "${body_file}"
+            echo "Updated compatibility issue #${issue_number}."
+          else
+            gh issue create --title "${title}" --body-file "${body_file}"
+          fi

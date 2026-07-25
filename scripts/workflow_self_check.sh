@@ -68,8 +68,8 @@ if (!/detect-changes:/.test(ciWorkflow)) {
 if (!/quality:/.test(ciWorkflow)) {
   fail('CI workflow must define a quality summary job.');
 }
-if (!/dorny\/paths-filter@v3/.test(ciWorkflow)) {
-  fail('CI workflow must use dorny/paths-filter for change-aware fast lanes.');
+if (!/dorny\/paths-filter@[0-9a-f]{40}\s+# v3/.test(ciWorkflow)) {
+  fail('CI workflow must pin dorny/paths-filter to an immutable v3 commit.');
 }
 if (!/\.\/\.github\/actions\/setup-ci-env/.test(ciWorkflow)) {
   fail('CI workflow must use the shared setup-ci-env action.');
@@ -123,13 +123,13 @@ for (const [name, workflow] of [
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/.test(releaseMainWorkflow) ||
-    !/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must gate browser smoke coverage on configured target URLs.');
+if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
+    !/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release workflows must fail closed unless live browser smoke coverage is configured.');
 }
-if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/.test(releaseMainWorkflow) ||
-    !/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must gate theme matrix smoke coverage on configured target URLs.');
+if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
+    !/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release workflows must fail closed unless the live theme matrix is configured.');
 }
 if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');
@@ -146,14 +146,15 @@ if (/gh release create/.test(releaseMainWorkflow) || /gh release edit/.test(rele
 if (!/bash scripts\/release_prepare\.sh --push-main/.test(releaseMainWorkflow)) {
   fail('Release Main workflow must use scripts/release_prepare.sh --push-main as the shared release entrypoint.');
 }
-if (!/upload-artifact@v4/.test(backmergeWorkflow)) {
+if (!/upload-artifact@[0-9a-f]{40}\s+# v4/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must upload debug artifacts on failure.');
 }
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
 }
-if (!/FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
-  fail('Back-merge workflow must allow expected packaged/source drift while validating non-release back-merge branches.');
+if (!/bash scripts\/prepare_backmerge_dev_package\.sh/.test(backmergeWorkflow) ||
+    /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must package merged source instead of bypassing packaged/source drift validation.');
 }
 if (!/pull-requests:\s*write/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must have pull-requests: write permission.');
@@ -182,7 +183,10 @@ if (!/scripts\/unraid_docker_upstream_monitor\.sh/.test(upstreamMonitorWorkflow)
   fail('Unraid Docker upstream monitor workflow must use the repository monitor script.');
 }
 if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
-  fail('Unraid Docker upstream monitor must remain read-only.');
+  fail('Unraid Docker upstream monitor must keep repository contents read-only.');
+}
+if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
+  fail('Unraid Docker upstream monitor must be able to open a deduplicated compatibility alert.');
 }
 
 for (const workflowPath of [

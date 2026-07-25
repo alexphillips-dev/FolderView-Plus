@@ -139,6 +139,14 @@ Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs,
 
 The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
 
+To compare two systems without exposing their identities, export sanitized bundles from both and run:
+
+```bash
+npm run compare:support-bundles -- first-bundle.json second-bundle.json
+```
+
+The comparator refuses full bundles and reports only allowlisted versions, counts, health/status, rendering geometry, modes, and other bounded troubleshooting fields.
+
 It also includes bounded Dashboard visual-layout snapshots. Its troubleshooting-domain summary keeps layout/rendering evidence separate from configuration, runtime/request, storage, icon, theme, localization, and update findings.
 
 Share the full export only if you intentionally need raw troubleshooting fields.

@@ -87,7 +87,8 @@ const expectedOrder = [
   'folderviewplus.import.js',
   'folderviewplus.updates.js',
   'folderviewplus.actions-support.js',
-  'folderviewplus.js'
+  'folderviewplus.js',
+  'folderviewplus.settings-loader.js'
 ];
 
 const includeSet = new Set(includes);

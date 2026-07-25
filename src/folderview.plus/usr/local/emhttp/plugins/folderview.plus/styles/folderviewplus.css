@@ -13,7 +13,7 @@
     --fvplus-settings-safe-focus-ring: var(--fvplus-ui-focus-ring, var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.34)));
     --fvplus-settings-safe-surface-panel: var(--fvplus-ui-panel, var(--fvplus-theme-surface-panel, #171718));
 
-    --fvplus-theme-text-primary: var(--text, currentColor);
+    --fvplus-theme-text-primary: var(--text, var(--fvplus-settings-safe-text-primary));
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
     --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
     --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);
@@ -90,83 +90,39 @@
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-/* Keep the server-rendered Advanced workspace from flashing before the saved
- * mode, tab, and section state are restored. The shell is removed as soon as
- * config-only Docker and VM snapshots have painted the usable surface. */
-#fv-settings-root.fv-settings-bootstrap-pending > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner) {
-    display: none !important;
-}
-
-.fv-settings-bootstrap-shell {
-    min-height: clamp(180px, 32vh, 320px);
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    color: var(--fvplus-settings-text-primary);
-}
-
-.fv-settings-bootstrap-shell[hidden],
-#fv-settings-root:not(.fv-settings-bootstrap-pending) > .fv-settings-bootstrap-shell {
-    display: none !important;
-}
-
-.fv-settings-bootstrap-shell-card {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    min-width: min(360px, 100%);
-    padding: 16px 18px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
-    background: var(--fvplus-settings-surface-card);
-    box-shadow: var(--fvplus-settings-button-shadow);
-}
-
-.fv-settings-bootstrap-shell-icon {
-    display: inline-grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-    border-radius: 7px;
-    color: var(--fvplus-settings-chip-info);
-    background: var(--fvplus-settings-chip-info-bg);
-}
-
-.fv-settings-bootstrap-shell-copy {
-    display: grid;
-    gap: 3px;
-    min-width: 0;
-}
-
-.fv-settings-bootstrap-shell-copy strong {
-    font-size: 1.3rem;
-    line-height: 1.25;
-}
-
-.fv-settings-bootstrap-shell-copy span {
-    color: var(--fvplus-settings-text-muted);
-    font-size: 1.1rem;
-    line-height: 1.35;
-}
-
 html[data-fvplus-host-theme="white"] #fv-settings-root,
 body[data-fvplus-host-theme="white"] #fv-settings-root,
 html[data-fv-host-theme="white"] #fv-settings-root,
 body[data-fv-host-theme="white"] #fv-settings-root,
+body[data-fv-theme-class="light"] #fv-settings-root,
 #fv-settings-root[data-fv-theme-class="light"] {
+    --fvplus-settings-text-primary: #2b3441;
+    --fvplus-settings-text-muted: #556476;
+    --fvplus-settings-text-dim: #5f6b79;
+    --fvplus-settings-border-subtle: rgba(121, 133, 148, 0.2);
+    --fvplus-settings-border-faint: rgba(121, 133, 148, 0.14);
+    --fvplus-settings-surface-muted: rgba(102, 115, 133, 0.08);
+    --fvplus-settings-surface-strong: rgba(248, 249, 251, 0.96);
+    --fvplus-settings-surface-card: rgba(255, 255, 255, 0.98);
+    --fvplus-settings-surface-field: rgba(102, 115, 133, 0.08);
+    --fvplus-settings-surface-panel: rgba(248, 249, 251, 0.985);
+    --fvplus-settings-accent: #be6b18;
+    --fvplus-settings-accent-strong: #9a540f;
+    --fvplus-settings-accent-soft: rgba(190, 107, 24, 0.12);
+    --fvplus-settings-focus-ring: rgba(47, 110, 166, 0.32);
+    --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
     --fvplus-settings-title-accent: #be6b18;
     --fvplus-settings-tree-guide: rgba(129, 140, 154, 0.48);
     --fvplus-settings-breadcrumb-text: rgba(89, 103, 120, 0.86);
     --fvplus-settings-members-meta-text: rgba(95, 108, 123, 0.82);
     --fvplus-settings-nested-meta-text: rgba(105, 117, 133, 0.86);
-    --fvplus-settings-chip-info: #2f6ea6;
+    --fvplus-settings-chip-info: #286393;
     --fvplus-settings-chip-info-border: rgba(47, 110, 166, 0.34);
     --fvplus-settings-chip-info-bg: rgba(47, 110, 166, 0.10);
-    --fvplus-settings-chip-success: #287a43;
+    --fvplus-settings-chip-success: #226b39;
     --fvplus-settings-chip-success-border: rgba(40, 122, 67, 0.34);
     --fvplus-settings-chip-success-bg: rgba(40, 122, 67, 0.10);
-    --fvplus-settings-chip-warning: #9a6400;
+    --fvplus-settings-chip-warning: #805300;
     --fvplus-settings-chip-warning-border: rgba(154, 100, 0, 0.34);
     --fvplus-settings-chip-warning-bg: rgba(154, 100, 0, 0.12);
     --fvplus-settings-chip-danger: #b63737;
@@ -7113,6 +7069,17 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     font-size: 1.35rem;
     font-weight: 700;
     text-align: center;
+}
+
+.fv-diagnostics-metrics dd.fv-diagnostics-metric-note,
+.fv-diagnostics-metrics dd.fv-diagnostics-core-progress-wrap {
+    font-size: inherit;
+    font-weight: 400;
+}
+
+.fv-diagnostics-metrics dd.fv-diagnostics-core-progress-wrap {
+    display: flex;
+    justify-content: center;
 }
 
 .fv-diagnostics-metric.is-core {

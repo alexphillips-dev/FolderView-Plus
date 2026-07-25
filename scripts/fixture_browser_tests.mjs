@@ -17,6 +17,8 @@ const requestedBrowsers = String(process.env.FVPLUS_FIXTURE_BROWSERS || 'chromiu
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 const browserTypes = { chromium, firefox, webkit };
+const axeScriptPath = path.join(rootDir, 'node_modules', 'axe-core', 'axe.min.js');
+const accessibilityEnabled = !/^(0|false|no|off)$/i.test(String(process.env.FVPLUS_FIXTURE_ACCESSIBILITY || '1'));
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const englishSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'en', 'legacy-surface.json'));
 const germanSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'de', 'legacy-surface.json'));
@@ -1528,6 +1530,31 @@ try {
                 const result = { browser: browserName, name: entry.name, durationMs: 0, pass: false, errors: [] };
                 try {
                     await entry.handler({ page, context, browserName });
+                    if (accessibilityEnabled) {
+                        await page.addScriptTag({ path: axeScriptPath });
+                        const violations = await page.evaluate(async () => {
+                            const result = await window.axe.run(document, {
+                                runOnly: {
+                                    type: 'tag',
+                                    values: ['wcag2a', 'wcag2aa', 'wcag21aa']
+                                },
+                                resultTypes: ['violations']
+                            });
+                            return result.violations
+                                .filter((violation) => ['critical', 'serious'].includes(String(violation.impact || '')))
+                                .map((violation) => ({
+                                    id: violation.id,
+                                    impact: violation.impact,
+                                    help: violation.help,
+                                    nodes: violation.nodes.slice(0, 5).map((node) => ({
+                                        target: node.target,
+                                        summary: node.failureSummary,
+                                        html: node.html
+                                    }))
+                                }));
+                        });
+                        assert.deepEqual(violations, [], `axe accessibility violations:\n${JSON.stringify(violations, null, 2)}`);
+                    }
                     assert.deepEqual(browserErrors, [], `browser emitted errors:\n${browserErrors.join('\n')}`);
                     result.pass = true;
                     report.passed += 1;

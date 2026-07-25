@@ -273,10 +273,11 @@ test('remote publish guard validates raw manifest, archive, and checksum after p
     assert.match(remotePublishGuard, /plugin manifest/);
     assert.match(remotePublishGuard, /archive checksum/);
     assert.match(remotePublishGuard, /curl -fsSL/);
-    assert.match(remotePublishGuard, /curl -fsSI -L/);
+    assert.match(remotePublishGuard, /REMOTE_ARCHIVE_SHA256/);
+    assert.match(remotePublishGuard, /published archive bytes stale or mismatched/);
     assert.match(remotePublishGuard, /Remote manifest version mismatch/);
     assert.match(remotePublishGuard, /Remote checksum mismatch/);
-    assert.match(remotePublishGuard, /remote raw manifest, archive, and checksum match/);
+    assert.match(remotePublishGuard, /remote raw manifest, downloaded archive bytes, and checksum match/);
 });
 
 test('dev pushes that change shipped plugin files must bump the manifest version', () => {
@@ -446,7 +447,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {
     assert.match(ciWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main\s*\n\s*-\s*dev\s*\n\s*-\s*reset-main/);
     assert.match(ciWorkflow, /detect-changes:/);
-    assert.match(ciWorkflow, /dorny\/paths-filter@v3/);
+    assert.match(ciWorkflow, /dorny\/paths-filter@[0-9a-f]{40}\s+# v3/);
     assert.match(ciWorkflow, /workflow_only/);
     assert.match(ciWorkflow, /docs_only/);
     assert.match(ciWorkflow, /needs_browser/);
@@ -470,7 +471,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
     assert.match(ciWorkflow, /dev-release-preview/);
     assert.match(ciWorkflow, /ci-duration-report/);
-    assert.match(ciWorkflow, /actions\/upload-artifact@v4/);
+    assert.match(ciWorkflow, /actions\/upload-artifact@[0-9a-f]{40}\s+# v4/);
     assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
     assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
@@ -478,8 +479,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
         assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
@@ -494,7 +495,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
-    assert.match(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
+    assert.match(backmergeWorkflow, /bash scripts\/prepare_backmerge_dev_package\.sh/);
+    assert.doesNotMatch(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
@@ -584,7 +586,7 @@ test('release workflows serialize concurrent runs with shared release concurrenc
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
         assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*(?:'1'|\$\{\{[^}]+\}\})/);
-        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.1\.x,7\.2\.x'/);
+        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.2\.x,7\.3\.x'/);
         assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_THEMES:\s*'black,white'/);
     }
 });
@@ -782,7 +784,7 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(releaseNotesConsistencyGuard, /build_release_notes\.sh --version/);
     assert.match(releaseNotesConsistencyGuard, /Release On Main workflow is not using scripts\/build_release_notes\.sh/);
     assert.match(workflowSelfCheck, /Workflow self-check passed/);
-    assert.match(workflowSelfCheck, /change-aware fast lanes/);
+    assert.match(workflowSelfCheck, /immutable v3 commit/);
     assert.match(workflowSelfCheck, /dev release preview artifact/);
     assert.match(workflowSelfCheck, /CI duration report artifact/);
 });
@@ -826,6 +828,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(reproBuildGuard, /Deterministic build guard passed/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_VERSION_OVERRIDE/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_ALLOW_STALE_STABLE/);
+    assert.match(reproBuildGuard, /FVPLUS_FORCE_FULL_SOURCE_SNAPSHOT=1/);
+    assert.match(reproBuildGuard, /repository archive differs from the reproducible build/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard skipped/);
     assert.match(mainBranchHistoryGuard, /FVPLUS_MAIN_HISTORY_BASE_REF/);
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
@@ -843,7 +847,7 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(unraidMatrixSmoke, /FVPLUS_THEME_HINT/);
     assert.match(docsMetadataGuard, /folderviewplus-desc/);
     assert.match(setupCiEnvAction, /Setup CI Environment/);
-    assert.match(setupCiEnvAction, /actions\/cache@v4/);
+    assert.match(setupCiEnvAction, /actions\/cache@[0-9a-f]{40}\s+# v4/);
     assert.match(applyBranchProtection, /branches\/main\/protection/);
     assert.match(applyBranchProtection, /branches\/dev\/protection/);
     assert.match(applyBranchProtection, /Analyze \(JavaScript\)/);

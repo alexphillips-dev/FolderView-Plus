@@ -3,6 +3,7 @@ set -euo pipefail
 
 CWD="$(pwd)"
 version_override="${FVPLUS_VERSION_OVERRIDE:-}"
+historical_rebuild="${FVPLUS_HISTORICAL_REBUILD:-0}"
 today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
@@ -367,6 +368,9 @@ highest_stable_archive_version_for_date() {
     local highest=""
     local versions=()
     local archive
+    local ref
+    local ref_version
+    local tag
     shopt -s nullglob
     for archive in "$archive_dir/$archive_prefix-"*.txz; do
         local name="${archive##*/}"
@@ -381,6 +385,28 @@ highest_stable_archive_version_for_date() {
         fi
     done
     shopt -u nullglob
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        for ref in HEAD dev main origin/dev origin/main; do
+            if ! git rev-parse -q --verify "${ref}^{commit}" >/dev/null 2>&1; then
+                continue
+            fi
+            ref_version="$(
+                git show "${ref}:folderview.plus.plg" 2>/dev/null \
+                    | sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' \
+                    | head -n 1 \
+                    || true
+            )"
+            if is_stable_version "$ref_version" && [ "$(stable_date_part "$ref_version")" = "$target_date" ]; then
+                versions+=("$(normalize_stable_version_for_unraid "$ref_version")")
+            fi
+        done
+        while IFS= read -r tag; do
+            tag="${tag#v}"
+            if is_stable_version "$tag" && [ "$(stable_date_part "$tag")" = "$target_date" ]; then
+                versions+=("$(normalize_stable_version_for_unraid "$tag")")
+            fi
+        done < <(git tag --list "v${target_date}*" 2>/dev/null || true)
+    fi
     if [ "${#versions[@]}" -eq 0 ]; then
         return
     fi
@@ -551,7 +577,9 @@ if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
     exit 1
 fi
 
-if [ "$branch" = "dev" ] && [ "$validate_after_build" = false ]; then
+if [ "$branch" = "dev" ] \
+    && [ "$validate_after_build" = false ] \
+    && [ "${FVPLUS_FORCE_FULL_SOURCE_SNAPSHOT:-0}" != "1" ]; then
     fast_source_snapshot=true
 fi
 
@@ -560,7 +588,7 @@ if [ -n "$version_override" ]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
         exit 1
     fi
-    if is_stable_version "$version_override"; then
+    if is_stable_version "$version_override" && [ "$historical_rebuild" != "1" ]; then
         version_override="$(normalize_stable_version_for_unraid "$version_override")"
         override_date="$(stable_date_part "$version_override")"
         if [ "$override_date" != "$today_version" ]; then
@@ -568,7 +596,7 @@ if [ -n "$version_override" ]; then
             exit 1
         fi
     fi
-    if is_stable_version "$version_override"; then
+    if is_stable_version "$version_override" && [ "$historical_rebuild" != "1" ]; then
         highest_for_today="$(highest_stable_archive_version_for_date "$today_version" || true)"
         if [ -n "$highest_for_today" ]; then
             max_ver="$(printf '%s\n%s\n' "$version_override" "$highest_for_today" | sort -V | tail -n1)"
@@ -615,6 +643,13 @@ if [ "$dry_run" = true ]; then
     echo "Install smoke: $run_install_smoke"
     exit 0
 fi
+
+# The shared resolver is only needed for real builds. Keeping this after the
+# dry-run exit preserves pkg_build.sh's standalone metadata-probe contract.
+# shellcheck source=scripts/lib.sh
+source "$CWD/scripts/lib.sh"
+fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 mkdir -p "$CWD/tmp"
 mkdir -p "$archive_dir"
@@ -712,6 +747,7 @@ fi
 # Update branch references in plg file (URLs use XML entities like &github;).
 rewrite_manifest_branch_metadata "$plgfile" "$version" "$branch"
 validate_manifest_branch_matrix "$plgfile" "$version"
+"${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "$CWD/scripts/generate_sbom.mjs")"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.

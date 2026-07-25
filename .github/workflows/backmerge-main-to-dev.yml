@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # The sync script needs both branch histories and their merge base.
           fetch-depth: 0
@@ -39,10 +39,14 @@ jobs:
         run: |
           bash scripts/sync_main_to_dev.sh
 
+      - name: Rebuild synchronized dev package
+        run: |
+          chmod +x scripts/prepare_backmerge_dev_package.sh
+          bash scripts/prepare_backmerge_dev_package.sh
+
       - name: Validate merged dev state before push
         env:
           FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'
-          FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT: '1'
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
@@ -115,11 +119,7 @@ jobs:
 
           Automated back-merge of main-only fixes into `dev`.
 
-          This PR contains the commits present on `main` but not on `dev`, excluding stable release artifacts:
-          - `folderview.plus.plg`
-          - `folderview.plus.xml`
-          - `archive/*.txz`
-          - `archive/*.sha256`
+          This PR contains the commits present on `main` but not on `dev`. Stable release artifacts are replaced by a newly versioned dev package built from the merged source so the manifest, archive, checksum, and shipped files remain aligned.
           EOF
 
           set +e
@@ -189,7 +189,7 @@ jobs:
 
       - name: Upload back-merge debug artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: backmerge-debug-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: ignore

@@ -1,0 +1,58 @@
+/* Settings first-paint boundary. Keep this small so the server-rendered shell
+ * can cloak the workspace while staged JavaScript restores saved state. */
+#fv-settings-root.fv-settings-bootstrap-pending > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner) {
+    display: none !important;
+}
+
+.fv-settings-bootstrap-shell {
+    min-height: clamp(180px, 32vh, 320px);
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-settings-bootstrap-shell[hidden],
+#fv-settings-root:not(.fv-settings-bootstrap-pending) > .fv-settings-bootstrap-shell {
+    display: none !important;
+}
+
+.fv-settings-bootstrap-shell-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: min(360px, 100%);
+    padding: 16px 18px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-card);
+    box-shadow: var(--fvplus-settings-button-shadow);
+}
+
+.fv-settings-bootstrap-shell-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 7px;
+    color: var(--fvplus-settings-chip-info);
+    background: var(--fvplus-settings-chip-info-bg);
+}
+
+.fv-settings-bootstrap-shell-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.fv-settings-bootstrap-shell-copy strong {
+    font-size: 1.3rem;
+    line-height: 1.25;
+}
+
+.fv-settings-bootstrap-shell-copy span {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1.1rem;
+    line-height: 1.35;
+}

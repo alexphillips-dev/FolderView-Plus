@@ -40,7 +40,12 @@ const directWriteContexts = (filePath) => {
         const matches = line.match(/file_put_contents\s*\(/g) || [];
         for (const _match of matches) {
             let context = currentFunction || '(top-level)';
-            if (path.basename(filePath) === 'lib.php' && index + 1 === 17) context = '(debug-startup)';
+            if (
+                path.basename(filePath) === 'lib.php'
+                && line.includes('FolderView Plus lib.php readInfo Start')
+            ) {
+                context = '(debug-startup)';
+            }
             contexts.push({ context, line: index + 1 });
         }
     });

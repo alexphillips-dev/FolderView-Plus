@@ -1,5 +1,17 @@
 {
   "schemaVersion": 1,
+  "budgets": {
+    "maxBrowserGlobals": 510,
+    "maxInlineActions": 79,
+    "maxFileLines": {
+      "scripts/folderviewplus.js": 12098,
+      "scripts/docker.js": 8867,
+      "styles/folderviewplus.css": 14515,
+      "styles/folderviewplus.bootstrap.css": 59,
+      "server/lib.php": 7610,
+      "FolderViewPlus.page": 1957
+    }
+  },
   "moduleContracts": [
     {
       "file": "scripts/folderviewplus.settings-registry.js",

@@ -1,4 +1,6 @@
 <?php
+    require_once __DIR__ . '/lib.remote.php';
+
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
 
@@ -2982,30 +2984,17 @@
         if ($requestUrl === '') {
             return ['ok' => false, 'error' => 'Empty URL.', 'content' => '', 'status' => ''];
         }
-        $statusLine = '';
-        $responseHeaders = [];
-        $context = stream_context_create([
-            'http' => [
-                'timeout' => max(2, min(20, $timeoutSeconds)),
-                'ignore_errors' => true,
-                'header' => "Cache-Control: no-cache\r\nPragma: no-cache\r\nUser-Agent: FolderViewPlus/1.0\r\nAccept: application/json, text/plain, */*\r\n"
-            ]
-        ]);
-        $content = @file_get_contents($requestUrl, false, $context);
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            $responseHeaders = $http_response_header;
-            $statusLine = (string)($http_response_header[0] ?? '');
-        }
-        if ($content === false) {
-            return ['ok' => false, 'error' => 'Unable to fetch remote content.', 'content' => '', 'status' => $statusLine];
-        }
-        return [
-            'ok' => preg_match('/\s2\d\d\s/', $statusLine) === 1 || $statusLine === '',
-            'error' => '',
-            'content' => (string)$content,
-            'status' => $statusLine,
-            'headers' => $responseHeaders
-        ];
+        $host = strtolower((string)(@parse_url($requestUrl, PHP_URL_HOST) ?: ''));
+        $maxBytes = $host === 'api.github.com'
+            ? 2 * 1024 * 1024
+            : FVPLUS_THEME_WORKSPACE_MAX_FILE_BYTES;
+        return fvplusFetchRemoteTextBounded(
+            $requestUrl,
+            ['github.com', 'raw.githubusercontent.com', 'api.github.com'],
+            $maxBytes,
+            $timeoutSeconds,
+            3
+        );
     }
 
     function fvplusThemeWorkspaceFetchJson(string $url, int $timeoutSeconds = 10): array {

@@ -132,14 +132,17 @@
         return `<div class="fv-ui-field${error ? ' has-error' : ''}${className ? ` ${escapeHtml(className)}` : ''}">${label ? `<label${id ? ` for="${escapeHtml(id)}"` : ''}>${escapeHtml(label)}${required ? '<span aria-hidden="true"> *</span>' : ''}</label>` : ''}<div class="fv-ui-field-control">${control}</div>${help ? `<div class="fv-ui-field-help"${helpId ? ` id="${escapeHtml(helpId)}"` : ''}>${escapeHtml(help)}</div>` : ''}${error ? `<div class="fv-ui-field-error" role="alert"${errorId ? ` id="${escapeHtml(errorId)}"` : ''}><i class="fa fa-exclamation-circle" aria-hidden="true"></i>${escapeHtml(error)}</div>` : ''}</div>`;
     };
 
-    const dropdown = ({ id = '', name = '', options = [], value = '', multiple = false, disabled = false, attributes = '' } = {}) => {
+    const dropdown = ({
+        id = '', name = '', ariaLabel = '', options = [], value = '', multiple = false,
+        disabled = false, attributes = ''
+    } = {}) => {
         const selected = new Set(Array.isArray(value) ? value.map(String) : [String(value)]);
         const choices = options.map((option) => {
             const normalized = typeof option === 'object' ? option : { value: option, label: option };
             const optionValue = String(normalized.value ?? '');
             return `<option value="${escapeHtml(optionValue)}"${selected.has(optionValue) ? ' selected' : ''}${normalized.disabled ? ' disabled' : ''}>${escapeHtml(normalized.label ?? optionValue)}</option>`;
         }).join('');
-        return `<span class="fv-ui-select${multiple ? ' is-multiselect' : ''}"><select${id ? ` id="${escapeHtml(id)}"` : ''}${name ? ` name="${escapeHtml(name)}"` : ''}${multiple ? ' multiple' : ''}${disabled ? ' disabled' : ''} ${attributes}>${choices}</select>${multiple ? '' : '<i class="fa fa-angle-down" aria-hidden="true"></i>'}</span>`;
+        return `<span class="fv-ui-select${multiple ? ' is-multiselect' : ''}"><select${id ? ` id="${escapeHtml(id)}"` : ''}${name ? ` name="${escapeHtml(name)}"` : ''}${ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)}"` : ''}${multiple ? ' multiple' : ''}${disabled ? ' disabled' : ''} ${attributes}>${choices}</select>${multiple ? '' : '<i class="fa fa-angle-down" aria-hidden="true"></i>'}</span>`;
     };
 
     const emptyState = ({ title = '', message = '', icon = 'fa-inbox', action = '' } = {}) => `
@@ -396,6 +399,7 @@
         if (toastRegion?.isConnected) return toastRegion;
         toastRegion = host.document.createElement('div');
         toastRegion.className = 'fv-ui-toast-region';
+        toastRegion.setAttribute('role', 'region');
         toastRegion.setAttribute('aria-label', translate('common.notifications', 'Notifications'));
         host.document.body.append(toastRegion);
         return toastRegion;

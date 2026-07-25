@@ -205,15 +205,19 @@ run_lane() {
       run_timed_step filter-view-settings-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/filter_view_settings_guard.mjs")"
       run_timed_step deprecation-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/deprecation_guard.mjs")"
       run_timed_step architecture-contracts "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/architecture_contract_guard.mjs")"
+      run_timed_step sbom "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_sbom.mjs")" --check
+      run_timed_step action-pins "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/action_pin_guard.mjs")"
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax
       run_timed_step javascript-unused-symbols "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/js_unused_symbols_guard.mjs")"
       run_timed_step php-static-analysis "${PHP_BIN}" "$(fvplus::path_for_command "${PHP_BIN}" "scripts/php_unused_helpers_guard.php")"
+      run_timed_step phpstan bash scripts/phpstan_guard.sh
       ;;
     tests)
       run_timed_step node-mobile-tests "${NODE_BIN}" --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
       run_timed_step node-test-suite "${NODE_BIN}" --test tests/*.mjs
+      run_timed_step javascript-coverage "${NPM_BIN}" run test:coverage
       ;;
     workflow-tests)
       run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
@@ -234,6 +238,7 @@ run_lane() {
       run_timed_step api-contract bash scripts/api_contract_guard.sh
       run_timed_step legacy-support bash scripts/legacy_support_guard.sh
       run_timed_step i18n-guard bash scripts/i18n_guard.sh
+      run_timed_step i18n-migration-budget "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/i18n_migration_budget_guard.mjs")"
       run_timed_step lang-usage bash scripts/lang_usage_guard.sh
       run_timed_step include-order bash scripts/include_order_guard.sh
       run_timed_step theme-scope bash scripts/theme_scope_guard.sh

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.14">
-<!ENTITY md5 "fa57a9cc534b4e5ca3147c7b5ae04102">
+<!ENTITY version "2026.07.25.01">
+<!ENTITY md5 "a58cca397be6a5533729cb95a4709b8b">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,42 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.25.01
+# FolderView Plus 2026.07.25.01
+This dev release completes the repository-wide maintainability, compatibility, security, accessibility, diagnostics, and release-integrity sequence.
+## Runtime architecture
+- Performance: Load the Settings workspace in explicit foundation and deferred stages so the first usable interface is available sooner and module failures report a dedicated loader diagnostic.
+- Performance: Move the Settings bootstrap shell into a small first-paint stylesheet and retain a bounded interaction/idle fallback for deferred modules.
+- Maintenance: Extract remote retrieval into a focused server module and document the current browser, PHP, package, diagnostics, and native Docker integration boundaries.
+- Reliability: Strengthen architecture budgets for browser globals, inline actions, and the largest JavaScript, CSS, PHP, and page files.
+## Security and privacy
+- Security: Restrict remote theme and GitHub retrieval to HTTPS, approved hosts, port 443, bounded redirects, response-size limits, and explicit timeouts.
+- Security: Add regression coverage for disallowed schemes, hosts, ports, redirect targets, and oversized responses.
+- Privacy: Add a sanitized support-bundle comparison tool that reports bounded structural differences without exposing machine identity or protected values.
+- Privacy: Document the package's sanitization and diagnostics design decisions.
+## Accessibility and themes
+- Accessibility: Run Axe WCAG A/AA checks across every deterministic browser fixture and report actionable node-level failures.
+- Accessibility: Add accessible names for dropdowns and Docker privacy controls, a semantic toast region, and valid Diagnostics definition-list structure.
+- Compatibility: Replace unsafe inherited text-color fallbacks, improve light-theme contrast, and keep fixture host surfaces representative of Unraid themes.
+- Quality: Add enforced JavaScript coverage thresholds for core preferences, view-settings, and support-bundle comparison behavior.
+## Release integrity and supply chain
+- Reliability: Prevent package-version reuse by considering manifests, archives, local and remote branches, and tags during version allocation.
+- Reliability: Rebuild a fresh dev package after stable backmerges and verify remote manifest, checksum, and downloaded archive bytes after publication.
+- Security: Pin every external GitHub Action to an immutable commit and enable weekly Dependabot updates for Actions and npm tooling.
+- Security: Generate and validate a CycloneDX SBOM for npm and GitHub Actions dependencies.
+- Reliability: Make stable release workflows fail closed unless the required live Unraid browser and theme matrices cover supported 7.0.x, 7.2.x, and 7.3.x systems.
+- Maintenance: Enrich generated release notes with source provenance, package SHA-256, stable comparison links, and bounded commit history.
+## Maintainability and diagnostics
+- Quality: Add pinned PHPStan analysis for the extracted remote-fetch boundary and correct Windows/WSL path handling so static analysis cannot silently skip its configuration.
+- Quality: Add artifact-history auditing, documented retention policy, localization migration budgets, and immutable-Action policy checks to shared validation.
+- Diagnostics: Add a privacy-safe command-line comparator for two sanitized support bundles and document its troubleshooting workflow.
+- Docs: Add architecture decision records for branch package integrity, browser support, native Docker safe mode, diagnostic privacy, and package storage, plus a consolidated maintainability guide.
+- Maintenance: Let the upstream Unraid Docker monitor open or update a deduplicated compatibility issue when tracked implementation signals change.
+## Validation
+- Test: Expand loader lifecycle, remote-fetch security, bundle comparison, accessibility, theme compatibility, versioning, and workflow contracts.
+- Test: Exercise deterministic Chromium fixtures with Axe and retain runtime-performance budgets through the extreme 250-folder/2,000-item scenario.
+
 
 ###2026.07.24.14
 # FolderView Plus 2026.07.24.14

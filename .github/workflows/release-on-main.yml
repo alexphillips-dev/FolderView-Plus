@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -96,8 +96,8 @@ jobs:
         if: steps.release_scope.outputs.should_publish == '1'
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-          FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
-          FVPLUS_UNRAID_REQUIRED_VERSIONS: '7.0.x,7.1.x,7.2.x'
+          FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
+          FVPLUS_UNRAID_REQUIRED_VERSIONS: '7.0.x,7.2.x,7.3.x'
           FVPLUS_UNRAID_REQUIRED_THEMES: 'black,white'
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
@@ -105,7 +105,7 @@ jobs:
           FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES: '1'
           FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
-          FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
+          FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
@@ -113,7 +113,7 @@ jobs:
           FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
           FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
           FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
-          FVPLUS_THEME_MATRIX_REQUIRED: ${{ secrets.FVPLUS_THEME_MATRIX_URLS != '' && '1' || '0' }}
+          FVPLUS_THEME_MATRIX_REQUIRED: '1'
           FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
           FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
@@ -229,7 +229,7 @@ jobs:
 
       - name: Upload debug artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-on-main-debug-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: ignore

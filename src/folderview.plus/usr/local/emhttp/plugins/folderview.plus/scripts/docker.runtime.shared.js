@@ -1237,6 +1237,10 @@
             const background = shell.querySelector('.switch-button-background');
             widget?.classList.toggle('is-disabled', state.pending);
             background?.setAttribute('aria-disabled', state.pending ? 'true' : 'false');
+            background?.setAttribute(
+                'aria-label',
+                input.getAttribute('aria-label') || input.getAttribute('title') || 'Toggle setting'
+            );
             return input;
         };
 

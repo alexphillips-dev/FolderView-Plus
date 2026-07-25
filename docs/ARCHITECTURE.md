@@ -2,6 +2,14 @@
 
 FolderView Plus is an Unraid webGUI plugin with PHP endpoints, browser runtimes for several host surfaces, persistent JSON configuration on the flash device, and generated release packages. The project uses shared contracts so Docker, VM, Dashboard, Settings, and the modern folder editor do not each invent their own storage, request, UI, or runtime behavior.
 
+Long-lived constraints and their enforcement live in [Architecture Decision Records](adr/):
+
+- [Branch package integrity](adr/0001-branch-package-integrity.md)
+- [Browser compatibility boundary](adr/0002-browser-compatibility-boundary.md)
+- [Native Docker safe mode](adr/0003-native-docker-safe-mode.md)
+- [Diagnostics privacy invariants](adr/0004-diagnostics-privacy-invariants.md)
+- [Package artifact storage](adr/0005-package-artifact-storage.md)
+
 ## Maintainability contracts
 
 The shipped plugin keeps machine-readable contracts under `schemas/` for Filter and View settings, browser/module ownership, settings-table metadata, and deprecations. Generated runtime data is checked against those schemas in CI, while executable contract guards load module APIs and reject undeclared UI bindings, missing lifecycle methods, accidental globals, or reintroduced removed preferences.
@@ -83,3 +91,7 @@ The core plugin archive contains the installed runtime but excludes the large th
 Development happens on `dev`; `main` represents the stable release. The shared CI suite drives lint, tests, guards, fixture browsers, and configured live smoke lanes. Stable release preparation rebuilds and validates the package before publishing.
 
 See [Versioned Asset Packs](../asset-packs/README.md), [Contributing](../.github/CONTRIBUTING.md), and [Installation and Upgrades](INSTALLATION_AND_UPGRADES.md).
+
+## Decision and maintenance records
+
+Cross-cutting decisions are recorded under [`docs/adr/`](adr/). The automated ratchets, staged-loading boundary, supply-chain policy, and maintenance commands are summarized in [Maintainability Controls](maintainability.md).

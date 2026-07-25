@@ -5,17 +5,109 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.11">
-<!ENTITY md5 "5ddf9ceec5d71587c0b5d84be67cb17d">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.07.24.12">
+<!ENTITY md5 "035d0fa980cfda44ad0994d2a4e076c6">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.12
+# FolderView Plus 2026.07.24.12
+This stable release contains every change made on `dev` since stable `2026.07.21.12`. It delivers a complete Filter and view settings redesign, a rebuilt Diagnostics experience and support-bundle workflow, more reliable Docker and VM lifecycle reconciliation, restored Docker privacy masking, preparation for Unraid's evolving Docker interface, and a broad maintainability and regression-testing pass.
+## Dashboard and runtime behavior
+- Fix: Reconcile Dashboard folders and members after Docker containers transition from stopped to started without requiring a page reload.
+- Fix: Keep the Dashboard Started only filter synchronized with live member state, retain the necessary folder hierarchy for running descendants, and hide folders whose members are all stopped.
+- Fix: Apply Docker and VM context-menu state from the latest runtime snapshot so lifecycle actions match the entity's actual state.
+- Fix: Remove stale spinner, icon, class, and color state after lifecycle actions while preserving canonical host-provided icons.
+- Reliability: Use a bounded, state-aware lifecycle refresh window so slower Docker and VM transitions can settle before the UI declares completion.
+- Reliability: Cancel stale lifecycle reconciliation when a newer action supersedes it and ignore responses from obsolete page generations.
+- Reliability: Fall back to one native host refresh only when incremental Dashboard reconciliation cannot confirm the requested state.
+- Feature: Extend VM Dashboard lifecycle parity across start, stop, pause, resume, restart, hibernate, wake, force stop, and console-related state transitions.
+- Performance: Reconcile affected Dashboard entities incrementally instead of broadly reloading the host page.
+- Privacy: Keep lifecycle telemetry bounded and redact entity names and other sensitive runtime values.
+- UI/UX: Increase Activity Center secondary and action-label sizing for better readability.
+## Filter and view settings
+- UI/UX: Completely redesign Filter and view settings into a compact, card-based workspace with clearer grouping, hierarchy, spacing, controls, and responsive behavior.
+- UI/UX: Reduce the section's overall scale and title size while retaining readable labels, descriptions, keyboard focus, and touch targets.
+- UI/UX: Reorganize Layout, Folder badges, Runtime, Folder defaults, Dashboard, Health cards, Privacy masking, and Columns into focused modules that explain their effects.
+- UI/UX: Improve Expand all, Collapse all, Mobile reorder, Tree scan, and Tree repair controls with consistent state, feedback, and lifecycle handling.
+- Feature: Make advanced preview settings persist and apply immediately to active Docker and VM views.
+- Fix: Make Health cards visibility, Runtime summary badge, scoring profiles, Updates handling, warning thresholds, critical thresholds, and All stopped mode affect the rendered Dashboard as described.
+- Fix: Separate Docker health scoring from VM threshold evaluation so Docker-only conditions cannot distort VM health results.
+- Fix: Apply health-profile changes immediately and keep health-derived filter badges synchronized across Settings tabs.
+- Fix: Normalize VM thresholds and preserve the VM privacy master switch through save, hydration, navigation, and runtime consumption.
+- Fix: Make the All stopped Warning mode produce the intended warning severity instead of being treated as critical or ignored.
+- Maintenance: Remove the Compact card layout setting and every persisted, rendered, localized, and runtime compatibility residue associated with it.
+- Maintenance: Remove deprecated or inert settings resize paths, retired editor modes, orphaned member-menu branches, obsolete actions, and no-op Compose suggestions.
+- Compatibility: Keep settings controls registered in typed metadata, normalize persisted values before use, and retain explicit compatibility handling for supported legacy preferences.
+## Diagnostics and support workflow
+- UI/UX: Rebuild the Advanced Diagnostics tab around a clear action toolbar, overall-health summary, priority findings, core system checks, optional findings, Dashboard evidence, support-bundle overview, and privacy disclosure.
+- UI/UX: Add a compact health hero with centered Optional notices, Last checked, Current version, and Core checks metrics plus theme-aware SVG icons and a status progress bar.
+- UI/UX: Give Run health check, Retest performance, and Export support bundle distinct but theme-consistent action styling, and remove the redundant Copy issue report action.
+- UI/UX: Align system-health timestamps consistently at the bottom-left of each card and standardize the Theme timestamp label to Checked.
+- UI/UX: Remove healthy Performance Budgets and Localization cards from the interface while retaining their collectors, telemetry, and warning-level findings.
+- UI/UX: Remove the Technical details dropdowns from optional diagnostic cards to reduce clutter.
+- UI/UX: Replace the removed Suggested fixes panel, one-click repair recommendations, related rendering paths, styles, actions, and localization with direct findings that describe the current state.
+- Diagnostics: Add first-class Dashboard visual captures containing viewport, orientation, touch mode, scale, card geometry, grid, overflow, and render-health evidence.
+- Diagnostics: Preserve a recent Dashboard capture across navigation to Settings and refresh the support preview immediately when new evidence is available.
+- Diagnostics: Add freshness and version-mismatch guidance so support bundles distinguish current visual evidence from stale or incompatible captures.
+- Diagnostics: Organize support findings by rendering, configuration, runtime, storage, icons, theme, localization, and update domains without allowing unavailable optional data to obscure confirmed health.
+- Diagnostics: Base domain health on the latest completed health check and present a single actionable unavailable-state explanation instead of multiple misleading unavailable cards.
+- Diagnostics: Add explicit unchecked, running, stale, completed, notice, warning, and failure states to the health-check view model.
+- Diagnostics: Expand the support-bundle overview with schema version, section coverage, preview time, descriptions, semantic theme-aware icons, and the inclusion state of all seven bundle sections.
+- Diagnostics: Add a guided Dashboard evidence workflow that explains how to open the affected page, reproduce the layout, capture it, return to Settings, and export.
+- Privacy: Keep diagnostic fingerprints bounded and privacy-safe while retaining enough geometry and capability context to compare affected systems.
+- Privacy: Expand the Privacy and sanitization disclosure with clear Hashed, Masked, Omitted, and Truncated definitions, per-bundle hash scope, and consistent colored badges.
+- Privacy: Keep the disclosure trigger anchored when expanded, center its privacy badges, use equal-sized detail cards, and expose richer descriptions without increasing the collapsed row height.
+- Accessibility: Add meaningful status semantics, keyboard focus, accessible labels, and theme-aware icon contrast throughout the redesigned Diagnostics interface.
+## Docker privacy masking
+- Fix: Prevent the Docker-page Privacy switch from visually bouncing during optimistic preference persistence and cross-tab synchronization.
+- Fix: Restore actual Docker-page masking when Unraid's switch widget emits its user change through jQuery rather than a native bubbled event.
+- Reliability: Bind the stable Privacy input once, suppress saves during programmatic synchronization, and reconcile optimistic, confirmed, external, and failed-save states.
+- Fix: Keep names, icons, LAN IPs, ports, paths, registries, public IPs, interfaces, and external URLs synchronized with the saved masking controls.
+- Test: Cover native and jQuery-only switch events, duplicate-handler prevention, cross-tab updates, optimistic state, save confirmation, rollback, and stable host-widget reuse.
+## Unraid Docker compatibility
+- Maintenance: Remove the unsupported Native Docker Organizer base-API probe, mutation path, notice card, action handling, telemetry, and localization that could not provide a reliable integration.
+- Compatibility: Preserve the supported Docker runtime transport while classifying legacy, native, and unknown host interfaces explicitly.
+- Compatibility: Add capability-aware providers for the legacy Docker page, GraphQL-based host implementations, and unsupported interfaces without assuming unavailable operations.
+- Compatibility: Add guarded GraphQL query shapes, CSRF handling, reconnect behavior, bounded polling, stale-response cleanup, and action capability checks.
+- Compatibility: Prevent FolderView Plus from mounting duplicate overlays when a compatible native organizer surface is present.
+- Diagnostics: Record privacy-safe Docker host-interface and capability evidence so future Unraid changes can be diagnosed without exposing container or host identifiers.
+- Maintenance: Add an upstream Docker compatibility tracker and native-interface fixtures to make future Unraid implementation changes visible before release.
+- Test: Exercise legacy, native, GraphQL, unsupported, reconnect, capability, duplicate-overlay, and stale-generation Docker host paths.
+## Architecture and maintainability
+- Maintenance: Split Settings responsibilities into typed metadata, registry, sections, table, tree, workspace, lifecycle, request, persistence, and runtime-action modules.
+- Reliability: Add explicit initialization and teardown ownership so repeated page navigation cannot duplicate handlers, observers, timers, host hooks, or pending requests.
+- Fix: Correct the Settings bootstrap initialization order that could raise `Cannot access 'normalizeHealthSeverityFilterMode' before initialization`.
+- Reliability: Validate required Settings modules before bootstrap and preserve actionable fatal diagnostics when a required contract is unavailable.
+- Maintenance: Formalize deprecated settings and compatibility guards so removed controls cannot silently return as inert UI or stale runtime branches.
+- Maintenance: Remove unreachable functions, unused localization messages, dead rendering branches, obsolete selectors, abandoned UI state, and generated residue identified by repository-wide reachability audits.
+- Reliability: Extract Diagnostics view-model and renderer responsibilities into testable modules instead of coupling collection, state derivation, and markup generation.
+- Fix: Correct cursor and repeated-hydration edge cases discovered while modularizing the Settings runtime.
+- Maintenance: Add architecture and global-contract guards that catch oversized modules, accidental globals, duplicate ownership, and reintroduction of retired code.
+## Localization, themes, and accessibility
+- Localization: Update all 18 supported locale catalogs for the redesigned settings, diagnostics, privacy, Dashboard capture, Docker compatibility, and health-status experiences.
+- Localization: Keep source-message catalogs and namespace counts synchronized after removing deprecated controls and adding new diagnostics.
+- UI/UX: Make diagnostic SVG icons and action states readable across dark, light, and Unraid theme variants.
+- UI/UX: Give support-bundle section icons distinct semantic colors without relying on filled orange glyphs.
+- Accessibility: Preserve keyboard navigation, visible focus, reduced-motion behavior, responsive layout, and readable text sizing in the new Settings and Diagnostics surfaces.
+## Quality and release engineering
+- Test: Expand browser lifecycle fixtures for Docker and VM actions, Started only filtering, repeated navigation, Settings hydration, diagnostics refresh, privacy masking, and theme rendering.
+- Test: Add contract and regression coverage for all active Filter and view settings so each visible control has a read, render, mutation, persistence, and runtime-consumption path.
+- Test: Add diagnostics view-model, bundle-preview, visual-capture, sanitization, localization, lifecycle, and unavailable-state coverage.
+- Test: Add executable guards for deprecated settings, dead-code reachability, module boundaries, global ownership, release-note consistency, packaging, and installation.
+- Reliability: Keep dev and stable packaging under release, checksum, archive-retention, install-smoke, and remote-publication guards.
+## Compatibility and upgrade notes
+- Compatibility: No manual configuration migration is required; existing supported folder, view, health, privacy, Dashboard, Docker, and VM preferences continue to normalize on load.
+- Compatibility: Users should hard-refresh the Unraid webGUI after updating so the redesigned JavaScript, CSS, SVG, and localization assets replace cached development builds.
+- Compatibility: Native or future Docker interfaces are detected conservatively; unsupported capabilities are reported diagnostically without breaking the legacy Docker and Dashboard experiences.
+
 
 ###2026.07.24.11
 - Fix: Restore Docker-page Privacy masking when Unraid's switch widget reports a user change through jQuery instead of a native bubbled change event.
@@ -7738,7 +7830,7 @@
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

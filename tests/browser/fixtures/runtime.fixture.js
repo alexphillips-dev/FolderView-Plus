@@ -49,13 +49,13 @@
                 wrapper.classList.toggle('is-checked', input.checked);
             };
             input.checked = options.checked === true;
-            input.addEventListener('change', refresh);
+            $(input).on('change.fixtureSwitchButton', refresh);
             background.addEventListener('click', () => {
                 if (input.disabled) {
                     return;
                 }
                 input.checked = !input.checked;
-                input.dispatchEvent(new Event('change', { bubbles: true }));
+                $(input).triggerHandler('change');
             });
             refresh();
         });

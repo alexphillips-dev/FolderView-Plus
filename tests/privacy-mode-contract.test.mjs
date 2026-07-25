@@ -189,8 +189,11 @@ test('docker runtime privacy toggle stays in sync with saved dashboard privacy p
     assert.match(dockerRuntimeSharedJs, /const createStableToggleController = \(options = \{\}\) =>/);
     assert.match(dockerRuntimeSharedJs, /if \(!input \|\| !shell\.contains\(input\)\) \{[\s\S]*shell\.innerHTML = String\(buildMarkup\(state\) \|\| ''\);/);
     assert.match(dockerRuntimeSharedJs, /const boundShells = new WeakSet\(\);/);
-    assert.match(dockerRuntimeSharedJs, /if \(!synchronizingPrimary\) \{[\s\S]*invoke\(onToggle, target\.checked === true\);/);
+    assert.match(dockerRuntimeSharedJs, /const boundPrimaryInputs = new WeakSet\(\);/);
+    assert.match(dockerRuntimeSharedJs, /\.off\('change\.fvplusStableToggle'\)[\s\S]*\.on\('change\.fvplusStableToggle', handleChange\);/);
+    assert.match(dockerRuntimeSharedJs, /if \(!synchronizingPrimary\) \{[\s\S]*invoke\(onToggle, input\.checked === true\);/);
     assert.match(dockerRuntimeSharedJs, /input\.dispatchEvent\(new EventConstructor\('change', \{ bubbles: true \}\)\);/);
+    assert.match(dockerRuntimeSharedJs, /initializeSwitch\(input, state\);\s*bindPrimaryEvents\(input\);/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-toggle-shell\.is-save-pending \.switch-button-background\s*\{[\s\S]*pointer-events:\s*none;/);
     assert.match(dockerJs, /const basePrefs = previousPrefs;/);
     assert.doesNotMatch(dockerJs, /const setDockerRuntimePrivacyMode = async[\s\S]*?basePrefs = await fetchDockerBootstrapPrefs\(\);/);

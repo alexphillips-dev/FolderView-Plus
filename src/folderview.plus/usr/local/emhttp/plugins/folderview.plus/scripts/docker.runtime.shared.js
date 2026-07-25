@@ -1105,6 +1105,7 @@
         const onMount = typeof options.onMount === 'function' ? options.onMount : (() => {});
         const onError = typeof options.onError === 'function' ? options.onError : (() => {});
         const boundShells = new WeakSet();
+        const boundPrimaryInputs = new WeakSet();
         let synchronizingPrimary = false;
         let mountCount = 0;
         let syncCount = 0;
@@ -1155,9 +1156,6 @@
                     return;
                 }
                 if (target.id === inputId) {
-                    if (!synchronizingPrimary) {
-                        invoke(onToggle, target.checked === true);
-                    }
                     return;
                 }
                 const optionKey = String(target.getAttribute(optionAttribute) || '').trim();
@@ -1177,6 +1175,26 @@
                 event.stopPropagation();
                 invoke(onMenuToggle);
             });
+        };
+
+        const bindPrimaryEvents = (input) => {
+            if (!input || boundPrimaryInputs.has(input)) {
+                return;
+            }
+            boundPrimaryInputs.add(input);
+            const handleChange = () => {
+                if (!synchronizingPrimary) {
+                    invoke(onToggle, input.checked === true);
+                }
+            };
+            const $input = typeof jquery === 'function' ? jquery(input) : null;
+            if ($input && typeof $input.off === 'function' && typeof $input.on === 'function') {
+                $input
+                    .off('change.fvplusStableToggle')
+                    .on('change.fvplusStableToggle', handleChange);
+                return;
+            }
+            input.addEventListener('change', handleChange);
         };
 
         const initializeSwitch = (input, state) => {
@@ -1207,6 +1225,7 @@
                 return null;
             }
             initializeSwitch(input, state);
+            bindPrimaryEvents(input);
             if (input.checked !== state.enabled) {
                 input.checked = state.enabled;
                 dispatchPrimaryStateChange(input);

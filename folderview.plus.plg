@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.24.10">
-<!ENTITY md5 "c9f302c50e7a31a86db57dc559ba4386">
+<!ENTITY version "2026.07.24.11">
+<!ENTITY md5 "5ddf9ceec5d71587c0b5d84be67cb17d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.24.11
+- Fix: Restore Docker-page Privacy masking when Unraid's switch widget reports a user change through jQuery instead of a native bubbled change event.
+- Reliability: Bind the stable Privacy input directly while retaining single-handler guards and suppressing persistence during programmatic state synchronization.
+- Test: Exercise the real jQuery-only switch notification path while preserving optimistic, confirmed, external, failed-save, stable-widget, and duplicate-handler coverage.
+
 
 ###2026.07.24.10
 - Fix: Keep the Docker-page Privacy switch mounted while its optimistic preference is saved and confirmed, preventing the control from visually bouncing back before returning to the selected state.

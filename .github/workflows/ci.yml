@@ -196,6 +196,10 @@ jobs:
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
 
+      - name: Install Node test dependencies
+        shell: bash
+        run: npm ci --ignore-scripts
+
       - name: Start timer
         id: started
         shell: bash

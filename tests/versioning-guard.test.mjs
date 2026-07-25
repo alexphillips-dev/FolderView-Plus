@@ -475,6 +475,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
     assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
+    const nodeTestJob = ciWorkflow.match(/^  node-tests:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+    assert.match(nodeTestJob, /Install Node test dependencies[\s\S]*npm ci --ignore-scripts/);
 
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);

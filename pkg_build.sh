@@ -20,7 +20,6 @@ archive_prune_keep_raw="${FVPLUS_ARCHIVE_PRUNE_KEEP:-24}"
 archive_prune_keep=24
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 validate_after_build=true
-fast_source_snapshot=false
 dry_run=false
 run_install_smoke=false
 tmpdir=""
@@ -51,65 +50,6 @@ detect_manifest_branch() {
         return 0
     fi
     return 0
-}
-
-detect_git_commit_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git rev-parse HEAD 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_tree_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git write-tree 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_head_tree_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git rev-parse 'HEAD^{tree}' 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_source_snapshot_mode() {
-    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        printf '%s' "unknown"
-        return
-    fi
-    if [ "${fast_source_snapshot:-false}" = true ]; then
-        printf '%s' "fast-worktree"
-        return
-    fi
-    if ! git diff --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
-        printf '%s' "worktree"
-        return
-    fi
-    if ! git diff --cached --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
-        printf '%s' "index"
-        return
-    fi
-    printf '%s' "head"
-}
-
-detect_git_source_tree_sha() {
-    local snapshot_mode="${1:-}"
-    case "$snapshot_mode" in
-        head)
-            detect_git_head_tree_sha
-            ;;
-        index)
-            detect_git_tree_sha
-            ;;
-        *)
-            printf '%s' ""
-            ;;
-    esac
 }
 
 rewrite_manifest_branch_metadata() {
@@ -577,12 +517,6 @@ if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
     exit 1
 fi
 
-if [ "$branch" = "dev" ] \
-    && [ "$validate_after_build" = false ] \
-    && [ "${FVPLUS_FORCE_FULL_SOURCE_SNAPSHOT:-0}" != "1" ]; then
-    fast_source_snapshot=true
-fi
-
 if [ -n "$version_override" ]; then
     if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
@@ -639,7 +573,6 @@ if [ "$dry_run" = true ]; then
     echo "Archive retention keep count: $archive_prune_keep"
     echo "CHANGES helper timeout seconds: $changes_entry_timeout"
     echo "Post-build validation: $validate_after_build"
-    echo "Fast source snapshot: $fast_source_snapshot"
     echo "Install smoke: $run_install_smoke"
     exit 0
 fi
@@ -672,15 +605,14 @@ build_source_content_sha256="$(
         sha256sum --text "$source_file"
     done < <(find . -type f -print0 | sort -z) | sha256sum | awk '{print $1}'
 )"
-build_git_head_commit_sha="$(detect_git_commit_sha)"
-build_git_snapshot_mode="$(detect_git_source_snapshot_mode)"
-build_git_tree_sha="$(detect_git_source_tree_sha "$build_git_snapshot_mode")"
+# The archive must remain reproducible from the commit that stores it. A Git
+# commit cannot be embedded in an archive committed by that same commit without
+# creating a self-reference, so packaged identity is content-addressed instead.
+build_git_head_commit_sha=""
+build_git_snapshot_mode="content"
+build_git_tree_sha=""
 build_git_source_commit_sha=""
 build_git_commit_exact=false
-if [ "$build_git_snapshot_mode" = "head" ] && [ -n "$build_git_head_commit_sha" ]; then
-    build_git_source_commit_sha="$build_git_head_commit_sha"
-    build_git_commit_exact=true
-fi
 build_manifest_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg"
 build_archive_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/${archive_prefix}-${version}.txz"
 build_icon_pack_version="$(sed -n 's/^<!ENTITY iconPackVersion "\([^"]*\)".*/\1/p' "$plgfile" | head -n 1)"

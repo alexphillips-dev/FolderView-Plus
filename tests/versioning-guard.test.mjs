@@ -162,6 +162,7 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /"sourceContentSha256": "\$\{build_source_content_sha256\}"/);
+    assert.match(pkgBuild, /build_git_snapshot_mode="content"/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
@@ -830,7 +831,6 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(reproBuildGuard, /Deterministic build guard passed/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_VERSION_OVERRIDE/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_ALLOW_STALE_STABLE/);
-    assert.match(reproBuildGuard, /FVPLUS_FORCE_FULL_SOURCE_SNAPSHOT=1/);
     assert.match(reproBuildGuard, /repository archive differs from the reproducible build/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard skipped/);
     assert.match(mainBranchHistoryGuard, /FVPLUS_MAIN_HISTORY_BASE_REF/);

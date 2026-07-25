@@ -2393,7 +2393,7 @@
             'sourceContentFingerprint' => preg_match('/^[a-f0-9]{64}$/', $sourceContentSha256)
                 ? 'sha256:' . $sourceContentSha256
                 : ($sourceTreeSha !== '' ? 'git-tree:' . $sourceTreeSha : null),
-            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
+            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['content', 'head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
                 ? $sourceSnapshotMode
                 : null,
             'sourceCommitExact' => $sourceCommitIsExact,

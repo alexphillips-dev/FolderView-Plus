@@ -70,7 +70,6 @@ build_once() {
     LANG=C \
     FVPLUS_PKG_BUILD_DISABLE_FLOCK=1 \
     FVPLUS_HISTORICAL_REBUILD=1 \
-    FVPLUS_FORCE_FULL_SOURCE_SNAPSHOT=1 \
     FVPLUS_VERSION_OVERRIDE="${VERSION_OVERRIDE}" \
     bash "${PKG_BUILD_SCRIPT}" --output-dir "${output_dir}" --no-validate
   )

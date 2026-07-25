@@ -7,3 +7,7 @@ Every committed shipped-source state on `dev` or `main` must have a matching man
 Version selection considers both branch manifests and release tags so a version cannot be reused on another branch.
 
 Enforcement: `prepare_backmerge_dev_package.sh`, `pkg_build.sh`, release guards, and workflow contract tests.
+
+Archive provenance is content-addressed with the packaged source SHA-256. It
+does not embed the containing Git commit because that would be self-referential
+and would make checked-in archives impossible to reproduce byte for byte.

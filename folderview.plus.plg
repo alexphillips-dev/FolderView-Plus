@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.25.01">
-<!ENTITY md5 "a58cca397be6a5533729cb95a4709b8b">
+<!ENTITY version "2026.07.25.02">
+<!ENTITY md5 "25eed83fd5a1e690d04e428a030bd0aa">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.25.02
+# FolderView Plus 2026.07.25.02
+This dev follow-up closes two Linux CI findings discovered while monitoring the full `2026.07.25.01` publication.
+## Release integrity
+- Reliability: Make archive provenance content-addressed so the checked-in package can be reproduced byte for byte from its containing commit without a self-referential Git SHA.
+- Reliability: Require the reproducibility guard to compare both isolated builds directly with the repository archive.
+## Continuous integration
+- Fix: Install lockfile-pinned Node dependencies before the node test lane so the enforced `c8` coverage command is available on clean GitHub runners.
+- Regression guard: Verify that the node test job retains its dependency-install step.
+
 
 ###2026.07.25.01
 # FolderView Plus 2026.07.25.01

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.25.03">
-<!ENTITY md5 "33b73d0f859ddde7ba048cdeecb2b570">
+<!ENTITY version "2026.07.25.04">
+<!ENTITY md5 "7d1f146e9bc5413c6226bdec0a0fa8fd">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.25.04
+# FolderView Plus 2026.07.25.04
+This dev follow-up restores reliable Settings startup when the activity diagnostics workspace initializes.
+## Settings reliability
+- Fix: Register the activity diagnostics API and module-ready marker before optional workspace rendering so a panel-specific failure cannot be misreported as a missing script.
+- Reliability: Make repeated module evaluation idempotent, isolate activity diagnostics declarations, and contain each optional diagnostics startup failure independently.
+- Maintenance: Remove an unused timestamp helper exposed by the stricter module scope.
+- Regression guard: Execute the shipped activity diagnostics script twice in one browser-like context, verify it owns only one startup handler, and confirm registration precedes optional startup work.
+
 
 ###2026.07.25.03
 # FolderView Plus 2026.07.25.03

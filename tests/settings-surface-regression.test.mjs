@@ -113,7 +113,6 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsEscapeHtml = \(value\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsToPrettyJson = \(value\) =>/);
-    assert.match(diagnosticsJs, /const diagnosticsFormatTimestamp = \(isoString\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsDownloadFile = \(name, content\) => \{/);
     assert.match(diagnosticsJs, /escapeHtml:\s*diagnosticsEscapeHtml/);
     assert.match(diagnosticsJs, /showError:\s*diagnosticsShowError/);
@@ -214,7 +213,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.doesNotMatch(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{|repair_orphaned_members:\s*Object\.freeze\(\{|repairMissingIconsAction/);
     assert.match(diagnosticsJs, /const themeCard = hasResults \? buildThemeDiagnosticsSummaryCard\(\) : null;/);
     assert.match(diagnosticsJs, /return response;/);
-    assert.match(diagnosticsJs, /runThemeDiagnostics\(\);\s*initializeClientDiagnosticsPanels\(\);/);
+    assert.match(diagnosticsJs, /\['theme diagnostics', runThemeDiagnostics\],\s*\['diagnostics panels', initializeClientDiagnosticsPanels\]/);
+    assert.match(diagnosticsJs, /for \(const \[label, action\] of startupActions\) \{\s*try \{\s*const result = action\(\);[\s\S]*result\.catch\(\(error\) => \{[\s\S]*diagnosticsShowError\(`Unable to initialize \$\{label\}`, error\);/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
     assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);
     assert.doesNotMatch(diagnosticsJs, /bundle\.clientTelemetry = existingClientTelemetry;/);

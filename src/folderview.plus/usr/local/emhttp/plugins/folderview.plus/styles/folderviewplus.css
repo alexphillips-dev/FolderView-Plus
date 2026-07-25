@@ -7616,6 +7616,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-support-bundle-section-icon {
     --fv-support-section-icon-color: var(--fvplus-settings-chip-info);
+    --fv-support-section-icon-background: rgba(74, 157, 255, 0.16);
+    --fv-support-section-icon-border: rgba(74, 157, 255, 0.36);
 
     display: inline-grid;
     grid-row: 1;
@@ -7624,21 +7626,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     width: 2rem;
     height: 2rem;
     border-radius: 5px;
-    background: color-mix(
-        in srgb,
-        var(--fv-support-section-icon-color) 13%,
-        var(--fvplus-settings-surface-strong)
-    );
+    background-color: var(--fv-support-section-icon-background);
     color: var(--fv-support-section-icon-color);
-    box-shadow: inset 0 0 0 1px color-mix(
-        in srgb,
-        var(--fv-support-section-icon-color) 28%,
-        transparent
-    );
+    box-shadow: inset 0 0 0 1px var(--fv-support-section-icon-border);
 }
 
 .fv-support-bundle-section-icon.is-bundle {
     --fv-support-section-icon-color: var(--fvplus-settings-chip-info);
+    --fv-support-section-icon-background: rgba(74, 157, 255, 0.16);
+    --fv-support-section-icon-border: rgba(74, 157, 255, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-system {
@@ -7647,6 +7643,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 58%,
         var(--fvplus-settings-chip-success)
     );
+    --fv-support-section-icon-background: rgba(77, 184, 169, 0.16);
+    --fv-support-section-icon-border: rgba(77, 184, 169, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-plugin {
@@ -7655,6 +7653,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 62%,
         #b76cff
     );
+    --fv-support-section-icon-background: rgba(154, 108, 255, 0.16);
+    --fv-support-section-icon-border: rgba(154, 108, 255, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-runtime {
@@ -7663,6 +7663,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 76%,
         #6678ff
     );
+    --fv-support-section-icon-background: rgba(102, 120, 255, 0.16);
+    --fv-support-section-icon-border: rgba(102, 120, 255, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-browser {
@@ -7671,6 +7673,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 58%,
         #22c7c7
     );
+    --fv-support-section-icon-background: rgba(34, 199, 199, 0.16);
+    --fv-support-section-icon-border: rgba(34, 199, 199, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-health {
@@ -7679,10 +7683,14 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-danger) 56%,
         #d86fbd
     );
+    --fv-support-section-icon-background: rgba(216, 111, 189, 0.16);
+    --fv-support-section-icon-border: rgba(216, 111, 189, 0.36);
 }
 
 .fv-support-bundle-section-icon.is-redaction {
     --fv-support-section-icon-color: var(--fvplus-settings-chip-success);
+    --fv-support-section-icon-background: rgba(80, 190, 110, 0.16);
+    --fv-support-section-icon-border: rgba(80, 190, 110, 0.36);
 }
 
 .fv-support-bundle-section-icon .fv-ui-svg-icon {

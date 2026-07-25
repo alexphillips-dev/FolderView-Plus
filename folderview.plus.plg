@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.25.02">
-<!ENTITY md5 "25eed83fd5a1e690d04e428a030bd0aa">
+<!ENTITY version "2026.07.25.03">
+<!ENTITY md5 "33b73d0f859ddde7ba048cdeecb2b570">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.25.03
+# FolderView Plus 2026.07.25.03
+This dev follow-up completes cross-platform archive reproducibility.
+## Release integrity
+- Fix: Normalize every packaged file and directory mode to `0755` in the tar stream so Windows/WSL and native Linux builds produce identical metadata.
+- Regression guard: Continue comparing two isolated builds and the checked-in repository archive byte for byte.
+
 
 ###2026.07.25.02
 # FolderView Plus 2026.07.25.02

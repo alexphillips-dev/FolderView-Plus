@@ -648,6 +648,7 @@ if ! tar --sort=name \
     --owner=0 \
     --group=0 \
     --numeric-owner \
+    --mode=0755 \
     -cJf "$filename" ./*; then
     tar_status=$?
 fi

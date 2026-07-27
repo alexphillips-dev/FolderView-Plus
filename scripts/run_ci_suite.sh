@@ -67,6 +67,7 @@ NPM_BIN="$(fvplus::resolve_platform_command npm)"
 NPX_BIN="$(fvplus::resolve_platform_command npx)"
 
 chmod +x \
+  scripts/actionlint_guard.sh \
   scripts/api_contract_guard.sh \
   scripts/browser_smoke.sh \
   scripts/dead_code_guard.sh \
@@ -222,6 +223,7 @@ run_lane() {
       run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
       ;;
     workflow-guards)
+      run_timed_step actionlint bash scripts/actionlint_guard.sh
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
@@ -231,6 +233,7 @@ run_lane() {
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       ;;
     guards)
+      run_timed_step actionlint bash scripts/actionlint_guard.sh
       run_timed_step release-guard bash scripts/release_guard.sh
       run_timed_step install-smoke bash scripts/install_smoke.sh
       run_timed_step main-branch-history bash scripts/main_branch_history_guard.sh

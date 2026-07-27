@@ -67,7 +67,6 @@ const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
 const simulateMainRelease = fs.readFileSync(simulateMainReleasePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
-const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
@@ -434,6 +433,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /bash scripts\/docs_metadata_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/release_notes_consistency_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/workflow_self_check\.sh/);
+    assert.match(runCiSuite, /bash scripts\/actionlint_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/browser_smoke\.sh/);
     assert.match(runCiSuite, /bash scripts\/fixture_browser_tests\.sh/);
     assert.match(runCiSuite, /bash scripts\/theme_matrix_smoke\.sh/);
@@ -465,7 +465,10 @@ test('scheduled validation runs cross-browser fixtures and uses live Unraid targ
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {
     assert.match(ciWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main\s*\n\s*-\s*dev\s*\n\s*-\s*reset-main/);
     assert.match(ciWorkflow, /detect-changes:/);
-    assert.match(ciWorkflow, /dorny\/paths-filter@[0-9a-f]{40}\s+# v3/);
+    assert.match(ciWorkflow, /node scripts\/classify_ci_changes\.mjs/);
+    assert.doesNotMatch(ciWorkflow, /dorny\/paths-filter@/);
+    assert.match(ciWorkflow, /group:\s*folderview-plus-ci-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/);
+    assert.match(ciWorkflow, /cancel-in-progress:\s*true/);
     assert.match(ciWorkflow, /workflow_only/);
     assert.match(ciWorkflow, /docs_only/);
     assert.match(ciWorkflow, /needs_browser/);
@@ -489,14 +492,14 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
     assert.match(ciWorkflow, /dev-release-preview/);
     assert.match(ciWorkflow, /ci-duration-report/);
-    assert.match(ciWorkflow, /actions\/upload-artifact@[0-9a-f]{40}\s+# v4/);
+    assert.match(ciWorkflow, /actions\/upload-artifact@[0-9a-f]{40}\s+# v7/);
     assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
     assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
     const nodeTestJob = ciWorkflow.match(/^  node-tests:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
     assert.match(nodeTestJob, /Install Node test dependencies[\s\S]*npm ci --ignore-scripts/);
 
-    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
+    for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
@@ -508,8 +511,6 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
     }
 
-    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
-    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
     assert.match(releaseOnMainWorkflow, /Run release validation suite/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
 
@@ -532,7 +533,6 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 
     for (const jobName of [
-        'detect-changes',
         'lint-and-syntax',
         'node-tests',
         'browser-smoke',
@@ -543,6 +543,11 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         const job = ciWorkflow.match(jobPattern)?.[1] || '';
         assert.match(job, /fetch-depth:\s*1/, `${jobName} should use a shallow checkout`);
         assert.doesNotMatch(job, /fetch-depth:\s*0/, `${jobName} should not fetch full history`);
+    }
+    {
+        const detectJob = ciWorkflow.match(/^  detect-changes:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+        assert.match(detectJob, /fetch-depth:\s*2/, 'detect-changes should fetch pull-request merge parents');
+        assert.doesNotMatch(detectJob, /fetch-depth:\s*0/, 'detect-changes should not fetch full history');
     }
     for (const jobName of ['guard-suite', 'release-preview']) {
         const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
@@ -581,7 +586,6 @@ test('release-on-main validates remote raw publish artifacts before publishing r
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'30'/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'10'/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
-    assert.doesNotMatch(releaseMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
 });
 
 test('release notes builder supports curated per-version override files', () => {
@@ -600,8 +604,8 @@ test('release note parsers distinguish category headings from version headings',
     assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###\[0-9\]\{4\}/);
 });
 
-test('release workflows serialize concurrent runs with shared release concurrency group', () => {
-    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
+test('release publishing serializes concurrent runs and enforces live validation', () => {
+    for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
@@ -611,17 +615,16 @@ test('release workflows serialize concurrent runs with shared release concurrenc
     }
 });
 
-test('release workflows avoid failing when no files changed for commit step', () => {
-    for (const workflow of [releaseMainWorkflow]) {
-        assert.match(workflow, /bash scripts\/release_prepare\.sh --push-main/);
-    }
+test('release preparation keeps an explicit guarded push option for operator use', () => {
+    assert.match(releasePrepare, /PUSH_MAIN=0/);
+    assert.match(releasePrepare, /--push-main/);
+    assert.match(releasePrepare, /git push origin main/);
 });
 
-test('release-main builds and pushes main while release-on-main owns publishing and notes generation', () => {
-    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
-    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
-    assert.doesNotMatch(releaseMainWorkflow, /softprops\/action-gh-release/);
-    assert.doesNotMatch(releaseMainWorkflow, /Create GitHub Release/);
+test('release-on-main is the single authoritative release workflow', () => {
+    assert.equal(fs.existsSync(releaseMainWorkflowPath), false);
+    assert.match(releaseOnMainWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main/);
+    assert.match(releaseOnMainWorkflow, /workflow_dispatch:/);
     assert.match(releaseOnMainWorkflow, /Create or update GitHub release/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/build_release_notes\.sh --version "\$\{VERSION\}" --output release_notes\.md/);
 });
@@ -804,7 +807,9 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(releaseNotesConsistencyGuard, /build_release_notes\.sh --version/);
     assert.match(releaseNotesConsistencyGuard, /Release On Main workflow is not using scripts\/build_release_notes\.sh/);
     assert.match(workflowSelfCheck, /Workflow self-check passed/);
-    assert.match(workflowSelfCheck, /immutable v3 commit/);
+    assert.match(workflowSelfCheck, /repository-owned change classifier/);
+    assert.match(workflowSelfCheck, /single push and manual release publisher/);
+    assert.match(workflowSelfCheck, /pinned actionlint guard/);
     assert.match(workflowSelfCheck, /dev release preview artifact/);
     assert.match(workflowSelfCheck, /CI duration report artifact/);
 });
@@ -866,7 +871,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(unraidMatrixSmoke, /FVPLUS_THEME_HINT/);
     assert.match(docsMetadataGuard, /folderviewplus-desc/);
     assert.match(setupCiEnvAction, /Setup CI Environment/);
-    assert.match(setupCiEnvAction, /actions\/cache@[0-9a-f]{40}\s+# v4/);
+    assert.match(setupCiEnvAction, /actions\/setup-node@[0-9a-f]{40}\s+# v7/);
+    assert.match(setupCiEnvAction, /actions\/cache@[0-9a-f]{40}\s+# v6/);
     assert.match(applyBranchProtection, /branches\/main\/protection/);
     assert.match(applyBranchProtection, /branches\/dev\/protection/);
     assert.match(applyBranchProtection, /Analyze \(JavaScript\)/);

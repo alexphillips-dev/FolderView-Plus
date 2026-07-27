@@ -23,9 +23,9 @@
     {
       "type": "application",
       "name": "actions/cache",
-      "version": "0057852bfaa89a56745cba8c7296529d2fc39830",
+      "version": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
       "scope": "optional",
-      "purl": "pkg:github/actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
+      "purl": "pkg:github/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -36,9 +36,9 @@
     {
       "type": "application",
       "name": "actions/checkout",
-      "version": "11d5960a326750d5838078e36cf38b85af677262",
+      "version": "3d3c42e5aac5ba805825da76410c181273ba90b1",
       "scope": "optional",
-      "purl": "pkg:github/actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+      "purl": "pkg:github/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -49,9 +49,9 @@
     {
       "type": "application",
       "name": "actions/setup-node",
-      "version": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "version": "820762786026740c76f36085b0efc47a31fe5020",
       "scope": "optional",
-      "purl": "pkg:github/actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "purl": "pkg:github/actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
       "properties": [
         {
           "name": "folderview-plus:usage",
@@ -62,22 +62,9 @@
     {
       "type": "application",
       "name": "actions/upload-artifact",
-      "version": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+      "version": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "scope": "optional",
-      "purl": "pkg:github/actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
-      "properties": [
-        {
-          "name": "folderview-plus:usage",
-          "value": "build-only-github-action"
-        }
-      ]
-    },
-    {
-      "type": "application",
-      "name": "dorny/paths-filter",
-      "version": "d1c1ffe0248fe513906c8e24db8ea791d46f8590",
-      "scope": "optional",
-      "purl": "pkg:github/dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590",
+      "purl": "pkg:github/actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "properties": [
         {
           "name": "folderview-plus:usage",

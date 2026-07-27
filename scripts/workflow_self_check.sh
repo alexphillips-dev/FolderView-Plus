@@ -28,12 +28,14 @@ const ensureFile = (relativePath) => {
 for (const relativePath of [
   '.github/workflows/ci.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
-  '.github/workflows/release-main.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/codeql.yml',
+  '.github/workflows/scheduled-validation.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml',
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
+  'scripts/actionlint_guard.sh',
+  'scripts/classify_ci_changes.mjs',
   'scripts/fixture_browser_tests.sh',
   'scripts/fixture_browser_tests.mjs',
   'scripts/runtime_performance_benchmarks.sh',
@@ -50,9 +52,10 @@ for (const relativePath of [
 }
 
 const ciWorkflow = read('.github/workflows/ci.yml');
-const releaseMainWorkflow = read('.github/workflows/release-main.yml');
 const releaseOnMainWorkflow = read('.github/workflows/release-on-main.yml');
 const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
+const codeqlWorkflow = read('.github/workflows/codeql.yml');
+const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
 const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
 const jobBlock = (workflow, jobName) => {
   const match = workflow.match(new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm'));
@@ -68,8 +71,18 @@ if (!/detect-changes:/.test(ciWorkflow)) {
 if (!/quality:/.test(ciWorkflow)) {
   fail('CI workflow must define a quality summary job.');
 }
-if (!/dorny\/paths-filter@[0-9a-f]{40}\s+# v3/.test(ciWorkflow)) {
-  fail('CI workflow must pin dorny/paths-filter to an immutable v3 commit.');
+if (/dorny\/paths-filter@/.test(ciWorkflow)) {
+  fail('CI workflow must use the repository-owned change classifier instead of dorny/paths-filter.');
+}
+if (!/node scripts\/classify_ci_changes\.mjs/.test(ciWorkflow)) {
+  fail('CI workflow must use scripts/classify_ci_changes.mjs.');
+}
+if (!/group:\s*folderview-plus-ci-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/.test(ciWorkflow) ||
+    !/cancel-in-progress:\s*true/.test(ciWorkflow)) {
+  fail('CI workflow must cancel superseded runs for the same pull request or ref.');
+}
+if (!/permissions:\s*\n\s*contents:\s*read/.test(ciWorkflow)) {
+  fail('CI workflow must explicitly keep repository contents read-only.');
 }
 if (!/\.\/\.github\/actions\/setup-ci-env/.test(ciWorkflow)) {
   fail('CI workflow must use the shared setup-ci-env action.');
@@ -90,7 +103,6 @@ if (!/tmp\/fixture-browser-artifacts/.test(ciWorkflow)) {
   fail('CI workflow must retain deterministic fixture browser artifacts.');
 }
 for (const jobName of [
-  'detect-changes',
   'lint-and-syntax',
   'node-tests',
   'browser-smoke',
@@ -102,13 +114,31 @@ for (const jobName of [
     fail(`CI job ${jobName} must use a shallow checkout.`);
   }
 }
+const detectChangesJob = jobBlock(ciWorkflow, 'detect-changes');
+if (!/fetch-depth:\s*2/.test(detectChangesJob) || /fetch-depth:\s*0/.test(detectChangesJob)) {
+  fail('CI detect-changes job must fetch the merge parents needed for native path classification.');
+}
 for (const jobName of ['guard-suite', 'release-preview']) {
   if (!/fetch-depth:\s*0/.test(jobBlock(ciWorkflow, jobName))) {
     fail(`CI job ${jobName} must retain full history for versioning or packaging.`);
   }
 }
+for (const jobName of [
+  'detect-changes',
+  'lint-and-syntax',
+  'node-tests',
+  'guard-suite',
+  'browser-smoke',
+  'fixture-browser',
+  'theme-matrix',
+  'release-preview',
+  'quality'
+]) {
+  if (!/timeout-minutes:\s*[1-9][0-9]*/.test(jobBlock(ciWorkflow, jobName))) {
+    fail(`CI job ${jobName} must define a bounded timeout.`);
+  }
+}
 for (const [name, workflow] of [
-  ['release-main', releaseMainWorkflow],
   ['release-on-main', releaseOnMainWorkflow],
   ['backmerge-main-to-dev', backmergeWorkflow]
 ]) {
@@ -123,13 +153,11 @@ for (const [name, workflow] of [
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
-    !/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must fail closed unless live browser smoke coverage is configured.');
+if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must fail closed unless live browser smoke coverage is configured.');
 }
-if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
-    !/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must fail closed unless the live theme matrix is configured.');
+if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must fail closed unless the live theme matrix is configured.');
 }
 if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');
@@ -140,13 +168,14 @@ if (!/Skip release publish for non-release main pushes/.test(releaseOnMainWorkfl
 if (!/gh release create/.test(releaseOnMainWorkflow) || !/gh release edit/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must own GitHub release publishing.');
 }
-if (/gh release create/.test(releaseMainWorkflow) || /gh release edit/.test(releaseMainWorkflow)) {
-  fail('Release Main workflow must not publish GitHub releases directly.');
+if (!/push:\s*\n\s*branches:\s*\n\s*-\s*main/.test(releaseOnMainWorkflow) ||
+    !/workflow_dispatch:/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must remain the single push and manual release publisher.');
 }
-if (!/bash scripts\/release_prepare\.sh --push-main/.test(releaseMainWorkflow)) {
-  fail('Release Main workflow must use scripts/release_prepare.sh --push-main as the shared release entrypoint.');
+if (fs.existsSync(path.join(root, '.github/workflows/release-main.yml'))) {
+  fail('The obsolete direct-push Release Main workflow must remain retired.');
 }
-if (!/upload-artifact@[0-9a-f]{40}\s+# v4/.test(backmergeWorkflow)) {
+if (!/upload-artifact@[0-9a-f]{40}\s+# v7/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must upload debug artifacts on failure.');
 }
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
@@ -188,10 +217,33 @@ if (!/permissions:\s*\n\s*contents:\s*read/.test(upstreamMonitorWorkflow)) {
 if (!/issues:\s*write/.test(upstreamMonitorWorkflow)) {
   fail('Unraid Docker upstream monitor must be able to open a deduplicated compatibility alert.');
 }
+for (const [workflowName, workflow, jobNames] of [
+  ['release-on-main', releaseOnMainWorkflow, ['release']],
+  ['backmerge-main-to-dev', backmergeWorkflow, ['backmerge']],
+  ['codeql', codeqlWorkflow, ['analyze']],
+  ['scheduled-validation', scheduledValidationWorkflow, ['configuration', 'cross-browser-fixtures', 'live-unraid']],
+  ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
+]) {
+  for (const jobName of jobNames) {
+    if (!/timeout-minutes:\s*[1-9][0-9]*/.test(jobBlock(workflow, jobName))) {
+      fail(`${workflowName} job ${jobName} must define a bounded timeout.`);
+    }
+  }
+}
+
+const runCiSuite = read('scripts/run_ci_suite.sh');
+const actionlintGuard = read('scripts/actionlint_guard.sh');
+if (!/run_timed_step actionlint bash scripts\/actionlint_guard\.sh/.test(runCiSuite)) {
+  fail('Workflow and full guard lanes must run the pinned actionlint guard.');
+}
+if (!/ACTIONLINT_VERSION="1\.7\.12"/.test(actionlintGuard) ||
+    !/archive_sha256=/.test(actionlintGuard) ||
+    !/sha256sum --check/.test(actionlintGuard)) {
+  fail('actionlint guard must pin and checksum-verify the downloaded release.');
+}
 
 for (const workflowPath of [
   '.github/workflows/ci.yml',
-  '.github/workflows/release-main.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/backmerge-main-to-dev.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml'

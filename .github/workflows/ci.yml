@@ -8,6 +8,13 @@ on:
       - reset-main
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: folderview-plus-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
   FVPLUS_I18N_STRICT: '1'
@@ -36,6 +43,7 @@ env:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       docs_only: ${{ steps.classify.outputs.docs_only }}
       workflow_only: ${{ steps.classify.outputs.workflow_only }}
@@ -45,110 +53,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 1
+          # Pull-request merge parents and push endpoints are needed for native classification.
+          fetch-depth: 2
 
-      - name: Detect changed paths
-        id: changes
-        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
-        with:
-          filters: |
-            docs:
-              - 'README.md'
-              - 'docs/**'
-              - 'LICENSE.md'
-              - '.github/CONTRIBUTING.md'
-              - '.github/SECURITY.md'
-              - '.github/SUPPORT*.md'
-              - 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md'
-            metadata:
-              - 'folderview.plus.plg'
-              - 'folderview.plus.xml'
-              - 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/**'
-            workflows:
-              - '.github/workflows/**'
-              - '.github/actions/**'
-              - 'scripts/run_ci_suite.sh'
-              - 'scripts/build_release_notes.sh'
-              - 'scripts/docs_metadata_guard.sh'
-              - 'scripts/release_notes_consistency_guard.sh'
-              - 'scripts/workflow_self_check.sh'
-              - 'scripts/unraid_docker_upstream_monitor.sh'
-              - 'tests/versioning-guard.test.mjs'
-            runtime:
-              - 'src/**'
-              - 'tests/**'
-              - 'pkg_build.sh'
-              - 'folderview.plus.plg'
-              - 'folderview.plus.xml'
-            browser:
-              - 'src/**'
-              - 'tests/**'
-              - 'package.json'
-              - 'package-lock.json'
-              - 'scripts/fixture_browser_tests.sh'
-              - 'scripts/fixture_browser_tests.mjs'
-              - 'scripts/runtime_performance_benchmarks.sh'
-              - 'scripts/runtime_performance_benchmarks.mjs'
-              - 'scripts/runtime_perf_budgets.json'
-              - 'scripts/runtime_perf_baseline.json'
-              - 'scripts/browser_smoke.sh'
-              - 'scripts/browser_smoke.mjs'
-              - 'scripts/run_ci_suite.sh'
-            theme:
-              - 'src/**'
-              - 'tests/**'
-              - 'scripts/theme_matrix_smoke.sh'
-              - 'scripts/theme_matrix_smoke.mjs'
-              - 'scripts/theme_runtime_guard.sh'
-              - 'scripts/theme_scope_guard.sh'
-              - 'scripts/run_ci_suite.sh'
-            preview:
-              - 'src/**'
-              - 'pkg_build.sh'
-              - 'folderview.plus.plg'
-              - 'folderview.plus.xml'
-
-      - name: Classify CI mode
+      - name: Classify changed paths
         id: classify
         shell: bash
+        env:
+          FVPLUS_CI_EVENT_NAME: ${{ github.event_name }}
+          FVPLUS_CI_BEFORE_SHA: ${{ github.event.before }}
+          FVPLUS_CI_HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          docs='${{ steps.changes.outputs.docs }}'
-          metadata='${{ steps.changes.outputs.metadata }}'
-          workflows='${{ steps.changes.outputs.workflows }}'
-          runtime='${{ steps.changes.outputs.runtime }}'
-          browser='${{ steps.changes.outputs.browser }}'
-          theme='${{ steps.changes.outputs.theme }}'
-          preview='${{ steps.changes.outputs.preview }}'
-
-          docs_only=false
-          workflow_only=false
-          if [[ "${docs}" == 'true' && "${metadata}" != 'true' && "${workflows}" != 'true' && "${runtime}" != 'true' ]]; then
-            docs_only=true
-          fi
-          if [[ "${workflows}" == 'true' && "${runtime}" != 'true' && "${metadata}" != 'true' && "${docs}" != 'true' ]]; then
-            workflow_only=true
-          fi
-
-          needs_browser=false
-          needs_theme=false
-          if [[ "${browser}" == 'true' && "${docs_only}" != 'true' && "${workflow_only}" != 'true' ]]; then
-            needs_browser=true
-          fi
-          if [[ "${theme}" == 'true' && "${docs_only}" != 'true' && "${workflow_only}" != 'true' ]]; then
-            needs_theme=true
-          fi
-
-          echo "docs_only=${docs_only}" >> "${GITHUB_OUTPUT}"
-          echo "workflow_only=${workflow_only}" >> "${GITHUB_OUTPUT}"
-          echo "needs_browser=${needs_browser}" >> "${GITHUB_OUTPUT}"
-          echo "needs_theme=${needs_theme}" >> "${GITHUB_OUTPUT}"
-          echo "preview_changed=${preview}" >> "${GITHUB_OUTPUT}"
+          node scripts/classify_ci_changes.mjs
 
   lint-and-syntax:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: detect-changes
     if: needs.detect-changes.outputs.docs_only != 'true'
     outputs:
@@ -156,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
 
@@ -182,6 +105,7 @@ jobs:
 
   node-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: detect-changes
     if: needs.detect-changes.outputs.docs_only != 'true'
     outputs:
@@ -189,7 +113,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
 
@@ -224,6 +148,7 @@ jobs:
 
   guard-suite:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: detect-changes
     env:
       FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'backmerge/') && github.base_ref == 'dev' && '1' || '0' }}
@@ -232,7 +157,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Version and history guards compare the current push with its base.
           fetch-depth: 0
@@ -266,7 +191,7 @@ jobs:
 
       - name: Upload guard debug artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ci-guard-debug-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: ignore
@@ -277,6 +202,7 @@ jobs:
 
   browser-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: detect-changes
     if: needs.detect-changes.outputs.needs_browser == 'true'
     outputs:
@@ -284,7 +210,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
 
@@ -310,7 +236,7 @@ jobs:
 
       - name: Upload browser smoke artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ci-browser-smoke-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: ignore
@@ -321,6 +247,7 @@ jobs:
 
   fixture-browser:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: detect-changes
     if: needs.detect-changes.outputs.needs_browser == 'true'
     env:
@@ -331,7 +258,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
 
@@ -357,7 +284,7 @@ jobs:
 
       - name: Upload fixture browser artifacts
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ci-fixture-browser-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: error
@@ -365,6 +292,7 @@ jobs:
 
   theme-matrix:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: detect-changes
     if: needs.detect-changes.outputs.needs_theme == 'true'
     outputs:
@@ -372,7 +300,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
 
@@ -398,7 +326,7 @@ jobs:
 
       - name: Upload theme matrix artifacts on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ci-theme-matrix-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: ignore
@@ -409,6 +337,7 @@ jobs:
 
   release-preview:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs:
       - detect-changes
       - lint-and-syntax
@@ -420,7 +349,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Preview packaging and version resolution require repository history.
           fetch-depth: 0
@@ -460,7 +389,7 @@ jobs:
         run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
 
       - name: Upload dev release preview artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: dev-release-preview-${{ github.run_id }}
           path: |
@@ -471,6 +400,7 @@ jobs:
 
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: always()
     needs:
       - detect-changes
@@ -503,16 +433,16 @@ jobs:
             echo "| theme-matrix | ${{ needs.theme-matrix.result }} | ${{ needs.theme-matrix.outputs.duration_seconds || 'n/a' }} |"
             echo "| release-preview | ${{ needs.release-preview.result }} | ${{ needs.release-preview.outputs.duration_seconds || 'n/a' }} |"
             echo
-            echo "- docs_only: `${{ needs.detect-changes.outputs.docs_only }}`"
-            echo "- workflow_only: `${{ needs.detect-changes.outputs.workflow_only }}`"
-            echo "- needs_browser: `${{ needs.detect-changes.outputs.needs_browser }}`"
-            echo "- needs_theme: `${{ needs.detect-changes.outputs.needs_theme }}`"
-            echo "- preview_changed: `${{ needs.detect-changes.outputs.preview_changed }}`"
+            echo "- docs_only: \`${{ needs.detect-changes.outputs.docs_only }}\`"
+            echo "- workflow_only: \`${{ needs.detect-changes.outputs.workflow_only }}\`"
+            echo "- needs_browser: \`${{ needs.detect-changes.outputs.needs_browser }}\`"
+            echo "- needs_theme: \`${{ needs.detect-changes.outputs.needs_theme }}\`"
+            echo "- preview_changed: \`${{ needs.detect-changes.outputs.preview_changed }}\`"
           } | tee "${report_path}" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload CI duration report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ci-duration-report-${{ github.run_id }}
           path: tmp/ci-duration-report.md

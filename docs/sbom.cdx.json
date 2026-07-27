@@ -6,7 +6,7 @@
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.07.27.01",
+      "version": "2026.07.27.02",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -648,7 +648,7 @@
     {
       "type": "library",
       "name": "playwright-core",
-      "version": "1.61.1",
+      "version": "1.62.0",
       "scope": "optional",
       "licenses": [
         {
@@ -657,12 +657,12 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.61.1"
+      "purl": "pkg:npm/playwright-core@1.62.0"
     },
     {
       "type": "library",
       "name": "playwright",
-      "version": "1.61.1",
+      "version": "1.62.0",
       "scope": "optional",
       "licenses": [
         {
@@ -671,7 +671,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.61.1"
+      "purl": "pkg:npm/playwright@1.62.0"
     },
     {
       "type": "library",

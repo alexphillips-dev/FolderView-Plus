@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.27.01">
-<!ENTITY md5 "fdb4d7e7ec15f269904edba1e5fa7d02">
+<!ENTITY version "2026.07.27.02">
+<!ENTITY md5 "fe944ed4f5dbda718265d03a6d27afb7">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,28 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.27.02
+# FolderView Plus 2026.07.27.02
+This dev update strengthens release validation, expands automated compatibility coverage, repairs localization completeness, and adds more precise Docker first-load diagnostics.
+## Release and scheduled validation
+- Reliability: Make release-mode validation fail closed when the Unraid version matrix, browser smoke target, or theme matrix target is missing.
+- Reliability: Add a weekly and manually dispatchable workflow that runs deterministic fixtures in Chromium, Firefox, and WebKit.
+- Reliability: Run required live Unraid guards, browser smoke, and theme-matrix validation from the scheduled workflow whenever all protected target secrets are configured.
+- Maintenance: Update the pinned Playwright development dependency used by browser validation.
+- Accessibility: Strengthen light-theme button and navigation contrast after WebKit/Axe identified insufficient contrast in Diagnostics controls.
+## Docker diagnostics and architecture
+- Diagnostics: Distinguish whole-row movement from action movement within a row during delayed Docker metadata hydration.
+- Diagnostics: Record aggregate unavailable WebUI slots, disconnected action targets, and bounded absolute, relative, and row movement without retaining workload identities.
+- Maintenance: Extract reusable layout measurement and comparison into a typed, executable Docker runtime module.
+- Performance: Remove noisy first-render debug work from the Docker folder hot path and ratchet the main runtime line budget below its previous ceiling.
+- Regression guard: Add executable geometry tests, load-order checks, architecture contracts, and coverage for the extracted layout module.
+## Quality and localization
+- Fix: Add the missing semantic labels for Docker WebUI, console, and log preview actions to every supported catalog.
+- Maintenance: Expand c8 coverage enforcement to diagnostics view models, Docker container normalization, Docker geometry, and future-host compatibility.
+- Maintenance: Raise PHPStan to level 2 and extend analysis to the validation and API-contract libraries.
+- Docs: Record the scheduled/live qualification contract, expanded analysis scope, and privacy-safe layout evidence.
+
 
 ###2026.07.27.01
 # FolderView Plus 2026.07.27.01

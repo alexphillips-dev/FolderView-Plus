@@ -125,6 +125,10 @@ test('Docker support snapshots include sanitized temporal layout telemetry', () 
     assert.match(diagnosticsJs, /const createLayoutStabilityTracker =/);
     assert.match(diagnosticsJs, /const captureActionGeometry =/);
     assert.match(diagnosticsJs, /const compareActionGeometry =/);
+    assert.match(diagnosticsJs, /relativeShiftedTargetCount/);
+    assert.match(diagnosticsJs, /maximumRelativeShiftPx/);
+    assert.match(diagnosticsJs, /maximumRowShiftPx/);
+    assert.match(diagnosticsJs, /unavailableWebuiSlotCount/);
     assert.match(diagnosticsJs, /new win\.PerformanceObserver/);
     assert.match(dockerJs, /markDockerRuntimeLayoutPhase\('full-info-requested'/);
     assert.match(dockerJs, /markDockerRuntimeLayoutPhase\('full-info-ready'/);

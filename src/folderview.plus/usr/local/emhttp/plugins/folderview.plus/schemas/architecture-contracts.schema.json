@@ -5,10 +5,11 @@
     "maxInlineActions": 79,
     "maxFileLines": {
       "scripts/folderviewplus.js": 12098,
-      "scripts/docker.js": 8880,
+      "scripts/docker.js": 8840,
       "scripts/docker.runtime.providers.js": 1140,
       "scripts/runtime.transport.js": 1060,
       "scripts/docker.runtime.container-model.js": 220,
+      "scripts/docker.runtime.layout-geometry.js": 70,
       "scripts/docker.runtime.provider-health.js": 125,
       "styles/folderviewplus.css": 14515,
       "styles/folderviewplus.bootstrap.css": 59,
@@ -84,6 +85,13 @@
       "loader": "commonjs",
       "typeChecked": true,
       "exports": ["normalizeName", "deepFreeze", "normalizePort", "normalizeMount", "normalizeContainer", "identityTokens", "resolveContainerIdentity", "mergeContainers"]
+    },
+    {
+      "file": "scripts/docker.runtime.layout-geometry.js",
+      "global": "FolderViewPlusDockerLayoutGeometry",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["readNodeGeometry", "compareGeometry"]
     },
     {
       "file": "scripts/docker.runtime.provider-health.js",

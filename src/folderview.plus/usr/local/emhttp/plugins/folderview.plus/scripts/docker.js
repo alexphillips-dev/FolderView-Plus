@@ -5511,7 +5511,6 @@ const createFolders = async () => {
     nextDockerRenderSuppressLoadingUi = false;
     showDockerRuntimeLoadingOverlay();
     showDockerRuntimeLoadingRow();
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     const requestBundle = (folderReq && typeof folderReq === 'object') ? folderReq : { render: [], fullInfo: null, generation: dockerBootstrapGeneration };
     requestBundle.consumed = true;
@@ -5522,7 +5521,6 @@ const createFolders = async () => {
     const prom = await Promise.all(renderRequests);
     dockerPerf.end('createFolders.requests', { requestCount: renderRequests.length });
     markDockerFatalBannerStep('Docker runtime request bundle resolved');
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Promises resolved', prom);
 
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -5594,13 +5592,10 @@ const createFolders = async () => {
         savedOrderFingerprint: buildDockerOrderFingerprint(unraidOrder),
         reconciledOrderFingerprint: buildDockerOrderFingerprint(reconciledOrder.order)
     };
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: newOnes (containers not in unraidOrder)', newOnes);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Reconciled saved folders before new containers', [...order]);
 
 
     // debug mode, download the debug json file
     if(folderDebugMode) { // This is the existing folderDebugMode, not FOLDER_VIEW_DEBUG_MODE
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: folderDebugMode (existing) is TRUE. Preparing debug JSON download.');
         const debugData = JSON.stringify({
             version: String(await pluginRequestClient.getText('/plugins/folderview.plus/server/version.php')).trim(),
             folders,
@@ -5620,32 +5615,22 @@ const createFolders = async () => {
         element.click();
         document.body.removeChild(element);
         URL.revokeObjectURL(url);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('Order:', [...order]); // Existing log
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Debug JSON downloaded. Order logged (existing log):', [...order]);
     }
-
     let foldersDone = {};
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Initialized foldersDone', foldersDone);
 
 
     if(folderobserver) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Disconnecting existing folderobserver.');
         folderobserver.disconnect();
         folderobserver = undefined;
     }
 
     folderobserver = new MutationObserver((mutationList, observer) => {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] folderobserver: Mutation observed', mutationList);
         for (const mutation of mutationList) {
             if(/^load-/.test(mutation.target.id)) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] folderobserver: Target ID matches /^load-/', mutation.target.id, mutation.target.className);
                 $('i#folder-' + mutation.target.id).attr('class', mutation.target.className)
             }
         }
     });
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: New folderobserver created.');
-
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Dispatching docker-pre-folders-creation event.');
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folders-creation', {detail: {
         folders: folders,
         order: order,
@@ -5654,15 +5639,11 @@ const createFolders = async () => {
     const folderMatchCache = buildDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs);
     // Draw the folders in the order
     dockerPerf.begin('createFolders.renderOrdered');
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders in order.');
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Loop iteration: key=${key}, container=${container}`);
         if (container && folderRegex.test(container)) {
             let id = container.replace(folderRegex, '');
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Is a folder: id=${id}`);
             if (folders[id]) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Folder ${id} exists in folders data. Calling createFolder. Position in order: ${key}`);
                 // Pass 'order' (the live array) to createFolder.
                 // 'position' is the current 'key' (index of the folder placeholder in the 'order' array).
                 const removedCount = createFolder(
@@ -5676,16 +5657,11 @@ const createFolders = async () => {
                     folderDepthById[id] || 0
                 );
                 key -= removedCount; // Adjust key by the number of items that were before the folder and moved into it.
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: createFolder for ${id} returned remBefore=${removedCount}. Adjusted main loop key to ${key}.`);
                 foldersDone[id] = folders[id];
                 delete folders[id];
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
-            } else {
-                if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolders: Folder ${id} (from order) not found in folders data.`);
             }
         }
     }
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for ordered folders.');
     dockerPerf.end('createFolders.renderOrdered', { orderedEntries: order.length });
 
     // Draw the foldes outside of the order
@@ -5891,17 +5867,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const perfKey = `createFolder.${id}`;
     dockerPerf.begin(perfKey);
     try {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Entry`, { folder: JSON.parse(JSON.stringify(folder)), id, positionInMainOrder, orderInitialSnapshot: [...liveOrderArray], containersInfoKeys: Object.keys(containersInfo).length, foldersDone: [...foldersDone] });
     // --- Store a snapshot of the live order array AT THE START of this folder's processing ---
     // This snapshot is crucial for correctly calculating `remBefore` based on original positions.
     const orderSnapshotAtFolderStart = [...liveOrderArray];
-    if (FOLDER_VIEW_DEBUG_MODE && id === "2l2rPNIkZHWN5WLqAuzPaCZHSqI") { // Specific log for Network folder
-        console.log(`[FV3_DEBUG] createFolder (Network folder ENTRY): folder.containers from input arg =`, JSON.parse(JSON.stringify(folder.containers)));
-        console.log(`[FV3_DEBUG] createFolder (Network folder ENTRY): folder.regex from input arg = "${folder.regex}"`);
-        console.log(`[FV3_DEBUG] createFolder (Network folder ENTRY): orderSnapshotAtFolderStart (liveOrderArray copy) =`, [...orderSnapshotAtFolderStart]);
-    }
-
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Dispatching docker-pre-folder-creation event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-creation', {detail: {
         folder: folder, // Be aware: if 'folder' object is modified by listeners, it affects this function
         id: id,
@@ -5921,10 +5889,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let managed = 0;
     let managerTypes = new Set();
     let remBefore = 0; // This will count items *from this folder* that were originally before its placeholder
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initialized local state variables`, { upToDate, started, autostart, autostartStarted, managed, remBefore });
 
     const advanced = $.cookie('docker_listview_mode') == 'advanced';
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Advanced view enabled: ${advanced}`);
 
     // --- Correctly build combinedContainers ---
     const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
@@ -5943,22 +5909,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     };
 
     originalContainersFromDefinition.forEach(pushCombined);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Initial containers from definition for combinedContainers:`, [...originalContainersFromDefinition]);
 
     let regexMatches = [];
     if (precomputed && Array.isArray(precomputed.regex)) {
         regexMatches = precomputed.regex;
     } else if (folder.regex && typeof folder.regex === 'string' && folder.regex.trim() !== "") {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Regex defined: '${folder.regex}'. Filtering orderSnapshotAtFolderStart.`);
         try {
             const re = new RegExp(folder.regex);
             regexMatches = orderSnapshotAtFolderStart.filter((el) => containersInfo[el] && re.test(el));
         } catch (e) {
             regexMatches = [];
-            if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] createFolder (id: ${id}): Invalid regex '${folder.regex}':`, e);
         }
-    } else if (FOLDER_VIEW_DEBUG_MODE && folder.regex) {
-        console.log(`[FV3_DEBUG] createFolder (id: ${id}): Regex is present but empty or invalid, skipping regex matching.`);
     }
     regexMatches.forEach(pushCombined);
 

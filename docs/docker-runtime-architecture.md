@@ -16,6 +16,9 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Normalizes GraphQL, PHP runtime, and DOM fallback records into one immutable container contract.
 - `scripts/docker.runtime.provider-health.js`
   - Owns bounded provider-health refresh, aggregate severity derivation, caching, and disposal outside the legacy runtime monolith.
+- `scripts/docker.runtime.layout-geometry.js`
+  - Owns DOM-independent geometry sampling and comparison used by Docker layout diagnostics.
+  - Separates whole-row movement from action movement inside a row so delayed hydration evidence identifies the actual source of visual bounce.
 - `scripts/docker.bootstrap.js`
   - Re-detects the fully parsed Docker host, prepares the selected provider, and loads the legacy runtime only after a complete legacy table contract is confirmed.
   - Keeps legacy CSS and custom Docker overrides disabled on native and unknown hosts.
@@ -62,6 +65,8 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 - Unraid lifecycle globals (`loadlist`, `listview`, `openDocker`, `eventControl`, and `addDockerContainerContext`) are wrapped idempotently by the adapter, with compatibility aliases retained for host/plugin interoperability.
 - Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
+- Preview hydration diagnostics record unavailable WebUI slots, disconnected targets, absolute movement, row movement, and movement relative to the owning row without retaining container or folder identities.
+- The main Docker runtime line budget is ratcheted below its prior ceiling; layout comparison logic and noisy first-render debug work remain outside the hot orchestration path.
 
 ## Regression Prevention
 
@@ -70,6 +75,7 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
   - `tests/runtime-host-adapter.test.mjs`
   - `tests/docker-folder-row-quick-actions.test.mjs`
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
+  - `tests/docker-runtime-diagnostics-geometry.test.mjs`
   - `tests/unraid-docker-future-compatibility.test.mjs`
   - `tests/unraid-upstream-monitor.test.mjs`
 - Deterministic native-host browser coverage:

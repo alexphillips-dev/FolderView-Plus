@@ -58,6 +58,9 @@ done
 
 fvplus::require_commands bash node php git find shellcheck npm npx
 export FVPLUS_RELEASE_MODE="${RELEASE_MODE}"
+export FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-${RELEASE_MODE}}"
+export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${RELEASE_MODE}}"
+export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${RELEASE_MODE}}"
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 PHP_BIN="$(fvplus::resolve_platform_command php)"
 NPM_BIN="$(fvplus::resolve_platform_command npm)"
@@ -173,8 +176,6 @@ lint_php_syntax() {
 }
 
 run_browser_smoke_if_needed() {
-  local default_required="0"
-  export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}" && [[ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]]; then
     fvplus::fail "Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set."
   fi
@@ -185,8 +186,6 @@ run_browser_smoke_if_needed() {
 }
 
 run_theme_matrix_if_needed() {
-  local default_required="0"
-  export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}" && [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
     fvplus::fail "Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set."
   fi

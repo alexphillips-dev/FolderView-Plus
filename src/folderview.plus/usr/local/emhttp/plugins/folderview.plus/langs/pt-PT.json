@@ -3,17 +3,17 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.07.27.1",
         "direction": "ltr",
-        "last-reviewed": "2026-07-25",
-        "last-updated": "2026-07-25",
+        "last-reviewed": "2026-07-27",
+        "last-updated": "2026-07-27",
         "locale": "pt-PT",
         "native-name": "Português (Portugal)",
         "reviewed": true,
-        "source-revision": "2026.07.24.1",
+        "source-revision": "2026.07.27.1",
         "status": "complete",
-        "translated-messages": 2046,
-        "total-source-messages": 2046
+        "translated-messages": 2049,
+        "total-source-messages": 2049
     },
     "add-folder": "Adicionar Pasta",
     "up-to-date": "atualizado",

@@ -17,6 +17,7 @@ const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plug
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+const dockerRuntimeLayoutGeometryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
 const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -51,6 +52,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const runtimeActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.actions.js');
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+    const layoutGeometryIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
@@ -98,6 +100,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeHierarchyIndex < runtimeActionsIndex, 'docker hierarchy helpers must load before docker.runtime.actions.js');
     assert.ok(runtimeActionsIndex < hostGuardsIndex, 'docker action helpers must load before docker.runtime.host-guards.js');
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
+    assert.ok(layoutGeometryIndex >= 0 && layoutGeometryIndex < diagnosticsIndex, 'layout geometry must load before docker diagnostics');
     assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
     assert.ok(commandViewIndex < runtimeIndex, 'docker command-view helpers must load before docker.js');
@@ -108,6 +111,13 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(commandViewCssIndex < dockerCssIndex, 'docker command-view stylesheet must load before docker.css');
     assert.doesNotMatch(dockerPage, /docker\.runtime\.(?:tree-explorer|orbit-view)\.js/);
     assert.doesNotMatch(dockerPage, /docker\.(?:tree-explorer|orbit-view)\.css/);
+});
+
+test('docker layout geometry is extracted behind a focused executable module', () => {
+    assert.match(dockerRuntimeLayoutGeometryJs, /FolderViewPlusDockerLayoutGeometry/);
+    assert.match(dockerRuntimeLayoutGeometryJs, /readNodeGeometry/);
+    assert.match(dockerRuntimeLayoutGeometryJs, /compareGeometry/);
+    assert.match(dockerRuntimeDiagnosticsJs, /require\('\.\/docker\.runtime\.layout-geometry\.js'\)/);
 });
 
 test('docker runtime uses the shared host adapter as its Unraid integration boundary', () => {

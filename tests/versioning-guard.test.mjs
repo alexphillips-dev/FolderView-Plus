@@ -14,6 +14,7 @@ const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-main-to-dev.yml');
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
+const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
@@ -82,6 +83,7 @@ const docsMetadataGuard = fs.readFileSync(docsMetadataGuardPath, 'utf8');
 const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
+const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
@@ -444,6 +446,20 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_CI_TIMINGS_PATH/);
+    assert.match(runCiSuite, /FVPLUS_UNRAID_MATRIX_REQUIRED="\$\{FVPLUS_UNRAID_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+    assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED="\$\{FVPLUS_BROWSER_SMOKE_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+    assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED="\$\{FVPLUS_THEME_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+});
+
+test('scheduled validation runs cross-browser fixtures and uses live Unraid targets when configured', () => {
+    assert.match(scheduledValidationWorkflow, /schedule:/);
+    assert.match(scheduledValidationWorkflow, /workflow_dispatch:/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /live_configured/);
+    assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {

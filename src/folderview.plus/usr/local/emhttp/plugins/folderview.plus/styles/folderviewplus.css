@@ -51,6 +51,8 @@
     --fvplus-settings-members-meta-text: rgba(187, 199, 219, 0.82);
     --fvplus-settings-nested-meta-text: rgba(194, 206, 224, 0.86);
     --fvplus-settings-chip-info: #9ecbff;
+    --fvplus-settings-export-action: #9ecbff;
+    --fvplus-settings-navigation-info: #9ecbff;
     --fvplus-settings-chip-info-border: rgba(113, 184, 255, 0.58);
     --fvplus-settings-chip-info-bg: rgba(113, 184, 255, 0.12);
     --fvplus-settings-chip-success: #93e19f;
@@ -110,13 +112,15 @@ body[data-fv-theme-class="light"] #fv-settings-root,
     --fvplus-settings-accent-strong: #9a540f;
     --fvplus-settings-accent-soft: rgba(190, 107, 24, 0.12);
     --fvplus-settings-focus-ring: rgba(47, 110, 166, 0.32);
-    --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
+    --fvplus-settings-button-fg: #17202c;
     --fvplus-settings-title-accent: #be6b18;
     --fvplus-settings-tree-guide: rgba(129, 140, 154, 0.48);
     --fvplus-settings-breadcrumb-text: rgba(89, 103, 120, 0.86);
     --fvplus-settings-members-meta-text: rgba(95, 108, 123, 0.82);
     --fvplus-settings-nested-meta-text: rgba(105, 117, 133, 0.86);
     --fvplus-settings-chip-info: #286393;
+    --fvplus-settings-export-action: #00243f;
+    --fvplus-settings-navigation-info: #0b4168;
     --fvplus-settings-chip-info-border: rgba(47, 110, 166, 0.34);
     --fvplus-settings-chip-info-bg: rgba(47, 110, 166, 0.10);
     --fvplus-settings-chip-success: #226b39;
@@ -6633,6 +6637,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-dashboard-capture-guide-action {
     justify-self: start;
+    color: var(--fvplus-settings-button-fg) !important;
     text-decoration: none;
 }
 
@@ -6786,7 +6791,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     ) !important;
     color: var(
         --fv-diagnostics-action-color,
-        var(--fvplus-settings-text-primary)
+        var(--fvplus-settings-button-fg)
     ) !important;
     box-shadow: var(
         --fv-diagnostics-action-shadow,
@@ -6824,7 +6829,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary {
     border-color: var(--fvplus-settings-border-subtle) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
-    color: var(--fvplus-settings-text-primary) !important;
+    color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
 }
 
@@ -6852,7 +6857,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 7%,
         var(--fvplus-settings-button-bg-top)
     );
-    --fv-diagnostics-action-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-color: var(--fvplus-settings-export-action);
     --fv-diagnostics-action-shadow:
         inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-chip-info) 7%, transparent),
         var(--fvplus-settings-button-shadow);
@@ -6862,7 +6867,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-border-strong)
     );
     --fv-diagnostics-action-hover-background: var(--fvplus-settings-chip-info-bg);
-    --fv-diagnostics-action-hover-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-hover-color: var(--fvplus-settings-export-action);
     --fv-diagnostics-action-hover-shadow:
         inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-chip-info) 10%, transparent),
         var(--fvplus-settings-button-shadow-hover);
@@ -13497,7 +13502,7 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root #fv-run-wizard {
-    color: var(--fvplus-settings-chip-info) !important;
+    color: var(--fvplus-settings-navigation-info) !important;
 }
 
 /* Start Order keeps its actions readable without making a normal action look selected. */

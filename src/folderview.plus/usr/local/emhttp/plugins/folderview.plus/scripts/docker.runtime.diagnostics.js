@@ -25,6 +25,10 @@
     const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
     const DOCKER_SUPPORT_BUNDLE_TOP_LEVEL_ROW_LIMIT = 160;
     const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;
+    const layoutGeometry = fallbackWindow.FolderViewPlusDockerLayoutGeometry
+        || (typeof module === 'object' && module.exports && typeof require === 'function'
+            ? require('./docker.runtime.layout-geometry.js')
+            : null);
     let activeLayoutStabilityTracker = null;
 
     const createLayoutStabilityTracker = (deps = {}) => {
@@ -35,7 +39,7 @@
         const algorithmVersion = String(deps.algorithmVersion || 'unknown').trim() || 'unknown';
         const startedAt = typeof win.performance?.now === 'function' ? win.performance.now() : Date.now();
         const state = {
-            schemaVersion: 1,
+            schemaVersion: 2,
             capturedAt: new Date().toISOString(),
             phases: {},
             width: {
@@ -54,9 +58,18 @@
                 initialTargetCount: 0,
                 pendingWebuiSlotCount: 0,
                 readyWebuiSlotCount: 0,
+                unavailableWebuiSlotCount: 0,
                 hydratedTargetCount: 0,
                 shiftedTargetCount: 0,
-                maximumShiftPx: 0
+                shiftedXTargetCount: 0,
+                shiftedYTargetCount: 0,
+                relativeShiftedTargetCount: 0,
+                disconnectedTargetCount: 0,
+                maximumShiftPx: 0,
+                maximumXShiftPx: 0,
+                maximumYShiftPx: 0,
+                maximumRelativeShiftPx: 0,
+                maximumRowShiftPx: 0
             },
             layoutShift: {
                 supported: typeof win.PerformanceObserver === 'function',
@@ -122,7 +135,8 @@
             return {
                 targetCount: targets.length,
                 pendingWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-pending')).length,
-                readyWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-ready')).length
+                readyWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-ready')).length,
+                unavailableWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-unavailable')).length
             };
         };
 
@@ -131,9 +145,9 @@
             doc?.querySelectorAll?.(
                 '.folder-preview .folder-element-console, .folder-preview .folder-element-logs'
             )?.forEach((node) => {
-                const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-                if (rect) {
-                    geometry.set(node, { left: rect.left, top: rect.top });
+                const measurement = layoutGeometry?.readNodeGeometry?.(node) || null;
+                if (measurement) {
+                    geometry.set(node, measurement);
                 }
             });
             return geometry;
@@ -145,37 +159,86 @@
             }
             let comparedCount = 0;
             let shiftedCount = 0;
+            let shiftedXCount = 0;
+            let shiftedYCount = 0;
+            let relativeShiftedCount = 0;
+            let disconnectedCount = 0;
             let maximumShiftPx = 0;
+            let maximumXShiftPx = 0;
+            let maximumYShiftPx = 0;
+            let maximumRelativeShiftPx = 0;
+            let maximumRowShiftPx = 0;
             beforeGeometry.forEach((before, node) => {
                 if (!node?.isConnected || typeof node.getBoundingClientRect !== 'function') {
+                    disconnectedCount += 1;
                     return;
                 }
-                const after = node.getBoundingClientRect();
-                const shift = Math.max(
-                    Math.abs(Number(after.left || 0) - Number(before.left || 0)),
-                    Math.abs(Number(after.top || 0) - Number(before.top || 0))
-                );
+                const after = layoutGeometry?.readNodeGeometry?.(node) || null;
+                if (!after) {
+                    disconnectedCount += 1;
+                    return;
+                }
+                const comparison = layoutGeometry?.compareGeometry?.(before, after);
+                if (!comparison) {
+                    disconnectedCount += 1;
+                    return;
+                }
+                const {
+                    xShift,
+                    yShift,
+                    shift,
+                    relativeShift,
+                    rowShift
+                } = comparison;
                 comparedCount += 1;
                 shiftedCount += shift >= 0.5 ? 1 : 0;
+                shiftedXCount += xShift >= 0.5 ? 1 : 0;
+                shiftedYCount += yShift >= 0.5 ? 1 : 0;
+                relativeShiftedCount += relativeShift >= 0.5 ? 1 : 0;
                 maximumShiftPx = Math.max(maximumShiftPx, shift);
+                maximumXShiftPx = Math.max(maximumXShiftPx, xShift);
+                maximumYShiftPx = Math.max(maximumYShiftPx, yShift);
+                maximumRelativeShiftPx = Math.max(maximumRelativeShiftPx, relativeShift);
+                maximumRowShiftPx = Math.max(maximumRowShiftPx, rowShift);
             });
             const summary = summarizeActionSlots();
             state.previewActions = {
                 ...state.previewActions,
                 hydratedTargetCount: comparedCount,
                 shiftedTargetCount: shiftedCount,
+                shiftedXTargetCount: shiftedXCount,
+                shiftedYTargetCount: shiftedYCount,
+                relativeShiftedTargetCount: relativeShiftedCount,
+                disconnectedTargetCount: disconnectedCount,
                 maximumShiftPx: Math.round(maximumShiftPx * 10) / 10,
+                maximumXShiftPx: Math.round(maximumXShiftPx * 10) / 10,
+                maximumYShiftPx: Math.round(maximumYShiftPx * 10) / 10,
+                maximumRelativeShiftPx: Math.round(maximumRelativeShiftPx * 10) / 10,
+                maximumRowShiftPx: Math.round(maximumRowShiftPx * 10) / 10,
                 pendingWebuiSlotCount: summary.pendingWebuiSlotCount,
-                readyWebuiSlotCount: summary.readyWebuiSlotCount
+                readyWebuiSlotCount: summary.readyWebuiSlotCount,
+                unavailableWebuiSlotCount: summary.unavailableWebuiSlotCount
             };
-            markPhase('preview-actions-settled', { comparedCount, shiftedCount, maximumShiftPx });
+            markPhase('preview-actions-settled', {
+                comparedCount,
+                shiftedCount,
+                shiftedXCount,
+                shiftedYCount,
+                relativeShiftedCount,
+                disconnectedCount,
+                maximumShiftPx,
+                maximumXShiftPx,
+                maximumYShiftPx,
+                maximumRelativeShiftPx,
+                maximumRowShiftPx
+            });
         };
 
         const getSnapshot = () => {
             try {
                 return JSON.parse(JSON.stringify({ ...state, capturedAt: new Date().toISOString() }));
             } catch (_error) {
-                return { schemaVersion: 1, available: false };
+                return { schemaVersion: 2, available: false };
             }
         };
 

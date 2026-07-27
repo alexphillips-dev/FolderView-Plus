@@ -1345,6 +1345,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.waitForTimeout(250);
 
     await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
+    await page.waitForTimeout(250);
     layout = await readDiagnosticsLayout();
     assert.equal(layout.metricIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);

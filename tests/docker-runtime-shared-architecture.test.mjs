@@ -231,7 +231,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{[\s\S]*runtimeInfoApi\.syncDockerHostRowUpdateStatesFromDom\(names\)/);
     assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*runtimeInfoApi\.ensureDockerHostRowUpdateObserver\(\)/);
     assert.match(dockerJs, /const normalizeDockerRuntimeInfoMap = \(source,\s*previousMap = null\) => \{[\s\S]*runtimeInfoApi\.normalizeDockerRuntimeInfoMap\(source,\s*previousMap\)/);
-    assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = ''\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
+    assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
     assert.match(dockerJs, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\)/);
     assert.match(dockerJs, /const applyNestedFolderHierarchy = \(\) => \{[\s\S]*hierarchyApi\.applyNestedFolderHierarchy\(\);/);
     assert.match(dockerJs, /const dropDownButton = \(id,\s*persistState = true\) => \{[\s\S]*hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
@@ -300,7 +300,7 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-icon"/);
     assert.match(dockerCommandViewJs, /appendDockerPreviewActionButtons\(/);
-    assert.match(dockerJs, /appendDockerPreviewActionButtons:\s*\(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = ''\)\s*=>/);
+    assert.match(dockerJs, /appendDockerPreviewActionButtons:\s*\(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\)\s*=>/);
     assert.match(dockerCommandViewJs, /const openFolderCardWebuis = \(folderCard\) =>/);
     assert.match(dockerCommandViewJs, /if \(requestBundle\.fullInfo\)/);
     assert.doesNotMatch(dockerCommandViewJs, /fv-docker-command-member-menu/);

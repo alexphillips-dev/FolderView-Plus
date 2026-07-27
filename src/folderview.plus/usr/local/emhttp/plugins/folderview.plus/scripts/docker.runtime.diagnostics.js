@@ -25,6 +25,207 @@
     const DOCKER_SUPPORT_BUNDLE_MEMBER_ROW_LIMIT = 120;
     const DOCKER_SUPPORT_BUNDLE_TOP_LEVEL_ROW_LIMIT = 160;
     const DOCKER_SUPPORT_BUNDLE_MISMATCH_LIMIT = 16;
+    let activeLayoutStabilityTracker = null;
+
+    const createLayoutStabilityTracker = (deps = {}) => {
+        activeLayoutStabilityTracker?.destroy?.();
+        const win = deps.window || fallbackWindow;
+        const doc = deps.document || win.document || null;
+        const cacheSchemaVersion = Math.max(1, Number(deps.cacheSchemaVersion) || 1);
+        const algorithmVersion = String(deps.algorithmVersion || 'unknown').trim() || 'unknown';
+        const startedAt = typeof win.performance?.now === 'function' ? win.performance.now() : Date.now();
+        const state = {
+            schemaVersion: 1,
+            capturedAt: new Date().toISOString(),
+            phases: {},
+            width: {
+                cacheSchemaVersion,
+                algorithmVersion,
+                presetPx: null,
+                cachedPx: null,
+                estimatedPx: null,
+                primedPx: null,
+                preVisiblePx: null,
+                settledPx: null,
+                maximumCorrectionPx: 0,
+                contentSignature: ''
+            },
+            previewActions: {
+                initialTargetCount: 0,
+                pendingWebuiSlotCount: 0,
+                readyWebuiSlotCount: 0,
+                hydratedTargetCount: 0,
+                shiftedTargetCount: 0,
+                maximumShiftPx: 0
+            },
+            layoutShift: {
+                supported: typeof win.PerformanceObserver === 'function',
+                cumulativeValue: 0,
+                entryCount: 0
+            }
+        };
+        let layoutShiftObserver = null;
+
+        const elapsedMs = () => {
+            const now = typeof win.performance?.now === 'function' ? win.performance.now() : Date.now();
+            return Math.max(0, Math.round((now - startedAt) * 10) / 10);
+        };
+
+        const normalizeDetails = (details = {}) => {
+            const normalized = {};
+            Object.entries(details && typeof details === 'object' ? details : {}).forEach(([key, value]) => {
+                if (typeof value === 'boolean' || typeof value === 'string') {
+                    normalized[key] = value;
+                } else if (value !== null && value !== '' && Number.isFinite(Number(value))) {
+                    normalized[key] = Math.round(Number(value) * 10) / 10;
+                }
+            });
+            return normalized;
+        };
+
+        const markPhase = (phase, details = {}) => {
+            const safePhase = String(phase || '').trim();
+            if (!safePhase) {
+                return;
+            }
+            const timestampMs = elapsedMs();
+            const previous = state.phases[safePhase];
+            state.phases[safePhase] = {
+                firstMs: previous?.firstMs ?? timestampMs,
+                lastMs: timestampMs,
+                count: Math.max(0, Number(previous?.count) || 0) + 1,
+                details: normalizeDetails(details)
+            };
+            state.capturedAt = new Date().toISOString();
+        };
+
+        const recordWidth = (stage, details = {}) => {
+            Object.entries(details && typeof details === 'object' ? details : {}).forEach(([key, value]) => {
+                if (key === 'contentSignature') {
+                    state.width.contentSignature = String(value || '').trim();
+                } else if (value !== null && value !== '' && Number.isFinite(Number(value))) {
+                    state.width[key] = Math.round(Number(value) * 10) / 10;
+                }
+            });
+            if (Number.isFinite(Number(details?.appliedPx)) && Number.isFinite(Number(state.width.primedPx))) {
+                state.width.maximumCorrectionPx = Math.max(
+                    Number(state.width.maximumCorrectionPx) || 0,
+                    Math.round(Math.abs(Number(details.appliedPx) - Number(state.width.primedPx)) * 10) / 10
+                );
+            }
+            markPhase(`width-${String(stage || '').trim()}`, details);
+        };
+
+        const summarizeActionSlots = () => {
+            const targets = Array.from(doc?.querySelectorAll?.('.folder-preview .fv-preview-action-slot') || []);
+            const webuiSlots = targets.filter((node) => node.classList?.contains('folder-element-webui'));
+            return {
+                targetCount: targets.length,
+                pendingWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-pending')).length,
+                readyWebuiSlotCount: webuiSlots.filter((node) => node.classList?.contains('is-ready')).length
+            };
+        };
+
+        const captureActionGeometry = () => {
+            const geometry = new Map();
+            doc?.querySelectorAll?.(
+                '.folder-preview .folder-element-console, .folder-preview .folder-element-logs'
+            )?.forEach((node) => {
+                const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
+                if (rect) {
+                    geometry.set(node, { left: rect.left, top: rect.top });
+                }
+            });
+            return geometry;
+        };
+
+        const compareActionGeometry = (beforeGeometry) => {
+            if (!(beforeGeometry instanceof Map)) {
+                return;
+            }
+            let comparedCount = 0;
+            let shiftedCount = 0;
+            let maximumShiftPx = 0;
+            beforeGeometry.forEach((before, node) => {
+                if (!node?.isConnected || typeof node.getBoundingClientRect !== 'function') {
+                    return;
+                }
+                const after = node.getBoundingClientRect();
+                const shift = Math.max(
+                    Math.abs(Number(after.left || 0) - Number(before.left || 0)),
+                    Math.abs(Number(after.top || 0) - Number(before.top || 0))
+                );
+                comparedCount += 1;
+                shiftedCount += shift >= 0.5 ? 1 : 0;
+                maximumShiftPx = Math.max(maximumShiftPx, shift);
+            });
+            const summary = summarizeActionSlots();
+            state.previewActions = {
+                ...state.previewActions,
+                hydratedTargetCount: comparedCount,
+                shiftedTargetCount: shiftedCount,
+                maximumShiftPx: Math.round(maximumShiftPx * 10) / 10,
+                pendingWebuiSlotCount: summary.pendingWebuiSlotCount,
+                readyWebuiSlotCount: summary.readyWebuiSlotCount
+            };
+            markPhase('preview-actions-settled', { comparedCount, shiftedCount, maximumShiftPx });
+        };
+
+        const getSnapshot = () => {
+            try {
+                return JSON.parse(JSON.stringify({ ...state, capturedAt: new Date().toISOString() }));
+            } catch (_error) {
+                return { schemaVersion: 1, available: false };
+            }
+        };
+
+        if (typeof win.PerformanceObserver === 'function') {
+            try {
+                layoutShiftObserver = new win.PerformanceObserver((list) => {
+                    list.getEntries().forEach((entry) => {
+                        if (entry?.hadRecentInput === true) {
+                            return;
+                        }
+                        const touchesRuntime = Array.from(entry?.sources || []).some((source) => (
+                            source?.node?.closest?.('#docker_containers, #docker_list, #docker_view')
+                        ));
+                        if (!touchesRuntime) {
+                            return;
+                        }
+                        state.layoutShift.cumulativeValue = Math.round(
+                            (Number(state.layoutShift.cumulativeValue) + Number(entry?.value || 0)) * 10000
+                        ) / 10000;
+                        state.layoutShift.entryCount += 1;
+                    });
+                });
+                layoutShiftObserver.observe({ type: 'layout-shift', buffered: true });
+            } catch (_error) {
+                state.layoutShift.supported = false;
+                layoutShiftObserver = null;
+            }
+        }
+
+        const tracker = Object.freeze({
+            markPhase,
+            recordWidth,
+            summarizeActionSlots,
+            captureActionGeometry,
+            compareActionGeometry,
+            updateInitialActionSummary: (summary = {}) => {
+                state.previewActions = { ...state.previewActions, ...normalizeDetails(summary) };
+            },
+            getSnapshot,
+            destroy: () => {
+                layoutShiftObserver?.disconnect?.();
+                layoutShiftObserver = null;
+                if (activeLayoutStabilityTracker === tracker) {
+                    activeLayoutStabilityTracker = null;
+                }
+            }
+        });
+        activeLayoutStabilityTracker = tracker;
+        return tracker;
+    };
 
     const createApi = (deps = {}) => {
         const win = deps.window || fallbackWindow;
@@ -46,6 +247,9 @@
         const getCorrelationContext = typeof deps.getCorrelationContext === 'function'
             ? deps.getCorrelationContext
             : (() => ({}));
+        const getLayoutStabilityDiagnostics = typeof deps.getLayoutStabilityDiagnostics === 'function'
+            ? deps.getLayoutStabilityDiagnostics
+            : (() => ({ available: false }));
 
         const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
         const measureBytes = (value) => {
@@ -593,6 +797,7 @@
                 currentPage: String(win?.location?.pathname || ''),
                 listViewMode: currentListViewMode,
                 correlation: normalizeCorrelationContext(getCorrelationContext()),
+                layoutStability: cloneValue(getLayoutStabilityDiagnostics()) || { available: false },
                 dockerAssets: collectDockerAssetIdentity(),
                 topLevelRows: {
                     count: topLevelRowCount,
@@ -671,6 +876,7 @@
         DOCKER_BULK_UPDATE_TRACE_STORAGE_KEY,
         DOCKER_REQUEST_BUNDLE_TRACE_STORAGE_KEY,
         DOCKER_TRACE_HEALTH_STORAGE_KEY,
+        createLayoutStabilityTracker,
         createApi
     };
 }));

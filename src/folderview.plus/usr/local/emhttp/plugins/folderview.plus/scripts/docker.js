@@ -628,7 +628,9 @@ const DOCKER_RUNTIME_WIDTH_BOOTSTRAP_SETTLE_MS = 280;
 const DOCKER_RUNTIME_WIDTH_BOOTSTRAP_FONT_TIMEOUT_MS = 600;
 const DOCKER_RUNTIME_WIDTH_MIN_APPLY_DELTA_PX = 3;
 const DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY = 'fvplus.runtime.docker.widthDebug.v1';
-const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus.runtime.docker.appWidth.v1';
+const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus.runtime.docker.appWidth.v2';
+const DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION = 2;
+const DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION = 'content-aware-v2';
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
@@ -645,7 +647,10 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
         desktopVarName: '--fvplus-docker-app-column-width',
         mobileVarName: '--fvplus-docker-app-column-width-mobile',
         mobileScale: DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE,
-        mobileMin: DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN
+        mobileMin: DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
+        cacheKey: DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY,
+        cacheSchemaVersion: DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION,
+        algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION
     })
     : null;
 let lastAppliedRuntimePrefs = null;
@@ -655,57 +660,11 @@ let dockerRuntimeResizerRetryCount = 0;
 let dockerRuntimeResizerObserver = null;
 let dockerRuntimeAutoAppWidthFloor = null;
 let dockerRuntimeAutoAppWidthFloorMode = null;
+let dockerRuntimeWidthContentSignature = '';
 let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
 let dockerRuntimeHierarchyApi = null;
-
-const readDockerRuntimeCachedAppWidthMap = () => {
-    try {
-        if (!window.localStorage) {
-            return {};
-        }
-        const parsed = JSON.parse(window.localStorage.getItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY) || '{}');
-        return parsed && typeof parsed === 'object' ? parsed : {};
-    } catch (_error) {
-        return {};
-    }
-};
-
-const readDockerRuntimeCachedAppWidth = (mode = 'standard') => {
-    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
-        ? String(mode || '').toLowerCase()
-        : 'standard';
-    const cached = readDockerRuntimeCachedAppWidthMap()[normalizedMode];
-    return clampDockerRuntimeColumnWidth(cached, 1);
-};
-
-const writeDockerRuntimeCachedAppWidth = (mode = 'standard', width = null) => {
-    const safeWidth = clampDockerRuntimeColumnWidth(width, 1);
-    if (!safeWidth) {
-        return;
-    }
-    const normalizedMode = ['compact', 'wide'].includes(String(mode || '').toLowerCase())
-        ? String(mode || '').toLowerCase()
-        : 'standard';
-    try {
-        if (!window.localStorage) {
-            return;
-        }
-        const next = {
-            ...readDockerRuntimeCachedAppWidthMap(),
-            [normalizedMode]: safeWidth
-        };
-        const payload = JSON.stringify(next);
-        if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
-            dockerStorageWriter.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload, { delayMs: 180, idle: true });
-        } else {
-            window.localStorage.setItem(DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY, payload);
-        }
-    } catch (_error) {
-        // Ignore localStorage limitations.
-    }
-};
 let dockerRuntimeActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -729,6 +688,22 @@ const dockerRuntimeWidthState = {
     debugPanel: null,
     lastDecision: null
 };
+const dockerRuntimeLayoutStabilityTracker = dockerRuntimeDiagnosticsModule?.createLayoutStabilityTracker?.({
+    window,
+    document,
+    cacheSchemaVersion: DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION,
+    algorithmVersion: DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION
+}) || null;
+const markDockerRuntimeLayoutPhase = (phase, details = {}) => dockerRuntimeLayoutStabilityTracker?.markPhase?.(phase, details);
+const recordDockerRuntimeWidthTelemetry = (stage, details = {}) => dockerRuntimeLayoutStabilityTracker?.recordWidth?.(stage, details);
+const summarizeDockerPreviewActionSlots = () =>
+    dockerRuntimeLayoutStabilityTracker?.summarizeActionSlots?.()
+    || { targetCount: 0, pendingWebuiSlotCount: 0, readyWebuiSlotCount: 0 };
+const captureDockerPreviewActionGeometry = () => dockerRuntimeLayoutStabilityTracker?.captureActionGeometry?.() || new Map();
+const compareDockerPreviewActionGeometry = (geometry) =>
+    dockerRuntimeLayoutStabilityTracker?.compareActionGeometry?.(geometry);
+const getDockerRuntimeLayoutStabilitySnapshot = () =>
+    dockerRuntimeLayoutStabilityTracker?.getSnapshot?.() || { schemaVersion: 1, available: false };
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
     for (const key of FOLDER_LABEL_KEYS) {
@@ -772,8 +747,6 @@ const getDockerPreviewActionsApi = () => {
             openWebuiInNewTab: (url) => openWebuiInNewTab(url),
             openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
             getDirectMemberRowsForFolder: (id) => getDirectMemberRowsForFolder(id),
-            shouldRenderPreviewWebuiPlaceholder: (settings, allowWebui) => shouldRenderPreviewWebuiPlaceholder(settings, allowWebui),
-            appendPreviewWebuiPlaceholder: ($target) => appendPreviewWebuiPlaceholder($target),
             isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
             applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
@@ -818,8 +791,8 @@ const getDockerRuntimeHierarchyApi = () => {
             layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
             previewModelModule: folderPreviewModelModule,
             buildDockerPreviewItem: (options) => buildDockerPreviewItem(options),
-            appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl) =>
-                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
+            appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl, options = {}) =>
+                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options),
             decorateDockerPreviewMemberTriggers: ($targets, folderId, containerName) =>
                 decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
             getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
@@ -970,8 +943,8 @@ const buildDockerIsolatedViewDeps = () => ({
     openWebuiInNewTab: (url) => openWebuiInNewTab(url),
     openWebuiPopupWindow: (url, targetName = '_blank') => openWebuiPopupWindow(url, targetName),
     openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
-    appendDockerPreviewActionButtons: ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') =>
-        appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
+    appendDockerPreviewActionButtons: ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '', options = {}) =>
+        appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options),
     toggleFolderPin: (folderId) => toggleDockerFolderPin(folderId),
     toggleFolderLock: (folderId) => toggleDockerFolderLock(folderId),
     queueLoadlistRefresh: (options = {}) => queueLoadlistRefresh(options),
@@ -1018,7 +991,8 @@ const getDockerRuntimeDiagnosticsApi = () => {
             resolveExpectedFolderActionToken: (folderId) => resolveDockerSupportBundleExpectedFolderActionToken(folderId),
             resolveExpectedMemberActionToken: (entry = {}) => resolveDockerSupportBundleExpectedMemberActionToken(entry),
             getRuntimeInfoEntry: (containerName) => dockerRuntimeInfoByName?.[containerName] || {},
-            getCorrelationContext: () => buildDockerDiagnosticsCorrelationContext()
+            getCorrelationContext: () => buildDockerDiagnosticsCorrelationContext(),
+            getLayoutStabilityDiagnostics: () => getDockerRuntimeLayoutStabilitySnapshot()
         });
     }
     return dockerRuntimeDiagnosticsApi;
@@ -1357,20 +1331,6 @@ const getFolderPreviewItemsPerRow = (settings = {}) => {
             return compactMultiRow ? 5 : 4;
     }
 };
-const shouldRenderPreviewWebuiPlaceholder = (settings = {}, webuiQuickActionEnabled = false) =>
-    settings?.preview_vertical_bars === true
-    && webuiQuickActionEnabled === true;
-
-const appendPreviewWebuiPlaceholder = ($target) => {
-    if (!$target || !$target.length) {
-        return;
-    }
-    $target.append(
-        $('<span class="folder-element-custom-btn folder-element-webui fv-preview-webui-placeholder" aria-hidden="true"></span>')
-            .append('<span class="fv-preview-webui-placeholder-icon"><i class="fa fa-globe" aria-hidden="true"></i></span>')
-    );
-};
-
 const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }) => {
     const previewMode = Number(settings?.preview || 0);
     const compactMultiRow = isCompactMultiRowPreview(settings);
@@ -2089,55 +2049,35 @@ const applyDockerRuntimeAppColumnInlineWidth = (desktopWidthPx = null) => {
 
 const primeDockerRuntimeAppWidthBeforeRender = (folders = null) => {
     const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
-    let estimatedWidth = baseline;
     const folderEntries = folders && typeof folders === 'object'
         ? Object.values(folders).filter((folder) => folder && typeof folder === 'object')
         : [];
-    if (folderEntries.length > 0 && document && typeof document.createElement === 'function') {
-        const measureCanvas = document.createElement('canvas');
-        const ctx = measureCanvas && typeof measureCanvas.getContext === 'function'
-            ? measureCanvas.getContext('2d')
-            : null;
-        if (ctx) {
-            const sampleNode = document.querySelector('tbody#docker_list td.ct-name, tbody#docker_view td.ct-name, body');
-            const style = sampleNode ? window.getComputedStyle(sampleNode) : null;
-            ctx.font = style
-                ? `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`
-                : '700 14px Arial, sans-serif';
-            const stoppedText = typeof $ !== 'undefined' && $.i18n ? $.i18n('stopped') : 'stopped';
-            folderEntries.forEach((folder) => {
-                const nameText = String(folder.name || '').trim();
-                const members = Array.isArray(folder.children)
-                    ? folder.children.length
-                    : (Array.isArray(folder.containers) ? folder.containers.length : 0);
-                const statusText = `${Math.max(0, members)}/${Math.max(0, members)} ${stoppedText}`;
-                const textWidth = Math.max(
-                    nameText ? ctx.measureText(nameText).width : 0,
-                    statusText ? ctx.measureText(statusText).width : 0
-                );
-                if (textWidth <= 0) {
-                    return;
-                }
-                const width = Math.ceil(textWidth + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
-                if (width > estimatedWidth) {
-                    estimatedWidth = width;
-                }
-            });
-        }
+    const bootstrap = dockerRuntimeColumnLayoutEngine?.resolveFolderBootstrap?.({
+        folders: folderEntries,
+        baseline,
+        statusLabels: dockerRuntimeColumnLayoutEngine?.resolveStatusLabels?.((key) => $.i18n(key)) || [],
+        sampleNode: document.querySelector('tbody#docker_list td.ct-name, tbody#docker_view td.ct-name, body'),
+        chromeWidth: DOCKER_RUNTIME_APP_CHROME_WIDTH,
+        textBuffer: DOCKER_RUNTIME_APP_TEXT_BUFFER,
+        mode: getDockerRuntimeAppColumnMode(),
+        floor: dockerRuntimeAutoAppWidthFloor
+    }) || { estimatedWidth: baseline, primedWidth: baseline, contentSignature: '' };
+    dockerRuntimeWidthContentSignature = String(bootstrap.contentSignature || '').trim();
+    if (bootstrap.staleCacheRejected) {
+        dockerRuntimeAutoAppWidthFloor = null;
     }
-    const mode = getDockerRuntimeAppColumnMode();
-    const cachedWidth = readDockerRuntimeCachedAppWidth(mode);
-    const bootstrapWidth = isDockerRuntimeWidthBootstrapActive() && cachedWidth
-        ? cachedWidth
-        : Math.max(
-            estimatedWidth || 0,
-            cachedWidth || 0,
-            Number(dockerRuntimeAutoAppWidthFloor) || 0
-        );
-    const primedWidth = clampDockerRuntimeColumnWidth(bootstrapWidth, 1);
+    const primedWidth = clampDockerRuntimeColumnWidth(bootstrap.primedWidth, 1);
     if (!primedWidth) {
         return null;
     }
+    recordDockerRuntimeWidthTelemetry('primed', {
+        presetPx: baseline,
+        cachedPx: bootstrap.cachedWidth,
+        estimatedPx: bootstrap.estimatedWidth,
+        primedPx: primedWidth,
+        appliedPx: primedWidth,
+        contentSignature: dockerRuntimeWidthContentSignature
+    });
     dockerRuntimeAutoAppWidthFloor = primedWidth;
     applyDockerRuntimeAppWidthVariables(primedWidth);
     applyDockerRuntimeAppColumnInlineWidth(primedWidth);
@@ -2273,7 +2213,12 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null, options = {}) => {
         decision.suppressedSmallDelta = true;
     }
     dockerRuntimeAutoAppWidthFloor = decision.nextFloor;
-    writeDockerRuntimeCachedAppWidth(decision.mode, decision.appliedWidth);
+    dockerRuntimeColumnLayoutEngine?.writeCachedWidth?.(
+        decision.mode,
+        decision.appliedWidth,
+        dockerRuntimeWidthContentSignature,
+        dockerStorageWriter
+    );
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
@@ -2296,6 +2241,14 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null, options = {}) => {
         reason: dockerRuntimeWidthState.lastReason,
         phase: dockerRuntimeWidthState.phase
     };
+    const telemetryStage = dockerRuntimeWidthState.lastReason === 'pre-visible-folder-commit'
+        ? 'pre-visible'
+        : (dockerRuntimeWidthState.lastReason === 'bootstrap-stable' ? 'settled' : 'reflow');
+    recordDockerRuntimeWidthTelemetry(telemetryStage, {
+        appliedPx: decision.appliedWidth,
+        preVisiblePx: telemetryStage === 'pre-visible' ? decision.appliedWidth : null,
+        settledPx: telemetryStage === 'settled' ? decision.appliedWidth : null
+    });
     renderDockerRuntimeWidthDebugPanel(dockerRuntimeWidthState.lastDecision);
     return decision.appliedWidth;
 };
@@ -5446,6 +5399,16 @@ const startDockerListViewModeObserver = () => {
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoSource = null) => {
+    const hydrationStartedAt = (
+        typeof performance !== 'undefined' && typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()
+    );
+    const actionGeometryBeforeHydration = captureDockerPreviewActionGeometry();
+    markDockerRuntimeLayoutPhase('full-info-requested', {
+        generation,
+        trackedActionCount: actionGeometryBeforeHydration.size
+    });
     const suppliedRequest = typeof fullInfoSource === 'function'
         ? fullInfoSource()
         : fullInfoSource;
@@ -5477,9 +5440,29 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
+            const hydrationFinishedAt = (
+                typeof performance !== 'undefined' && typeof performance.now === 'function'
+                    ? performance.now()
+                    : Date.now()
+            );
+            markDockerRuntimeLayoutPhase('full-info-ready', {
+                generation: hydrationGeneration,
+                durationMs: Math.max(0, hydrationFinishedAt - hydrationStartedAt),
+                entityCount: Object.keys(parsed).length
+            });
             syncDockerVisibleFoldersFromRuntimeCache();
+            const compareGeometry = () => compareDockerPreviewActionGeometry(actionGeometryBeforeHydration);
+            if (typeof window.requestAnimationFrame === 'function') {
+                window.requestAnimationFrame(compareGeometry);
+            } else {
+                window.setTimeout(compareGeometry, 0);
+            }
         })
-        .catch(() => {});
+        .catch(() => {
+            markDockerRuntimeLayoutPhase('full-info-failed', {
+                generation: hydrationGeneration
+            });
+        });
 };
 const bindDockerPostUpdateRenderReconcile = () => {
     getDockerRuntimeReconcileApi()?.bindPostUpdateRenderReconcile?.();
@@ -5802,6 +5785,17 @@ const createFolders = async () => {
     applyDockerFocusedFolderState();
     applyDockerRuntimeToolbarFilterState();
     renderDockerRuntimeActionBar(resolveDockerPageViewMode());
+    runDockerRuntimeWidthReflow('pre-visible-folder-commit', {
+        force: true,
+        minimumDelta: 0
+    });
+    const initialActionSummary = summarizeDockerPreviewActionSlots();
+    dockerRuntimeLayoutStabilityTracker?.updateInitialActionSummary?.({
+        initialTargetCount: initialActionSummary.targetCount,
+        pendingWebuiSlotCount: initialActionSummary.pendingWebuiSlotCount,
+        readyWebuiSlotCount: initialActionSummary.readyWebuiSlotCount
+    });
+    markDockerRuntimeLayoutPhase('folder-preview-actions-ready', initialActionSummary);
     scheduleDockerPostRenderPolish(Object.keys(globalFolders));
     queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
     queueDockerSupportBundlePageSnapshot('render-complete', 260);
@@ -6246,6 +6240,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 name: ct.info.Name || container_name_in_folder,
                 icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
                 webui: ct.info.State.WebUi || ct.info.State.TSWebUi || '',
+                webuiCapability: typeof ct.info.State.WebUiCapability === 'boolean'
+                    ? ct.info.State.WebUiCapability
+                    : null,
+                webuiHydrating: ct.info.State.WebUiHydrationPending === true,
                 shell: ct.info.Shell || '/bin/sh',
                 pause: ct.info.State.Paused,
                 state: ct.info.State.Running,
@@ -6684,7 +6682,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             const previewWebuiUrl = getSafeWebuiUrl(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '');
             if ($targetForAppend.length) {
-                appendDockerPreviewActionButtons($targetForAppend, folder.settings, ct.info.Name, ct.info.Shell, previewWebuiUrl);
+                appendDockerPreviewActionButtons(
+                    $targetForAppend,
+                    folder.settings,
+                    ct.info.Name,
+                    ct.info.Shell,
+                    previewWebuiUrl,
+                    {
+                        webuiCapability: newFolder[container_name_in_folder]?.webuiCapability,
+                        webuiHydrating: newFolder[container_name_in_folder]?.webuiHydrating === true
+                    }
+                );
             }
             }
 
@@ -6930,10 +6938,10 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     }
 };
 
-const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') => {
+const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '', options = {}) => {
     const previewActionsApi = getDockerPreviewActionsApi();
     if (previewActionsApi && typeof previewActionsApi.appendDockerPreviewActionButtons === 'function') {
-        previewActionsApi.appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
+        previewActionsApi.appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options);
     }
 };
 
@@ -8593,9 +8601,9 @@ const applyRuntimePrefs = (prefs) => {
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
     if (dockerRuntimeAutoAppWidthFloorMode !== appColumnWidth) {
         dockerRuntimeAutoAppWidthFloorMode = appColumnWidth;
-        dockerRuntimeAutoAppWidthFloor = readDockerRuntimeCachedAppWidth(appColumnWidth);
+        dockerRuntimeAutoAppWidthFloor = dockerRuntimeColumnLayoutEngine?.readCachedWidth?.(appColumnWidth) || null;
     }
-    const cachedAppWidth = readDockerRuntimeCachedAppWidth(appColumnWidth);
+    const cachedAppWidth = dockerRuntimeColumnLayoutEngine?.readCachedWidth?.(appColumnWidth) || null;
     if (cachedAppWidth) {
         dockerRuntimeAutoAppWidthFloor = Math.max(Number(dockerRuntimeAutoAppWidthFloor) || 0, cachedAppWidth);
         applyDockerRuntimeAppWidthVariables(cachedAppWidth);
@@ -8648,12 +8656,6 @@ const bindDockerRuntimePreferenceSync = () => {
 bindDockerRuntimePreferenceSync();
 
 window.toggleDockerRuntimeWidthDebug = (enabled = true) => setDockerRuntimeWidthDebugEnabled(enabled);
-window.getDockerRuntimeWidthDebugSnapshot = () => {
-    if (!dockerRuntimeWidthState.lastDecision) {
-        return null;
-    }
-    return { ...dockerRuntimeWidthState.lastDecision };
-};
 window.getDockerRuntimePerfTelemetrySnapshot = () => {
     if (!dockerPerfTelemetry || typeof dockerPerfTelemetry.snapshot !== 'function') {
         return {};

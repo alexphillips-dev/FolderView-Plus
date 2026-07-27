@@ -350,6 +350,19 @@
             const sourceUpdated = typeof sourceState.Updated === 'boolean'
                 ? sourceState.Updated
                 : (typeof source.Updated === 'boolean' ? source.Updated : null);
+            const sourceWebuiCapability = typeof sourceState.WebUiCapability === 'boolean'
+                ? sourceState.WebUiCapability
+                : (typeof source.webuiCapability === 'boolean' ? source.webuiCapability : null);
+            const previousWebuiCapability = typeof previousState.WebUiCapability === 'boolean'
+                ? previousState.WebUiCapability
+                : null;
+            const resolvedWebuiCapability = typeof sourceWebuiCapability === 'boolean'
+                ? sourceWebuiCapability
+                : (resolvedWebUi || resolvedTsWebUi
+                    ? true
+                    : previousWebuiCapability);
+            const sourceWebuiHydrationPending = sourceState.WebUiHydrationPending === true
+                || source.webuiHydrationPending === true;
             const preservePreviousUpdated = typeof previousState.Updated === 'boolean'
                 && !(manager === 'dockerman' && isHostUpdateSyncSuspended());
             const resolvedUpdated = typeof sourceUpdated === 'boolean'
@@ -365,7 +378,7 @@
             nextEntry.info = {
                 ...previousInfo,
                 Name: safeName || String(previousInfo.Name || '').trim(),
-                Shell: String(labels['net.unraid.docker.shell'] || previousInfo.Shell || 'sh').trim() || 'sh',
+                Shell: String(source.Shell || labels['net.unraid.docker.shell'] || previousInfo.Shell || 'sh').trim() || 'sh',
                 Config: {
                     ...previousConfig,
                     Image: String(source.Image || previousConfig.Image || '').trim(),
@@ -380,7 +393,9 @@
                     Updated: resolvedUpdated,
                     manager,
                     WebUi: resolvedWebUi,
-                    TSWebUi: resolvedTsWebUi
+                    TSWebUi: resolvedTsWebUi,
+                    WebUiCapability: resolvedWebuiCapability,
+                    WebUiHydrationPending: sourceWebuiHydrationPending
                 },
                 Ports: Array.isArray(previousInfo.Ports) ? previousInfo.Ports : [],
                 template: previousInfo.template || null
@@ -452,12 +467,20 @@
                 : (runtimeManager === 'dockerman'
                     ? (hostUpdated === false)
                     : (source.update === true));
+            const webui = resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui);
+            const webuiCapability = typeof runtimeState.WebUiCapability === 'boolean'
+                ? runtimeState.WebUiCapability
+                : (typeof source.webuiCapability === 'boolean'
+                    ? source.webuiCapability
+                    : (webui ? true : null));
             return {
                 ...source,
                 id: source.id || String(runtime?.shortId || '').trim(),
                 name: String(runtime?.info?.Name || source.name || key).trim() || key,
                 icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-                webui: resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui),
+                webui,
+                webuiCapability,
+                webuiHydrating: runtimeState.WebUiHydrationPending === true || source.webuiHydrating === true,
                 shell: source.shell || runtime?.info?.Shell || '/bin/sh',
                 pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
                 state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),

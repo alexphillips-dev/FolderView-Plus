@@ -30,12 +30,6 @@
         const getDirectMemberRowsForFolder = typeof deps.getDirectMemberRowsForFolder === 'function'
             ? deps.getDirectMemberRowsForFolder
             : (() => jq());
-        const shouldRenderPreviewWebuiPlaceholder = typeof deps.shouldRenderPreviewWebuiPlaceholder === 'function'
-            ? deps.shouldRenderPreviewWebuiPlaceholder
-            : (() => false);
-        const appendPreviewWebuiPlaceholder = typeof deps.appendPreviewWebuiPlaceholder === 'function'
-            ? deps.appendPreviewWebuiPlaceholder
-            : (() => {});
         const isCompactMultiRowPreview = typeof deps.isCompactMultiRowPreview === 'function'
             ? deps.isCompactMultiRowPreview
             : (() => false);
@@ -49,13 +43,15 @@
         const dockerRuntimeStateClassList = 'started paused stopped fv-preview-status-started fv-preview-status-paused fv-preview-status-stopped green-text orange-text red-text';
         const dockerRuntimeIconClassList = 'fa-play fa-pause fa-square fa-refresh fa-spin';
 
-        const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui"></span>').append(
+        const buildDockerPreviewWebuiButton = (webuiUrl) => jq('<span class="folder-element-custom-btn folder-element-webui fv-preview-action-slot is-ready"></span>').append(
             jq('<a></a>')
                 .attr('href', webuiUrl)
                 .attr('target', '_blank')
                 .attr('rel', webuiLinkRel)
                 .attr('data-fv-preview-action', 'webui')
                 .attr('data-webui-url', webuiUrl)
+                .attr('aria-label', i18nLabel('docker.preview.open-webui', 'Open WebUI'))
+                .attr('title', i18nLabel('docker.preview.open-webui', 'Open WebUI'))
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
@@ -64,11 +60,13 @@
                 })
         );
 
-        const buildDockerPreviewConsoleButton = (containerName, shellValue) => jq('<span class="folder-element-custom-btn folder-element-console"></span>').append(
+        const buildDockerPreviewConsoleButton = (containerName, shellValue) => jq('<span class="folder-element-custom-btn folder-element-console fv-preview-action-slot is-ready"></span>').append(
             jq('<a href="#"></a>')
                 .attr('data-fv-preview-action', 'console')
                 .attr('data-container-name', containerName)
                 .attr('data-shell-value', shellValue)
+                .attr('aria-label', i18nLabel('docker.preview.open-console', 'Open console'))
+                .attr('title', i18nLabel('docker.preview.open-console', 'Open console'))
                 .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
@@ -77,11 +75,13 @@
                 })
         );
 
-        const buildDockerPreviewLogsButton = (containerName) => jq('<span class="folder-element-custom-btn folder-element-logs"></span>').append(
+        const buildDockerPreviewLogsButton = (containerName) => jq('<span class="folder-element-custom-btn folder-element-logs fv-preview-action-slot is-ready"></span>').append(
             jq('<a href="#"></a>')
                 .attr('data-fv-preview-action', 'logs')
                 .attr('data-container-name', containerName)
                 .attr('data-shell-value', '.log')
+                .attr('aria-label', i18nLabel('docker.preview.view-logs', 'View logs'))
+                .attr('title', i18nLabel('docker.preview.view-logs', 'View logs'))
                 .append('<i class="fa fa-bars" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
@@ -115,7 +115,81 @@
             }
         };
 
-        const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') => {
+        const insertDockerPreviewActionSlot = ($target, $slot, actionName) => {
+            const actionOrder = ['webui', 'console', 'logs'];
+            const currentIndex = actionOrder.indexOf(actionName);
+            const laterAction = actionOrder
+                .slice(currentIndex + 1)
+                .map((name) => $target.children(`span.folder-element-${name}`).first())
+                .find(($candidate) => $candidate && $candidate.length);
+            if (laterAction && laterAction.length) {
+                $slot.insertBefore(laterAction);
+                return;
+            }
+            $target.append($slot);
+        };
+
+        const ensureDockerPreviewActionSlot = ($target, actionName, factory) => {
+            let $slot = $target.children(`span.folder-element-${actionName}`).first();
+            if ($slot.length) {
+                $slot.addClass('fv-preview-action-slot');
+                return $slot;
+            }
+            $slot = factory();
+            insertDockerPreviewActionSlot($target, $slot, actionName);
+            return $slot;
+        };
+
+        const syncDockerPreviewWebuiSlot = ($slot, webuiUrl = '', options = {}) => {
+            const safeUrl = getSafeWebuiUrl(webuiUrl);
+            const capability = typeof options?.webuiCapability === 'boolean'
+                ? options.webuiCapability
+                : (safeUrl ? true : null);
+            const hydrating = options?.webuiHydrating === true && !safeUrl;
+            $slot
+                .removeClass('is-ready is-pending is-unavailable fv-preview-webui-placeholder')
+                .addClass(safeUrl ? 'is-ready' : (hydrating || capability === null ? 'is-pending' : 'is-unavailable'))
+                .attr('data-fv-preview-action-slot', 'webui')
+                .attr('data-fv-webui-capability', capability === null ? 'unknown' : String(capability))
+                .attr('aria-hidden', safeUrl ? 'false' : 'true');
+
+            const $existingLink = $slot.children('a[data-fv-preview-action="webui"]').first();
+            if (safeUrl && $existingLink.length && String($existingLink.attr('data-webui-url') || '') === safeUrl) {
+                return;
+            }
+            $slot.empty();
+            if (safeUrl) {
+                const $readySlot = buildDockerPreviewWebuiButton(safeUrl);
+                $slot.append($readySlot.children());
+                return;
+            }
+            $slot.append('<span class="fv-preview-webui-placeholder-icon" aria-hidden="true"><i class="fa fa-globe" aria-hidden="true"></i></span>');
+        };
+
+        const syncDockerPreviewConsoleSlot = ($slot, containerName, shellValue) => {
+            const safeName = String(containerName || '').trim();
+            const safeShell = String(shellValue || '/bin/sh').trim() || '/bin/sh';
+            const $existingLink = $slot.children('a[data-fv-preview-action="console"]').first();
+            if (
+                $existingLink.length
+                && String($existingLink.attr('data-container-name') || '') === safeName
+                && String($existingLink.attr('data-shell-value') || '') === safeShell
+            ) {
+                return;
+            }
+            $slot.empty().append(buildDockerPreviewConsoleButton(safeName, safeShell).children());
+        };
+
+        const syncDockerPreviewLogsSlot = ($slot, containerName) => {
+            const safeName = String(containerName || '').trim();
+            const $existingLink = $slot.children('a[data-fv-preview-action="logs"]').first();
+            if ($existingLink.length && String($existingLink.attr('data-container-name') || '') === safeName) {
+                return;
+            }
+            $slot.empty().append(buildDockerPreviewLogsButton(safeName).children());
+        };
+
+        const reconcileDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '', options = {}) => {
             if (!$target || !$target.length) {
                 return;
             }
@@ -126,17 +200,40 @@
                     preview_console: settings?.preview_console === true,
                     preview_logs: settings?.preview_logs === true
                 };
-            if (actionPrefs.preview_webui && webuiUrl) {
-                $target.append(buildDockerPreviewWebuiButton(webuiUrl));
-            } else if (shouldRenderPreviewWebuiPlaceholder(settings, actionPrefs.preview_webui === true)) {
-                appendPreviewWebuiPlaceholder($target);
+            if (actionPrefs.preview_webui) {
+                const $webuiSlot = ensureDockerPreviewActionSlot(
+                    $target,
+                    'webui',
+                    () => jq('<span class="folder-element-custom-btn folder-element-webui fv-preview-action-slot"></span>')
+                );
+                syncDockerPreviewWebuiSlot($webuiSlot, webuiUrl, options);
+            } else {
+                $target.children('span.folder-element-webui').remove();
             }
             if (actionPrefs.preview_console && containerName) {
-                $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
+                const $consoleSlot = ensureDockerPreviewActionSlot(
+                    $target,
+                    'console',
+                    () => buildDockerPreviewConsoleButton(containerName, shellValue)
+                );
+                syncDockerPreviewConsoleSlot($consoleSlot, containerName, shellValue);
+            } else {
+                $target.children('span.folder-element-console').remove();
             }
             if (actionPrefs.preview_logs && containerName) {
-                $target.append(buildDockerPreviewLogsButton(containerName));
+                const $logsSlot = ensureDockerPreviewActionSlot(
+                    $target,
+                    'logs',
+                    () => buildDockerPreviewLogsButton(containerName)
+                );
+                syncDockerPreviewLogsSlot($logsSlot, containerName);
+            } else {
+                $target.children('span.folder-element-logs').remove();
             }
+        };
+
+        const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '', options = {}) => {
+            reconcileDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, options);
         };
 
         const i18nLabel = (key, fallback = '') => {
@@ -556,8 +653,10 @@
                         $img.css('filter', '');
                     }
                 }
-                $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
-                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
+                reconcileDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl, {
+                    webuiCapability: entry?.webuiCapability,
+                    webuiHydrating: entry?.webuiHydrating === true
+                });
             });
             $preview.find('[id^="folder-preview-"]').each((_, node) => {
                 jq(node).data('fvTooltipLazyBuilt', false);
@@ -569,6 +668,7 @@
 
         return Object.freeze({
             appendDockerPreviewActionButtons,
+            reconcileDockerPreviewActionButtons,
             resolveDockerMemberUpdateState,
             buildDockerMemberUpdateColumnHtml,
             syncDockerRuntimeRows,

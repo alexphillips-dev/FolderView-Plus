@@ -433,6 +433,7 @@
     require_once(__DIR__ . '/lib.preflight.php');
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
+    require_once(__DIR__ . '/lib.docker-runtime.php');
 
     function fvplus_detect_runtime_plugin_conflicts(): array {
         $detected = [];
@@ -7047,31 +7048,6 @@
         return $allXmlTemplates;
     }
 
-    function getDockerTemplateIndexCached(DockerTemplates $dockerTemplates): array {
-        try {
-            $templateFiles = $dockerTemplates->getTemplates('all');
-        } catch (Throwable $error) {
-            fv3_debug_log("getDockerTemplateIndexCached: DockerTemplates->getTemplates('all') failed: " . $error->getMessage());
-            return [];
-        }
-        if (!is_array($templateFiles) || empty($templateFiles)) {
-            return [];
-        }
-        $signature = buildDockerTemplateSignature($templateFiles);
-        $cached = readDockerTemplateCache($signature);
-        if (is_array($cached)) {
-            return $cached;
-        }
-        try {
-            $templates = buildDockerTemplateIndex($templateFiles);
-        } catch (Throwable $error) {
-            fv3_debug_log("getDockerTemplateIndexCached: buildDockerTemplateIndex failed: " . $error->getMessage());
-            return [];
-        }
-        writeDockerTemplateCache($signature, $templates);
-        return $templates;
-    }
-
     function readInfoState(string $type, bool $preferLiveUpdateStatus = false): array {
         $type = ensureType($type);
         $info = [];
@@ -7114,6 +7090,7 @@
                 $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
                 $manager = getNormalizedDockerManagerFromLabels($labels);
                 $containerImage = DockerUtil::ensureImageTag(trim((string)($container['Image'] ?? '')));
+                $webuiMetadata = resolveDockerLightweightWebuiMetadata($labels, $manager);
 
                 $info[$name] = [
                     'name' => $name,
@@ -7134,7 +7111,12 @@
                         : null,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
-                    'folderLabel' => getFolderLabelValueFromLabels($labels)
+                    'folderLabel' => getFolderLabelValueFromLabels($labels),
+                    'WebUi' => $webuiMetadata['WebUi'],
+                    'TSWebUi' => $webuiMetadata['TSWebUi'],
+                    'Shell' => $webuiMetadata['Shell'],
+                    'webuiCapability' => $webuiMetadata['webuiCapability'],
+                    'webuiHydrationPending' => $webuiMetadata['webuiHydrationPending']
                 ];
             }
             ksort($info);
@@ -7436,6 +7418,8 @@
                     fv3_debug_log("  $containerName: Tailscale is NOT enabled or no TS URL defined in template/label.");
                 }
                 $ct['info']['State']['TSWebUi'] = $finalTsWebUi;
+                $ct['info']['State']['WebUiCapability'] = $rawWebUiString !== '' || $rawTsXmlUrl !== '';
+                $ct['info']['State']['WebUiHydrationPending'] = false;
                 fv3_debug_log("  $containerName: Resolved TS WebUi: '$finalTsWebUi'");
                 
                 $info[$containerName] = $ct;

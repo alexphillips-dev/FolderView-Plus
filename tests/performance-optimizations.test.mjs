@@ -13,6 +13,10 @@ const readInfoPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_info.php'
 );
+const dockerRuntimeServerLibPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.docker-runtime.php'
+);
 const thirdPartyIconsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/third_party_icons.php'
@@ -24,6 +28,10 @@ const dockerJsPath = path.join(
 const dockerRuntimeHierarchyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
+);
+const runtimeColumnLayoutJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js'
 );
 const vmJsPath = path.join(
     repoRoot,
@@ -92,9 +100,11 @@ const settingsPagePath = path.join(
 
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
+const dockerRuntimeServerLibPhp = fs.readFileSync(dockerRuntimeServerLibPath, 'utf8');
 const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
+const runtimeColumnLayoutJs = fs.readFileSync(runtimeColumnLayoutJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 const dashboardFolderMatchCacheJs = fs.readFileSync(dashboardFolderMatchCachePath, 'utf8');
@@ -332,7 +342,7 @@ test('row-centering observer scopes to docker containers instead of full documen
 test('full readInfo docker template metadata uses cached signature index', () => {
     assert.match(libPhp, /FVPLUS_DOCKER_TEMPLATE_CACHE_TTL/);
     assert.match(libPhp, /function buildDockerTemplateSignature\s*\(/);
-    assert.match(libPhp, /function getDockerTemplateIndexCached\s*\(/);
+    assert.match(dockerRuntimeServerLibPhp, /function getDockerTemplateIndexCached\s*\(/);
     assert.match(libPhp, /getDockerTemplateIndexCached\(\$dockerTemplates\)/);
 });
 
@@ -382,10 +392,14 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;/);
-    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus\.runtime\.docker\.appWidth\.v1';/);
-    assert.match(dockerJs, /const readDockerRuntimeCachedAppWidth = \(mode = 'standard'\) =>/);
-    assert.match(dockerJs, /const writeDockerRuntimeCachedAppWidth = \(mode = 'standard', width = null\) =>/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_CACHE_KEY = 'fvplus\.runtime\.docker\.appWidth\.v2';/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_CACHE_SCHEMA_VERSION = 2;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_ALGORITHM_VERSION = 'content-aware-v2';/);
+    assert.match(runtimeColumnLayoutJs, /const readCachedWidth = \(mode = 'standard', contentSignature = ''\) =>/);
+    assert.match(runtimeColumnLayoutJs, /const writeCachedWidth = \(/);
     assert.match(dockerJs, /const primeDockerRuntimeAppWidthBeforeRender = \(folders = null\) =>/);
+    assert.match(runtimeColumnLayoutJs, /const resolveFolderBootstrap = \(\{[\s\S]*resolveBootstrapWidth\(\{[\s\S]*estimated:\s*estimate\.estimatedWidth,[\s\S]*cached:\s*cachedWidth/);
+    assert.match(dockerJs, /runDockerRuntimeWidthReflow\('pre-visible-folder-commit', \{[\s\S]*force:\s*true/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
     assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
@@ -403,7 +417,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null, options = \{\}\) =>/);
-    assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
+    assert.match(dockerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
     assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
     assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
     assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
@@ -419,13 +433,13 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
 });
 
 test('docker runtime applies cached app-column width before first measured reflow', () => {
-    assert.match(dockerJs, /const cachedAppWidth = readDockerRuntimeCachedAppWidth\(appColumnWidth\);/);
+    assert.match(dockerJs, /const cachedAppWidth = dockerRuntimeColumnLayoutEngine\?\.readCachedWidth\?\.\(appColumnWidth\)/);
     assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = Math\.max\(Number\(dockerRuntimeAutoAppWidthFloor\) \|\| 0,\s*cachedAppWidth\);/);
     assert.match(dockerJs, /applyDockerRuntimeAppWidthVariables\(cachedAppWidth\);/);
     assert.match(dockerJs, /primeDockerRuntimeAppWidthBeforeRender\(folders\);/);
     assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = primedWidth;/);
     assert.match(dockerJs, /applyDockerRuntimeAppColumnInlineWidth\(primedWidth\);/);
-    assert.match(dockerJs, /writeDockerRuntimeCachedAppWidth\(decision\.mode,\s*decision\.appliedWidth\);/);
+    assert.match(dockerJs, /dockerRuntimeColumnLayoutEngine\?\.writeCachedWidth\?\.\(/);
 });
 
 test('docker post-render polish retries only when rows are still settling', () => {

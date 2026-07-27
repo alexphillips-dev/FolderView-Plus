@@ -97,6 +97,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'vm-lifecycle.html');
         } else if (requestUrl.pathname === '/future-docker-host') {
             filePath = path.join(fixtureDir, 'future-docker-host.html');
+        } else if (requestUrl.pathname === '/docker-layout-stability') {
+            filePath = path.join(fixtureDir, 'docker-layout-stability.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -240,6 +242,22 @@ test('Docker action bar is idempotent and reports fixture counts', async ({ page
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-unassigned"] .fvplus-docker-action-count').textContent(), '1');
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-updates"] .fvplus-docker-action-count').textContent(), '1');
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-empty"] .fvplus-docker-action-count').textContent(), '1');
+});
+
+test('Docker preview hydration and cached-width bootstrap preserve first-frame geometry', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixturePreviewActionStability.run());
+    assert.equal(result.consoleNodePreserved, true, 'console action node must be reconciled in place');
+    assert.equal(result.logsNodePreserved, true, 'logs action node must be reconciled in place');
+    assert.ok(result.consoleShiftPx <= 0.1, `console action shifted ${result.consoleShiftPx}px`);
+    assert.ok(result.logsShiftPx <= 0.1, `logs action shifted ${result.logsShiftPx}px`);
+    assert.equal(result.webuiReady, true);
+    assert.equal(result.pendingWebui, 0);
+    assert.equal(result.slotWidths.length, 3);
+    assert.equal(result.slotWidths.every((width) => Math.abs(width - 13) <= 0.1), true);
+    assert.equal(result.bootstrapWidth, 286);
+    assert.equal(result.firstVisibleWidth, 286);
+    assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
 test('Docker and VM host adapters share row, structure, and idempotent hook contracts', async ({ page }) => {

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.25.05">
-<!ENTITY md5 "03725fcc84b02f37855fa6ac805bb85c">
+<!ENTITY version "2026.07.27.01">
+<!ENTITY md5 "fdb4d7e7ec15f269904edba1e5fa7d02">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,26 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.27.01
+# FolderView Plus 2026.07.27.01
+This dev update removes the visible Docker first-load bounce by stabilizing preview actions and sizing the Application column before folder rows become visible.
+## Docker first-frame stability
+- Fix: Reserve fixed WebUI, console, and log action slots from the first folder-preview render so delayed WebUI metadata no longer shifts the existing action icons.
+- Fix: Reconcile preview actions in place during full Docker metadata hydration instead of removing and rebuilding the complete action group.
+- Performance: Expose safe WebUI capability, direct URL, and shell hints in the lightweight Docker state response so compatible preview actions can render without waiting for the full template pass.
+- Accessibility: Give the icon-only WebUI, console, and log actions explicit accessible names and tooltips.
+## Application column sizing
+- Fix: Measure localized folder names and status summaries before committing visible folder rows, then apply the measured width in the same render turn.
+- Reliability: Replace the legacy width cache with a schema-versioned, algorithm-versioned, content-signature-aware cache that cannot override a larger current measurement.
+- Reliability: Keep the first-frame cache bootstrap bounded and validate the cached schema, algorithm, mode, and width before applying it.
+- Maintenance: Move reusable width-cache, localized measurement, and bootstrap selection logic into the shared runtime column-layout module.
+## Diagnostics and regression coverage
+- Diagnostics: Add privacy-safe Docker layout-stability evidence for hydration timing, width stages, fixed action-slot state, action displacement, and scoped layout-shift observations.
+- Maintenance: Move Docker layout telemetry into the diagnostics module with single-owner observer lifecycle handling, and extract Docker template-cache orchestration from the main server library.
+- Regression guard: Add a delayed-hydration Chromium fixture that verifies stable action nodes, sub-pixel action displacement, fixed slot widths, and identical first-visible and settled Application-column widths.
+- Regression guard: Cover lightweight WebUI metadata, cache signature validation, pre-visible width reconciliation, support-bundle telemetry, and state/full snapshot-token parity.
+
 
 ###2026.07.25.05
 # FolderView Plus 2026.07.25.05

@@ -126,6 +126,26 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');
 ?>
 <script>
     if (window.FolderViewPlusDockerHostCompatibilityDecision?.runtimeActivationAllowed === true) {
+        try {
+            const cachedLayout = JSON.parse(window.localStorage?.getItem('fvplus.runtime.docker.appWidth.v2') || '{}');
+            const cachedMode = ['compact', 'standard', 'wide'].includes(String(cachedLayout?.lastMode || '').toLowerCase())
+                ? String(cachedLayout.lastMode).toLowerCase()
+                : 'standard';
+            const cachedWidth = Number(cachedLayout?.widths?.[cachedMode]?.width);
+            if (
+                cachedLayout?.schemaVersion === 2
+                && cachedLayout?.algorithmVersion === 'content-aware-v2'
+                && Number.isFinite(cachedWidth)
+                && cachedWidth >= 118
+                && cachedWidth <= 1280
+            ) {
+                document.body?.setAttribute('data-fvplus-docker-app-width', cachedMode);
+                document.body?.style?.setProperty('--fvplus-docker-app-column-width', `${Math.round(cachedWidth)}px`);
+                document.body?.style?.setProperty('--fvplus-docker-app-column-width-mobile', `${Math.max(136, Math.round(cachedWidth))}px`);
+            }
+        } catch (_error) {
+            // A missing or restricted cache must never block the native Docker page.
+        }
         document.querySelectorAll('link[data-fvplus-docker-legacy-style="true"]').forEach((link) => {
             link.media = 'all';
         });

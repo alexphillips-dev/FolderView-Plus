@@ -12,7 +12,6 @@
     --fvplus-settings-safe-accent-soft: var(--fvplus-ui-accent-soft, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
     --fvplus-settings-safe-focus-ring: var(--fvplus-ui-focus-ring, var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.34)));
     --fvplus-settings-safe-surface-panel: var(--fvplus-ui-panel, var(--fvplus-theme-surface-panel, #171718));
-
     --fvplus-theme-text-primary: var(--text, var(--fvplus-settings-safe-text-primary));
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
     --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
@@ -24,7 +23,6 @@
     --fvplus-theme-accent-soft: var(--fvplus-settings-safe-accent-soft);
     --fvplus-theme-focus-ring: var(--fvplus-settings-safe-focus-ring);
     --fvplus-theme-surface-panel: var(--fvplus-settings-safe-surface-panel);
-
     --fvplus-settings-text-primary: var(--fvplus-theme-text-primary, var(--fvplus-settings-safe-text-primary));
     --fvplus-settings-text-muted: var(--fvplus-theme-text-muted, var(--fvplus-settings-safe-text-muted));
     --fvplus-settings-text-dim: var(--fvplus-theme-text-dim, var(--fvplus-settings-safe-text-dim));
@@ -91,7 +89,6 @@
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
-
 html[data-fvplus-host-theme="white"] #fv-settings-root,
 body[data-fvplus-host-theme="white"] #fv-settings-root,
 html[data-fv-host-theme="white"] #fv-settings-root,
@@ -158,7 +155,6 @@ body[data-fv-theme-class="light"] #fv-settings-root,
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(190, 107, 24, 0.06), 0 1px 2px rgba(113, 84, 52, 0.07);
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(190, 107, 24, 0.1), 0 2px 4px rgba(113, 84, 52, 0.1);
 }
-
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
@@ -6876,7 +6872,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-export > i {
     color: currentColor;
 }
-
 .fv-diagnostics-summary-surface {
     display: grid;
     gap: 0.8rem;

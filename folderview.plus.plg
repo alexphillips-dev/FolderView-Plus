@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.27.02">
-<!ENTITY md5 "fe944ed4f5dbda718265d03a6d27afb7">
+<!ENTITY version "2026.07.27.03">
+<!ENTITY md5 "94d2b8db9dc759fd2a18df368b44739a">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,12 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.27.03
+# FolderView Plus 2026.07.27.03
+- Reliability: Keep the settings stylesheet within its enforced architecture budget on Linux and Windows.
+- Test: Scope diagnostics toolbar theme assertions to their exact CSS blocks and current theme-aware color tokens.
+
 
 ###2026.07.27.02
 # FolderView Plus 2026.07.27.02

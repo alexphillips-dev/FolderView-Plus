@@ -1005,16 +1005,16 @@ const persistVmPinnedFolderIds = async (nextPinnedIds) => {
         prefs: confirmedPrefs
     };
 };
-const toggleVmFolderPin = async (folderId) => {
+const toggleVmFolderPin = async (folderId, requestedPinned = !isVmFolderPinned(folderId)) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
         return;
     }
     return vmSafeUiActionRunner.run(`vm-pin:${id}`, async () => {
         const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
-        const nextPinned = current.includes(id)
-            ? current.filter((entry) => entry !== id)
-            : [...current, id];
+        const nextPinned = requestedPinned === true
+            ? (current.includes(id) ? current : [...current, id])
+            : current.filter((entry) => entry !== id);
         rememberVmPinnedFolderIdsOverride(nextPinned);
         applyVmPinnedFolderIds(nextPinned);
         refreshVmFolderQuickActionStates();
@@ -1031,7 +1031,7 @@ const toggleVmFolderPin = async (folderId) => {
             applyVmPinnedFolderIds(current);
             refreshVmFolderQuickActionStates();
         }
-    });
+    }, { queueIfBusy: true });
 };
 const ensureVmFolderUnlocked = (id, actionLabel = 'This action') => {
     if (!isVmFolderLocked(id)) {
@@ -3020,7 +3020,7 @@ const addVMFolderContext = (id) => {
         icon: pinned ? 'fa-star' : 'fa-star-o',
         action: (evt) => {
             evt.preventDefault();
-            toggleVmFolderPin(id);
+            toggleVmFolderPin(id, !pinned);
         }
     });
     opts.push({

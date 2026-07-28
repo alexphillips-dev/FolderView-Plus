@@ -284,6 +284,16 @@ test('Docker folder context menu opens from the first folder-icon click', async 
     assert.equal(result.defaultPrevented, false, 'menu preparation must not cancel the opening click');
 });
 
+test('Docker folder Unpin intent is retained while the preceding Pin save settles', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureQueuedFolderPinIntent.run());
+    assert.equal(result.queuedBeforeSave, true, 'Unpin must queue while Pin is saving');
+    assert.equal(result.pinned, false, 'one queued Unpin action must produce the requested final state');
+    assert.deepEqual(result.transitions, ['pinned', 'pin-saved', 'unpinned']);
+    assert.equal(result.runningAfterSave, false);
+    assert.equal(result.queuedAfterSave, false);
+});
+
 test('Docker and VM host adapters share row, structure, and idempotent hook contracts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureRuntime.exerciseHostAdapters());

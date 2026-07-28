@@ -797,38 +797,68 @@
 
     /**
      * Deduplicates UI-triggered async actions by key to avoid racey double-click behavior.
+     * Reversible controls can retain one latest intent while the current action settles.
      * @param {{onError?: (error: Error, actionKey: string) => void, onBusy?: (actionKey: string) => void}} options
      */
     const createSafeUiActionRunner = (options = {}) => {
         const inFlight = new Set();
+        const queued = new Map();
         const onError = typeof options.onError === 'function'
             ? options.onError
             : (error, actionKey) => console.error(`folderview.plus: safe ui action failed (${actionKey})`, error);
         const onBusy = typeof options.onBusy === 'function' ? options.onBusy : null;
+        const execute = async (key, action) => {
+            inFlight.add(key);
+            let result;
+            try {
+                const value = await action();
+                result = { ok: true, value };
+            } catch (rawError) {
+                const error = rawError instanceof Error ? rawError : new Error(String(rawError || 'Unknown error'));
+                onError(error, key);
+                result = { ok: false, error };
+            } finally {
+                inFlight.delete(key);
+                const pending = queued.get(key);
+                if (pending) {
+                    queued.delete(key);
+                    void execute(key, pending.action).then(pending.resolve);
+                }
+            }
+            return result;
+        };
         return {
             isRunning: (actionKey) => inFlight.has(String(actionKey || '')),
-            run: async (actionKey, action) => {
+            isQueued: (actionKey) => queued.has(String(actionKey || '')),
+            run: async (actionKey, action, settings = {}) => {
                 const key = String(actionKey || '').trim() || 'action';
+                if (typeof action !== 'function') {
+                    return { ok: false, skipped: true, reason: 'invalid-action' };
+                }
                 if (inFlight.has(key)) {
+                    if (settings.queueIfBusy === true) {
+                        const pending = queued.get(key);
+                        if (pending) {
+                            pending.action = action;
+                            return pending.promise;
+                        }
+                        let resolveQueued;
+                        const promise = new Promise((resolve) => {
+                            resolveQueued = resolve;
+                        });
+                        queued.set(key, {
+                            action,
+                            promise,
+                            resolve: resolveQueued
+                        });
+                        return promise;
+                    }
                     if (onBusy) {
                         onBusy(key);
                     }
                     return { ok: false, skipped: true, reason: 'in-flight' };
                 }
-                if (typeof action !== 'function') {
-                    return { ok: false, skipped: true, reason: 'invalid-action' };
-                }
-                inFlight.add(key);
-                try {
-                    const value = await action();
-                    return { ok: true, value };
-                } catch (rawError) {
-                    const error = rawError instanceof Error ? rawError : new Error(String(rawError || 'Unknown error'));
-                    onError(error, key);
-                    return { ok: false, error };
-                } finally {
-                    inFlight.delete(key);
-                }
+                return execute(key, action);
             }
         };
     };

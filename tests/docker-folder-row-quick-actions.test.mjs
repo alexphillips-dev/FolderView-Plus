@@ -61,7 +61,10 @@ test('docker context menu keeps focus/pin/lock quick actions at the top', () => 
 test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /const reorderVisibleDockerRootFolderBlocks = \(\) =>/);
     assert.match(dockerScript, /const syncDockerPinnedFolderUi = \(\) =>/);
-    assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);[\s\S]*const current = normalizeDockerPinnedFolderIdList\(currentPrefs\.pinnedFolderIds\);[\s\S]*const nextPinned = current\.includes\(id\)/);
+    assert.match(dockerScript, /const toggleDockerFolderPin = async \(folderId,\s*requestedPinned = !isDockerFolderPinned\(folderId\)\) =>/);
+    assert.match(dockerScript, /const currentPrefs = await fetchDockerPinnedFolderPrefs\(\);[\s\S]*const current = normalizeDockerPinnedFolderIdList\(currentPrefs\.pinnedFolderIds\);[\s\S]*const nextPinned = requestedPinned === true/);
+    assert.match(dockerScript, /toggleDockerFolderPin\(id,\s*!pinned\);/);
+    assert.match(dockerScript, /\},\s*\{\s*queueIfBusy:\s*true\s*\}\);/);
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(nextPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
     assert.match(dockerScript, /const confirmedPinned = normalizeDockerPinnedFolderIdList\(response\?\.prefs\?\.pinnedFolderIds \|\| nextPinned\);[\s\S]*applyDockerPinnedFolderIds\(confirmedPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
     assert.doesNotMatch(dockerScript, /applyDockerPinnedFolderIds\(confirmedPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);

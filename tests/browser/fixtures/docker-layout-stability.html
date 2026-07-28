@@ -179,6 +179,38 @@
                 };
             }
         };
+
+        window.fixtureQueuedFolderPinIntent = {
+            run: async () => {
+                const runner = window.FolderViewDockerRuntimeShared.createSafeUiActionRunner();
+                let releasePin;
+                const pinSave = new Promise((resolve) => {
+                    releasePin = resolve;
+                });
+                const transitions = [];
+                let pinned = false;
+                const pin = runner.run('docker-pin:fixture-folder', async () => {
+                    pinned = true;
+                    transitions.push('pinned');
+                    await pinSave;
+                    transitions.push('pin-saved');
+                });
+                const unpin = runner.run('docker-pin:fixture-folder', async () => {
+                    pinned = false;
+                    transitions.push('unpinned');
+                }, { queueIfBusy: true });
+                const queuedBeforeSave = runner.isQueued('docker-pin:fixture-folder');
+                releasePin();
+                await Promise.all([pin, unpin]);
+                return {
+                    queuedBeforeSave,
+                    pinned,
+                    transitions,
+                    runningAfterSave: runner.isRunning('docker-pin:fixture-folder'),
+                    queuedAfterSave: runner.isQueued('docker-pin:fixture-folder')
+                };
+            }
+        };
     </script>
 </body>
 </html>

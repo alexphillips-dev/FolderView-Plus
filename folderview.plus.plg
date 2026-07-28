@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.07">
-<!ENTITY md5 "fb77af5943983dd6984d0c5f8eeb3b6a">
-<!ENTITY sha256 "169b45ebdf1143c7c4f86d12703727d4c8db3dab1c637b1434c8ddb2dcf03c03">
+<!ENTITY version "2026.07.28.08">
+<!ENTITY md5 "3d15bf60aa67884829989e9e8a817b63">
+<!ENTITY sha256 "9f2d20b30e6f48538592c87c13b217755ec6ddf89cb0a64074938c99575f0c34">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,26 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.08
+# FolderView Plus 2026.07.28.08
+This interaction reliability update ensures a folder's Unpin request is not
+lost while its preceding Pin preference save is still settling.
+## Folder interactions
+- Fix: Retain one latest reversible folder Pin or Unpin intent instead of
+  silently discarding it when the same folder already has a save in flight.
+- Fix: Capture the requested pinned state when the Docker or VM menu action is
+  selected so queued work cannot be reinterpreted after asynchronous state
+  changes.
+- Reliability: Preserve duplicate suppression for non-queued actions and
+  continue to serialize preference writes through the existing revision,
+  rollback, and persistence guards.
+## Regression coverage
+- Test: Exercise queued, replaced, completed, and default duplicate-suppression
+  behavior in the shared safe UI action runner.
+- Test: Add a Chromium fixture proving one Unpin selection is retained while
+  the preceding Pin save settles and produces an unpinned final state.
+
 
 ###2026.07.28.07
 # FolderView Plus 2026.07.28.07

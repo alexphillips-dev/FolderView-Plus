@@ -3360,7 +3360,7 @@ const broadcastDockerPinnedFolderChange = (payload = {}) => {
         // Same-window refresh hints are best-effort for older browsers.
     }
 };
-const toggleDockerFolderPin = async (folderId) => {
+const toggleDockerFolderPin = async (folderId, requestedPinned = !isDockerFolderPinned(folderId)) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
         return;
@@ -3370,9 +3370,9 @@ const toggleDockerFolderPin = async (folderId) => {
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
             const currentPrefs = await fetchDockerPinnedFolderPrefs();
             const current = normalizeDockerPinnedFolderIdList(currentPrefs.pinnedFolderIds);
-            const nextPinned = current.includes(id)
-                ? current.filter((entry) => entry !== id)
-                : [...current, id];
+            const nextPinned = requestedPinned === true
+                ? (current.includes(id) ? current : [...current, id])
+                : current.filter((entry) => entry !== id);
             rememberDockerPinnedFolderIdsOverride(nextPinned);
             applyDockerPinnedFolderIds(nextPinned);
             syncDockerPinnedFolderUi();
@@ -3394,7 +3394,7 @@ const toggleDockerFolderPin = async (folderId) => {
             applyDockerPinnedFolderIds(previousPinned);
             syncDockerPinnedFolderUi();
         }
-    });
+    }, { queueIfBusy: true });
 };
 const buildDockerFolderRuntimeOrderState = () => {
     const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};
@@ -7589,7 +7589,7 @@ const addDockerFolderContext = (id) => {
         icon: 'fa-thumb-tack',
         action: (evt) => {
             evt.preventDefault();
-            toggleDockerFolderPin(id);
+            toggleDockerFolderPin(id, !pinned);
         }
     });
     opts.push({

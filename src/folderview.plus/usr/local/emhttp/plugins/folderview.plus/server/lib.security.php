@@ -477,6 +477,12 @@ function fvplus_runtime_integrity_should_track(string $relativePath): bool
     return (bool)preg_match('/\.(?:php|js|sh|css|json)$/i', $relativePath);
 }
 
+function fvplus_runtime_integrity_is_managed_runtime_file(string $relativePath): bool
+{
+    $relativePath = ltrim(str_replace('\\', '/', $relativePath), '/');
+    return $relativePath === 'icon-asset-pack.json';
+}
+
 function fvplus_get_runtime_integrity_snapshot(string $privacyMode = 'sanitized'): array
 {
     global $sourceDir;
@@ -582,7 +588,11 @@ function fvplus_get_runtime_integrity_snapshot(string $privacyMode = 'sanitized'
         }
     }
     foreach (array_values(array_unique($candidates)) as $relative) {
-        if (fvplus_runtime_integrity_should_track($relative) && !isset($expected[$relative])) {
+        if (
+            fvplus_runtime_integrity_should_track($relative)
+            && !fvplus_runtime_integrity_is_managed_runtime_file($relative)
+            && !isset($expected[$relative])
+        ) {
             $unexpectedCount++;
             $findings[] = ['kind' => 'unexpected', 'path' => $relative];
         }

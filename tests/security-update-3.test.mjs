@@ -176,6 +176,8 @@ test('packaged runtime manifest excludes unrelated assets and detects modified e
             manifest.files.map((entry) => entry.path),
             ['Folder.page', 'scripts/test.js', 'server/test.php']
         );
+        fs.writeFileSync(path.join(temp, 'icon-asset-pack.json'), '{"managed":true}');
+        fs.writeFileSync(path.join(temp, 'scripts/obsolete.js'), 'window.obsolete = true;');
         fs.appendFileSync(path.join(temp, 'server/test.php'), '\n// modified');
         const snapshot = runPhp(`
             require_once(${phpString(libPath)});
@@ -187,7 +189,10 @@ test('packaged runtime manifest excludes unrelated assets and detects modified e
         });
         assert.equal(snapshot.status, 'critical');
         assert.ok(snapshot.modifiedCount >= 1);
+        assert.equal(snapshot.unexpectedCount, 1);
         assert.ok(snapshot.findings.some((finding) => finding.kind === 'modified' && finding.path === 'server/test.php'));
+        assert.ok(snapshot.findings.some((finding) => finding.kind === 'unexpected' && finding.path === 'scripts/obsolete.js'));
+        assert.ok(!snapshot.findings.some((finding) => finding.path === 'icon-asset-pack.json'));
     } finally {
         fs.rmSync(temp, { recursive: true, force: true });
     }

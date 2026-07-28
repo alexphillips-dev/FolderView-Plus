@@ -388,6 +388,12 @@ if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !==
 } else {
     setDockerFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
 }
+if (typeof dockerRuntimeShared.createFolderRowActionsController !== 'function') {
+    dockerBootstrapMissingModules.push('folder.runtime.row-actions.js');
+    setDockerFatalBannerModuleStatus('folder.runtime.row-actions.js', 'missing', 'folder row action lifecycle unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('folder.runtime.row-actions.js', 'ok', 'folder row actions ready');
+}
 if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
@@ -5973,6 +5979,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const $createdFolderRow = $('#docker_list > tr.folder[data-fv-folder-id]')
         .filter((_, element) => String(element.getAttribute('data-fv-folder-id') || '') === id)
         .first();
+    dockerFolderRowActionsController.decorate($createdFolderRow, id);
     $createdFolderRow
         .attr('data-folder-depth', String(safeDepth))
         .find('.folder-name-sub')
@@ -6982,7 +6989,18 @@ const dropDownButton = (id, persistState = true) => {
         hierarchyApi.dropDownButton(id, persistState);
     }
 };
-
+const dockerFolderRowActionsController = dockerRuntimeShared.createFolderRowActionsController({
+    document,
+    $,
+    namespace: 'fvDockerFolderRowAction',
+    actionAttribute: 'data-fv-docker-folder-action',
+    handlers: {
+        toggle: (id) => dropDownButton(id),
+        edit: (id) => editFolder(id),
+        context: (id) => addDockerFolderContext(id)
+    }
+});
+const bindDockerFolderRowActions = () => dockerFolderRowActionsController.bind();
 /**
  * Removie the folder
  * @param {string} id the id of the folder
@@ -8733,7 +8751,7 @@ window.editFolder = editFolder;
 window.forceUpdateFolder = forceUpdateFolder;
 window.updateFolder = updateFolder;
 window.createFolderBtn = createFolderBtn;
-
+bindDockerFolderRowActions();
 // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     if (options.url === "/plugins/dynamix.docker.manager/include/UserPrefs.php") {
@@ -8810,6 +8828,7 @@ window.addEventListener('pagehide', () => {
     clearTimeout(dockerRuntimePrivacyServerReconcileTimer);
     clearTimeout(dockerSupportBundlePageSnapshotWriteTimer);
     clearTimeout(folderViewPlusDockerStartOrderSyncTimer);
+    dockerFolderRowActionsController.destroy();
     dockerRuntimeResizerObserver?.disconnect?.();
     dockerDeferredPreviewController.destroy();
     dockerProviderHealthController?.dispose?.();

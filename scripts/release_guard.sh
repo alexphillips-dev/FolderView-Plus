@@ -119,7 +119,9 @@ fi
 
 EXPECTED_PLUGIN_BRANCH="${FVPLUS_EXPECT_PLUGIN_BRANCH:-}"
 if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
-  if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
+  if [[ "${GITHUB_BASE_REF:-}" =~ ^(main|dev)$ ]]; then
+    EXPECTED_PLUGIN_BRANCH="${GITHUB_BASE_REF}"
+  elif [[ -n "${GITHUB_REF_NAME:-}" ]]; then
     EXPECTED_PLUGIN_BRANCH="${GITHUB_REF_NAME#refs/heads/}"
   elif command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"

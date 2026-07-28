@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.06">
-<!ENTITY md5 "1e64448a5d593649ac77f0e7a234e82c">
-<!ENTITY sha256 "e78b2e2f7d662058c6b3f603f7ab79783a3b0691f7a624be65180a37e389d3e2">
+<!ENTITY version "2026.07.28.07">
+<!ENTITY md5 "fb77af5943983dd6984d0c5f8eeb3b6a">
+<!ENTITY sha256 "169b45ebdf1143c7c4f86d12703727d4c8db3dab1c637b1434c8ddb2dcf03c03">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,24 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.07
+# FolderView Plus 2026.07.28.07
+This focused reliability update restores first-click folder menu behavior after
+the shared row-action security migration.
+## Folder interactions
+- Fix: Prepare Docker and VM folder context menus during the capture phase so
+  the initiating icon click reaches Unraid's newly attached menu opener.
+- Fix: Keep folder edit and expand controls on the existing delegated action
+  path, and avoid cancelling or double-dispatching context-menu clicks.
+- Maintenance: Preserve idempotent binding and teardown for both native capture
+  and delegated folder-row listeners across repeated page navigation.
+## Regression coverage
+- Test: Verify the shared row-action controller dispatches each action once,
+  does not cancel context-menu clicks, and releases both listener types.
+- Test: Add a Chromium fixture proving one folder-icon click prepares and opens
+  the context menu without requiring a second click.
+
 
 ###2026.07.28.06
 # FolderView Plus 2026.07.28.06

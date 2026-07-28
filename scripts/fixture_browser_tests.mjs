@@ -276,6 +276,14 @@ test('Docker preview hydration and cached-width bootstrap preserve first-frame g
     assert.equal(result.settledWidth, result.firstVisibleWidth);
 });
 
+test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureFolderContextFirstClick.run());
+    assert.equal(result.attachCount, 1, 'the first click must prepare the folder context menu once');
+    assert.equal(result.openCount, 1, 'the first click must reach the newly attached context-menu opener');
+    assert.equal(result.defaultPrevented, false, 'menu preparation must not cancel the opening click');
+});
+
 test('Docker and VM host adapters share row, structure, and idempotent hook contracts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureRuntime.exerciseHostAdapters());

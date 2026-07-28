@@ -43,25 +43,40 @@
             decorateTarget($row, '.folder-appname', 'edit', true);
             decorateTarget($row, '.folder-dropdown', 'toggle', true).attr('type', 'button');
         };
-        const dispatch = (element, event) => {
+        const dispatch = (element, event, options = {}) => {
             const action = String(element?.getAttribute?.(actionAttribute) || '').trim();
             const id = String(element?.getAttribute?.('data-fv-folder-id') || '').trim();
             const handler = handlers[action];
             if (!action || !id || typeof handler !== 'function') {
                 return false;
             }
-            event?.preventDefault?.();
+            if (options.preventDefault !== false) {
+                event?.preventDefault?.();
+            }
             handler(id, event);
             return true;
         };
+        const handleContextCapture = (event) => {
+            const target = event?.target?.closest?.(selector);
+            if (String(target?.getAttribute?.(actionAttribute) || '') !== 'context') {
+                return;
+            }
+            dispatch(target, event, { preventDefault: false });
+        };
         const bind = () => {
+            doc.removeEventListener?.('click', handleContextCapture, true);
+            doc.addEventListener?.('click', handleContextCapture, true);
             jq(doc)
                 .off(eventName, selector)
                 .on(eventName, selector, function(event) {
+                    if (String(this?.getAttribute?.(actionAttribute) || '') === 'context') {
+                        return;
+                    }
                     dispatch(this, event);
                 });
         };
         const destroy = () => {
+            doc.removeEventListener?.('click', handleContextCapture, true);
             jq(doc).off(eventName, selector);
         };
 

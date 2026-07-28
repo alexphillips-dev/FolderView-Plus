@@ -23,7 +23,7 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - All third-party GitHub Actions are pinned to immutable full commit SHAs with a readable major-version comment.
 - `scripts/action_pin_guard.mjs` rejects mutable references.
 - Dependabot proposes grouped weekly npm and GitHub Actions updates. jQuery major upgrades remain deliberate because Unraid host compatibility must be reviewed.
-- `docs/sbom.cdx.json` is a generated CycloneDX inventory of npm development tools and GitHub Actions. Run `npm run sbom` after dependency or action changes; CI uses `npm run sbom:check`.
+- `docs/sbom.cdx.json` is a generated CycloneDX inventory of shipped browser libraries, Unraid-provided runtime contracts, npm development tools, and GitHub Actions. `scripts/runtime_components.json` is the canonical runtime inventory and classifies every file under `scripts/include`; run `npm run sbom` after runtime dependency, npm, or action changes. CI uses `npm run sbom:check`.
 - PHPStan is downloaded at a pinned version and SHA-256 by `scripts/phpstan_guard.sh`; it is development-only and is never shipped in the plugin archive.
 
 ## UI, localization, and diagnostics

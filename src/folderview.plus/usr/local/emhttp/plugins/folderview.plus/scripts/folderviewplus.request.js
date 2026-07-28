@@ -84,16 +84,12 @@
         && typeof node.content === 'string'
     );
 
-    const getOptionalRequestToken = (tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY) => {
+    const getOptionalRequestToken = (_tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY) => {
         const metaToken = document.querySelector('meta[name="fv-request-token"]');
         if (isMetaTag(metaToken)) {
             return String(metaToken.content || '').trim();
         }
-        try {
-            return String(localStorage.getItem(tokenStorageKey) || '').trim();
-        } catch (_error) {
-            return '';
-        }
+        return '';
     };
 
     const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY, resolvedToken = '', traceId = '') => {
@@ -339,6 +335,9 @@
         let lastError = null;
         let attempts = 0;
         const token = getOptionalRequestToken(tokenStorageKey);
+        if (normalizedMethod === 'POST' && !token) {
+            throw new Error('A mutation request token is required. Refresh the FolderView Plus page and try again.');
+        }
         const traceId = newTraceId();
         const transactionId = transactionIdForTrace(traceId);
         const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId);
@@ -581,6 +580,16 @@
         }
         const startedAt = Date.now();
         const token = getOptionalRequestToken(tokenStorageKey);
+        if (!token) {
+            recordDiagnostic({
+                method: 'POST',
+                url,
+                outcome: 'blocked-missing-token',
+                durationMs: 0,
+                attempts: 1
+            });
+            return false;
+        }
         const traceId = newTraceId();
         const transactionId = transactionIdForTrace(traceId);
         const markedPayload = addMutationPayloadMarkers('POST', data, token, traceId);

@@ -1069,7 +1069,11 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
 };
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);
-    return $(`${meta.tbodySelector} .folder-showcase-outer-${id}`).first();
+    const safeId = String(id || '').trim();
+    return $(meta.tbodySelector)
+        .find('.folder-showcase-outer[data-fv-folder-id]')
+        .filter((_, element) => String(element.getAttribute('data-fv-folder-id') || '') === safeId)
+        .first();
 };
 const updateExpandToggleIcon = ($card, expanded) => {
     if (!$card || !$card.length) {

@@ -37,6 +37,7 @@ const baselineTolerancePx = Number.isFinite(Number(process.env.FVPLUS_BROWSER_SM
     ? Math.max(0, Number(process.env.FVPLUS_BROWSER_SMOKE_BASELINE_TOLERANCE_PX))
     : 2;
 const requireBaseline = String(process.env.FVPLUS_BROWSER_SMOKE_REQUIRE_BASELINE || '0').trim() === '1';
+const captureLiveArtifacts = readBooleanEnv('FVPLUS_BROWSER_SMOKE_CAPTURE_LIVE_ARTIFACTS', false);
 
 if (!targetUrl) {
     console.log('Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not set).');
@@ -227,9 +228,21 @@ const payload = {
     }
 };
 
-const tempImportPath = path.join(os.tmpdir(), `fvplus-browser-smoke-${Date.now()}.json`);
-fs.writeFileSync(tempImportPath, JSON.stringify(payload, null, 2), 'utf8');
-fs.mkdirSync(artifactRoot, { recursive: true });
+const tempImportDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-browser-smoke-'));
+const tempImportPath = path.join(tempImportDir, 'import.json');
+fs.writeFileSync(tempImportPath, JSON.stringify(payload, null, 2), { encoding: 'utf8', mode: 0o600 });
+if (captureLiveArtifacts) {
+    fs.mkdirSync(artifactRoot, { recursive: true, mode: 0o700 });
+}
+
+const captureLiveScreenshot = async (page, filename) => {
+    if (!captureLiveArtifacts) {
+        return '';
+    }
+    const screenshotPath = path.join(artifactRoot, filename);
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    return screenshotPath;
+};
 
 const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
     const minGap = Number.isFinite(runtimeGapMinOverride) ? runtimeGapMinOverride : (type === 'docker' ? 6 : 4);
@@ -380,8 +393,7 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
     }, { type, minGap, maxGap });
 
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-${sanitizeToken(type)}.png`;
-    const screenshotPath = path.join(artifactRoot, screenshotName);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    const screenshotPath = await captureLiveScreenshot(page, screenshotName);
 
     if (report?.skipped) {
         const message = `Runtime visual check skipped for ${type} (${browserName}): ${report.reason}`;
@@ -541,8 +553,7 @@ const runDockerDiagnosticsSmoke = async (page, { browserName, url }) => {
     });
 
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-docker-diagnostics.png`;
-    const screenshotPath = path.join(artifactRoot, screenshotName);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    const screenshotPath = await captureLiveScreenshot(page, screenshotName);
 
     if (report?.skipped) {
         console.warn(`Docker diagnostics smoke skipped for ${browserName}: ${report.reason}`);
@@ -705,8 +716,7 @@ const runDockerUpdateFlowSmoke = async (page, { browserName, url }) => {
     });
 
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-docker-update-flow.png`;
-    const screenshotPath = path.join(artifactRoot, screenshotName);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    const screenshotPath = await captureLiveScreenshot(page, screenshotName);
 
     if (report?.skipped) {
         console.warn(`Docker update-flow smoke skipped for ${browserName}: ${report.reason}`);
@@ -783,8 +793,7 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
     });
 
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-dashboard.png`;
-    const screenshotPath = path.join(artifactRoot, screenshotName);
-    await page.screenshot({ path: screenshotPath, fullPage: true });
+    const screenshotPath = await captureLiveScreenshot(page, screenshotName);
 
     if (!Array.isArray(report?.widgets) || report.widgets.length === 0) {
         console.warn(`Dashboard quick-rail smoke skipped for ${browserName}: no dashboard widget controls detected.`);
@@ -1054,7 +1063,7 @@ const runFolderEditorInteractionSmoke = async (page, {
     const removedActionName = `Smoke action removed ${Date.now()}`;
     const savedActionName = `Smoke action saved ${Date.now()}`;
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-${sanitizeToken(type)}-folder-editor.png`;
-    const screenshotPath = path.join(artifactRoot, screenshotName);
+    const screenshotPath = captureLiveArtifacts ? path.join(artifactRoot, screenshotName) : '';
     let cleanupDetails = {
         deletedIds: [],
         remainingIds: []
@@ -1218,7 +1227,9 @@ const runFolderEditorInteractionSmoke = async (page, {
         await removeFirstCustomAction();
         await addCustomAction(savedActionName);
 
-        await page.screenshot({ path: screenshotPath, fullPage: true });
+        if (screenshotPath) {
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+        }
 
         await page.waitForFunction(() => {
             const submit = document.querySelector('.folder-btn-submit');
@@ -1272,7 +1283,9 @@ const runFolderEditorInteractionSmoke = async (page, {
         };
     } catch (error) {
         try {
-            await page.screenshot({ path: screenshotPath, fullPage: true });
+            if (screenshotPath) {
+                await page.screenshot({ path: screenshotPath, fullPage: true });
+            }
         } catch {
             // best effort
         }
@@ -1399,11 +1412,15 @@ const runBrowserSmoke = async (browserName, browserType) => {
                 throw new Error(`RTL pseudo-locale did not apply correctly: ${JSON.stringify(localizationReport.rtlState)}`);
             }
             await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('en-XA'));
-            const expandedScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-en-xa.png`);
-            await page.screenshot({ path: expandedScreenshotPath, fullPage: true });
+            const expandedScreenshotPath = await captureLiveScreenshot(
+                page,
+                `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-en-xa.png`
+            );
             await page.evaluate(() => window.FolderViewPlusI18n.usePseudoLocale('ar-XB'));
-            const rtlScreenshotPath = path.join(artifactRoot, `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-ar-xb.png`);
-            await page.screenshot({ path: rtlScreenshotPath, fullPage: true });
+            const rtlScreenshotPath = await captureLiveScreenshot(
+                page,
+                `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-locale-ar-xb.png`
+            );
             await page.evaluate(() => window.FolderViewPlusI18n.restoreLocale());
             localizationReports.push({ browserName, ...localizationReport, expandedScreenshotPath, rtlScreenshotPath });
         }
@@ -1499,13 +1516,13 @@ try {
     console.log(`Running browser smoke scenario: ${scenarioLabel}`);
     if (runtimeTargets.length > 0) {
         runtimeTargets.forEach((entry) => {
-            console.log(`Runtime visual target: ${entry.type} -> ${entry.url}`);
+            console.log(`Runtime visual target configured: ${entry.type}`);
         });
     } else {
         console.log('Runtime visual target: none (set FVPLUS_BROWSER_SMOKE_DOCKER_URL/FVPLUS_BROWSER_SMOKE_VM_URL or use settings URL auto-derivation).');
     }
-    console.log(`Dashboard quick-rail target: ${dashboardUrl || 'none'}`);
-    console.log(`Browser smoke artifacts directory: ${artifactRoot}`);
+    console.log(`Dashboard quick-rail target: ${dashboardUrl ? 'configured' : 'none'}`);
+    console.log(`Live-system artifact capture: ${captureLiveArtifacts ? 'explicitly enabled for local use' : 'disabled'}`);
     await runBrowserSmoke('chromium', playwright.chromium);
     await runBrowserSmoke('firefox', playwright.firefox);
     await runBrowserSmoke('webkit', playwright.webkit);
@@ -1523,12 +1540,17 @@ try {
         localizationReports,
         folderEditorReports
     };
-    const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify(reportPayload, null, 2), 'utf8');
-    console.log(`Browser smoke report written: ${reportPath}`);
+    if (captureLiveArtifacts) {
+        const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');
+        fs.writeFileSync(reportPath, JSON.stringify(reportPayload, null, 2), { encoding: 'utf8', mode: 0o600 });
+        console.log(`Local browser smoke report written: ${reportPath}`);
+    }
 
     if (baselineFile) {
         if (baselineMode === 'record') {
+            if (!captureLiveArtifacts) {
+                throw new Error('Recording a live-system baseline requires FVPLUS_BROWSER_SMOKE_CAPTURE_LIVE_ARTIFACTS=1.');
+            }
             const baselinePayload = {
                 version: 1,
                 generatedAt: new Date().toISOString(),
@@ -1556,7 +1578,7 @@ try {
     }
 } finally {
     try {
-        fs.unlinkSync(tempImportPath);
+        fs.rmSync(tempImportDir, { recursive: true, force: true });
     } catch {
         // best effort cleanup
     }

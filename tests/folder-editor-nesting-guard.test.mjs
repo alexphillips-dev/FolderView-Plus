@@ -164,7 +164,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
-    assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
+    assert.match(folderEditorScript, /setFolderMapEntry\(folders, id, normalizeFolderRecordForEditor\(folder\)\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
     assert.match(folderEditorScript, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderEditorScript, /const preferredNavigationRef = buildFolderEditorRefCandidates\(/);
@@ -173,7 +173,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
     assert.match(folderEditorScript, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
-    assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
+    assert.match(folderEditorScript, /setFolderMapEntry\(folders, id, normalizeFolderRecordForEditor\(folder\)\);/);
     assert.match(folderEditorScript, /activeFolderEditorResolvedFolderId = String\(resolvedEditFolder\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);\s*updateLiveSummary\(\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);

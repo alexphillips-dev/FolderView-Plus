@@ -434,6 +434,7 @@
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
     require_once(__DIR__ . '/lib.docker-runtime.php');
+    require_once(__DIR__ . '/lib.input-security.php');
 
     function fvplus_detect_runtime_plugin_conflicts(): array {
         $detected = [];
@@ -821,14 +822,6 @@
         return "$configDir/request.token";
     }
 
-    function normalizeRequestTokenEnforcementMode(string $mode): string {
-        $normalized = strtolower(trim($mode));
-        if (in_array($normalized, ['off', 'compat', 'strict'], true)) {
-            return $normalized;
-        }
-        return 'compat';
-    }
-
     function getRequestTokenEnforcementMode(): string {
         return normalizeRequestTokenEnforcementMode(FVPLUS_REQUEST_TOKEN_ENFORCEMENT);
     }
@@ -836,6 +829,7 @@
     function ensureConfiguredRequestTokenFile(): void {
         $path = getOptionalRequestTokenPath();
         if (file_exists($path)) {
+            @chmod($path, 0600);
             return;
         }
         $parent = dirname($path);
@@ -853,7 +847,7 @@
         try {
             writeDurableFileAtomic($path, $token, ['mode' => 0600]);
         } catch (Throwable $error) {
-            // Request-token creation remains optional in compatibility mode.
+            // Read-only surfaces remain available; strict mutations fail closed below.
         }
     }
 
@@ -1022,9 +1016,21 @@
             throw new RuntimeException('Unsupported method.');
         }
         $tokenMode = getRequestTokenEnforcementMode();
+        $hasMutationMarker = hasExplicitMutationRequestHeader();
+        if ($tokenMode === 'strict') {
+            if (getConfiguredRequestToken() === '') {
+                throw new RuntimeException('Request token is unavailable.');
+            }
+            if (!$hasMutationMarker || !validateOptionalRequestToken() || !isTrustedMutationContext()) {
+                throw new RuntimeException('Blocked by request guard.');
+            }
+            acquireConfigMutationLock();
+            return;
+        }
+
         $tokenRequiredForBypass = $tokenMode !== 'off' && getConfiguredRequestToken() !== '';
         $tokenValidated = validateOptionalRequestToken();
-        $headerValidated = hasExplicitMutationRequestHeader() && ($tokenValidated || !$tokenRequiredForBypass);
+        $headerValidated = $hasMutationMarker && ($tokenValidated || !$tokenRequiredForBypass);
         if (!isTrustedMutationContext() && !$headerValidated) {
             throw new RuntimeException('Blocked by request guard.');
         }
@@ -3384,7 +3390,7 @@
         }
         $normalized = [];
         foreach ($value as $id => $folder) {
-            $safeId = trim((string)$id);
+            $safeId = normalizeFolderIdValue($id);
             if ($safeId === '' || !is_array($folder)) {
                 continue;
             }
@@ -6023,6 +6029,11 @@
         }
         if (empty($id)) {
             $id = generateId();
+        } else {
+            $id = normalizeFolderIdValue($id);
+            if ($id === '') {
+                throw new InvalidArgumentException('Invalid folder identifier.');
+            }
         }
         $fileData = readRawFolderMap($type);
         $decodedContent = json_decode($content, true);

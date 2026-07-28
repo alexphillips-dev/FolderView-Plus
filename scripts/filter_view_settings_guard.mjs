@@ -81,10 +81,13 @@ for (const match of page.matchAll(bindingPattern)) actualBindings.add(`${match[1
 for (const binding of expectedBindings) if (!actualBindings.has(binding)) fail(`Registered setting has no page control: ${binding}`);
 for (const binding of actualBindings) if (!expectedBindings.has(binding)) fail(`Page control is absent from the registry: ${binding}`);
 
-const libPath = path.join(pluginRoot, 'server', 'lib.php').replace(/\\/g, '/').replace(/'/g, "\\'");
-const phpResult = spawnSync('php', ['-r', `require '${libPath}'; echo json_encode(defaultTypePrefs());`], {
+const phpResult = spawnSync('php', ['-r', "require getenv('FVPLUS_SETTINGS_LIB_PATH'); echo json_encode(defaultTypePrefs());"], {
     cwd: repoRoot,
-    encoding: 'utf8'
+    encoding: 'utf8',
+    env: {
+        ...process.env,
+        FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server', 'lib.php')
+    }
 });
 if (phpResult.status !== 0) {
     fail(`Unable to read PHP preference defaults: ${phpResult.stderr || phpResult.stdout}`);

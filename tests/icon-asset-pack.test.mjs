@@ -48,20 +48,50 @@ const toBashPath = (value) => {
     const match = normalized.match(/^([A-Za-z]):\/(.*)$/);
     return match ? `/mnt/${match[1].toLowerCase()}/${match[2]}` : normalized;
 };
-const installerCommandArgs = (pluginDir, configDir, cacheDir, checksum) => ([
-    '-c',
-    'FVPLUS_PLUGIN_DIR="$1" FVPLUS_CONFIG_DIR="$2" FVPLUS_ICON_PACK_CACHE_BASE="$3" FVPLUS_ICON_PACK_ARCHIVE="$4" /bin/bash "$5" "$6" "$7"',
-    '_',
-    toBashPath(pluginDir),
-    toBashPath(configDir),
-    toBashPath(cacheDir),
-    `asset-packs/folderview.plus-icons-${version}.txz`,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh',
-    version,
-    checksum
-]);
-const bashExecutable = process.platform === 'win32' ? 'wsl.exe' : 'bash';
-const bashArgs = (args) => process.platform === 'win32' ? ['--exec', 'bash', ...args] : args;
+const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
+    const environment = {
+        FVPLUS_PLUGIN_DIR: toBashPath(pluginDir),
+        FVPLUS_CONFIG_DIR: toBashPath(configDir),
+        FVPLUS_ICON_PACK_CACHE_BASE: toBashPath(cacheDir),
+        FVPLUS_ICON_PACK_ARCHIVE: toBashPath(archivePath)
+    };
+    const script = toBashPath(installerPath);
+    if (process.platform === 'win32') {
+        return {
+            command: 'wsl.exe',
+            args: [
+                '--exec',
+                'env',
+                ...Object.entries(environment).map(([key, value]) => `${key}=${value}`),
+                '/bin/bash',
+                script,
+                version,
+                checksum
+            ],
+            env: process.env
+        };
+    }
+    return {
+        command: 'bash',
+        args: [script, version, checksum],
+        env: { ...process.env, ...environment }
+    };
+};
+const runInstaller = (pluginDir, configDir, cacheDir, checksum, useSpawn = false) => {
+    const invocation = installerInvocation(pluginDir, configDir, cacheDir, checksum);
+    const options = { cwd: repoRoot, encoding: 'utf8', timeout: 120000, env: invocation.env };
+    return useSpawn
+        ? spawnSync(invocation.command, invocation.args, options)
+        : execFileSync(invocation.command, invocation.args, options);
+};
+const assertSymbolicLink = (targetPath) => {
+    const resolved = toBashPath(targetPath);
+    if (process.platform === 'win32') {
+        execFileSync('wsl.exe', ['--exec', 'test', '-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
+        return;
+    }
+    execFileSync('test', ['-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
+};
 
 test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -140,18 +170,15 @@ test('installer verifies, stages, activates, reuses, and links the pack', () => 
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
-        execFileSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, sha256)), { cwd: repoRoot, encoding: 'utf8', timeout: 120000 });
+        runInstaller(pluginDir, configDir, cacheDir, sha256);
         const markerPath = path.join(cacheDir, `icons-${version}`, '.folderview-plus-asset-pack');
         assert.equal(fs.readFileSync(markerPath, 'utf8').trim(), `${version}:${sha256}`);
         assert.equal(fs.existsSync(path.join(pluginDir, 'icon-asset-pack.json')), true);
-        execFileSync(bashExecutable, bashArgs(['-c', 'test -L "$1"', '_', toBashPath(path.join(pluginDir, 'images', 'third-party-icons'))]), {
-            cwd: repoRoot,
-            encoding: 'utf8'
-        });
+        assertSymbolicLink(path.join(pluginDir, 'images', 'third-party-icons'));
 
         const sentinel = path.join(cacheDir, `icons-${version}`, 'reuse-sentinel');
         fs.writeFileSync(sentinel, 'keep', 'utf8');
-        execFileSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, sha256)), { cwd: repoRoot, encoding: 'utf8', timeout: 120000 });
+        runInstaller(pluginDir, configDir, cacheDir, sha256);
         assert.equal(fs.readFileSync(sentinel, 'utf8'), 'keep', 'a valid cached pack must be reused without extraction');
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -166,11 +193,7 @@ test('installer rejects a bad checksum before creating an active cache', () => {
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
-        const result = spawnSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, '0'.repeat(64))), {
-            cwd: repoRoot,
-            encoding: 'utf8',
-            timeout: 120000
-        });
+        const result = runInstaller(pluginDir, configDir, cacheDir, '0'.repeat(64), true);
         assert.notEqual(result.status, 0);
         assert.match(result.stderr, /checksum verification failed/);
         assert.equal(fs.existsSync(path.join(cacheDir, `icons-${version}`)), false);

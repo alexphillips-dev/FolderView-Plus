@@ -1065,6 +1065,7 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const normalizeFolderId = utils.normalizeFolderId;
 const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
 const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
@@ -1257,48 +1258,18 @@ const appendDockerRequestBundleTrace = (eventType, details = {}) => {
         ? diagnosticsApi.appendRequestBundleTrace(eventType, details)
         : false;
 };
-const getSafeWebuiUrl = (value) => {
-    const raw = String(value || '').trim();
-    return raw && !/^javascript:/i.test(raw) && !hasUnresolvedWebuiTemplateTokens(raw) ? raw : '';
-};
-const getSafeExternalUrl = (value) => {
-    const raw = String(value || '').trim();
-    if (!raw || /^javascript:/i.test(raw) || /^data:/i.test(raw) || /^vbscript:/i.test(raw)) {
-        return '';
-    }
-    return /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '';
-};
-const openWebuiInNewTab = (url) => {
-    const safeUrl = getSafeWebuiUrl(url);
-    if (!safeUrl) {
-        return false;
-    }
-    const anchor = document.createElement('a');
-    anchor.href = safeUrl;
-    anchor.target = '_blank';
-    anchor.rel = WEBUI_OPEN_REL;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    return true;
-};
-const openWebuiPopupWindow = (url, targetName = '_blank') => {
-    const safeUrl = getSafeWebuiUrl(url);
-    if (!safeUrl) {
-        return false;
-    }
-    const popup = window.open(safeUrl, targetName);
-    if (!popup) {
-        return false;
-    }
-    try {
-        popup.opener = null;
-    } catch (_error) {
-        // Cross-origin popup guards can throw after the tab is opened; the launch already succeeded.
-    }
-    return true;
-};
+const dockerRuntimeSecurityApi = dockerRuntimeShared.createSecureNavigationApi({
+    window,
+    document,
+    hasUnresolvedWebuiTemplateTokens,
+    openRel: WEBUI_OPEN_REL
+});
+const {
+    getSafeExternalUrl,
+    getSafeWebuiUrl,
+    openWebuiInNewTab,
+    openWebuiPopupWindow
+} = dockerRuntimeSecurityApi;
 const getPreviewContainerStatusMeta = (entry = {}) => {
     const running = entry?.state === true;
     const paused = running && entry?.pause === true;
@@ -5864,6 +5835,10 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
  * @returns {number} the number of element removed before the folder
  */
 const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
+    id = normalizeFolderId(id);
+    if (!id) {
+        throw new Error('FolderView Plus refused to render a folder with an invalid identifier.');
+    }
     const perfKey = `createFolder.${id}`;
     dockerPerf.begin(perfKey);
     try {
@@ -5969,7 +5944,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const focusedClass = focused ? 'fv-folder-focused' : '';
     const hoverAnimationClass = getPreviewHoverAnimationClass(folder.settings);
     const pinnedIndicator = pinned ? buildDockerFolderPinnedIndicatorHtml() : '';
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} ${hoverAnimationClass} folder" data-fv-folder-id="${id}"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><span class="fv-folder-title-line"><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a>${pinnedIndicator}</span><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {
@@ -5995,17 +5970,21 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
     const depthIndentPx = safeDepth * 20;
-    $(`tr.folder-id-${id}`)
+    const $createdFolderRow = $('#docker_list > tr.folder[data-fv-folder-id]')
+        .filter((_, element) => String(element.getAttribute('data-fv-folder-id') || '') === id)
+        .first();
+    $createdFolderRow
         .attr('data-folder-depth', String(safeDepth))
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    const $createdFolderPreview = $createdFolderRow.find('div.folder-preview').first();
+    const previewNode = $createdFolderPreview.get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
-    applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
-    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
+    applyFolderDropdownStyle($createdFolderRow, folder.settings);
+    applyFolderPreviewLayout($createdFolderPreview, folder.settings);
+    $createdFolderPreview.addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
     let addPreview;
@@ -6024,7 +6003,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 autostart
             });
         const { $item, $tooltipTrigger } = builtPreview;
-        $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+        $createdFolderPreview.append($item);
         if (folder.settings.context === 1) {
             if (compactPreviewItem) {
                 bindCompactPreviewDefaultContextProxy($item);
@@ -8157,7 +8136,9 @@ let dockerListViewModeCookieHookBound = false;
 const DOCKER_LIST_VIEW_MODE_CHANGE_EVENT = 'fvplus:docker-listview-mode-change';
 let lastDockerListViewMode = $.cookie('docker_listview_mode') == 'advanced' ? 'advanced' : 'basic';
 let dockerRuntimeLastRenderGeneration = 0;
-const dockerDiagnosticsTraceSessionId = `fvplus-docker-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+const dockerDiagnosticsTraceSessionId = typeof utils.createSecureRuntimeId === 'function'
+    ? utils.createSecureRuntimeId('fvplus-docker')
+    : `fvplus-docker-${Date.now().toString(36)}`;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;

@@ -242,7 +242,5 @@ jobs:
             archive/*.txz
             archive/*.sha256
             release_notes.md
-            tmp/browser-smoke-artifacts/**
             tmp/fixture-browser-artifacts/**
-            *.log
-            scripts/*.log
+          retention-days: 7

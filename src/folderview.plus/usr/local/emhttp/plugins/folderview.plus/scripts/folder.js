@@ -237,6 +237,29 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     })
     : null;
 const utils = window.FolderViewPlusUtils || null;
+const normalizeFolderId = typeof utils?.normalizeFolderId === 'function'
+    ? utils.normalizeFolderId
+    : ((value) => {
+        const id = String(value || '').trim();
+        return /^[A-Za-z0-9._:-]{1,128}$/.test(id)
+            && !['__proto__', 'prototype', 'constructor'].includes(id.toLowerCase())
+            ? id
+            : '';
+    });
+const createFolderMap = () => Object.create(null);
+const setFolderMapEntry = (folderMap, folderIdValue, folderRecord) => {
+    const safeId = normalizeFolderId(folderIdValue);
+    if (!safeId || !folderMap || typeof folderMap !== 'object') {
+        return '';
+    }
+    Object.defineProperty(folderMap, safeId, {
+        value: folderRecord,
+        enumerable: true,
+        configurable: true,
+        writable: true
+    });
+    return safeId;
+};
 const folderEditorTypePrefs = window.FolderViewPlusFolderEditorTypePrefs
     && typeof window.FolderViewPlusFolderEditorTypePrefs === 'object'
     ? window.FolderViewPlusFolderEditorTypePrefs
@@ -399,7 +422,7 @@ if (folderEditorBootstrapMissingModules.length > 0) {
     throw error;
 }
 
-let allFoldersById = {};
+let allFoldersById = createFolderMap();
 let activeFolderEditorFolderId = '';
 let activeFolderEditorResolvedFolderId = '';
 let folderEditorRulesApi = null;
@@ -1254,6 +1277,7 @@ const getFolderEditorIconsApi = () => {
         folderIconApi,
         asArray,
         escapeHtml,
+        sanitizeImageUrl: utils.sanitizeImageUrl,
         parseJsonPayload,
         paginateItems,
         filterIconItems,
@@ -3023,13 +3047,13 @@ resetStatusColorDefaults();
 getForm().status_color_lock.checked = false;
 
 const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
-    const safeFolderId = String(folderRecordId || '').trim();
+    const safeFolderId = normalizeFolderId(folderRecordId);
     const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
     hiddenPreviewMembers = new Set(normalizedFolder.hiddenPreviewMembers || []);
     childFolderOrder = normalizeChildFolderOrder(normalizedFolder.settings.child_folder_order || normalizedFolder.settings.childFolderOrder);
-    const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
+    const folders = utils.normalizeFolderMap(foldersMap);
     if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
-        delete folders[safeFolderId];
+        Reflect.deleteProperty(folders, safeFolderId);
     }
 
     activeFolderEditorFolderId = safeFolderId;
@@ -3181,10 +3205,7 @@ const startFolderEditorRuntime = async () => {
         ? normalizeFolderRecordForEditor(folderEditorBootstrapFolder)
         : null;
     if (bootstrapFolderRecord && bootstrapFolderId) {
-        allFoldersById = {
-            ...allFoldersById,
-            [bootstrapFolderId]: bootstrapFolderRecord
-        };
+        setFolderMapEntry(allFoldersById, bootstrapFolderId, bootstrapFolderRecord);
         hydrateCurrentEditFolder(bootstrapFolderRecord, bootstrapFolderId, {}, { clearPrefill: false });
     }
     const cacheBust = Date.now();
@@ -3194,17 +3215,11 @@ const startFolderEditorRuntime = async () => {
         cache: false
     });
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
-    const folders = {};
-    if (foldersResponse && typeof foldersResponse === 'object') {
-        for (const [id, folder] of Object.entries(foldersResponse)) {
-            const safeId = String(id || '').trim();
-            if (!safeId) {
-                continue;
-            }
-            folders[safeId] = normalizeFolderRecordForEditor(folder);
-        }
+    const folders = createFolderMap();
+    for (const [id, folder] of Object.entries(utils.normalizeFolderMap(foldersResponse))) {
+        setFolderMapEntry(folders, id, normalizeFolderRecordForEditor(folder));
     }
-    allFoldersById = { ...folders };
+    allFoldersById = utils.normalizeFolderMap(folders);
     let currentEditFolder = null;
     let currentEditFolderId = '';
 
@@ -3272,12 +3287,12 @@ const startFolderEditorRuntime = async () => {
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         } else {
         if (!resolvedEditFolder && bootstrapFolderRecord) {
-            folders[currentEditFolderId] = currentEditFolder;
-            allFoldersById[currentEditFolderId] = currentEditFolder;
+            setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
+            setFolderMapEntry(allFoldersById, currentEditFolderId, currentEditFolder);
         }
         if (!resolvedEditFolder && navigationPrefill && !bootstrapFolderRecord) {
-            folders[currentEditFolderId] = currentEditFolder;
-            allFoldersById[currentEditFolderId] = currentEditFolder;
+            setFolderMapEntry(folders, currentEditFolderId, currentEditFolder);
+            setFolderMapEntry(allFoldersById, currentEditFolderId, currentEditFolder);
             setValidationBannerState(
                 'Recovered requested folder from navigation context.',
                 `Folder reference "${requestedFolderRef}" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.`,
@@ -3490,7 +3505,7 @@ const startFolderEditorRuntime = async () => {
  */
 const updateIcon = (e) => {
     if (e.previousElementSibling && e.previousElementSibling.tagName === 'IMG') {
-        e.previousElementSibling.src = e.value;
+        e.previousElementSibling.src = utils.sanitizeImageUrl(e.value, DEFAULT_FOLDER_ICON_PATH);
     }
     renderBuiltInIconPicker();
 };
@@ -4700,7 +4715,7 @@ function clearMemberBulkMoveUndoState() {
 }
 
 const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
-    const safeTargetFolderId = String(targetFolderId || '').trim();
+    const safeTargetFolderId = normalizeFolderId(targetFolderId);
     const uniqueNames = Array.from(new Set((Array.isArray(movedNames) ? movedNames : []).map((name) => String(name || '').trim()).filter(Boolean)));
     if (!safeTargetFolderId || uniqueNames.length <= 0) {
         return;
@@ -4710,10 +4725,10 @@ const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
         const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
         const nextMembers = (utils?.normalizeFolderMembers ? utils.normalizeFolderMembers(normalizedFolder.containers || []) : [])
             .filter((memberName) => !movedSet.has(String(memberName || '').trim()));
-        allFoldersById[folderKey] = {
+        setFolderMapEntry(allFoldersById, folderKey, {
             ...normalizedFolder,
             containers: nextMembers
-        };
+        });
     }
     if (allFoldersById[safeTargetFolderId]) {
         const targetFolder = normalizeFolderRecordForEditor(allFoldersById[safeTargetFolderId]);
@@ -4725,10 +4740,10 @@ const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
                 targetMembers.push(name);
             }
         });
-        allFoldersById[safeTargetFolderId] = {
+        setFolderMapEntry(allFoldersById, safeTargetFolderId, {
             ...targetFolder,
             containers: targetMembers
-        };
+        });
     }
 
     selected = selected.filter((member) => {

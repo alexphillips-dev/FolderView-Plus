@@ -55,6 +55,12 @@
         const folderIconApi = deps.folderIconApi && typeof deps.folderIconApi === 'object' ? deps.folderIconApi : null;
         const asArray = typeof deps.asArray === 'function' ? deps.asArray : fallbackAsArray;
         const escapeHtml = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : fallbackEscapeHtml;
+        const sanitizeImageUrl = typeof deps.sanitizeImageUrl === 'function'
+            ? deps.sanitizeImageUrl
+            : ((value, fallback = '') => {
+                const source = String(value || '').trim();
+                return source.startsWith('/') && !source.startsWith('//') ? source : fallback;
+            });
         const paginateItems = typeof deps.paginateItems === 'function' ? deps.paginateItems : fallbackPaginateItems;
         const filterIconItems = typeof deps.filterIconItems === 'function' ? deps.filterIconItems : fallbackFilterIconItems;
         const getForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
@@ -1608,7 +1614,7 @@
                 grid.append(rows);
                 grid.find('img[data-src]').each((_, element) => {
                     const image = element;
-                    const source = String(image.getAttribute('data-src') || '').trim();
+                    const source = sanitizeImageUrl(image.getAttribute('data-src'), iconFallbackPath);
                     if (!source || image.getAttribute('src') === source) {
                         return;
                     }

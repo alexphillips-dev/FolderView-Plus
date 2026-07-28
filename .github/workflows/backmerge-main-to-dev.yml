@@ -196,7 +196,5 @@ jobs:
           if-no-files-found: ignore
           path: |
             tmp/backmerge-debug/**
-            tmp/browser-smoke-artifacts/**
             tmp/fixture-browser-artifacts/**
-            *.log
-            scripts/*.log
+          retention-days: 7

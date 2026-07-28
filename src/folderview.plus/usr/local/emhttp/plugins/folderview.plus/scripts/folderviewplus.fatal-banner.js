@@ -20,7 +20,21 @@
     const DIAGNOSTIC_ACTION_LIMIT = 10;
     const BROWSER_ERROR_LIMIT = 30;
     const browserErrorSessionStartedAt = new Date().toISOString();
-    const browserErrorSessionId = `fvplus-browser-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    let browserErrorSessionCounter = 0;
+    const createBrowserErrorSessionId = () => {
+        const cryptoApi = window.crypto || null;
+        if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+            return `fvplus-browser-${cryptoApi.randomUUID()}`;
+        }
+        if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+            const bytes = new Uint8Array(16);
+            cryptoApi.getRandomValues(bytes);
+            return `fvplus-browser-${Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
+        }
+        browserErrorSessionCounter += 1;
+        return `fvplus-browser-${Date.now().toString(36)}-${browserErrorSessionCounter.toString(36)}`;
+    };
+    const browserErrorSessionId = createBrowserErrorSessionId();
 
     const state = {
         environment: {

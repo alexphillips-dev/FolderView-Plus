@@ -234,17 +234,6 @@ jobs:
         shell: bash
         run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
 
-      - name: Upload browser smoke artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: ci-browser-smoke-${{ github.run_id }}-${{ github.job }}
-          if-no-files-found: ignore
-          path: |
-            tmp/browser-smoke-artifacts/**
-            *.log
-            scripts/*.log
-
   fixture-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -289,6 +278,7 @@ jobs:
           name: ci-fixture-browser-${{ github.run_id }}-${{ github.job }}
           if-no-files-found: error
           path: tmp/fixture-browser-artifacts/**
+          retention-days: 7
 
   theme-matrix:
     runs-on: ubuntu-latest
@@ -323,17 +313,6 @@ jobs:
         if: always()
         shell: bash
         run: echo "seconds=$(( $(date +%s) - ${{ steps.started.outputs.epoch }} ))" >> "${GITHUB_OUTPUT}"
-
-      - name: Upload theme matrix artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: ci-theme-matrix-${{ github.run_id }}-${{ github.job }}
-          if-no-files-found: ignore
-          path: |
-            tmp/browser-smoke-artifacts/**
-            *.log
-            scripts/*.log
 
   release-preview:
     runs-on: ubuntu-latest

@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.27.03">
-<!ENTITY md5 "94d2b8db9dc759fd2a18df368b44739a">
+<!ENTITY version "2026.07.28.01">
+<!ENTITY md5 "02ed2aa28a9944c51d3ac6fd902bef67">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,31 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.01
+# FolderView Plus 2026.07.28.01
+This security update hardens every plugin mutation path, removes live-system evidence from automated artifacts, resolves actionable CodeQL findings, and publishes a complete runtime dependency inventory.
+## Request and input security
+- Security: Require the explicit mutation marker, a valid per-install request token, and a trusted same-origin request context for every protected POST action.
+- Security: Fail closed when the request token is unavailable and stop accepting browser-local token fallbacks.
+- Security: Include the mutation marker and page token in the raw backup download POST workflow.
+- Security: Restrict folder identifiers to a bounded safe character set and reject prototype-sensitive property names on both browser and server normalization paths.
+- Security: Sanitize external links, Docker WebUI launches, popup names, image URLs, and translated rich text before they reach browser navigation or DOM sinks.
+- Security: Replace predictable diagnostic identifiers with Web Crypto-backed runtime IDs where the browser supports them.
+## Code scanning and merge protection
+- Security: Expand CodeQL push and pull-request coverage to both `dev` and `main`.
+- Security: Add regression contracts for mutation-token enforcement, privacy-safe workflow artifacts, CodeQL branch coverage, and the runtime SBOM.
+- Maintenance: Record the CodeQL security-severity baseline, triage decisions, and high-or-higher merge policy.
+- Maintenance: Remove dynamic shell/interpreter construction from affected test harnesses and avoid returning local stack details from fixture servers.
+## Artifact privacy
+- Privacy: Disable live Unraid screenshot, report, and URL capture by default unless an operator explicitly opts in locally.
+- Privacy: Stop CI, scheduled validation, release, and back-merge workflows from uploading live-system screenshots or logs.
+- Privacy: Retain only synthetic fixture and release/package artifacts needed to validate repository behavior.
+## Runtime software bill of materials
+- Security: Generate a CycloneDX SBOM that inventories all shipped browser libraries, embedded subcomponents, Unraid-provided runtime dependencies, npm development packages, and pinned GitHub Actions.
+- Security: Verify every file under `scripts/include` is classified and hash each shipped runtime component.
+- Docs: Document the canonical runtime component inventory and the command used to regenerate the SBOM.
+
 
 ###2026.07.27.03
 # FolderView Plus 2026.07.27.03

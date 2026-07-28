@@ -187,6 +187,19 @@ test('normalizeFolderMap trims ids and heals member lists', () => {
     assert.deepEqual(normalized.alpha.actions, []);
 });
 
+test('normalizeFolderMap rejects prototype keys and unsafe identifiers', () => {
+    const source = JSON.parse('{"__proto__":{"name":"poison"},"constructor":{"name":"ctor"},"valid-id":{"name":"Safe"},"bad/id":{"name":"unsafe"}}');
+    const normalized = utils.normalizeFolderMap(source);
+
+    assert.equal(Object.getPrototypeOf(normalized), Object.prototype);
+    assert.deepEqual(Object.keys(normalized), ['valid-id']);
+    assert.equal(normalized['valid-id'].name, 'Safe');
+    assert.equal(utils.normalizeFolderId('  valid:id.1  '), 'valid:id.1');
+    assert.equal(utils.normalizeFolderId('__proto__'), '');
+    assert.equal(utils.normalizeFolderId('constructor'), '');
+    assert.equal(utils.normalizeFolderId('bad/id'), '');
+});
+
 test('normalizeFolderMembers is exported and normalizes arrays/objects', () => {
     assert.equal(typeof utils.normalizeFolderMembers, 'function');
     assert.deepEqual(
@@ -437,6 +450,10 @@ test('utils exports shared dashboard metadata and runtime-safe escaping helpers'
     assert.equal(utils.normalizeDashboardOverflowMode('bad-value'), 'default');
     assert.equal(utils.escapeHtml(`a<"b"&'c'`), 'a&lt;&quot;b&quot;&amp;&#39;c&#39;');
     assert.equal(utils.sanitizeImageSrc('javascript:alert(1)'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageSrc('data:image/svg+xml,<svg onload=alert(1)>'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageUrl('//attacker.invalid/icon.png'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageUrl('https://user:pass@example.com/icon.png'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageUrl('https://example.com/icon.png'), 'https://example.com/icon.png');
     assert.equal(utils.sanitizeImageSrc('/plugins/folderview.plus/images/folder-icon.png'), '/plugins/folderview.plus/images/folder-icon.png');
     assert.deepEqual(utils.resolvePreviewActionPrefs({ preview_webui: true, preview_console: false, preview_logs: true }), {
         preview_webui: true,

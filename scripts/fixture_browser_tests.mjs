@@ -119,8 +119,9 @@ const fixtureServer = http.createServer(async (request, response) => {
         });
         fs.createReadStream(filePath).pipe(response);
     } catch (error) {
+        console.error('Fixture server request failed:', error);
         response.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-        response.end(String(error?.stack || error));
+        response.end('Internal fixture server error');
     }
 });
 

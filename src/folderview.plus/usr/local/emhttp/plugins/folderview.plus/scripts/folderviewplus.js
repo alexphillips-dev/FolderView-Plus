@@ -1107,11 +1107,7 @@ const getOptionalRequestToken = () => {
             return fromMeta;
         }
     }
-    try {
-        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
-    } catch (_error) {
-        return '';
-    }
+    return '';
 };
 
 const slugifySectionKey = (text) => String(text || '')
@@ -11146,6 +11142,7 @@ const downloadBackupEntry = (type, name) => {
     addField('action', 'download_post');
     addField('type', resolvedType);
     addField('name', resolvedName);
+    addField('_fv_request', '1');
     const token = getOptionalRequestToken();
     if (token) {
         addField('token', token);

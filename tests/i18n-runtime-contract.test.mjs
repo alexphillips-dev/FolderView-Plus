@@ -221,6 +221,15 @@ test('runtime translates multiple text and attribute bindings independently', as
     assert.equal(basic.getAttribute('aria-label'), 'Use basic settings mode');
 });
 
+test('localized HTML uses an allowlist sanitizer instead of assigning translated markup to innerHTML', () => {
+    assert.match(runtimeSource, /const LOCALIZED_HTML_ALLOWED_TAGS = new Set/);
+    assert.match(runtimeSource, /const buildSanitizedLocalizedHtml =/);
+    assert.match(runtimeSource, /sanitizeLocalizedLink/);
+    assert.match(runtimeSource, /element\.setAttribute\('rel', 'noopener noreferrer'\)/);
+    assert.match(runtimeSource, /replaceLocalizedHtml\(node, localized\)/);
+    assert.doesNotMatch(runtimeSource, /node\.innerHTML\s*=\s*localized/);
+});
+
 test('server loader resolves full locale tags and support bundles include localization diagnostics', () => {
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
     const registry = fs.readFileSync(path.join(langsRoot, 'registry.php'), 'utf8');

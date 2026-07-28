@@ -1343,6 +1343,77 @@
         contextQuickLinkHeightPx: 26
     });
 
+    const createSecureNavigationApi = (deps = {}) => {
+        const win = deps.window || window;
+        const doc = deps.document || win?.document || null;
+        const hasUnresolvedWebuiTemplateTokens = typeof deps.hasUnresolvedWebuiTemplateTokens === 'function'
+            ? deps.hasUnresolvedWebuiTemplateTokens
+            : (() => false);
+        const openRel = String(deps.openRel || 'noopener');
+        const getSafeExternalUrl = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw || raw.startsWith('//')) {
+                return '';
+            }
+            if (raw.startsWith('/')) {
+                return raw;
+            }
+            try {
+                const parsed = new URL(raw);
+                if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+                    return '';
+                }
+                return parsed.href;
+            } catch (_error) {
+                return '';
+            }
+        };
+        const getSafeWebuiUrl = (value) => {
+            const raw = String(value || '').trim();
+            return !hasUnresolvedWebuiTemplateTokens(raw) ? getSafeExternalUrl(raw) : '';
+        };
+        const openWebuiInNewTab = (url) => {
+            const safeUrl = getSafeWebuiUrl(url);
+            if (!safeUrl || !doc?.body) {
+                return false;
+            }
+            const anchor = doc.createElement('a');
+            anchor.href = safeUrl;
+            anchor.target = '_blank';
+            anchor.rel = openRel;
+            anchor.style.display = 'none';
+            doc.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            return true;
+        };
+        const openWebuiPopupWindow = (url, targetName = '_blank') => {
+            const safeUrl = getSafeWebuiUrl(url);
+            if (!safeUrl || typeof win?.open !== 'function') {
+                return false;
+            }
+            const safeTargetName = /^[_A-Za-z][A-Za-z0-9_.:-]{0,63}$/.test(String(targetName || ''))
+                ? String(targetName)
+                : '_blank';
+            const popup = win.open(safeUrl, safeTargetName, openRel);
+            if (!popup) {
+                return false;
+            }
+            try {
+                popup.opener = null;
+            } catch (_error) {
+                // Cross-origin popup guards can throw after the tab opens; noopener is still requested.
+            }
+            return true;
+        };
+        return Object.freeze({
+            getSafeExternalUrl,
+            getSafeWebuiUrl,
+            openWebuiInNewTab,
+            openWebuiPopupWindow
+        });
+    };
+
     window.FolderViewDockerRuntimeShared = {
         DEFAULT_FOLDER_STATUS_COLORS,
         DEFAULT_FOLDER_ACCENT_COLOR,
@@ -1383,6 +1454,7 @@
         createDebugLogger,
         createRuntimeDiagnosticsBridge,
         createStableToggleController,
+        createSecureNavigationApi,
         resolveRuntimePerformanceProfile,
         normalizePerformanceProfileMode,
         createDeferredPreviewController,

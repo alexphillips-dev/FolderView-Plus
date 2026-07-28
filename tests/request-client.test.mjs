@@ -80,15 +80,13 @@ const createJQueryMock = (plan = []) => {
 const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
     const { $, getCallCount, getAjaxSetupCalls, getAjaxPrefilters, getAjaxCalls } = createJQueryMock(plan);
     const storage = new Map();
-    if (token) {
-        storage.set('fv.request.token', token);
-    }
+    const effectiveMetaToken = metaToken || token;
     const context = {
         window: {},
         document: {
             querySelector: (selector) => {
-                if (selector === 'meta[name="fv-request-token"]' && metaToken) {
-                    return { content: metaToken };
+                if (selector === 'meta[name="fv-request-token"]' && effectiveMetaToken) {
+                    return { content: effectiveMetaToken };
                 }
                 return null;
             }
@@ -180,6 +178,7 @@ test('request client retries retryable failures and returns parsed JSON', async 
 
 test('request client does not retry aborted requests', async () => {
     const { api, getCallCount } = loadRequestClient({
+        token: 'tok-abort',
         plan: [
             { type: 'error', status: 0, textStatus: 'abort', errorThrown: 'abort' }
         ]
@@ -194,6 +193,7 @@ test('request client does not retry aborted requests', async () => {
 
 test('request client surfaces backend JSON error details in thrown message', async () => {
     const { api, getCallCount } = loadRequestClient({
+        token: 'tok-backend-error',
         plan: [
             {
                 type: 'error',
@@ -216,6 +216,7 @@ test('request client surfaces backend JSON error details in thrown message', asy
 
 test('request client preserves HTTP status and response details for conflict recovery', async () => {
     const { api } = loadRequestClient({
+        token: 'tok-conflict',
         plan: [{
             type: 'error',
             textStatus: 'error',
@@ -263,6 +264,7 @@ test('request client retries reads but never replays mutations by default', asyn
     assert.equal(readClient.getCallCount(), 2);
 
     const mutationClient = loadRequestClient({
+        token: 'tok-retry-policy',
         plan: [
             { type: 'error', status: 503, statusText: 'Service Unavailable' },
             { type: 'success', data: '{"ok":true}' }

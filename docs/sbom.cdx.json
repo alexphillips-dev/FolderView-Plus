@@ -6,15 +6,19 @@
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.07.27.03",
+      "version": "2026.07.28.01",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
-          "value": "none-vendored"
+          "value": "shipped-and-unraid-host-provided"
         },
         {
           "name": "folderview-plus:component-scope",
-          "value": "development-and-ci-tooling"
+          "value": "runtime-development-and-ci-tooling"
+        },
+        {
+          "name": "folderview-plus:runtime-inventory",
+          "value": "scripts/runtime_components.json"
         }
       ]
     }
@@ -144,6 +148,44 @@
     },
     {
       "type": "library",
+      "name": "@kurkle/color",
+      "version": "0.2.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "424746c6b4d8652227e0395d81a2ee0a0f02c90e18883fab220bd777ae76d5ec"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/%40kurkle/color@0.2.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/kurkle/color"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "embedded-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "@types/istanbul-lib-coverage",
       "version": "2.0.6",
       "scope": "optional",
@@ -242,6 +284,157 @@
     },
     {
       "type": "library",
+      "name": "Chart.js",
+      "version": "3.9.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "424746c6b4d8652227e0395d81a2ee0a0f02c90e18883fab220bd777ae76d5ec"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chart.js@3.9.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/chartjs/Chart.js"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "chartjs-adapter-moment",
+      "version": "1.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abceceaf76c3027dd759776fab1a8ce2b9fa0ae5b56421a29eebc5395c1d7001"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chartjs-adapter-moment@1.0.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/chartjs/chartjs-adapter-moment"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-adapter-moment.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "chartjs-plugin-streaming",
+      "version": "2.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5dc54f52b17ce320201d3347f40cb9f7bafda6caa611d6444fa83292edb145e"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chartjs-plugin-streaming@2.0.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/nagix/chartjs-plugin-streaming"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "CLDRPluralRuleParser",
+      "version": "vendored-snapshot",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14b18aeaae42b0c79c6992e464a22c8c261a3de1f15d0c1fb317cf6db5fdb449"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/santhoshtr/CLDRPluralRuleParser"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "cliui",
       "version": "9.0.1",
       "scope": "optional",
@@ -323,6 +516,24 @@
         }
       ],
       "purl": "pkg:npm/find-up@5.0.0"
+    },
+    {
+      "type": "library",
+      "name": "Font Awesome",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://fontawesome.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
     },
     {
       "type": "library",
@@ -480,6 +691,61 @@
     },
     {
       "type": "library",
+      "name": "jQuery UI MultiSelect Widget",
+      "version": "3.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a0d8bc7fbe00e9368bf52e3c91616cbd70c34de2f62b9e79645b81493ca8ac7c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR GPL-2.0-or-later"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ehynds/jquery-ui-multiselect-widget"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.multiselect.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jQuery UI",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://jqueryui.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "name": "jquery",
       "version": "3.7.1",
       "scope": "optional",
@@ -491,6 +757,61 @@
         }
       ],
       "purl": "pkg:npm/jquery@3.7.1"
+    },
+    {
+      "type": "library",
+      "name": "jQuery",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://jquery.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jquery.i18n",
+      "version": "vendored-snapshot",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc99c2f4b2f1942dca4a7f121dd7ac731dae4c7750e2031b7bdb963f4a5c2ebd"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR GPL-2.0-or-later"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/wikimedia/jquery.i18n"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.bidi.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.fallbacks.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.language.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.parser.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
     },
     {
       "type": "library",
@@ -561,6 +882,44 @@
         }
       ],
       "purl": "pkg:npm/minipass@7.1.3"
+    },
+    {
+      "type": "library",
+      "name": "Moment.js",
+      "version": "2.29.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b0023c5fda55a2d83850d8cc3b80d6fb8dd07c6b5c5bf716a3954061952987bc"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/moment@2.29.4",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/moment/moment"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/moment.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
     },
     {
       "type": "library",
@@ -757,6 +1116,24 @@
         }
       ],
       "purl": "pkg:npm/supports-color@7.2.0"
+    },
+    {
+      "type": "library",
+      "name": "SweetAlert",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/t4t5/sweetalert"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
     },
     {
       "type": "library",

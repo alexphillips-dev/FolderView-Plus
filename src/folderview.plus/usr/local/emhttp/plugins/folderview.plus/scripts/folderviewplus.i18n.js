@@ -9,6 +9,7 @@
     const MAX_DYNAMIC_ROOTS_BEFORE_FULL_SCAN = 80;
     const AUTO_KEY_PREFIX = 'legacy.surface.';
     const AUTO_TRANSLATABLE_ATTRIBUTES = Object.freeze(['placeholder', 'aria-label', 'title']);
+    const LOCALIZED_HTML_ALLOWED_TAGS = new Set(['A', 'B', 'BR', 'CODE', 'EM', 'I', 'LI', 'P', 'SPAN', 'STRONG', 'UL']);
     const AUTO_IGNORE_SELECTOR = [
         '[data-i18n-ignore]',
         '[data-fvplus-user-content]',
@@ -223,6 +224,90 @@
         }
     };
 
+    const sanitizeLocalizedLink = (value) => {
+        const raw = String(value || '').trim();
+        if (!raw || raw.startsWith('//')) {
+            return '';
+        }
+        if (raw.startsWith('/')) {
+            return raw;
+        }
+        try {
+            const parsed = new URL(raw);
+            return ['http:', 'https:'].includes(parsed.protocol) && !parsed.username && !parsed.password
+                ? parsed.href
+                : '';
+        } catch (_error) {
+            return '';
+        }
+    };
+
+    const buildSanitizedLocalizedHtml = (value, targetDocument) => {
+        if (!targetDocument || typeof root.DOMParser !== 'function') {
+            return null;
+        }
+        const parsed = new root.DOMParser().parseFromString(String(value || ''), 'text/html');
+        const fragment = targetDocument.createDocumentFragment();
+        const copyNode = (source, parent) => {
+            if (source.nodeType === 3) {
+                parent.appendChild(targetDocument.createTextNode(String(source.nodeValue || '')));
+                return;
+            }
+            if (source.nodeType !== 1) {
+                return;
+            }
+            const tagName = String(source.tagName || '').toUpperCase();
+            if (!LOCALIZED_HTML_ALLOWED_TAGS.has(tagName)) {
+                if (!['SCRIPT', 'STYLE', 'TEMPLATE'].includes(tagName)) {
+                    Array.from(source.childNodes || []).forEach((child) => copyNode(child, parent));
+                }
+                return;
+            }
+            const element = targetDocument.createElement(tagName.toLowerCase());
+            if (tagName === 'A') {
+                const href = sanitizeLocalizedLink(source.getAttribute('href'));
+                if (href) {
+                    element.setAttribute('href', href);
+                }
+                const target = String(source.getAttribute('target') || '').trim();
+                if (['_blank', '_self'].includes(target)) {
+                    element.setAttribute('target', target);
+                }
+                if (target === '_blank') {
+                    element.setAttribute('rel', 'noopener noreferrer');
+                }
+            }
+            if (['I', 'SPAN'].includes(tagName)) {
+                const className = String(source.getAttribute('class') || '').trim();
+                if (/^[A-Za-z0-9 _-]{1,160}$/.test(className)) {
+                    element.setAttribute('class', className);
+                }
+                if (String(source.getAttribute('aria-hidden') || '').toLowerCase() === 'true') {
+                    element.setAttribute('aria-hidden', 'true');
+                }
+            }
+            Array.from(source.childNodes || []).forEach((child) => copyNode(child, element));
+            parent.appendChild(element);
+        };
+        Array.from(parsed.body?.childNodes || []).forEach((child) => copyNode(child, fragment));
+        return fragment;
+    };
+
+    const replaceLocalizedHtml = (node, value) => {
+        const targetDocument = node?.ownerDocument || root.document;
+        const fragment = buildSanitizedLocalizedHtml(value, targetDocument);
+        if (!fragment) {
+            node.textContent = String(value || '').replace(/<[^>]*>/g, '');
+            return;
+        }
+        if (typeof node.replaceChildren === 'function') {
+            node.replaceChildren(fragment);
+            return;
+        }
+        node.textContent = '';
+        node.appendChild?.(fragment);
+    };
+
     const translateDom = (target = root.document?.body) => {
         if (!target) {
             return;
@@ -252,7 +337,7 @@
                 }
                 if (targetName === 'html') {
                     const localized = translate(key, node.innerHTML || '');
-                    if (node.innerHTML !== localized) node.innerHTML = localized;
+                    if (node.innerHTML !== localized) replaceLocalizedHtml(node, localized);
                     return;
                 }
                 if (targetName !== 'text') {

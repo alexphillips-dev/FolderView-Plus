@@ -305,7 +305,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
     assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
     assert.match(settingsPage, /id="fv-theme-scan-result"/);
-    assert.match(settingsPage, /onclick="scanThemeWorkspaceGithub\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="scanThemeWorkspaceGithub\(\)"/);
     assert.match(settingsPage, /id="fv-theme-preview-sample"/);
     assert.match(themeWorkspaceJs, /scanGithub:\s*\(source\) => safeAction\('Theme scan'/);
     assert.match(themeWorkspaceJs, /updateTheme:\s*\(themeId\) => safeAction\('Theme update'/);
@@ -344,13 +344,13 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.match(settingsPage, /id="recovery-change-history-list"/);
-    assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
-    assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
-    assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
-    assert.match(settingsPage, /onclick="exportEnvironmentSnapshot\(\)"/);
-    assert.match(settingsPage, /onclick="importEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="restoreLatestActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="createActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="runActiveRecoveryScheduler\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="exportEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
-    assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="undoActiveRecoveryChange\(\)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);

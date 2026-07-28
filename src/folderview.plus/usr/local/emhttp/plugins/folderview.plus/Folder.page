@@ -82,6 +82,7 @@ try {
     ];
 }
 ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
 <script>
     window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
@@ -506,7 +507,7 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
-    <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">
+    <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" data-fv-onsubmit="submitForm(this, false); return false">
         <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
             <div class="fv-editor-status-row">
                 <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
@@ -561,8 +562,8 @@ try {
             <dl>
                 <dt data-i18n="icon">Icon:</dt>
                 <dd class="fv-icon-dd">
-                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
-                    <input type="text" name="icon" value=""  oninput="updateIcon(this)">
+                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                    <input type="text" name="icon" value=""  data-fv-oninput="updateIcon(this)">
                     <div class="fv-icon-input-actions">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
@@ -723,7 +724,7 @@ try {
                 <dt data-i18n="folder-webui">Folder WebUI:</dt>
                 <dd>
                     <img class="img" style="visibility: hidden;">
-                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" onchange="updateForm()" />
+                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -751,7 +752,7 @@ try {
                 <dt data-i18n="preview">Preview:</dt>
                 <dd>
                     <img class="img" style="visibility: hidden;">
-                    <select name="preview" onchange="updateForm()">
+                    <select name="preview" data-fv-onchange="updateForm()">
                         <option value="0" data-i18n="preview-option-0">None</option>
                         <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
                         <option value="2" data-i18n="preview-option-2">Only icon (clean)</option>
@@ -999,7 +1000,7 @@ try {
                     <dl>
                         <dt data-i18n="preview-vertical-bars">Preview vertical bars:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1017,7 +1018,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_vertical_bars_color" style="height:28px;vertical-align:middle;">
                                         <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBarDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBarDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1040,7 +1041,7 @@ try {
                 <div class="basic">
                     <dl>
                         <dt data-i18n="preview-row-separators">Preview row separators:</dt>
-                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" onchange="updateForm()" /></dd>
+                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" /></dd>
                     </dl>
                     <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
                 </div>
@@ -1060,7 +1061,7 @@ try {
                     <dl>
                         <dt data-i18n="border">Show preview border:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1078,7 +1079,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
                                         <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBorderDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBorderDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1102,7 +1103,7 @@ try {
                             <dl>
                                 <dt>Preview border glow:</dt>
                                 <dd>
-                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" onchange="updateForm()" />
+                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                                 </dd>
                             </dl>
                             <blockquote class="inline_help">
@@ -1120,7 +1121,7 @@ try {
                         <dt>Chevron style:</dt>
                         <dd>
                             <img class="img" style="visibility: hidden;">
-                            <select name="dropdown_style" onchange="updateForm()">
+                            <select name="dropdown_style" data-fv-onchange="updateForm()">
                                 <option value="minimal" selected>Minimal</option>
                                 <option value="boxed">Boxed</option>
                                 <option value="ghost">Ghost</option>
@@ -1144,7 +1145,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
                                         <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetDropdownColorDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetDropdownColorDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1167,7 +1168,7 @@ try {
                         <dt data-i18n="context">Preview Context:</dt>
                         <dd>
                             <img class="img" style="visibility: hidden;">
-                            <select name="context" onchange="updateForm()">
+                            <select name="context" data-fv-onchange="updateForm()">
                                 <option value="0" data-i18n="context-option-0">None</option>
                                 <option value="1" data-i18n="context-option-1" selected>Default</option>
                                 <option value="2" data-i18n="context-option-2">Advanced</option>
@@ -1261,7 +1262,7 @@ try {
                                 <input type="color" name="status_color_stopped" style="height:28px;vertical-align:middle;">
                             </label>
                         </div>
-                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetStatusColorDefaults();">
+                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -1290,13 +1291,13 @@ try {
                 <dd class="fv-accent-color-dd">
                     <div class="fv-accent-control-row">
                         <div class="fv-accent-enable-control">
-                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </div>
                         <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
                             <span class="fv-accent-inline-label">Bar color</span>
                             <div class="fv-inline-control-row">
                                 <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
-                                <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
                                     <i class="fa fa-repeat" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -1509,7 +1510,7 @@ try {
             <dl>
                 <dt data-i18n="regex">Regex:</dt>
                 <dd>
-                    <input type="text" name="regex" oninput="updateRegex(this)" value="">
+                    <input type="text" name="regex" data-fv-oninput="updateRegex(this)" value="">
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1544,7 +1545,7 @@ try {
             <dl>
                 <dt>​</dt>
                 <dd>
-                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
+                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-fv-onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1554,10 +1555,10 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
-        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." onclick="applyFolderSettingsToFolders(); return false;">
-        <input class="folder-btn-copy" type="button" value="Save as copy" onclick="submitForm(this.form, true); return false;">
-        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
-        <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
+        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
+        <input class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
+        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
+        <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" data-fv-onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
         <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
             <dl>

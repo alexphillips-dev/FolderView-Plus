@@ -15,6 +15,7 @@ ICON_ASSET_PACK_GUARD="${ROOT_DIR}/scripts/icon_asset_pack_guard.sh"
 ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 resolve_php_bin() {
   fvplus::resolve_platform_command php
@@ -60,6 +61,7 @@ fi
 
 VERSION="$(sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 MD5_ENTITY="$(sed -n 's/^<!ENTITY md5 "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
+SHA256_ENTITY="$(sed -n 's/^<!ENTITY sha256 "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 ICON_PACK_URL_ENTITY="$(sed -n 's/^<!ENTITY iconPackURL "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 
 if [[ -z "${VERSION}" ]]; then
@@ -69,6 +71,10 @@ fi
 
 if [[ -z "${MD5_ENTITY}" ]]; then
   echo "ERROR: Could not parse md5 entity from folderview.plus.plg" >&2
+  exit 1
+fi
+if [[ ! "${SHA256_ENTITY}" =~ ^[a-f0-9]{64}$ ]]; then
+  echo "ERROR: Could not parse a valid sha256 entity from folderview.plus.plg" >&2
   exit 1
 fi
 if [[ ! -x "${ICON_ASSET_PACK_GUARD}" && ! -f "${ICON_ASSET_PACK_GUARD}" ]]; then
@@ -392,6 +398,7 @@ UNEXPECTED_ARCHIVE_FILES="$(
   printf '%s\n' "${ARCHIVE_FILES_ONLY}" \
     | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" \
     | grep -Fvx 'install/slack-desc' \
+    | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh' \
     | grep -Fvx 'usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh' \
     || true
@@ -404,7 +411,10 @@ fi
 
 REQUIRED_ARCHIVE_PATHS=(
   "./install/slack-desc"
+  "./usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.csp-events.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
@@ -440,6 +450,8 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.process.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.filesystem-security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
@@ -454,6 +466,29 @@ for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
     exit 1
   fi
 done
+
+ARCHIVE_BUILD_METADATA_PATH="./usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
+BUILD_METADATA_JSON="$(tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_BUILD_METADATA_PATH}")"
+"${NODE_BIN}" - "${BUILD_METADATA_JSON}" "${VERSION}" "${EXPECTED_PLUGIN_BRANCH}" <<'NODE'
+const metadata = JSON.parse(process.argv[2] || '{}');
+const version = String(process.argv[3] || '');
+const branch = String(process.argv[4] || '');
+const expectedArchiveUrl = `https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/folderview.plus-${version}.txz`;
+const fail = (message) => {
+  console.error(`ERROR: Packaged build metadata ${message}`);
+  process.exit(1);
+};
+if (metadata.packageVersion !== version) fail('version does not match the manifest.');
+if (metadata.sourceBranch !== branch) fail('branch does not match the release channel.');
+if (metadata.archiveUrl !== expectedArchiveUrl) fail('archive URL does not match version and channel.');
+if (!/^[a-f0-9]{64}$/.test(String(metadata.sourceContentSha256 || ''))) fail('source content digest is invalid.');
+if (metadata.sourceSnapshotMode !== 'content' || metadata.sourceCommitExact !== false) {
+  fail('must use the reproducible content-addressed snapshot contract.');
+}
+for (const field of ['sourceCommitSha', 'headCommitSha', 'sourceTreeSha']) {
+  if (String(metadata[field] || '') !== '') fail(`${field} must remain empty to avoid self-referential archives.`);
+}
+NODE
 
 if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
   echo "ERROR: Source folderviewplus.js is missing mobile section-toggle header binding." >&2
@@ -1104,8 +1139,19 @@ if [[ "${MD5_ENTITY}" != "${MD5_CALC}" ]]; then
   echo "ERROR: md5 entity mismatch. plg=${MD5_ENTITY}, archive=${MD5_CALC}" >&2
   exit 1
 fi
+SHA256_CALC="$(sha256sum "${ARCHIVE_FILE}" | awk '{print $1}')"
+if [[ "${SHA256_ENTITY}" != "${SHA256_CALC}" ]]; then
+  echo "ERROR: sha256 entity mismatch. plg=${SHA256_ENTITY}, archive=${SHA256_CALC}" >&2
+  exit 1
+fi
+EXPECTED_CHECKSUM_LINE="${SHA256_CALC}  ${ARCHIVE_FILE##*/}"
+if [[ "$(tr -d '\r' < "${ARCHIVE_FILE}.sha256")" != "${EXPECTED_CHECKSUM_LINE}" ]]; then
+  echo "ERROR: package checksum sidecar does not exactly match the archive name and SHA-256." >&2
+  exit 1
+fi
 
 echo "Release guard checks passed:"
 echo "  version: ${VERSION}"
 echo "  archive: ${ARCHIVE_FILE##*/}"
 echo "  md5: ${MD5_CALC}"
+echo "  sha256: ${SHA256_CALC}"

@@ -39,6 +39,15 @@ In-scope components include:
 - client-side settings/runtime scripts
 - import/export and backup/restore flows
 - release packaging and update metadata
+- archive extraction, durable storage, and process-execution boundaries
+- privacy sanitization and browser-side injection defenses
+
+## Package Verification
+
+The Unraid plugin manifest publishes SHA-256 digests for shipped archives. Stable
+GitHub releases also publish GitHub artifact attestations for build provenance and
+the CycloneDX SBOM. Verification steps and the trust model are documented in
+[`docs/security/PACKAGE_TRUST.md`](../docs/security/PACKAGE_TRUST.md).
 
 Out-of-scope:
 

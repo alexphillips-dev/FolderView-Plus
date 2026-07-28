@@ -668,9 +668,14 @@ sha256=$(sha256sum "$filename" | awk '{print $1}')
 sha256_file="${filename}.sha256"
 printf '%s  %s\n' "$sha256" "$(basename "$filename")" > "$sha256_file"
 
-# Update version and md5 in plg file
+# Update version and package digests in plg file
 sed -i "s/<!ENTITY version.*>/<!ENTITY version \"$version\">/" "$plgfile"
 sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
+if grep -q '^<!ENTITY sha256 ' "$plgfile"; then
+    sed -i "s/<!ENTITY sha256.*>/<!ENTITY sha256 \"$sha256\">/" "$plgfile"
+else
+    sed -i "/^<!ENTITY md5 /a <!ENTITY sha256 \"$sha256\">" "$plgfile"
+fi
 
 # Keep CA template date aligned with the release version date.
 if [ -n "$xml_date" ]; then

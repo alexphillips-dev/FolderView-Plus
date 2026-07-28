@@ -914,7 +914,15 @@ function writeInlineIconTempFile(string $payload): array {
         throw new RuntimeException('Uploaded file exceeds 4MB limit.');
     }
 
-    $tmpDir = is_dir('/tmp') ? '/tmp' : (string)sys_get_temp_dir();
+    $tmpRoot = is_dir('/tmp') ? '/tmp' : (string)sys_get_temp_dir();
+    $tmpDir = rtrim($tmpRoot, '/\\') . '/folderview-plus-uploads';
+    if (is_link($tmpDir)) {
+        throw new RuntimeException('Upload staging directory is unsafe.');
+    }
+    if (!is_dir($tmpDir) && !@mkdir($tmpDir, 0700, true) && !is_dir($tmpDir)) {
+        throw new RuntimeException('Unable to create private upload staging directory.');
+    }
+    @chmod($tmpDir, 0700);
     $tmpPath = @tempnam($tmpDir, 'fvplus-icon-');
     if (!is_string($tmpPath) || $tmpPath === '') {
         throw new RuntimeException('Unable to allocate temporary upload file.');
@@ -924,6 +932,7 @@ function writeInlineIconTempFile(string $payload): array {
         @unlink($tmpPath);
         throw new RuntimeException('Unable to write temporary upload data.');
     }
+    @chmod($tmpPath, 0600);
 
     return [
         'tmpPath' => $tmpPath,
@@ -1346,7 +1355,7 @@ function handleCustomIconDeleteAction(): array {
         $customDir = ensureCustomIconDirExists();
         $name = normalizeCustomIconFileNameInput((string)($_POST['name'] ?? ''));
         $path = "$customDir/$name";
-        if (!is_file($path)) {
+        if (!is_file($path) || is_link($path)) {
             throw new RuntimeException('Icon not found.');
         }
         $usageMap = customIconUsageMap();
@@ -1383,7 +1392,7 @@ function handleCustomIconRenameAction(): array {
         $from = normalizeCustomIconFileNameInput((string)($_POST['from'] ?? ''));
         $toRaw = (string)($_POST['to'] ?? '');
         $fromPath = "$customDir/$from";
-        if (!is_file($fromPath)) {
+        if (!is_file($fromPath) || is_link($fromPath)) {
             throw new RuntimeException('Icon not found.');
         }
         $fromExt = strtolower((string)pathinfo($from, PATHINFO_EXTENSION));
@@ -1397,7 +1406,7 @@ function handleCustomIconRenameAction(): array {
             ];
         }
         $toPath = "$customDir/$to";
-        if (is_file($toPath)) {
+        if (is_file($toPath) || is_link($toPath)) {
             throw new RuntimeException('An icon with that name already exists.');
         }
         if (!@rename($fromPath, $toPath)) {

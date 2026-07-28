@@ -17,6 +17,8 @@ This folder holds project documentation that does not need to stay at the reposi
 - [TRANSLATING.md](TRANSLATING.md)
 - [TRANSLATION_PLATFORM.md](TRANSLATION_PLATFORM.md)
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- [Content Security Policy readiness](security/CSP_READINESS.md)
+- [Package trust and provenance](security/PACKAGE_TRUST.md)
 
 ## Architecture
 

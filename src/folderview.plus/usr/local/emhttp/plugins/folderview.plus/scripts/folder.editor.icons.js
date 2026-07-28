@@ -463,7 +463,7 @@
                 const meta = [size, dims, updated, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
                 return `
                     <div class="fv-custom-icon-row" data-custom-icon="${name}">
-                        <img src="${url}" alt="${name}" onerror="this.src='${iconFallbackPath}';">
+                        <img src="${url}" alt="${name}" data-fv-onerror="this.src='${iconFallbackPath}';">
                         <div class="fv-custom-icon-meta">
                             <div class="fv-custom-icon-name" title="${name}">${name}</div>
                             <div class="fv-custom-icon-extra">${escapeHtml(meta || 'No metadata')}</div>
@@ -623,7 +623,7 @@
                 const safeName = escapeHtml(icon.name);
                 return `
                     <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
-                        <img src="${safePath}" alt="${safeName}" onerror="this.src='${iconFallbackPath}';">
+                        <img src="${safePath}" alt="${safeName}" data-fv-onerror="this.src='${iconFallbackPath}';">
                         <span class="fv-icon-picker-item-name">${safeName}</span>
                     </button>
                 `;
@@ -1161,7 +1161,7 @@
             const isFavorite = thirdPartyFavorites.has(String(source.url || '').trim());
             preview.html(`
                 <div class="fv-third-party-preview-card">
-                    <img src="${url}" alt="${name}" loading="lazy" onerror="this.src='${iconFallbackPath}';">
+                    <img src="${url}" alt="${name}" loading="lazy" data-fv-onerror="this.src='${iconFallbackPath}';">
                     <div class="fv-third-party-preview-meta">
                         <div class="fv-third-party-preview-title" title="${name}">${name}</div>
                         <div class="fv-third-party-preview-sub">${escapeHtml(extra || 'No metadata')}</div>

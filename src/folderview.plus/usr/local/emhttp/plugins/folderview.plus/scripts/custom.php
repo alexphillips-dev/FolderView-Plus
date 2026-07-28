@@ -1,5 +1,6 @@
 <?php
     require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
+    echo '<script src="' . fvplus_asset_url('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js') . '"></script>';
     $conditionalDockerLegacyAssets = !empty($fvplusDockerLegacyConditionalAssets);
     $conditionalScriptUrls = [];
     $seen = [];

@@ -3158,7 +3158,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         customActionWrapper.empty();
         normalizedFolder.actions?.forEach((entry, index) => {
             const safeActionName = escapeHtml(entry?.name || '');
-            customActionWrapper.append(`<div class="custom-action-n-${index}">${safeActionName} <button onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
+            customActionWrapper.append(`<div class="custom-action-n-${index}">${safeActionName} <button data-fv-onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button data-fv-onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
         });
     }
 
@@ -4347,7 +4347,7 @@ const renderFolderMembersSection = () => {
                 </div>
             </td>
             <td class="fv-folder-member-name">
-                <img src="${escapeHtml(entry.icon)}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';">
+                <img src="${escapeHtml(entry.icon)}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';">
                 <span>${escapeHtml(entry.name)}</span>
                 <small>${entry.memberCount} item${entry.memberCount === 1 ? '' : 's'}</small>
             </td>
@@ -4384,7 +4384,7 @@ const updateList = (afterRender = null) => {
         return `
             <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}" draggable="false">
                 <td class="order-col">${orderControls}</td>
-                <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
+                <td class="name-col"><span style="cursor: pointer;" data-fv-onclick="setIconAsContainer(this)"><img src="${icon}" class="img" data-fv-onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
                 <td><label class="fv-member-preview-toggle" title="${escapeHtml(folderEditorT('editor.members.toggle-preview-help', 'Keep this member in the folder but hide it from the collapsed preview'))}"><input class="member-preview-switch" type="checkbox" ${previewVisible ? 'checked' : ''} ${checked ? '' : 'disabled'}><span>${escapeHtml(folderEditorT('editor.members.visible', 'Visible'))}</span></label></td>
             </tr>
@@ -5409,7 +5409,7 @@ const customAction = (action = undefined) => {
             $(`.custom-action-n-${action} > span`).text(cfg.name + ' ');
         } else {
             const safeCfgName = escapeHtml(cfg.name || '');
-            $('.custom-action-wrapper').append(`<div class="custom-action-n-${(action !== undefined) ? action : customNumber}"><span>${safeCfgName} </span><button onclick="return customAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(cfg))}"></div>`);
+            $('.custom-action-wrapper').append(`<div class="custom-action-n-${(action !== undefined) ? action : customNumber}"><span>${safeCfgName} </span><button data-fv-onclick="return customAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button data-fv-onclick="return rCcustomAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(cfg))}"></div>`);
         }
         if (isFormInitialized) {
             validateForm();

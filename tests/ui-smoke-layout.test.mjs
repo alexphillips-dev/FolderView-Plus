@@ -199,7 +199,7 @@ test('settings activity center replaces plain recent activity feed', () => {
     assert.match(settingsPage, /id="fv-activity-center-summary"/);
     assert.match(settingsPage, /id="fv-activity-center-toggle"/);
     assert.match(settingsPage, /id="fv-activity-center-clear"/);
-    assert.match(settingsPage, /onclick="toggleActivityCenterHistory\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="toggleActivityCenterHistory\(\)"/);
     assert.match(settingsPage, /id="fv-activity-center-latest"/);
     assert.match(settingsPage, /No activity yet/);
     assert.doesNotMatch(settingsPage, /id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;"/);
@@ -567,7 +567,7 @@ test('folder editor uses the modern stylesheet without retired runtime alignment
     assert.match(folderCss, /--fv-live-chevron-min-width/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
     assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
-    assert.match(folderPage, /<button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog"[^>]*onclick="customAction\(\); return false;">/);
+    assert.match(folderPage, /<button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog"[^>]*data-fv-onclick="customAction\(\); return false;">/);
     assert.doesNotMatch(folderPage, /<a class="custom-action"/);
     assert.match(folderChromeJs, /querySelector\('button\.custom-action'\)/);
     assert.match(folderJs, /markSection\('div\.basic:has\(button\.custom-action\)', 'actions'\);/);

@@ -829,7 +829,7 @@
             preview.className = 'fv-editor-panel-icon-preview';
             preview.title = 'Selected icon preview';
             preview.setAttribute('aria-label', 'Selected icon preview');
-            preview.innerHTML = `<img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">`;
+            preview.innerHTML = `<img id="fvIconPanelPreview" src="${DEFAULT_FOLDER_ICON_PATH}" alt="" data-fv-onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">`;
         }
         if (preview.parentElement !== iconRow) {
             iconRow.appendChild(preview);

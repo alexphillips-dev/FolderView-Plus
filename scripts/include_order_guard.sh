@@ -47,6 +47,7 @@ const source = fs.readFileSync(pageFile, 'utf8');
 const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((match) => match[0]);
 
 const expectedOrder = [
+  'folderviewplus.csp-events.js',
   'folderviewplus.fatal-banner.js',
   'folderviewplus.utils.js',
   'folderviewplus.ui.js',

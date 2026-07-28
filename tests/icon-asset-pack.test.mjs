@@ -13,6 +13,7 @@ const buildScriptPath = path.join(repoRoot, 'scripts/build_icon_asset_pack.sh');
 const guardScriptPath = path.join(repoRoot, 'scripts/icon_asset_pack_guard.sh');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const installerPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh');
+const archivePreflightPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh');
 const endpointPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/third_party_icons.php');
 const diagnosticsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 
@@ -78,6 +79,9 @@ const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
     };
 };
 const runInstaller = (pluginDir, configDir, cacheDir, checksum, useSpawn = false) => {
+    const pluginScriptsDir = path.join(pluginDir, 'scripts');
+    fs.mkdirSync(pluginScriptsDir, { recursive: true });
+    fs.copyFileSync(archivePreflightPath, path.join(pluginScriptsDir, 'archive_preflight.sh'));
     const invocation = installerInvocation(pluginDir, configDir, cacheDir, checksum);
     const options = { cwd: repoRoot, encoding: 'utf8', timeout: 120000, env: invocation.env };
     return useSpawn
@@ -92,6 +96,44 @@ const assertSymbolicLink = (targetPath) => {
     }
     execFileSync('test', ['-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
 };
+const runMaliciousArchivePreflight = (fixtureScript, extraEnv = {}) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-archive-preflight-'));
+    const shellTemp = toBashPath(tempDir);
+    const shellPreflight = toBashPath(archivePreflightPath);
+    const shell = [
+        'set -euo pipefail',
+        'cd "$1"',
+        'mkdir -p third-party-icons',
+        'printf \'{"version":"1.0.0"}\\n\' > asset-pack.json',
+        fixtureScript,
+        'tar -cJf malicious.txz asset-pack.json third-party-icons',
+        '/bin/bash "$2" malicious.txz icon-pack'
+    ].join('\n');
+    const command = process.platform === 'win32' ? 'wsl.exe' : 'bash';
+    const args = process.platform === 'win32'
+        ? [
+            '--exec',
+            'env',
+            ...Object.entries(extraEnv).map(([key, value]) => `${key}=${value}`),
+            'bash',
+            '-c',
+            shell,
+            'fvplus-preflight',
+            shellTemp,
+            shellPreflight
+        ]
+        : ['-c', shell, 'fvplus-preflight', shellTemp, shellPreflight];
+    try {
+        return spawnSync(command, args, {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            timeout: 30000,
+            env: { ...process.env, ...extraEnv }
+        });
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+};
 
 test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -104,6 +146,7 @@ test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(plg, /<FILE Name="\/boot\/config\/plugins\/&name;\/folderview\.plus-icons-&iconPackVersion;\.txz">/);
     assert.match(plg, /<URL>&iconPackURL;<\/URL>/);
     assert.match(plg, /<MD5>&iconPackMd5;<\/MD5>/);
+    assert.match(plg, /<SHA256>&iconPackSha256;<\/SHA256>/);
 });
 
 test('icon content hashing is deterministic across Linux and Windows Git Bash', () => {
@@ -156,6 +199,11 @@ test('core packaging excludes icon files and carries asset identity metadata', (
 
 test('installer verifies, stages, activates, reuses, and links the pack', () => {
     assert.match(installer, /sha256sum "\$\{ICON_PACK_ARCHIVE\}"/);
+    assert.match(installer, /archive_preflight\.sh/);
+    assert.match(installer, /--no-same-owner --no-same-permissions/);
+    assert.match(installer, /find "\$\{ICON_PACK_STAGE\}" -xdev/);
+    assert.match(fs.readFileSync(archivePreflightPath, 'utf8'), /Archive contains a symbolic or hard link/);
+    assert.match(fs.readFileSync(archivePreflightPath, 'utf8'), /MAX_TOTAL_BYTES/);
     assert.match(installer, /ICON_PACK_STAGE=/);
     assert.match(installer, /ICON_PACK_PREVIOUS=/);
     assert.match(installer, /\.folderview-plus-asset-pack/);
@@ -200,6 +248,19 @@ test('installer rejects a bad checksum before creating an active cache', () => {
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
+});
+
+test('archive preflight rejects links and bounded-size violations before extraction', () => {
+    const linked = runMaliciousArchivePreflight('ln -s /etc/passwd third-party-icons/escape.svg');
+    assert.notEqual(linked.status, 0);
+    assert.match(linked.stderr, /symbolic or hard link/);
+
+    const oversized = runMaliciousArchivePreflight(
+        "printf '0123456789abcdef' > third-party-icons/large.svg",
+        { FVPLUS_ARCHIVE_MAX_ENTRY_BYTES: '8' }
+    );
+    assert.notEqual(oversized.status, 0);
+    assert.match(oversized.stderr, /entry exceeds the 8-byte limit/);
 });
 
 test('runtime and support diagnostics expose asset-pack identity', () => {

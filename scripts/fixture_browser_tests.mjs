@@ -1396,7 +1396,7 @@ test('Mobile reorder persists click state and isolates Docker and VM controls', 
         root.classList.add('fv-mobile-compact');
         document.body.classList.add('fv-mobile-compact');
         root.insertAdjacentHTML('beforeend', `
-            <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false">Mobile reorder</button>
+            <button id="vm-tree-reorder-toggle" type="button" data-fv-onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false">Mobile reorder</button>
             <div class="folder-table"><table><tbody id="docker"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">Docker move</button></span></td><td>Docker</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
             <div class="folder-table"><table><tbody id="vms"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">VM move</button></span></td><td>VM</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
         `);

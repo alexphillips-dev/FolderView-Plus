@@ -1,5 +1,7 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
+IFS=$'\n\t'
+umask 077
 
 ICON_PACK_VERSION="${1:-}"
 ICON_PACK_SHA256="${2:-}"
@@ -12,6 +14,7 @@ ICON_PACK_MARKER="${ICON_PACK_CACHE_ROOT}/.folderview-plus-asset-pack"
 ICON_PACK_EXPECTED_MARKER="${ICON_PACK_VERSION}:${ICON_PACK_SHA256}"
 ICON_PACK_STATUS_FILE="${FVPLUS_ICON_PACK_STATUS_FILE:-}"
 ICON_PACK_INSTALL_STATE="reused"
+ARCHIVE_PREFLIGHT="${PLUGIN_DIR}/scripts/archive_preflight.sh"
 
 write_status() {
     state="${1:-unknown}"
@@ -36,6 +39,36 @@ fail() {
     exit 1
 }
 
+normalize_root() {
+    local root="${1:-}"
+    root="${root%/}"
+    case "${root}" in
+        ''|/|.) fail "FolderView Plus asset-pack root path is unsafe." ;;
+        /*) printf '%s\n' "${root}" ;;
+        *) fail "FolderView Plus asset-pack root path must be absolute." ;;
+    esac
+}
+
+CACHE_BASE="$(normalize_root "${CACHE_BASE}")"
+CONFIG_DIR="$(normalize_root "${CONFIG_DIR}")"
+PLUGIN_DIR="$(normalize_root "${PLUGIN_DIR}")"
+ICON_PACK_CACHE_ROOT="${CACHE_BASE}/icons-${ICON_PACK_VERSION}"
+ICON_PACK_MARKER="${ICON_PACK_CACHE_ROOT}/.folderview-plus-asset-pack"
+ARCHIVE_PREFLIGHT="${PLUGIN_DIR}/scripts/archive_preflight.sh"
+
+assert_cache_child() {
+    case "${1:-}" in
+        "${CACHE_BASE}/"*) ;;
+        *) fail "Refusing filesystem operation outside the asset-pack cache root." ;;
+    esac
+}
+
+safe_remove_cache_tree() {
+    local target="${1:-}"
+    assert_cache_child "${target}"
+    rm -rf -- "${target}"
+}
+
 case "${ICON_PACK_VERSION}" in
     ''|*[!0-9.]*) fail "FolderView Plus icon asset-pack version is invalid." ;;
 esac
@@ -57,29 +90,41 @@ fi
 if [ "${ICON_PACK_READY}" -ne 1 ]; then
     ICON_PACK_INSTALL_STATE="activated"
     [ -f "${ICON_PACK_ARCHIVE}" ] || fail "FolderView Plus icon asset pack is missing: ${ICON_PACK_ARCHIVE}"
+    [ ! -L "${ICON_PACK_ARCHIVE}" ] || fail "FolderView Plus icon asset-pack archive must not be a symbolic link."
     ICON_PACK_ACTUAL_SHA256="$(sha256sum "${ICON_PACK_ARCHIVE}" | awk '{print $1}')"
     [ "${ICON_PACK_ACTUAL_SHA256}" = "${ICON_PACK_SHA256}" ] || fail "FolderView Plus icon asset-pack checksum verification failed."
+    [ -f "${ARCHIVE_PREFLIGHT}" ] || fail "FolderView Plus archive preflight helper is unavailable."
+    /bin/bash "${ARCHIVE_PREFLIGHT}" "${ICON_PACK_ARCHIVE}" icon-pack \
+        || fail "FolderView Plus icon asset-pack archive failed security preflight."
 
     mkdir -p "${CACHE_BASE}"
-    ICON_PACK_STAGE="${ICON_PACK_CACHE_ROOT}.stage.$$"
-    ICON_PACK_PREVIOUS="${ICON_PACK_CACHE_ROOT}.previous.$$"
-    rm -rf "${ICON_PACK_STAGE}" "${ICON_PACK_PREVIOUS}"
-    mkdir -p "${ICON_PACK_STAGE}"
-    if ! tar -xJf "${ICON_PACK_ARCHIVE}" -C "${ICON_PACK_STAGE}"; then
-        rm -rf "${ICON_PACK_STAGE}"
+    [ ! -L "${CACHE_BASE}" ] || fail "FolderView Plus asset-pack cache root must not be a symbolic link."
+    chmod 0755 "${CACHE_BASE}"
+    ICON_PACK_STAGE="$(mktemp -d "${CACHE_BASE}/.icons-${ICON_PACK_VERSION}.stage.XXXXXX")"
+    ICON_PACK_PREVIOUS="$(mktemp -d "${CACHE_BASE}/.icons-${ICON_PACK_VERSION}.previous.XXXXXX")"
+    rmdir "${ICON_PACK_PREVIOUS}"
+    assert_cache_child "${ICON_PACK_STAGE}"
+    assert_cache_child "${ICON_PACK_PREVIOUS}"
+    if ! tar --extract --xz --file "${ICON_PACK_ARCHIVE}" --directory "${ICON_PACK_STAGE}" \
+        --no-same-owner --no-same-permissions --delay-directory-restore; then
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset pack could not be extracted."
     fi
+    if find "${ICON_PACK_STAGE}" -xdev \( ! -type f ! -type d \) -print -quit | grep -q .; then
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
+        fail "FolderView Plus icon asset pack extracted an unsupported filesystem object."
+    fi
     if [ ! -f "${ICON_PACK_STAGE}/asset-pack.json" ] || [ ! -d "${ICON_PACK_STAGE}/third-party-icons" ]; then
-        rm -rf "${ICON_PACK_STAGE}"
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset pack is incomplete."
     fi
     if ! grep -Fq "\"version\": \"${ICON_PACK_VERSION}\"" "${ICON_PACK_STAGE}/asset-pack.json"; then
-        rm -rf "${ICON_PACK_STAGE}"
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset-pack version does not match the plugin manifest."
     fi
     ICON_PACK_FILE_COUNT="$(find "${ICON_PACK_STAGE}/third-party-icons" -type f | wc -l | tr -d '[:space:]')"
     if [ -z "${ICON_PACK_FILE_COUNT}" ] || [ "${ICON_PACK_FILE_COUNT}" -eq 0 ]; then
-        rm -rf "${ICON_PACK_STAGE}"
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset pack contains no icons."
     fi
 
@@ -90,12 +135,12 @@ if [ "${ICON_PACK_READY}" -ne 1 ]; then
         mv "${ICON_PACK_CACHE_ROOT}" "${ICON_PACK_PREVIOUS}"
     fi
     if mv "${ICON_PACK_STAGE}" "${ICON_PACK_CACHE_ROOT}"; then
-        rm -rf "${ICON_PACK_PREVIOUS}"
+        safe_remove_cache_tree "${ICON_PACK_PREVIOUS}"
     else
         if [ -e "${ICON_PACK_PREVIOUS}" ] || [ -L "${ICON_PACK_PREVIOUS}" ]; then
             mv "${ICON_PACK_PREVIOUS}" "${ICON_PACK_CACHE_ROOT}"
         fi
-        rm -rf "${ICON_PACK_STAGE}"
+        safe_remove_cache_tree "${ICON_PACK_STAGE}"
         fail "FolderView Plus icon asset pack could not be activated."
     fi
 fi
@@ -109,17 +154,20 @@ esac
 
 mkdir -p "${PLUGIN_DIR}/images"
 RUNTIME_LINK="${PLUGIN_DIR}/images/third-party-icons"
-RUNTIME_LINK_STAGE="${RUNTIME_LINK}.stage.$$"
-rm -rf "${RUNTIME_LINK_STAGE}"
+RUNTIME_LINK_STAGE_DIR="$(mktemp -d "${PLUGIN_DIR}/images/.third-party-icons.stage.XXXXXX")"
+RUNTIME_LINK_STAGE="${RUNTIME_LINK_STAGE_DIR}/third-party-icons"
 ln -s "${ICON_PACK_CACHE_ROOT}/third-party-icons" "${RUNTIME_LINK_STAGE}"
-rm -rf "${RUNTIME_LINK}"
+if [ -e "${RUNTIME_LINK}" ] || [ -L "${RUNTIME_LINK}" ]; then
+    rm -rf -- "${RUNTIME_LINK}"
+fi
 mv -Tf "${RUNTIME_LINK_STAGE}" "${RUNTIME_LINK}"
+rmdir "${RUNTIME_LINK_STAGE_DIR}"
 cp -f "${ICON_PACK_CACHE_ROOT}/asset-pack.json" "${PLUGIN_DIR}/icon-asset-pack.json.tmp"
 mv -f "${PLUGIN_DIR}/icon-asset-pack.json.tmp" "${PLUGIN_DIR}/icon-asset-pack.json"
 
 for stale_root in "${CACHE_BASE}"/icons-*; do
     if [ "${stale_root}" != "${ICON_PACK_CACHE_ROOT}" ]; then
-        rm -rf "${stale_root}"
+        safe_remove_cache_tree "${stale_root}"
     fi
 done
 for stale_archive in "${CONFIG_DIR}"/folderview.plus-icons-*.txz; do

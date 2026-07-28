@@ -206,6 +206,7 @@ run_lane() {
       run_timed_step deprecation-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/deprecation_guard.mjs")"
       run_timed_step architecture-contracts "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/architecture_contract_guard.mjs")"
       run_timed_step sbom "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_sbom.mjs")" --check
+      run_timed_step csp-readiness "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/csp_readiness_guard.mjs")"
       run_timed_step action-pins "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/action_pin_guard.mjs")"
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax

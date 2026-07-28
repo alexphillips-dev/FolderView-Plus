@@ -56,11 +56,11 @@ test('settings topbar keeps search adjacent to mode controls without a save-stat
     assert.match(script, /window\.addEventListener\('fvplus:prefs-save-state'/);
 });
 
-test('settings page onclick handlers are exported on window', () => {
+test('settings page declarative handlers are exported on window', () => {
     const handlers = [
-        ...[...page.matchAll(/onclick="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
-        ...[...page.matchAll(/oninput="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
-        ...[...page.matchAll(/onchange="([A-Za-z0-9_]+)\(/g)].map((m) => m[1])
+        ...[...page.matchAll(/data-fv-onclick="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
+        ...[...page.matchAll(/data-fv-oninput="([A-Za-z0-9_]+)\(/g)].map((m) => m[1]),
+        ...[...page.matchAll(/data-fv-onchange="([A-Za-z0-9_]+)\(/g)].map((m) => m[1])
     ];
     const onclickUnique = [...new Set(handlers)];
     const exported = new Set([
@@ -121,12 +121,12 @@ test('settings page exposes theme workspace and saved folder defaults controls',
     assert.match(page, /id="fv-theme-custom-css"/);
     assert.match(page, /id="docker-folder-defaults-source"/);
     assert.match(page, /id="vm-folder-defaults-source"/);
-    assert.match(page, /onclick="saveFolderDefaultsFromSelection\('docker'\)"/);
-    assert.match(page, /onclick="saveFolderDefaultsFromSelection\('vm'\)"/);
-    assert.match(page, /onclick="applySavedFolderDefaultsToAll\('docker'\)"/);
-    assert.match(page, /onclick="applySavedFolderDefaultsToAll\('vm'\)"/);
-    assert.match(page, /onclick="clearFolderDefaults\('docker'\)"/);
-    assert.match(page, /onclick="clearFolderDefaults\('vm'\)"/);
+    assert.match(page, /data-fv-onclick="saveFolderDefaultsFromSelection\('docker'\)"/);
+    assert.match(page, /data-fv-onclick="saveFolderDefaultsFromSelection\('vm'\)"/);
+    assert.match(page, /data-fv-onclick="applySavedFolderDefaultsToAll\('docker'\)"/);
+    assert.match(page, /data-fv-onclick="applySavedFolderDefaultsToAll\('vm'\)"/);
+    assert.match(page, /data-fv-onclick="clearFolderDefaults\('docker'\)"/);
+    assert.match(page, /data-fv-onclick="clearFolderDefaults\('vm'\)"/);
     assert.match(script, /const getThemeWorkspaceApi = \(\(\) => \{/);
     assert.match(script, /const renderFolderDefaultsPanel = \(type\) => \{/);
     assert.match(script, /const saveFolderDefaultsFromSelection = async \(type\) => \{/);
@@ -273,10 +273,10 @@ test('settings action dock tracks only explicit/manual fields and excludes insta
 });
 
 test('settings table width preset controls are wired as instant-persist inputs', () => {
-    assert.match(page, /id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'name', this\.value\)"/);
-    assert.match(page, /id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'actions', this\.value\)"/);
-    assert.match(page, /id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'name', this\.value\)"/);
-    assert.match(page, /id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'actions', this\.value\)"/);
+    assert.match(page, /id="docker-table-name-width" data-fv-onchange="changeSettingsTableColumnWidthPreset\('docker', 'name', this\.value\)"/);
+    assert.match(page, /id="docker-table-actions-width" data-fv-onchange="changeSettingsTableColumnWidthPreset\('docker', 'actions', this\.value\)"/);
+    assert.match(page, /id="vm-table-name-width" data-fv-onchange="changeSettingsTableColumnWidthPreset\('vm', 'name', this\.value\)"/);
+    assert.match(page, /id="vm-table-actions-width" data-fv-onchange="changeSettingsTableColumnWidthPreset\('vm', 'actions', this\.value\)"/);
 });
 
 test('settings sections only show section apply badges when save-required fields exist', () => {

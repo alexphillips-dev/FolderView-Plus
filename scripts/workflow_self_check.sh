@@ -36,6 +36,7 @@ for (const relativePath of [
   'scripts/run_ci_suite.sh',
   'scripts/actionlint_guard.sh',
   'scripts/classify_ci_changes.mjs',
+  'scripts/csp_readiness_guard.mjs',
   'scripts/fixture_browser_tests.sh',
   'scripts/fixture_browser_tests.mjs',
   'scripts/runtime_performance_benchmarks.sh',
@@ -153,6 +154,15 @@ for (const [name, workflow] of [
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
+if (!/permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must grant only the release, OIDC, and attestation permissions required for signed provenance.');
+}
+if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g) || []).length !== 2 ||
+    !/Attest release archive provenance/.test(releaseOnMainWorkflow) ||
+    !/Attest release archive SBOM/.test(releaseOnMainWorkflow) ||
+    !/sbom-path:\s*docs\/sbom\.cdx\.json/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must publish commit-pinned provenance and SBOM attestations for the release archive.');
+}
 if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must fail closed unless live browser smoke coverage is configured.');
 }
@@ -233,6 +243,9 @@ for (const [workflowName, workflow, jobNames] of [
 
 const runCiSuite = read('scripts/run_ci_suite.sh');
 const actionlintGuard = read('scripts/actionlint_guard.sh');
+if (!/run_timed_step csp-readiness/.test(runCiSuite)) {
+  fail('The lint lane must enforce the deterministic CSP readiness report.');
+}
 if (!/run_timed_step actionlint bash scripts\/actionlint_guard\.sh/.test(runCiSuite)) {
   fail('Workflow and full guard lanes must run the pinned actionlint guard.');
 }

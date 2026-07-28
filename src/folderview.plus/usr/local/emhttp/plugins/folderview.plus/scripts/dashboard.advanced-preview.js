@@ -152,7 +152,7 @@
             return jq(`
                 <div class="fv-dashboard-advanced-preview preview-outbox preview-outbox-${shortId}">
                     <div class="fv-dashboard-advanced-preview-header">
-                        <img src="${icon}" class="img folder-img" alt="" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
+                        <img src="${icon}" class="img folder-img" alt="" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
                         <div class="fv-dashboard-advanced-preview-title">
                             <span class="blue-text appname">${name}</span>
                             <span class="fv-dashboard-advanced-preview-subtitle"><i class="fa fa-${statusIcon} ${statusClass}"></i> ${escapeHtml(i18n(statusKey, statusKey))}</span>

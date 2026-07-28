@@ -1,5 +1,7 @@
 <?php
     require_once __DIR__ . '/lib.remote.php';
+    require_once __DIR__ . '/lib.process.php';
+    require_once __DIR__ . '/lib.filesystem-security.php';
 
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
@@ -300,11 +302,14 @@
             return null;
         }
 
-        $command = "docker exec " . escapeshellarg($containerName) . " tailscale ip -4 2>/dev/null";
-        fv3_debug_log("    fv3_get_tailscale_ip_from_container: Executing: $command for $containerName");
-        $output = [];
-        $return_var = -1;
-        @exec($command, $output, $return_var);
+        try {
+            $processResult = fvplusRunProcessProfile('docker-tailscale-ip', ['name' => $containerName]);
+        } catch (Throwable $error) {
+            fv3_debug_log("    fv3_get_tailscale_ip_from_container: Process failed: " . $error->getMessage());
+            return null;
+        }
+        $output = (array)($processResult['output'] ?? []);
+        $return_var = (int)($processResult['exitCode'] ?? -1);
 
         if ($return_var === 0 && !empty($output) && filter_var(trim($output[0]), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ip = trim($output[0]);
@@ -332,12 +337,14 @@
             return null;
         }
 
-        $command = "docker exec " . escapeshellarg($containerName) . " tailscale status --peers=false --json 2>/dev/null";
-        fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Executing: $command for $containerName");
-        $output_lines = [];
-        $return_var = -1;
-        @exec($command, $output_lines, $return_var);
-        $json_output = implode("\n", $output_lines);
+        try {
+            $processResult = fvplusRunProcessProfile('docker-tailscale-status', ['name' => $containerName]);
+        } catch (Throwable $error) {
+            fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Process failed: " . $error->getMessage());
+            return null;
+        }
+        $return_var = (int)($processResult['exitCode'] ?? -1);
+        $json_output = trim((string)($processResult['stdout'] ?? ''));
 
         if ($return_var === 0 && !empty($json_output)) {
             $status_data = json_decode($json_output, true);
@@ -519,7 +526,7 @@
         echo '<li>Refresh this page to re-enable FolderView Plus.</li>';
         echo '</ol>';
         echo '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
-        echo '<button type="button" class="btn" onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
+        echo '<button type="button" class="btn" data-fv-onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
         echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;align-self:center;line-height:1.2;margin:0;white-space:nowrap;">Support Thread</a>';
         echo '</div>';
         echo '</div>';
@@ -2172,6 +2179,7 @@
         $fileFlushed = false;
         $directoryFlushed = false;
         try {
+            fvplusAssertDurableWriteTarget($path);
             $parent = dirname($path);
             fvplusStorageThrowInjectedFailure('parent-create', $path);
             if (!is_dir($parent) && !@mkdir($parent, 0770, true) && !is_dir($parent)) {
@@ -2187,6 +2195,10 @@
             $mode = $existingMode > 0 ? $existingMode : ($requestedMode > 0 ? $requestedMode : 0644);
             fvplusStorageThrowInjectedFailure('temp-create', $path);
             $tmpPath = createAtomicWriteTempPath($path);
+            if (is_link($tmpPath)) {
+                throw new RuntimeException("Durable storage temp path is unsafe for '$path'.");
+            }
+            @chmod($tmpPath, 0600);
             $handle = @fopen($tmpPath, 'c+b');
             if (!is_resource($handle)) {
                 throw new RuntimeException("Failed to open temp durable payload for '$path'.");
@@ -2726,12 +2738,20 @@
                     if (!in_array($type, $tabs, true)) {
                         continue;
                     }
+                    $content = (string)($file['content'] ?? '');
+                    $contentScan = fvplusThemeWorkspaceScanCss($content);
+                    if (count((array)($contentScan['severe'] ?? [])) > 0) {
+                        continue;
+                    }
                     $fileName = trim((string)($file['name'] ?? $file['path'] ?? 'theme.css'));
-                    $chunks[] = "/* Imported theme: $fileName */\n" . (string)($file['content'] ?? '');
+                    $chunks[] = "/* Imported theme: $fileName */\n" . $content;
                 }
             }
             if ($customCss !== '') {
-                $chunks[] = "/* Theme Workspace custom CSS */\n" . $customCss;
+                $customScan = fvplusThemeWorkspaceScanCss($customCss);
+                if (count((array)($customScan['severe'] ?? [])) === 0) {
+                    $chunks[] = "/* Theme Workspace custom CSS */\n" . $customCss;
+                }
             }
             $output = trim(implode("\n\n", array_filter($chunks, static function($chunk): bool {
                 return trim((string)$chunk) !== '';
@@ -2962,26 +2982,23 @@
     }
 
     function fvplusThemeWorkspaceScanCss(string $css): array {
-        $warnings = [];
         $severe = [];
         $rules = [
             ['pattern' => '/expression\s*\(/i', 'message' => 'CSS contains expression().'],
             ['pattern' => '/javascript\s*:/i', 'message' => 'CSS contains javascript: URLs.'],
-            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.']
+            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.'],
+            ['pattern' => '/-moz-binding\s*:/i', 'message' => 'CSS contains legacy executable binding rules.'],
+            ['pattern' => '/@import\b/i', 'message' => 'CSS contains @import, which is not permitted in managed themes.'],
+            ['pattern' => '/url\s*\(\s*["\']?(?:https?:)?\/\//i', 'message' => 'CSS contains an external network URL.'],
+            ['pattern' => '/url\s*\(\s*["\']?data:text\/html/i', 'message' => 'CSS contains a data:text/html URL.']
         ];
         foreach ($rules as $rule) {
             if (preg_match($rule['pattern'], $css)) {
                 $severe[] = $rule['message'];
             }
         }
-        if (preg_match('/@import\s+(url\()?["\']?(https?:)?\/\//i', $css)) {
-            $warnings[] = 'CSS contains remote @import rules.';
-        }
-        if (preg_match('/url\s*\(\s*["\']?data:text\/html/i', $css)) {
-            $warnings[] = 'CSS contains data:text/html URLs.';
-        }
         return [
-            'warnings' => array_values(array_unique($warnings)),
+            'warnings' => [],
             'severe' => array_values(array_unique($severe))
         ];
     }
@@ -3309,6 +3326,10 @@
 
     function saveThemeWorkspaceCustomize($variables, string $customCss): array {
         $workspace = readThemeWorkspace();
+        $scan = fvplusThemeWorkspaceScanCss($customCss);
+        if (count((array)($scan['severe'] ?? [])) > 0) {
+            throw new RuntimeException(implode(' ', (array)$scan['severe']));
+        }
         $workspace['variables'] = fvplusThemeWorkspaceNormalizeVariableMap($variables);
         $workspace['customCss'] = truncateUtf8String($customCss, FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES);
         return writeThemeWorkspace($workspace);
@@ -4528,17 +4549,6 @@
         return false;
     }
 
-    function runShellActionCommand(string $command): array {
-        $output = [];
-        $exitCode = 0;
-        @exec($command . ' 2>&1', $output, $exitCode);
-        return [
-            'ok' => $exitCode === 0,
-            'exitCode' => (int)$exitCode,
-            'output' => array_slice(array_values($output), 0, 8)
-        ];
-    }
-
     function executeFolderRuntimeAction(string $type, string $action, array $items): array {
         $type = ensureType($type);
         $normalizedAction = strtolower(trim($action));
@@ -4593,24 +4603,18 @@
                 continue;
             }
 
-            if ($type === 'docker') {
-                $dockerAction = $normalizedAction === 'resume' ? 'unpause' : $normalizedAction;
-                $command = 'docker ' . $dockerAction . ' ' . escapeshellarg($name);
-            } else {
-                $vmAction = $normalizedAction;
-                if ($vmAction === 'start') {
-                    $command = 'virsh start ' . escapeshellarg($name);
-                } elseif ($vmAction === 'stop') {
-                    $command = 'virsh shutdown ' . escapeshellarg($name);
-                } elseif ($vmAction === 'pause') {
-                    $command = 'virsh suspend ' . escapeshellarg($name);
-                } else {
-                    $command = 'virsh resume ' . escapeshellarg($name);
-                }
+            $processProfile = $type === 'docker' ? 'docker-runtime' : 'virsh-runtime';
+            try {
+                $commandResult = fvplusRunRuntimeItemAction($type, $normalizedAction, $name);
+            } catch (Throwable $error) {
+                $commandResult = [
+                    'ok' => false,
+                    'exitCode' => 126,
+                    'output' => ['Allowlisted process could not start.']
+                ];
             }
 
             $executed++;
-            $commandResult = runShellActionCommand($command);
             if ($commandResult['ok']) {
                 $succeeded++;
             } else {
@@ -4625,7 +4629,7 @@
             $results[] = [
                 'item' => $name,
                 'state' => $stateKind,
-                'command' => $command,
+                'profile' => $processProfile,
                 'ok' => $commandResult['ok'],
                 'exitCode' => $commandResult['exitCode'],
                 'output' => $commandResult['output']

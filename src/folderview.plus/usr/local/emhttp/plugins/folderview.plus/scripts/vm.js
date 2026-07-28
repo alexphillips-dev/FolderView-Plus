@@ -341,6 +341,12 @@ if (!runtimeFolderOrdering || typeof runtimeFolderOrdering.createOrderCursor !==
 } else {
     setVmFatalBannerModuleStatus('runtime.folder-ordering.js', 'ok', 'folder ordering contract ready');
 }
+if (typeof runtimeShared.createFolderRowActionsController !== 'function') {
+    vmBootstrapMissingModules.push('folder.runtime.row-actions.js');
+    setVmFatalBannerModuleStatus('folder.runtime.row-actions.js', 'missing', 'folder row action lifecycle unavailable');
+} else {
+    setVmFatalBannerModuleStatus('folder.runtime.row-actions.js', 'ok', 'folder row actions ready');
+}
 if (
     window.FolderViewPlusVmRuntimeLifecycleModuleLoaded !== true
     || !vmLifecycleModule
@@ -1917,6 +1923,8 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     } else {
         $('#kvm_list > tr.sortable').eq(position - 1).next().after($(fld));
     }
+    const $createdFolderRow = $(`tr.folder-id-${id}`).first();
+    vmFolderRowActionsController.decorate($createdFolderRow, id);
     const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
     const depthIndentPx = safeDepth * 20;
     $(`tr.folder-id-${id}`)
@@ -2261,6 +2269,18 @@ const dropDownButton = (id, persistState = true) => {
     scheduleVmZebraRefresh();
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
+const vmFolderRowActionsController = runtimeShared.createFolderRowActionsController({
+    document,
+    $,
+    namespace: 'fvVmFolderRowAction',
+    actionAttribute: 'data-fv-vm-folder-action',
+    handlers: {
+        toggle: (id) => dropDownButton(id),
+        edit: (id) => editFolder(id),
+        context: (id) => addVMFolderContext(id)
+    }
+});
+const bindVmFolderRowActions = () => vmFolderRowActionsController.bind();
 
 const readVmFolderContainerNames = (containers) => {
     if (Array.isArray(containers)) {
@@ -3927,6 +3947,7 @@ window.addVMFolderContext = addVMFolderContext;
 window.dropDownButton = dropDownButton;
 window.editFolder = editFolder;
 window.createFolderBtn = createFolderBtn;
+bindVmFolderRowActions();
 
 
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {
@@ -3974,6 +3995,7 @@ window.addEventListener('pagehide', () => {
     clearTimeout(queuedLoadlistTimer);
     clearTimeout(vmRuntimeWidthReflowTimer);
     clearTimeout(vmZebraRefreshTimer);
+    vmFolderRowActionsController.destroy();
     vmNativeDetailRowObserver?.disconnect?.();
     if (vmNativeToggleClickHost instanceof HTMLTableElement) {
         vmNativeToggleClickHost.removeEventListener('click', handleVmNativeToggleClick, true);

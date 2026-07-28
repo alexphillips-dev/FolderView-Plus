@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
@@ -43,6 +44,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const snapshotIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
+    const rowActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
     const hostAdapterIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
     const orderingIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
@@ -65,6 +67,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(snapshotIndex >= 0, 'runtime snapshot client include is missing');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
+    assert.ok(rowActionsIndex >= 0, 'folder row action script include is missing');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter script include is missing');
     assert.ok(orderingIndex >= 0, 'shared folder ordering script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
@@ -105,6 +108,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
     assert.ok(commandViewIndex < runtimeIndex, 'docker command-view helpers must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
+    assert.ok(stateObserverIndex < rowActionsIndex && rowActionsIndex < runtimeIndex, 'folder row actions must load after state observers and before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
     assert.ok(sharedCssIndex < commandViewCssIndex, 'shared runtime stylesheet must load before docker.command-view.css');
@@ -277,6 +281,18 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /window\.forceUpdateFolder = forceUpdateFolder;/);
     assert.match(dockerJs, /window\.updateFolder = updateFolder;/);
     assert.match(dockerJs, /window\.createFolderBtn = createFolderBtn;/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folder\.runtime\.row-actions\.js'\)/);
+    assert.match(dockerJs, /const dockerFolderRowActionsController = dockerRuntimeShared\.createFolderRowActionsController\(\{/);
+    assert.match(dockerJs, /actionAttribute: 'data-fv-docker-folder-action'/);
+    assert.match(dockerJs, /toggle: \(id\) => dropDownButton\(id\)/);
+    assert.match(dockerJs, /edit: \(id\) => editFolder\(id\)/);
+    assert.match(dockerJs, /context: \(id\) => addDockerFolderContext\(id\)/);
+    assert.match(dockerJs, /dockerFolderRowActionsController\.decorate\(\$createdFolderRow, id\);/);
+    assert.match(dockerJs, /bindDockerFolderRowActions\(\);/);
+    assert.match(dockerJs, /dockerFolderRowActionsController\.destroy\(\);/);
+    assert.match(folderRowActionsJs, /\.removeAttr\('data-fv-onclick'\)/);
+    assert.match(folderRowActionsJs, /\.off\(eventName, selector\)[\s\S]*\.on\(eventName, selector/);
+    assert.match(folderRowActionsJs, /root\.FolderViewDockerRuntimeShared\.createFolderRowActionsController = api\.createController/);
 });
 
 test('docker command-view stylesheet only hides the host table when the isolated command module is mounted', () => {

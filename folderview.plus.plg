@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.05">
-<!ENTITY md5 "12f7d8194dbd1db52736c85c9860e650">
-<!ENTITY sha256 "91a62bc1615c939ce7deba43247a095594c6bc7b2f09e102c11d1f779616eaf4">
+<!ENTITY version "2026.07.28.06">
+<!ENTITY md5 "1e64448a5d593649ac77f0e7a234e82c">
+<!ENTITY sha256 "e78b2e2f7d662058c6b3f603f7ab79783a3b0691f7a624be65180a37e389d3e2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,31 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.06
+# FolderView Plus 2026.07.28.06
+This reliability update restores folder interactions after the declarative
+event security migration and removes false Storage and paths failures caused by
+managed or retired installed runtime files.
+## Folder interactions
+- Fix: Route Docker and VM folder icon, name, and expand controls through one
+  shared delegated-action controller instead of the declarative compatibility
+  bridge.
+- Fix: Bind each folder action once, remove the legacy action attribute during
+  row creation, and release the delegated handler when the page is unloaded.
+- Diagnostics: Treat the shared folder-action controller as a required runtime
+  module so a missing or stale asset produces a specific bootstrap finding.
+## Runtime integrity
+- Diagnostics: Exclude the exact generated `icon-asset-pack.json` activation
+  record from unexpected executable-file findings while continuing to flag
+  every other unmanifested JSON, script, style, shell, or PHP file.
+- Maintenance: Remove the retired native-organizer and Docker member-menu
+  scripts from the installed plugin directory during upgrades.
+## Regression coverage
+- Test: Exercise folder action decoration, single-dispatch behavior, teardown,
+  Docker and VM module ordering, managed runtime-file handling, obsolete-file
+  cleanup, browser fixtures, and runtime performance budgets.
+
 
 ###2026.07.28.05
 # FolderView Plus 2026.07.28.05
@@ -8032,6 +8057,8 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
             find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
+            install_stage="obsolete runtime cleanup"
+            rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js"
             install_stage="icon pack activation"
             FVPLUS_ICON_PACK_STATUS_FILE="${icon_status}" /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             install_stage="scheduled backup registration"

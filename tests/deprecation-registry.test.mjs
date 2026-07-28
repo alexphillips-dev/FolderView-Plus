@@ -21,7 +21,12 @@ test('deprecation registry enforces compatibility and removed-token contracts', 
 test('removed native organizer integration leaves only bounded legacy browser-state cleanup', () => {
     const pluginRoot = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
     const settingsRuntime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.js'), 'utf8');
+    const pluginManifest = fs.readFileSync(path.join(repoRoot, 'folderview.plus.plg'), 'utf8');
     assert.equal(fs.existsSync(path.join(pluginRoot, 'scripts/folderviewplus.native-organizer.js')), false);
     assert.match(settingsRuntime, /const REMOVED_SETTINGS_STORAGE_KEYS = Object\.freeze\(\[\s*'fv\.native\.organizer\.status\.v1'\s*\]\);/);
     assert.match(settingsRuntime, /removeSettingsStorage\(storageKey, \{ delayMs: 0 \}\);/);
+    assert.match(
+        pluginManifest,
+        /rm -f "&plugdir;\/scripts\/folderviewplus\.native-organizer\.js" "&plugdir;\/scripts\/docker\.member-menu\.js"/
+    );
 });

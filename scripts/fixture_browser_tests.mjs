@@ -288,8 +288,9 @@ test('Docker folder Unpin intent is retained while the preceding Pin save settle
     await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
     const result = await page.evaluate(() => window.fixtureQueuedFolderPinIntent.run());
     assert.equal(result.queuedBeforeSave, true, 'Unpin must queue while Pin is saving');
+    assert.equal(result.pinnedBeforeSave, false, 'Unpin must update the visible state before Pin finishes saving');
     assert.equal(result.pinned, false, 'one queued Unpin action must produce the requested final state');
-    assert.deepEqual(result.transitions, ['pinned', 'pin-saved', 'unpinned']);
+    assert.deepEqual(result.transitions, ['pinned', 'unpinned', 'pin-saved', 'unpin-saved']);
     assert.equal(result.runningAfterSave, false);
     assert.equal(result.queuedAfterSave, false);
 });

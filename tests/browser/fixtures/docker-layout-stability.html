@@ -189,21 +189,33 @@
                 });
                 const transitions = [];
                 let pinned = false;
-                const pin = runner.run('docker-pin:fixture-folder', async () => {
-                    pinned = true;
-                    transitions.push('pinned');
+                const applyIntent = (nextPinned) => {
+                    if (pinned === nextPinned) {
+                        return;
+                    }
+                    pinned = nextPinned;
+                    transitions.push(nextPinned ? 'pinned' : 'unpinned');
+                };
+                const pin = runner.run('docker-pin:fixture-folder', async (intent) => {
                     await pinSave;
                     transitions.push('pin-saved');
-                });
-                const unpin = runner.run('docker-pin:fixture-folder', async () => {
-                    pinned = false;
-                    transitions.push('unpinned');
-                }, { queueIfBusy: true });
+                    if (intent.isLatest()) {
+                        applyIntent(true);
+                    }
+                }, { onIntent: () => applyIntent(true) });
+                const unpin = runner.run('docker-pin:fixture-folder', async (intent) => {
+                    transitions.push('unpin-saved');
+                    if (intent.isLatest()) {
+                        applyIntent(false);
+                    }
+                }, { queueIfBusy: true, onIntent: () => applyIntent(false) });
                 const queuedBeforeSave = runner.isQueued('docker-pin:fixture-folder');
+                const pinnedBeforeSave = pinned;
                 releasePin();
                 await Promise.all([pin, unpin]);
                 return {
                     queuedBeforeSave,
+                    pinnedBeforeSave,
                     pinned,
                     transitions,
                     runningAfterSave: runner.isRunning('docker-pin:fixture-folder'),

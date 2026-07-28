@@ -12,6 +12,10 @@ compatible while stronger supply-chain evidence is available to administrators.
   sidecar, archive filename, package version, and archive bytes to agree exactly.
 - The package contains `build-metadata.json`, which records the channel, version,
   source-content digest, archive URL, and icon-pack identity.
+- The package contains `runtime-integrity.json`, which records SHA-256 and
+  expected modes for installed PHP, JavaScript, page, CSS, helper, and critical
+  metadata files. Diagnostics compares the installed tree with this manifest
+  without automatically modifying the system.
 - Icon-pack installation verifies SHA-256 before a bounded archive preflight,
   extracts into private staging, rejects links/special files/traversal, and
   atomically activates the verified tree.
@@ -39,3 +43,6 @@ gh attestation verify folderview.plus-YYYY.MM.DD.UU.txz \
 Unraid installation does not require the GitHub CLI and continues to use manifest
 SHA-256 verification. Attestations are an additional origin/build claim for
 administrators and release auditing, not a replacement for the on-system checksum.
+
+Installed-runtime verification and recovery guidance is documented in
+[`RUNTIME_INTEGRITY.md`](RUNTIME_INTEGRITY.md).

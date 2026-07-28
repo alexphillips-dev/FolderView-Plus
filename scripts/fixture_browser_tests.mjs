@@ -60,7 +60,21 @@ const readRequestBody = (request) => new Promise((resolve, reject) => {
 const fixtureServer = http.createServer(async (request, response) => {
     try {
         const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-        if (requestUrl.pathname === '/api/echo') {
+        if (requestUrl.pathname === '/plugins/folderview.plus/server/security.php') {
+            const rawBody = await readRequestBody(request);
+            const body = Object.fromEntries(new URLSearchParams(rawBody));
+            assert.equal(request.method, 'POST');
+            assert.equal(body.action, 'issue_nonce');
+            assert.equal(body.endpoint, 'echo.php');
+            response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            response.end(JSON.stringify({
+                ok: true,
+                nonce: 'a'.repeat(64)
+            }));
+            return;
+        }
+
+        if (requestUrl.pathname === '/api/echo.php') {
             const rawBody = await readRequestBody(request);
             const body = Object.fromEntries(new URLSearchParams(rawBody));
             response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -70,7 +84,8 @@ const fixtureServer = http.createServer(async (request, response) => {
                 headers: {
                     request: request.headers['x-fv-request'] || '',
                     token: request.headers['x-fv-token'] || '',
-                    trace: request.headers['x-fv-trace'] || ''
+                    trace: request.headers['x-fv-trace'] || '',
+                    nonce: request.headers['x-fv-nonce'] || ''
                 }
             }));
             return;
@@ -823,12 +838,14 @@ test('Docker Privacy toggle preserves its widget through optimistic, confirmed, 
 
 test('Standard request client sends mutation markers, token, and trace ID', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
-    const response = await page.evaluate(() => window.FolderViewPlusRequest.postJson('/api/echo', { hello: 'world' }));
+    const response = await page.evaluate(() => window.FolderViewPlusRequest.postJson('/api/echo.php', { hello: 'world' }));
     assert.equal(response.ok, true);
     assert.equal(response.body.hello, 'world');
     assert.equal(response.body._fv_request, '1');
+    assert.equal(response.body._fv_nonce, 'a'.repeat(64));
     assert.equal(response.headers.request, '1');
     assert.equal(response.headers.token, 'fixture-request-token-1234567890');
+    assert.equal(response.headers.nonce, 'a'.repeat(64));
     assert.match(response.headers.trace, /^fv-/);
 });
 

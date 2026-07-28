@@ -11105,7 +11105,7 @@ const restoreLatestBackup = (type) => {
     });
 };
 
-const downloadBackupEntry = (type, name) => {
+const downloadBackupEntry = async (type, name) => {
     let resolvedType;
     try {
         resolvedType = normalizeManagedType(type);
@@ -11119,48 +11119,30 @@ const downloadBackupEntry = (type, name) => {
         return;
     }
 
-    const frameName = `fv-download-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const iframe = document.createElement('iframe');
-    iframe.name = frameName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/plugins/folderview.plus/server/backup.php';
-    form.target = frameName;
-    form.style.display = 'none';
-
-    const addField = (fieldName, value) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = fieldName;
-        input.value = String(value ?? '');
-        form.appendChild(input);
-    };
-
-    addField('action', 'download_post');
-    addField('type', resolvedType);
-    addField('name', resolvedName);
-    addField('_fv_request', '1');
-    const token = getOptionalRequestToken();
-    if (token) {
-        addField('token', token);
+    if (!requestClient || typeof requestClient.postBlob !== 'function') {
+        showError('Download failed', new Error('The secured download client is unavailable. Refresh the page and try again.'));
+        return;
     }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    window.setTimeout(() => {
-        if (form.parentNode) {
-            form.parentNode.removeChild(form);
-        }
-    }, 1000);
-    window.setTimeout(() => {
-        if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
-        }
-    }, 20000);
+    try {
+        const blob = await requestClient.postBlob('/plugins/folderview.plus/server/backup.php', {
+            action: 'download_post',
+            type: resolvedType,
+            name: resolvedName
+        }, {
+            timeoutMs: 30000
+        });
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = resolvedName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+        showError('Download failed', error);
+    }
 };
 
 const deleteBackupEntry = (type, name) => {

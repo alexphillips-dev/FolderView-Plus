@@ -14,6 +14,28 @@ test('CodeQL scans dev and main for pushes and pull requests', () => {
     assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
     assert.match(workflow, /pull_request:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
     assert.match(workflow, /queries: security-extended,security-and-quality/);
+    assert.equal((workflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length, 3);
+});
+
+test('dependency review blocks vulnerable or unapproved dependency changes', () => {
+    const workflow = read('.github/workflows/dependency-review.yml');
+    assert.match(workflow, /pull_request:\s*\n\s*branches:\s*\n\s*- dev\s*\n\s*- main/);
+    assert.match(workflow, /actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/);
+    assert.match(workflow, /fail-on-severity: high/);
+    assert.match(workflow, /license-check: true/);
+    assert.match(workflow, /allow-licenses: Apache-2\.0, BSD-3-Clause, BlueOak-1\.0\.0, ISC, MIT, MPL-2\.0/);
+    assert.match(workflow, /warn-only: false/);
+});
+
+test('OpenSSF Scorecard publishes pinned SARIF results on a schedule', () => {
+    const workflow = read('.github/workflows/scorecard.yml');
+    assert.match(workflow, /schedule:/);
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.match(workflow, /ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/);
+    assert.match(workflow, /github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/);
+    assert.match(workflow, /publish_results: true/);
+    assert.match(workflow, /security-events: write/);
+    assert.match(workflow, /id-token: write/);
 });
 
 test('workflows never upload live Unraid browser evidence', () => {

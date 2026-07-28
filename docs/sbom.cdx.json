@@ -6,7 +6,7 @@
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.07.28.04",
+      "version": "2026.07.28.05",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -65,6 +65,19 @@
     },
     {
       "type": "application",
+      "name": "actions/dependency-review-action",
+      "version": "a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "scope": "optional",
+      "purl": "pkg:github/actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
       "name": "actions/setup-node",
       "version": "820762786026740c76f36085b0efc47a31fe5020",
       "scope": "optional",
@@ -82,6 +95,19 @@
       "version": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "scope": "optional",
       "purl": "pkg:github/actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "ossf/scorecard-action",
+      "version": "2d1146689b8cda280b9bc96326124645441f03bc",
+      "scope": "optional",
+      "purl": "pkg:github/ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc",
       "properties": [
         {
           "name": "folderview-plus:usage",

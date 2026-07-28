@@ -30,6 +30,8 @@ for (const relativePath of [
   '.github/workflows/backmerge-main-to-dev.yml',
   '.github/workflows/release-on-main.yml',
   '.github/workflows/codeql.yml',
+  '.github/workflows/dependency-review.yml',
+  '.github/workflows/scorecard.yml',
   '.github/workflows/scheduled-validation.yml',
   '.github/workflows/unraid-docker-upstream-monitor.yml',
   '.github/actions/setup-ci-env/action.yml',
@@ -56,6 +58,8 @@ const ciWorkflow = read('.github/workflows/ci.yml');
 const releaseOnMainWorkflow = read('.github/workflows/release-on-main.yml');
 const backmergeWorkflow = read('.github/workflows/backmerge-main-to-dev.yml');
 const codeqlWorkflow = read('.github/workflows/codeql.yml');
+const dependencyReviewWorkflow = read('.github/workflows/dependency-review.yml');
+const scorecardWorkflow = read('.github/workflows/scorecard.yml');
 const scheduledValidationWorkflow = read('.github/workflows/scheduled-validation.yml');
 const upstreamMonitorWorkflow = read('.github/workflows/unraid-docker-upstream-monitor.yml');
 const jobBlock = (workflow, jobName) => {
@@ -157,6 +161,22 @@ if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
 if (!/permissions:\s*\n\s*contents:\s*write\s*\n\s*id-token:\s*write\s*\n\s*attestations:\s*write/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must grant only the release, OIDC, and attestation permissions required for signed provenance.');
 }
+if ((codeqlWorkflow.match(/github\/codeql-action\/(?:init|autobuild|analyze)@[0-9a-f]{40}\s+# v4/g) || []).length !== 3) {
+  fail('CodeQL must use commit-pinned v4 init, autobuild, and analyze actions.');
+}
+if (!/actions\/dependency-review-action@[0-9a-f]{40}\s+# v5/.test(dependencyReviewWorkflow)
+    || !/fail-on-severity:\s*high/.test(dependencyReviewWorkflow)
+    || !/license-check:\s*true/.test(dependencyReviewWorkflow)
+    || !/warn-only:\s*false/.test(dependencyReviewWorkflow)) {
+  fail('Dependency Review must fail pull requests on high-severity vulnerabilities and enforce the approved license policy.');
+}
+if (!/ossf\/scorecard-action@[0-9a-f]{40}\s+# v2\.4\.4/.test(scorecardWorkflow)
+    || !/github\/codeql-action\/upload-sarif@[0-9a-f]{40}\s+# v4/.test(scorecardWorkflow)
+    || !/publish_results:\s*true/.test(scorecardWorkflow)
+    || !/security-events:\s*write/.test(scorecardWorkflow)
+    || !/id-token:\s*write/.test(scorecardWorkflow)) {
+  fail('OpenSSF Scorecard must publish signed results to GitHub code scanning with pinned actions.');
+}
 if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g) || []).length !== 2 ||
     !/Attest release archive provenance/.test(releaseOnMainWorkflow) ||
     !/Attest release archive SBOM/.test(releaseOnMainWorkflow) ||
@@ -231,6 +251,8 @@ for (const [workflowName, workflow, jobNames] of [
   ['release-on-main', releaseOnMainWorkflow, ['release']],
   ['backmerge-main-to-dev', backmergeWorkflow, ['backmerge']],
   ['codeql', codeqlWorkflow, ['analyze']],
+  ['dependency-review', dependencyReviewWorkflow, ['dependency-review']],
+  ['scorecard', scorecardWorkflow, ['analysis']],
   ['scheduled-validation', scheduledValidationWorkflow, ['configuration', 'cross-browser-fixtures', 'live-unraid']],
   ['unraid-docker-upstream-monitor', upstreamMonitorWorkflow, ['monitor']]
 ]) {

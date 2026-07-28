@@ -19,6 +19,9 @@ const directWriteAllowlist = new Map([
         ['fvplus_log_api_exception', 1],
         ['markDockerSyncOrderPending', 1]
     ])],
+    ['lib.security.php', new Map([
+        ['fvplus_security_with_state_lock', 1]
+    ])],
     ['third_party_icons.php', new Map([
         ['writeThirdPartyIconCache', 2]
     ])],

@@ -143,7 +143,9 @@ function fvplus_enforce_api_contract_for_endpoint(string $endpoint, ?callable $m
 
     fvplus_api_contract_assert_required($contract);
 
-    if (($contract['requestToken'] ?? 'none') === 'mutation') {
+    $GLOBALS['fvplusApiContractContext'] = $contract;
+    $requestToken = (string)($contract['requestToken'] ?? 'none');
+    if ($requestToken === 'mutation') {
         if ($mutationGuard !== null) {
             $mutationGuard();
         } elseif (function_exists('requireMutationRequestGuard')) {
@@ -151,9 +153,13 @@ function fvplus_enforce_api_contract_for_endpoint(string $endpoint, ?callable $m
         } else {
             throw new FVPlusApiContractException('Mutation request guard is unavailable.', 500);
         }
+    } elseif ($requestToken === 'bootstrap') {
+        if (!function_exists('fvplus_require_nonce_bootstrap_guard')) {
+            throw new FVPlusApiContractException('Nonce bootstrap guard is unavailable.', 500);
+        }
+        fvplus_require_nonce_bootstrap_guard();
     }
 
-    $GLOBALS['fvplusApiContractContext'] = $contract;
     if (!headers_sent()) {
         header('X-FV-API-Contract: v' . (string)(fvplus_load_api_endpoint_manifest()['schemaVersion'] ?? 1));
         header('X-FV-Audit-Category: ' . (string)($contract['auditCategory'] ?? 'uncategorized'));

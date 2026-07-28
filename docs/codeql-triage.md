@@ -23,7 +23,14 @@ The baseline predates the changes on `dev`; it is retained here so alert reducti
 
 ## Enforcement
 
-CodeQL runs for pushes and pull requests targeting both `dev` and `main`, plus the weekly scheduled scan. Repository rules require CodeQL to report no new high-or-higher security findings before a protected branch can be merged. Code-quality findings remain part of CI and triage without being mislabeled as security vulnerabilities.
+CodeQL Action v4 runs for pushes and pull requests targeting both `dev` and
+`main`, plus the weekly scheduled scan. Repository rules require CodeQL to report
+no new high-or-higher security findings before a protected branch can be merged.
+Dependency Review separately rejects pull requests that introduce high-or-critical
+known vulnerabilities or licenses outside the repository's approved quality-tooling
+set. OpenSSF Scorecard publishes a scheduled supply-chain posture report to code
+scanning. Code-quality findings remain part of CI and triage without being
+mislabeled as security vulnerabilities.
 
 ## Review Procedure
 

@@ -2,6 +2,7 @@
     require_once __DIR__ . '/lib.remote.php';
     require_once __DIR__ . '/lib.process.php';
     require_once __DIR__ . '/lib.filesystem-security.php';
+    require_once __DIR__ . '/lib.security.php';
 
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
@@ -375,6 +376,11 @@
     const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
     const FVPLUS_CONFIG_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS = 10;
+    const FVPLUS_MUTATION_NONCE_TTL_SECONDS = 120;
+    const FVPLUS_MUTATION_NONCE_MAX_ACTIVE = 256;
+    const FVPLUS_MUTATION_TRANSACTION_TTL_SECONDS = 600;
+    const FVPLUS_MUTATION_TRANSACTION_MAX = 1000;
+    const FVPLUS_SECURITY_AUDIT_HISTORY_MAX = 200;
     const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
@@ -1018,32 +1024,6 @@
         return $requestFlag === '1';
     }
 
-    function requireMutationRequestGuard(): void {
-        if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
-            throw new RuntimeException('Unsupported method.');
-        }
-        $tokenMode = getRequestTokenEnforcementMode();
-        $hasMutationMarker = hasExplicitMutationRequestHeader();
-        if ($tokenMode === 'strict') {
-            if (getConfiguredRequestToken() === '') {
-                throw new RuntimeException('Request token is unavailable.');
-            }
-            if (!$hasMutationMarker || !validateOptionalRequestToken() || !isTrustedMutationContext()) {
-                throw new RuntimeException('Blocked by request guard.');
-            }
-            acquireConfigMutationLock();
-            return;
-        }
-
-        $tokenRequiredForBypass = $tokenMode !== 'off' && getConfiguredRequestToken() !== '';
-        $tokenValidated = validateOptionalRequestToken();
-        $headerValidated = $hasMutationMarker && ($tokenValidated || !$tokenRequiredForBypass);
-        if (!isTrustedMutationContext() && !$headerValidated) {
-            throw new RuntimeException('Blocked by request guard.');
-        }
-        acquireConfigMutationLock();
-    }
-
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
         if (!headers_sent()) {
             header('Content-Type: application/json');
@@ -1123,6 +1103,9 @@
         }
         if ($error instanceof FVPlusConfigConflictException) {
             return 409;
+        }
+        if ($error instanceof FVPlusSecurityRequestException) {
+            return max(400, min(599, (int)$error->getCode()));
         }
         if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
             return 400;
@@ -6519,7 +6502,7 @@
             return true;
         }
         if ($safeName === 'README.txt') {
-            return true;
+            return $includeMetadata;
         }
         $extension = strtolower((string)pathinfo($safeName, PATHINFO_EXTENSION));
         return $extension !== '' && in_array($extension, fvplusAllowedCustomIconExtensions(), true);

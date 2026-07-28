@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.04">
-<!ENTITY md5 "b758d9338b43abbbec2a0dbfac86a7ee">
-<!ENTITY sha256 "0c337e163cb23c7ebffc72d89d026c49ed70328706f4b22814eba18ecae4a4a2">
+<!ENTITY version "2026.07.28.05">
+<!ENTITY md5 "12f7d8194dbd1db52736c85c9860e650">
+<!ENTITY sha256 "91a62bc1615c939ce7deba43247a095594c6bc7b2f09e102c11d1f779616eaf4">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,50 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.05
+# FolderView Plus 2026.07.28.05
+This security update adds continuous runtime assurance, replay-resistant
+mutations, auditable security events, and stronger repository supply-chain
+checks without exporting sensitive request or system data.
+## Request and mutation security
+- Security: Require short-lived, target-bound, one-time nonces for shared API
+  requests and reject expired, mismatched, or reused mutation authorization.
+- Security: Reject replayed mutation transaction identifiers, apply bounded
+  endpoint-specific rate limits, and return standards-based retry guidance.
+- Security: Remove the legacy GET backup-download path and route downloads
+  through the guarded POST request client.
+- Security: Add a dedicated nonce bootstrap endpoint with explicit API-contract
+  metadata and fail-closed endpoint, action, content-type, and request-size
+  enforcement.
+## Runtime integrity and diagnostics
+- Security: Generate a deterministic SHA-256 runtime integrity manifest inside
+  every plugin package and verify expected files, permissions, and unexpected
+  executable content at runtime.
+- Security: Record a bounded HMAC hash-chained audit trail for security decisions
+  using only sanitized action metadata, random trace identifiers, status, and
+  timestamps.
+- Diagnostics: Include sanitized runtime-integrity and security-audit health in
+  diagnostics and support bundles without exposing payloads, names, paths,
+  addresses, tokens, nonces, or other private values.
+- Security: Verify packaged runtime-manifest coverage and hashes during release
+  validation and installation smoke testing.
+## Repository and supply-chain assurance
+- Security: Upgrade CodeQL to the immutable v4 action and add a high-severity
+  dependency-review merge gate with an explicit license policy.
+- Security: Add a scheduled OpenSSF Scorecard workflow that publishes SARIF
+  findings through GitHub code scanning with least-privilege permissions.
+- Security: Require Dependency Review in managed branch-protection policy and
+  expand the CycloneDX SBOM to cover the complete shipped runtime and workflow
+  surface.
+- Docs: Document mutation authorization, replay protection, rate limiting,
+  runtime integrity, audit privacy, package verification, and security-response
+  expectations.
+- Test: Add functional regression coverage for nonce consumption, target
+  binding, replay rejection, rate limits, path confinement, audit-chain tamper
+  detection, runtime-manifest verification, workflow policy, and package
+  integrity.
+
 
 ###2026.07.28.04
 # FolderView Plus 2026.07.28.04

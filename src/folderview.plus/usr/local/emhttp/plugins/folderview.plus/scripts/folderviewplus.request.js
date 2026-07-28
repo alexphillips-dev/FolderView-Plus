@@ -10,6 +10,9 @@
     const TRACE_PAYLOAD_KEY = '_fv_trace';
     const TRANSACTION_HEADER_NAME = 'X-FV-Transaction';
     const TRANSACTION_PAYLOAD_KEY = '_fv_transaction';
+    const NONCE_HEADER_NAME = 'X-FV-Nonce';
+    const NONCE_PAYLOAD_KEY = '_fv_nonce';
+    const NONCE_ENDPOINT = '/plugins/folderview.plus/server/security.php';
     const requestDiagnostics = [];
     let securityPrefilterConfigured = false;
 
@@ -92,7 +95,13 @@
         return '';
     };
 
-    const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY, resolvedToken = '', traceId = '') => {
+    const buildHeaders = (
+        extraHeaders = {},
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        resolvedToken = '',
+        traceId = '',
+        nonce = ''
+    ) => {
         const headers = {
             'X-FV-Request': '1',
             ...(extraHeaders || {})
@@ -106,6 +115,10 @@
             headers[TRACE_HEADER_NAME] = trace;
             headers[TRANSACTION_HEADER_NAME] = transactionIdForTrace(trace);
         }
+        const safeNonce = String(nonce || '').trim();
+        if (safeNonce) {
+            headers[NONCE_HEADER_NAME] = safeNonce;
+        }
         return headers;
     };
 
@@ -115,13 +128,14 @@
         && Object.prototype.toString.call(value) === '[object Object]'
     );
 
-    const addMutationPayloadMarkers = (method, data, token, traceId = '') => {
+    const addMutationPayloadMarkers = (method, data, token, traceId = '', nonce = '') => {
         if (String(method || '').toUpperCase() !== 'POST') {
             return data;
         }
         const safeToken = String(token || '').trim();
         const safeTraceId = String(traceId || '').trim();
         const safeTransactionId = safeTraceId ? transactionIdForTrace(safeTraceId) : '';
+        const safeNonce = String(nonce || '').trim();
         if (typeof FormData !== 'undefined' && data instanceof FormData) {
             if (!data.has('_fv_request')) {
                 data.append('_fv_request', '1');
@@ -134,6 +148,9 @@
             }
             if (safeTransactionId && !data.has(TRANSACTION_PAYLOAD_KEY)) {
                 data.append(TRANSACTION_PAYLOAD_KEY, safeTransactionId);
+            }
+            if (safeNonce && !data.has(NONCE_PAYLOAD_KEY)) {
+                data.append(NONCE_PAYLOAD_KEY, safeNonce);
             }
             return data;
         }
@@ -150,6 +167,9 @@
             if (safeTransactionId && !data.has(TRANSACTION_PAYLOAD_KEY)) {
                 data.set(TRANSACTION_PAYLOAD_KEY, safeTransactionId);
             }
+            if (safeNonce && !data.has(NONCE_PAYLOAD_KEY)) {
+                data.set(NONCE_PAYLOAD_KEY, safeNonce);
+            }
             return data;
         }
         const payload = isPlainObject(data) ? { ...data } : {};
@@ -164,6 +184,9 @@
         }
         if (safeTransactionId && !Object.prototype.hasOwnProperty.call(payload, TRANSACTION_PAYLOAD_KEY)) {
             payload[TRANSACTION_PAYLOAD_KEY] = safeTransactionId;
+        }
+        if (safeNonce && !Object.prototype.hasOwnProperty.call(payload, NONCE_PAYLOAD_KEY)) {
+            payload[NONCE_PAYLOAD_KEY] = safeNonce;
         }
         return payload;
     };
@@ -218,6 +241,54 @@
                 reject({ jqXHR, textStatus, errorThrown });
             });
     });
+
+    const requestValue = (data, name) => {
+        if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            return data.get(name);
+        }
+        if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+            return data.get(name);
+        }
+        if (isPlainObject(data)) {
+            return data[name];
+        }
+        return null;
+    };
+
+    const resolveMutationTarget = (url, data) => {
+        const parsed = new URL(String(url || ''), window.location?.origin || 'http://localhost');
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        const endpoint = String(segments[segments.length - 1] || '').trim().toLowerCase();
+        const action = String(requestValue(data, 'action') ?? parsed.searchParams.get('action') ?? '').trim().toLowerCase();
+        return { endpoint, action };
+    };
+
+    const requestMutationNonce = async (url, data, token, signal = null) => {
+        const target = resolveMutationTarget(url, data);
+        if (!target.endpoint.endsWith('.php')) {
+            throw new Error('Mutation nonce target is invalid.');
+        }
+        const traceId = newTraceId();
+        const noncePayload = addMutationPayloadMarkers('POST', {
+            action: 'issue_nonce',
+            endpoint: target.endpoint,
+            targetAction: target.action
+        }, token, traceId);
+        const response = await toAjaxPromise({
+            url: NONCE_ENDPOINT,
+            method: 'POST',
+            data: noncePayload,
+            timeout: DEFAULT_TIMEOUT_MS,
+            headers: buildHeaders({}, DEFAULT_TOKEN_STORAGE_KEY, token, traceId),
+            dataType: 'json'
+        }, signal);
+        const payload = response?.data;
+        const nonce = String(payload?.nonce || payload?.data?.nonce || '').trim();
+        if (!/^[a-f0-9]{64}$/.test(nonce)) {
+            throw new Error('A valid one-time mutation nonce was not returned.');
+        }
+        return nonce;
+    };
 
     const shouldRetryError = (error) => {
         const textStatus = String(error?.textStatus || '').toLowerCase();
@@ -317,6 +388,7 @@
         contentType = undefined,
         dataType = undefined,
         xhr = undefined,
+        xhrFields = undefined,
         signal = null,
         onRequest = null
     }) => {
@@ -340,7 +412,10 @@
         }
         const traceId = newTraceId();
         const transactionId = transactionIdForTrace(traceId);
-        const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId);
+        const nonce = normalizedMethod === 'POST'
+            ? await requestMutationNonce(url, data, token, signal)
+            : '';
+        const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId, nonce);
 
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
             attempts = attempt + 1;
@@ -350,13 +425,14 @@
                     method: normalizedMethod,
                     data: payload,
                     timeout: safeTimeoutMs,
-                    headers: buildHeaders(headers, tokenStorageKey, token, traceId)
+                    headers: buildHeaders(headers, tokenStorageKey, token, traceId, nonce)
                 };
                 if (typeof cache === 'boolean') ajaxOptions.cache = cache;
                 if (typeof processData === 'boolean') ajaxOptions.processData = processData;
                 if (contentType !== undefined) ajaxOptions.contentType = contentType;
                 if (dataType !== undefined) ajaxOptions.dataType = dataType;
                 if (typeof xhr === 'function') ajaxOptions.xhr = xhr;
+                if (xhrFields && typeof xhrFields === 'object') ajaxOptions.xhrFields = { ...xhrFields };
                 const response = await toAjaxPromise(ajaxOptions, signal, onRequest);
                 response.traceId = traceId;
                 response.transactionId = transactionId;
@@ -534,6 +610,29 @@
         return parseResponseJson(response, url);
     };
 
+    const postBlob = async (url, data = {}, {
+        timeoutMs = DEFAULT_TIMEOUT_MS,
+        headers = {},
+        tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY,
+        signal = null
+    } = {}) => {
+        const response = await request({
+            method: 'POST',
+            url,
+            data,
+            timeoutMs,
+            retries: 0,
+            headers,
+            tokenStorageKey,
+            signal,
+            xhrFields: { responseType: 'blob' }
+        });
+        if (typeof Blob === 'undefined' || !(response?.data instanceof Blob)) {
+            throw new Error(`Unexpected binary response from ${url}.`);
+        }
+        return response.data;
+    };
+
     const uploadJson = async (url, formData, {
         timeoutMs = 30000,
         headers = {},
@@ -646,6 +745,7 @@
         postText,
         getJson,
         postJson,
+        postBlob,
         uploadJson,
         sendKeepalive,
         diagnostics: getDiagnostics,

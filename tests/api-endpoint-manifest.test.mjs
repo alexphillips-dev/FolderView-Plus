@@ -28,7 +28,7 @@ test('endpoint manifest exactly covers every public PHP endpoint', () => {
         .filter((name) => name.endsWith('.php') && !name.startsWith('lib'))
         .sort();
     assert.deepEqual(Object.keys(manifest.endpoints).sort(), publicEndpoints);
-    assert.equal(manifest.schemaVersion, 1);
+    assert.equal(manifest.schemaVersion, 2);
 });
 
 test('previously omitted mutation surfaces are explicitly classified', () => {

@@ -3,7 +3,7 @@
   "mode": "report-only-shared-unraid-document",
   "scope": {
     "scannedRoot": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus",
-    "scannedFiles": 149,
+    "scannedFiles": 151,
     "exclusions": [
       "third-party icon asset pack",
       "localization catalogs",

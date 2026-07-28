@@ -12,6 +12,7 @@ release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 icon_asset_pack_guard_script="$CWD/scripts/icon_asset_pack_guard.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
+runtime_integrity_generator="$CWD/scripts/generate_runtime_integrity_manifest.mjs"
 changes_entry_timeout_raw="${FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10}"
 archive_prefix="folderview.plus"
 archive_dir="$CWD/archive"
@@ -482,6 +483,10 @@ if [ ! -f "$ensure_changes_entry_script" ]; then
     echo "ERROR: Missing CHANGES helper script: $ensure_changes_entry_script" >&2
     exit 1
 fi
+if [ ! -f "$runtime_integrity_generator" ]; then
+    echo "ERROR: Missing runtime integrity generator: $runtime_integrity_generator" >&2
+    exit 1
+fi
 if [ ! -f "$icon_asset_pack_guard_script" ]; then
     echo "ERROR: Missing icon asset-pack guard script: $icon_asset_pack_guard_script" >&2
     exit 1
@@ -635,6 +640,12 @@ cat > "$build_metadata_path" <<EOF
   "iconAssetPackUrl": "${build_icon_pack_url}"
 }
 EOF
+
+plugin_package_root="$tmpdir/usr/local/emhttp/plugins/folderview.plus"
+"${NODE_BIN}" \
+    "$(fvplus::path_for_command "${NODE_BIN}" "$runtime_integrity_generator")" \
+    --root "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root")" \
+    --output "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root/runtime-integrity.json")"
 
 # Set permissions for Unraid (only in temp dir, not the repo)
 if ! chmod -R 0755 "$tmpdir"; then

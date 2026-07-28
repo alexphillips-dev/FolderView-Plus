@@ -15,6 +15,7 @@ const pluginPageSources = pluginPageFiles.map((entry) => ({
 }));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libSecurityPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.security.php');
 const libDiagnosticsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -50,11 +51,11 @@ test('lib.php keeps token rollout controls and secure API headers', () => {
     assert.match(libPhp, /X-Content-Type-Options: nosniff/);
 });
 
-test('backup endpoint supports guarded POST download and legacy fallback', () => {
+test('backup endpoint supports only the guarded POST download', () => {
     assert.match(backupPhp, /\$guardedReadActions\s*=\s*\['download_post'\]/);
     assert.match(backupPhp, /if \(\$action === 'download_post'\)/);
-    assert.match(backupPhp, /if \(\$action === 'download'\)/);
-    assert.match(backupPhp, /X-FV-Download-Mode: legacy-get/);
+    assert.doesNotMatch(backupPhp, /if \(\$action === 'download'\)/);
+    assert.doesNotMatch(backupPhp, /legacy-get/);
     assert.match(backupPhp, /X-Content-Type-Options: nosniff/);
 });
 
@@ -211,15 +212,15 @@ test('folder editor supports unicode names and secure guarded create/update post
 test('strict request guard requires the mutation marker, token, and same-origin context', () => {
     assert.match(libPhp, /function hasExplicitMutationRequestHeader\(\): bool/);
     assert.match(libPhp, /\$_POST\['_fv_request'\] \?\? \$_GET\['_fv_request'\] \?\? ''/);
-    assert.match(libPhp, /if \(\$tokenMode === 'strict'\)/);
-    assert.match(libPhp, /if \(getConfiguredRequestToken\(\) === ''\)/);
-    assert.match(libPhp, /!\$hasMutationMarker \|\| !validateOptionalRequestToken\(\) \|\| !isTrustedMutationContext\(\)/);
-    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = ''\) =>/);
+    assert.match(libSecurityPhp, /if \(\$tokenMode === 'strict'\)/);
+    assert.match(libSecurityPhp, /if \(getConfiguredRequestToken\(\) === ''\)/);
+    assert.match(libSecurityPhp, /!\$hasMutationMarker \|\| !validateOptionalRequestToken\(\) \|\| !isTrustedMutationContext\(\)/);
+    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = '', nonce = ''\) =>/);
     assert.match(requestClientJs, /payload\._fv_request = '1';/);
     assert.match(requestClientJs, /normalizedMethod === 'POST' && !token/);
     assert.match(requestClientJs, /outcome: 'blocked-missing-token'/);
     assert.doesNotMatch(requestClientJs, /localStorage\.getItem\(tokenStorageKey\)/);
-    assert.match(folderViewPlusJs, /addField\('_fv_request', '1'\)/);
+    assert.match(folderViewPlusJs, /requestClient\.postBlob\('\/plugins\/folderview\.plus\/server\/backup\.php'/);
     assert.match(folderViewPlusJs, /requestClient\.postJson\(url, data, options\)/);
 });
 

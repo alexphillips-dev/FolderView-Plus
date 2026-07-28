@@ -119,7 +119,9 @@ fi
 
 EXPECTED_PLUGIN_BRANCH="${FVPLUS_EXPECT_PLUGIN_BRANCH:-}"
 if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
-  if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
+  if [[ "${GITHUB_BASE_REF:-}" =~ ^(main|dev)$ ]]; then
+    EXPECTED_PLUGIN_BRANCH="${GITHUB_BASE_REF}"
+  elif [[ -n "${GITHUB_REF_NAME:-}" ]]; then
     EXPECTED_PLUGIN_BRANCH="${GITHUB_REF_NAME#refs/heads/}"
   elif command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
@@ -412,6 +414,7 @@ fi
 REQUIRED_ARCHIVE_PATHS=(
   "./install/slack-desc"
   "./usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
+  "./usr/local/emhttp/plugins/folderview.plus/runtime-integrity.json"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.csp-events.js"
@@ -452,9 +455,11 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.process.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.filesystem-security.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 )
@@ -489,6 +494,45 @@ for (const field of ['sourceCommitSha', 'headCommitSha', 'sourceTreeSha']) {
   if (String(metadata[field] || '') !== '') fail(`${field} must remain empty to avoid self-referential archives.`);
 }
 NODE
+
+ARCHIVE_RUNTIME_INTEGRITY_PATH="./usr/local/emhttp/plugins/folderview.plus/runtime-integrity.json"
+TMP_ARCHIVE_RUNTIME_INTEGRITY="$(mktemp)"
+trap 'rm -f "${TMP_ARCHIVE_RUNTIME_INTEGRITY}"' EXIT
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_RUNTIME_INTEGRITY_PATH}" > "${TMP_ARCHIVE_RUNTIME_INTEGRITY}"
+NODE_RUNTIME_INTEGRITY_PATH="$(fvplus::path_for_command "${NODE_BIN}" "${TMP_ARCHIVE_RUNTIME_INTEGRITY}")"
+"${NODE_BIN}" - "${NODE_RUNTIME_INTEGRITY_PATH}" <<'NODE'
+const fs = require('node:fs');
+const manifest = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const fail = (message) => {
+  console.error(`ERROR: Packaged runtime integrity manifest ${message}`);
+  process.exit(1);
+};
+if (manifest.schemaVersion !== 1 || manifest.algorithm !== 'sha256') fail('has an invalid schema or algorithm.');
+if (!Array.isArray(manifest.files) || manifest.files.length < 100 || manifest.files.length > 1000) {
+  fail('has an implausible file inventory.');
+}
+const paths = new Set();
+for (const entry of manifest.files) {
+  if (!entry || typeof entry.path !== 'string' || !/^[^/].+/.test(entry.path) || entry.path.includes('..')) {
+    fail('contains an invalid relative path.');
+  }
+  if (!/^[a-f0-9]{64}$/.test(String(entry.sha256 || '')) || !Number.isInteger(entry.size) || entry.size < 0) {
+    fail(`contains invalid metadata for ${entry.path || 'unknown'}.`);
+  }
+  if (entry.mode !== '0755' || paths.has(entry.path)) fail(`contains a duplicate or invalid mode for ${entry.path}.`);
+  paths.add(entry.path);
+}
+for (const required of [
+  'server/lib.php',
+  'server/lib.security.php',
+  'server/security.php',
+  'scripts/folderviewplus.request.js'
+]) {
+  if (!paths.has(required)) fail(`does not cover ${required}.`);
+}
+NODE
+rm -f "${TMP_ARCHIVE_RUNTIME_INTEGRITY}"
+trap - EXIT
 
 if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
   echo "ERROR: Source folderviewplus.js is missing mobile section-toggle header binding." >&2

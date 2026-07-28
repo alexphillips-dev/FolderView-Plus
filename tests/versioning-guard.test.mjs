@@ -193,6 +193,12 @@ test('release_guard blocks future-dated versions', () => {
     assert.match(releaseGuard, /TODAY_DATE="\$\(date \+\"%Y\.%m\.%d\"\)"/);
 });
 
+test('release_guard validates pull-request packages against the protected base channel', () => {
+    assert.match(releaseGuard, /GITHUB_BASE_REF/);
+    assert.match(releaseGuard, /GITHUB_BASE_REF:-}" =~ \^\(main\|dev\)\$/);
+    assert.match(releaseGuard, /EXPECTED_PLUGIN_BRANCH="\$\{GITHUB_BASE_REF\}"/);
+});
+
 test('release_guard enforces explicit changelog category contract for current version', () => {
     assert.match(releaseGuard, /CURRENT_CHANGES_BLOCK="\$\(awk -v version="\$\{VERSION\}"/);
     assert.match(releaseGuard, /CHANGES entry for \$\{VERSION\} is empty/);

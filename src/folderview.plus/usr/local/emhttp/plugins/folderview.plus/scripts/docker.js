@@ -3362,21 +3362,16 @@ const broadcastDockerPinnedFolderChange = (payload = {}) => {
 };
 const toggleDockerFolderPin = async (folderId, requestedPinned = !isDockerFolderPinned(folderId)) => {
     const id = String(folderId || '').trim();
-    if (!id || !globalFolders[id]) {
-        return;
-    }
-    return dockerSafeUiActionRunner.run(`docker-pin:${id}`, async () => {
-        const previousPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
+    if (!id || !globalFolders[id]) { return; }
+    const previousPinned = normalizeDockerPinnedFolderIdList(folderTypePrefs?.pinnedFolderIds);
+    const optimisticPinned = requestedPinned === true ? (previousPinned.includes(id) ? previousPinned : [...previousPinned, id]) : previousPinned.filter((entry) => entry !== id);
+    return dockerSafeUiActionRunner.run(`docker-pin:${id}`, async (intent) => {
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
             const currentPrefs = await fetchDockerPinnedFolderPrefs();
             const current = normalizeDockerPinnedFolderIdList(currentPrefs.pinnedFolderIds);
-            const nextPinned = requestedPinned === true
-                ? (current.includes(id) ? current : [...current, id])
-                : current.filter((entry) => entry !== id);
-            rememberDockerPinnedFolderIdsOverride(nextPinned);
-            applyDockerPinnedFolderIds(nextPinned);
-            syncDockerPinnedFolderUi();
+            const nextPinned = requestedPinned === true ? (current.includes(id) ? current : [...current, id]) : current.filter((entry) => entry !== id);
             const response = await persistDockerPinnedFolderIds(nextPinned);
+            if (!intent.isLatest()) { return; }
             const confirmedPinned = normalizeDockerPinnedFolderIdList(response?.prefs?.pinnedFolderIds || nextPinned);
             applyDockerPinnedFolderIds(confirmedPinned);
             syncDockerPinnedFolderUi();
@@ -3389,12 +3384,16 @@ const toggleDockerFolderPin = async (folderId, requestedPinned = !isDockerFolder
             userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
             userVisible: true
         });
-        if (!result.ok) {
+        if (!result.ok && intent.isLatest()) {
             clearDockerPinnedFolderIdsOverride();
             applyDockerPinnedFolderIds(previousPinned);
             syncDockerPinnedFolderUi();
         }
-    }, { queueIfBusy: true });
+    }, { queueIfBusy: true, onIntent: () => {
+        rememberDockerPinnedFolderIdsOverride(optimisticPinned);
+        applyDockerPinnedFolderIds(optimisticPinned);
+        syncDockerPinnedFolderUi();
+    } });
 };
 const buildDockerFolderRuntimeOrderState = () => {
     const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};

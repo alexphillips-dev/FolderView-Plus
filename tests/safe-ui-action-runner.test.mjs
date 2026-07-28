@@ -73,6 +73,33 @@ test('safe UI action runner queues one latest reversible intent while an action 
     assert.equal(runner.isQueued('docker-pin:folder-1'), false);
 });
 
+test('safe UI action runner applies every intent immediately and marks stale work', async () => {
+    const runner = loadRuntimeShared().createSafeUiActionRunner();
+    const visibleStates = [];
+    const completions = [];
+    let releaseFirst;
+    const firstGate = new Promise((resolve) => {
+        releaseFirst = resolve;
+    });
+    const first = runner.run('docker-pin:folder-1', async (intent) => {
+        await firstGate;
+        completions.push(intent.isLatest() ? 'pin-current' : 'pin-stale');
+    }, {
+        onIntent: () => visibleStates.push('pinned')
+    });
+    const second = runner.run('docker-pin:folder-1', async (intent) => {
+        completions.push(intent.isLatest() ? 'unpin-current' : 'unpin-stale');
+    }, {
+        queueIfBusy: true,
+        onIntent: () => visibleStates.push('unpinned')
+    });
+
+    assert.deepEqual(visibleStates, ['pinned', 'unpinned']);
+    releaseFirst();
+    await Promise.all([first, second]);
+    assert.deepEqual(completions, ['pin-stale', 'unpin-current']);
+});
+
 test('safe UI action runner keeps duplicate suppression as its default', async () => {
     const runner = loadRuntimeShared().createSafeUiActionRunner();
     let releaseFirst;

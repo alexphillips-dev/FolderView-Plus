@@ -1010,28 +1010,32 @@ const toggleVmFolderPin = async (folderId, requestedPinned = !isVmFolderPinned(f
     if (!id || !globalFolders[id]) {
         return;
     }
-    return vmSafeUiActionRunner.run(`vm-pin:${id}`, async () => {
-        const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
-        const nextPinned = requestedPinned === true
-            ? (current.includes(id) ? current : [...current, id])
-            : current.filter((entry) => entry !== id);
-        rememberVmPinnedFolderIdsOverride(nextPinned);
-        applyVmPinnedFolderIds(nextPinned);
-        refreshVmFolderQuickActionStates();
+    const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
+    const nextPinned = requestedPinned === true
+        ? (current.includes(id) ? current : [...current, id])
+        : current.filter((entry) => entry !== id);
+    return vmSafeUiActionRunner.run(`vm-pin:${id}`, async (intent) => {
         const result = await runVmGuardedAction('toggle-folder-pin', async () => {
             const response = await persistVmPinnedFolderIds(nextPinned);
+            if (!intent.isLatest()) {
+                return;
+            }
             applyVmPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
             refreshVmFolderQuickActionStates();
         }, {
             userMessage: 'Failed to update pinned folders.',
             userVisible: false
         });
-        if (!result.ok) {
+        if (!result.ok && intent.isLatest()) {
             clearVmPinnedFolderIdsOverride();
             applyVmPinnedFolderIds(current);
             refreshVmFolderQuickActionStates();
         }
-    }, { queueIfBusy: true });
+    }, { queueIfBusy: true, onIntent: () => {
+        rememberVmPinnedFolderIdsOverride(nextPinned);
+        applyVmPinnedFolderIds(nextPinned);
+        refreshVmFolderQuickActionStates();
+    } });
 };
 const ensureVmFolderUnlocked = (id, actionLabel = 'This action') => {
     if (!isVmFolderLocked(id)) {

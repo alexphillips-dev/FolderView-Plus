@@ -797,21 +797,23 @@
 
     /**
      * Deduplicates UI-triggered async actions by key to avoid racey double-click behavior.
-     * Reversible controls can retain one latest intent while the current action settles.
+     * Reversible controls can apply the latest intent immediately and retain its action
+     * while the current request settles.
      * @param {{onError?: (error: Error, actionKey: string) => void, onBusy?: (actionKey: string) => void}} options
      */
     const createSafeUiActionRunner = (options = {}) => {
         const inFlight = new Set();
         const queued = new Map();
+        const intentGenerations = new Map();
         const onError = typeof options.onError === 'function'
             ? options.onError
             : (error, actionKey) => console.error(`folderview.plus: safe ui action failed (${actionKey})`, error);
         const onBusy = typeof options.onBusy === 'function' ? options.onBusy : null;
-        const execute = async (key, action) => {
+        const execute = async (key, action, intent) => {
             inFlight.add(key);
             let result;
             try {
-                const value = await action();
+                const value = await action(intent);
                 result = { ok: true, value };
             } catch (rawError) {
                 const error = rawError instanceof Error ? rawError : new Error(String(rawError || 'Unknown error'));
@@ -822,7 +824,7 @@
                 const pending = queued.get(key);
                 if (pending) {
                     queued.delete(key);
-                    void execute(key, pending.action).then(pending.resolve);
+                    void execute(key, pending.action, pending.intent).then(pending.resolve);
                 }
             }
             return result;
@@ -835,30 +837,41 @@
                 if (typeof action !== 'function') {
                     return { ok: false, skipped: true, reason: 'invalid-action' };
                 }
-                if (inFlight.has(key)) {
-                    if (settings.queueIfBusy === true) {
-                        const pending = queued.get(key);
-                        if (pending) {
-                            pending.action = action;
-                            return pending.promise;
-                        }
-                        let resolveQueued;
-                        const promise = new Promise((resolve) => {
-                            resolveQueued = resolve;
-                        });
-                        queued.set(key, {
-                            action,
-                            promise,
-                            resolve: resolveQueued
-                        });
-                        return promise;
-                    }
+                if (inFlight.has(key) && settings.queueIfBusy !== true) {
                     if (onBusy) {
                         onBusy(key);
                     }
                     return { ok: false, skipped: true, reason: 'in-flight' };
                 }
-                return execute(key, action);
+                const generation = Number(intentGenerations.get(key) || 0) + 1;
+                intentGenerations.set(key, generation);
+                const intent = Object.freeze({
+                    generation,
+                    isLatest: () => Number(intentGenerations.get(key) || 0) === generation
+                });
+                if (typeof settings.onIntent === 'function') {
+                    settings.onIntent(intent);
+                }
+                if (inFlight.has(key)) {
+                    const pending = queued.get(key);
+                    if (pending) {
+                        pending.action = action;
+                        pending.intent = intent;
+                        return pending.promise;
+                    }
+                    let resolveQueued;
+                    const promise = new Promise((resolve) => {
+                        resolveQueued = resolve;
+                    });
+                    queued.set(key, {
+                        action,
+                        intent,
+                        promise,
+                        resolve: resolveQueued
+                    });
+                    return promise;
+                }
+                return execute(key, action, intent);
             }
         };
     };

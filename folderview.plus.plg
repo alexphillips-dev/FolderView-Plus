@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.08">
-<!ENTITY md5 "3d15bf60aa67884829989e9e8a817b63">
-<!ENTITY sha256 "9f2d20b30e6f48538592c87c13b217755ec6ddf89cb0a64074938c99575f0c34">
+<!ENTITY version "2026.07.28.09">
+<!ENTITY md5 "190e76ea7382561edac6641600504eb1">
+<!ENTITY sha256 "5a0332d780639aa201001b38888b97969b4d67d17b0cb2916146e4fae16b644d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,17 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.09
+## FolderView Plus 2026.07.28.09
+### Immediate folder pin feedback
+- Fix: Docker folder Pin and Unpin actions now update the visible folder order, pin badge, and menu state immediately instead of waiting for a server preference read.
+- Fix: VM folder Pin and Unpin actions use the same immediate interaction behavior for runtime parity.
+### Reliable asynchronous persistence
+- Fix: Older Pin or Unpin save completions can no longer repaint over a newer user selection while preference requests are still settling.
+- Reliability: Server-authoritative preference merging, post-save read-back verification, stale-render protection, and rollback on the latest save failure remain enabled.
+- Quality: Added shared intent-generation coverage and a browser regression that verifies Unpin is visible before an outstanding Pin save completes.
+
 
 ###2026.07.28.08
 # FolderView Plus 2026.07.28.08

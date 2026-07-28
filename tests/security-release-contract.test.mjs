@@ -55,3 +55,9 @@ test('runtime component inventory covers every shipped include file', () => {
     assert.ok(inventory.components.every((component) => component.license && component.source && component.files.length > 0));
     assert.ok(inventory.hostProvidedComponents.length >= 4);
 });
+
+test('SBOM purl normalization replaces every encoded scope marker', () => {
+    const generator = read('scripts/generate_sbom.mjs');
+    assert.match(generator, /encodeURIComponent\(name\)\.replaceAll\('%40', '@'\)/);
+    assert.doesNotMatch(generator, /encodeURIComponent\(name\)\.replace\('%40', '@'\)/);
+});

@@ -13,6 +13,11 @@
 
     const fallbackAsArray = (value) => (Array.isArray(value) ? value : []);
     const fallbackEscapeHtml = (value) => String(value ?? '');
+    const THIRD_PARTY_ICON_LABELS = Object.freeze({
+        favorite: Object.freeze({ title: 'Toggle favorite' }),
+        duplicate: Object.freeze({ text: 'dup' }),
+        validation: Object.freeze({ label: 'check' })
+    });
     const fallbackPaginateItems = (items, page, pageSize) => {
         const source = Array.isArray(items) ? items : [];
         const safePageSize = Math.max(1, Number(pageSize) || 1);
@@ -1579,39 +1584,66 @@
                     }
                     return;
                 }
-                const rows = chunk.map((icon, idx) => {
+                const fragment = doc.createDocumentFragment();
+                chunk.forEach((icon, idx) => {
                     const key = `${paged.startIndex + offset + idx}:${String(icon?.url || '')}`;
                     thirdPartyRenderedIconMap.set(key, icon);
-                    const safeKey = escapeHtml(key);
-                    const safeName = escapeHtml(String(icon?.name || ''));
-                    const safeUrl = escapeHtml(String(icon?.url || ''));
-                    const safeFolder = escapeHtml(String(icon?.folder || ''));
-                    const selected = String(icon?.url || '') === currentValue ? ' is-selected' : '';
-                    const isFavorite = thirdPartyFavorites.has(String(icon?.url || '')) ? ' is-active' : '';
-                    const badges = [];
-                    if (duplicateSet.has(String(icon?.url || ''))) {
-                        badges.push('<span class="fv-third-party-badge is-warning">dup</span>');
+                    const iconName = String(icon?.name || '');
+                    const iconUrl = String(icon?.url || '');
+                    const iconFolder = String(icon?.folder || '');
+                    const isFavorite = thirdPartyFavorites.has(iconUrl);
+                    const item = doc.createElement('div');
+                    item.className = `fv-third-party-icon-item${iconUrl === currentValue ? ' is-selected' : ''}`;
+                    item.dataset.thirdPartyKey = key;
+                    item.tabIndex = 0;
+                    item.setAttribute('role', 'button');
+                    item.title = iconName;
+                    const image = doc.createElement('img');
+                    image.src = thirdPartyPlaceholderIcon;
+                    image.dataset.src = sanitizeImageUrl(iconUrl, iconFallbackPath);
+                    image.alt = iconName;
+                    image.loading = 'lazy';
+                    image.addEventListener('error', () => {
+                        image.src = iconFallbackPath;
+                    }, { once: true });
+                    const main = doc.createElement('div');
+                    main.className = 'fv-third-party-icon-main';
+                    const name = doc.createElement('span');
+                    name.className = 'fv-icon-picker-item-name';
+                    name.textContent = iconName;
+                    const folder = doc.createElement('span');
+                    folder.className = 'fv-third-party-icon-folder';
+                    folder.textContent = iconFolder;
+                    main.append(name, folder);
+                    const actions = doc.createElement('div');
+                    const favorite = doc.createElement('button');
+                    favorite.type = 'button';
+                    favorite.className = `fv-third-party-icon-fav${isFavorite ? ' is-active' : ''}`;
+                    favorite.dataset.thirdPartyFavorite = iconUrl;
+                    favorite.title = THIRD_PARTY_ICON_LABELS.favorite.title;
+                    const favoriteIcon = doc.createElement('i');
+                    favoriteIcon.className = `fa ${isFavorite ? 'fa-star' : 'fa-star-o'}`;
+                    favoriteIcon.setAttribute('aria-hidden', 'true');
+                    favorite.appendChild(favoriteIcon);
+                    const badges = doc.createElement('span');
+                    badges.className = 'fv-third-party-icon-badges';
+                    if (duplicateSet.has(iconUrl)) {
+                        const badge = doc.createElement('span');
+                        badge.className = 'fv-third-party-badge is-warning';
+                        badge.textContent = THIRD_PARTY_ICON_LABELS.duplicate.text;
+                        badges.appendChild(badge);
                     }
-                    if (String(icon?.validation || '') === 'warn' || String(icon?.validation || '') === 'error' || thirdPartyBrokenIconUrls.has(String(icon?.url || ''))) {
-                        badges.push('<span class="fv-third-party-badge is-error">check</span>');
+                    if (['warn', 'error'].includes(String(icon?.validation || '')) || thirdPartyBrokenIconUrls.has(iconUrl)) {
+                        const badge = doc.createElement('span');
+                        badge.className = 'fv-third-party-badge is-error';
+                        badge.textContent = THIRD_PARTY_ICON_LABELS.validation.label;
+                        badges.appendChild(badge);
                     }
-                    return `
-                        <div class="fv-third-party-icon-item${selected}" data-third-party-key="${safeKey}" tabindex="0" role="button" title="${safeName}">
-                            <img src="${thirdPartyPlaceholderIcon}" data-src="${safeUrl}" alt="${safeName}" loading="lazy" onerror="this.src='${iconFallbackPath}';">
-                            <div class="fv-third-party-icon-main">
-                                <span class="fv-icon-picker-item-name">${safeName}</span>
-                                <span class="fv-third-party-icon-folder">${safeFolder}</span>
-                            </div>
-                            <div>
-                                <button type="button" class="fv-third-party-icon-fav${isFavorite}" data-third-party-favorite="${safeUrl}" title="Toggle favorite">
-                                    <i class="fa ${isFavorite ? 'fa-star' : 'fa-star-o'}" aria-hidden="true"></i>
-                                </button>
-                                <span class="fv-third-party-icon-badges">${badges.join('')}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                grid.append(rows);
+                    actions.append(favorite, badges);
+                    item.append(image, main, actions);
+                    fragment.appendChild(item);
+                });
+                grid.get(0)?.appendChild(fragment);
                 grid.find('img[data-src]').each((_, element) => {
                     const image = element;
                     const source = sanitizeImageUrl(image.getAttribute('data-src'), iconFallbackPath);

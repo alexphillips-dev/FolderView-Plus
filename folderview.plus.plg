@@ -6,8 +6,8 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.01">
-<!ENTITY md5 "02ed2aa28a9944c51d3ac6fd902bef67">
+<!ENTITY version "2026.07.28.02">
+<!ENTITY md5 "56c969182cb9fea52eaaddfce05c2a88">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -16,6 +16,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.28.02
+# FolderView Plus 2026.07.28.02
+- Security: Build third-party icon results with DOM nodes and text properties instead of appending an HTML string.
+- Security: Keep localized rich-text fallback content inert through direct `textContent` assignment.
+- Security: Normalize every encoded npm scope marker when generating CycloneDX package URLs.
+- Test: Add regression contracts for DOM-only third-party icon rendering and complete SBOM purl normalization.
+
 
 ###2026.07.28.01
 # FolderView Plus 2026.07.28.01

@@ -86,7 +86,7 @@ const npmComponents = Object.entries(packageLock.packages || {})
             version: String(metadata.version),
             scope: 'optional',
             ...(metadata.license ? { licenses: [{ license: { id: String(metadata.license) } }] } : {}),
-            purl: `pkg:npm/${encodeURIComponent(name).replace('%40', '@')}@${encodeURIComponent(String(metadata.version))}`
+            purl: `pkg:npm/${encodeURIComponent(name).replaceAll('%40', '@')}@${encodeURIComponent(String(metadata.version))}`
         };
     });
 

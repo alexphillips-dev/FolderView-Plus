@@ -22,6 +22,7 @@ const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
@@ -172,6 +173,14 @@ test('folder display scripts sanitize folder icon and name in HTML templates', (
     assert.match(vmJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon, DEFAULT_FOLDER_ICON_PATH\)/);
     assert.match(dashboardJs, /const DEFAULT_FOLDER_ICON_PATH = '\/plugins\/folderview\.plus\/images\/folder-icon\.png';/);
     assert.match(dashboardJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon, DEFAULT_FOLDER_ICON_PATH\)/);
+});
+
+test('third-party icon results use DOM construction instead of HTML string insertion', () => {
+    assert.match(folderEditorIconsJs, /const fragment = doc\.createDocumentFragment\(\);/);
+    assert.match(folderEditorIconsJs, /name\.textContent = iconName;/);
+    assert.match(folderEditorIconsJs, /folder\.textContent = iconFolder;/);
+    assert.match(folderEditorIconsJs, /grid\.get\(0\)\?\.appendChild\(fragment\);/);
+    assert.doesNotMatch(folderEditorIconsJs, /grid\.append\(rows\);/);
 });
 
 test('folder editor escapes custom action labels when rendering HTML', () => {

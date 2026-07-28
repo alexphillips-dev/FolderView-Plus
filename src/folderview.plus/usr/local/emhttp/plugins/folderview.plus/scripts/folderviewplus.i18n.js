@@ -297,7 +297,7 @@
         const targetDocument = node?.ownerDocument || root.document;
         const fragment = buildSanitizedLocalizedHtml(value, targetDocument);
         if (!fragment) {
-            node.textContent = String(value || '').replace(/<[^>]*>/g, '');
+            node.textContent = String(value || '');
             return;
         }
         if (typeof node.replaceChildren === 'function') {

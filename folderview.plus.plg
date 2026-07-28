@@ -7,8 +7,8 @@
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
 <!ENTITY version "2026.07.28.06">
-<!ENTITY md5 "81b7ab04bed6b7ec21ab0f307cf5e2c2">
-<!ENTITY sha256 "5e6a67dc76058b6bc45fa2542182e35888a7561ad0b930c013115190f5d25b48">
+<!ENTITY md5 "1e64448a5d593649ac77f0e7a234e82c">
+<!ENTITY sha256 "e78b2e2f7d662058c6b3f603f7ab79783a3b0691f7a624be65180a37e389d3e2">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">

@@ -35,7 +35,18 @@ const createTarget = () => {
 };
 
 test('folder row actions replace declarative handlers and dispatch each action once', () => {
-    const document = {};
+    const nativeListeners = new Map();
+    const document = {
+        addEventListener(type, handler, capture) {
+            nativeListeners.set(`${type}|${capture === true}`, handler);
+        },
+        removeEventListener(type, handler, capture) {
+            const key = `${type}|${capture === true}`;
+            if (nativeListeners.get(key) === handler) {
+                nativeListeners.delete(key);
+            }
+        }
+    };
     const delegated = new Map();
     const eventRoot = {
         off(eventName, selector) {
@@ -96,9 +107,28 @@ test('folder row actions replace declarative handlers and dispatch each action o
     assert.equal(targets['.folder-dropdown'].attr('type'), 'button');
 
     controller.bind();
+    controller.bind();
+    const captureHandler = nativeListeners.get('click|true');
     const delegatedHandler = delegated.get('click.fvTestFolderRowAction|[data-fv-test-folder-action]');
+    assert.equal(typeof captureHandler, 'function');
     assert.equal(typeof delegatedHandler, 'function');
     let prevented = 0;
+    const contextElement = {
+        getAttribute(name) {
+            return targets['.folder-hand'].attr(name) || '';
+        }
+    };
+    captureHandler({
+        target: {
+            closest(selector) {
+                assert.equal(selector, '[data-fv-test-folder-action]');
+                return contextElement;
+            }
+        },
+        preventDefault() {
+            prevented += 1;
+        }
+    });
     for (const selector of Object.keys(targets)) {
         delegatedHandler.call({
             getAttribute(name) {
@@ -111,8 +141,9 @@ test('folder row actions replace declarative handlers and dispatch each action o
         });
     }
     assert.deepEqual(calls, ['context:folder-1', 'edit:folder-1', 'toggle:folder-1']);
-    assert.equal(prevented, 3);
+    assert.equal(prevented, 2);
 
     controller.destroy();
+    assert.equal(nativeListeners.size, 0);
     assert.equal(delegated.size, 0);
 });

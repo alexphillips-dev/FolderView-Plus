@@ -35,11 +35,20 @@
         <span class="appname">Container</span>
         <span id="action-target"></span>
     </div>
+    <div id="folder-row" data-fv-folder-id="fixture-folder">
+        <span id="folder-context-target" class="folder-hand">
+            <span id="folder-context-child">Folder</span>
+        </span>
+        <a class="folder-appname">Edit</a>
+        <button class="folder-dropdown">Toggle</button>
+    </div>
     <div id="width-probe"></div>
 
     <script src="/vendor/jquery.js"></script>
     <script src="/plugin/scripts/runtime.column-layout.js"></script>
     <script src="/plugin/scripts/docker.runtime.preview-actions.js"></script>
+    <script src="/plugin/scripts/docker.runtime.shared.js"></script>
+    <script src="/plugin/scripts/folder.runtime.row-actions.js"></script>
     <script>
         const actionSettings = {
             preview: 1,
@@ -129,6 +138,46 @@
                     }));
                 }, 120);
             })
+        };
+
+        let contextAttachCount = 0;
+        let contextOpenCount = 0;
+        let contextDefaultPrevented = false;
+        let contextListener = null;
+        const contextTarget = document.querySelector('#folder-context-target');
+        const rowActionsController = window.FolderViewDockerRuntimeShared.createFolderRowActionsController({
+            window,
+            document,
+            $: window.jQuery,
+            namespace: 'fvFixtureFolderRowAction',
+            actionAttribute: 'data-fv-fixture-folder-action',
+            handlers: {
+                context: () => {
+                    contextAttachCount += 1;
+                    if (contextListener) {
+                        contextTarget.removeEventListener('click', contextListener);
+                    }
+                    contextListener = (event) => {
+                        contextOpenCount += 1;
+                        contextDefaultPrevented = event.defaultPrevented;
+                    };
+                    contextTarget.addEventListener('click', contextListener);
+                },
+                edit: () => {},
+                toggle: () => {}
+            }
+        });
+        rowActionsController.decorate(window.jQuery('#folder-row'), 'fixture-folder');
+        rowActionsController.bind();
+        window.fixtureFolderContextFirstClick = {
+            run: () => {
+                document.querySelector('#folder-context-child').click();
+                return {
+                    attachCount: contextAttachCount,
+                    openCount: contextOpenCount,
+                    defaultPrevented: contextDefaultPrevented
+                };
+            }
         };
     </script>
 </body>

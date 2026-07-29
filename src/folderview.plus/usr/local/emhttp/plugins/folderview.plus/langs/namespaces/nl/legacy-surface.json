@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "nl",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Begin na aangepaste batches",
     "legacy.surface.379fb68da7f2846c": "Laat dit veld leeg om het huidige gezondheidsprofiel/algemene instelling te gebruiken.",
     "legacy.surface.37ad28af649aa6a2": "Zoek pictogramnaam of tag",
+    "legacy.surface.37aedcf77d0a399e": "De export in het geheugen is niet langer beschikbaar. Selecteer nogmaals Alles exporteren om een ​​nieuw bestand te maken.",
     "legacy.surface.37bc2104d8b0ec9f": "Scan een GitHub-opslagplaats, vertakkingspad of onbewerkt CSS-bestand voordat u het aan uw beheerde thema's toevoegt.",
     "legacy.surface.37fa840aca750d15": "Vergelijk $1 momentopnamen",
     "legacy.surface.3828d9ab739b80fe": "Testlabelsleutel (optioneel)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B-opslag",
     "legacy.surface.670618d594e9730a": "Nieuwe prestatietest voltooid",
     "legacy.surface.6730e31e374f01cd": "Standaard profiel",
+    "legacy.surface.673624e492baad39": "De nieuwe poging mislukte voordat er een browserdownloadverzoek kon worden gemaakt.",
     "legacy.surface.6737a9f296c08f4d": "Er worden geen mappen verwijderd zonder deze in Review weer te geven.",
     "legacy.surface.6737eda0fa90b3e7": "Los de gemarkeerde veldfouten op en probeer vervolgens opnieuw op te slaan.",
     "legacy.surface.679af6c27fdb6156": "Indien ingeschakeld, worden deze geïmporteerde items opgenomen in de laatste beoordelingsstap.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Map vergrendeld",
     "legacy.surface.79f2d95249af4da7": "Selecteer een VM-map en actie en bekijk een voorbeeld van het plan voordat u het toepast.",
     "legacy.surface.7a1f2a83aca9a081": "Favorieten",
+    "legacy.surface.7a73f8f30dae4554": "Het downloaden is niet gestart",
     "legacy.surface.7a75f86cfc877a4c": "Bekijk een voorbeeld van een import en plaats de mappen eronder.",
     "legacy.surface.7ab52733c917451a": "Gebruiksstandaarden toepassen",
     "legacy.surface.7ab5282bcb5d2e48": "Samenvatting van geselecteerd gedrag",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Doelmap bestaat niet meer. Vernieuw en probeer het opnieuw.",
     "legacy.surface.d9d9333f66e73928": "Bepaal wat de samengevouwen rij laat zien en hoeveel ruimte deze in beslag neemt.",
     "legacy.surface.d9ed7f0df4cb3205": "Kies Docker of VM's en maak, bestel en bekijk vervolgens automatische mapregels op één plek.",
+    "legacy.surface.da1f35fb8d4627bf": "De diagnostische poging is verlopen. Voer de export opnieuw uit en rapporteer deze als er geen bestand verschijnt.",
     "legacy.surface.da37fac1deec3555": "Scan huidige containers en bestaande mappen op veilige regelideeën voordat u iets opslaat.",
     "legacy.surface.da6896d5c20e12f5": "Optionele overschrijving per map voor de gestopte percentagewaarschuwingsdrempel die wordt gebruikt door het statuschipaccent.",
     "legacy.surface.da85bb79d8abda9f": "Hierdoor worden de huidige $1-mappen overschreven met de nieuwste back-upmomentopname.",

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "tr",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Özel gruplardan sonra başlayın",
     "legacy.surface.379fb68da7f2846c": "Geçerli sağlık profilini/genel ayarı kullanmak için boş bırakın.",
     "legacy.surface.37ad28af649aa6a2": "Simge adını veya etiketini arayın",
+    "legacy.surface.37aedcf77d0a399e": "Bellek içi dışa aktarma artık kullanılamıyor. Yeni bir dosya oluşturmak için tekrar Tümünü dışarı aktar'ı seçin.",
     "legacy.surface.37bc2104d8b0ec9f": "Yönetilen temalarınıza eklemeden önce GitHub deposunu, dal yolunu veya ham CSS dosyasını tarayın.",
     "legacy.surface.37fa840aca750d15": "$1 anlık görüntüyü karşılaştırın",
     "legacy.surface.3828d9ab739b80fe": "Test etiketi anahtarı (isteğe bağlı)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Depolama",
     "legacy.surface.670618d594e9730a": "Performans yeniden testi tamamlandı",
     "legacy.surface.6730e31e374f01cd": "Varsayılan profil",
+    "legacy.surface.673624e492baad39": "Bir tarayıcı indirme isteği oluşturulamadan yeniden deneme başarısız oldu.",
     "legacy.surface.6737a9f296c08f4d": "İncelemede gösterilmeden klasörler silinmez.",
     "legacy.surface.6737eda0fa90b3e7": "Vurgulanan alan hatalarını giderin ve ardından tekrar kaydetmeyi deneyin.",
     "legacy.surface.679af6c27fdb6156": "Etkinleştirilirse içe aktarılan bu öğeler son İnceleme adımına dahil edilir.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Klasör kilitli",
     "legacy.surface.79f2d95249af4da7": "Bir VM klasörü ve eylemi seçin, ardından planı uygulamadan önce önizleyin.",
     "legacy.surface.7a1f2a83aca9a081": "Favoriler",
+    "legacy.surface.7a73f8f30dae4554": "İndirme başlamadı",
     "legacy.surface.7a75f86cfc877a4c": "Bir içe aktarma işlemini önizleyin ve klasörlerini bunun altına yerleştirin.",
     "legacy.surface.7ab52733c917451a": "Kullanım varsayılanlarını uygula",
     "legacy.surface.7ab5282bcb5d2e48": "Seçilen davranış özeti",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Hedef klasör artık mevcut değil. Yenileyin ve tekrar deneyin.",
     "legacy.surface.d9d9333f66e73928": "Daraltılmış satırın neyi gösterdiğini ve ne kadar alan kullandığını kontrol edin.",
     "legacy.surface.d9ed7f0df4cb3205": "Docker'ı veya VM'leri seçin, ardından otomatik klasör kurallarını tek bir yerde oluşturun, sıralayın ve inceleyin.",
+    "legacy.surface.da1f35fb8d4627bf": "Tanılama girişiminin süresi doldu. Dışa aktarma işlemini yeniden çalıştırın ve hiçbir dosya görüntülenmezse bunu bildirin.",
     "legacy.surface.da37fac1deec3555": "Herhangi bir şeyi kaydetmeden önce güvenli kural fikirleri için mevcut kapsayıcıları ve mevcut klasörleri tarayın.",
     "legacy.surface.da6896d5c20e12f5": "Durum çipi vurgusu tarafından kullanılan durdurulan yüzde uyarı eşiği için klasör başına isteğe bağlı geçersiz kılma.",
     "legacy.surface.da85bb79d8abda9f": "Bu, en son yedek anlık görüntüyü geçerli $1 klasörlerinin üzerine yazacaktır.",

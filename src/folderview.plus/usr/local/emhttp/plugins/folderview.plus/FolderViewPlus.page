@@ -155,6 +155,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>">
 <script>
     window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
@@ -324,7 +325,6 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </div>
 </div>
-
 
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">

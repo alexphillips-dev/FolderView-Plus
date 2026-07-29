@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "sv",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Starta efter anpassade batcher",
     "legacy.surface.379fb68da7f2846c": "Lämna tomt för att använda den aktuella hälsoprofilen/globala inställningen.",
     "legacy.surface.37ad28af649aa6a2": "Sök ikonnamn eller tagg",
+    "legacy.surface.37aedcf77d0a399e": "Exporten i minnet är inte längre tillgänglig. Välj Exportera alla igen för att skapa en ny fil.",
     "legacy.surface.37bc2104d8b0ec9f": "Skanna ett GitHub-förråd, grensökväg eller rå CSS-fil innan du lägger till den i dina hanterade teman.",
     "legacy.surface.37fa840aca750d15": "Jämför $1 ögonblicksbilder",
     "legacy.surface.3828d9ab739b80fe": "Testetikettnyckel (valfritt)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Förvaring",
     "legacy.surface.670618d594e9730a": "Omtestet av prestanda slutfört",
     "legacy.surface.6730e31e374f01cd": "Standardprofil",
+    "legacy.surface.673624e492baad39": "Försöket igen misslyckades innan en nedladdningsbegäran från webbläsaren kunde skapas.",
     "legacy.surface.6737a9f296c08f4d": "Det kommer inte att radera mappar utan att visa det i granskning.",
     "legacy.surface.6737eda0fa90b3e7": "Åtgärda markerade fältfel och försök sedan spara igen.",
     "legacy.surface.679af6c27fdb6156": "Om det är aktiverat inkluderas dessa importerade objekt i det sista granskningssteget.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Mapp låst",
     "legacy.surface.79f2d95249af4da7": "Välj en VM-mapp och åtgärd och förhandsgranska sedan planen innan du tillämpar den.",
     "legacy.surface.7a1f2a83aca9a081": "Favoriter",
+    "legacy.surface.7a73f8f30dae4554": "Nedladdningen startade inte",
     "legacy.surface.7a75f86cfc877a4c": "Förhandsgranska en import och placera dess mappar under denna.",
     "legacy.surface.7ab52733c917451a": "Använd standardinställningar",
     "legacy.surface.7ab5282bcb5d2e48": "Sammanfattning av valt beteende",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Målmappen finns inte längre. Uppdatera och försök igen.",
     "legacy.surface.d9d9333f66e73928": "Kontrollera vad den kollapsade raden visar och hur mycket utrymme den använder.",
     "legacy.surface.d9ed7f0df4cb3205": "Välj Docker eller virtuella datorer, skapa, beställ och granska sedan automatiska mappregler på ett ställe.",
+    "legacy.surface.da1f35fb8d4627bf": "Diagnostikförsöket upphörde. Kör exporten igen och rapportera den om ingen fil visas.",
     "legacy.surface.da37fac1deec3555": "Skanna aktuella behållare och befintliga mappar efter idéer om säkra regel innan du sparar något.",
     "legacy.surface.da6896d5c20e12f5": "Valfri åsidosättning per mapp för den stoppade procentuella varningströskeln som används av statuschipets accent.",
     "legacy.surface.da85bb79d8abda9f": "Detta kommer att skriva över nuvarande $1-mappar med den senaste säkerhetskopian.",

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "ro",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Începeți după loturi personalizate",
     "legacy.surface.379fb68da7f2846c": "Lăsați necompletat pentru a utiliza profilul actual de sănătate/setarea globală.",
     "legacy.surface.37ad28af649aa6a2": "Căutați numele sau eticheta pictogramei",
+    "legacy.surface.37aedcf77d0a399e": "Exportul în memorie nu mai este disponibil. Selectați din nou Export toate pentru a crea un fișier nou.",
     "legacy.surface.37bc2104d8b0ec9f": "Scanați un depozit GitHub, o cale de ramură sau un fișier CSS brut înainte de a-l adăuga la temele dvs. gestionate.",
     "legacy.surface.37fa840aca750d15": "Comparați $1 instantanee",
     "legacy.surface.3828d9ab739b80fe": "Cheie de testare a etichetei (opțional)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Depozitare",
     "legacy.surface.670618d594e9730a": "Retestarea performanței s-a încheiat",
     "legacy.surface.6730e31e374f01cd": "Profil implicit",
+    "legacy.surface.673624e492baad39": "Reîncercarea a eșuat înainte de a putea fi creată o solicitare de descărcare a browserului.",
     "legacy.surface.6737a9f296c08f4d": "Nu va șterge folderele fără a le afișa în Review.",
     "legacy.surface.6737eda0fa90b3e7": "Rezolvați erorile de câmp evidențiate, apoi încercați să salvați din nou.",
     "legacy.surface.679af6c27fdb6156": "Dacă sunt activate, aceste articole importate sunt incluse în pasul final de examinare.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Folder blocat",
     "legacy.surface.79f2d95249af4da7": "Selectați un folder și o acțiune VM, apoi previzualizați planul înainte de a-l aplica.",
     "legacy.surface.7a1f2a83aca9a081": "Favorite",
+    "legacy.surface.7a73f8f30dae4554": "Descărcarea nu a început",
     "legacy.surface.7a75f86cfc877a4c": "Previzualizează un import și plasează folderele acestuia sub acesta.",
     "legacy.surface.7ab52733c917451a": "Aplicați setările implicite de utilizare",
     "legacy.surface.7ab5282bcb5d2e48": "Rezumatul comportamentului selectat",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Dosarul țintă nu mai există. Actualizează și încearcă din nou.",
     "legacy.surface.d9d9333f66e73928": "Controlați ce arată rândul restrâns și cât spațiu ocupă.",
     "legacy.surface.d9ed7f0df4cb3205": "Alegeți Docker sau VM-uri, apoi creați, ordonați și examinați regulile automate ale folderelor într-un singur loc.",
+    "legacy.surface.da1f35fb8d4627bf": "Încercarea de diagnosticare a expirat. Rulați din nou exportul, apoi raportați-l dacă nu apare niciun fișier.",
     "legacy.surface.da37fac1deec3555": "Scanați containerele actuale și folderele existente pentru idei de reguli sigure înainte de a salva ceva.",
     "legacy.surface.da6896d5c20e12f5": "Suprascriere opțională per folder pentru pragul de avertizare procentual oprit utilizat de accentul cip de stare.",
     "legacy.surface.da85bb79d8abda9f": "Aceasta va suprascrie dosarele curente $1 cu cel mai recent instantaneu de rezervă.",

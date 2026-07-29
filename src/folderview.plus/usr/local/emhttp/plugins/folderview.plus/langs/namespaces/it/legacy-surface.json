@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "it",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Inizia dopo i batch personalizzati",
     "legacy.surface.379fb68da7f2846c": "Lascia vuoto per utilizzare il profilo sanitario/impostazione globale corrente.",
     "legacy.surface.37ad28af649aa6a2": "Cerca il nome o il tag dell'icona",
+    "legacy.surface.37aedcf77d0a399e": "L'esportazione in memoria non è più disponibile. Seleziona di nuovo Esporta tutto per creare un nuovo file.",
     "legacy.surface.37bc2104d8b0ec9f": "Esegui la scansione di un repository GitHub, di un percorso di ramo o di un file CSS non elaborato prima di aggiungerlo ai temi gestiti.",
     "legacy.surface.37fa840aca750d15": "Confronta le istantanee $1",
     "legacy.surface.3828d9ab739b80fe": "Chiave etichetta di prova (facoltativa)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B di stoccaggio",
     "legacy.surface.670618d594e9730a": "Nuovo test delle prestazioni completato",
     "legacy.surface.6730e31e374f01cd": "Profilo predefinito",
+    "legacy.surface.673624e492baad39": "Il nuovo tentativo non è riuscito prima che potesse essere creata una richiesta di download del browser.",
     "legacy.surface.6737a9f296c08f4d": "Non eliminerà le cartelle senza mostrarle in Revisione.",
     "legacy.surface.6737eda0fa90b3e7": "Risolvi gli errori dei campi evidenziati, quindi prova a salvare nuovamente.",
     "legacy.surface.679af6c27fdb6156": "Se abilitati, questi elementi importati vengono inclusi nella fase finale di revisione.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Cartella bloccata",
     "legacy.surface.79f2d95249af4da7": "Seleziona una cartella e un'azione della VM, quindi visualizza l'anteprima del piano prima di applicarlo.",
     "legacy.surface.7a1f2a83aca9a081": "Preferiti",
+    "legacy.surface.7a73f8f30dae4554": "Il download non è iniziato",
     "legacy.surface.7a75f86cfc877a4c": "Visualizza l'anteprima di un'importazione e posiziona le sue cartelle sotto questa.",
     "legacy.surface.7ab52733c917451a": "Applicare le impostazioni predefinite di utilizzo",
     "legacy.surface.7ab5282bcb5d2e48": "Riepilogo del comportamento selezionato",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "La cartella di destinazione non esiste più. Aggiorna e riprova.",
     "legacy.surface.d9d9333f66e73928": "Controlla cosa mostra la riga compressa e quanto spazio utilizza.",
     "legacy.surface.d9ed7f0df4cb3205": "Scegli Docker o VM, quindi crea, ordina e rivedi le regole automatiche delle cartelle in un unico posto.",
+    "legacy.surface.da1f35fb8d4627bf": "Il tentativo diagnostico è scaduto. Esegui nuovamente l'esportazione, quindi segnalalo se non viene visualizzato alcun file.",
     "legacy.surface.da37fac1deec3555": "Esegui la scansione dei contenitori correnti e delle cartelle esistenti per idee di regole sicure prima di salvare qualsiasi cosa.",
     "legacy.surface.da6896d5c20e12f5": "Sostituzione facoltativa per cartella per la soglia di avviso della percentuale di arresto utilizzata dall'accento del chip di stato.",
     "legacy.surface.da85bb79d8abda9f": "Ciò sovrascriverà le cartelle $1 correnti con l'ultima istantanea di backup.",

@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.29.01">
-<!ENTITY md5 "16119563bad764ea65cb341f453296b1">
-<!ENTITY sha256 "c54485b8d43eef3d94bb11bc1b7b4bf685e329ef0f5c468c80a1e715e004744f">
+<!ENTITY version "2026.07.29.02">
+<!ENTITY md5 "2489f149ac9af6e6e0411e0505693a57">
+<!ENTITY sha256 "3635701e09674600aa5aa23d6276f043a4396f6b4b609789bc34a754e569281d">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,21 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.29.02
+## FolderView Plus 2026.07.29.02
+### Export download diagnostics
+- Diagnostics: Record a bounded, privacy-safe lifecycle for Docker, VM, and plugin configuration downloads so support bundles can distinguish payload generation, browser dispatch, synchronous failures, and user-confirmed missing downloads.
+- Privacy: Store only fixed-schema metadata such as export type, surface, size bucket, browser capabilities, and lifecycle outcome; export names, configuration content, container names, paths, addresses, and identifiers are never persisted in download diagnostics.
+- Diagnostics: Include recent download attempts and aggregate outcomes in sanitized support bundles without claiming a browser save completed when the browser does not provide a completion signal.
+### Inline recovery
+- UI/UX: Show export-download status next to the export controls with clear “Download didn’t start” and “Retry download” actions instead of popup notifications.
+- Reliability: Keep a short-lived in-memory copy of the latest export payload so a direct user click can retry the browser download with fresh user activation.
+- Accessibility: Provide theme-aware, responsive, keyboard-accessible status and recovery controls with localized text across all 18 supported locales.
+### Validation and packaging
+- Quality: Add unit and browser-fixture coverage for privacy boundaries, missing-download reporting, synchronous failures, retry behavior, and support-bundle telemetry.
+- Quality: Verify the dedicated download-diagnostics stylesheet is present and byte-identical in built and installed plugin artifacts.
+
 
 ###2026.07.29.01
 ## FolderView Plus 2026.07.29.01

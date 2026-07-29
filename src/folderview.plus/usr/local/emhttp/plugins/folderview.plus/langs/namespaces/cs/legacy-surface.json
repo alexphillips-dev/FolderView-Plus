@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "cs",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Začněte po vlastních dávkách",
     "legacy.surface.379fb68da7f2846c": "Chcete-li použít aktuální zdravotní profil/globální nastavení, ponechte prázdné.",
     "legacy.surface.37ad28af649aa6a2": "Hledat název ikony nebo značku",
+    "legacy.surface.37aedcf77d0a399e": "Export v paměti již není k dispozici. Chcete-li vytvořit nový soubor, vyberte znovu Exportovat vše.",
     "legacy.surface.37bc2104d8b0ec9f": "Před přidáním do spravovaných motivů naskenujte úložiště GitHub, cestu větve nebo nezpracovaný soubor CSS.",
     "legacy.surface.37fa840aca750d15": "Porovnejte snímky $1",
     "legacy.surface.3828d9ab739b80fe": "Testovací klíč štítku (volitelné)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Skladování",
     "legacy.surface.670618d594e9730a": "Opakovaný test výkonu dokončen",
     "legacy.surface.6730e31e374f01cd": "Výchozí profil",
+    "legacy.surface.673624e492baad39": "Opakovaný pokus se nezdařil, než bylo možné vytvořit požadavek na stažení prohlížeče.",
     "legacy.surface.6737a9f296c08f4d": "Neodstraní složky, aniž by se to zobrazilo v Review.",
     "legacy.surface.6737eda0fa90b3e7": "Vyřešte chyby ve zvýrazněných polích a zkuste uložit znovu.",
     "legacy.surface.679af6c27fdb6156": "Pokud je povoleno, jsou tyto importované položky zahrnuty do posledního kroku kontroly.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Složka uzamčena",
     "legacy.surface.79f2d95249af4da7": "Vyberte složku a akci virtuálního počítače a před použitím plánu si zobrazte náhled.",
     "legacy.surface.7a1f2a83aca9a081": "Oblíbené",
+    "legacy.surface.7a73f8f30dae4554": "Stahování se nespustilo",
     "legacy.surface.7a75f86cfc877a4c": "Zobrazte náhled importu a umístěte jeho složky pod tento.",
     "legacy.surface.7ab52733c917451a": "Použít výchozí hodnoty použití",
     "legacy.surface.7ab5282bcb5d2e48": "Shrnutí vybraného chování",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Cílová složka již neexistuje. Obnovte a zkuste to znovu.",
     "legacy.surface.d9d9333f66e73928": "Kontrolujte, co zobrazuje sbalený řádek a kolik místa zabírá.",
     "legacy.surface.d9ed7f0df4cb3205": "Vyberte Docker nebo VM a poté vytvořte, objednejte a zkontrolujte automatická pravidla složek na jednom místě.",
+    "legacy.surface.da1f35fb8d4627bf": "Diagnostický pokus vypršel. Spusťte export znovu a pokud se neobjeví žádný soubor, nahlaste jej.",
     "legacy.surface.da37fac1deec3555": "Než cokoli uložíte, naskenujte aktuální kontejnery a existující složky a vyhledejte nápady na bezpečná pravidla.",
     "legacy.surface.da6896d5c20e12f5": "Volitelné přepsání pro každou složku pro prahovou hodnotu varování v procentech, kterou používá akcent stavového čipu.",
     "legacy.surface.da85bb79d8abda9f": "To přepíše aktuální složky $1 nejnovějším snímkem zálohy.",

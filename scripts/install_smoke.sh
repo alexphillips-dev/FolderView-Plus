@@ -194,6 +194,7 @@ REQUIRED_FILES=(
   "scripts/folder.js"
   "styles/theme.tokens.css"
   "styles/folderviewplus.css"
+  "styles/folderviewplus.download-diagnostics.css"
   "styles/folder.css"
   "server/lib.php"
   "server/lib.process.php"

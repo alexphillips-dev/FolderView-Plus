@@ -245,7 +245,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1579);
+    assert.equal(snapshot.autoBoundMessageCount, 1583);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
@@ -1553,6 +1553,39 @@ test('Import progress dialog reports deterministic progress and closes cleanly',
     assert.equal(await page.locator('#import-apply-progress-bar').getAttribute('style'), 'width: 50%;');
     await page.evaluate(() => window.fixtureImport.closeProgress());
     assert.equal(await page.locator('#import-apply-progress-dialog').getAttribute('aria-hidden'), 'true');
+});
+
+test('Export download diagnostics report a missing file and retry from a direct user action', async ({ page }) => {
+    await page.goto(`${baseUrl}/import`, { waitUntil: 'load' });
+    await page.evaluate(() => window.fixtureImport.requestDownload());
+    const status = page.locator('#docker-download-status');
+    assert.equal(await status.isVisible(), true);
+    assert.equal(await status.locator('strong').textContent(), 'Download requested');
+    assert.match(
+        String(await status.locator('small').textContent()),
+        /Browsers do not provide a save-completion signal/
+    );
+
+    await status.locator('.fv-download-status-report').click();
+    await page.waitForFunction(() => (
+        window.fixtureImport.downloadAttempts().attempts[0]?.lifecycle === 'user-reported-missing'
+    ));
+    assert.equal(await status.locator('strong').textContent(), 'Download was not received');
+    assert.equal(await status.locator('.fv-download-status-retry').count(), 1);
+    assert.equal(
+        await page.evaluate(() => window.fixtureDiagnosticEvents.at(-1)?.eventType),
+        'export_download_missing'
+    );
+
+    const retryDownload = page.waitForEvent('download');
+    await status.locator('.fv-download-status-retry').click();
+    const download = await retryDownload;
+    assert.equal(download.suggestedFilename(), 'FolderView Plus Docker.json');
+    await page.waitForFunction(() => window.fixtureImport.downloadAttempts().attempts.length === 2);
+    assert.equal(await status.locator('strong').textContent(), 'Download retry requested');
+    const attempts = await page.evaluate(() => window.fixtureImport.downloadAttempts().attempts);
+    assert.equal(attempts[1].fallback.used, true);
+    assert.equal(attempts[1].fallback.retryOf, attempts[0].attemptId);
 });
 
 const report = {

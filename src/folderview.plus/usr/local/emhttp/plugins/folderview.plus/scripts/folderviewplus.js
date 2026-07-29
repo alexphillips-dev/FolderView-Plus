@@ -4157,6 +4157,7 @@ const getSettingsRuntimeActionsApi = (() => {
             showToastMessage,
             showError,
             downloadFile,
+            buildDownloadDiagnosticsEventDetails,
             toPrettyJson,
             trackDiagnosticsEvent,
             getPluginVersion: () => pluginVersion,
@@ -6062,7 +6063,13 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
     const kind = String(eventType || '').trim();
     const scope = type === 'vm' ? 'VM' : (type === 'docker' ? 'Docker' : 'Plugin');
     if (kind === 'export') {
-        return `${scope} export generated`;
+        if (String(details.lifecycle || '') === 'synchronous-failure') {
+            return `${scope} export download request failed`;
+        }
+        return `${scope} export download requested (browser save unconfirmed)`;
+    }
+    if (kind === 'export_download_missing') {
+        return `${scope} export download reported missing`;
     }
     if (kind === 'import') {
         return `${scope} import applied (${details.creates || 0} create, ${details.updates || 0} update, ${details.deletes || 0} delete)`;
@@ -9702,16 +9709,27 @@ const downloadType = async (type, id) => {
                 folder,
                 pluginVersion
             });
-            downloadFile(`${folder.name}.json`, toPrettyJson(payload));
-            setProgress(progressTotal, 'Export download started.');
+            const downloadAttempt = downloadFile(`${folder.name}.json`, toPrettyJson(payload), {
+                type: resolvedType,
+                mode: 'single',
+                surface: 'settings',
+                folderCount: 1,
+                schemaVersion: utils.EXPORT_SCHEMA_VERSION
+            });
+            setProgress(progressTotal, 'Export download requested.');
             await trackDiagnosticsEvent({
                 eventType: 'export',
                 type: resolvedType,
-                details: {
-                    mode: 'single',
-                    folderCount: 1,
-                    schemaVersion: utils.EXPORT_SCHEMA_VERSION
-                }
+                details: downloadAttempt
+                    ? buildDownloadDiagnosticsEventDetails(downloadAttempt)
+                    : {
+                        mode: 'single',
+                        folderCount: 1,
+                        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+                        lifecycle: 'download-dispatch-attempted',
+                        verdict: 'indeterminate',
+                        verdictCode: 'telemetry-module-unavailable'
+                    }
             });
             await new Promise((resolve) => setTimeout(resolve, 140));
             return;
@@ -9724,19 +9742,39 @@ const downloadType = async (type, id) => {
         });
 
         const name = resolvedType === 'docker' ? `${EXPORT_BASENAME}.json` : `${EXPORT_BASENAME} VM.json`;
-        downloadFile(name, toPrettyJson(payload));
-        setProgress(progressTotal, 'Export download started.');
+        const downloadAttempt = downloadFile(name, toPrettyJson(payload), {
+            type: resolvedType,
+            mode: 'full',
+            surface: 'settings',
+            folderCount: Object.keys(folders).length,
+            schemaVersion: utils.EXPORT_SCHEMA_VERSION
+        });
+        setProgress(progressTotal, 'Export download requested.');
         await trackDiagnosticsEvent({
             eventType: 'export',
             type: resolvedType,
-            details: {
-                mode: 'full',
-                folderCount: Object.keys(folders).length,
-                schemaVersion: utils.EXPORT_SCHEMA_VERSION
-            }
+            details: downloadAttempt
+                ? buildDownloadDiagnosticsEventDetails(downloadAttempt)
+                : {
+                    mode: 'full',
+                    folderCount: Object.keys(folders).length,
+                    schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+                    lifecycle: 'download-dispatch-attempted',
+                    verdict: 'indeterminate',
+                    verdictCode: 'telemetry-module-unavailable'
+                }
         });
         await new Promise((resolve) => setTimeout(resolve, 140));
     } catch (error) {
+        if (error?.fvplusDownloadAttempt) {
+            await trackDiagnosticsEvent({
+                eventType: 'export',
+                type: resolvedType,
+                status: 'error',
+                details: buildDownloadDiagnosticsEventDetails(error.fvplusDownloadAttempt)
+            });
+            renderDownloadAttemptStatus(error.fvplusDownloadAttempt);
+        }
         showError('Export failed', error);
     } finally {
         if (progressOpen) {

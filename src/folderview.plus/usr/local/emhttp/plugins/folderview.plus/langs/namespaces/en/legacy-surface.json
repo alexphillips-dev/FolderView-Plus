@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "en",
         "namespace": "legacy-surface"
     },
@@ -445,6 +445,7 @@
     "legacy.surface.907ca922292885f2": "Docker, VMs, and Dashboard folder rendering are now re-enabled. Refresh those tabs if they were already open.",
     "legacy.surface.4cfaa6abfc98f269": "Dominant",
     "legacy.surface.11a6767d5674c7e4": "Done",
+    "legacy.surface.7a73f8f30dae4554": "Download didn’t start",
     "legacy.surface.a75ee6a28c39f865": "Drag child folders to control the order shown in previews and expanded rows.",
     "legacy.surface.fcf4a4036d170f75": "Drag to reorder folder",
     "legacy.surface.f728f30997731c4a": "Drag to reorder within this level",
@@ -1404,12 +1405,15 @@
     "legacy.surface.2a15b08444492786": "Test the current rule set",
     "legacy.surface.f27310598a5421a8": "Test VM name (example: prod-db)",
     "legacy.surface.57d6fa77c9199070": "The current scope only contains regex-controlled members. Edit the folder rules instead of using bulk move for those entries.",
+    "legacy.surface.da1f35fb8d4627bf": "The diagnostic attempt expired. Run the export again, then report it if no file appears.",
     "legacy.surface.30d44908bbaa7b02": "The editor runtime will keep this preview in sync as settings change.",
     "legacy.surface.fcf07babc15304f7": "The GraphQL operation failed.",
     "legacy.surface.eaf54282ac27e4ad": "The GraphQL request was rejected.",
     "legacy.surface.965729b8b00db512": "The GraphQL service is unavailable.",
     "legacy.surface.a6078dbd6f3446e0": "The health summary now reflects the latest warm Settings measurement.",
+    "legacy.surface.37aedcf77d0a399e": "The in-memory export is no longer available. Select Export all again to create a fresh file.",
     "legacy.surface.589a9daf4db800d5": "The requested GraphQL capability is unavailable.",
+    "legacy.surface.673624e492baad39": "The retry failed before a browser download request could be created.",
     "legacy.surface.fee46fd168a77bb4": "The shared bulk assignment engine did not load on this page.",
     "legacy.surface.e8321ddf5c49477a": "The wizard will scan your current setup and suggest a safe starting plan.",
     "legacy.surface.efb52e7172b77731": "Theme",

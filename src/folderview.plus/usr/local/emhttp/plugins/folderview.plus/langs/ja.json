@@ -3,17 +3,17 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "direction": "ltr",
         "last-reviewed": "2026-07-29",
         "last-updated": "2026-07-29",
         "locale": "ja",
         "native-name": "日本語",
         "reviewed": true,
-        "source-revision": "2026.07.27.1",
+        "source-revision": "2026.07.29.1",
         "status": "complete",
-        "translated-messages": 2047,
-        "total-source-messages": 2047
+        "translated-messages": 2051,
+        "total-source-messages": 2051
     },
     "add-folder": "フォルダーを追加",
     "up-to-date": "最新の状態",

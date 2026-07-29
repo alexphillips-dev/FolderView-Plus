@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "ko",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "사용자 정의 배치 이후 시작",
     "legacy.surface.379fb68da7f2846c": "현재 상태 프로필/전역 설정을 사용하려면 비워 두세요.",
     "legacy.surface.37ad28af649aa6a2": "아이콘 이름 또는 태그 검색",
+    "legacy.surface.37aedcf77d0a399e": "메모리 내 내보내기를 더 이상 사용할 수 없습니다. 모두 내보내기를 다시 선택하여 새 파일을 만듭니다.",
     "legacy.surface.37bc2104d8b0ec9f": "관리되는 테마에 추가하기 전에 GitHub 저장소, 분기 경로 또는 원시 CSS 파일을 스캔하세요.",
     "legacy.surface.37fa840aca750d15": "$1 스냅샷 비교",
     "legacy.surface.3828d9ab739b80fe": "테스트 라벨 키(선택사항)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0B 스토리지",
     "legacy.surface.670618d594e9730a": "성능 재테스트 완료",
     "legacy.surface.6730e31e374f01cd": "기본값 프로필",
+    "legacy.surface.673624e492baad39": "브라우저 다운로드 요청이 생성되기 전에 재시도가 실패했습니다.",
     "legacy.surface.6737a9f296c08f4d": "검토에 표시하지 않고는 폴더를 삭제하지 않습니다.",
     "legacy.surface.6737eda0fa90b3e7": "강조표시된 필드 오류를 해결한 후 다시 저장해 보세요.",
     "legacy.surface.679af6c27fdb6156": "활성화되면 가져온 항목이 최종 검토 단계에 포함됩니다.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "폴더가 잠겼습니다.",
     "legacy.surface.79f2d95249af4da7": "VM 폴더와 작업을 선택한 다음 적용하기 전에 계획을 미리 봅니다.",
     "legacy.surface.7a1f2a83aca9a081": "즐겨찾기",
+    "legacy.surface.7a73f8f30dae4554": "다운로드가 시작되지 않았습니다",
     "legacy.surface.7a75f86cfc877a4c": "가져오기를 미리 보고 폴더를 이 폴더 아래에 배치하세요.",
     "legacy.surface.7ab52733c917451a": "사용 기본값 적용",
     "legacy.surface.7ab5282bcb5d2e48": "선택된 동작 요약",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "대상 폴더가 더 이상 존재하지 않습니다. 새로고침하고 다시 시도하세요.",
     "legacy.surface.d9d9333f66e73928": "접힌 행에 표시되는 내용과 사용되는 공간의 양을 제어합니다.",
     "legacy.surface.d9ed7f0df4cb3205": "Docker 또는 VM을 선택한 다음 한 곳에서 자동 폴더 규칙을 생성, 주문 및 검토하세요.",
+    "legacy.surface.da1f35fb8d4627bf": "진단 시도가 만료되었습니다. 내보내기를 다시 실행한 후 파일이 나타나지 않으면 보고하세요.",
     "legacy.surface.da37fac1deec3555": "무엇이든 저장하기 전에 현재 컨테이너와 기존 폴더에서 안전한 규칙 아이디어를 검색하세요.",
     "legacy.surface.da6896d5c20e12f5": "상태 칩 액센트에서 사용되는 중지된 백분율 경고 임계값에 대한 선택적 폴더별 재정의입니다.",
     "legacy.surface.da85bb79d8abda9f": "현재 $1 폴더를 최신 백업 스냅샷으로 덮어쓰게 됩니다.",

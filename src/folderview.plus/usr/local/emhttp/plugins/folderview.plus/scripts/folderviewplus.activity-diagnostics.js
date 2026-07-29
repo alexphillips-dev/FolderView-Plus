@@ -678,6 +678,7 @@ const getSupportBundleTelemetryApi = () => {
                 dashboardVisualVm: 'fv.support.bundle.dashboard.visual.vm.v1',
                 dashboardLifecycle: 'fv.support.bundle.dashboard.lifecycle.v1',
                 vmLifecycle: 'fv.support.bundle.vm.lifecycle.v1',
+                downloadAttempts: 'fv.support.bundle.downloadAttempts.v1',
                 runtimePerformance: {
                     docker: 'fv.support.bundle.runtime.performance.docker.v1',
                     vm: 'fv.support.bundle.runtime.performance.vm.v1',

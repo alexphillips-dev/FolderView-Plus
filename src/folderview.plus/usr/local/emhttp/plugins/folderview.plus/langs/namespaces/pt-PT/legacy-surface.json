@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "pt-PT",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Comece após lotes personalizados",
     "legacy.surface.379fb68da7f2846c": "Deixe em branco para usar o perfil de saúde/configuração global atual.",
     "legacy.surface.37ad28af649aa6a2": "Nome ou tag do ícone de pesquisa",
+    "legacy.surface.37aedcf77d0a399e": "A exportação na memória não está mais disponível. Selecione Exportar tudo novamente para criar um novo arquivo.",
     "legacy.surface.37bc2104d8b0ec9f": "Verifique um repositório GitHub, caminho de ramificação ou arquivo CSS bruto antes de adicioná-lo aos seus temas gerenciados.",
     "legacy.surface.37fa840aca750d15": "Comparar instantâneos de $1",
     "legacy.surface.3828d9ab739b80fe": "Chave de rótulo de teste (opcional)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0B Armazenamento",
     "legacy.surface.670618d594e9730a": "Novo teste de desempenho concluído",
     "legacy.surface.6730e31e374f01cd": "Perfil padrão",
+    "legacy.surface.673624e492baad39": "A nova tentativa falhou antes que uma solicitação de download do navegador pudesse ser criada.",
     "legacy.surface.6737a9f296c08f4d": "Ele não excluirá pastas sem mostrá-las na Revisão.",
     "legacy.surface.6737eda0fa90b3e7": "Resolva os erros dos campos destacados e tente salvar novamente.",
     "legacy.surface.679af6c27fdb6156": "Se ativado, esses itens importados serão incluídos na etapa final de Revisão.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Pasta bloqueada",
     "legacy.surface.79f2d95249af4da7": "Selecione uma pasta e uma ação da VM e visualize o plano antes de aplicá-lo.",
     "legacy.surface.7a1f2a83aca9a081": "Favoritos",
+    "legacy.surface.7a73f8f30dae4554": "O download não começou",
     "legacy.surface.7a75f86cfc877a4c": "Visualize uma importação e coloque suas pastas abaixo desta.",
     "legacy.surface.7ab52733c917451a": "Aplicar padrões de uso",
     "legacy.surface.7ab5282bcb5d2e48": "Resumo do comportamento selecionado",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "A pasta de destino não existe mais. Atualize e tente novamente.",
     "legacy.surface.d9d9333f66e73928": "Controle o que a linha recolhida mostra e quanto espaço ela ocupa.",
     "legacy.surface.d9ed7f0df4cb3205": "Escolha Docker ou VMs e crie, ordene e revise regras de pasta automáticas em um só lugar.",
+    "legacy.surface.da1f35fb8d4627bf": "A tentativa de diagnóstico expirou. Execute a exportação novamente e informe se nenhum arquivo aparecer.",
     "legacy.surface.da37fac1deec3555": "Verifique os contêineres atuais e as pastas existentes em busca de ideias de regras seguras antes de salvar qualquer coisa.",
     "legacy.surface.da6896d5c20e12f5": "Substituição opcional por pasta para o limite de aviso de porcentagem de parada usado pelo acento do chip de status.",
     "legacy.surface.da85bb79d8abda9f": "Isso substituirá as pastas atuais de $1 pelo instantâneo de backup mais recente.",

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "de",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Beginnen Sie nach benutzerdefinierten Chargen",
     "legacy.surface.379fb68da7f2846c": "Lassen Sie das Feld leer, um das aktuelle Gesundheitsprofil/die aktuelle globale Einstellung zu verwenden.",
     "legacy.surface.37ad28af649aa6a2": "Suchen Sie nach dem Namen oder Tag des Symbols",
+    "legacy.surface.37aedcf77d0a399e": "Der In-Memory-Export ist nicht mehr verfügbar. Wählen Sie erneut „Alle exportieren“, um eine neue Datei zu erstellen.",
     "legacy.surface.37bc2104d8b0ec9f": "Scannen Sie ein GitHub-Repository, einen Zweigpfad oder eine rohe CSS-Datei, bevor Sie sie zu Ihren verwalteten Themes hinzufügen.",
     "legacy.surface.37fa840aca750d15": "Vergleichen Sie $1 Snapshots",
     "legacy.surface.3828d9ab739b80fe": "Prüfetikettenschlüssel (optional)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Lagerung",
     "legacy.surface.670618d594e9730a": "Leistungswiederholungstest abgeschlossen",
     "legacy.surface.6730e31e374f01cd": "Standardprofil",
+    "legacy.surface.673624e492baad39": "Der Wiederholungsversuch ist fehlgeschlagen, bevor eine Browser-Download-Anfrage erstellt werden konnte.",
     "legacy.surface.6737a9f296c08f4d": "Es werden keine Ordner gelöscht, ohne sie in Review anzuzeigen.",
     "legacy.surface.6737eda0fa90b3e7": "Beheben Sie die hervorgehobenen Feldfehler und versuchen Sie dann erneut, zu speichern.",
     "legacy.surface.679af6c27fdb6156": "Wenn diese Option aktiviert ist, werden diese importierten Elemente in den letzten Überprüfungsschritt einbezogen.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Ordner gesperrt",
     "legacy.surface.79f2d95249af4da7": "Wählen Sie einen VM-Ordner und eine Aktion aus und zeigen Sie dann eine Vorschau des Plans an, bevor Sie ihn anwenden.",
     "legacy.surface.7a1f2a83aca9a081": "Favoriten",
+    "legacy.surface.7a73f8f30dae4554": "Der Download wurde nicht gestartet",
     "legacy.surface.7a75f86cfc877a4c": "Sehen Sie sich einen Import in der Vorschau an und platzieren Sie seine Ordner darunter.",
     "legacy.surface.7ab52733c917451a": "Nutzungsstandards anwenden",
     "legacy.surface.7ab5282bcb5d2e48": "Zusammenfassung ausgewählter Verhaltensweisen",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Zielordner existiert nicht mehr. Aktualisieren Sie und versuchen Sie es erneut.",
     "legacy.surface.d9d9333f66e73928": "Steuern Sie, was in der minimierten Zeile angezeigt wird und wie viel Platz sie beansprucht.",
     "legacy.surface.d9ed7f0df4cb3205": "Wählen Sie Docker oder VMs und erstellen, bestellen und überprüfen Sie dann automatische Ordnerregeln an einem Ort.",
+    "legacy.surface.da1f35fb8d4627bf": "Der Diagnoseversuch ist abgelaufen. Führen Sie den Export erneut aus und melden Sie ihn, wenn keine Datei angezeigt wird.",
     "legacy.surface.da37fac1deec3555": "Scannen Sie aktuelle Container und vorhandene Ordner nach Ideen für sichere Regeln, bevor Sie etwas speichern.",
     "legacy.surface.da6896d5c20e12f5": "Optionale Überschreibung pro Ordner für den Warnschwellenwert für gestoppte Prozent, der vom Status-Chip-Akzent verwendet wird.",
     "legacy.surface.da85bb79d8abda9f": "Dadurch werden die aktuellen $1-Ordner mit dem neuesten Backup-Snapshot überschrieben.",

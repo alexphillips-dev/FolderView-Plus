@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "fr",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "Commencer après les lots personnalisés",
     "legacy.surface.379fb68da7f2846c": "Laissez vide pour utiliser le profil de santé/paramètre global actuel.",
     "legacy.surface.37ad28af649aa6a2": "Rechercher le nom ou la balise de l'icône",
+    "legacy.surface.37aedcf77d0a399e": "L'exportation en mémoire n'est plus disponible. Sélectionnez à nouveau Tout exporter pour créer un nouveau fichier.",
     "legacy.surface.37bc2104d8b0ec9f": "Analysez un référentiel GitHub, un chemin de branche ou un fichier CSS brut avant de l'ajouter à vos thèmes gérés.",
     "legacy.surface.37fa840aca750d15": "Comparez les instantanés $1",
     "legacy.surface.3828d9ab739b80fe": "Clé d'étiquette de test (facultatif)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B Stockage",
     "legacy.surface.670618d594e9730a": "Nouveau test de performances terminé",
     "legacy.surface.6730e31e374f01cd": "Profil par défaut",
+    "legacy.surface.673624e492baad39": "La nouvelle tentative a échoué avant qu'une demande de téléchargement du navigateur puisse être créée.",
     "legacy.surface.6737a9f296c08f4d": "Il ne supprimera pas les dossiers sans les afficher dans Review.",
     "legacy.surface.6737eda0fa90b3e7": "Résolvez les erreurs de champ en surbrillance, puis réessayez d'enregistrer.",
     "legacy.surface.679af6c27fdb6156": "Si cette option est activée, ces éléments importés sont inclus dans l’étape finale de révision.",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "Dossier verrouillé",
     "legacy.surface.79f2d95249af4da7": "Sélectionnez un dossier de VM et une action, puis prévisualisez le plan avant de l'appliquer.",
     "legacy.surface.7a1f2a83aca9a081": "Favoris",
+    "legacy.surface.7a73f8f30dae4554": "Le téléchargement n'a pas démarré",
     "legacy.surface.7a75f86cfc877a4c": "Prévisualisez une importation et placez ses dossiers sous celle-ci.",
     "legacy.surface.7ab52733c917451a": "Appliquer les paramètres d'utilisation par défaut",
     "legacy.surface.7ab5282bcb5d2e48": "Résumé du comportement sélectionné",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "Le dossier cible n'existe plus. Actualisez et réessayez.",
     "legacy.surface.d9d9333f66e73928": "Contrôlez ce que montre la ligne réduite et l’espace qu’elle utilise.",
     "legacy.surface.d9ed7f0df4cb3205": "Choisissez Docker ou VMs, puis créez, commandez et examinez les règles de dossier automatiques en un seul endroit.",
+    "legacy.surface.da1f35fb8d4627bf": "La tentative de diagnostic a expiré. Exécutez à nouveau l'exportation, puis signalez-la si aucun fichier n'apparaît.",
     "legacy.surface.da37fac1deec3555": "Analysez les conteneurs actuels et les dossiers existants pour trouver des idées de règles sûres avant de sauvegarder quoi que ce soit.",
     "legacy.surface.da6896d5c20e12f5": "Remplacement facultatif par dossier pour le seuil d'avertissement de pourcentage d'arrêt utilisé par l'accent de la puce d'état.",
     "legacy.surface.da85bb79d8abda9f": "Cela écrasera les dossiers $1 actuels avec le dernier instantané de sauvegarde.",

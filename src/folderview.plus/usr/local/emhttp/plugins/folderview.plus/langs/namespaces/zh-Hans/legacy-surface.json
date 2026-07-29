@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "zh-Hans",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "自定义批次后开始",
     "legacy.surface.379fb68da7f2846c": "留空以使用当前的运行状况配置文件/全局设置。",
     "legacy.surface.37ad28af649aa6a2": "搜索图标名称或标签",
+    "legacy.surface.37aedcf77d0a399e": "内存中导出不再可用。再次选择全部导出以创建新文件。",
     "legacy.surface.37bc2104d8b0ec9f": "扫描 GitHub 存储库、分支路径或原始 CSS 文件，然后将其添加到托管主题。",
     "legacy.surface.37fa840aca750d15": "比较 $1 快照",
     "legacy.surface.3828d9ab739b80fe": "测试标签键（可选）",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0B 存储",
     "legacy.surface.670618d594e9730a": "性能重新测试完成",
     "legacy.surface.6730e31e374f01cd": "默认配置文件",
+    "legacy.surface.673624e492baad39": "在创建浏览器下载请求之前重试失败。",
     "legacy.surface.6737a9f296c08f4d": "它不会删除文件夹而不在审阅中显示它。",
     "legacy.surface.6737eda0fa90b3e7": "解决突出显示的字段错误，然后再次尝试保存。",
     "legacy.surface.679af6c27fdb6156": "如果启用，这些导入的项目将包含在最终的审核步骤中。",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "文件夹已锁定",
     "legacy.surface.79f2d95249af4da7": "选择虚拟机文件夹和操作，然后在应用之前预览计划。",
     "legacy.surface.7a1f2a83aca9a081": "收藏夹",
+    "legacy.surface.7a73f8f30dae4554": "下载未开始",
     "legacy.surface.7a75f86cfc877a4c": "预览导入并将其文件夹放在该文件夹下。",
     "legacy.surface.7ab52733c917451a": "应用使用默认值",
     "legacy.surface.7ab5282bcb5d2e48": "选定的行为摘要",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "目标文件夹不再存在。刷新并重试。",
     "legacy.surface.d9d9333f66e73928": "控制折叠行显示的内容及其使用的空间。",
     "legacy.surface.d9ed7f0df4cb3205": "选择 Docker 或 VM，然后在一处创建、排序和查看自动文件夹规则。",
+    "legacy.surface.da1f35fb8d4627bf": "诊断尝试已过期。再次运行导出，如果没有出现文件则报告它。",
     "legacy.surface.da37fac1deec3555": "在保存任何内容之前，扫描当前容器和现有文件夹以获取安全规则想法。",
     "legacy.surface.da6896d5c20e12f5": "可选的每个文件夹覆盖状态芯片口音使用的停止百分比警告阈值。",
     "legacy.surface.da85bb79d8abda9f": "这将使用最新的备份快照覆盖当前的 $1 文件夹。",

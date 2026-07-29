@@ -228,6 +228,7 @@ SOURCE_SETTINGS_RUNTIME_ACTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/em
 SOURCE_SETTINGS_WIZARD_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 SOURCE_SETTINGS_IMPORT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+SOURCE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css"
 SOURCE_FOLDER_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page"
 SOURCE_SETTINGS_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 SOURCE_SERVER_LIB="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
@@ -343,6 +344,10 @@ if [[ ! -f "${SOURCE_SETTINGS_CSS}" ]]; then
   echo "ERROR: Missing source settings stylesheet: ${SOURCE_SETTINGS_CSS}" >&2
   exit 1
 fi
+if [[ ! -f "${SOURCE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}" ]]; then
+  echo "ERROR: Missing source download diagnostics stylesheet: ${SOURCE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}" >&2
+  exit 1
+fi
 if [[ ! -f "${SOURCE_FOLDER_PAGE}" ]]; then
   echo "ERROR: Missing source folder editor page: ${SOURCE_FOLDER_PAGE}" >&2
   exit 1
@@ -450,6 +455,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+  "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css"
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
@@ -743,13 +749,14 @@ TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_WIZARD_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_IMPORT_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS="$(mktemp)"
 TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_INTEGRITY_JS}" "${TMP_ARCHIVE_SETTINGS_MOBILE_REORDER_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_SHARED_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_INTEGRITY_JS}" "${TMP_ARCHIVE_SETTINGS_MOBILE_REORDER_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_SHARED_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
 ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
@@ -777,6 +784,7 @@ ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.
 ARCHIVE_SETTINGS_WIZARD_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 ARCHIVE_SETTINGS_IMPORT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css"
 ARCHIVE_FOLDER_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/Folder.page"
 ARCHIVE_SETTINGS_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 ARCHIVE_SERVER_LIB_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
@@ -864,6 +872,9 @@ fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_CSS_PATH="${ARCHIVE_SETTINGS_CSS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS_PATH="${ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_FOLDER_PAGE_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_PAGE_PATH="${ARCHIVE_FOLDER_PAGE_PATH#./}"
 fi
@@ -909,6 +920,7 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH}" > "${TM
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_WIZARD_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_IMPORT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_PAGE_PATH}" > "${TMP_ARCHIVE_FOLDER_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_PAGE_PATH}" > "${TMP_ARCHIVE_SETTINGS_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_PATH}" > "${TMP_ARCHIVE_SERVER_LIB}"
@@ -1000,6 +1012,9 @@ if ! env_truthy "${FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:-0}"; then
   fi
   if ! text_files_match "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
     fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}" "${TMP_ARCHIVE_SETTINGS_DOWNLOAD_DIAGNOSTICS_CSS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.download-diagnostics.css does not match source folderviewplus.download-diagnostics.css."
   fi
   if ! text_files_match "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
     fail_packaged_source_mismatch "Packaged Folder.page does not match source Folder.page."

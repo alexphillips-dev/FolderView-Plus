@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.27.1",
+        "catalog-version": "2026.07.29.1",
         "locale": "ja",
         "namespace": "legacy-surface"
     },
@@ -364,6 +364,7 @@
     "legacy.surface.378efa19f450dec4": "カスタムバッチの後に開始",
     "legacy.surface.379fb68da7f2846c": "現在の正常性プロファイル/グローバル設定を使用するには、空白のままにします。",
     "legacy.surface.37ad28af649aa6a2": "アイコン名またはタグを検索",
+    "legacy.surface.37aedcf77d0a399e": "インメモリ エクスポートは利用できなくなりました。新しいファイルを作成するには、もう一度 [すべてエクスポート] を選択します。",
     "legacy.surface.37bc2104d8b0ec9f": "管理対象テーマに追加する前に、GitHub リポジトリ、ブランチ パス、または生の CSS ファイルをスキャンします。",
     "legacy.surface.37fa840aca750d15": "$1 のスナップショットを比較する",
     "legacy.surface.3828d9ab739b80fe": "テストラベルキー (オプション)",
@@ -632,6 +633,7 @@
     "legacy.surface.66dde64b302f1b6e": "0 B ストレージ",
     "legacy.surface.670618d594e9730a": "パフォーマンスの再テストが完了しました",
     "legacy.surface.6730e31e374f01cd": "デフォルトプロファイル",
+    "legacy.surface.673624e492baad39": "ブラウザーのダウンロード要求が作成される前に、再試行が失敗しました。",
     "legacy.surface.6737a9f296c08f4d": "レビューに表示されずにフォルダーが削除されることはありません。",
     "legacy.surface.6737eda0fa90b3e7": "強調表示されたフィールドのエラーを解決してから、再度保存してください。",
     "legacy.surface.679af6c27fdb6156": "有効にすると、これらのインポートされた項目は最終のレビュー手順に含まれます。",
@@ -744,6 +746,7 @@
     "legacy.surface.79a5b2911d79efdc": "フォルダがロックされています",
     "legacy.surface.79f2d95249af4da7": "VM フォルダーとアクションを選択し、適用する前にプランをプレビューします。",
     "legacy.surface.7a1f2a83aca9a081": "お気に入り",
+    "legacy.surface.7a73f8f30dae4554": "ダウンロードが開始されませんでした",
     "legacy.surface.7a75f86cfc877a4c": "インポートをプレビューし、そのフォルダーをこのフォルダーの下に配置します。",
     "legacy.surface.7ab52733c917451a": "使用法のデフォルトを適用する",
     "legacy.surface.7ab5282bcb5d2e48": "選択された動作の概要",
@@ -1323,6 +1326,7 @@
     "legacy.surface.d9b75a5af2a8dc12": "対象のフォルダーは存在しません。更新して再試行してください。",
     "legacy.surface.d9d9333f66e73928": "折りたたまれた行に表示される内容と、その行が使用するスペースの量を制御します。",
     "legacy.surface.d9ed7f0df4cb3205": "Docker または VM を選択し、自動フォルダー ルールを 1 か所で作成、順序付け、確認します。",
+    "legacy.surface.da1f35fb8d4627bf": "診断の試行は期限切れになりました。エクスポートを再度実行し、ファイルが表示されない場合は報告します。",
     "legacy.surface.da37fac1deec3555": "何かを保存する前に、現在のコンテナーと既存のフォルダーをスキャンして、安全なルールのアイデアを探します。",
     "legacy.surface.da6896d5c20e12f5": "ステータス チップ アクセントで使用される停止パーセンテージ警告しきい値のフォルダーごとのオプションのオーバーライド。",
     "legacy.surface.da85bb79d8abda9f": "これにより、現在の $1 フォルダーが最新のバックアップ スナップショットで上書きされます。",

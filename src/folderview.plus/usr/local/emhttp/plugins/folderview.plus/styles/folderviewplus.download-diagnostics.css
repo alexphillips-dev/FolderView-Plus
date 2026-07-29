@@ -1,0 +1,88 @@
+.fv-download-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.58rem 0.68rem;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    border-radius: 6px;
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-download-status[hidden] {
+    display: none;
+}
+
+.fv-download-status.is-warning {
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
+}
+
+.fv-download-status.is-error {
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
+}
+
+.fv-download-status-copy {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.fv-download-status-copy > i {
+    margin-top: 0.16rem;
+    color: var(--fvplus-settings-chip-info);
+    font-size: 1.12rem;
+}
+
+.fv-download-status.is-warning .fv-download-status-copy > i {
+    color: var(--fvplus-settings-chip-warning);
+}
+
+.fv-download-status.is-error .fv-download-status-copy > i {
+    color: var(--fvplus-settings-chip-danger);
+}
+
+.fv-download-status-copy > span {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.fv-download-status-copy strong,
+.fv-download-status-copy small {
+    display: block;
+    line-height: 1.35;
+}
+
+.fv-download-status-copy small {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1rem;
+}
+
+.fv-download-status-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+#fv-settings-root .fv-download-status-actions > button {
+    min-width: 0;
+    min-height: 30px;
+    padding: 0.25rem 0.62rem;
+    font-size: 1rem;
+}
+
+@media (max-width: 760px) {
+    .fv-download-status {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fv-download-status-actions > button {
+        width: 100%;
+    }
+}

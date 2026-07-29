@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.29.02">
-<!ENTITY md5 "2489f149ac9af6e6e0411e0505693a57">
-<!ENTITY sha256 "3635701e09674600aa5aa23d6276f043a4396f6b4b609789bc34a754e569281d">
+<!ENTITY version "2026.07.29.03">
+<!ENTITY md5 "de4e337ac3fbc38798c941a38577b4c6">
+<!ENTITY sha256 "79119cc2b4576c0ccd976c7319ef544e9d93895b2e9f7811400ffb0fcf50ca0e">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.29.03
+## FolderView Plus 2026.07.29.03
+### Diagnostic module hardening
+- Refactor: Move export-download lifecycle recording and support-bundle normalization into a dedicated module so the general browser telemetry collector remains within its established architecture and performance boundaries.
+- Reliability: Preserve the inline missing-download report, direct retry, privacy-safe metadata, and sanitized support-bundle evidence through the focused module load path.
+- Regression guard: Add the new module to include-order, CSP, install, package-integrity, architecture, and performance contracts.
+### CI cleanup
+- Maintenance: Remove the retired `common.dismiss` and `common.notifications` localization keys left behind by the popup notification removal.
+- Localization: Regenerate all 18 complete locale catalogs at revision `2026.07.29.2` with 2,049 aggregate messages and no unused explicit keys.
+- Quality: Refresh the tracked performance and CSP inventories after accepting the new dedicated diagnostics asset.
+
 
 ###2026.07.29.02
 ## FolderView Plus 2026.07.29.02

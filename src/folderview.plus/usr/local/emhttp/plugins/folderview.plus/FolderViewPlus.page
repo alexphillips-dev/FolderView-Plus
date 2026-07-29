@@ -180,7 +180,6 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
         }
     })(window.FolderViewPlusHostThemeName);
 </script>
-
 <div id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true">
 <div id="fv-settings-bootstrap-shell" class="fv-settings-bootstrap-shell" role="status" aria-live="polite">
     <div class="fv-settings-bootstrap-shell-card">
@@ -1928,6 +1927,7 @@ window.FolderViewPlusSettingsLoaderManifest = Object.freeze({
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>",

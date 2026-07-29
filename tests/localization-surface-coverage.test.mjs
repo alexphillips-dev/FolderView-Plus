@@ -47,10 +47,10 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     const builder = fs.readFileSync(path.join(repoRoot, 'scripts/build_i18n_surface_catalogs.mjs'), 'utf8');
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
 
-    assert.equal(report['catalog-version'], '2026.07.29.1');
+    assert.equal(report['catalog-version'], '2026.07.29.2');
     assert.equal(report['candidate-count'], 0);
     assert.equal(report['auto-bound-message-count'], 1583);
-    assert.equal(report['catalog-message-count'], 2051);
+    assert.equal(report['catalog-message-count'], 2049);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);

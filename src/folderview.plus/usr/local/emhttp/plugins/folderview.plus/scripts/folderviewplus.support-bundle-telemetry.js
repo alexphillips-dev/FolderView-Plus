@@ -7,6 +7,7 @@
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
+    const downloadDiagnosticsModule = root?.FolderViewPlusDownloadDiagnostics || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
         'id',
         'uuid',
@@ -351,6 +352,13 @@
             readClientDiagnosticsStorageRecord,
             storageKeys
         }) : null;
+        const downloadCollectors = (
+            downloadDiagnosticsModule
+            && typeof downloadDiagnosticsModule.createCollectors === 'function'
+        ) ? downloadDiagnosticsModule.createCollectors({
+            readClientDiagnosticsStorageRecord,
+            storageKeys
+        }) : null;
         const collectBrowserCapabilities = browserCollectors?.collectBrowserCapabilities || (() => ({}));
         const collectClientStorageDiagnostics = browserCollectors?.collectClientStorageDiagnostics || (() => ({
             localStorageAvailable: false,
@@ -392,7 +400,7 @@
         }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
         const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
-        const collectDownloadAttempts = browserCollectors?.collectDownloadAttempts || (() => ({
+        const collectDownloadAttempts = downloadCollectors?.collectDownloadAttempts || (() => ({
             schemaVersion: 1,
             available: false,
             count: 0,

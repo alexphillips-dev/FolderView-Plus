@@ -13,6 +13,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js',
@@ -102,6 +103,7 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSupportBundlePreview = factory\(\)/);
     assert.match(script, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSupportBundleBrowser = factory\(root\)/);
+    assert.match(script, /FolderViewPlusDownloadDiagnostics = factory\(root\)/);
     assert.match(script, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(root\)/);
     assert.match(script, /FolderViewPlusDiagnosticsViewModelModuleLoaded = true/);

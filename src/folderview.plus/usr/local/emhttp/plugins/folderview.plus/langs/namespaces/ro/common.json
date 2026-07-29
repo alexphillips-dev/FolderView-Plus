@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.29.1",
+        "catalog-version": "2026.07.29.2",
         "locale": "ro",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "Anulează",
     "common.confirm": "Confirmă",
     "common.confirm-type": "Tastați pentru confirmare",
-    "common.dismiss": "Respinge",
-    "common.loading": "Se încarcă…",
-    "common.notifications": "Notificări"
+    "common.loading": "Se încarcă…"
 }

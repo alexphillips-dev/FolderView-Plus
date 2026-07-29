@@ -3,17 +3,17 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.29.1",
+        "catalog-version": "2026.07.29.2",
         "direction": "ltr",
         "last-reviewed": "2026-07-29",
         "last-updated": "2026-07-29",
         "locale": "tr",
         "native-name": "Türkçe",
         "reviewed": true,
-        "source-revision": "2026.07.29.1",
+        "source-revision": "2026.07.29.2",
         "status": "complete",
-        "translated-messages": 2051,
-        "total-source-messages": 2051
+        "translated-messages": 2049,
+        "total-source-messages": 2049
     },
     "add-folder": "Klasör Ekle",
     "up-to-date": "güncel",

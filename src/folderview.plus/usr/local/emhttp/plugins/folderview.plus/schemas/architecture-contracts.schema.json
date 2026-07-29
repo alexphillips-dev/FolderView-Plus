@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "budgets": {
-    "maxBrowserGlobals": 512,
+    "maxBrowserGlobals": 513,
     "maxInlineActions": 79,
     "maxFileLines": {
       "scripts/folderviewplus.js": 12098,

@@ -122,10 +122,10 @@ let downloadDiagnosticsApi = null;
 const getDownloadDiagnosticsApi = () => {
     if (
         !downloadDiagnosticsApi
-        && window.FolderViewPlusSupportBundleBrowser
-        && typeof window.FolderViewPlusSupportBundleBrowser.createDownloadDiagnostics === 'function'
+        && window.FolderViewPlusDownloadDiagnostics
+        && typeof window.FolderViewPlusDownloadDiagnostics.createDownloadDiagnostics === 'function'
     ) {
-        downloadDiagnosticsApi = window.FolderViewPlusSupportBundleBrowser.createDownloadDiagnostics();
+        downloadDiagnosticsApi = window.FolderViewPlusDownloadDiagnostics.createDownloadDiagnostics();
     }
     return downloadDiagnosticsApi;
 };

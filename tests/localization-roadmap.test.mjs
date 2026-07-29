@@ -35,7 +35,7 @@ test('regional locale resolution distinguishes Simplified Chinese and Portuguese
 
 test('catalog report exposes honest legacy and namespace coverage for every registered locale', () => {
     const report = runRegistryPhp('fvplus_i18n_catalog_report()');
-    assert.equal(report.catalogVersion, '2026.07.29.1');
+    assert.equal(report.catalogVersion, '2026.07.29.2');
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);

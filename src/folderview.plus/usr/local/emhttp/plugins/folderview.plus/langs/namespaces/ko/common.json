@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.29.1",
+        "catalog-version": "2026.07.29.2",
         "locale": "ko",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "취소",
     "common.confirm": "확인",
     "common.confirm-type": "확인하려면 입력",
-    "common.dismiss": "해제",
-    "common.loading": "로드 중…",
-    "common.notifications": "알림"
+    "common.loading": "로드 중…"
 }

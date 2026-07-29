@@ -9,9 +9,9 @@ const pluginRoot = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus'
 );
-const browserModulePath = path.join(pluginRoot, 'scripts/folderviewplus.support-bundle-browser.js');
+const downloadModulePath = path.join(pluginRoot, 'scripts/folderviewplus.download-diagnostics.js');
 const telemetryModulePath = path.join(pluginRoot, 'scripts/folderviewplus.support-bundle-telemetry.js');
-const browserModuleSource = fs.readFileSync(browserModulePath, 'utf8');
+const downloadModuleSource = fs.readFileSync(downloadModulePath, 'utf8');
 const telemetryModuleSource = fs.readFileSync(telemetryModulePath, 'utf8');
 
 const loadModule = (source, filename, root = {}) => {
@@ -104,8 +104,8 @@ const createDownloadRoot = () => {
 
 test('download diagnostics persist only bounded metadata and never export names or content', () => {
     const { root, storage, clicks, revoked } = createDownloadRoot();
-    const browserModule = loadModule(browserModuleSource, browserModulePath, root);
-    const api = browserModule.createDownloadDiagnostics();
+    const downloadModule = loadModule(downloadModuleSource, downloadModulePath, root);
+    const api = downloadModule.createDownloadDiagnostics();
     const attempt = api.dispatch({
         name: 'Private Docker Folder.json',
         content: '{"folderName":"private-container","path":"/mnt/user/private"}',
@@ -127,7 +127,7 @@ test('download diagnostics persist only bounded metadata and never export names 
     assert.deepEqual(clicks, ['Private Docker Folder.json']);
     assert.deepEqual(revoked, ['blob:folderview-plus-test']);
 
-    const stored = storage.getItem(browserModule.DOWNLOAD_ATTEMPTS_STORAGE_KEY);
+    const stored = storage.getItem(downloadModule.DOWNLOAD_ATTEMPTS_STORAGE_KEY);
     assert.ok(stored);
     assert.equal(stored.includes('Private Docker Folder'), false);
     assert.equal(stored.includes('private-container'), false);
@@ -137,8 +137,8 @@ test('download diagnostics persist only bounded metadata and never export names 
 
 test('missing-download reports and retries produce explicit diagnostic verdicts', () => {
     const { root } = createDownloadRoot();
-    const browserModule = loadModule(browserModuleSource, browserModulePath, root);
-    const api = browserModule.createDownloadDiagnostics();
+    const downloadModule = loadModule(downloadModuleSource, downloadModulePath, root);
+    const api = downloadModule.createDownloadDiagnostics();
     const first = api.dispatch({
         name: 'folders.json',
         content: '{}',
@@ -166,8 +166,8 @@ test('missing-download reports and retries produce explicit diagnostic verdicts'
 test('synchronous download failures are captured and attached to the thrown error', () => {
     const { root } = createDownloadRoot();
     root.URL = {};
-    const browserModule = loadModule(browserModuleSource, browserModulePath, root);
-    const api = browserModule.createDownloadDiagnostics();
+    const downloadModule = loadModule(downloadModuleSource, downloadModulePath, root);
+    const api = downloadModule.createDownloadDiagnostics();
 
     assert.throws(() => api.dispatch({
         name: 'folders.json',
@@ -188,13 +188,13 @@ test('synchronous download failures are captured and attached to the thrown erro
 
 test('support bundle telemetry exports the normalized download-attempt summary', () => {
     const { root, storage } = createDownloadRoot();
-    const browserModule = loadModule(browserModuleSource, browserModulePath, root);
-    browserModule.createDownloadDiagnostics().dispatch({
+    const downloadModule = loadModule(downloadModuleSource, downloadModulePath, root);
+    downloadModule.createDownloadDiagnostics().dispatch({
         name: 'folders.json',
         content: '{}',
         context: { type: 'docker', mode: 'full', folderCount: 2, schemaVersion: 3 }
     });
-    root.FolderViewPlusSupportBundleBrowser = browserModule;
+    root.FolderViewPlusDownloadDiagnostics = downloadModule;
     const telemetryModule = loadModule(telemetryModuleSource, telemetryModulePath, root);
     const api = telemetryModule.createApi({
         normalizeSupportBundleV2Payload: (bundle) => ({
@@ -209,7 +209,7 @@ test('support bundle telemetry exports the normalized download-attempt summary',
             return raw ? JSON.parse(raw) : null;
         },
         storageKeys: {
-            downloadAttempts: browserModule.DOWNLOAD_ATTEMPTS_STORAGE_KEY
+            downloadAttempts: downloadModule.DOWNLOAD_ATTEMPTS_STORAGE_KEY
         }
     });
     const payload = api.collectSupportBundleUiTelemetry({
@@ -233,7 +233,7 @@ test('settings exports expose an inline missing-download recovery surface', () =
     const runtime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.js'), 'utf8');
     const branchRuntime = fs.readFileSync(path.join(pluginRoot, 'scripts/folderviewplus.runtime-actions.js'), 'utf8');
 
-    assert.match(page, /folderviewplus\.download-diagnostics\.css/);
+    assert.match(page, /folderviewplus\.download-diagnostics\.(?:css|js)/);
     assert.match(importScript, /h2\[data-fv-section=/);
     assert.match(importScript, /role="status" aria-live="polite"/);
     assert.match(importScript, /Download didn’t start/);

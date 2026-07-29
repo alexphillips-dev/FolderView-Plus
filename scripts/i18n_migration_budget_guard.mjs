@@ -17,7 +17,7 @@ const englishRoot = path.join(
     'langs'
 );
 const namespaceRoot = path.join(englishRoot, 'namespaces', 'en');
-const MAX_LEGACY_SURFACE_KEYS = 1581;
+const MAX_LEGACY_SURFACE_KEYS = 1579;
 const MIN_EXPLICIT_KEYS = 463;
 
 const readMessages = (file) => Object.keys(JSON.parse(fs.readFileSync(file, 'utf8')))

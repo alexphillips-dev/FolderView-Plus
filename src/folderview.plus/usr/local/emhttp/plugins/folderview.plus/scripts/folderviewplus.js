@@ -658,8 +658,6 @@ let statusSnapshotByType = {
 };
 let dockerUpdatesOnlyFilter = false;
 let activityFeedEntries = [];
-let toastSerial = 0;
-const pendingUndoTimers = new Map();
 const treeMoveUndoTimersByType = {
     docker: null,
     vm: null
@@ -5864,21 +5862,16 @@ const applyTemplate = async (type, templateId, folderId) => {
 const showToastMessage = ({
     title = '',
     message = '',
-    level = 'info',
-    durationMs = 4200,
-    actionLabel = '',
-    onAction = null
+    level = 'info'
 } = {}) => {
-    if (window.FolderViewPlusUI?.toast) {
-        return window.FolderViewPlusUI.toast({
+    if (window.FolderViewPlusUI?.announce) {
+        return window.FolderViewPlusUI.announce({
             title,
-            message,
-            level: level === 'error' ? 'danger' : level,
-            durationMs,
-            actionLabel,
-            onAction
+            message
         });
     }
+    const logger = level === 'error' ? window.console?.error : window.console?.info;
+    logger?.call(window.console, `[FolderView Plus] ${title}${title && message ? ': ' : ''}${message}`);
     return null;
 };
 
@@ -5987,30 +5980,21 @@ const showActionSummaryToast = ({
     message = '',
     level = 'success',
     type = null,
-    focusFolderId = '',
-    durationMs = 4200
+    focusFolderId = ''
 } = {}) => {
     const target = normalizeFocusableFolderId(type, focusFolderId);
     showToastMessage({
         title,
         message,
-        level,
-        durationMs,
-        actionLabel: target ? 'Focus folder' : '',
-        onAction: () => {
-            if (!target) {
-                return;
-            }
-            if (!focusFolderRow(target.type, target.id)) {
-                showToastMessage({
-                    title: 'Folder not visible',
-                    message: 'Clear filters or refresh to locate this folder row.',
-                    level: 'warning',
-                    durationMs: 2600
-                });
-            }
-        }
+        level
     });
+    if (target && !focusFolderRow(target.type, target.id)) {
+        showToastMessage({
+            title: 'Folder not visible',
+            message: 'Clear filters or refresh to locate this folder row.',
+            level: 'warning'
+        });
+    }
 };
 
 const resolveFolderIdsByNames = (type, names = []) => {
@@ -6123,12 +6107,6 @@ const showError = (title, error) => {
         action: error?.fvplusAction || safeTitle
     });
     addActivityEntry(`${String(title || 'Error')}: ${message}`, 'error');
-    showToastMessage({
-        title: safeTitle,
-        message,
-        level: 'error',
-        durationMs: 7000
-    });
     if (window.FolderViewPlusUI?.alert) {
         window.FolderViewPlusUI.alert({
             title: safeTitle,

@@ -12,7 +12,7 @@
 
     const actionHandlers = new Map();
     const modalStack = [];
-    let toastRegion = null;
+    let announcer = null;
     let activePopover = null;
     let popoverSequence = 0;
     let delegatedRoot = null;
@@ -394,39 +394,32 @@
         modal.closed.then(resolve);
     });
 
-    const ensureToastRegion = () => {
+    const ensureAnnouncer = () => {
         if (!host?.document?.body) return null;
-        if (toastRegion?.isConnected) return toastRegion;
-        toastRegion = host.document.createElement('div');
-        toastRegion.className = 'fv-ui-toast-region';
-        toastRegion.setAttribute('role', 'region');
-        toastRegion.setAttribute('aria-label', translate('common.notifications', 'Notifications'));
-        host.document.body.append(toastRegion);
-        return toastRegion;
+        if (announcer?.isConnected) return announcer;
+        announcer = host.document.createElement('div');
+        announcer.className = 'fv-ui-announcer';
+        announcer.setAttribute('role', 'status');
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
+        host.document.body.append(announcer);
+        return announcer;
     };
 
-    const toast = ({ title = '', message = '', tone = '', level = '', duration = null, durationMs = 4200, actionLabel = '', onAction = null } = {}) => {
-        const region = ensureToastRegion();
+    const announce = ({ title = '', message = '' } = {}) => {
+        const region = ensureAnnouncer();
         if (!region) return null;
-        const resolvedTone = normalizeTone(tone || level || 'info');
-        const element = host.document.createElement('article');
-        element.className = `fv-ui-toast is-${resolvedTone}`;
-        element.setAttribute('role', resolvedTone === 'danger' ? 'alert' : 'status');
-        element.innerHTML = `<span class="fv-ui-toast-icon">${iconMarkup(resolvedTone === 'success' ? 'fa-check-circle' : resolvedTone === 'danger' ? 'fa-exclamation-circle' : resolvedTone === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle')}</span><div class="fv-ui-toast-copy">${title ? `<strong>${escapeHtml(title)}</strong>` : ''}${message ? `<p>${escapeHtml(message)}</p>` : ''}</div>${actionLabel ? button({ label: actionLabel, size: 'sm', className: 'fv-ui-toast-action' }) : ''}${iconButton({ label: translate('common.dismiss', 'Dismiss'), icon: 'fa-times', size: 'sm', className: 'fv-ui-toast-close' })}`;
-        const close = () => {
-            if (!element.isConnected) return;
-            element.classList.add('is-leaving');
-            host.setTimeout(() => element.remove(), 180);
-        };
-        element.querySelector('.fv-ui-toast-close')?.addEventListener('click', close);
-        element.querySelector('.fv-ui-toast-action')?.addEventListener('click', () => {
-            onAction?.();
-            close();
-        });
-        region.append(element);
-        const timeout = Number(duration ?? durationMs);
-        if (timeout > 0) host.setTimeout(close, timeout);
-        return Object.freeze({ element, close });
+        const text = [title, message]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean)
+            .join('. ');
+        region.textContent = '';
+        host.setTimeout(() => {
+            if (region.isConnected) {
+                region.textContent = text;
+            }
+        }, 0);
+        return region;
     };
 
     const progress = ({ title = '', label = '', detail = '', value = 0, max = 100, cancellable = false, onCancel = null } = {}) => {
@@ -512,7 +505,7 @@
         openActionSheet,
         confirm,
         alert,
-        toast,
+        announce,
         progress,
         registerAction,
         dispatchAction,

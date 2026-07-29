@@ -151,7 +151,7 @@ const tests = [];
 const test = (name, handler) => tests.push({ name, handler });
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
 
-test('Shared UI primitives provide accessible modal, action, toast, and progress behavior', async ({ page }) => {
+test('Shared UI primitives provide accessible modal, action, status, and progress behavior', async ({ page }) => {
     await page.goto(`${baseUrl}/ui-primitives`, { waitUntil: 'load' });
     await page.click('[data-fv-ui-action="fixture-action"]');
     assert.equal(await page.evaluate(() => window.fixtureActionCount), 1);
@@ -172,9 +172,9 @@ test('Shared UI primitives provide accessible modal, action, toast, and progress
     await page.waitForSelector('.fv-ui-modal', { state: 'detached' });
     await page.evaluate(() => window.fixtureAlertPromise);
 
-    await page.evaluate(() => { window.fixtureUI.showToast(); });
-    assert.equal(await page.locator('.fv-ui-toast.is-success').count(), 1);
-    await page.click('.fv-ui-toast-close');
+    await page.evaluate(() => { window.fixtureUI.announceStatus(); });
+    await page.waitForFunction(() => document.querySelector('.fv-ui-announcer')?.textContent === 'Complete. Operation completed.');
+    assert.equal(await page.locator('.fv-ui-toast-region, .fv-ui-toast, .fv-toast-host, .fv-toast').count(), 0);
 
     await page.evaluate(() => { window.fixtureProgress = window.fixtureUI.showProgress(); });
     assert.equal(await page.locator('.fv-ui-progress-state progress').getAttribute('value'), '3');
@@ -245,7 +245,7 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1581);
+    assert.equal(snapshot.autoBoundMessageCount, 1579);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });

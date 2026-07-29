@@ -27,7 +27,7 @@ Filter and View persistence and control bindings live in `folderviewplus.view-se
 | Shared request client | Adds tokens and trace IDs, normalizes encoding, timeouts, parsing, errors, retries, uploads, and keepalive behavior. |
 | Endpoint contract | Declares methods, mutation status, guards, content types, request limits, parameters, response types, and audit categories. |
 | Durable storage | Validates and atomically commits configuration and recovery data with last-good support and failure reporting. |
-| Shared UI primitives | Owns common buttons, fields, disclosures, dialogs, confirmations, badges, toasts, progress, empty, and loading states. |
+| Shared UI primitives | Owns common buttons, fields, disclosures, dialogs, confirmations, badges, nonvisual status announcements, progress, empty, and loading states. |
 | Localization | Loads versioned namespace catalogs with English fallback and generated legacy-surface coverage. |
 | Diagnostics | Joins build identity, health, runtime, storage, localization, theme, telemetry, and sanitized support data. |
 | Packaging | Produces the versioned core archive and pins the independently versioned icon asset pack. |

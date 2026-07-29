@@ -13626,42 +13626,6 @@ h2[data-fv-section].fv-search-match {
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }
 
-.fv-toast-host {
-    position: fixed;
-    right: 1rem;
-    bottom: calc(var(--fv-unraid-bottom-bar-offset) + 0.8rem);
-    z-index: 1300;
-    display: none;
-    gap: 0.42rem;
-    width: min(420px, calc(100vw - 1.6rem));
-    pointer-events: none;
-}
-
-.fv-toast {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.45rem;
-    align-items: center;
-    padding: 0.46rem 0.55rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 8px;
-    background: rgba(11, 14, 18, 0.97);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-    pointer-events: auto;
-}
-
-.fv-toast.is-success {
-    border-color: rgba(108, 214, 140, 0.5);
-}
-
-.fv-toast.is-warning {
-    border-color: rgba(255, 193, 94, 0.5);
-}
-
-.fv-toast.is-error {
-    border-color: rgba(255, 116, 116, 0.55);
-}
-
 tr.is-long-press-active {
     outline: 1px solid rgba(77, 163, 255, 0.65);
     outline-offset: -1px;
@@ -14454,12 +14418,6 @@ body.fv-folder-action-sheet-open {
     .toolbar-actions > button {
         flex: 1 1 calc(50% - 0.5rem);
         min-width: 0;
-    }
-
-    .fv-toast-host {
-        left: 0.5rem;
-        right: 0.5rem;
-        width: auto;
     }
 
     .name-cell-content {

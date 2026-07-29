@@ -70,9 +70,9 @@ test('settings stylesheet keeps required mobile advanced accordion rules', () =>
     assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto\s*auto/);
 });
 
-test('settings layout keeps toast offset and minimal bottom padding without a save dock', () => {
+test('settings layout keeps minimal bottom padding without popup notification hosts', () => {
     assert.match(settingsCss, /--fv-unraid-bottom-bar-offset:\s*36px/);
-    assert.match(settingsCss, /\.fv-toast-host\s*\{[\s\S]*bottom:\s*calc\(var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*0\.8rem\)/);
+    assert.doesNotMatch(settingsCss, /\.fv-toast(?:-host)?\s*\{/);
     assert.match(settingsCss, /#fv-settings-root\s*\{[\s\S]*padding-bottom:\s*calc\(1rem\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
 });
 

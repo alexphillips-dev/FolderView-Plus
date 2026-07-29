@@ -218,11 +218,11 @@
                     Promise.resolve()
                         .then(handler)
                         .catch((error) => {
-                            if (win?.FolderViewPlusUI?.toast) {
-                                win.FolderViewPlusUI.toast({
+                            if (win?.FolderViewPlusUI?.alert) {
+                                win.FolderViewPlusUI.alert({
                                     title: 'FolderView action failed',
                                     message: String(error?.message || 'FolderView action failed'),
-                                    level: 'danger'
+                                    tone: 'danger'
                                 });
                             }
                         });

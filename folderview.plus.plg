@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.28.09">
-<!ENTITY md5 "190e76ea7382561edac6641600504eb1">
-<!ENTITY sha256 "5a0332d780639aa201001b38888b97969b4d67d17b0cb2916146e4fae16b644d">
+<!ENTITY version "2026.07.29.01">
+<!ENTITY md5 "16119563bad764ea65cb341f453296b1">
+<!ENTITY sha256 "c54485b8d43eef3d94bb11bc1b7b4bf685e329ef0f5c468c80a1e715e004744f">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,21 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.29.01
+## FolderView Plus 2026.07.29.01
+### Popup notification removal
+- UI/UX: Completely remove the lower-right action-completion popup system from Settings and Dashboard surfaces.
+- Accessibility: Preserve action status feedback through a nonvisual polite live region without creating visible notification cards.
+- Reliability: Continue presenting actionable failures through the existing modal error dialog instead of an easy-to-miss transient popup.
+### Persistent recovery
+- Reliability: Record destructive-action safety backups in the Activity Center and direct recovery through Advanced > Recovery instead of a ten-second popup Undo button.
+- Reliability: Preserve backup creation, restore workflows, and the dedicated inline tree-move Undo/Redo controls.
+### Cleanup and coverage
+- Maintenance: Remove the retired toast renderer, DOM host, animation, responsive styles, legacy hidden toast CSS, timers, and unused state.
+- Localization: Remove the retired notification-only strings and regenerate the complete 18-locale surface catalogs.
+- Quality: Add browser and contract coverage proving action announcements remain accessible and no popup notification host is rendered.
+
 
 ###2026.07.28.09
 ## FolderView Plus 2026.07.28.09

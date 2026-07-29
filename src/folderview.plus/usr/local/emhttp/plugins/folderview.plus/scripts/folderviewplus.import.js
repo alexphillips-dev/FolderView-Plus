@@ -874,50 +874,14 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     if (!backup || !backup.name) {
         return;
     }
-    const undoKey = `${type}:${backup.name}`;
-    if (pendingUndoTimers.has(undoKey)) {
-        window.clearTimeout(pendingUndoTimers.get(undoKey));
-        pendingUndoTimers.delete(undoKey);
-    }
-    const undoSeconds = Math.round(UNDO_WINDOW_MS / 1000);
-    addActivityEntry(`${actionLabel} completed. Undo available for ${undoSeconds} seconds.`, 'warning');
-    const expireTimer = window.setTimeout(() => {
-        pendingUndoTimers.delete(undoKey);
-    }, UNDO_WINDOW_MS);
-    pendingUndoTimers.set(undoKey, expireTimer);
-
+    addActivityEntry(
+        `${actionLabel} completed. Recovery backup ${backup.name} is available in Advanced > Recovery.`,
+        'warning'
+    );
     showToastMessage({
         title: `${actionLabel} complete`,
-        message: `Backup created: ${backup.name}.`,
-        level: 'warning',
-        durationMs: UNDO_WINDOW_MS,
-        actionLabel: 'Undo',
-        onAction: async () => {
-            if (!pendingUndoTimers.has(undoKey)) {
-                showToastMessage({
-                    title: 'Undo expired',
-                    message: 'This undo window has expired.',
-                    level: 'warning',
-                    durationMs: 2600
-                });
-                return;
-            }
-            window.clearTimeout(pendingUndoTimers.get(undoKey));
-            pendingUndoTimers.delete(undoKey);
-            try {
-                const restore = await restoreBackupByName(type, backup.name);
-                await Promise.all([refreshType(type), refreshBackups(type)]);
-                addActivityEntry(`Undo applied: restored ${restore?.name || backup.name}.`, 'success');
-                showToastMessage({
-                    title: 'Undo complete',
-                    message: `Restored ${restore?.name || backup.name}`,
-                    level: 'success',
-                    durationMs: 3600
-                });
-            } catch (error) {
-                showError('Undo failed', error);
-            }
-        }
+        message: `Recovery backup created: ${backup.name}.`,
+        level: 'warning'
     });
 };
 

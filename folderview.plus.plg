@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.29.03">
-<!ENTITY md5 "de4e337ac3fbc38798c941a38577b4c6">
-<!ENTITY sha256 "79119cc2b4576c0ccd976c7319ef544e9d93895b2e9f7811400ffb0fcf50ca0e">
+<!ENTITY version "2026.07.29.04">
+<!ENTITY md5 "a56b3df936309e95afe3cf3142afb5f3">
+<!ENTITY sha256 "8e59214a8a8789629e63d95b2b5b4b2926fff530647e549e2253df3802f60d36">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,14 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.07.29.04
+## FolderView Plus 2026.07.29.04
+### Reproducible package correction
+- Quality: Rebuild the development package from the repository's canonical LF-normalized source so its bytes match a clean Linux checkout.
+- Reliability: Preserve the export-download diagnostics and support-bundle behavior introduced in `2026.07.29.03` without runtime changes.
+- Quality: Keep deterministic-build enforcement authoritative across Windows development and GitHub Actions.
+
 
 ###2026.07.29.03
 ## FolderView Plus 2026.07.29.03

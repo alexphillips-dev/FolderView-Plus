@@ -458,8 +458,8 @@
     };
 
     const restoreLocale = () => {
-        root.jQuery?.i18n?.({ locale: state.requestedLocale });
-        state.activeLocale = state.requestedLocale;
+        root.jQuery?.i18n?.({ locale: state.resolvedLocale });
+        state.activeLocale = state.resolvedLocale;
         state.direction = state.requestedDirection;
         setDocumentLocale(state.requestedLocale, state.direction);
         rebuildAutoPhraseIndex();
@@ -546,7 +546,7 @@
         configured = true;
         state.requestedLocale = normalizeLocale(config.requestedLocale || 'en');
         state.resolvedLocale = normalizeLocale(config.resolvedLocale || 'en');
-        state.activeLocale = state.requestedLocale;
+        state.activeLocale = state.resolvedLocale;
         state.fallbackChain = Array.isArray(config.fallbackChain)
             ? config.fallbackChain.map(normalizeLocale)
             : [state.requestedLocale, state.resolvedLocale, 'en'];
@@ -563,7 +563,7 @@
             if (typeof root.jQuery?.i18n !== 'function' || typeof root.fetch !== 'function') {
                 throw new Error('Localization dependencies are unavailable.');
             }
-            root.jQuery.i18n({ locale: state.requestedLocale, fallbackLocale: 'en' });
+            root.jQuery.i18n({ locale: state.resolvedLocale, fallbackLocale: 'en' });
             const assets = Array.isArray(config.assets) ? config.assets : [];
             for (const asset of assets) {
                 await loadCatalog(asset);

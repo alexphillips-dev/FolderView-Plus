@@ -250,6 +250,49 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
 });
 
+test('Unraid zh_CN activates the canonical Simplified Chinese catalog in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.id = 'simplified-chinese-label';
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'zh_CN',
+            resolvedLocale: 'zh-Hans',
+            fallbackChain: ['zh-CN', 'zh-Hans', 'en'],
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'zh-Hans', namespace: 'common', url: '/plugin/langs/namespaces/zh-Hans/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'zh-CN');
+    assert.equal(result.snapshot.resolvedLocale, 'zh-Hans');
+    assert.equal(result.snapshot.activeLocale, 'zh-Hans');
+    assert.deepEqual(result.snapshot.fallbackChain, ['zh-CN', 'zh-Hans', 'en']);
+    assert.equal(result.documentLocale, 'zh-CN');
+    assert.equal(result.translatedLabel, '关闭');
+    assert.equal(result.directTranslation, '关闭');
+});
+
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.fixtureRuntime?.api);

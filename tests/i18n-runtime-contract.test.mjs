@@ -159,9 +159,40 @@ test('runtime loads English fallback for a regional locale and reports missing k
     assert.equal(runtime.documentElement.dir, 'rtl');
     assert.match(runtime.api.t('safeMarkup'), /<strong>/, 'pseudo-localization must preserve markup tokens');
     const restored = runtime.api.restoreLocale();
-    assert.equal(restored.activeLocale, 'pt-BR');
+    assert.equal(restored.activeLocale, 'en');
     assert.equal(restored.direction, 'ltr');
     assert.equal(runtime.documentElement.dir, 'ltr');
+});
+
+test('runtime activates the canonical Simplified Chinese catalog for Unraid zh_CN', async () => {
+    const runtime = createRuntime({
+        '/en.json': { '@metadata': { locale: 'en' }, greeting: 'Hello' },
+        '/zh-Hans.json': { '@metadata': { locale: 'zh-Hans' }, greeting: '你好' }
+    });
+    const snapshot = await runtime.api.configure({
+        requestedLocale: 'zh_CN',
+        resolvedLocale: 'zh-Hans',
+        fallbackChain: ['zh-CN', 'zh-Hans', 'en'],
+        direction: 'ltr',
+        assets: [
+            { locale: 'en', namespace: 'common', url: '/en.json' },
+            { locale: 'zh-Hans', namespace: 'common', url: '/zh-Hans.json' }
+        ]
+    });
+
+    assert.equal(snapshot.requestedLocale, 'zh-CN');
+    assert.equal(snapshot.resolvedLocale, 'zh-Hans');
+    assert.equal(snapshot.activeLocale, 'zh-Hans');
+    assert.deepEqual(Array.from(snapshot.fallbackChain), ['zh-CN', 'zh-Hans', 'en']);
+    assert.equal(runtime.documentElement.lang, 'zh-CN', 'the document should retain the Unraid-requested locale');
+    assert.equal(runtime.documentElement.dir, 'ltr');
+    assert.equal(runtime.api.t('greeting'), '你好');
+
+    runtime.api.usePseudoLocale('en-XA');
+    const restored = runtime.api.restoreLocale();
+    assert.equal(restored.activeLocale, 'zh-Hans');
+    assert.equal(runtime.documentElement.lang, 'zh-CN');
+    assert.equal(runtime.api.t('greeting'), '你好');
 });
 
 test('runtime preserves requested RTL direction while falling back to English', async () => {

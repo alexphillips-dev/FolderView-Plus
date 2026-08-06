@@ -90,9 +90,9 @@ The repository browser smoke run also activates `en-XA` and `ar-XB`, verifies la
 
 ## Regional locales
 
-Locale names follow BCP 47. Add a regional file only when the language actually differs, such as `pt-BR`, `pt-PT`, `zh-Hans`, or `zh-Hant`. The loader resolves the most specific available locale, then its base language, then English.
+Locale names follow BCP 47. Unraid underscore identifiers are normalized before resolution; for example, `zh_CN` becomes requested locale `zh-CN` and resolves to the canonical `zh-Hans` catalog. Add a regional file only when the language actually differs, such as `pt-BR`, `pt-PT`, `zh-Hans`, or `zh-Hant`. The browser runtime activates the resolved catalog while preserving the requested locale on the document and in diagnostics.
 
-FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Traditional Chinese requests deliberately fall back to English until a reviewed `zh-Hant` catalog exists; they must never silently receive Simplified Chinese text.
+FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Generic Chinese plus Mainland China, Singapore, and Malaysia variants resolve to `zh-Hans`. Traditional Chinese requests from Taiwan, Hong Kong, and Macau deliberately fall back to English until a reviewed `zh-Hant` catalog exists; they must never silently receive Simplified Chinese text.
 
 ## Review workflow
 

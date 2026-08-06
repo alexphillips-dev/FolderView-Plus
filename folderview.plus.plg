@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.07.29.04">
-<!ENTITY md5 "a56b3df936309e95afe3cf3142afb5f3">
-<!ENTITY sha256 "8e59214a8a8789629e63d95b2b5b4b2926fff530647e549e2253df3802f60d36">
+<!ENTITY version "2026.08.06.01">
+<!ENTITY md5 "b74395f573ef884bb05a280f527f3593">
+<!ENTITY sha256 "32daf730af64166f3d65a681eade5c418083770614dd0b9d68b91f8d36c92552">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,16 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.06.01
+## FolderView Plus 2026.08.06.01
+### Chinese locale compatibility
+- Fix: Activate the canonical resolved catalog in the browser so Unraid `zh_CN` sessions render the complete Simplified Chinese interface instead of falling back to English.
+- Localization: Support generic Chinese plus Mainland China, Singapore, Malaysia, and explicit `zh-Hans` identifiers through the existing 2,049-message Simplified Chinese catalog.
+- Compatibility: Preserve the normalized Unraid-requested locale in document metadata and diagnostics while using `zh-Hans` for translation, formatting, collation, and pseudo-locale restoration.
+- Reliability: Keep Taiwan, Hong Kong, Macau, and explicit `zh-Hant` requests on the English fallback until a separately reviewed Traditional Chinese catalog is available.
+- Regression guard: Cover underscore normalization, regional alias resolution, translated runtime output, pseudo-locale restoration, and native Chinese labels across all primary plugin surfaces.
+
 
 ###2026.07.29.04
 ## FolderView Plus 2026.07.29.04

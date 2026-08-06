@@ -195,6 +195,58 @@ test('runtime activates the canonical Simplified Chinese catalog for Unraid zh_C
     assert.equal(runtime.api.t('greeting'), '你好');
 });
 
+test('runtime activates canonical Traditional Chinese for Unraid zh_TW', async () => {
+    const runtime = createRuntime({
+        '/en.json': { '@metadata': { locale: 'en' }, greeting: 'Close' },
+        '/zh-Hant.json': { '@metadata': { locale: 'zh-Hant' }, greeting: '關閉' }
+    });
+    const snapshot = await runtime.api.configure({
+        requestedLocale: 'zh_TW',
+        resolvedLocale: 'zh-Hant',
+        fallbackChain: ['zh-TW', 'zh-Hant', 'en'],
+        direction: 'ltr',
+        assets: [
+            { locale: 'en', namespace: 'common', url: '/en.json' },
+            { locale: 'zh-Hant', namespace: 'common', url: '/zh-Hant.json' }
+        ]
+    });
+
+    assert.equal(snapshot.requestedLocale, 'zh-TW');
+    assert.equal(snapshot.resolvedLocale, 'zh-Hant');
+    assert.equal(snapshot.activeLocale, 'zh-Hant');
+    assert.equal(runtime.documentElement.lang, 'zh-TW');
+    assert.equal(runtime.documentElement.dir, 'ltr');
+    assert.equal(runtime.api.t('greeting'), '關閉');
+});
+
+test('runtime activates Arabic with production RTL direction and restores it after pseudo-localization', async () => {
+    const runtime = createRuntime({
+        '/en.json': { '@metadata': { locale: 'en' }, greeting: 'Close' },
+        '/ar.json': { '@metadata': { locale: 'ar' }, greeting: 'إغلاق' }
+    });
+    const snapshot = await runtime.api.configure({
+        requestedLocale: 'ar_AR',
+        resolvedLocale: 'ar',
+        fallbackChain: ['ar-AR', 'ar', 'en'],
+        direction: 'rtl',
+        assets: [
+            { locale: 'en', namespace: 'common', url: '/en.json' },
+            { locale: 'ar', namespace: 'common', url: '/ar.json' }
+        ]
+    });
+
+    assert.equal(snapshot.requestedLocale, 'ar-AR');
+    assert.equal(snapshot.activeLocale, 'ar');
+    assert.equal(runtime.documentElement.lang, 'ar-AR');
+    assert.equal(runtime.documentElement.dir, 'rtl');
+    assert.equal(runtime.api.t('greeting'), 'إغلاق');
+    runtime.api.usePseudoLocale('en-XA');
+    const restored = runtime.api.restoreLocale();
+    assert.equal(restored.activeLocale, 'ar');
+    assert.equal(restored.direction, 'rtl');
+    assert.equal(runtime.documentElement.dir, 'rtl');
+});
+
 test('runtime preserves requested RTL direction while falling back to English', async () => {
     const runtime = createRuntime({ '/en.json': { '@metadata': {}, label: 'Label' } });
     await runtime.api.configure({

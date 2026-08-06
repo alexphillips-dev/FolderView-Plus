@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "hr",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Postavke pretraživanja",
+    "settings.search.label": "Postavke pretraživanja",
+    "settings.search.clear-label": "Brisanje pretraživanja postavki",
+    "settings.search.clear-title": "Očisti pretragu",
+    "settings.search.scope": "Opseg",
+    "settings.search.scope-help": "Odaberite pokriva li napredno pretraživanje ovu karticu ili sve napredne kartice",
+    "settings.search.scope-label": "Opseg pretraživanja naprednih postavki",
+    "settings.search.scope-current": "Trenutačna kartica",
+    "settings.search.scope-all": "Svi napredni",
+    "settings.header.plugin-settings": "Postavke dodatka",
+    "settings.mode.title": "Način rada postavki",
+    "settings.mode.basic-label": "Koristite način osnovnih postavki",
+    "settings.mode.advanced-label": "Koristite način naprednih postavki",
+    "settings.wizard.title": "Pokrenite pomoćnika za postavljanje",
+    "settings.tabs.basic": "Osnovno",
+    "settings.tabs.advanced": "Napredno",
+    "settings.tabs.wizard": "Čarobnjak",
+    "settings.privacy.title": "Maskiranje privatnosti",
+    "settings.privacy.mask-names": "Imena maski i ikone",
+    "settings.privacy.mask-lan-ips": "Maskirajte LAN IP adrese",
+    "settings.privacy.mask-ports": "Priključci za maske",
+    "settings.privacy.lan-help": "LAN IP maskiranje primjenjuje se na IP dio stupca LAN IP:PORT Docker stranice. Koristite priključke maske za dio priključka."
+}

@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "ca",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Afegeix una acció personalitzada",
+    "editor.actions.standard": "Estàndard",
+    "editor.actions.user-script": "Script d'usuari",
+    "editor.actions.control-members": "Controla els membres de la carpeta seleccionats.",
+    "editor.actions.run-user-script": "Executeu una tasca des del connector User Scripts.",
+    "editor.members.toggle-preview-help": "Manteniu aquest membre a la carpeta però amagueu-lo de la vista prèvia replegada",
+    "editor.members.visible": "Visible",
+    "editor.members.auto-included": "Inclòs automàticament per expressió regular o etiqueta",
+    "editor.members.drag-reorder": "Arrossegueu per reordenar",
+    "editor.members.move-up": "Mou cap amunt",
+    "editor.members.move-down": "Mou cap avall"
+}

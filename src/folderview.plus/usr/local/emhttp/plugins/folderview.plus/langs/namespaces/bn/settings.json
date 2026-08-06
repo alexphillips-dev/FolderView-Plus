@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "bn",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "অনুসন্ধান সেটিংস",
+    "settings.search.label": "অনুসন্ধান সেটিংস",
+    "settings.search.clear-label": "সেটিংস অনুসন্ধান সাফ করুন",
+    "settings.search.clear-title": "সাফ অনুসন্ধান",
+    "settings.search.scope": "ব্যাপ্তি",
+    "settings.search.scope-help": "উন্নত অনুসন্ধান এই ট্যাব বা প্রতিটি উন্নত ট্যাব কভার করে কিনা তা চয়ন করুন৷",
+    "settings.search.scope-label": "উন্নত সেটিংস অনুসন্ধান সুযোগ",
+    "settings.search.scope-current": "বর্তমান ট্যাব",
+    "settings.search.scope-all": "সব উন্নত",
+    "settings.header.plugin-settings": "প্লাগইন সেটিংস",
+    "settings.mode.title": "সেটিংস মোড",
+    "settings.mode.basic-label": "মৌলিক সেটিংস মোড ব্যবহার করুন",
+    "settings.mode.advanced-label": "উন্নত সেটিংস মোড ব্যবহার করুন",
+    "settings.wizard.title": "সেটআপ সহকারী চালান",
+    "settings.tabs.basic": "মৌলিক",
+    "settings.tabs.advanced": "উন্নত",
+    "settings.tabs.wizard": "উইজার্ড",
+    "settings.privacy.title": "গোপনীয়তা মাস্কিং",
+    "settings.privacy.mask-names": "মুখোশের নাম এবং আইকন",
+    "settings.privacy.mask-lan-ips": "ল্যান আইপি মাস্ক করুন",
+    "settings.privacy.mask-ports": "মাস্ক পোর্ট",
+    "settings.privacy.lan-help": "LAN IP মাস্কিং ডকার পৃষ্ঠার LAN IP:PORT কলামের IP অংশে প্রযোজ্য। পোর্ট অংশের জন্য মাস্ক পোর্ট ব্যবহার করুন।"
+}

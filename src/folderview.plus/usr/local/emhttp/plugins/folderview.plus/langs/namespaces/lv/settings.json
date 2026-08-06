@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "lv",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Meklēšanas iestatījumi",
+    "settings.search.label": "Meklēšanas iestatījumi",
+    "settings.search.clear-label": "Notīrīt iestatījumu meklēšanu",
+    "settings.search.clear-title": "Notīrīt meklēšanu",
+    "settings.search.scope": "Darbības joma",
+    "settings.search.scope-help": "Izvēlieties, vai izvērstā meklēšana aptver šo cilni vai visas cilnes Izvērstā",
+    "settings.search.scope-label": "Papildu iestatījumu meklēšanas joma",
+    "settings.search.scope-current": "Pašreizējā cilne",
+    "settings.search.scope-all": "Visas uzlabotas",
+    "settings.header.plugin-settings": "Spraudņa iestatījumi",
+    "settings.mode.title": "Iestatījumu režīms",
+    "settings.mode.basic-label": "Izmantojiet pamata iestatījumu režīmu",
+    "settings.mode.advanced-label": "Izmantojiet papildu iestatījumu režīmu",
+    "settings.wizard.title": "Palaidiet iestatīšanas palīgu",
+    "settings.tabs.basic": "Pamata",
+    "settings.tabs.advanced": "Papildu",
+    "settings.tabs.wizard": "Vednis",
+    "settings.privacy.title": "Privātuma maskēšana",
+    "settings.privacy.mask-names": "Masku nosaukumi un ikonas",
+    "settings.privacy.mask-lan-ips": "Maskējiet LAN IP",
+    "settings.privacy.mask-ports": "Masku porti",
+    "settings.privacy.lan-help": "LAN IP maskēšana attiecas uz Docker lapas kolonnas LAN IP:PORT IP daļu. Portas daļai izmantojiet maskas portus."
+}

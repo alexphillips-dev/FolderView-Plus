@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "nb",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Valgfritt",
+    "common.badges.recommended": "Anbefalt",
+    "common.badges.can-delete": "Kan slette",
+    "common.close": "Lukk",
+    "common.cancel": "Avbryt",
+    "common.confirm": "Bekreft",
+    "common.confirm-type": "Skriv for å bekrefte",
+    "common.loading": "Laster inn …"
+}

@@ -6,7 +6,7 @@
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.08.06.01",
+      "version": "2026.08.06.02",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -296,7 +296,7 @@
     {
       "type": "library",
       "name": "brace-expansion",
-      "version": "5.0.8",
+      "version": "5.0.9",
       "scope": "optional",
       "licenses": [
         {
@@ -305,7 +305,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/brace-expansion@5.0.8"
+      "purl": "pkg:npm/brace-expansion@5.0.9"
     },
     {
       "type": "library",
@@ -959,6 +959,20 @@
           "value": "false"
         }
       ]
+    },
+    {
+      "type": "library",
+      "name": "opencc-js",
+      "version": "1.4.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT AND Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/opencc-js@1.4.1"
     },
     {
       "type": "library",

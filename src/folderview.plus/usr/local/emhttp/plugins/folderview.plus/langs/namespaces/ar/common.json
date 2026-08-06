@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "ar",
+        "namespace": "common"
+    },
+    "common.labels.optional": "اختياري",
+    "common.badges.recommended": "موصى به",
+    "common.badges.can-delete": "يمكن حذف",
+    "common.close": "إغلاق",
+    "common.cancel": "إلغاء",
+    "common.confirm": "تأكيد",
+    "common.confirm-type": "اكتب للتأكيد",
+    "common.loading": "جارٍ التحميل…"
+}

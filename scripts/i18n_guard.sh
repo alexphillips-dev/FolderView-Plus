@@ -78,13 +78,23 @@ const buildCatalog = (locale) => {
 
 const messageParameters = (value) => [...new Set(String(value || '').match(/\$\d+/g) || [])].sort();
 const htmlTags = (value) => [...String(value || '').matchAll(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi)].map((match) => match[1].toLowerCase());
+const htmlLinks = (value) => [...String(value || '').matchAll(/<a\b[^>]*\bhref=(['"])(.*?)\1[^>]*>/gi)].map((match) => match[2]);
 const hasBalancedPluralSyntax = (value) => {
   const source = String(value || '');
   const starts = (source.match(/\{\{PLURAL:/g) || []).length;
   const ends = (source.match(/}}/g) || []).length;
   return starts === 0 || ends >= starts;
 };
-const localesRequiringThreePluralForms = new Set(['cs', 'pl', 'ro', 'ru', 'uk']);
+const minimumPluralForms = new Map([
+  ['ar', 6],
+  ['cs', 3],
+  ['hr', 3],
+  ['lv', 3],
+  ['pl', 3],
+  ['ro', 3],
+  ['ru', 3],
+  ['uk', 3]
+]);
 const payloadFingerprint = (messages) => JSON.stringify(Object.fromEntries(Object.entries(messages).sort(([a], [b]) => a.localeCompare(b))));
 
 if (!rootFiles.includes('en.json')) {
@@ -139,6 +149,9 @@ for (const file of rootFiles) {
   if (metadata.status === 'complete' && metadata.reviewed !== true) {
     fail(`${file} complete locale must be accepted for shipping.`);
   }
+  if (locale === 'zh-Hant' && metadata['normalization-profile'] !== 'opencc-s2twp-1.4.1') {
+    fail(`${file} must record the reviewed OpenCC Taiwan normalization profile.`);
+  }
 
   const namespaceFiles = localeNamespaceFiles(locale);
   const namespaceNames = namespaceFiles.map((namespaceFile) => path.basename(namespaceFile));
@@ -173,10 +186,11 @@ for (const file of rootFiles) {
     if (/[⟦⟧]|FVSEP|FVPROTECT/.test(value)) {
       fail(`${file} key "${key}" contains a translation-workflow artifact.`);
     }
-    if (localesRequiringThreePluralForms.has(locale) && value.includes('{{PLURAL:')) {
+    if (minimumPluralForms.has(locale) && value.includes('{{PLURAL:')) {
       for (const expression of value.match(/\{\{PLURAL:[^}]+}}/g) || []) {
-        if (expression.split('|').length - 1 < 3) {
-          fail(`${file} key "${key}" needs one, few, and many plural forms for ${locale}.`);
+        const minimum = minimumPluralForms.get(locale);
+        if (expression.split('|').length - 1 < minimum) {
+          fail(`${file} key "${key}" needs at least ${minimum} CLDR plural forms for ${locale}.`);
         }
       }
     }
@@ -186,13 +200,22 @@ for (const file of rootFiles) {
     if (sourceParams.join('|') !== localeParams.join('|')) {
       fail(`${file} key "${key}" parameters differ from English (${sourceParams.join(', ')} vs ${localeParams.join(', ')}).`);
     }
-    const sourceTags = htmlTags(base.messages[key]).sort();
-    const localeTags = htmlTags(value).sort();
+    const sourceTags = htmlTags(base.messages[key]);
+    const localeTags = htmlTags(value);
     if (sourceTags.join('|') !== localeTags.join('|')) {
       if (metadata.status === 'complete' || metadata.status === 'source') {
         fail(`${file} key "${key}" HTML tags differ from English.`);
       } else if (metadata.status !== 'placeholder') {
         warnings.push(`${file} key "${key}" HTML tags differ from English and should be reviewed.`);
+      }
+    }
+    const sourceLinks = htmlLinks(base.messages[key]);
+    const localeLinks = htmlLinks(value);
+    if (sourceLinks.join('|') !== localeLinks.join('|')) {
+      if (metadata.status === 'complete' || metadata.status === 'source') {
+        fail(`${file} key "${key}" link targets differ from English.`);
+      } else if (metadata.status !== 'placeholder') {
+        warnings.push(`${file} key "${key}" link targets differ from English and should be reviewed.`);
       }
     }
   }

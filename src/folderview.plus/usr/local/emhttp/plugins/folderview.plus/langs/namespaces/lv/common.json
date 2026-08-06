@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "lv",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Pēc izvēles",
+    "common.badges.recommended": "Ieteicams",
+    "common.badges.can-delete": "Var izdzēst",
+    "common.close": "Aizvērt",
+    "common.cancel": "Atcelt",
+    "common.confirm": "Apstiprināt",
+    "common.confirm-type": "Ievadiet, lai apstiprinātu",
+    "common.loading": "Notiek ielāde…"
+}

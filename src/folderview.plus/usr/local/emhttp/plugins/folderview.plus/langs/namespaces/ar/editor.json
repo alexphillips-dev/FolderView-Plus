@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "ar",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "إضافة إجراء مخصص",
+    "editor.actions.standard": "قياسي",
+    "editor.actions.user-script": "البرنامج النصي المستخدم",
+    "editor.actions.control-members": "التحكم في أعضاء المجلد المحدد.",
+    "editor.actions.run-user-script": "قم بتشغيل مهمة من البرنامج المساعد User Scripts.",
+    "editor.members.toggle-preview-help": "احتفظ بهذا العضو في المجلد ولكن قم بإخفائه من المعاينة المطوية",
+    "editor.members.visible": "مرئية",
+    "editor.members.auto-included": "يتم تضمينه تلقائيًا بواسطة regex أو التصنيف",
+    "editor.members.drag-reorder": "اسحب لإعادة الترتيب",
+    "editor.members.move-up": "تحرك للأعلى",
+    "editor.members.move-down": "تحرك للأسفل"
+}

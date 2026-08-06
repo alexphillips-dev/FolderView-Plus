@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "hr",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Pomoćnik za postavljanje",
+    "wizard.welcome.kicker": "FolderView Plus pomoćnik za postavljanje",
+    "wizard.welcome.title": "Organizirajte svoje Docker spremnike i VM-ove u mape.",
+    "wizard.welcome.description": "FolderView Plus pomaže u grupiranju povezanih aplikacija, pregledu promjena prije nego što se primijene i, po želji, automatski organizira buduće aplikacije.",
+    "wizard.welcome.begin": "Započnite postavljanje",
+    "wizard.welcome.skip": "Čarobnjak za preskakanje",
+    "wizard.welcome.group-title": "Grupirajte povezane aplikacije",
+    "wizard.welcome.group-description": "Držite medije, preuzimanja, uslužne programe, kućnu automatizaciju i druge aplikacije zajedno.",
+    "wizard.welcome.preview-title": "Pregled prije primjene",
+    "wizard.welcome.preview-description": "Pregledat ćete mape, zadatke, pravila i postavke prije nego što se bilo što promijeni.",
+    "wizard.welcome.automatic-title": "Ostanite organizirani automatski",
+    "wizard.welcome.automatic-description": "Neobavezna početna pravila mogu buduće podudarne aplikacije smjestiti u prave mape.",
+    "wizard.navigation.next": "Dalje",
+    "wizard.navigation.back": "natrag",
+    "wizard.navigation.begin": "Započnite postavljanje",
+    "wizard.navigation.run-preview": "Pokreni pretpregled",
+    "wizard.navigation.apply": "Primijeni postavku",
+    "wizard.navigation.show-details": "Prikaži detalje",
+    "wizard.navigation.hide-details": "Sakrij detalje",
+    "wizard.navigation.close": "Zatvori",
+    "wizard.navigation.review": "pregled",
+    "wizard.navigation.go-to": "Idi na $1",
+    "wizard.progress.step": "Korak $1 od $2",
+    "wizard.impact.live": "Utjecaj uživo za ovaj korak"
+}

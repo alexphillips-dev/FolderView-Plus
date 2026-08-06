@@ -29,7 +29,7 @@ test('all shipped surface catalogs are complete and preserve runtime parameters'
     const englishKeys = Object.keys(english).sort();
     const locales = fs.readdirSync(namespacesRoot).filter((entry) => fs.statSync(path.join(namespacesRoot, entry)).isDirectory());
 
-    assert.equal(locales.length, 18);
+    assert.equal(locales.length, 27);
     for (const locale of locales) {
         const catalog = messagesOnly(readJson(path.join(namespacesRoot, locale, 'legacy-surface.json')));
         assert.deepEqual(Object.keys(catalog).sort(), englishKeys, `${locale} surface keys must match English`);
@@ -47,7 +47,7 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     const builder = fs.readFileSync(path.join(repoRoot, 'scripts/build_i18n_surface_catalogs.mjs'), 'utf8');
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
 
-    assert.equal(report['catalog-version'], '2026.07.29.2');
+    assert.equal(report['catalog-version'], '2026.08.06.1');
     assert.equal(report['candidate-count'], 0);
     assert.equal(report['auto-bound-message-count'], 1583);
     assert.equal(report['catalog-message-count'], 2049);

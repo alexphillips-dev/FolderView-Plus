@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "bn",
+        "namespace": "common"
+    },
+    "common.labels.optional": "ঐচ্ছিক",
+    "common.badges.recommended": "প্রস্তাবিত",
+    "common.badges.can-delete": "মুছে দিতে পারে",
+    "common.close": "বন্ধ",
+    "common.cancel": "বাতিল করুন",
+    "common.confirm": "নিশ্চিত করুন",
+    "common.confirm-type": "নিশ্চিত করতে টাইপ করুন",
+    "common.loading": "লোড হচ্ছে..."
+}

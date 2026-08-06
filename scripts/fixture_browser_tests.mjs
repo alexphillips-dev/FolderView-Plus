@@ -293,6 +293,94 @@ test('Unraid zh_CN activates the canonical Simplified Chinese catalog in a real 
     assert.equal(result.directTranslation, '关闭');
 });
 
+test('Unraid zh_TW activates the canonical Traditional Chinese catalog in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'zh_TW',
+            resolvedLocale: 'zh-Hant',
+            fallbackChain: ['zh-TW', 'zh-Hant', 'en'],
+            direction: 'ltr',
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'zh-Hant', namespace: 'common', url: '/plugin/langs/namespaces/zh-Hant/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            documentDirection: document.documentElement.dir,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'zh-TW');
+    assert.equal(result.snapshot.resolvedLocale, 'zh-Hant');
+    assert.equal(result.snapshot.activeLocale, 'zh-Hant');
+    assert.equal(result.documentLocale, 'zh-TW');
+    assert.equal(result.documentDirection, 'ltr');
+    assert.equal(result.translatedLabel, '關閉');
+    assert.equal(result.directTranslation, '關閉');
+});
+
+test('Unraid ar_AR activates the Arabic catalog and production RTL direction in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'ar_AR',
+            resolvedLocale: 'ar',
+            fallbackChain: ['ar-AR', 'ar', 'en'],
+            direction: 'rtl',
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'ar', namespace: 'common', url: '/plugin/langs/namespaces/ar/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            documentDirection: document.documentElement.dir,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'ar-AR');
+    assert.equal(result.snapshot.resolvedLocale, 'ar');
+    assert.equal(result.snapshot.activeLocale, 'ar');
+    assert.equal(result.documentLocale, 'ar-AR');
+    assert.equal(result.documentDirection, 'rtl');
+    assert.equal(result.translatedLabel, 'إغلاق');
+    assert.equal(result.directTranslation, 'إغلاق');
+});
+
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
     await page.waitForFunction(() => window.fixtureRuntime?.api);

@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "hu",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Egyéni művelet hozzáadása",
+    "editor.actions.standard": "Szabványos",
+    "editor.actions.user-script": "Felhasználói szkript",
+    "editor.actions.control-members": "A kiválasztott mappatagok vezérlése.",
+    "editor.actions.run-user-script": "Futtasson egy feladatot a User Scripts beépülő modulból.",
+    "editor.members.toggle-preview-help": "Tartsa ezt a tagot a mappában, de rejtse el az összecsukott előnézetből",
+    "editor.members.visible": "Látható",
+    "editor.members.auto-included": "Automatikusan szerepel a reguláris kifejezéssel vagy a címkével",
+    "editor.members.drag-reorder": "Húzza át az átrendezéshez",
+    "editor.members.move-up": "Lépj felfelé",
+    "editor.members.move-down": "Mozgás lefelé"
+}

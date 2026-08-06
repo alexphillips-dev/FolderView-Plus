@@ -3,14 +3,14 @@
         "authors": [
             "FolderView Plus maintainers"
         ],
-        "catalog-version": "2026.07.29.2",
+        "catalog-version": "2026.08.06.1",
         "direction": "ltr",
-        "last-reviewed": "2026-07-29",
-        "last-updated": "2026-07-29",
+        "last-reviewed": "2026-08-06",
+        "last-updated": "2026-08-06",
         "locale": "ru",
         "native-name": "Русский",
         "reviewed": true,
-        "source-revision": "2026.07.29.2",
+        "source-revision": "2026.08.06.1",
         "status": "complete",
         "translated-messages": 2049,
         "total-source-messages": 2049

@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "hu",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Keresési beállítások",
+    "settings.search.label": "Keresési beállítások",
+    "settings.search.clear-label": "Beállítások keresésének törlése",
+    "settings.search.clear-title": "Keresés törlése",
+    "settings.search.scope": "Hatály",
+    "settings.search.scope-help": "Válassza ki, hogy a Speciális keresés ezt a lapot vagy az összes Speciális lapot fedje le",
+    "settings.search.scope-label": "Speciális beállítások keresési hatóköre",
+    "settings.search.scope-current": "Aktuális lap",
+    "settings.search.scope-all": "Minden haladó",
+    "settings.header.plugin-settings": "Plugin beállítások",
+    "settings.mode.title": "Beállítások mód",
+    "settings.mode.basic-label": "Használja az alapbeállítási módot",
+    "settings.mode.advanced-label": "Használja a speciális beállítások módot",
+    "settings.wizard.title": "Futtassa a beállítási asszisztenst",
+    "settings.tabs.basic": "Alapvető",
+    "settings.tabs.advanced": "Haladó",
+    "settings.tabs.wizard": "Varázsló",
+    "settings.privacy.title": "Adatvédelmi maszkolás",
+    "settings.privacy.mask-names": "Maszknevek és ikonok",
+    "settings.privacy.mask-lan-ips": "Maszkolja a LAN IP-ket",
+    "settings.privacy.mask-ports": "Maszk portok",
+    "settings.privacy.lan-help": "A LAN IP maszkolása a Docker oldal LAN IP:PORT oszlopának IP részére vonatkozik. Használja a Maszk portokat a portrészhez."
+}

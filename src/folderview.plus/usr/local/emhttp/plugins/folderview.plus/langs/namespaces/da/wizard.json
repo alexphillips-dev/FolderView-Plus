@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "da",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Opsætningsassistent",
+    "wizard.welcome.kicker": "FolderView Plus Setup Assistant",
+    "wizard.welcome.title": "Organiser dine Docker-containere og VM'er i mapper.",
+    "wizard.welcome.description": "FolderView Plus hjælper med at gruppere relaterede apps, forhåndsvise ændringer, før de anvendes, og eventuelt holde fremtidige apps organiseret automatisk.",
+    "wizard.welcome.begin": "Begynd opsætning",
+    "wizard.welcome.skip": "Spring over guiden",
+    "wizard.welcome.group-title": "Grupper relaterede apps",
+    "wizard.welcome.group-description": "Hold medier, downloads, hjælpeprogrammer, hjemmeautomatisering og andre apps sammen.",
+    "wizard.welcome.preview-title": "Forhåndsvisning før ansøgning",
+    "wizard.welcome.preview-description": "Du vil gennemgå mapper, opgaver, regler og indstillinger, før noget ændres.",
+    "wizard.welcome.automatic-title": "Forbliv organiseret automatisk",
+    "wizard.welcome.automatic-description": "Valgfri startregler kan placere fremtidige matchende apps i de rigtige mapper.",
+    "wizard.navigation.next": "Næste",
+    "wizard.navigation.back": "Tilbage",
+    "wizard.navigation.begin": "Begynd opsætning",
+    "wizard.navigation.run-preview": "Kør forhåndsvisning",
+    "wizard.navigation.apply": "Anvend opsætning",
+    "wizard.navigation.show-details": "Vis detaljer",
+    "wizard.navigation.hide-details": "Skjul detaljer",
+    "wizard.navigation.close": "Luk",
+    "wizard.navigation.review": "Gennemgå",
+    "wizard.navigation.go-to": "Gå til $1",
+    "wizard.progress.step": "Trin $1 af $2",
+    "wizard.impact.live": "Live effekt for dette trin"
+}

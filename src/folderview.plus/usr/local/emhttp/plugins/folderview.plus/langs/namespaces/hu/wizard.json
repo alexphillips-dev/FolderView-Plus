@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "hu",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Beállítási asszisztens",
+    "wizard.welcome.kicker": "FolderView Plus Setup Assistant",
+    "wizard.welcome.title": "Rendezheti Docker-tárolóit és virtuális gépeit mappákba.",
+    "wizard.welcome.description": "A FolderView Plus segít csoportosítani a kapcsolódó alkalmazásokat, megtekintheti a módosítások előnézetét, mielőtt azok alkalmazásra kerülnének, és opcionálisan a jövőbeni alkalmazásokat automatikusan rendszerezheti.",
+    "wizard.welcome.begin": "Kezdje el a beállítást",
+    "wizard.welcome.skip": "Kihagyás varázsló",
+    "wizard.welcome.group-title": "Csoportosítsunk kapcsolódó alkalmazásokat",
+    "wizard.welcome.group-description": "Tartsa együtt a médiát, a letöltéseket, a segédprogramokat, az otthoni automatizálást és más alkalmazásokat.",
+    "wizard.welcome.preview-title": "Jelentkezés előtt tekintse meg az előnézetet",
+    "wizard.welcome.preview-description": "Mielőtt bármi változna, áttekintheti a mappákat, a hozzárendeléseket, a szabályokat és a beállításokat.",
+    "wizard.welcome.automatic-title": "Maradjon automatikusan szervezett",
+    "wizard.welcome.automatic-description": "Az opcionális kezdőszabályok a megfelelő mappákba helyezhetik a jövőbeni egyező alkalmazásokat.",
+    "wizard.navigation.next": "Következő",
+    "wizard.navigation.back": "Vissza",
+    "wizard.navigation.begin": "Kezdje el a beállítást",
+    "wizard.navigation.run-preview": "Előnézet futtatása",
+    "wizard.navigation.apply": "Alkalmazza a beállítást",
+    "wizard.navigation.show-details": "Részletek megjelenítése",
+    "wizard.navigation.hide-details": "Részletek elrejtése",
+    "wizard.navigation.close": "Bezárás",
+    "wizard.navigation.review": "Tekintse át",
+    "wizard.navigation.go-to": "Ugrás ide: $1",
+    "wizard.progress.step": "$2/$1. lépés",
+    "wizard.impact.live": "Élő hatás ehhez a lépéshez"
+}

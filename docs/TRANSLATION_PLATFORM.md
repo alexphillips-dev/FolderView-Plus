@@ -31,6 +31,6 @@ Use the repository browser pattern `https://github.com/alexphillips-dev/FolderVi
 
 ## Language rollout
 
-Complete Spanish, German, and French first, followed by Italian, Polish, Dutch, Portuguese, Japanese, and Korean. Simplified Chinese uses `zh-Hans`; do not add `zh-Hant` until a Traditional Chinese catalog is reviewed. Portuguese uses separate `pt-BR` and `pt-PT` catalogs. Add Arabic or Hebrew only after the `ar-XB` pseudo-locale browser screenshots show that all affected surfaces are RTL-safe.
+FolderView Plus ships complete catalogs for every active Unraid language repository: Arabic, Bengali, Catalan, Czech, Danish, German, Spanish, French, Croatian, Hungarian, Italian, Japanese, Korean, Latvian, Norwegian Bokmål, Dutch, Polish, Brazilian and European Portuguese, Romanian, Russian, Swedish, Ukrainian, Simplified Chinese, and Traditional Chinese, plus Turkish. Simplified Chinese uses `zh-Hans`; independently translated Traditional Chinese uses `zh-Hant` with a pinned Taiwan normalization profile. Portuguese remains split into `pt-BR` and `pt-PT`, and Unraid `no_NO` maps to `nb`. Arabic changes require both production `ar` and synthetic `ar-XB` RTL browser coverage.
 
 The external Weblate project still requires an administrator to create the project and authorize its GitHub integration. No service credentials belong in this repository.

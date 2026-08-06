@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "zh-Hant",
+        "namespace": "wizard"
+    },
+    "wizard.title": "設定助手",
+    "wizard.welcome.kicker": "FolderView Plus 設定助手",
+    "wizard.welcome.title": "將 Docker 容器和虛擬機器組織到資料夾中。",
+    "wizard.welcome.description": "FolderView Plus 可協助將相關應用程式分組、在應用程式變更之前預覽更改，並可選擇自動組織未來的應用程式。",
+    "wizard.welcome.begin": "開始設定",
+    "wizard.welcome.skip": "跳過嚮導",
+    "wizard.welcome.group-title": "群組相關應用",
+    "wizard.welcome.group-description": "將媒體、下載、實用程式、家庭自動化和其他應用程式放在一起。",
+    "wizard.welcome.preview-title": "申請前預覽",
+    "wizard.welcome.preview-description": "在進行任何更改之前，您將檢查資料夾、分配、規則和設定。",
+    "wizard.welcome.automatic-title": "自動保持井井有條",
+    "wizard.welcome.automatic-description": "可選的起始規則可以將未來匹配的應用程式放入正確的資料夾中。",
+    "wizard.navigation.next": "下一步",
+    "wizard.navigation.back": "返回",
+    "wizard.navigation.begin": "開始設定",
+    "wizard.navigation.run-preview": "執行預覽",
+    "wizard.navigation.apply": "應用程式設定",
+    "wizard.navigation.show-details": "顯示詳情",
+    "wizard.navigation.hide-details": "隱藏詳細訊息",
+    "wizard.navigation.close": "關閉",
+    "wizard.navigation.review": "評論",
+    "wizard.navigation.go-to": "轉到$1",
+    "wizard.progress.step": "$2 的步驟 $1",
+    "wizard.impact.live": "此步驟的即時影響"
+}

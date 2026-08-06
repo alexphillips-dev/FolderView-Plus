@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "bn",
+        "namespace": "wizard"
+    },
+    "wizard.title": "সহকারী সেটআপ করুন",
+    "wizard.welcome.kicker": "ফোল্ডার ভিউ প্লাস সেটআপ সহকারী",
+    "wizard.welcome.title": "ফোল্ডারে আপনার ডকার কন্টেইনার এবং VM গুলি সংগঠিত করুন।",
+    "wizard.welcome.description": "FolderView Plus গোষ্ঠী সম্পর্কিত অ্যাপগুলিকে সাহায্য করে, সেগুলি প্রয়োগ করার আগে পরিবর্তনের পূর্বরূপ দেখায় এবং ঐচ্ছিকভাবে ভবিষ্যতের অ্যাপগুলিকে স্বয়ংক্রিয়ভাবে সংগঠিত রাখতে সাহায্য করে।",
+    "wizard.welcome.begin": "সেটআপ শুরু করুন",
+    "wizard.welcome.skip": "উইজার্ড এড়িয়ে যান",
+    "wizard.welcome.group-title": "গ্রুপ সম্পর্কিত অ্যাপ",
+    "wizard.welcome.group-description": "মিডিয়া, ডাউনলোড, ইউটিলিটি, হোম অটোমেশন এবং অন্যান্য অ্যাপ একসাথে রাখুন।",
+    "wizard.welcome.preview-title": "আবেদন করার আগে পূর্বরূপ দেখুন",
+    "wizard.welcome.preview-description": "কিছু পরিবর্তন করার আগে আপনি ফোল্ডার, অ্যাসাইনমেন্ট, নিয়ম এবং সেটিংস পর্যালোচনা করবেন।",
+    "wizard.welcome.automatic-title": "স্বয়ংক্রিয়ভাবে সংগঠিত থাকুন",
+    "wizard.welcome.automatic-description": "ঐচ্ছিক স্টার্টার নিয়ম ভবিষ্যৎ মিলে যাওয়া অ্যাপগুলিকে সঠিক ফোল্ডারে রাখতে পারে।",
+    "wizard.navigation.next": "পরবর্তী",
+    "wizard.navigation.back": "ব্যাক",
+    "wizard.navigation.begin": "সেটআপ শুরু করুন",
+    "wizard.navigation.run-preview": "প্রিভিউ চালান",
+    "wizard.navigation.apply": "সেটআপ প্রয়োগ করুন",
+    "wizard.navigation.show-details": "বিস্তারিত দেখান",
+    "wizard.navigation.hide-details": "বিস্তারিত লুকান",
+    "wizard.navigation.close": "বন্ধ",
+    "wizard.navigation.review": "পর্যালোচনা",
+    "wizard.navigation.go-to": "$1 এ যান",
+    "wizard.progress.step": "ধাপ $1 এর $2",
+    "wizard.impact.live": "এই পদক্ষেপের জন্য লাইভ প্রভাব"
+}

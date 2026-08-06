@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.06.01">
-<!ENTITY md5 "b74395f573ef884bb05a280f527f3593">
-<!ENTITY sha256 "32daf730af64166f3d65a681eade5c418083770614dd0b9d68b91f8d36c92552">
+<!ENTITY version "2026.08.06.02">
+<!ENTITY md5 "55f686adce8e54cc53cd189a3cac1c8b">
+<!ENTITY sha256 "020d051c5378243f930e1d7ad55106ff7a9a8059a3a0f2a3edf0ffc028bc4915">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,20 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.06.02
+## FolderView Plus 2026.08.06.02
+### Expanded Unraid language coverage
+- Localization: Add complete 2,049-message catalogs for Arabic, Bengali, Catalan, Croatian, Danish, Hungarian, Latvian, Norwegian Bokmål, and Traditional Chinese across Docker, VM, Dashboard, Settings, diagnostics, setup, import, and legacy surfaces.
+- Compatibility: Map Unraid language identifiers to canonical plugin locales, including `ar_AR`, `bn_BN`, `bn_BD`, `ca_CA`, `da_DA`, `hr_HR`, `hu_HU`, `lv_LV`, `no_NO`, `nb_NO`, `zh_TW`, `zh_HK`, `zh_MO`, and `zh_Hant`.
+- Accessibility: Activate Arabic with RTL document direction and add browser coverage for locale selection, rendered translations, direction changes, and pseudo-locale restoration.
+- Localization: Add an independently translated `zh-Hant` catalog and apply a pinned, build-time Taiwan phrase normalization profile without adding a runtime dependency to the Unraid package.
+- Quality: Enforce locale-specific plural requirements for Arabic, Croatian, Czech, Latvian, Polish, Romanian, Russian, and Ukrainian while preserving placeholders, markup order, and exact link targets.
+- Maintenance: Add explicit scaffolding and targeted refinement options so future catalog maintenance can fill missing root and namespaced messages without silently rewriting accepted translations.
+- Regression guard: Expand unit and real-browser coverage for all 27 shipped locales, canonical Unraid aliases, native locale labels, RTL behavior, catalog completeness, HTML safety, and deterministic catalog generation.
+- Docs: Document all active locale mappings, Arabic RTL behavior, Traditional Chinese normalization, and the current translation-maintenance workflow.
+- Security: Pin the development-only `opencc-js` translation-normalization tool, refresh the complete SBOM, and update the lockfile to resolve the reported high-severity transitive `brace-expansion` advisory.
+
 
 ###2026.08.06.01
 ## FolderView Plus 2026.08.06.01

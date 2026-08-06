@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.06.1",
+        "locale": "ar",
+        "namespace": "wizard"
+    },
+    "wizard.title": "مساعد الإعداد",
+    "wizard.welcome.kicker": "مساعد إعداد FolderView Plus",
+    "wizard.welcome.title": "قم بتنظيم حاويات Docker وأجهزة VM الخاصة بك في مجلدات.",
+    "wizard.welcome.description": "يساعد FolderView Plus في تجميع التطبيقات ذات الصلة، ومعاينة التغييرات قبل تطبيقها، واختياريًا الاحتفاظ بالتطبيقات المستقبلية منظمة تلقائيًا.",
+    "wizard.welcome.begin": "ابدأ الإعداد",
+    "wizard.welcome.skip": "تخطي المعالج",
+    "wizard.welcome.group-title": "التطبيقات ذات الصلة بالمجموعة",
+    "wizard.welcome.group-description": "احتفظ بالوسائط والتنزيلات والأدوات المساعدة والأتمتة المنزلية والتطبيقات الأخرى معًا.",
+    "wizard.welcome.preview-title": "المعاينة قبل التقديم",
+    "wizard.welcome.preview-description": "ستقوم بمراجعة المجلدات والواجبات والقواعد والإعدادات قبل أن يتغير أي شيء.",
+    "wizard.welcome.automatic-title": "كن منظمًا تلقائيًا",
+    "wizard.welcome.automatic-description": "يمكن لقواعد البدء الاختيارية وضع التطبيقات المطابقة المستقبلية في المجلدات الصحيحة.",
+    "wizard.navigation.next": "التالي",
+    "wizard.navigation.back": "العودة",
+    "wizard.navigation.begin": "ابدأ الإعداد",
+    "wizard.navigation.run-preview": "تشغيل المعاينة",
+    "wizard.navigation.apply": "تطبيق الإعداد",
+    "wizard.navigation.show-details": "إظهار التفاصيل",
+    "wizard.navigation.hide-details": "إخفاء التفاصيل",
+    "wizard.navigation.close": "إغلاق",
+    "wizard.navigation.review": "مراجعة",
+    "wizard.navigation.go-to": "انتقل إلى $1",
+    "wizard.progress.step": "الخطوة $1 من $2",
+    "wizard.impact.live": "التأثير المباشر لهذه الخطوة"
+}

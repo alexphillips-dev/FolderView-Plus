@@ -959,6 +959,9 @@
             return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
         };
         const inferCategory = (error, fallbackCategory = 'runtime-failed') => {
+            if (fatalBanner && typeof fatalBanner.classifyError === 'function') {
+                return fatalBanner.classifyError(error, fallbackCategory);
+            }
             const message = trimDiagnostic(error?.message || error).toLowerCase();
             if (!message) {
                 return fallbackCategory;

@@ -6,7 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'docker';
-$fvplusI18nNamespaces = ['docker'];
+$fvplusI18nNamespaces = ['docker', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();

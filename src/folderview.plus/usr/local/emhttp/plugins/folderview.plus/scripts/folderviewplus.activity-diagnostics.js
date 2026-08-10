@@ -717,6 +717,9 @@ const collectSupportBundleUiTelemetry = (bundle) => {
         browserConsoleErrors: fatalBanner && typeof fatalBanner.getBrowserConsoleErrorSnapshot === 'function'
             ? fatalBanner.getBrowserConsoleErrorSnapshot()
             : { count: 0, entries: [] },
+        startupIncident: fatalBanner && typeof fatalBanner.getStartupIncidentSnapshot === 'function'
+            ? fatalBanner.getStartupIncidentSnapshot()
+            : { available: false, schemaVersion: 1 },
         folderEditorDebug: collectFolderEditorDebugDiagnostics(),
         theme: collectThemeTelemetrySnapshot(),
         localization: window.FolderViewPlusI18n?.snapshot?.() || {

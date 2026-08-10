@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Ta bort valda mallar?",
     "legacy.surface.31e392d1c0378bec": "Ansök",
     "legacy.surface.31fbef162594de01": "Fortsätt",
-    "legacy.surface.3211d6e16d6fb9de": "Inställningar bootstrap misslyckades",
     "legacy.surface.322641b02d72acdb": "Visa stoppat märke",
     "legacy.surface.323ac280646589db": "Resursvarning vCPU",
     "legacy.surface.324b134f57c70c72": "Förhandsgranska",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuell",
     "legacy.surface.74ccd43303847f26": "Mapp",
     "legacy.surface.754655c744c9b865": "Namn, förälder, ikon och WebUI-beteende på mappnivå.",
+    "legacy.surface.7568f6d91b6d8114": "Content Security Policy blockerade en FolderView Plus-resurs.",
     "legacy.surface.756a8ba97dce249a": "Upptäckt",
     "legacy.surface.75846140de614b1a": "Bilden innehåller",
     "legacy.surface.75954c5f4d87da20": "Förhandsgranska:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "FolderView",
     "legacy.surface.b1a60fbf5e315a94": "Mappar stannar i den ordning som lagras i inställningarna. Använd detta när du vill att FolderView Plus ska bevara din befintliga layout.",
     "legacy.surface.b1bdf63d93c37208": "Auto (rekommenderas)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus kunde inte avsluta initialiseringen av sidan Inställningar.",
     "legacy.surface.b1d44456477595b7": "Ångra slutfört",
     "legacy.surface.b1d69fcd791933f0": "Hemlabb",
     "legacy.surface.b1dfe0e9670cba07": "Mapp skapad",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Strikt (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "Sparade \"$1\".",
     "legacy.surface.bda851790ae255ce": "Namn och valfri mapp WebUI-beteende.",
-    "legacy.surface.bde0de8fa103da67": "Visa tekniska detaljer",
     "legacy.surface.be00c6a97d7322d5": "VM-resurströsklar styr varnings- och kritiska etiketter som visas för vCPU och tilldelat minne. Poängalternativ för endast Docker konfigureras på Docker-fliken.",
     "legacy.surface.be02ef2d3f09f092": "Ordna underordnade mappar som visas i kapslade förhandsgranskningar och utökade rader.",
     "legacy.surface.be1016ce6ded1a1d": "Endast manuell",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM-bulkuppdrag",
     "legacy.surface.e415020d9be5a0d3": "Välj rullgardinsmenyn och de primära/svävande färgerna som används i mapprader.",
     "legacy.surface.e4591a0d28e69767": "Uppdatera källdata och försök förhandsgranska igen.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus kunde inte starta eftersom nödvändiga inställningsmoduler inte kunde laddas.",
     "legacy.surface.e49b3feb195b7a0d": "Ersätt (synkronisera exakt, radera saknas)",
     "legacy.surface.e4ad55ec01a52991": "För ikonmappar från tredje part, placera filer under",
     "legacy.surface.e4bb9f1ece9af926": "Starta",

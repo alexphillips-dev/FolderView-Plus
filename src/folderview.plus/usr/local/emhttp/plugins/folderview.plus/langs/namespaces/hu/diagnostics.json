@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Ezek a rögzítések megőrzik a megjelenített irányítópult geometriáját a Beállításokhoz való navigáció után.",
     "diagnostics.capture.review": "Tekintse át",
     "diagnostics.capture.ready": "Kész",
-    "diagnostics.capture.capture-again": "Rögzítse újra"
+    "diagnostics.capture.capture-again": "Rögzítse újra",
+    "diagnostics.bootstrap.reference": "Hivatkozás",
+    "diagnostics.bootstrap.last-step": "Utolsó befejezett lépés",
+    "diagnostics.bootstrap.occurrences": "Előfordulások",
+    "diagnostics.bootstrap.retry": "Betöltés újrapróbálása",
+    "diagnostics.bootstrap.reload": "Oldal újratöltése",
+    "diagnostics.bootstrap.copy": "Támogatási kód másolása",
+    "diagnostics.bootstrap.download": "Indítási jelentés letöltése",
+    "diagnostics.bootstrap.copied": "Támogatási kód másolva",
+    "diagnostics.bootstrap.copy-failed": "A másolás sikertelen",
+    "diagnostics.bootstrap.downloaded": "Indítási jelentés letöltve",
+    "diagnostics.bootstrap.download-failed": "A letöltés sikertelen",
+    "diagnostics.bootstrap.retrying": "Újrapróbálás…",
+    "diagnostics.bootstrap.retry-succeeded": "A betöltés folytatódik",
+    "diagnostics.bootstrap.retry-failed": "Az újrapróbálás sikertelen"
 }

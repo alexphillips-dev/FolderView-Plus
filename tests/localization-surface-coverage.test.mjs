@@ -19,7 +19,7 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    assert.equal(surface.byPhrase.size, 1583);
+    assert.equal(surface.byPhrase.size, 1580);
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });
@@ -47,10 +47,10 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     const builder = fs.readFileSync(path.join(repoRoot, 'scripts/build_i18n_surface_catalogs.mjs'), 'utf8');
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
 
-    assert.equal(report['catalog-version'], '2026.08.06.1');
+    assert.equal(report['catalog-version'], '2026.08.10.1');
     assert.equal(report['candidate-count'], 0);
-    assert.equal(report['auto-bound-message-count'], 1583);
-    assert.equal(report['catalog-message-count'], 2049);
+    assert.equal(report['auto-bound-message-count'], 1580);
+    assert.equal(report['catalog-message-count'], 2060);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Disse fangstene bevarer den gjengitte Dashboard-geometrien etter navigering til Innstillinger.",
     "diagnostics.capture.review": "Gjennomgå",
     "diagnostics.capture.ready": "Klar",
-    "diagnostics.capture.capture-again": "Ta igjen"
+    "diagnostics.capture.capture-again": "Ta igjen",
+    "diagnostics.bootstrap.reference": "Referanse",
+    "diagnostics.bootstrap.last-step": "Sist fullførte trinn",
+    "diagnostics.bootstrap.occurrences": "Forekomster",
+    "diagnostics.bootstrap.retry": "Prøv å laste inn igjen",
+    "diagnostics.bootstrap.reload": "Last inn siden på nytt",
+    "diagnostics.bootstrap.copy": "Kopier støttekode",
+    "diagnostics.bootstrap.download": "Last ned oppstartsrapport",
+    "diagnostics.bootstrap.copied": "Støttekode kopiert",
+    "diagnostics.bootstrap.copy-failed": "Kopiering mislyktes",
+    "diagnostics.bootstrap.downloaded": "Oppstartsrapport lastet ned",
+    "diagnostics.bootstrap.download-failed": "Nedlasting mislyktes",
+    "diagnostics.bootstrap.retrying": "Prøver på nytt…",
+    "diagnostics.bootstrap.retry-succeeded": "Innlasting gjenopptatt",
+    "diagnostics.bootstrap.retry-failed": "Nytt forsøk mislyktes"
 }

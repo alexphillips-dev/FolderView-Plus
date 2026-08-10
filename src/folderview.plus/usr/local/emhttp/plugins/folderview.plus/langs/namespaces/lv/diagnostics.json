@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Šie ieraksti saglabā atveidoto informācijas paneļa ģeometriju pēc navigācijas uz iestatījumiem.",
     "diagnostics.capture.review": "Pārskats",
     "diagnostics.capture.ready": "Gatavs",
-    "diagnostics.capture.capture-again": "Uzņemiet vēlreiz"
+    "diagnostics.capture.capture-again": "Uzņemiet vēlreiz",
+    "diagnostics.bootstrap.reference": "Atsauce",
+    "diagnostics.bootstrap.last-step": "Pēdējā pabeigtā darbība",
+    "diagnostics.bootstrap.occurrences": "Atkārtojumi",
+    "diagnostics.bootstrap.retry": "Mēģināt ielādēt vēlreiz",
+    "diagnostics.bootstrap.reload": "Pārlādēt lapu",
+    "diagnostics.bootstrap.copy": "Kopēt atbalsta kodu",
+    "diagnostics.bootstrap.download": "Lejupielādēt startēšanas pārskatu",
+    "diagnostics.bootstrap.copied": "Atbalsta kods nokopēts",
+    "diagnostics.bootstrap.copy-failed": "Kopēšana neizdevās",
+    "diagnostics.bootstrap.downloaded": "Startēšanas pārskats lejupielādēts",
+    "diagnostics.bootstrap.download-failed": "Lejupielāde neizdevās",
+    "diagnostics.bootstrap.retrying": "Mēģina vēlreiz…",
+    "diagnostics.bootstrap.retry-succeeded": "Ielāde atsākta",
+    "diagnostics.bootstrap.retry-failed": "Atkārtotais mēģinājums neizdevās"
 }

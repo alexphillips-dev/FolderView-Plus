@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Izbrisati odabrane predloške?",
     "legacy.surface.31e392d1c0378bec": "primijeniti",
     "legacy.surface.31fbef162594de01": "nastavi",
-    "legacy.surface.3211d6e16d6fb9de": "Podizanje postavki nije uspjelo",
     "legacy.surface.322641b02d72acdb": "Prikaži zaustavljenu značku",
     "legacy.surface.323ac280646589db": "Resursno upozorenje vCPU",
     "legacy.surface.324b134f57c70c72": "Pregled",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 priručnik",
     "legacy.surface.74ccd43303847f26": "Mapa",
     "legacy.surface.754655c744c9b865": "Naziv, roditelj, ikona i ponašanje web sučelja na razini mape.",
+    "legacy.surface.7568f6d91b6d8114": "Politika sigurnosti sadržaja blokirala je resurs FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Otkriveno",
     "legacy.surface.75846140de614b1a": "Slika sadrži",
     "legacy.surface.75954c5f4d87da20": "Pregled:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "FolderView",
     "legacy.surface.b1a60fbf5e315a94": "Mape ostaju redoslijedom pohranjenim u postavkama. Koristite ovo kada želite da FolderView Plus sačuva vaš postojeći izgled.",
     "legacy.surface.b1bdf63d93c37208": "Automatski (preporučeno)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus nije mogao završiti inicijalizaciju stranice postavki.",
     "legacy.surface.b1d44456477595b7": "Poništavanje dovršeno",
     "legacy.surface.b1d69fcd791933f0": "Kućni laboratorij",
     "legacy.surface.b1dfe0e9670cba07": "Mapa je stvorena",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Strogo (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "Spremljeno \"$1\".",
     "legacy.surface.bda851790ae255ce": "Naziv i izborno ponašanje mape WebUI.",
-    "legacy.surface.bde0de8fa103da67": "Prikaži tehničke detalje",
     "legacy.surface.be00c6a97d7322d5": "Pragovi VM resursa kontroliraju upozorenja i kritične oznake prikazane za vCPU i dodijeljenu memoriju. Opcije bodovanja samo za Docker konfigurirane su na kartici Docker.",
     "legacy.surface.be02ef2d3f09f092": "Redoslijed podređenih mapa prikazanih u ugniježđenim pregledima i proširenim recima.",
     "legacy.surface.be1016ce6ded1a1d": "Samo ručno",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Skupna dodjela VM-a",
     "legacy.surface.e415020d9be5a0d3": "Odaberite stil padajućeg izbornika i primarne boje/boje lebdenja koje se koriste u retcima mape.",
     "legacy.surface.e4591a0d28e69767": "Osvježite izvorne podatke i pokušajte ponovno pregledati.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus nije se mogao pokrenuti jer se potrebni moduli postavki nisu uspjeli učitati.",
     "legacy.surface.e49b3feb195b7a0d": "Zamijeni (točno sinkroniziraj, izbriši nedostajuće)",
     "legacy.surface.e4ad55ec01a52991": "Za mape ikona trećih strana, smjestite datoteke ispod",
     "legacy.surface.e4bb9f1ece9af926": "Start",

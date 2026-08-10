@@ -325,7 +325,14 @@ if (
 if (dashboardBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus Dashboard bootstrap failed. Missing modules: ${dashboardBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
-    throw error;
+    window.FolderViewPlusFatalBanner?.reportMissingModules?.(dashboardBootstrapMissingModules, {
+        context: 'Dashboard',
+        hostSelector: '#fvplus-dashboard-runtime-banner-host',
+        code: 'FVPLUS-DSH-BOOT-001',
+        phase: 'module-load',
+        category: 'missing-module'
+    });
+    return;
 }
 if (!dashboardFolderMatchCacheModule || typeof dashboardFolderMatchCacheModule.createApi !== 'function') {
     console.error('folderview.plus dashboard: missing dashboard.folder-match-cache.js');

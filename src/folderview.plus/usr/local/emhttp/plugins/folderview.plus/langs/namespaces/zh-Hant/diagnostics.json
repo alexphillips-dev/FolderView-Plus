@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "這些捕捉在導航到“設定”後保留渲染的儀錶板幾何形狀。",
     "diagnostics.capture.review": "評論",
     "diagnostics.capture.ready": "準備好",
-    "diagnostics.capture.capture-again": "再次捕捉"
+    "diagnostics.capture.capture-again": "再次捕捉",
+    "diagnostics.bootstrap.reference": "參考編號",
+    "diagnostics.bootstrap.last-step": "最後完成的步驟",
+    "diagnostics.bootstrap.occurrences": "發生次數",
+    "diagnostics.bootstrap.retry": "重新嘗試載入",
+    "diagnostics.bootstrap.reload": "重新載入頁面",
+    "diagnostics.bootstrap.copy": "複製支援代碼",
+    "diagnostics.bootstrap.download": "下載啟動報告",
+    "diagnostics.bootstrap.copied": "已複製支援代碼",
+    "diagnostics.bootstrap.copy-failed": "複製失敗",
+    "diagnostics.bootstrap.downloaded": "已下載啟動報告",
+    "diagnostics.bootstrap.download-failed": "下載失敗",
+    "diagnostics.bootstrap.retrying": "正在重試…",
+    "diagnostics.bootstrap.retry-succeeded": "已恢復載入",
+    "diagnostics.bootstrap.retry-failed": "重試失敗"
 }

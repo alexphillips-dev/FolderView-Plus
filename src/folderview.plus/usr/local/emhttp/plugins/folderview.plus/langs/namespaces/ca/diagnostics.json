@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Aquestes captures conserven la geometria del tauler de control representada després de navegar a Configuració.",
     "diagnostics.capture.review": "Revisió",
     "diagnostics.capture.ready": "A punt",
-    "diagnostics.capture.capture-again": "Torna a capturar"
+    "diagnostics.capture.capture-again": "Torna a capturar",
+    "diagnostics.bootstrap.reference": "Referència",
+    "diagnostics.bootstrap.last-step": "Últim pas completat",
+    "diagnostics.bootstrap.occurrences": "Ocurrències",
+    "diagnostics.bootstrap.retry": "Torna a provar de carregar",
+    "diagnostics.bootstrap.reload": "Torna a carregar la pàgina",
+    "diagnostics.bootstrap.copy": "Copia el codi de suport",
+    "diagnostics.bootstrap.download": "Baixa l'informe d'inici",
+    "diagnostics.bootstrap.copied": "Codi de suport copiat",
+    "diagnostics.bootstrap.copy-failed": "Ha fallat la còpia",
+    "diagnostics.bootstrap.downloaded": "S'ha baixat l'informe d'inici",
+    "diagnostics.bootstrap.download-failed": "Ha fallat la baixada",
+    "diagnostics.bootstrap.retrying": "Tornant-ho a provar…",
+    "diagnostics.bootstrap.retry-succeeded": "S'ha reprès la càrrega",
+    "diagnostics.bootstrap.retry-failed": "Ha fallat el nou intent"
 }

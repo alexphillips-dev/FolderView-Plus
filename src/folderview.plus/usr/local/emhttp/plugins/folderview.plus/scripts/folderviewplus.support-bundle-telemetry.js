@@ -30,6 +30,7 @@
         'navigationPrefillId',
         'bootstrapRouteId',
         'bootstrapEffectiveId',
+        'incidentId',
         'stateSignature'
     ]));
 
@@ -55,7 +56,8 @@
         'pageUrl',
         'sourceUrl',
         'url',
-        'href'
+        'href',
+        'route'
     ]));
 
     const SUPPORT_BUNDLE_UI_DEBUG_TEXT_KEYS = Object.freeze(new Set([
@@ -384,6 +386,10 @@
             count: 0,
             entries: []
         }));
+        const collectStartupIncident = browserCollectors?.collectStartupIncident || (() => ({
+            available: false,
+            schemaVersion: 1
+        }));
         const collectDockerPageDiagnostics = browserCollectors?.collectDockerPageDiagnostics || (() => ({ available: false }));
         const collectDockerCompatibilityDiagnostics = browserCollectors?.collectDockerCompatibilityDiagnostics || (() => ({ available: false }));
         const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
@@ -538,6 +544,7 @@
                     pluginVersion: payload.bundleMeta?.pluginVersion || ''
                 })
             );
+            existingUiTelemetry.startupIncident = collectStartupIncident(uiRedactor);
             existingUiTelemetry.dockerDiagnostics = {
                 compatibility: collectDockerCompatibilityDiagnostics(uiRedactor),
                 pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
@@ -592,6 +599,7 @@
             collectCurrentPageTelemetry,
             collectLoadedAssetTelemetry,
             collectBrowserConsoleErrors,
+            collectStartupIncident,
             createUiTelemetryRedactor
         });
     };

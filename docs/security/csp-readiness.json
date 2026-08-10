@@ -19,19 +19,19 @@
   },
   "totals": {
     "inlineEventAttributes": 0,
-    "inlineScriptBlocks": 22,
-    "externalScriptTags": 113,
+    "inlineScriptBlocks": 24,
+    "externalScriptTags": 115,
     "inlineStyleBlocks": 0,
     "inlineStyleAttributes": 207,
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 45
+    "htmlStringSinks": 46
   },
   "readiness": {
     "enforceableNow": false,
     "blockers": [
-      "22 host-page inline script blocks remain.",
+      "24 host-page inline script blocks remain.",
       "207 inline style attributes remain."
     ],
     "completed": [
@@ -59,14 +59,14 @@
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page",
       "inlineEventAttributes": 0,
-      "inlineScriptBlocks": 4,
-      "externalScriptTags": 18,
+      "inlineScriptBlocks": 5,
+      "externalScriptTags": 19,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 61,
       "evalCalls": 0,
       "functionConstructors": 0,
       "dynamicScriptCreation": 1,
-      "htmlStringSinks": 2
+      "htmlStringSinks": 3
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page",
@@ -83,8 +83,8 @@
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page",
       "inlineEventAttributes": 0,
-      "inlineScriptBlocks": 2,
-      "externalScriptTags": 27,
+      "inlineScriptBlocks": 3,
+      "externalScriptTags": 28,
       "inlineStyleBlocks": 0,
       "inlineStyleAttributes": 0,
       "evalCalls": 0,

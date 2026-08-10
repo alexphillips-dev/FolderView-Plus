@@ -6,7 +6,7 @@
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.08.06.02",
+      "version": "2026.08.10.01",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",

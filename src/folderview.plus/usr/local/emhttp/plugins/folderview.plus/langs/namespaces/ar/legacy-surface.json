@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "هل تريد حذف النماذج المحددة؟",
     "legacy.surface.31e392d1c0378bec": "تطبيق",
     "legacy.surface.31fbef162594de01": "متابعة",
-    "legacy.surface.3211d6e16d6fb9de": "فشلت إعدادات التمهيد",
     "legacy.surface.322641b02d72acdb": "إظهار شارة التوقف",
     "legacy.surface.323ac280646589db": "تحذير المورد vCPU",
     "legacy.surface.324b134f57c70c72": "معاينة",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 دليل",
     "legacy.surface.74ccd43303847f26": "مجلد",
     "legacy.surface.754655c744c9b865": "الاسم والأصل والرمز وسلوك WebUI على مستوى المجلد.",
+    "legacy.surface.7568f6d91b6d8114": "قامت سياسة أمان المحتوى بحظر مورد FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "تم الكشف عنها",
     "legacy.surface.75846140de614b1a": "تحتوي الصورة على",
     "legacy.surface.75954c5f4d87da20": "معاينة:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "عرض المجلد",
     "legacy.surface.b1a60fbf5e315a94": "تظل المجلدات بالترتيب المخزن في التفضيلات. استخدم هذا عندما تريد أن يحتفظ FolderView Plus بالتخطيط الحالي لديك.",
     "legacy.surface.b1bdf63d93c37208": "تلقائي (مستحسن)",
-    "legacy.surface.b1c31d322fd50956": "تعذر على FolderView Plus إنهاء تهيئة صفحة الإعدادات.",
     "legacy.surface.b1d44456477595b7": "التراجع عن الاكتمال",
     "legacy.surface.b1d69fcd791933f0": "مختبر المنزل",
     "legacy.surface.b1dfe0e9670cba07": "تم إنشاء المجلد",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "صارم (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "تم حفظ \"$1\".",
     "legacy.surface.bda851790ae255ce": "الاسم وسلوك WebUI للمجلد الاختياري.",
-    "legacy.surface.bde0de8fa103da67": "عرض التفاصيل الفنية",
     "legacy.surface.be00c6a97d7322d5": "تتحكم حدود موارد VM في التحذيرات والتسميات الهامة المعروضة لوحدة المعالجة المركزية الافتراضية (vCPU) والذاكرة المخصصة. يتم تكوين خيارات التسجيل الخاصة بـ Docker فقط في علامة التبويب Docker.",
     "legacy.surface.be02ef2d3f09f092": "ترتيب المجلدات الفرعية المعروضة في المعاينات المتداخلة والصفوف الموسعة.",
     "legacy.surface.be1016ce6ded1a1d": "دليل فقط",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "مهمة VM المجمعة",
     "legacy.surface.e415020d9be5a0d3": "اختر نمط القائمة المنسدلة والألوان الأساسية/التمرير المستخدمة في صفوف المجلدات.",
     "legacy.surface.e4591a0d28e69767": "قم بتحديث البيانات المصدر وحاول المعاينة مرة أخرى.",
-    "legacy.surface.e4696fce5a968f39": "تعذر بدء تشغيل FolderView Plus بسبب فشل تحميل وحدات الإعدادات المطلوبة.",
     "legacy.surface.e49b3feb195b7a0d": "استبدال (مزامنة تامة، حذف المفقودين)",
     "legacy.surface.e4ad55ec01a52991": "بالنسبة لمجلدات أيقونات الجهات الخارجية، ضع الملفات أسفلها",
     "legacy.surface.e4bb9f1ece9af926": "ابدأ",

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Ștergeți șabloanele selectate?",
     "legacy.surface.31e392d1c0378bec": "Aplicați",
     "legacy.surface.31fbef162594de01": "Continuă",
-    "legacy.surface.3211d6e16d6fb9de": "Bootstrap-ul setărilor a eșuat",
     "legacy.surface.322641b02d72acdb": "Afișați insigna oprită",
     "legacy.surface.323ac280646589db": "Resurse warn vCPU",
     "legacy.surface.324b134f57c70c72": "Previzualizare",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manual",
     "legacy.surface.74ccd43303847f26": "Folder",
     "legacy.surface.754655c744c9b865": "Nume, părinte, pictogramă și comportament WebUI la nivel de folder.",
+    "legacy.surface.7568f6d91b6d8114": "Politica de securitate a conținutului a blocat o resursă FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Detectat",
     "legacy.surface.75846140de614b1a": "Imaginea conține",
     "legacy.surface.75954c5f4d87da20": "Previzualizare:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "FolderView",
     "legacy.surface.b1a60fbf5e315a94": "Dosarele rămân în ordinea stocată în preferințe. Utilizați acest lucru atunci când doriți ca FolderView Plus să vă păstreze aspectul existent.",
     "legacy.surface.b1bdf63d93c37208": "Auto (recomandat)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus nu a putut finaliza inițializarea paginii Setări.",
     "legacy.surface.b1d44456477595b7": "Anulare completă",
     "legacy.surface.b1d69fcd791933f0": "Laboratorul de acasă",
     "legacy.surface.b1dfe0e9670cba07": "Folder creat",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Strict (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "Salvat „$1”.",
     "legacy.surface.bda851790ae255ce": "Nume și folder opțional Comportamentul WebUI.",
-    "legacy.surface.bde0de8fa103da67": "Afișați detalii tehnice",
     "legacy.surface.be00c6a97d7322d5": "Pragurile resurselor VM controlează etichetele de avertizare și critice afișate pentru vCPU și memoria alocată. Opțiunile de punctare doar pentru Docker sunt configurate în fila Docker.",
     "legacy.surface.be02ef2d3f09f092": "Ordonați dosarele secundare afișate în previzualizări imbricate și rânduri extinse.",
     "legacy.surface.be1016ce6ded1a1d": "Numai manual",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Atribuire în bloc pentru VM",
     "legacy.surface.e415020d9be5a0d3": "Alegeți stilul drop-down și culorile primare/hover utilizate în rândurile de foldere.",
     "legacy.surface.e4591a0d28e69767": "Actualizează datele sursă și încearcă din nou previzualizarea.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus nu a putut porni deoarece modulele de setări necesare nu s-au încărcat.",
     "legacy.surface.e49b3feb195b7a0d": "Înlocuiește (sincronizează exact, șterge lipsă)",
     "legacy.surface.e4ad55ec01a52991": "Pentru folderele cu pictograme terță parte, plasați fișierele sub",
     "legacy.surface.e4bb9f1ece9af926": "Începeți",

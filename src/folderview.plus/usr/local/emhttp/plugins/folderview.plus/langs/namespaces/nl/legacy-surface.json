@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Geselecteerde sjablonen verwijderen?",
     "legacy.surface.31e392d1c0378bec": "Toepassen",
     "legacy.surface.31fbef162594de01": "Ga door",
-    "legacy.surface.3211d6e16d6fb9de": "Bootstrap van instellingen mislukt",
     "legacy.surface.322641b02d72acdb": "Toon gestopt-badge",
     "legacy.surface.323ac280646589db": "Bron waarschuwt vCPU",
     "legacy.surface.324b134f57c70c72": "Voorbeeld",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 handleiding",
     "legacy.surface.74ccd43303847f26": "Map",
     "legacy.surface.754655c744c9b865": "Naam, ouder, pictogram en WebUI-gedrag op mapniveau.",
+    "legacy.surface.7568f6d91b6d8114": "Content Security Policy heeft een FolderView Plus-bron geblokkeerd.",
     "legacy.surface.756a8ba97dce249a": "Gedetecteerd",
     "legacy.surface.75846140de614b1a": "Afbeelding bevat",
     "legacy.surface.75954c5f4d87da20": "Voorbeeld:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Mapweergave",
     "legacy.surface.b1a60fbf5e315a94": "Mappen blijven in de volgorde die is opgeslagen in voorkeuren. Gebruik dit als u wilt dat FolderView Plus uw bestaande lay-out behoudt.",
     "legacy.surface.b1bdf63d93c37208": "Automatisch (aanbevolen)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus kon het initialiseren van de pagina Instellingen niet voltooien.",
     "legacy.surface.b1d44456477595b7": "Ongedaan maken voltooid",
     "legacy.surface.b1d69fcd791933f0": "Thuis laboratorium",
     "legacy.surface.b1dfe0e9670cba07": "Map gemaakt",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Strikt (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "\"$1\" opgeslagen.",
     "legacy.surface.bda851790ae255ce": "Naam en optioneel map WebUI-gedrag.",
-    "legacy.surface.bde0de8fa103da67": "Toon technische details",
     "legacy.surface.be00c6a97d7322d5": "Drempels voor VM-bronnen bepalen de waarschuwings- en kritieke labels die worden weergegeven voor vCPU en toegewezen geheugen. Opties voor Alleen Docker-scores worden geconfigureerd op het Docker-tabblad.",
     "legacy.surface.be02ef2d3f09f092": "Sorteer onderliggende mappen die worden weergegeven in geneste voorbeelden en uitgevouwen rijen.",
     "legacy.surface.be1016ce6ded1a1d": "Alleen handmatig",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM-bulktoewijzing",
     "legacy.surface.e415020d9be5a0d3": "Kies de vervolgkeuzelijststijl en de primaire/zweefkleuren die in maprijen worden gebruikt.",
     "legacy.surface.e4591a0d28e69767": "Vernieuw de brongegevens en probeer het voorbeeld opnieuw.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus kon niet starten omdat de vereiste instellingenmodules niet konden worden geladen.",
     "legacy.surface.e49b3feb195b7a0d": "Vervangen (exact synchroniseren, ontbrekende verwijderen)",
     "legacy.surface.e4ad55ec01a52991": "Voor pictogrammappen van derden plaatst u bestanden onder",
     "legacy.surface.e4bb9f1ece9af926": "Begin",

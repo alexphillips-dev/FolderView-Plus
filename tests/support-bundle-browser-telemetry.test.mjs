@@ -241,6 +241,58 @@ test('browser error telemetry does not misattribute legacy records to the collec
     assert.equal(snapshot.entries[0].currentSession, false);
 });
 
+test('startup incident telemetry remains available after recovery and is redacted by support-bundle export', () => {
+    const root = {
+        FolderViewPlusFatalBanner: {
+            getStartupIncidentSnapshot() {
+                return {
+                    available: true,
+                    schemaVersion: 1,
+                    incidentId: 'private-incident-id',
+                    status: 'recovered',
+                    surface: 'Settings',
+                    code: 'FVPLUS-SET-LOADER-001',
+                    category: 'missing-asset',
+                    route: 'https://tower.local/Settings/FolderViewPlus',
+                    modules: [{ name: 'folderviewplus.js', outcome: 'loaded', durationMs: 12 }],
+                    recoveryAttempts: [{ action: 'retry', status: 'succeeded', durationMs: 24 }]
+                };
+            }
+        },
+        document: { querySelectorAll: () => [], cookie: '' },
+        navigator: {},
+        location: {
+            origin: 'https://tower.local',
+            pathname: '/Settings/FolderViewPlus',
+            href: 'https://tower.local/Settings/FolderViewPlus'
+        }
+    };
+    const browserModule = loadBrowserModule(root);
+    root.FolderViewPlusSupportBundleBrowser = browserModule;
+    const raw = browserModule.createCollectors().collectStartupIncident(null);
+    assert.equal(raw.status, 'recovered');
+    assert.equal(raw.recoveryAttempts[0].status, 'succeeded');
+
+    const telemetryModule = loadTelemetryModule(root);
+    const payload = telemetryModule.createApi({
+        normalizeSupportBundleV2Payload: (bundle) => ({
+            ...bundle,
+            bundleMeta: { ...(bundle.bundleMeta || {}) },
+            uiTelemetry: { ...(bundle.uiTelemetry || {}) },
+            healthAndHistory: { ...(bundle.healthAndHistory || {}) },
+            redactionManifest: { ...(bundle.redactionManifest || {}) }
+        })
+    }).collectSupportBundleUiTelemetry({
+        bundleMeta: { privacyMode: 'sanitized', redactionSalt: 'test-salt' },
+        uiTelemetry: {},
+        healthAndHistory: {},
+        redactionManifest: {}
+    });
+    assert.equal(payload.uiTelemetry.startupIncident.available, true);
+    assert.match(payload.uiTelemetry.startupIncident.incidentId, /^ui-[0-9a-f]{16}$/);
+    assert.notEqual(payload.uiTelemetry.startupIncident.route, 'https://tower.local/Settings/FolderViewPlus');
+});
+
 test('fatal banner persists browser session and plugin-version context for future exports', () => {
     assert.match(fatalBannerSource, /sessionId: browserErrorSessionId/);
     assert.match(fatalBannerSource, /observedPluginVersion: trimString\(state\.environment\.pluginVersion/);

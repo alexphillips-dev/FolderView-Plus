@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "hr",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Ove snimke čuvaju renderiranu geometriju nadzorne ploče nakon navigacije do postavki.",
     "diagnostics.capture.review": "pregled",
     "diagnostics.capture.ready": "spreman",
-    "diagnostics.capture.capture-again": "Ponovno snimanje"
+    "diagnostics.capture.capture-again": "Ponovno snimanje",
+    "diagnostics.bootstrap.reference": "Referenca",
+    "diagnostics.bootstrap.last-step": "Posljednji dovršeni korak",
+    "diagnostics.bootstrap.occurrences": "Pojavljivanja",
+    "diagnostics.bootstrap.retry": "Pokušaj ponovno učitati",
+    "diagnostics.bootstrap.reload": "Ponovno učitaj stranicu",
+    "diagnostics.bootstrap.copy": "Kopiraj kod za podršku",
+    "diagnostics.bootstrap.download": "Preuzmi izvješće o pokretanju",
+    "diagnostics.bootstrap.copied": "Kod za podršku kopiran",
+    "diagnostics.bootstrap.copy-failed": "Kopiranje nije uspjelo",
+    "diagnostics.bootstrap.downloaded": "Izvješće o pokretanju preuzeto",
+    "diagnostics.bootstrap.download-failed": "Preuzimanje nije uspjelo",
+    "diagnostics.bootstrap.retrying": "Ponovni pokušaj…",
+    "diagnostics.bootstrap.retry-succeeded": "Učitavanje nastavljeno",
+    "diagnostics.bootstrap.retry-failed": "Ponovni pokušaj nije uspio"
 }

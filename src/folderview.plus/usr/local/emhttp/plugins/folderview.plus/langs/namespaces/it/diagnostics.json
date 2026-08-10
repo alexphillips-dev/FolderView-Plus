@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Queste acquisizioni preservano la geometria della dashboard sottoposta a rendering dopo la navigazione in Impostazioni.",
     "diagnostics.capture.review": "Recensione",
     "diagnostics.capture.ready": "Pronto",
-    "diagnostics.capture.capture-again": "Cattura di nuovo"
+    "diagnostics.capture.capture-again": "Cattura di nuovo",
+    "diagnostics.bootstrap.reference": "Riferimento",
+    "diagnostics.bootstrap.last-step": "Ultimo passaggio completato",
+    "diagnostics.bootstrap.occurrences": "Occorrenze",
+    "diagnostics.bootstrap.retry": "Riprova il caricamento",
+    "diagnostics.bootstrap.reload": "Ricarica pagina",
+    "diagnostics.bootstrap.copy": "Copia codice di supporto",
+    "diagnostics.bootstrap.download": "Scarica rapporto di avvio",
+    "diagnostics.bootstrap.copied": "Codice di supporto copiato",
+    "diagnostics.bootstrap.copy-failed": "Copia non riuscita",
+    "diagnostics.bootstrap.downloaded": "Rapporto di avvio scaricato",
+    "diagnostics.bootstrap.download-failed": "Download non riuscito",
+    "diagnostics.bootstrap.retrying": "Nuovo tentativo…",
+    "diagnostics.bootstrap.retry-succeeded": "Caricamento ripreso",
+    "diagnostics.bootstrap.retry-failed": "Nuovo tentativo non riuscito"
 }

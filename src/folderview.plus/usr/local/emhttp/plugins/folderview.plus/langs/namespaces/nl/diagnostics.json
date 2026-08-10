@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "nl",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Deze opnames behouden de weergegeven Dashboard-geometrie na navigatie naar Instellingen.",
     "diagnostics.capture.review": "Beoordeling",
     "diagnostics.capture.ready": "Klaar",
-    "diagnostics.capture.capture-again": "Opnieuw vastleggen"
+    "diagnostics.capture.capture-again": "Opnieuw vastleggen",
+    "diagnostics.bootstrap.reference": "Referentie",
+    "diagnostics.bootstrap.last-step": "Laatst voltooide stap",
+    "diagnostics.bootstrap.occurrences": "Voorvallen",
+    "diagnostics.bootstrap.retry": "Opnieuw proberen te laden",
+    "diagnostics.bootstrap.reload": "Pagina opnieuw laden",
+    "diagnostics.bootstrap.copy": "Supportcode kopiëren",
+    "diagnostics.bootstrap.download": "Opstartrapport downloaden",
+    "diagnostics.bootstrap.copied": "Supportcode gekopieerd",
+    "diagnostics.bootstrap.copy-failed": "Kopiëren mislukt",
+    "diagnostics.bootstrap.downloaded": "Opstartrapport gedownload",
+    "diagnostics.bootstrap.download-failed": "Download mislukt",
+    "diagnostics.bootstrap.retrying": "Opnieuw proberen…",
+    "diagnostics.bootstrap.retry-succeeded": "Laden hervat",
+    "diagnostics.bootstrap.retry-failed": "Opnieuw proberen mislukt"
 }

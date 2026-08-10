@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "hu",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Törli a kijelölt sablonokat?",
     "legacy.surface.31e392d1c0378bec": "Alkalmazni",
     "legacy.surface.31fbef162594de01": "Folytatás",
-    "legacy.surface.3211d6e16d6fb9de": "A beállítások rendszerindítása nem sikerült",
     "legacy.surface.322641b02d72acdb": "Megállt jelvény megjelenítése",
     "legacy.surface.323ac280646589db": "Erőforrás figyelmeztetés vCPU",
     "legacy.surface.324b134f57c70c72": "Előnézet",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 kézikönyv",
     "legacy.surface.74ccd43303847f26": "Mappa",
     "legacy.surface.754655c744c9b865": "Név, szülő, ikon és mappaszintű WebUI viselkedés.",
+    "legacy.surface.7568f6d91b6d8114": "A tartalombiztonsági házirend letiltott egy FolderView Plus-erőforrást.",
     "legacy.surface.756a8ba97dce249a": "Észlelve",
     "legacy.surface.75846140de614b1a": "A kép tartalmazza",
     "legacy.surface.75954c5f4d87da20": "Előnézet:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Mappanézet",
     "legacy.surface.b1a60fbf5e315a94": "A mappák a beállításokban tárolt sorrendben maradnak. Használja ezt, ha azt szeretné, hogy a FolderView Plus megőrizze a meglévő elrendezést.",
     "legacy.surface.b1bdf63d93c37208": "Automatikus (ajánlott)",
-    "legacy.surface.b1c31d322fd50956": "A FolderView Plus nem tudta befejezni a Beállítások oldal inicializálását.",
     "legacy.surface.b1d44456477595b7": "A visszavonás befejeződött",
     "legacy.surface.b1d69fcd791933f0": "Otthoni labor",
     "legacy.surface.b1dfe0e9670cba07": "Mappa létrehozva",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Szigorú (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "Mentve: „$1”.",
     "legacy.surface.bda851790ae255ce": "Név és opcionális mappa WebUI viselkedése.",
-    "legacy.surface.bde0de8fa103da67": "Műszaki részletek megjelenítése",
     "legacy.surface.be00c6a97d7322d5": "A virtuális gép erőforrás-küszöbértékei szabályozzák a vCPU-hoz és a hozzárendelt memóriához megjelenített figyelmeztető és kritikus címkéket. A csak Docker pontozási beállításai a Docker lapon vannak konfigurálva.",
     "legacy.surface.be02ef2d3f09f092": "Rendezze a beágyazott előnézetekben és kibontott sorokban megjelenő alárendelt mappákat.",
     "legacy.surface.be1016ce6ded1a1d": "Csak kézi",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM tömeges hozzárendelés",
     "legacy.surface.e415020d9be5a0d3": "Válassza ki a legördülő menü stílusát és a mappasorokban használt elsődleges / lebegő színeket.",
     "legacy.surface.e4591a0d28e69767": "Frissítse a forrásadatokat, és próbálja meg újra az előnézetet.",
-    "legacy.surface.e4696fce5a968f39": "A FolderView Plus nem indulhat el, mert nem sikerült betölteni a szükséges beállítási modulokat.",
     "legacy.surface.e49b3feb195b7a0d": "Csere (pontos szinkronizálás, hiányzó törlés)",
     "legacy.surface.e4ad55ec01a52991": "Harmadik féltől származó ikonmappák esetén helyezze el a fájlokat",
     "legacy.surface.e4bb9f1ece9af926": "Indítsa el",

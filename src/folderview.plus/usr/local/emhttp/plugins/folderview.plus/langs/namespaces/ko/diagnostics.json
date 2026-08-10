@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "이러한 캡처는 설정으로 이동한 후 렌더링된 대시보드 형상을 유지합니다.",
     "diagnostics.capture.review": "검토",
     "diagnostics.capture.ready": "준비",
-    "diagnostics.capture.capture-again": "다시 캡처"
+    "diagnostics.capture.capture-again": "다시 캡처",
+    "diagnostics.bootstrap.reference": "참조",
+    "diagnostics.bootstrap.last-step": "마지막 완료 단계",
+    "diagnostics.bootstrap.occurrences": "발생 횟수",
+    "diagnostics.bootstrap.retry": "다시 불러오기",
+    "diagnostics.bootstrap.reload": "페이지 새로고침",
+    "diagnostics.bootstrap.copy": "지원 코드 복사",
+    "diagnostics.bootstrap.download": "시작 보고서 다운로드",
+    "diagnostics.bootstrap.copied": "지원 코드가 복사됨",
+    "diagnostics.bootstrap.copy-failed": "복사 실패",
+    "diagnostics.bootstrap.downloaded": "시작 보고서가 다운로드됨",
+    "diagnostics.bootstrap.download-failed": "다운로드 실패",
+    "diagnostics.bootstrap.retrying": "다시 시도하는 중…",
+    "diagnostics.bootstrap.retry-succeeded": "불러오기가 재개됨",
+    "diagnostics.bootstrap.retry-failed": "다시 시도하지 못함"
 }

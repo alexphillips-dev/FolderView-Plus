@@ -1,6 +1,6 @@
 /* Settings first-paint boundary. Keep this small so the server-rendered shell
  * can cloak the workspace while staged JavaScript restores saved state. */
-#fv-settings-root.fv-settings-bootstrap-pending > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner) {
+#fv-settings-root.fv-settings-bootstrap-pending > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner), #fv-settings-root.fv-settings-bootstrap-failed > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner) {
     display: none !important;
 }
 

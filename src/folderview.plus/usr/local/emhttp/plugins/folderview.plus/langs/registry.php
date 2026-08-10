@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('FVPLUS_I18N_CATALOG_VERSION')) {
-    define('FVPLUS_I18N_CATALOG_VERSION', '2026.08.06.1');
+    define('FVPLUS_I18N_CATALOG_VERSION', '2026.08.10.1');
 }
 
 if (!function_exists('fvplus_i18n_registry')) {

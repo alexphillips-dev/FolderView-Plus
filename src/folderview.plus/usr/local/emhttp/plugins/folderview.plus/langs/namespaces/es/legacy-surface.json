@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "¿Eliminar las plantillas seleccionadas?",
     "legacy.surface.31e392d1c0378bec": "Aplicar",
     "legacy.surface.31fbef162594de01": "Continuar",
-    "legacy.surface.3211d6e16d6fb9de": "El arranque de configuración falló",
     "legacy.surface.322641b02d72acdb": "Mostrar insignia detenida",
     "legacy.surface.323ac280646589db": "Advertencia de recursos vCPU",
     "legacy.surface.324b134f57c70c72": "Vista previa",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuales",
     "legacy.surface.74ccd43303847f26": "Carpeta",
     "legacy.surface.754655c744c9b865": "Nombre, padre, icono y comportamiento de la WebUI a nivel de carpeta.",
+    "legacy.surface.7568f6d91b6d8114": "La política de seguridad de contenido bloqueó un recurso de FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Detectado",
     "legacy.surface.75846140de614b1a": "La imagen contiene",
     "legacy.surface.75954c5f4d87da20": "Vista previa:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Vista de carpeta",
     "legacy.surface.b1a60fbf5e315a94": "Las carpetas permanecen en el orden almacenado en las preferencias. Úselo cuando desee que FolderView Plus conserve su diseño existente.",
     "legacy.surface.b1bdf63d93c37208": "Automático (recomendado)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus no pudo terminar de inicializar la página de Configuración.",
     "legacy.surface.b1d44456477595b7": "Deshacer completo",
     "legacy.surface.b1d69fcd791933f0": "Laboratorio en casa",
     "legacy.surface.b1dfe0e9670cba07": "Carpeta creada",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Estricto (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "Guardado \"$1\".",
     "legacy.surface.bda851790ae255ce": "Nombre y comportamiento de la WebUI de carpeta opcional.",
-    "legacy.surface.bde0de8fa103da67": "Mostrar detalles técnicos",
     "legacy.surface.be00c6a97d7322d5": "Los umbrales de recursos de VM controlan las etiquetas críticas y de advertencia que se muestran para vCPU y memoria asignada. Las opciones de puntuación exclusivas de Docker se configuran en la pestaña Docker.",
     "legacy.surface.be02ef2d3f09f092": "Ordene las carpetas secundarias que se muestran en vistas previas anidadas y filas expandidas.",
     "legacy.surface.be1016ce6ded1a1d": "Sólo manual",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Asignación masiva de máquinas virtuales",
     "legacy.surface.e415020d9be5a0d3": "Elija el estilo desplegable y los colores primarios/desplazables utilizados en las filas de la carpeta.",
     "legacy.surface.e4591a0d28e69767": "Actualice los datos de origen e intente la vista previa nuevamente.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus no pudo iniciarse porque los módulos de configuración requeridos no se pudieron cargar.",
     "legacy.surface.e49b3feb195b7a0d": "Reemplazar (sincronizar exactamente, eliminar faltante)",
     "legacy.surface.e4ad55ec01a52991": "Para carpetas de iconos de terceros, coloque los archivos en",
     "legacy.surface.e4bb9f1ece9af926": "Empezar",

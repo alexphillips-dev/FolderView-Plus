@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Aceste capturi păstrează geometria tabloului de bord redată după navigarea la Setări.",
     "diagnostics.capture.review": "Revizuire",
     "diagnostics.capture.ready": "Gata",
-    "diagnostics.capture.capture-again": "Captură din nou"
+    "diagnostics.capture.capture-again": "Captură din nou",
+    "diagnostics.bootstrap.reference": "Referință",
+    "diagnostics.bootstrap.last-step": "Ultimul pas finalizat",
+    "diagnostics.bootstrap.occurrences": "Apariții",
+    "diagnostics.bootstrap.retry": "Încearcă încărcarea din nou",
+    "diagnostics.bootstrap.reload": "Reîncarcă pagina",
+    "diagnostics.bootstrap.copy": "Copiază codul de asistență",
+    "diagnostics.bootstrap.download": "Descarcă raportul de pornire",
+    "diagnostics.bootstrap.copied": "Cod de asistență copiat",
+    "diagnostics.bootstrap.copy-failed": "Copierea a eșuat",
+    "diagnostics.bootstrap.downloaded": "Raport de pornire descărcat",
+    "diagnostics.bootstrap.download-failed": "Descărcarea a eșuat",
+    "diagnostics.bootstrap.retrying": "Se încearcă din nou…",
+    "diagnostics.bootstrap.retry-succeeded": "Încărcarea a fost reluată",
+    "diagnostics.bootstrap.retry-failed": "Reîncercarea a eșuat"
 }

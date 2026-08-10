@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Usunąć wybrane szablony?",
     "legacy.surface.31e392d1c0378bec": "Zastosuj",
     "legacy.surface.31fbef162594de01": "Kontynuuj",
-    "legacy.surface.3211d6e16d6fb9de": "Bootstrap ustawień nie powiódł się",
     "legacy.surface.322641b02d72acdb": "Pokaż zatrzymaną odznakę",
     "legacy.surface.323ac280646589db": "Zasób ostrzega vCPU",
     "legacy.surface.324b134f57c70c72": "Podgląd",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 instrukcja",
     "legacy.surface.74ccd43303847f26": "Folder",
     "legacy.surface.754655c744c9b865": "Nazwa, element nadrzędny, ikona i zachowanie interfejsu WebUI na poziomie folderu.",
+    "legacy.surface.7568f6d91b6d8114": "Content Security Policy zablokowało zasób FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Wykryto",
     "legacy.surface.75846140de614b1a": "Obraz zawiera",
     "legacy.surface.75954c5f4d87da20": "Podgląd:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Widok folderu",
     "legacy.surface.b1a60fbf5e315a94": "Foldery pozostają w kolejności zapisanej w preferencjach. Użyj tej opcji, jeśli chcesz, aby FolderView Plus zachował istniejący układ.",
     "legacy.surface.b1bdf63d93c37208": "Automatycznie (zalecane)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus nie mógł dokończyć inicjowania strony Ustawienia.",
     "legacy.surface.b1d44456477595b7": "Cofanie zakończone",
     "legacy.surface.b1d69fcd791933f0": "Laboratorium domowe",
     "legacy.surface.b1dfe0e9670cba07": "Folder został utworzony",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Ścisłe (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "Zapisano „$1”.",
     "legacy.surface.bda851790ae255ce": "Nazwa i opcjonalne zachowanie WebUI folderu.",
-    "legacy.surface.bde0de8fa103da67": "Pokaż szczegóły techniczne",
     "legacy.surface.be00c6a97d7322d5": "Progi zasobów maszyny wirtualnej kontrolują etykiety ostrzegawcze i krytyczne wyświetlane dla procesora wirtualnego i przydzielonej pamięci. Opcje oceniania dostępne wyłącznie w platformie Docker konfiguruje się na karcie Docker.",
     "legacy.surface.be02ef2d3f09f092": "Zamawiaj foldery podrzędne wyświetlane w zagnieżdżonych podglądach i rozwiniętych wierszach.",
     "legacy.surface.be1016ce6ded1a1d": "Tylko ręczne",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Zbiorcze przypisanie maszyny wirtualnej",
     "legacy.surface.e415020d9be5a0d3": "Wybierz styl listy rozwijanej i kolory podstawowe/kolory najechania używane w wierszach folderów.",
     "legacy.surface.e4591a0d28e69767": "Odśwież dane źródłowe i spróbuj ponownie wyświetlić podgląd.",
-    "legacy.surface.e4696fce5a968f39": "Nie można uruchomić programu FolderView Plus, ponieważ nie udało się załadować wymaganych modułów ustawień.",
     "legacy.surface.e49b3feb195b7a0d": "Zamień (dokładna synchronizacja, usuń brakujące)",
     "legacy.surface.e4ad55ec01a52991": "W przypadku folderów ikon innych firm umieść pliki w folderze",
     "legacy.surface.e4bb9f1ece9af926": "Zacznij",

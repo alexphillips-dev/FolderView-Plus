@@ -6,17 +6,22 @@ Use this when the root README quick fixes are not enough.
 
 ### Settings Page Is Blank
 
-1. Refresh once with `Ctrl+F5`.
-2. Reopen `Settings -> FolderView Plus`.
-3. If it is still blank, open the browser console and share the console error or a screenshot of the failure.
+FolderView Plus keeps a small startup shell active until its required Settings modules and saved state are ready. If startup fails, the shell stops and a critical error card identifies the failed phase and provides a stable reference code.
+
+1. Select `Try loading again` once when it is available. The retry resumes at the failed module rather than loading the completed module queue again.
+2. If retry is unavailable or fails, select `Reload page` once.
+3. Use `Copy support code` or `Download startup report` before reinstalling. Both outputs are sanitized by default and retain the module timeline, request outcomes, last completed step, and recovery result.
+4. If the card does not appear and the page stays on the loading shell, refresh once with `Ctrl+F5` and reopen `Settings -> FolderView Plus`.
+
+Do not repeatedly retry or reload. Startup recovery is deliberately bounded so stale scripts, observers, and requests cannot accumulate.
 
 ### Runtime Banner On Docker Or VMs
 
-Use the banner `Copy diagnostics` action. The banner is there to show bootstrap, request, or host-page problems clearly.
+Use `Copy support code` or `Download startup report`. The same incident format is used for Settings, Docker, VMs, Dashboard plugin content, and the Folder Editor, while each page keeps its appropriate visual presentation. Technical details preserve the diagnostic error code, phase, category, modules, requests, and recovery history.
 
 ### Folder Editor Opens Blank
 
-Copy the bootstrap diagnostics shown at the top of the editor. The modern editor exposes copyable bootstrap details when it cannot load the selected folder.
+Use the Folder Editor startup controls shown above the editor. Its module loader records each file as loading, loaded, failed, or timed out and supports one bounded retry. The copied or downloaded startup report uses the same sanitized incident contract as the other plugin pages.
 
 ### Safe-Mode Banner
 

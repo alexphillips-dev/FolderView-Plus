@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "これらのキャプチャでは、[設定] に移動した後、レンダリングされたダッシュボード ジオメトリが保持されます。",
     "diagnostics.capture.review": "レビュー",
     "diagnostics.capture.ready": "準備完了",
-    "diagnostics.capture.capture-again": "再度キャプチャ"
+    "diagnostics.capture.capture-again": "再度キャプチャ",
+    "diagnostics.bootstrap.reference": "参照",
+    "diagnostics.bootstrap.last-step": "最後に完了した手順",
+    "diagnostics.bootstrap.occurrences": "発生回数",
+    "diagnostics.bootstrap.retry": "もう一度読み込む",
+    "diagnostics.bootstrap.reload": "ページを再読み込み",
+    "diagnostics.bootstrap.copy": "サポートコードをコピー",
+    "diagnostics.bootstrap.download": "起動レポートをダウンロード",
+    "diagnostics.bootstrap.copied": "サポートコードをコピーしました",
+    "diagnostics.bootstrap.copy-failed": "コピーに失敗しました",
+    "diagnostics.bootstrap.downloaded": "起動レポートをダウンロードしました",
+    "diagnostics.bootstrap.download-failed": "ダウンロードに失敗しました",
+    "diagnostics.bootstrap.retrying": "再試行しています…",
+    "diagnostics.bootstrap.retry-succeeded": "読み込みを再開しました",
+    "diagnostics.bootstrap.retry-failed": "再試行に失敗しました"
 }

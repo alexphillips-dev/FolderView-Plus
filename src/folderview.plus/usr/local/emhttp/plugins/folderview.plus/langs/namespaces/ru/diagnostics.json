@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Эти снимки сохраняют визуализированную геометрию информационной панели после перехода к настройкам.",
     "diagnostics.capture.review": "Обзор",
     "diagnostics.capture.ready": "Готов",
-    "diagnostics.capture.capture-again": "Сфотографировать еще раз"
+    "diagnostics.capture.capture-again": "Сфотографировать еще раз",
+    "diagnostics.bootstrap.reference": "Ссылка",
+    "diagnostics.bootstrap.last-step": "Последний завершённый шаг",
+    "diagnostics.bootstrap.occurrences": "Количество повторений",
+    "diagnostics.bootstrap.retry": "Попробовать загрузить снова",
+    "diagnostics.bootstrap.reload": "Перезагрузить страницу",
+    "diagnostics.bootstrap.copy": "Копировать код поддержки",
+    "diagnostics.bootstrap.download": "Скачать отчёт о запуске",
+    "diagnostics.bootstrap.copied": "Код поддержки скопирован",
+    "diagnostics.bootstrap.copy-failed": "Не удалось скопировать",
+    "diagnostics.bootstrap.downloaded": "Отчёт о запуске скачан",
+    "diagnostics.bootstrap.download-failed": "Не удалось скачать",
+    "diagnostics.bootstrap.retrying": "Повторная попытка…",
+    "diagnostics.bootstrap.retry-succeeded": "Загрузка возобновлена",
+    "diagnostics.bootstrap.retry-failed": "Повторная попытка не удалась"
 }

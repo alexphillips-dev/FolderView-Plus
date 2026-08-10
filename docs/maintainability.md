@@ -4,7 +4,8 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 
 ## Architecture boundaries
 
-- The Settings page loads a small foundation stage before deferring the remaining workspace modules to an idle or first-interaction opportunity. `folderviewplus.settings-loader.js` preserves dependency order and reports module-load failures through the fatal Settings diagnostics surface.
+- The Settings page loads a small foundation stage before deferring the remaining workspace modules to an idle or first-interaction opportunity. `folderviewplus.settings-loader.js` preserves dependency order, records bounded per-module timing and outcomes, enforces a module timeout, and can resume once at the failed module without duplicating completed modules.
+- Settings, Docker, VMs, Dashboard plugin content, and Folder Editor bootstrap paths emit the same versioned startup-incident contract. The shared fatal surface keeps technical evidence behind a plain-language, accessible presentation; Dashboard errors remain scoped to FolderView Plus content and never replace the host Dashboard.
 - `schemas/architecture-contracts.schema.json` caps browser globals, inline page actions, and the line counts of the largest legacy files. New behavior should be extracted into focused modules instead of increasing those budgets.
 - Remote theme-workspace retrieval is isolated in `server/lib.remote.php`. It enforces HTTPS, allowlisted redirect hosts, redirect limits, response-size limits, and bounded timeouts before content reaches the main server library.
 - The PHPStan lane runs at level 2 across the extracted remote-input, validation, and API-contract libraries, with the localization registry loaded for shared symbols. The existing PHP syntax and unused-helper scans continue to cover the complete server tree; expand PHPStan paths as additional Unraid host dependencies receive analysis stubs.
@@ -34,6 +35,7 @@ FolderView Plus uses ratcheted checks so maintenance improvements cannot silentl
 - The pseudo-localization runtime and browser smoke cover expanded `en-XA` and RTL `ar-XB` states.
 - `scripts/i18n_migration_budget_guard.mjs` prevents growth of auto-bound `legacy.surface.*` keys and prevents loss of semantic keys.
 - `npm run compare:support-bundles -- <before.json> <after.json>` compares only allowlisted, sanitized diagnostic fields and refuses full or unmanifested bundles.
+- Startup incidents persist in session storage for at most 24 hours, remain sanitized before persistence, and enter support bundles through the normal UI-telemetry redactor. Recovery attempts are bounded and recorded so reloads do not erase the evidence that support needs.
 
 ## Operational review
 

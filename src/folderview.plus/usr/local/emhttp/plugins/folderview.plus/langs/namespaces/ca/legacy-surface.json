@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ca",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Vols suprimir les plantilles seleccionades?",
     "legacy.surface.31e392d1c0378bec": "Aplicar",
     "legacy.surface.31fbef162594de01": "Continua",
-    "legacy.surface.3211d6e16d6fb9de": "L'arrencada de la configuració ha fallat",
     "legacy.surface.322641b02d72acdb": "Mostra la insígnia aturada",
     "legacy.surface.323ac280646589db": "Avís de recursos vCPU",
     "legacy.surface.324b134f57c70c72": "Vista prèvia",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manual",
     "legacy.surface.74ccd43303847f26": "Carpeta",
     "legacy.surface.754655c744c9b865": "Nom, pare, icona i comportament de la WebUI a nivell de carpeta.",
+    "legacy.surface.7568f6d91b6d8114": "La política de seguretat de contingut ha bloquejat un recurs de FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Detectat",
     "legacy.surface.75846140de614b1a": "La imatge conté",
     "legacy.surface.75954c5f4d87da20": "Vista prèvia:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "FolderView",
     "legacy.surface.b1a60fbf5e315a94": "Les carpetes es mantenen en l'ordre emmagatzemat a les preferències. Utilitzeu-ho quan vulgueu que FolderView Plus preservi el vostre disseny existent.",
     "legacy.surface.b1bdf63d93c37208": "Automàtic (recomanat)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus no ha pogut acabar d'inicialitzar la pàgina de configuració.",
     "legacy.surface.b1d44456477595b7": "Desfer completat",
     "legacy.surface.b1d69fcd791933f0": "Laboratori a casa",
     "legacy.surface.b1dfe0e9670cba07": "Carpeta creada",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Estricte (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "S'ha desat \"$1\".",
     "legacy.surface.bda851790ae255ce": "Comportament de la WebUI del nom i de la carpeta opcional.",
-    "legacy.surface.bde0de8fa103da67": "Mostra els detalls tècnics",
     "legacy.surface.be00c6a97d7322d5": "Els llindars de recursos de VM controlen les etiquetes d'advertència i crítiques que es mostren per a la vCPU i la memòria assignada. Les opcions de puntuació només per a Docker es configuren a la pestanya Docker.",
     "legacy.surface.be02ef2d3f09f092": "Ordena les carpetes secundàries que es mostren a les visualitzacions prèvies imbricades i a les files ampliades.",
     "legacy.surface.be1016ce6ded1a1d": "Només manual",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Assignació massiva de VM",
     "legacy.surface.e415020d9be5a0d3": "Trieu l'estil desplegable i els colors primaris/desplaçaments utilitzats a les files de carpetes.",
     "legacy.surface.e4591a0d28e69767": "Actualitzeu les dades d'origen i torneu a provar la previsualització.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus no s'ha pogut iniciar perquè els mòduls de configuració requerits no s'han pogut carregar.",
     "legacy.surface.e49b3feb195b7a0d": "Substitueix (sincronitza exactament, elimina falta)",
     "legacy.surface.e4ad55ec01a52991": "Per a carpetes d'icones de tercers, col·loqueu els fitxers a sota",
     "legacy.surface.e4bb9f1ece9af926": "Comença",

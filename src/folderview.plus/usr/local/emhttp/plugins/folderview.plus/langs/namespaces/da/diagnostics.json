@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "da",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Disse optagelser bevarer den gengivne Dashboard-geometri efter navigation til Indstillinger.",
     "diagnostics.capture.review": "Gennemgå",
     "diagnostics.capture.ready": "Klar",
-    "diagnostics.capture.capture-again": "Fang igen"
+    "diagnostics.capture.capture-again": "Fang igen",
+    "diagnostics.bootstrap.reference": "Reference",
+    "diagnostics.bootstrap.last-step": "Senest fuldførte trin",
+    "diagnostics.bootstrap.occurrences": "Forekomster",
+    "diagnostics.bootstrap.retry": "Prøv at indlæse igen",
+    "diagnostics.bootstrap.reload": "Genindlæs side",
+    "diagnostics.bootstrap.copy": "Kopiér supportkode",
+    "diagnostics.bootstrap.download": "Download opstartsrapport",
+    "diagnostics.bootstrap.copied": "Supportkode kopieret",
+    "diagnostics.bootstrap.copy-failed": "Kopiering mislykkedes",
+    "diagnostics.bootstrap.downloaded": "Opstartsrapport downloadet",
+    "diagnostics.bootstrap.download-failed": "Download mislykkedes",
+    "diagnostics.bootstrap.retrying": "Prøver igen…",
+    "diagnostics.bootstrap.retry-succeeded": "Indlæsning genoptaget",
+    "diagnostics.bootstrap.retry-failed": "Nyt forsøg mislykkedes"
 }

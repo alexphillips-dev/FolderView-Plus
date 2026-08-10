@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "bn",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "এই ক্যাপচারগুলি সেটিংসে নেভিগেশন করার পরে রেন্ডার করা ড্যাশবোর্ড জ্যামিতি সংরক্ষণ করে৷",
     "diagnostics.capture.review": "পর্যালোচনা",
     "diagnostics.capture.ready": "প্রস্তুত",
-    "diagnostics.capture.capture-again": "আবার ক্যাপচার"
+    "diagnostics.capture.capture-again": "আবার ক্যাপচার",
+    "diagnostics.bootstrap.reference": "রেফারেন্স",
+    "diagnostics.bootstrap.last-step": "সর্বশেষ সম্পন্ন ধাপ",
+    "diagnostics.bootstrap.occurrences": "ঘটনার সংখ্যা",
+    "diagnostics.bootstrap.retry": "আবার লোড করার চেষ্টা করুন",
+    "diagnostics.bootstrap.reload": "পৃষ্ঠা পুনরায় লোড করুন",
+    "diagnostics.bootstrap.copy": "সহায়তা কোড কপি করুন",
+    "diagnostics.bootstrap.download": "স্টার্টআপ রিপোর্ট ডাউনলোড করুন",
+    "diagnostics.bootstrap.copied": "সহায়তা কোড কপি হয়েছে",
+    "diagnostics.bootstrap.copy-failed": "কপি ব্যর্থ হয়েছে",
+    "diagnostics.bootstrap.downloaded": "স্টার্টআপ রিপোর্ট ডাউনলোড হয়েছে",
+    "diagnostics.bootstrap.download-failed": "ডাউনলোড ব্যর্থ হয়েছে",
+    "diagnostics.bootstrap.retrying": "আবার চেষ্টা করা হচ্ছে…",
+    "diagnostics.bootstrap.retry-succeeded": "লোডিং আবার শুরু হয়েছে",
+    "diagnostics.bootstrap.retry-failed": "পুনরায় চেষ্টা ব্যর্থ হয়েছে"
 }

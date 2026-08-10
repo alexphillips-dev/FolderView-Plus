@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Ausgewählte Vorlagen löschen?",
     "legacy.surface.31e392d1c0378bec": "Bewerben",
     "legacy.surface.31fbef162594de01": "Weiter",
-    "legacy.surface.3211d6e16d6fb9de": "Der Bootstrap der Einstellungen ist fehlgeschlagen",
     "legacy.surface.322641b02d72acdb": "Stopp-Abzeichen anzeigen",
     "legacy.surface.323ac280646589db": "Ressourcenwarnung vCPU",
     "legacy.surface.324b134f57c70c72": "Vorschau",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 Handbuch",
     "legacy.surface.74ccd43303847f26": "Ordner",
     "legacy.surface.754655c744c9b865": "WebUI-Verhalten auf Namens-, übergeordnetem, Symbol- und Ordnerebene.",
+    "legacy.surface.7568f6d91b6d8114": "Die Inhaltssicherheitsrichtlinie hat eine FolderView Plus-Ressource blockiert.",
     "legacy.surface.756a8ba97dce249a": "Erkannt",
     "legacy.surface.75846140de614b1a": "Bild enthält",
     "legacy.surface.75954c5f4d87da20": "Vorschau:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Ordneransicht",
     "legacy.surface.b1a60fbf5e315a94": "Die Ordner bleiben in der in den Einstellungen gespeicherten Reihenfolge. Verwenden Sie diese Option, wenn FolderView Plus Ihr vorhandenes Layout beibehalten soll.",
     "legacy.surface.b1bdf63d93c37208": "Automatisch (empfohlen)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus konnte die Initialisierung der Einstellungsseite nicht abschließen.",
     "legacy.surface.b1d44456477595b7": "Rückgängig machen abgeschlossen",
     "legacy.surface.b1d69fcd791933f0": "Heimlabor",
     "legacy.surface.b1dfe0e9670cba07": "Ordner erstellt",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Streng (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "„$1“ gespeichert.",
     "legacy.surface.bda851790ae255ce": "Name und optionales Ordner-WebUI-Verhalten.",
-    "legacy.surface.bde0de8fa103da67": "Technische Details anzeigen",
     "legacy.surface.be00c6a97d7322d5": "VM-Ressourcenschwellenwerte steuern die Warnungen und kritischen Bezeichnungen, die für vCPU und zugewiesenen Speicher angezeigt werden. Nur Docker-Bewertungsoptionen werden auf der Registerkarte „Docker“ konfiguriert.",
     "legacy.surface.be02ef2d3f09f092": "Ordnen Sie untergeordnete Ordner, die in verschachtelten Vorschauen und erweiterten Zeilen angezeigt werden.",
     "legacy.surface.be1016ce6ded1a1d": "Nur manuell",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM-Massenzuweisung",
     "legacy.surface.e415020d9be5a0d3": "Wählen Sie den Dropdown-Stil und die Primär-/Hover-Farben aus, die in Ordnerzeilen verwendet werden.",
     "legacy.surface.e4591a0d28e69767": "Aktualisieren Sie die Quelldaten und versuchen Sie es erneut mit der Vorschau.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus konnte nicht gestartet werden, da die erforderlichen Einstellungsmodule nicht geladen werden konnten.",
     "legacy.surface.e49b3feb195b7a0d": "Ersetzen (exakt synchronisieren, fehlendes löschen)",
     "legacy.surface.e4ad55ec01a52991": "Platzieren Sie bei Symbolordnern von Drittanbietern die Dateien darunter",
     "legacy.surface.e4bb9f1ece9af926": "Starten",

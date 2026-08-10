@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "選択したテンプレートを削除しますか?",
     "legacy.surface.31e392d1c0378bec": "申し込む",
     "legacy.surface.31fbef162594de01": "続ける",
-    "legacy.surface.3211d6e16d6fb9de": "設定のブートストラップに失敗しました",
     "legacy.surface.322641b02d72acdb": "停止バッジを表示",
     "legacy.surface.323ac280646589db": "リソース警告 vCPU",
     "legacy.surface.324b134f57c70c72": "プレビュー",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 マニュアル",
     "legacy.surface.74ccd43303847f26": "フォルダー",
     "legacy.surface.754655c744c9b865": "名前、親、アイコン、およびフォルダーレベルの WebUI の動作。",
+    "legacy.surface.7568f6d91b6d8114": "コンテンツ セキュリティ ポリシーにより、FolderView Plus リソースがブロックされました。",
     "legacy.surface.756a8ba97dce249a": "検出されました",
     "legacy.surface.75846140de614b1a": "画像に含まれるもの",
     "legacy.surface.75954c5f4d87da20": "プレビュー:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "フォルダービュー",
     "legacy.surface.b1a60fbf5e315a94": "フォルダーは環境設定に保存された順序で保持されます。 FolderView Plus で既存のレイアウトを保持したい場合にこれを使用します。",
     "legacy.surface.b1bdf63d93c37208": "自動 (推奨)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus は、設定ページの初期化を完了できませんでした。",
     "legacy.surface.b1d44456477595b7": "元に戻す完了",
     "legacy.surface.b1d69fcd791933f0": "ホームラボ",
     "legacy.surface.b1dfe0e9670cba07": "フォルダが作成されました",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "厳格 (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "「$1」を節約しました。",
     "legacy.surface.bda851790ae255ce": "名前とオプションのフォルダー WebUI の動作。",
-    "legacy.surface.bde0de8fa103da67": "技術的な詳細を表示する",
     "legacy.surface.be00c6a97d7322d5": "VM リソースのしきい値は、vCPU および割り当てられたメモリに対して表示される警告ラベルとクリティカル ラベルを制御します。 Docker のみのスコアリング オプションは、[Docker] タブで構成されます。",
     "legacy.surface.be02ef2d3f09f092": "ネストされたプレビューと展開された行に表示される子フォルダーを並べ替えます。",
     "legacy.surface.be1016ce6ded1a1d": "マニュアルのみ",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VMの一括割り当て",
     "legacy.surface.e415020d9be5a0d3": "フォルダー行で使用されるドロップダウン スタイルと基本色/ホバー色を選択します。",
     "legacy.surface.e4591a0d28e69767": "ソース データを更新し、プレビューを再試行してください。",
-    "legacy.surface.e4696fce5a968f39": "必要な設定モジュールの読み込みに失敗したため、FolderView Plus を開始できませんでした。",
     "legacy.surface.e49b3feb195b7a0d": "置換 (正確に同期、欠落を削除)",
     "legacy.surface.e4ad55ec01a52991": "サードパーティのアイコン フォルダーの場合は、ファイルを次の場所に置きます。",
     "legacy.surface.e4bb9f1ece9af926": "スタート",

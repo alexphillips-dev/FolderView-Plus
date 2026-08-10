@@ -6,7 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'vm';
-$fvplusI18nNamespaces = ['vm'];
+$fvplusI18nNamespaces = ['vm', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();

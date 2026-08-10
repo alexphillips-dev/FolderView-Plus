@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "lv",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Vai dzēst atlasītās veidnes?",
     "legacy.surface.31e392d1c0378bec": "Pieteikties",
     "legacy.surface.31fbef162594de01": "Turpināt",
-    "legacy.surface.3211d6e16d6fb9de": "Iestatījumu sāknēšanas neizdevās",
     "legacy.surface.322641b02d72acdb": "Rādīt apturēto emblēmu",
     "legacy.surface.323ac280646589db": "Resursa brīdinājums vCPU",
     "legacy.surface.324b134f57c70c72": "Priekšskatījums",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 rokasgrāmata",
     "legacy.surface.74ccd43303847f26": "Mape",
     "legacy.surface.754655c744c9b865": "Vārds, vecāks, ikona un mapes līmeņa WebUI darbība.",
+    "legacy.surface.7568f6d91b6d8114": "Satura drošības politika bloķēja FolderView Plus resursu.",
     "legacy.surface.756a8ba97dce249a": "Atklāts",
     "legacy.surface.75846140de614b1a": "Attēls satur",
     "legacy.surface.75954c5f4d87da20": "Priekšskatījums:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Mapes skats",
     "legacy.surface.b1a60fbf5e315a94": "Mapes paliek preferencēs saglabātajā secībā. Izmantojiet to, ja vēlaties, lai FolderView Plus saglabātu esošo izkārtojumu.",
     "legacy.surface.b1bdf63d93c37208": "Automātiski (ieteicams)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus nevarēja pabeigt iestatījumu lapas inicializēšanu.",
     "legacy.surface.b1d44456477595b7": "Atcelšana pabeigta",
     "legacy.surface.b1d69fcd791933f0": "Mājas laboratorija",
     "legacy.surface.b1dfe0e9670cba07": "Mape izveidota",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Stingrs (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "Saglabāts \"$1\".",
     "legacy.surface.bda851790ae255ce": "Nosaukums un izvēles mapes WebUI darbība.",
-    "legacy.surface.bde0de8fa103da67": "Rādīt tehnisko informāciju",
     "legacy.surface.be00c6a97d7322d5": "VM resursu sliekšņi kontrolē brīdinājuma un kritiskās etiķetes, kas tiek rādītas vCPU un piešķirtajai atmiņai. Tikai Docker vērtēšanas opcijas ir konfigurētas cilnē Docker.",
     "legacy.surface.be02ef2d3f09f092": "Sakārtojiet pakārtotās mapes, kas tiek rādītas ligzdotajos priekšskatījumos un izvērstajās rindās.",
     "legacy.surface.be1016ce6ded1a1d": "Tikai manuāli",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM lielapjoma uzdevums",
     "legacy.surface.e415020d9be5a0d3": "Izvēlieties nolaižamās izvēlnes stilu un primārās/virzīšanas krāsas, kas tiek izmantotas mapju rindās.",
     "legacy.surface.e4591a0d28e69767": "Atsvaidziniet avota datus un vēlreiz mēģiniet priekšskatījumu.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus nevarēja startēt, jo neizdevās ielādēt nepieciešamos iestatījumu moduļus.",
     "legacy.surface.e49b3feb195b7a0d": "Aizstāt (precīzi sinhronizēt, dzēst trūkstošo)",
     "legacy.surface.e4ad55ec01a52991": "Trešās puses ikonu mapēm ievietojiet failus zem",
     "legacy.surface.e4bb9f1ece9af926": "Sākt",

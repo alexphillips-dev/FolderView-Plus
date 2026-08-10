@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Eliminare i modelli selezionati?",
     "legacy.surface.31e392d1c0378bec": "Applicare",
     "legacy.surface.31fbef162594de01": "Continua",
-    "legacy.surface.3211d6e16d6fb9de": "Il bootstrap delle impostazioni non è riuscito",
     "legacy.surface.322641b02d72acdb": "Mostra badge interrotto",
     "legacy.surface.323ac280646589db": "Avviso risorsa vCPU",
     "legacy.surface.324b134f57c70c72": "Anteprima",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuale",
     "legacy.surface.74ccd43303847f26": "Cartella",
     "legacy.surface.754655c744c9b865": "Nome, elemento principale, icona e comportamento dell'interfaccia utente Web a livello di cartella.",
+    "legacy.surface.7568f6d91b6d8114": "La politica di sicurezza dei contenuti ha bloccato una risorsa FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Rilevato",
     "legacy.surface.75846140de614b1a": "L'immagine contiene",
     "legacy.surface.75954c5f4d87da20": "Anteprima:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Visualizzazione cartella",
     "legacy.surface.b1a60fbf5e315a94": "Le cartelle rimangono nell'ordine memorizzato nelle preferenze. Utilizzalo quando desideri che FolderView Plus conservi il layout esistente.",
     "legacy.surface.b1bdf63d93c37208": "Automatico (consigliato)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus non è riuscito a completare l'inizializzazione della pagina Impostazioni.",
     "legacy.surface.b1d44456477595b7": "Annulla completo",
     "legacy.surface.b1d69fcd791933f0": "Laboratorio domestico",
     "legacy.surface.b1dfe0e9670cba07": "Cartella creata",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Severo (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "Salvato \"$1\".",
     "legacy.surface.bda851790ae255ce": "Nome e comportamento WebUI della cartella facoltativa.",
-    "legacy.surface.bde0de8fa103da67": "Mostra dettagli tecnici",
     "legacy.surface.be00c6a97d7322d5": "Le soglie delle risorse VM controllano le etichette di avviso e critiche visualizzate per vCPU e memoria assegnata. Le opzioni di punteggio solo Docker sono configurate nella scheda Docker.",
     "legacy.surface.be02ef2d3f09f092": "Ordina le cartelle secondarie mostrate in anteprime nidificate e righe espanse.",
     "legacy.surface.be1016ce6ded1a1d": "Solo manuale",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Assegnazione in blocco di VM",
     "legacy.surface.e415020d9be5a0d3": "Scegli lo stile del menu a discesa e i colori primari/al passaggio del mouse utilizzati nelle righe delle cartelle.",
     "legacy.surface.e4591a0d28e69767": "Aggiorna i dati di origine e prova di nuovo l'anteprima.",
-    "legacy.surface.e4696fce5a968f39": "Impossibile avviare FolderView Plus perché non è stato possibile caricare i moduli delle impostazioni richieste.",
     "legacy.surface.e49b3feb195b7a0d": "Sostituisci (sincronizza esattamente, elimina quelli mancanti)",
     "legacy.surface.e4ad55ec01a52991": "Per le cartelle di icone di terze parti, posizionare i file in",
     "legacy.surface.e4bb9f1ece9af926": "Inizia",

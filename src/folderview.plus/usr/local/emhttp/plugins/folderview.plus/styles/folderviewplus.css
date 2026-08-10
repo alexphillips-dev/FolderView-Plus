@@ -8056,7 +8056,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 @media (prefers-reduced-motion: reduce) {
     .fv-diagnostics-card-details > summary i,
-    .fv-support-bundle-privacy-disclosure > i {
+    .fv-support-bundle-privacy-disclosure > i,
+    .fv-settings-bootstrap-shell .fa-spin {
+        animation: none;
         transition: none;
     }
 }

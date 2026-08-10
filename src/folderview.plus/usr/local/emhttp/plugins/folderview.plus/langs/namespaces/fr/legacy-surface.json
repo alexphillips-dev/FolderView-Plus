@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Supprimer les modèles sélectionnés ?",
     "legacy.surface.31e392d1c0378bec": "Postuler",
     "legacy.surface.31fbef162594de01": "Continuer",
-    "legacy.surface.3211d6e16d6fb9de": "L'amorçage des paramètres a échoué",
     "legacy.surface.322641b02d72acdb": "Afficher le badge arrêté",
     "legacy.surface.323ac280646589db": "Avertissement des ressources vCPU",
     "legacy.surface.324b134f57c70c72": "Aperçu",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuel",
     "legacy.surface.74ccd43303847f26": "Dossier",
     "legacy.surface.754655c744c9b865": "Comportement WebUI au niveau du nom, du parent, de l’icône et du dossier.",
+    "legacy.surface.7568f6d91b6d8114": "La politique de sécurité du contenu a bloqué une ressource FolderView Plus.",
     "legacy.surface.756a8ba97dce249a": "Détecté",
     "legacy.surface.75846140de614b1a": "L'image contient",
     "legacy.surface.75954c5f4d87da20": "Aperçu :",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Vue des dossiers",
     "legacy.surface.b1a60fbf5e315a94": "Les dossiers restent dans l'ordre stocké dans les préférences. Utilisez-le lorsque vous souhaitez que FolderView Plus préserve votre mise en page existante.",
     "legacy.surface.b1bdf63d93c37208": "Automatique (recommandé)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus n'a pas pu terminer l'initialisation de la page Paramètres.",
     "legacy.surface.b1d44456477595b7": "Annuler terminé",
     "legacy.surface.b1d69fcd791933f0": "Laboratoire à domicile",
     "legacy.surface.b1dfe0e9670cba07": "Dossier créé",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Stricte (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "\"$1\" enregistré.",
     "legacy.surface.bda851790ae255ce": "Nom et comportement WebUI du dossier facultatif.",
-    "legacy.surface.bde0de8fa103da67": "Afficher les détails techniques",
     "legacy.surface.be00c6a97d7322d5": "Les seuils de ressources de VM contrôlent les étiquettes d'avertissement et critiques affichées pour le processeur virtuel et la mémoire attribuée. Les options de notation Docker uniquement sont configurées dans l'onglet Docker.",
     "legacy.surface.be02ef2d3f09f092": "Triez les dossiers enfants affichés dans les aperçus imbriqués et les lignes développées.",
     "legacy.surface.be1016ce6ded1a1d": "Manuel uniquement",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "Attribution groupée de VM",
     "legacy.surface.e415020d9be5a0d3": "Choisissez le style de liste déroulante et les couleurs primaires/de survol utilisées dans les lignes de dossiers.",
     "legacy.surface.e4591a0d28e69767": "Actualisez les données source et réessayez l'aperçu.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus n'a pas pu démarrer car les modules de paramètres requis n'ont pas pu être chargés.",
     "legacy.surface.e49b3feb195b7a0d": "Remplacer (synchroniser exactement, supprimer les éléments manquants)",
     "legacy.surface.e4ad55ec01a52991": "Pour les dossiers d'icônes tiers, placez les fichiers sous",
     "legacy.surface.e4bb9f1ece9af926": "Commencer",

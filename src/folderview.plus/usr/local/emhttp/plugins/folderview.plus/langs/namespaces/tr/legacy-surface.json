@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Seçilen şablonlar silinsin mi?",
     "legacy.surface.31e392d1c0378bec": "Uygula",
     "legacy.surface.31fbef162594de01": "Devam et",
-    "legacy.surface.3211d6e16d6fb9de": "Ayarlar önyüklemesi başarısız oldu",
     "legacy.surface.322641b02d72acdb": "Durduruldu rozetini göster",
     "legacy.surface.323ac280646589db": "Kaynak vCPU'yu uyarıyor",
     "legacy.surface.324b134f57c70c72": "Önizleme",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuel",
     "legacy.surface.74ccd43303847f26": "Klasör",
     "legacy.surface.754655c744c9b865": "Ad, üst öğe, simge ve klasör düzeyinde WebUI davranışı.",
+    "legacy.surface.7568f6d91b6d8114": "İçerik Güvenliği Politikası bir FolderView Plus kaynağını engelledi.",
     "legacy.surface.756a8ba97dce249a": "Algılandı",
     "legacy.surface.75846140de614b1a": "Resim şunları içerir:",
     "legacy.surface.75954c5f4d87da20": "Önizleme:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Klasör Görünümü",
     "legacy.surface.b1a60fbf5e315a94": "Klasörler tercihlerde saklanan sırayla kalır. FolderView Plus'ın mevcut düzeninizi korumasını istediğinizde bunu kullanın.",
     "legacy.surface.b1bdf63d93c37208": "Otomatik (önerilen)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus, Ayarlar sayfasının başlatılmasını tamamlayamadı.",
     "legacy.surface.b1d44456477595b7": "Tamamlamayı geri al",
     "legacy.surface.b1d69fcd791933f0": "Ev Laboratuvarı",
     "legacy.surface.b1dfe0e9670cba07": "Klasör oluşturuldu",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Katı (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "\"$1\" kaydedildi.",
     "legacy.surface.bda851790ae255ce": "Ad ve isteğe bağlı klasör WebUI davranışı.",
-    "legacy.surface.bde0de8fa103da67": "Teknik ayrıntıları göster",
     "legacy.surface.be00c6a97d7322d5": "VM kaynak eşikleri, vCPU ve atanan bellek için gösterilen uyarıları ve kritik etiketleri kontrol eder. Yalnızca Docker puanlama seçenekleri Docker sekmesinde yapılandırılır.",
     "legacy.surface.be02ef2d3f09f092": "İç içe önizlemelerde ve genişletilmiş satırlarda gösterilen alt klasörleri sıralayın.",
     "legacy.surface.be1016ce6ded1a1d": "Yalnızca manuel",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM toplu atama",
     "legacy.surface.e415020d9be5a0d3": "Açılan stili ve klasör satırlarında kullanılan birincil / fareyle üzerine gelme renklerini seçin.",
     "legacy.surface.e4591a0d28e69767": "Kaynak verileri yenileyin ve önizlemeyi tekrar deneyin.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus gerekli ayar modülleri yüklenemediğinden başlatılamadı.",
     "legacy.surface.e49b3feb195b7a0d": "Değiştir (tam olarak senkronize et, eksik olanı sil)",
     "legacy.surface.e4ad55ec01a52991": "3. taraf simge klasörleri için dosyaları şuraya yerleştirin:",
     "legacy.surface.e4bb9f1ece9af926": "Başlat",

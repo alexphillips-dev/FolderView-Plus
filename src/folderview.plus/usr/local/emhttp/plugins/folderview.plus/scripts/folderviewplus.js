@@ -172,6 +172,9 @@ const extractFatalBannerResponseSnippet = (error) => {
     return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
 };
 const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
+    if (fatalBanner && typeof fatalBanner.classifyError === 'function') {
+        return fatalBanner.classifyError(error, fallbackCategory);
+    }
     const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
     if (!message) {
         return fallbackCategory;
@@ -304,7 +307,6 @@ const renderBootstrapDependencyBanner = (missingModules) => {
         fatalBanner.reportMissingModules(missingModules, {
             context: 'Settings',
             hostSelector: '#fv-settings-root',
-            message: 'FolderView Plus could not start because required settings modules failed to load.',
             code: 'FVPLUS-SET-BOOT-001',
             phase: 'module-load'
         });
@@ -3048,7 +3050,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
     try {
         root.hidden = false;
         root.removeAttribute('aria-hidden');
-        root.classList.remove('fv-settings-bootstrap-pending');
+        root.classList.remove('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed');
         root.setAttribute('aria-busy', 'false');
         root.style.display = 'block';
         root.style.visibility = 'visible';
@@ -3129,7 +3131,7 @@ const revealSettingsBootstrapSurface = () => {
     if (!(root instanceof HTMLElement)) {
         return;
     }
-    root.classList.remove('fv-settings-bootstrap-pending');
+    root.classList.remove('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed');
     root.setAttribute('aria-busy', 'false');
     root.dataset.fvBootstrap = 'ready';
     const shell = document.getElementById('fv-settings-bootstrap-shell');
@@ -12080,8 +12082,6 @@ if (window.FolderViewPlusUI?.registerAction) {
             fatalBanner.reportFatalError(error, {
                 context: 'Settings',
                 hostSelector: '#fv-settings-root',
-                title: 'Settings bootstrap failed',
-                message: 'FolderView Plus could not finish initializing the Settings page.',
                 code: 'FVPLUS-SET-BOOT-002',
                 phase: error?.fvplusPhase || 'bootstrap',
                 category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')

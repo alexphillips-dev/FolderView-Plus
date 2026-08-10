@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ko",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "선택한 템플릿을 삭제하시겠습니까?",
     "legacy.surface.31e392d1c0378bec": "적용",
     "legacy.surface.31fbef162594de01": "계속",
-    "legacy.surface.3211d6e16d6fb9de": "설정 부트스트랩 실패",
     "legacy.surface.322641b02d72acdb": "중지된 배지 표시",
     "legacy.surface.323ac280646589db": "리소스 경고 vCPU",
     "legacy.surface.324b134f57c70c72": "미리보기",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "수동 0개",
     "legacy.surface.74ccd43303847f26": "폴더",
     "legacy.surface.754655c744c9b865": "이름, 상위, 아이콘 및 폴더 수준 WebUI 동작.",
+    "legacy.surface.7568f6d91b6d8114": "콘텐츠 보안 정책이 FolderView Plus 리소스를 차단했습니다.",
     "legacy.surface.756a8ba97dce249a": "감지됨",
     "legacy.surface.75846140de614b1a": "이미지에 다음이 포함됨",
     "legacy.surface.75954c5f4d87da20": "미리보기:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "폴더 보기",
     "legacy.surface.b1a60fbf5e315a94": "폴더는 기본 설정에 저장된 순서대로 유지됩니다. FolderView Plus가 기존 레이아웃을 유지하도록 하려면 이 옵션을 사용하세요.",
     "legacy.surface.b1bdf63d93c37208": "자동(권장)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus가 설정 페이지 초기화를 완료할 수 없습니다.",
     "legacy.surface.b1d44456477595b7": "실행 취소 완료",
     "legacy.surface.b1d69fcd791933f0": "홈랩",
     "legacy.surface.b1dfe0e9670cba07": "폴더가 생성되었습니다.",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "엄격함 (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "'$1'이(가) 저장되었습니다.",
     "legacy.surface.bda851790ae255ce": "이름 및 선택적 폴더 WebUI 동작.",
-    "legacy.surface.bde0de8fa103da67": "기술 세부정보 표시",
     "legacy.surface.be00c6a97d7322d5": "VM 리소스 임계값은 vCPU 및 할당된 메모리에 대해 표시되는 경고 및 위험 레이블을 제어합니다. Docker 전용 채점 옵션은 Docker 탭에서 구성됩니다.",
     "legacy.surface.be02ef2d3f09f092": "중첩된 미리보기 및 확장된 행에 표시되는 하위 폴더의 순서를 지정합니다.",
     "legacy.surface.be1016ce6ded1a1d": "수동으로만",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM 대량 할당",
     "legacy.surface.e415020d9be5a0d3": "폴더 행에 사용되는 드롭다운 스타일과 기본/호버 색상을 선택합니다.",
     "legacy.surface.e4591a0d28e69767": "소스 데이터를 새로 고치고 미리보기를 다시 시도하세요.",
-    "legacy.surface.e4696fce5a968f39": "필수 설정 모듈을 로드하지 못했기 때문에 FolderView Plus를 시작할 수 없습니다.",
     "legacy.surface.e49b3feb195b7a0d": "교체(정확하게 동기화, 누락된 항목 삭제)",
     "legacy.surface.e4ad55ec01a52991": "타사 아이콘 폴더의 경우 파일을 아래에 배치하세요.",
     "legacy.surface.e4bb9f1ece9af926": "시작",

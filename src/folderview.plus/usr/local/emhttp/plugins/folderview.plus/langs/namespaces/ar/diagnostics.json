@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ar",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "تحافظ هذه اللقطات على هندسة لوحة المعلومات المعروضة بعد الانتقال إلى الإعدادات.",
     "diagnostics.capture.review": "مراجعة",
     "diagnostics.capture.ready": "جاهز",
-    "diagnostics.capture.capture-again": "التقط مرة أخرى"
+    "diagnostics.capture.capture-again": "التقط مرة أخرى",
+    "diagnostics.bootstrap.reference": "المرجع",
+    "diagnostics.bootstrap.last-step": "آخر خطوة مكتملة",
+    "diagnostics.bootstrap.occurrences": "مرات الحدوث",
+    "diagnostics.bootstrap.retry": "حاول التحميل مرة أخرى",
+    "diagnostics.bootstrap.reload": "إعادة تحميل الصفحة",
+    "diagnostics.bootstrap.copy": "نسخ رمز الدعم",
+    "diagnostics.bootstrap.download": "تنزيل تقرير بدء التشغيل",
+    "diagnostics.bootstrap.copied": "تم نسخ رمز الدعم",
+    "diagnostics.bootstrap.copy-failed": "فشل النسخ",
+    "diagnostics.bootstrap.downloaded": "تم تنزيل تقرير بدء التشغيل",
+    "diagnostics.bootstrap.download-failed": "فشل التنزيل",
+    "diagnostics.bootstrap.retrying": "جارٍ المحاولة مرة أخرى…",
+    "diagnostics.bootstrap.retry-succeeded": "تم استئناف التحميل",
+    "diagnostics.bootstrap.retry-failed": "فشلت إعادة المحاولة"
 }

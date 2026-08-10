@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "zh-Hant",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "刪除選定的模板？",
     "legacy.surface.31e392d1c0378bec": "申請",
     "legacy.surface.31fbef162594de01": "繼續",
-    "legacy.surface.3211d6e16d6fb9de": "設定引導失敗",
     "legacy.surface.322641b02d72acdb": "顯示停止徽章",
     "legacy.surface.323ac280646589db": "資源警告 vCPU",
     "legacy.surface.324b134f57c70c72": "預覽",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 手冊",
     "legacy.surface.74ccd43303847f26": "資料夾",
     "legacy.surface.754655c744c9b865": "名稱、父級、圖示和資料夾級 WebUI 行為。",
+    "legacy.surface.7568f6d91b6d8114": "內容安全策略阻止了FolderView Plus 資源。",
     "legacy.surface.756a8ba97dce249a": "檢測到",
     "legacy.surface.75846140de614b1a": "影像包含",
     "legacy.surface.75954c5f4d87da20": "預覽：",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "資料夾檢視",
     "legacy.surface.b1a60fbf5e315a94": "資料夾會依照首選項中儲存的順序保留。當您希望FolderView Plus 保留現有佈局時，請使用此選項。",
     "legacy.surface.b1bdf63d93c37208": "自動（建議）",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus 無法完成初始化「設定」頁面。",
     "legacy.surface.b1d44456477595b7": "撤銷完成",
     "legacy.surface.b1d69fcd791933f0": "家庭實驗室",
     "legacy.surface.b1dfe0e9670cba07": "資料夾已建立",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "嚴格 (45 / 75)",
     "legacy.surface.bd950ced4b1e4ad4": "已儲存「$1」。",
     "legacy.surface.bda851790ae255ce": "名稱和可選資料夾 WebUI 行為。",
-    "legacy.surface.bde0de8fa103da67": "顯示技術細節",
     "legacy.surface.be00c6a97d7322d5": "VM 資源閾值控制為 vCPU 和分配的記憶體顯示的警告和嚴重標籤。僅 Docker 的評分選項在 Docker 選項卡上配置。",
     "legacy.surface.be02ef2d3f09f092": "對巢狀預覽和展開行中顯示的子資料夾進行排序。",
     "legacy.surface.be1016ce6ded1a1d": "僅手動",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM批次分配",
     "legacy.surface.e415020d9be5a0d3": "選擇資料夾行中使用的下拉樣式和主要/懸停顏色。",
     "legacy.surface.e4591a0d28e69767": "重新整理來源資料並再次嘗試預覽。",
-    "legacy.surface.e4696fce5a968f39": "由於無法載入所需的設定模組，FolderView Plus 無法啟動。",
     "legacy.surface.e49b3feb195b7a0d": "替換（準確同步，刪除缺失）",
     "legacy.surface.e4ad55ec01a52991": "對於第 3 方圖示資料夾，將檔案放置在",
     "legacy.surface.e4bb9f1ece9af926": "開始",

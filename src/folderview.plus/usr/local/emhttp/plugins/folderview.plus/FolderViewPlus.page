@@ -24,7 +24,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
     window.FolderViewPlusFatalRuntimeContext = {
         page: 'Settings',
         hostSelector: '#fv-settings-root',
-        unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
+        pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>, unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
         channel: 'unknown'
     };
 </script>
@@ -1902,7 +1902,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 
 <script>
-window.FolderViewPlusSettingsLoaderManifest = Object.freeze({
+window.FolderViewPlusSettingsLoaderManifest = Object.freeze({ moduleTimeoutMs: 12000,
     foundation: Object.freeze([
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>",
         "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>",

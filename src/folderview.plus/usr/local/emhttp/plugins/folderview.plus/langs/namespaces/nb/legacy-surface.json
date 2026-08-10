@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.08.06.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "nb",
         "namespace": "legacy-surface"
     },
@@ -320,7 +320,6 @@
     "legacy.surface.3178e408a8984637": "Vil du slette valgte maler?",
     "legacy.surface.31e392d1c0378bec": "Søk",
     "legacy.surface.31fbef162594de01": "Fortsett",
-    "legacy.surface.3211d6e16d6fb9de": "Innstillinger bootstrap mislyktes",
     "legacy.surface.322641b02d72acdb": "Vis stoppet-merket",
     "legacy.surface.323ac280646589db": "Ressursvars vCPU",
     "legacy.surface.324b134f57c70c72": "Forhåndsvisning",
@@ -722,6 +721,7 @@
     "legacy.surface.74bff6d545832763": "0 manuell",
     "legacy.surface.74ccd43303847f26": "Mappe",
     "legacy.surface.754655c744c9b865": "Navn, forelder, ikon og WebUI-adferd på mappenivå.",
+    "legacy.surface.7568f6d91b6d8114": "Innholdssikkerhetspolicy blokkerte en FolderView Plus-ressurs.",
     "legacy.surface.756a8ba97dce249a": "Oppdaget",
     "legacy.surface.75846140de614b1a": "Bildet inneholder",
     "legacy.surface.75954c5f4d87da20": "Forhåndsvisning:",
@@ -1096,7 +1096,6 @@
     "legacy.surface.b172057b6ed9672f": "Mappevisning",
     "legacy.surface.b1a60fbf5e315a94": "Mapper forblir i rekkefølgen lagret i preferanser. Bruk dette når du vil at FolderView Plus skal bevare din eksisterende layout.",
     "legacy.surface.b1bdf63d93c37208": "Auto (anbefalt)",
-    "legacy.surface.b1c31d322fd50956": "FolderView Plus kunne ikke fullføre initialiseringen av Innstillinger-siden.",
     "legacy.surface.b1d44456477595b7": "Angre fullført",
     "legacy.surface.b1d69fcd791933f0": "Hjemmelab",
     "legacy.surface.b1dfe0e9670cba07": "Mappe opprettet",
@@ -1157,7 +1156,6 @@
     "legacy.surface.bd46573405b88cf0": "Strenge (45/75)",
     "legacy.surface.bd950ced4b1e4ad4": "Lagret «$1».",
     "legacy.surface.bda851790ae255ce": "Navn og valgfri mappe WebUI-oppførsel.",
-    "legacy.surface.bde0de8fa103da67": "Vis tekniske detaljer",
     "legacy.surface.be00c6a97d7322d5": "VM-ressurs-terskler kontrollerer advarselen og kritiske etiketter som vises for vCPU og tilordnet minne. Poengalternativer kun for Docker er konfigurert på Docker-fanen.",
     "legacy.surface.be02ef2d3f09f092": "Bestill underordnede mapper vist i nestede forhåndsvisninger og utvidede rader.",
     "legacy.surface.be1016ce6ded1a1d": "Kun manuell",
@@ -1393,7 +1391,6 @@
     "legacy.surface.e358fd8575dc68e7": "VM-masseoppdrag",
     "legacy.surface.e415020d9be5a0d3": "Velg rullegardinstilen og primær-/svevefargene som brukes i mapperader.",
     "legacy.surface.e4591a0d28e69767": "Oppdater kildedataene og prøv forhåndsvisningen på nytt.",
-    "legacy.surface.e4696fce5a968f39": "FolderView Plus kunne ikke starte fordi nødvendige innstillingsmoduler ikke kunne lastes.",
     "legacy.surface.e49b3feb195b7a0d": "Erstatt (synkroniser nøyaktig, slett mangler)",
     "legacy.surface.e4ad55ec01a52991": "For tredjeparts ikonmapper, plasser filer under",
     "legacy.surface.e4bb9f1ece9af926": "Start",

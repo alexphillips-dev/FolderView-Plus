@@ -9,7 +9,7 @@ const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const langDir = path.join(pluginDir, 'langs');
 const namespaceRoot = path.join(langDir, 'namespaces');
-const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.08.06.1';
+const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.08.10.1';
 const catalogDate = process.env.FVPLUS_I18N_CATALOG_DATE || new Date().toISOString().slice(0, 10);
 const translateMissing = process.argv.includes('--translate');
 const scaffoldArgument = process.argv.find((argument) => argument.startsWith('--scaffold='));

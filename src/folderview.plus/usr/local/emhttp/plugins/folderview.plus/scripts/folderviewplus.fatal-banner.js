@@ -13,12 +13,19 @@
     const STYLE_ID = 'fvplus-fatal-banner-style';
     const PANEL_ID = 'fvplus-fatal-banner';
     const COPY_BUTTON_ID = 'fvplus-fatal-copy-report';
+    const RETRY_BUTTON_ID = 'fvplus-fatal-retry';
+    const RELOAD_BUTTON_ID = 'fvplus-fatal-reload';
+    const DOWNLOAD_BUTTON_ID = 'fvplus-fatal-download';
     const BROWSER_ERROR_STORAGE_KEY = 'fv.support.bundle.consoleErrors.v1';
-    const DEFAULT_HELP = 'Try a hard refresh. If this persists, reinstall the plugin package to restore missing files.';
+    const STARTUP_INCIDENT_STORAGE_KEY = 'fv.support.bundle.startupIncident.v1';
+    const INCIDENT_SCHEMA_VERSION = 1;
+    const INCIDENT_TTL_MS = 24 * 60 * 60 * 1000;
     const DIAGNOSTIC_REQUEST_LIMIT = 16;
     const DIAGNOSTIC_STEP_LIMIT = 10;
     const DIAGNOSTIC_ACTION_LIMIT = 10;
     const BROWSER_ERROR_LIMIT = 30;
+    const MODULE_EVENT_LIMIT = 80;
+    const RECOVERY_ATTEMPT_LIMIT = 8;
     const browserErrorSessionStartedAt = new Date().toISOString();
     let browserErrorSessionCounter = 0;
     const createBrowserErrorSessionId = () => {
@@ -53,6 +60,10 @@
         actions: [],
         modules: {},
         requests: [],
+        moduleEvents: [],
+        recoveryAttempts: [],
+        recoveryHandlers: {},
+        activeRecovery: false,
         prefs: {
             fetched: false,
             normalized: false,
@@ -84,6 +95,74 @@
     };
 
     const trimString = (value) => String(value ?? '').trim();
+
+    const t = (key, fallback, ...params) => {
+        try {
+            const early = trimString(win.FolderViewPlusEarlyI18n?.messages?.[key] || '');
+            if (early) {
+                return params.reduce(
+                    (message, value, index) => message.split(`$${index + 1}`).join(String(value ?? '')),
+                    early
+                );
+            }
+            const translated = win.FolderViewPlusI18n?.t?.(key, fallback, ...params);
+            return trimString(translated || fallback || key) || trimString(fallback || key);
+        } catch (_error) {
+            return trimString(fallback || key);
+        }
+    };
+
+    const createIncidentId = () => {
+        const cryptoApi = win.crypto || null;
+        if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+            return `fvplus-incident-${cryptoApi.randomUUID()}`;
+        }
+        browserErrorSessionCounter += 1;
+        return `fvplus-incident-${Date.now().toString(36)}-${browserErrorSessionCounter.toString(36)}`;
+    };
+
+    const sanitizeUrl = (value) => {
+        const raw = trimString(value);
+        if (!raw) {
+            return 'unknown';
+        }
+        try {
+            const parsed = new URL(raw, win.location?.href || 'http://localhost/');
+            return parsed.pathname || '/';
+        } catch (_error) {
+            return raw.split('?')[0].split('#')[0] || 'unknown';
+        }
+    };
+
+    const sanitizeDiagnosticText = (value) => {
+        let text = String(value ?? '');
+        text = text.replace(/https?:\/\/[^\s/]+/gi, '[private-host]');
+        text = text.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '[private-address]');
+        text = text.replace(/\b[a-f0-9]{0,4}:[a-f0-9:]+\b/gi, '[private-address]');
+        text = text.replace(/\b[A-Za-z]:\\[^\s|]+/g, '[private-path]');
+        text = text.replace(/\/(?:mnt|boot|root|home|tmp|var\/tmp)\/[^\s|)]+/g, '[private-path]');
+        return text;
+    };
+
+    const normalizePrivacyMode = (value) => trimString(value).toLowerCase() === 'full' ? 'full' : 'sanitized';
+
+    const classifyError = (error, fallbackCategory = 'runtime-failed') => {
+        const status = Number(error?.jqXHR?.status || error?.status || 0);
+        const message = trimString(error?.message || error).toLowerCase();
+        if (status === 401 || message.includes('http 401') || message.includes('invalid request token')) return 'auth-failed';
+        if (status === 403 || message.includes('http 403') || message.includes('request guard')) return 'request-guard';
+        if (status === 404 || message.includes('http 404') || message.includes('missing endpoint')) return 'missing-endpoint';
+        if (status >= 500 || /\bhttp 5\d\d\b/.test(message)) return 'server-error';
+        if (message.includes('timed out') || message.includes('timeout')) return 'asset-timeout';
+        if (message.includes('content security policy') || message.includes('csp')) return 'csp-violation';
+        if (message.includes('missing modules') || message.includes('module did not load')) return 'missing-module';
+        if (message.includes('failed to load') && (message.includes('.js') || message.includes('.css') || message.includes('module'))) return 'missing-asset';
+        if (message.includes('version') && (message.includes('mismatch') || message.includes('stale'))) return 'version-mismatch';
+        if (message.includes('invalid json') || message.includes('unexpected json') || (message.includes('json') && message.includes('parse'))) return 'invalid-response';
+        if (message.includes('prefs') || message.includes('preference')) return 'prefs-corrupt';
+        if (message.includes('render')) return 'render-failed';
+        return trimString(fallbackCategory || 'runtime-failed') || 'runtime-failed';
+    };
 
     const summarizeUrl = (value) => {
         const raw = trimString(value);
@@ -250,6 +329,125 @@
         };
     };
 
+    const recordModuleEvent = (entry = {}) => {
+        const name = trimString(entry.name || getAssetFileName(entry.url || '')) || 'unknown';
+        const event = {
+            name,
+            stage: trimString(entry.stage || state.currentPhase || 'bootstrap') || 'bootstrap',
+            outcome: trimString(entry.outcome || 'unknown') || 'unknown',
+            startedAt: trimString(entry.startedAt || ''),
+            completedAt: trimString(entry.completedAt || ''),
+            durationMs: Math.max(0, Number(entry.durationMs) || 0),
+            version: trimString(entry.version || ''),
+            retry: entry.retry === true,
+            detail: sanitizeDiagnosticText(trimString(entry.detail || ''))
+        };
+        state.moduleEvents.push(event);
+        if (state.moduleEvents.length > MODULE_EVENT_LIMIT) {
+            state.moduleEvents = state.moduleEvents.slice(-MODULE_EVENT_LIMIT);
+        }
+        setModuleStatus(name, event.outcome, event.detail || `${event.stage}; ${event.durationMs} ms`);
+        return Object.freeze({ ...event });
+    };
+
+    const registerRecoveryHandler = (name, handler) => {
+        const key = trimString(name);
+        if (!key || typeof handler !== 'function') {
+            return false;
+        }
+        state.recoveryHandlers[key] = handler;
+        return true;
+    };
+
+    const unregisterRecoveryHandler = (name) => {
+        const key = trimString(name);
+        if (!key || !Object.prototype.hasOwnProperty.call(state.recoveryHandlers, key)) {
+            return false;
+        }
+        delete state.recoveryHandlers[key];
+        return true;
+    };
+
+    const readPersistedStartupIncident = () => {
+        try {
+            const raw = trimString(win.sessionStorage?.getItem(STARTUP_INCIDENT_STORAGE_KEY));
+            if (!raw) {
+                return null;
+            }
+            const parsed = JSON.parse(raw);
+            const expiresAtMs = Date.parse(String(parsed?.expiresAt || ''));
+            if (!parsed || typeof parsed !== 'object' || Number.isNaN(expiresAtMs) || expiresAtMs <= Date.now()) {
+                win.sessionStorage?.removeItem(STARTUP_INCIDENT_STORAGE_KEY);
+                return null;
+            }
+            return parsed;
+        } catch (_error) {
+            return null;
+        }
+    };
+
+    const getStartupIncidentSnapshot = () => {
+        const active = state.activeIssue;
+        const persisted = readPersistedStartupIncident();
+        if (!active) {
+            return persisted || { available: false, schemaVersion: INCIDENT_SCHEMA_VERSION };
+        }
+        return {
+            available: true,
+            schemaVersion: INCIDENT_SCHEMA_VERSION,
+            incidentId: trimString(active.incidentId),
+            status: trimString(active.status || 'active') || 'active',
+            surface: trimString(state.environment.page || 'Plugin') || 'Plugin',
+            code: trimString(active.code),
+            severity: trimString(active.severity),
+            category: trimString(active.category),
+            phase: trimString(active.phase),
+            firstSeenAt: trimString(active.firstSeenAt),
+            lastSeenAt: trimString(active.lastSeenAt),
+            route: sanitizeUrl(state.environment.url || win.location?.href || ''),
+            pluginVersion: trimString(state.environment.pluginVersion || 'unknown') || 'unknown',
+            unraidVersion: trimString(state.environment.unraidVersion || 'unknown') || 'unknown',
+            lastStep: sanitizeDiagnosticText(state.lastStep),
+            lastAction: sanitizeDiagnosticText(state.lastAction),
+            modules: state.moduleEvents.slice(-MODULE_EVENT_LIMIT).map((entry) => ({ ...entry })),
+            recoveryAttempts: state.recoveryAttempts.slice(-RECOVERY_ATTEMPT_LIMIT).map((entry) => ({ ...entry }))
+        };
+    };
+
+    const persistStartupIncident = () => {
+        try {
+            const snapshot = getStartupIncidentSnapshot();
+            if (snapshot?.available !== true) {
+                return;
+            }
+            const persistedAt = new Date().toISOString();
+            win.sessionStorage?.setItem(STARTUP_INCIDENT_STORAGE_KEY, JSON.stringify({
+                ...snapshot,
+                persistedAt,
+                expiresAt: new Date(Date.now() + INCIDENT_TTL_MS).toISOString()
+            }));
+        } catch (_error) {
+            // Startup reporting must remain available when storage is restricted.
+        }
+    };
+
+    const recordRecoveryAttempt = (entry = {}) => {
+        const attempt = {
+            action: trimString(entry.action || 'retry') || 'retry',
+            status: trimString(entry.status || 'started') || 'started',
+            startedAt: trimString(entry.startedAt || new Date().toISOString()),
+            completedAt: trimString(entry.completedAt || ''),
+            durationMs: Math.max(0, Number(entry.durationMs) || 0),
+            detail: sanitizeDiagnosticText(trimString(entry.detail || ''))
+        };
+        state.recoveryAttempts.push(attempt);
+        if (state.recoveryAttempts.length > RECOVERY_ATTEMPT_LIMIT) {
+            state.recoveryAttempts = state.recoveryAttempts.slice(-RECOVERY_ATTEMPT_LIMIT);
+        }
+        persistStartupIncident();
+        return attempt;
+    };
+
     const recordRequest = (entry = {}) => {
         const method = trimString(entry.method || 'GET') || 'GET';
         const url = summarizeUrl(entry.url);
@@ -307,22 +505,24 @@
         return created;
     };
 
-    const buildSupportReport = (issue = null) => {
+    const buildSupportReport = (issue = null, options = {}) => {
+        const privacyMode = normalizePrivacyMode(options.privacy || 'sanitized');
+        const protect = (value) => privacyMode === 'full' ? String(value ?? '') : sanitizeDiagnosticText(value);
         const activeIssue = issue || state.activeIssue || {};
         const environmentLines = [
             `page: ${trimString(state.environment.page || 'Settings') || 'Settings'}`,
             `pluginVersion: ${trimString(state.environment.pluginVersion || 'unknown') || 'unknown'}`,
             `channel: ${trimString(state.environment.channel || 'unknown') || 'unknown'}`,
             `unraidVersion: ${trimString(state.environment.unraidVersion || 'unknown') || 'unknown'}`,
-            `url: ${trimString(state.environment.url || 'unknown') || 'unknown'}`,
-            `userAgent: ${trimString(state.environment.userAgent || 'unknown') || 'unknown'}`
+            `url: ${privacyMode === 'full' ? (trimString(state.environment.url || 'unknown') || 'unknown') : sanitizeUrl(state.environment.url || 'unknown')}`,
+            `userAgent: ${protect(trimString(state.environment.userAgent || 'unknown') || 'unknown')}`
         ];
         const moduleLines = Object.entries(state.modules)
             .sort(([left], [right]) => left.localeCompare(right))
-            .map(([name, info]) => `${name}: ${trimString(info?.status || 'unknown')}${trimString(info?.detail) ? ` (${trimString(info.detail)})` : ''}`);
+            .map(([name, info]) => `${name}: ${trimString(info?.status || 'unknown')}${trimString(info?.detail) ? ` (${protect(trimString(info.detail))})` : ''}`);
         const requestLines = state.requests.map((entry) => {
             const parts = [
-                `${entry.method} ${entry.url}`,
+                `${entry.method} ${privacyMode === 'full' ? entry.url : sanitizeUrl(entry.url)}`,
                 `outcome=${entry.outcome}`
             ];
             if (entry.status) {
@@ -338,13 +538,30 @@
                 parts.push(`category=${entry.category}`);
             }
             if (entry.detail) {
-                parts.push(`detail=${entry.detail}`);
+                parts.push(`detail=${protect(entry.detail)}`);
             }
             if (entry.responseSnippet) {
-                parts.push(`response=${entry.responseSnippet}`);
+                parts.push(`response=${protect(entry.responseSnippet)}`);
             }
             return parts.join(' | ');
         });
+        const moduleEventLines = state.moduleEvents.length > 0
+            ? state.moduleEvents.map((entry) => [
+                `${entry.name}: ${entry.outcome}`,
+                `stage=${entry.stage}`,
+                `durationMs=${entry.durationMs}`,
+                entry.version ? `version=${entry.version}` : '',
+                entry.retry ? 'retry=yes' : '',
+                entry.detail ? `detail=${protect(entry.detail)}` : ''
+            ].filter(Boolean).join(' | '))
+            : ['none'];
+        const recoveryLines = state.recoveryAttempts.length > 0
+            ? state.recoveryAttempts.map((entry) => [
+                `${entry.startedAt} | ${entry.action} | ${entry.status}`,
+                entry.durationMs ? `durationMs=${entry.durationMs}` : '',
+                entry.detail ? `detail=${protect(entry.detail)}` : ''
+            ].filter(Boolean).join(' | '))
+            : ['none'];
         const stepLines = state.steps.length > 0 ? state.steps : ['none'];
         const actionLines = state.actions.length > 0
             ? state.actions.map((entry) => `${trimString(entry.at || 'unknown') || 'unknown'} | ${trimString(entry.action || 'unknown') || 'unknown'}`)
@@ -359,9 +576,12 @@
             `migrationApplied: ${state.prefs.migrationApplied === true ? 'yes' : 'no'}`,
             `normalizeError: ${trimString(state.prefs.normalizeError || 'none') || 'none'}`
         ];
-        const affectedAreaLines = toDetailList(activeIssue.details);
+        const affectedAreaLines = toDetailList(activeIssue.details).map(protect);
         return [
-            'FolderView Plus Settings Diagnostics',
+            `FolderView Plus ${trimString(state.environment.page || 'Plugin') || 'Plugin'} Diagnostics`,
+            `schemaVersion: ${INCIDENT_SCHEMA_VERSION}`,
+            `incidentId: ${trimString(activeIssue.incidentId || 'unknown') || 'unknown'}`,
+            `privacyMode: ${privacyMode}`,
             `errorCode: ${trimString(activeIssue.code || 'FVPLUS-SET-RUNTIME-001') || 'FVPLUS-SET-RUNTIME-001'}`,
             `phase: ${trimString(activeIssue.phase || state.currentPhase || 'unknown') || 'unknown'}`,
             `severity: ${trimString(activeIssue.severity || 'fatal') || 'fatal'}`,
@@ -369,9 +589,9 @@
             `occurrences: ${Number(activeIssue.occurrences || 1) || 1}`,
             `firstSeenAt: ${trimString(activeIssue.firstSeenAt || 'unknown') || 'unknown'}`,
             `lastSeenAt: ${trimString(activeIssue.lastSeenAt || 'unknown') || 'unknown'}`,
-            `lastStep: ${trimString(state.lastStep || 'unknown') || 'unknown'}`,
-            `lastAction: ${trimString(state.lastAction || 'unknown') || 'unknown'}`,
-            `summary: ${trimString(activeIssue.message || activeIssue.summary || 'unknown') || 'unknown'}`,
+            `lastStep: ${protect(trimString(state.lastStep || 'unknown') || 'unknown')}`,
+            `lastAction: ${protect(trimString(state.lastAction || 'unknown') || 'unknown')}`,
+            `summary: ${protect(trimString(activeIssue.message || activeIssue.summary || 'unknown') || 'unknown')}`,
             '',
             '[affected-areas]',
             ...(affectedAreaLines.length > 0 ? affectedAreaLines : ['none']),
@@ -382,6 +602,9 @@
             '[modules]',
             ...(moduleLines.length > 0 ? moduleLines : ['none']),
             '',
+            '[module-events]',
+            ...moduleEventLines,
+            '',
             '[requests]',
             ...(requestLines.length > 0 ? requestLines : ['none']),
             '',
@@ -389,15 +612,18 @@
             ...prefsLines,
             '',
             '[steps]',
-            ...stepLines,
+            ...stepLines.map(protect),
             '',
             '[recent-actions]',
-            ...actionLines
+            ...actionLines.map(protect),
+            '',
+            '[recovery-attempts]',
+            ...recoveryLines
         ].join('\n');
     };
 
     const copyDiagnostics = async () => {
-        const text = buildSupportReport();
+        const text = buildSupportReport(null, { privacy: 'sanitized' });
         if (!text) {
             return false;
         }
@@ -425,6 +651,135 @@
             textarea.remove();
         }
         return copied;
+    };
+
+    const downloadDiagnostics = () => {
+        const text = buildSupportReport(null, { privacy: 'sanitized' });
+        if (!text || typeof win.Blob !== 'function' || typeof win.URL?.createObjectURL !== 'function') {
+            return false;
+        }
+        let objectUrl = '';
+        try {
+            const blob = new win.Blob([text], { type: 'text/plain;charset=utf-8' });
+            objectUrl = win.URL.createObjectURL(blob);
+            const anchor = doc.createElement('a');
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+            anchor.href = objectUrl;
+            anchor.download = `FolderView-Plus-Startup-Report-${stamp}.txt`;
+            anchor.style.display = 'none';
+            (doc.body || doc.documentElement).appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            recordAction('Downloaded sanitized startup report');
+            return true;
+        } catch (_error) {
+            return false;
+        } finally {
+            if (objectUrl) {
+                win.setTimeout(() => win.URL.revokeObjectURL(objectUrl), 0);
+            }
+        }
+    };
+
+    const setBootstrapPresentationState = (mode = 'failed') => {
+        const root = doc.getElementById('fv-settings-root');
+        const shell = doc.getElementById('fv-settings-bootstrap-shell');
+        if (!root) {
+            return;
+        }
+        if (mode === 'retrying') {
+            root.classList.remove('fv-settings-bootstrap-failed');
+            root.classList.add('fv-settings-bootstrap-pending');
+            root.setAttribute('aria-busy', 'true');
+            if (shell) shell.hidden = false;
+            win.FolderViewPlusMarkSettingsBootstrapState?.({
+                ready: false,
+                failed: false,
+                lastPhase: 'bootstrap-retry',
+                lastAction: 'Retry Settings startup'
+            });
+            return;
+        }
+        if (mode === 'ready') {
+            root.classList.remove('fv-settings-bootstrap-failed', 'fv-settings-bootstrap-pending');
+            root.setAttribute('aria-busy', 'false');
+            if (shell) shell.hidden = true;
+            win.FolderViewPlusMarkSettingsBootstrapState?.({ ready: true, failed: false });
+            return;
+        }
+        root.classList.remove('fv-settings-bootstrap-pending');
+        root.classList.add('fv-settings-bootstrap-failed');
+        root.setAttribute('aria-busy', 'false');
+        if (shell) shell.hidden = true;
+        win.FolderViewPlusMarkSettingsBootstrapState?.({
+            ready: false,
+            failed: true,
+            lastPhase: state.currentPhase || 'bootstrap',
+            lastAction: 'Display startup error'
+        });
+    };
+
+    const updateRecoveryButton = (label, disabled = false) => {
+        const button = doc.getElementById(RETRY_BUTTON_ID);
+        if (!button) return;
+        button.textContent = label;
+        button.disabled = disabled;
+        button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    };
+
+    const runRecovery = async (name = 'retry') => {
+        const normalizedName = trimString(name) || 'retry';
+        const handler = state.recoveryHandlers[normalizedName];
+        const priorAttempts = state.recoveryAttempts.filter((entry) => (
+            entry.action === normalizedName && entry.status === 'started'
+        )).length;
+        if (normalizedName === 'retry' && priorAttempts >= 1) {
+            return false;
+        }
+        if (typeof handler !== 'function' || state.activeRecovery) {
+            return false;
+        }
+        state.activeRecovery = true;
+        const startedAt = new Date().toISOString();
+        const startedMs = Date.now();
+        recordRecoveryAttempt({ action: normalizedName, status: 'started', startedAt });
+        updateRecoveryButton(t('diagnostics.bootstrap.retrying', 'Trying again…'), true);
+        setBootstrapPresentationState('retrying');
+        try {
+            await handler();
+            const completedAt = new Date().toISOString();
+            recordRecoveryAttempt({
+                action: normalizedName,
+                status: 'succeeded',
+                startedAt,
+                completedAt,
+                durationMs: Date.now() - startedMs
+            });
+            if (state.activeIssue) {
+                state.activeIssue.status = 'recovered';
+                state.activeIssue.lastSeenAt = completedAt;
+                persistStartupIncident();
+            }
+            recordAction('Startup recovery succeeded');
+            updateRecoveryButton(t('diagnostics.bootstrap.retry-succeeded', 'Loading resumed'), true);
+            return true;
+        } catch (error) {
+            const completedAt = new Date().toISOString();
+            recordRecoveryAttempt({
+                action: normalizedName,
+                status: 'failed',
+                startedAt,
+                completedAt,
+                durationMs: Date.now() - startedMs,
+                detail: error?.message || error
+            });
+            recordAction('Startup recovery failed');
+            setBootstrapPresentationState('failed');
+            updateRecoveryButton(t('diagnostics.bootstrap.retry-failed', 'Try again failed'), true);
+            return false;
+        } finally {
+            state.activeRecovery = false;
+        }
     };
 
     const resolveHost = (hostSelectorOverride) => {
@@ -515,6 +870,14 @@
     min-height: 30px;
     padding: 0.16rem 0.62rem;
 }
+#${PANEL_ID} .fvplus-fatal-actions button:focus-visible,
+#${PANEL_ID} .fvplus-fatal-details summary:focus-visible {
+    outline: 2px solid var(--link, var(--fvplus-theme-accent, currentColor));
+    outline-offset: 2px;
+}
+#${PANEL_ID} .fvplus-fatal-reference {
+    font-weight: 700;
+}
 #${PANEL_ID} details.fvplus-fatal-details {
     border-top: 1px solid var(--fvplus-theme-border-subtle, currentColor);
     padding-top: 0.45rem;
@@ -534,13 +897,139 @@
     font-size: 0.95rem;
     line-height: 1.35;
 }
+@media (prefers-reduced-motion: reduce) {
+    #${PANEL_ID} *,
+    #${PANEL_ID} *::before,
+    #${PANEL_ID} *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
         `.trim();
         (doc.head || doc.documentElement || doc.body).appendChild(style);
     };
 
     const getPanel = () => doc.getElementById(PANEL_ID);
 
+    const RECOVERABLE_CATEGORIES = Object.freeze(new Set([
+        'missing-asset',
+        'missing-module',
+        'asset-timeout',
+        'version-mismatch',
+        'auth-failed',
+        'request-guard',
+        'missing-endpoint',
+        'server-error',
+        'invalid-response',
+        'runtime-failed',
+        'promise-rejection',
+        'render-failed',
+        'blank-page'
+    ]));
+
+    const getUserFacingCopy = (context, category, severity, options = {}) => {
+        const isDegraded = severity === 'degraded';
+        const fallbackTitle = isDegraded
+            ? `${context} loaded with limited functionality`
+            : `FolderView Plus could not finish loading ${context}`;
+        const messages = {
+            'missing-asset': 'A required plugin file did not load.',
+            'missing-module': 'A required plugin component is unavailable.',
+            'asset-timeout': 'A required plugin file took too long to load.',
+            'version-mismatch': 'The browser and installed plugin appear to be using different versions.',
+            'auth-failed': 'The page request expired before startup completed.',
+            'request-guard': 'Unraid rejected a startup request before FolderView Plus could finish loading.',
+            'missing-endpoint': 'A required plugin service could not be found.',
+            'server-error': 'Unraid returned a server error while FolderView Plus was starting.',
+            'invalid-response': 'A plugin service returned data that could not be read.',
+            'prefs-corrupt': 'Saved FolderView Plus preferences could not be read safely.',
+            'csp-violation': 'The browser blocked a required FolderView Plus resource.',
+            'render-failed': 'The plugin loaded, but its interface could not be displayed.',
+            'blank-page': 'The plugin started, but no usable interface became visible.',
+            'promise-rejection': 'A plugin startup task stopped unexpectedly.',
+            'runtime-failed': 'FolderView Plus encountered an unexpected startup error.'
+        };
+        const fallbackMessage = isDegraded
+            ? `FolderView Plus kept ${context} available, but part of the plugin may be incomplete.`
+            : (messages[category] || messages['runtime-failed']);
+        return {
+            title: trimString(options.userTitle || options.title || fallbackTitle) || fallbackTitle,
+            message: trimString(options.userMessage || options.message || fallbackMessage) || fallbackMessage,
+            help: trimString(options.help || (isDegraded
+                ? 'You can continue using the available controls. Download the startup report if support asks for more detail.'
+                : 'Try the available recovery action. If the problem continues, download the sanitized startup report for support.'))
+        };
+    };
+
+    const createIncidentRecord = (options = {}) => {
+        const context = resolveContext(options.context);
+        const code = trimString(options.code || 'FVPLUS-SET-RUNTIME-001') || 'FVPLUS-SET-RUNTIME-001';
+        const phase = trimString(options.phase || state.currentPhase || 'unknown') || 'unknown';
+        const severity = trimString(options.severity || 'fatal') || 'fatal';
+        const category = trimString(options.category || 'runtime-failed') || 'runtime-failed';
+        const copy = getUserFacingCopy(context, category, severity, options);
+        const details = toDetailList(options.details);
+        const occurrence = registerIssueOccurrence({
+            title: copy.title,
+            message: copy.message,
+            details,
+            code,
+            phase,
+            severity,
+            category
+        });
+        const sameIncident = state.activeIssue
+            && state.activeIssue.code === code
+            && state.activeIssue.phase === phase
+            && state.activeIssue.category === category;
+        state.activeIssue = {
+            incidentId: sameIncident ? state.activeIssue.incidentId : createIncidentId(),
+            status: 'active',
+            title: copy.title,
+            message: copy.message,
+            help: copy.help,
+            detailLabel: trimString(options.detailLabel || 'Details') || 'Details',
+            details,
+            code,
+            phase,
+            severity,
+            category,
+            occurrences: occurrence.count,
+            firstSeenAt: occurrence.firstSeenAt,
+            lastSeenAt: occurrence.lastSeenAt
+        };
+        state.environment.timestamp = new Date().toISOString();
+        persistStartupIncident();
+        return state.activeIssue;
+    };
+
+    const captureIncident = (options = {}) => Object.freeze({ ...createIncidentRecord(options) });
+
     const clearResolvedIssue = () => {
+        if (state.activeIssue) {
+            state.activeIssue.status = 'recovered';
+            state.activeIssue.lastSeenAt = new Date().toISOString();
+            persistStartupIncident();
+        } else {
+            const persisted = readPersistedStartupIncident();
+            if (
+                persisted?.available === true
+                && persisted.status === 'active'
+                && persisted.surface === (trimString(state.environment.page || 'Plugin') || 'Plugin')
+            ) {
+                try {
+                    win.sessionStorage?.setItem(STARTUP_INCIDENT_STORAGE_KEY, JSON.stringify({
+                        ...persisted,
+                        status: 'recovered',
+                        recoveredAt: new Date().toISOString(),
+                        expiresAt: new Date(Date.now() + INCIDENT_TTL_MS).toISOString()
+                    }));
+                } catch (_error) {
+                    // Recovery history is best effort only.
+                }
+            }
+        }
         state.activeIssue = null;
         const panel = getPanel();
         if (panel && panel.parentNode) {
@@ -550,38 +1039,20 @@
 
     const renderPanel = (options = {}) => {
         const context = resolveContext(options.context);
-        const title = String(options.title || `${context} bootstrap failed`).trim();
-        const message = String(options.message || 'FolderView Plus hit a fatal error and could not continue.').trim();
-        const help = String(options.help || DEFAULT_HELP).trim();
-        const detailLabel = String(options.detailLabel || 'Details').trim();
-        const details = toDetailList(options.details);
-        const errorCode = trimString(options.code || 'FVPLUS-SET-RUNTIME-001') || 'FVPLUS-SET-RUNTIME-001';
-        const phase = trimString(options.phase || state.currentPhase || 'unknown') || 'unknown';
-        const severity = trimString(options.severity || 'fatal') || 'fatal';
-        const category = trimString(options.category || 'runtime-failed') || 'runtime-failed';
-        state.environment.timestamp = new Date().toISOString();
-        const occurrence = registerIssueOccurrence({
+        const incident = createIncidentRecord(options);
+        const {
             title,
             message,
-            details,
-            code: errorCode,
-            phase,
-            severity,
-            category
-        });
-        state.activeIssue = {
-            title,
-            message,
+            help,
             detailLabel,
             details,
             code: errorCode,
             phase,
             severity,
             category,
-            occurrences: occurrence.count,
-            firstSeenAt: occurrence.firstSeenAt,
-            lastSeenAt: occurrence.lastSeenAt
-        };
+            occurrences
+        } = incident;
+        const occurrence = { count: occurrences };
         const signature = JSON.stringify([context, title, message, detailLabel, details.join('|'), severity, category, phase, occurrence.count]);
         const host = resolveHost(options.hostSelector);
         if (!host) {
@@ -600,33 +1071,48 @@
         }
         panel.dataset.fvplusSignature = signature;
 
-        const listHtml = details.length > 0
+        const visibleDetails = details.map(sanitizeDiagnosticText);
+        const listHtml = visibleDetails.length > 0 && options.showDetailsInline === true
             ? `
 <div class="fvplus-fatal-list-title">${escapeHtml(detailLabel)}</div>
-<ul class="fvplus-fatal-list">${details.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>
+<ul class="fvplus-fatal-list">${visibleDetails.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>
             `.trim()
             : '';
         const facts = [
-            `Error code: ${errorCode}`,
-            `Severity: ${severity}`,
-            `Category: ${category}`,
-            `Phase: ${phase}`,
-            state.lastStep ? `Last successful step: ${state.lastStep}` : '',
-            state.lastAction ? `Last action: ${state.lastAction}` : '',
-            occurrence.count > 1 ? `Occurrences: ${occurrence.count}` : ''
+            `<span class="fvplus-fatal-reference">${escapeHtml(t('diagnostics.bootstrap.reference', 'Reference'))}: ${escapeHtml(errorCode)}</span>`,
+            state.lastStep ? `${escapeHtml(t('diagnostics.bootstrap.last-step', 'Last completed step'))}: ${escapeHtml(sanitizeDiagnosticText(state.lastStep))}` : '',
+            occurrence.count > 1 ? `${escapeHtml(t('diagnostics.bootstrap.occurrences', 'Occurrences'))}: ${occurrence.count}` : ''
         ].filter((entry) => entry);
         const detailsReport = buildSupportReport(state.activeIssue);
+        const canRetry = severity !== 'degraded'
+            && RECOVERABLE_CATEGORIES.has(category)
+            && typeof state.recoveryHandlers.retry === 'function'
+            && state.recoveryAttempts.filter((entry) => entry.action === 'retry' && entry.status === 'started').length < 1;
+        const retryAction = canRetry
+            ? `<button type="button" id="${RETRY_BUTTON_ID}"><i class="fa fa-repeat" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.retry', 'Try loading again'))}</button>`
+            : '';
+        const reloadAction = severity !== 'degraded'
+            ? `<button type="button" id="${RELOAD_BUTTON_ID}"><i class="fa fa-refresh" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.reload', 'Reload page'))}</button>`
+            : '';
         panel.className = `fvplus-fatal-banner${severity === 'degraded' ? ' is-degraded' : ''}`;
+        panel.setAttribute('role', severity === 'degraded' ? 'status' : 'alert');
+        panel.setAttribute('aria-live', severity === 'degraded' ? 'polite' : 'assertive');
+        panel.setAttribute('aria-atomic', 'true');
+        panel.setAttribute('aria-labelledby', 'fvplus-fatal-title');
+        panel.tabIndex = severity === 'degraded' ? 0 : -1;
         panel.innerHTML = `
-<div class="fvplus-fatal-title"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>${escapeHtml(title)}</div>
+<div class="fvplus-fatal-title" id="fvplus-fatal-title"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>${escapeHtml(title)}</div>
 <div class="fvplus-fatal-text">${escapeHtml(message)}</div>
-<div class="fvplus-fatal-facts">${facts.map((entry) => `<div class="fvplus-fatal-fact">${escapeHtml(entry)}</div>`).join('')}</div>
+<div class="fvplus-fatal-facts">${facts.map((entry) => `<div class="fvplus-fatal-fact">${entry}</div>`).join('')}</div>
 ${listHtml}
 <div class="fvplus-fatal-actions">
-    <button type="button" id="${COPY_BUTTON_ID}"><i class="fa fa-copy" aria-hidden="true"></i> Copy diagnostics</button>
+    ${retryAction}
+    ${reloadAction}
+    <button type="button" id="${COPY_BUTTON_ID}"><i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.copy', 'Copy support code'))}</button>
+    <button type="button" id="${DOWNLOAD_BUTTON_ID}"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.download', 'Download startup report'))}</button>
 </div>
 <details class="fvplus-fatal-details">
-    <summary>Show technical details</summary>
+    <summary>${escapeHtml(t('diagnostics.cards.technical-details', 'Technical details'))}</summary>
     <pre class="fvplus-fatal-pre">${escapeHtml(detailsReport)}</pre>
 </details>
 <div class="fvplus-fatal-help">${escapeHtml(help)}</div>
@@ -640,11 +1126,41 @@ ${listHtml}
         if (copyButton) {
             copyButton.addEventListener('click', async () => {
                 const copied = await copyDiagnostics();
-                copyButton.textContent = copied ? 'Copied diagnostics' : 'Copy failed';
+                copyButton.textContent = copied
+                    ? t('diagnostics.bootstrap.copied', 'Support code copied')
+                    : t('diagnostics.bootstrap.copy-failed', 'Copy failed');
                 win.setTimeout(() => {
-                    copyButton.innerHTML = '<i class="fa fa-copy" aria-hidden="true"></i> Copy diagnostics';
+                    copyButton.innerHTML = `<i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.copy', 'Copy support code'))}`;
                 }, 1600);
-            }, { once: true });
+            });
+        }
+        const retryButton = panel.querySelector(`#${RETRY_BUTTON_ID}`);
+        retryButton?.addEventListener('click', () => {
+            void runRecovery('retry');
+        }, { once: true });
+        const reloadButton = panel.querySelector(`#${RELOAD_BUTTON_ID}`);
+        reloadButton?.addEventListener('click', () => {
+            const startedAt = new Date().toISOString();
+            recordRecoveryAttempt({ action: 'reload', status: 'requested', startedAt });
+            recordAction('Reloaded page from startup error');
+            win.location?.reload?.();
+        }, { once: true });
+        const downloadButton = panel.querySelector(`#${DOWNLOAD_BUTTON_ID}`);
+        downloadButton?.addEventListener('click', () => {
+            const downloaded = downloadDiagnostics();
+            downloadButton.textContent = downloaded
+                ? t('diagnostics.bootstrap.downloaded', 'Startup report downloaded')
+                : t('diagnostics.bootstrap.download-failed', 'Download failed');
+        });
+        if (severity !== 'degraded') {
+            setBootstrapPresentationState('failed');
+            win.requestAnimationFrame?.(() => {
+                try {
+                    panel.focus({ preventScroll: true });
+                } catch (_error) {
+                    panel.focus?.();
+                }
+            });
         }
         return panel;
     };
@@ -687,8 +1203,8 @@ ${listHtml}
             phase: options.phase || 'module-load',
             category: options.category || 'missing-module',
             severity: options.severity || 'fatal',
-            title: String(options.title || `${context} bootstrap failed`).trim(),
-            message: String(options.message || `FolderView Plus could not start because required ${context.toLowerCase()} modules failed to load.`).trim(),
+            ...(options.title ? { title: String(options.title).trim() } : {}),
+            ...(options.message ? { message: String(options.message).trim() } : {}),
             detailLabel: options.detailLabel || 'Missing modules',
             details: toDetailList(missingModules)
         });
@@ -702,7 +1218,7 @@ ${listHtml}
         const rawMessage = error instanceof Error
             ? error.message
             : (typeof error === 'string' ? error : String(error?.message || error || 'Unknown error'));
-        const details = [];
+        const details = toDetailList(options.details);
         if (String(rawMessage || '').trim()) {
             details.push(String(rawMessage).trim());
         }
@@ -715,10 +1231,10 @@ ${listHtml}
             context,
             code: options.code || 'FVPLUS-SET-RUNTIME-001',
             phase: options.phase || 'runtime',
-            category: options.category || 'runtime-failed',
+            category: options.category || classifyError(error, 'runtime-failed'),
             severity: options.severity || 'fatal',
-            title: String(options.title || `${context} runtime failed`).trim(),
-            message: String(options.message || `FolderView Plus hit a fatal error and could not continue on the ${context.toLowerCase()} page.`).trim(),
+            ...(options.title ? { title: String(options.title).trim() } : {}),
+            ...(options.message ? { message: String(options.message).trim() } : {}),
             detailLabel: options.detailLabel || 'Error details',
             details
         });
@@ -830,6 +1346,30 @@ ${listHtml}
                 category: 'promise-rejection'
             });
         }, true);
+
+        win.addEventListener('securitypolicyviolation', (event) => {
+            const blockedUri = trimString(event?.blockedURI || '');
+            const sourceFile = trimString(event?.sourceFile || '');
+            if (!isPluginRelatedError({ sourceUrl: blockedUri, filename: sourceFile })) {
+                return;
+            }
+            const directive = trimString(event?.effectiveDirective || event?.violatedDirective || 'unknown');
+            persistBrowserError({
+                page: resolveContext(),
+                category: 'csp-violation',
+                phase: state.currentPhase || 'bootstrap',
+                message: 'Content Security Policy blocked a FolderView Plus resource.',
+                sourceUrl: blockedUri || sourceFile,
+                detail: directive
+            });
+            reportFatalError(new Error('Content Security Policy blocked a required FolderView Plus resource.'), {
+                context: resolveContext(),
+                sourceUrl: blockedUri || sourceFile,
+                phase: state.currentPhase || 'bootstrap',
+                category: 'csp-violation',
+                details: [`Directive: ${directive}`]
+            });
+        }, true);
     };
 
     const api = Object.freeze({
@@ -843,12 +1383,26 @@ ${listHtml}
         setPhase,
         recordAction,
         setModuleStatus,
+        recordModuleEvent,
         recordRequest,
         setPrefsStatus,
         buildSupportReport,
         copyDiagnostics,
+        downloadDiagnostics,
         reportDegradedState,
-        getBrowserConsoleErrorSnapshot
+        getBrowserConsoleErrorSnapshot,
+        getStartupIncidentSnapshot,
+        readPersistedStartupIncident,
+        captureIncident,
+        classifyError,
+        registerRecoveryHandler,
+        unregisterRecoveryHandler,
+        runRecovery,
+        setBootstrapPresentationState,
+        constants: Object.freeze({
+            incidentSchemaVersion: INCIDENT_SCHEMA_VERSION,
+            startupIncidentStorageKey: STARTUP_INCIDENT_STORAGE_KEY
+        })
     });
 
     win.FolderViewPlusFatalBanner = api;

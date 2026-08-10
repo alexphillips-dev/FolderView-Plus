@@ -35,7 +35,7 @@ test('settings first paint is cloaked until config-only folder data is ready', (
     assert.match(settingsPage, /id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true"/);
     assert.match(settingsPage, /id="fv-settings-bootstrap-shell"[\s\S]*Loading FolderView Plus settings/);
     assert.match(settingsCss, /#fv-settings-root\.fv-settings-bootstrap-pending > :not\(#fv-settings-bootstrap-shell\):not\(#fvplus-fatal-banner\)/);
-    assert.match(settingsJs, /const revealSettingsBootstrapSurface = \(\) => \{[\s\S]*classList\.remove\('fv-settings-bootstrap-pending'\)/);
+    assert.match(settingsJs, /const revealSettingsBootstrapSurface = \(\) => \{[\s\S]*classList\.remove\('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed'\)/);
     assert.match(settingsJs, /const result = await refreshCoreData\(\);[\s\S]*setSettingsMode\(settingsUiState\.mode\);[\s\S]*revealSettingsBootstrapSurface\(\);/);
 });
 

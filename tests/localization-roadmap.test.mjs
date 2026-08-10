@@ -71,11 +71,11 @@ test('regional locale resolution maps exact Unraid identifiers to canonical cata
 
 test('catalog report exposes honest legacy and namespace coverage for every registered locale', () => {
     const report = runRegistryPhp('fvplus_i18n_catalog_report()');
-    assert.equal(report.catalogVersion, '2026.08.06.1');
+    assert.equal(report.catalogVersion, '2026.08.10.1');
     assert.ok(report.sourceMessageCount > 1900);
     assert.equal(report.namespaceCount, 10);
     assert.equal(report.extraction.candidateCount, 0);
-    assert.equal(report.extraction.autoBoundMessageCount, 1583);
+    assert.equal(report.extraction.autoBoundMessageCount, 1580);
     assert.equal(report.extraction.catalogMessageCount, report.sourceMessageCount);
     assert.equal(Object.keys(report.locales).length, 27);
     assert.equal(report.locales.en.coveragePercent, 100);

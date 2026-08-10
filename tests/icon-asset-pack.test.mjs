@@ -97,34 +97,33 @@ const assertSymbolicLink = (targetPath) => {
     }
     execFileSync('test', ['-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
 };
-const runMaliciousArchivePreflight = (fixtureScript, extraEnv = {}) => {
+const runMaliciousArchivePreflight = (fixtureKind, extraEnv = {}) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-archive-preflight-'));
     const shellTemp = toBashPath(tempDir);
     const shellPreflight = toBashPath(archivePreflightPath);
-    const shell = [
-        'set -euo pipefail',
-        'cd "$1"',
-        'mkdir -p third-party-icons',
-        'printf \'{"version":"1.0.0"}\\n\' > asset-pack.json',
-        fixtureScript,
-        'tar -cJf malicious.txz asset-pack.json third-party-icons',
-        '/bin/bash "$2" malicious.txz icon-pack'
-    ].join('\n');
-    const command = process.platform === 'win32' ? 'wsl.exe' : 'bash';
-    const args = process.platform === 'win32'
-        ? [
-            '--exec',
-            'env',
-            ...Object.entries(extraEnv).map(([key, value]) => `${key}=${value}`),
-            'bash',
-            '-c',
-            shell,
-            'fvplus-preflight',
-            shellTemp,
-            shellPreflight
-        ]
-        : ['-c', shell, 'fvplus-preflight', shellTemp, shellPreflight];
     try {
+        const iconDir = path.join(tempDir, 'third-party-icons');
+        fs.mkdirSync(iconDir, { recursive: true });
+        fs.writeFileSync(path.join(tempDir, 'asset-pack.json'), '{"version":"1.0.0"}\n');
+        if (fixtureKind === 'link') {
+            if (process.platform === 'win32') {
+                execFileSync('wsl.exe', ['--exec', 'ln', '-s', '/etc/passwd', `${shellTemp}/third-party-icons/escape.svg`]);
+            } else {
+                fs.symlinkSync('/etc/passwd', path.join(iconDir, 'escape.svg'));
+            }
+        } else if (fixtureKind === 'oversized') {
+            fs.writeFileSync(path.join(iconDir, 'large.svg'), '0123456789abcdef');
+        } else {
+            throw new Error(`Unknown malicious archive fixture: ${fixtureKind}`);
+        }
+        const archive = `${shellTemp}/malicious.txz`;
+        const tarArgs = ['-cJf', archive, '-C', shellTemp, 'asset-pack.json', 'third-party-icons'];
+        if (process.platform === 'win32') execFileSync('wsl.exe', ['--exec', 'tar', ...tarArgs]);
+        else execFileSync('tar', tarArgs);
+        const command = process.platform === 'win32' ? 'wsl.exe' : '/bin/bash';
+        const args = process.platform === 'win32'
+            ? ['--exec', 'env', ...Object.entries(extraEnv).map(([key, value]) => `${key}=${value}`), '/bin/bash', shellPreflight, archive, 'icon-pack']
+            : [shellPreflight, archive, 'icon-pack'];
         return spawnSync(command, args, {
             cwd: repoRoot,
             encoding: 'utf8',
@@ -252,14 +251,11 @@ test('installer rejects a bad checksum before creating an active cache', () => {
 });
 
 test('archive preflight rejects links and bounded-size violations before extraction', () => {
-    const linked = runMaliciousArchivePreflight('ln -s /etc/passwd third-party-icons/escape.svg');
+    const linked = runMaliciousArchivePreflight('link');
     assert.notEqual(linked.status, 0);
     assert.match(linked.stderr, /symbolic or hard link/);
 
-    const oversized = runMaliciousArchivePreflight(
-        "printf '0123456789abcdef' > third-party-icons/large.svg",
-        { FVPLUS_ARCHIVE_MAX_ENTRY_BYTES: '8' }
-    );
+    const oversized = runMaliciousArchivePreflight('oversized', { FVPLUS_ARCHIVE_MAX_ENTRY_BYTES: '8' });
     assert.notEqual(oversized.status, 0);
     assert.match(oversized.stderr, /entry exceeds the 8-byte limit/);
 });

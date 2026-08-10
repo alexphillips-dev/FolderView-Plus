@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { actionableAlertsForCommit } from '../scripts/codeql_alert_guard.mjs';
+import { actionableAlertsForCommit, analysisAvailableForCommit } from '../scripts/codeql_alert_guard.mjs';
 
 const alert = ({ state = 'open', sha = 'current', number = 1 } = {}) => ({
     number,
@@ -21,4 +21,15 @@ test('CodeQL guard reports only open alerts associated with the analyzed commit'
     ];
     assert.deepEqual(actionableAlertsForCommit(alerts, 'current').map((entry) => entry.number), [1]);
     assert.deepEqual(actionableAlertsForCommit(alerts, 'clean'), []);
+});
+
+test('CodeQL guard waits for the exact commit and ref analysis', () => {
+    const analyses = [
+        { commit_sha: 'older', ref: 'refs/heads/dev', error: '' },
+        { commit_sha: 'current', ref: 'refs/heads/main', error: '' },
+        { commit_sha: 'broken', ref: 'refs/heads/dev', error: 'upload failed' }
+    ];
+    assert.equal(analysisAvailableForCommit(analyses, 'current', 'refs/heads/dev'), false);
+    assert.equal(analysisAvailableForCommit(analyses, 'current', 'refs/heads/main'), true);
+    assert.equal(analysisAvailableForCommit(analyses, 'broken', 'refs/heads/dev'), false);
 });

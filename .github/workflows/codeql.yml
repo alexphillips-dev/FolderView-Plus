@@ -47,4 +47,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
-        run: node scripts/codeql_alert_guard.mjs --commit-sha "${GITHUB_SHA}"
+        run: node scripts/codeql_alert_guard.mjs --commit-sha "${GITHUB_SHA}" --ref "${GITHUB_REF}"

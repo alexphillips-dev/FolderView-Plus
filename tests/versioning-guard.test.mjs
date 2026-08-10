@@ -638,6 +638,7 @@ test('release-on-main is the single authoritative release workflow', () => {
 test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
     assert.match(releaseOnMainWorkflow, /name:\s*Release On Main/);
     assert.match(releaseOnMainWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main/);
+    assert.match(releaseOnMainWorkflow, /Install Node validation dependencies[\s\S]*npm ci --ignore-scripts/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
     assert.match(releaseOnMainWorkflow, /release_notes\.md/);
     assert.match(releaseOnMainWorkflow, /folderview\.plus\.plg/);

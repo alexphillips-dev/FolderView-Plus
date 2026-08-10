@@ -29,6 +29,10 @@ jobs:
       - name: Setup CI environment
         uses: ./.github/actions/setup-ci-env
 
+      - name: Install Node validation dependencies
+        shell: bash
+        run: npm ci --ignore-scripts
+
       - name: Detect release artifact changes
         id: release_scope
         shell: bash

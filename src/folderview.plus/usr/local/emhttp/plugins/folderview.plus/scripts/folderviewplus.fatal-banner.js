@@ -96,7 +96,7 @@
 
     const trimString = (value) => String(value ?? '').trim();
 
-    const t = (key, fallback, ...params) => {
+    const fatalBannerT = (key, fallback, ...params) => {
         try {
             const early = trimString(win.FolderViewPlusEarlyI18n?.messages?.[key] || '');
             if (early) {
@@ -743,7 +743,7 @@
         const startedAt = new Date().toISOString();
         const startedMs = Date.now();
         recordRecoveryAttempt({ action: normalizedName, status: 'started', startedAt });
-        updateRecoveryButton(t('diagnostics.bootstrap.retrying', 'Trying again…'), true);
+        updateRecoveryButton(fatalBannerT('diagnostics.bootstrap.retrying', 'Trying again…'), true);
         setBootstrapPresentationState('retrying');
         try {
             await handler();
@@ -761,7 +761,7 @@
                 persistStartupIncident();
             }
             recordAction('Startup recovery succeeded');
-            updateRecoveryButton(t('diagnostics.bootstrap.retry-succeeded', 'Loading resumed'), true);
+            updateRecoveryButton(fatalBannerT('diagnostics.bootstrap.retry-succeeded', 'Loading resumed'), true);
             return true;
         } catch (error) {
             const completedAt = new Date().toISOString();
@@ -775,7 +775,7 @@
             });
             recordAction('Startup recovery failed');
             setBootstrapPresentationState('failed');
-            updateRecoveryButton(t('diagnostics.bootstrap.retry-failed', 'Try again failed'), true);
+            updateRecoveryButton(fatalBannerT('diagnostics.bootstrap.retry-failed', 'Try again failed'), true);
             return false;
         } finally {
             state.activeRecovery = false;
@@ -1079,9 +1079,9 @@
             `.trim()
             : '';
         const facts = [
-            `<span class="fvplus-fatal-reference">${escapeHtml(t('diagnostics.bootstrap.reference', 'Reference'))}: ${escapeHtml(errorCode)}</span>`,
-            state.lastStep ? `${escapeHtml(t('diagnostics.bootstrap.last-step', 'Last completed step'))}: ${escapeHtml(sanitizeDiagnosticText(state.lastStep))}` : '',
-            occurrence.count > 1 ? `${escapeHtml(t('diagnostics.bootstrap.occurrences', 'Occurrences'))}: ${occurrence.count}` : ''
+            `<span class="fvplus-fatal-reference">${escapeHtml(fatalBannerT('diagnostics.bootstrap.reference', 'Reference'))}: ${escapeHtml(errorCode)}</span>`,
+            state.lastStep ? `${escapeHtml(fatalBannerT('diagnostics.bootstrap.last-step', 'Last completed step'))}: ${escapeHtml(sanitizeDiagnosticText(state.lastStep))}` : '',
+            occurrence.count > 1 ? `${escapeHtml(fatalBannerT('diagnostics.bootstrap.occurrences', 'Occurrences'))}: ${occurrence.count}` : ''
         ].filter((entry) => entry);
         const detailsReport = buildSupportReport(state.activeIssue);
         const canRetry = severity !== 'degraded'
@@ -1089,10 +1089,10 @@
             && typeof state.recoveryHandlers.retry === 'function'
             && state.recoveryAttempts.filter((entry) => entry.action === 'retry' && entry.status === 'started').length < 1;
         const retryAction = canRetry
-            ? `<button type="button" id="${RETRY_BUTTON_ID}"><i class="fa fa-repeat" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.retry', 'Try loading again'))}</button>`
+            ? `<button type="button" id="${RETRY_BUTTON_ID}"><i class="fa fa-repeat" aria-hidden="true"></i> ${escapeHtml(fatalBannerT('diagnostics.bootstrap.retry', 'Try loading again'))}</button>`
             : '';
         const reloadAction = severity !== 'degraded'
-            ? `<button type="button" id="${RELOAD_BUTTON_ID}"><i class="fa fa-refresh" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.reload', 'Reload page'))}</button>`
+            ? `<button type="button" id="${RELOAD_BUTTON_ID}"><i class="fa fa-refresh" aria-hidden="true"></i> ${escapeHtml(fatalBannerT('diagnostics.bootstrap.reload', 'Reload page'))}</button>`
             : '';
         panel.className = `fvplus-fatal-banner${severity === 'degraded' ? ' is-degraded' : ''}`;
         panel.setAttribute('role', severity === 'degraded' ? 'status' : 'alert');
@@ -1108,11 +1108,11 @@ ${listHtml}
 <div class="fvplus-fatal-actions">
     ${retryAction}
     ${reloadAction}
-    <button type="button" id="${COPY_BUTTON_ID}"><i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.copy', 'Copy support code'))}</button>
-    <button type="button" id="${DOWNLOAD_BUTTON_ID}"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.download', 'Download startup report'))}</button>
+    <button type="button" id="${COPY_BUTTON_ID}"><i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(fatalBannerT('diagnostics.bootstrap.copy', 'Copy support code'))}</button>
+    <button type="button" id="${DOWNLOAD_BUTTON_ID}"><i class="fa fa-download" aria-hidden="true"></i> ${escapeHtml(fatalBannerT('diagnostics.bootstrap.download', 'Download startup report'))}</button>
 </div>
 <details class="fvplus-fatal-details">
-    <summary>${escapeHtml(t('diagnostics.cards.technical-details', 'Technical details'))}</summary>
+    <summary>${escapeHtml(fatalBannerT('diagnostics.cards.technical-details', 'Technical details'))}</summary>
     <pre class="fvplus-fatal-pre">${escapeHtml(detailsReport)}</pre>
 </details>
 <div class="fvplus-fatal-help">${escapeHtml(help)}</div>
@@ -1127,10 +1127,10 @@ ${listHtml}
             copyButton.addEventListener('click', async () => {
                 const copied = await copyDiagnostics();
                 copyButton.textContent = copied
-                    ? t('diagnostics.bootstrap.copied', 'Support code copied')
-                    : t('diagnostics.bootstrap.copy-failed', 'Copy failed');
+                    ? fatalBannerT('diagnostics.bootstrap.copied', 'Support code copied')
+                    : fatalBannerT('diagnostics.bootstrap.copy-failed', 'Copy failed');
                 win.setTimeout(() => {
-                    copyButton.innerHTML = `<i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(t('diagnostics.bootstrap.copy', 'Copy support code'))}`;
+                    copyButton.innerHTML = `<i class="fa fa-copy" aria-hidden="true"></i> ${escapeHtml(fatalBannerT('diagnostics.bootstrap.copy', 'Copy support code'))}`;
                 }, 1600);
             });
         }
@@ -1149,8 +1149,8 @@ ${listHtml}
         downloadButton?.addEventListener('click', () => {
             const downloaded = downloadDiagnostics();
             downloadButton.textContent = downloaded
-                ? t('diagnostics.bootstrap.downloaded', 'Startup report downloaded')
-                : t('diagnostics.bootstrap.download-failed', 'Download failed');
+                ? fatalBannerT('diagnostics.bootstrap.downloaded', 'Startup report downloaded')
+                : fatalBannerT('diagnostics.bootstrap.download-failed', 'Download failed');
         });
         if (severity !== 'degraded') {
             setBootstrapPresentationState('failed');

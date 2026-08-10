@@ -151,7 +151,7 @@ for (const fullPath of sourceFiles.sort()) {
     referencedKeys.get(key).push(`${relPath}:${line}`);
   }
 
-  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|translate)\(\s*['"]([^'"]+)['"]/g;
+  const applicationWrapperRegex = /\b(?:setupAssistantT|importT|folderEditorT|dashboardT|dockerT|diagnosticsT|fatalBannerT|translate)\(\s*['"]([^'"]+)['"]/g;
   while ((match = applicationWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;

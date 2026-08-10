@@ -261,6 +261,11 @@ if (!/issues:\s*write/.test(scheduledValidationWorkflow)
     || !/Live Unraid validation configuration required/.test(scheduledValidationWorkflow)) {
   fail('Scheduled validation must report missing live-Unraid secret configuration without exposing secret values.');
 }
+if (!/gh issue list[\s\S]*--repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
+    || !/gh issue create --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)
+    || !/gh issue close "\$\{issue_number\}" --repo "\$\{GITHUB_REPOSITORY\}"/.test(scheduledValidationWorkflow)) {
+  fail('Scheduled validation issue operations must target GITHUB_REPOSITORY without relying on a checkout.');
+}
 if (!/schedule:/.test(scheduledWorkflowHealthWorkflow)
     || !/workflow_dispatch:/.test(scheduledWorkflowHealthWorkflow)
     || !/actions:\s*read/.test(scheduledWorkflowHealthWorkflow)

@@ -12,6 +12,20 @@ const packageLock = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package-lock
 const runtimeInventory = JSON.parse(fs.readFileSync(path.join(repoRoot, 'scripts', 'runtime_components.json'), 'utf8'));
 const manifest = fs.readFileSync(path.join(repoRoot, 'folderview.plus.plg'), 'utf8');
 const version = manifest.match(/<!ENTITY\s+version\s+"([^"]+)">/)?.[1] || 'unknown';
+const dnsNamespaceUuid = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+
+const uuidV5 = (namespaceUuid, name) => {
+    const namespaceBytes = Buffer.from(namespaceUuid.replaceAll('-', ''), 'hex');
+    assert.equal(namespaceBytes.length, 16, 'UUID namespace must contain exactly 16 bytes');
+    const bytes = Buffer.from(
+        crypto.createHash('sha1').update(namespaceBytes).update(String(name), 'utf8').digest().subarray(0, 16)
+    );
+    bytes[6] = (bytes[6] & 0x0f) | 0x50;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = bytes.toString('hex');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};
+const serialNumber = `urn:uuid:${uuidV5(dnsNamespaceUuid, `folderview-plus:${version}`)}`;
 
 assert.equal(runtimeInventory.schemaVersion, 1, 'scripts/runtime_components.json schemaVersion must be 1');
 const includeRoot = path.join(
@@ -119,6 +133,7 @@ const components = [...runtimeComponents, ...hostComponents, ...npmComponents, .
 const bom = {
     bomFormat: 'CycloneDX',
     specVersion: '1.5',
+    serialNumber,
     version: 1,
     metadata: {
         component: {

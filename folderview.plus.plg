@@ -5,18 +5,28 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.08.10.02">
-<!ENTITY md5 "2c32d0a5dde4e6d43273366b463090ac">
-<!ENTITY sha256 "fd4768fbbb8a5434cf0b7bbb220e31301a4ed5af44bb49a50d58316fc110f3ae">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.08.10.03">
+<!ENTITY md5 "5816fac7ccfe4bae1acb68d0609b96af">
+<!ENTITY sha256 "af00cdbdc49b87e1116191a34d0aaa90a88819322cde5aa7c63c980f1ed9d367">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
-<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/main/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
+<!ENTITY iconPackURL "https://raw.githubusercontent.com/&github;/dev/asset-packs/folderview.plus-icons-&iconPackVersion;.txz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.10.03
+## FolderView Plus 2026.08.10.03
+This development build restores the `dev` update channel after publishing stable `2026.08.10.02`.
+### Release and supply-chain reliability
+- Maintenance: Restore dev-channel manifest and package URLs while preserving the complete stable release source.
+- Fix: Install Node validation dependencies before release checks and require live Unraid, browser, and theme targets whenever their repository secrets are configured.
+- Security: Add a deterministic SHA-256 UUIDv8 serial to the CycloneDX SBOM so GitHub can publish a valid SBOM attestation without weak cryptographic algorithms.
+- Quality: Retain the full stable release validation, deterministic package, checksum, provenance, and release-note contracts on the continuing development branch.
+
 
 ###2026.08.10.02
 ## FolderView Plus 2026.08.10.02
@@ -8247,7 +8257,7 @@ This dev-channel synchronization packages the cross-browser Diagnostics correcti
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
         <SHA256>&sha256;</SHA256>
     </FILE>

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "规则工作区",
     "docker.actions.empty-filter-help": "在筛选之前从工具显示空文件夹。",
     "docker.actions.reset-view": "重置视图",
+    "docker.preview.open-webui": "打开网页界面",
+    "docker.preview.open-console": "打开控制台",
+    "docker.preview.view-logs": "查看日志",
+    "docker.provider.hybrid-label": "带有 GraphQL 数据的旧版 Unraid WebGUI",
+    "docker.health.api-summary": "Docker API：$1 更新$2、$3 重建就绪、$4 孤立、$5 端口冲突$6",
     "docker.views.folderview": "文件夹视图",
     "docker.views.host": "主机列表",
     "docker.views.command": "命令",

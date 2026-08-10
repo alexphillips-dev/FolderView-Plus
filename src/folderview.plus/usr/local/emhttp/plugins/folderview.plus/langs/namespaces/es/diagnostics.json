@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "es",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Estas capturas conservan la geometría del panel renderizada después de navegar a Configuración.",
     "diagnostics.capture.review": "Revisión",
     "diagnostics.capture.ready": "Listo",
-    "diagnostics.capture.capture-again": "Capturar de nuevo"
+    "diagnostics.capture.capture-again": "Capturar de nuevo",
+    "diagnostics.bootstrap.reference": "Referencia",
+    "diagnostics.bootstrap.last-step": "Último paso completado",
+    "diagnostics.bootstrap.occurrences": "Ocurrencias",
+    "diagnostics.bootstrap.retry": "Intentar cargar de nuevo",
+    "diagnostics.bootstrap.reload": "Recargar página",
+    "diagnostics.bootstrap.copy": "Copiar código de soporte",
+    "diagnostics.bootstrap.download": "Descargar informe de inicio",
+    "diagnostics.bootstrap.copied": "Código de soporte copiado",
+    "diagnostics.bootstrap.copy-failed": "Error al copiar",
+    "diagnostics.bootstrap.downloaded": "Informe de inicio descargado",
+    "diagnostics.bootstrap.download-failed": "Error de descarga",
+    "diagnostics.bootstrap.retrying": "Intentándolo de nuevo…",
+    "diagnostics.bootstrap.retry-succeeded": "Carga reanudada",
+    "diagnostics.bootstrap.retry-failed": "El nuevo intento falló"
 }

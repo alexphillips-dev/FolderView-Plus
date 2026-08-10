@@ -23,6 +23,11 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const installSmoke = read('scripts/install_smoke.sh');
 const releaseGuard = read('scripts/release_guard.sh');
+const runtimeSnapshotPhpEnv = {
+    ...process.env,
+    FVPLUS_TEST_RUNTIME_SNAPSHOT_LIB: path.join(repoRoot, runtimeSnapshotLibPath)
+};
+const requireRuntimeSnapshotLibPhp = "require getenv('FVPLUS_TEST_RUNTIME_SNAPSHOT_LIB');";
 
 const loadClientApi = () => {
     const context = {
@@ -56,21 +61,19 @@ test('snapshot assembly keeps configuration reads under one mutation boundary', 
 });
 
 test('state and full runtime shapes produce the same conditional signature', () => {
-    const absoluteLib = path.join(repoRoot, runtimeSnapshotLibPath).replace(/\\/g, '/').replace(/'/g, "\\'");
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",
-        `require '${absoluteLib}';`,
+        requireRuntimeSnapshotLibPhp,
         "$state = ['app' => ['name' => 'app', 'id' => 'abc123000000', 'state' => 'running', 'running' => true, 'paused' => false, 'autostart' => true, 'Updated' => true]];",
         "$full = ['app' => ['Id' => 'abc123000000full-docker-id', 'info' => ['Name' => 'app', 'State' => ['Running' => true, 'Paused' => false, 'Autostart' => true, 'Updated' => true]]]];",
         "echo json_encode([runtimeSnapshotSignature('docker', $state), runtimeSnapshotSignature('docker', $full)]);"
     ].join(' ');
-    const signatures = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
+    const signatures = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
     assert.equal(signatures[0], signatures[1]);
     assert.match(signatures[0], /^[a-f0-9]{64}$/);
 });
 
 test('snapshot tokens are mode-independent and unchanged checks omit payloads', () => {
-    const absoluteLib = path.join(repoRoot, runtimeSnapshotLibPath).replace(/\\/g, '/').replace(/'/g, "\\'");
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",
         "function withConfigMutationLock(callable $callback) { return $callback(); }",
@@ -80,7 +83,7 @@ test('snapshot tokens are mode-independent and unchanged checks omit payloads', 
         "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => (int)($GLOBALS['snapshotTestFolderRevision'] ?? 7), 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
         "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { if ($mode === 'full') { return ['app' => ['Id' => 'abc123000000full-docker-id', 'info' => ['Name' => 'app', 'State' => ['Running' => true, 'Paused' => false, 'Autostart' => true, 'Updated' => true]]]]; } return readInfoState($type); }",
         "function readInfoState(string $type, bool $live = false): array { return ['app' => ['name' => 'app', 'id' => 'abc123000000', 'state' => 'running', 'running' => true, 'paused' => false, 'autostart' => true, 'Updated' => true]]; }",
-        `require '${absoluteLib}';`,
+        requireRuntimeSnapshotLibPhp,
         "$state = buildRuntimeSnapshot('docker', 'state');",
         "$full = buildRuntimeSnapshot('docker', 'full');",
         "$check = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
@@ -88,7 +91,7 @@ test('snapshot tokens are mode-independent and unchanged checks omit payloads', 
         "$changed = buildRuntimeSnapshot('docker', 'check', $state['snapshotToken']);",
         "echo json_encode(['stateToken' => $state['snapshotToken'], 'fullToken' => $full['snapshotToken'], 'check' => $check, 'changed' => $changed]);"
     ].join(' ');
-    const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
+    const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
     assert.equal(result.stateToken, result.fullToken);
     assert.equal(result.check.notModified, true);
     assert.equal(result.check.payloadIncluded, false);
@@ -101,7 +104,6 @@ test('snapshot tokens are mode-independent and unchanged checks omit payloads', 
 });
 
 test('config snapshots return saved layout without touching host runtime discovery', () => {
-    const absoluteLib = path.join(repoRoot, runtimeSnapshotLibPath).replace(/\\/g, '/').replace(/'/g, "\\'");
     const php = [
         "function ensureType(string $type): string { return $type === 'vm' ? 'vm' : 'docker'; }",
         "function withConfigMutationLock(callable $callback) { return $callback(); }",
@@ -111,12 +113,12 @@ test('config snapshots return saved layout without touching host runtime discove
         "function readConfigMetadata(string $type, bool $reconcile = true): array { return ['folderRevision' => 7, 'prefsRevision' => 9, 'folderSha256' => 'folder-hash', 'prefsSha256' => 'prefs-hash']; }",
         "function readInfoCached(string $type, string $mode = 'full', ?int $ttl = null, bool $force = false): array { throw new RuntimeException('runtime discovery must not run'); }",
         "function readInfoState(string $type, bool $live = false): array { throw new RuntimeException('runtime discovery must not run'); }",
-        `require '${absoluteLib}';`,
+        requireRuntimeSnapshotLibPhp,
         "$result = buildRuntimeSnapshot('docker', 'config');",
         "$combined = buildRuntimeConfigBootstrapSnapshot();",
         "echo json_encode(['single' => $result, 'combined' => $combined]);"
     ].join(' ');
-    const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8' }));
+    const result = JSON.parse(execFileSync('php', ['-r', php], { encoding: 'utf8', env: runtimeSnapshotPhpEnv }));
     assert.equal(result.single.mode, 'config');
     assert.equal(result.single.payloadIncluded, true);
     assert.equal(result.single.runtimeIncluded, false);

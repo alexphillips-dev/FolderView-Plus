@@ -18,6 +18,22 @@ const requestedRuns = Number(process.env.FVPLUS_RUNTIME_PERF_REPETITIONS);
 const measuredRuns = Math.max(3, Number.isFinite(requestedRuns) ? requestedRuns : Number(budgetConfig.runs?.measured || 5));
 const warmupRuns = Math.max(1, Number(budgetConfig.runs?.warmup || 1));
 const timeoutMs = Math.max(15000, Number(process.env.FVPLUS_RUNTIME_PERF_TIMEOUT_MS) || 90000);
+let atomicWriteCounter = 0;
+const writeFileAtomic = (targetPath, content) => {
+    const resolvedTarget = path.resolve(targetPath);
+    const parent = path.dirname(resolvedTarget);
+    fs.mkdirSync(parent, { recursive: true });
+    atomicWriteCounter += 1;
+    const temporaryPath = path.join(parent, `.${path.basename(resolvedTarget)}.${process.pid}.${atomicWriteCounter}.tmp`);
+    const descriptor = fs.openSync(temporaryPath, 'wx', 0o600);
+    try {
+        fs.writeFileSync(descriptor, content, 'utf8');
+        fs.fsyncSync(descriptor);
+    } finally {
+        fs.closeSync(descriptor);
+    }
+    fs.renameSync(temporaryPath, resolvedTarget);
+};
 
 const mimeTypes = {
     '.css': 'text/css; charset=utf-8',
@@ -53,8 +69,9 @@ const server = http.createServer((request, response) => {
         });
         fs.createReadStream(filePath).pipe(response);
     } catch (error) {
+        console.error('Runtime performance fixture request failed:', error);
         response.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-        response.end(String(error?.stack || error));
+        response.end('Internal fixture server error');
     }
 });
 
@@ -225,13 +242,13 @@ if (updateBaseline) {
             medians: value.medians
         }]))
     };
-    fs.writeFileSync(baselinePath, `${JSON.stringify(nextBaseline, null, 2)}\n`);
+    writeFileAtomic(baselinePath, `${JSON.stringify(nextBaseline, null, 2)}\n`);
     report.failures = [];
 }
 
 const jsonPath = path.join(artifactDir, 'runtime-performance-report.json');
 const markdownPath = path.join(artifactDir, 'runtime-performance-report.md');
-fs.writeFileSync(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
+writeFileAtomic(jsonPath, `${JSON.stringify(report, null, 2)}\n`);
 const rows = [];
 for (const [name, scenario] of Object.entries(report.scenarios)) {
     for (const metric of Object.keys(metricKinds)) {
@@ -239,7 +256,7 @@ for (const [name, scenario] of Object.entries(report.scenarios)) {
         rows.push(`| ${name} | ${metric} | ${check.value} | ${check.effectiveLimit} | ${check.passed ? 'Pass' : 'Fail'} |`);
     }
 }
-fs.writeFileSync(markdownPath, `# Runtime performance budget report\n\nChromium ${report.browser}; ${measuredRuns} measured runs after ${warmupRuns} warm-up. Values are medians.\n\n| Scenario | Metric | Median | Limit | Result |\n| --- | --- | ---: | ---: | --- |\n${rows.join('\n')}\n`);
+writeFileAtomic(markdownPath, `# Runtime performance budget report\n\nChromium ${report.browser}; ${measuredRuns} measured runs after ${warmupRuns} warm-up. Values are medians.\n\n| Scenario | Metric | Median | Limit | Result |\n| --- | --- | ---: | ---: | --- |\n${rows.join('\n')}\n`);
 
 for (const [name, scenario] of Object.entries(report.scenarios)) {
     const summary = Object.entries(scenario.medians).map(([metric, value]) => `${metric}=${value}`).join(', ');

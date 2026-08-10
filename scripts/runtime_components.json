@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "firstPartyFiles": [
+    "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/customEvents.js"
+  ],
+  "components": [
+    {
+      "name": "Chart.js",
+      "version": "3.9.1",
+      "license": "MIT",
+      "purl": "pkg:npm/chart.js@3.9.1",
+      "source": "https://github.com/chartjs/Chart.js",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+      ]
+    },
+    {
+      "name": "@kurkle/color",
+      "version": "0.2.1",
+      "license": "MIT",
+      "purl": "pkg:npm/%40kurkle/color@0.2.1",
+      "source": "https://github.com/kurkle/color",
+      "embedded": true,
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+      ]
+    },
+    {
+      "name": "chartjs-adapter-moment",
+      "version": "1.0.1",
+      "license": "MIT",
+      "purl": "pkg:npm/chartjs-adapter-moment@1.0.1",
+      "source": "https://github.com/chartjs/chartjs-adapter-moment",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-adapter-moment.min.js"
+      ]
+    },
+    {
+      "name": "chartjs-plugin-streaming",
+      "version": "2.0.0",
+      "license": "MIT",
+      "purl": "pkg:npm/chartjs-plugin-streaming@2.0.0",
+      "source": "https://github.com/nagix/chartjs-plugin-streaming",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js"
+      ]
+    },
+    {
+      "name": "CLDRPluralRuleParser",
+      "version": "vendored-snapshot",
+      "license": "MIT",
+      "source": "https://github.com/santhoshtr/CLDRPluralRuleParser",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"
+      ]
+    },
+    {
+      "name": "jquery.i18n",
+      "version": "vendored-snapshot",
+      "license": "MIT OR GPL-2.0-or-later",
+      "source": "https://github.com/wikimedia/jquery.i18n",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.bidi.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.fallbacks.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.language.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js",
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.parser.js"
+      ]
+    },
+    {
+      "name": "jQuery UI MultiSelect Widget",
+      "version": "3.0.0",
+      "license": "MIT OR GPL-2.0-or-later",
+      "source": "https://github.com/ehynds/jquery-ui-multiselect-widget",
+      "modified": true,
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.multiselect.js"
+      ]
+    },
+    {
+      "name": "Moment.js",
+      "version": "2.29.4",
+      "license": "MIT",
+      "purl": "pkg:npm/moment@2.29.4",
+      "source": "https://github.com/moment/moment",
+      "files": [
+        "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/moment.min.js"
+      ]
+    }
+  ],
+  "hostProvidedComponents": [
+    {
+      "name": "jQuery",
+      "version": "unraid-provided",
+      "source": "https://jquery.com/"
+    },
+    {
+      "name": "jQuery UI",
+      "version": "unraid-provided",
+      "source": "https://jqueryui.com/"
+    },
+    {
+      "name": "Font Awesome",
+      "version": "unraid-provided",
+      "source": "https://fontawesome.com/"
+    },
+    {
+      "name": "SweetAlert",
+      "version": "unraid-provided",
+      "source": "https://github.com/t4t5/sweetalert"
+    }
+  ]
+}

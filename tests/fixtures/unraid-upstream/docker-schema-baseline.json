@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "latestReviewedApiRelease": "v4.36.1",
+  "schemaSignature": "fixture-signature-that-does-not-match",
+  "requiredTokens": []
+}

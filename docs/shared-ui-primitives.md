@@ -7,7 +7,7 @@ FolderView Plus ships one theme-aware UI layer on Settings, Docker, VM, Dashboar
 
 ## Components
 
-`FolderViewPlusUI` exposes renderers for buttons, icon buttons, badges, disclosures, fields, dropdowns, multiselects, empty states, and loading states. It also exposes managed modal/action-sheet, alert, confirmation, toast, and progress APIs.
+`FolderViewPlusUI` exposes renderers for buttons, icon buttons, badges, disclosures, fields, dropdowns, multiselects, empty states, and loading states. It also exposes managed modal/action-sheet, alert, confirmation, nonvisual status announcement, and progress APIs. Action completion is recorded in the Settings activity/recovery surfaces instead of displaying lower-right popup notifications.
 
 Managed dialogs provide dialog semantics, focus trapping, Escape and backdrop policy, nested-modal ordering, body scroll locking, initial focus, live announcements, busy state, and focus restoration. Callers provide content and labels; they do not recreate that behavior.
 

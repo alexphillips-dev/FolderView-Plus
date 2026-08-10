@@ -3,6 +3,7 @@ set -euo pipefail
 
 CWD="$(pwd)"
 version_override="${FVPLUS_VERSION_OVERRIDE:-}"
+historical_rebuild="${FVPLUS_HISTORICAL_REBUILD:-0}"
 today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
@@ -11,6 +12,7 @@ release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 icon_asset_pack_guard_script="$CWD/scripts/icon_asset_pack_guard.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
+runtime_integrity_generator="$CWD/scripts/generate_runtime_integrity_manifest.mjs"
 changes_entry_timeout_raw="${FVPLUS_CHANGES_ENTRY_TIMEOUT_SEC:-10}"
 archive_prefix="folderview.plus"
 archive_dir="$CWD/archive"
@@ -19,7 +21,6 @@ archive_prune_keep_raw="${FVPLUS_ARCHIVE_PRUNE_KEEP:-24}"
 archive_prune_keep=24
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 validate_after_build=true
-fast_source_snapshot=false
 dry_run=false
 run_install_smoke=false
 tmpdir=""
@@ -50,65 +51,6 @@ detect_manifest_branch() {
         return 0
     fi
     return 0
-}
-
-detect_git_commit_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git rev-parse HEAD 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_tree_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git write-tree 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_head_tree_sha() {
-    local detected=""
-    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        detected="$(git rev-parse 'HEAD^{tree}' 2>/dev/null || true)"
-    fi
-    printf '%s' "$detected"
-}
-
-detect_git_source_snapshot_mode() {
-    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        printf '%s' "unknown"
-        return
-    fi
-    if [ "${fast_source_snapshot:-false}" = true ]; then
-        printf '%s' "fast-worktree"
-        return
-    fi
-    if ! git diff --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
-        printf '%s' "worktree"
-        return
-    fi
-    if ! git diff --cached --quiet -- . ':(exclude)archive' ':(exclude)folderview.plus.plg' ':(exclude)folderview.plus.xml' 2>/dev/null; then
-        printf '%s' "index"
-        return
-    fi
-    printf '%s' "head"
-}
-
-detect_git_source_tree_sha() {
-    local snapshot_mode="${1:-}"
-    case "$snapshot_mode" in
-        head)
-            detect_git_head_tree_sha
-            ;;
-        index)
-            detect_git_tree_sha
-            ;;
-        *)
-            printf '%s' ""
-            ;;
-    esac
 }
 
 rewrite_manifest_branch_metadata() {
@@ -367,6 +309,9 @@ highest_stable_archive_version_for_date() {
     local highest=""
     local versions=()
     local archive
+    local ref
+    local ref_version
+    local tag
     shopt -s nullglob
     for archive in "$archive_dir/$archive_prefix-"*.txz; do
         local name="${archive##*/}"
@@ -381,6 +326,28 @@ highest_stable_archive_version_for_date() {
         fi
     done
     shopt -u nullglob
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        for ref in HEAD dev main origin/dev origin/main; do
+            if ! git rev-parse -q --verify "${ref}^{commit}" >/dev/null 2>&1; then
+                continue
+            fi
+            ref_version="$(
+                git show "${ref}:folderview.plus.plg" 2>/dev/null \
+                    | sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' \
+                    | head -n 1 \
+                    || true
+            )"
+            if is_stable_version "$ref_version" && [ "$(stable_date_part "$ref_version")" = "$target_date" ]; then
+                versions+=("$(normalize_stable_version_for_unraid "$ref_version")")
+            fi
+        done
+        while IFS= read -r tag; do
+            tag="${tag#v}"
+            if is_stable_version "$tag" && [ "$(stable_date_part "$tag")" = "$target_date" ]; then
+                versions+=("$(normalize_stable_version_for_unraid "$tag")")
+            fi
+        done < <(git tag --list "v${target_date}*" 2>/dev/null || true)
+    fi
     if [ "${#versions[@]}" -eq 0 ]; then
         return
     fi
@@ -516,6 +483,10 @@ if [ ! -f "$ensure_changes_entry_script" ]; then
     echo "ERROR: Missing CHANGES helper script: $ensure_changes_entry_script" >&2
     exit 1
 fi
+if [ ! -f "$runtime_integrity_generator" ]; then
+    echo "ERROR: Missing runtime integrity generator: $runtime_integrity_generator" >&2
+    exit 1
+fi
 if [ ! -f "$icon_asset_pack_guard_script" ]; then
     echo "ERROR: Missing icon asset-pack guard script: $icon_asset_pack_guard_script" >&2
     exit 1
@@ -551,16 +522,12 @@ if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
     exit 1
 fi
 
-if [ "$branch" = "dev" ] && [ "$validate_after_build" = false ]; then
-    fast_source_snapshot=true
-fi
-
 if [ -n "$version_override" ]; then
     if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
         exit 1
     fi
-    if is_stable_version "$version_override"; then
+    if is_stable_version "$version_override" && [ "$historical_rebuild" != "1" ]; then
         version_override="$(normalize_stable_version_for_unraid "$version_override")"
         override_date="$(stable_date_part "$version_override")"
         if [ "$override_date" != "$today_version" ]; then
@@ -568,7 +535,7 @@ if [ -n "$version_override" ]; then
             exit 1
         fi
     fi
-    if is_stable_version "$version_override"; then
+    if is_stable_version "$version_override" && [ "$historical_rebuild" != "1" ]; then
         highest_for_today="$(highest_stable_archive_version_for_date "$today_version" || true)"
         if [ -n "$highest_for_today" ]; then
             max_ver="$(printf '%s\n%s\n' "$version_override" "$highest_for_today" | sort -V | tail -n1)"
@@ -611,10 +578,16 @@ if [ "$dry_run" = true ]; then
     echo "Archive retention keep count: $archive_prune_keep"
     echo "CHANGES helper timeout seconds: $changes_entry_timeout"
     echo "Post-build validation: $validate_after_build"
-    echo "Fast source snapshot: $fast_source_snapshot"
     echo "Install smoke: $run_install_smoke"
     exit 0
 fi
+
+# The shared resolver is only needed for real builds. Keeping this after the
+# dry-run exit preserves pkg_build.sh's standalone metadata-probe contract.
+# shellcheck source=scripts/lib.sh
+source "$CWD/scripts/lib.sh"
+fvplus::require_commands node
+NODE_BIN="$(fvplus::resolve_platform_command node)"
 
 mkdir -p "$CWD/tmp"
 mkdir -p "$archive_dir"
@@ -637,15 +610,14 @@ build_source_content_sha256="$(
         sha256sum --text "$source_file"
     done < <(find . -type f -print0 | sort -z) | sha256sum | awk '{print $1}'
 )"
-build_git_head_commit_sha="$(detect_git_commit_sha)"
-build_git_snapshot_mode="$(detect_git_source_snapshot_mode)"
-build_git_tree_sha="$(detect_git_source_tree_sha "$build_git_snapshot_mode")"
+# The archive must remain reproducible from the commit that stores it. A Git
+# commit cannot be embedded in an archive committed by that same commit without
+# creating a self-reference, so packaged identity is content-addressed instead.
+build_git_head_commit_sha=""
+build_git_snapshot_mode="content"
+build_git_tree_sha=""
 build_git_source_commit_sha=""
 build_git_commit_exact=false
-if [ "$build_git_snapshot_mode" = "head" ] && [ -n "$build_git_head_commit_sha" ]; then
-    build_git_source_commit_sha="$build_git_head_commit_sha"
-    build_git_commit_exact=true
-fi
 build_manifest_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg"
 build_archive_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/${archive_prefix}-${version}.txz"
 build_icon_pack_version="$(sed -n 's/^<!ENTITY iconPackVersion "\([^"]*\)".*/\1/p' "$plgfile" | head -n 1)"
@@ -669,6 +641,12 @@ cat > "$build_metadata_path" <<EOF
 }
 EOF
 
+plugin_package_root="$tmpdir/usr/local/emhttp/plugins/folderview.plus"
+"${NODE_BIN}" \
+    "$(fvplus::path_for_command "${NODE_BIN}" "$runtime_integrity_generator")" \
+    --root "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root")" \
+    --output "$(fvplus::path_for_command "${NODE_BIN}" "$plugin_package_root/runtime-integrity.json")"
+
 # Set permissions for Unraid (only in temp dir, not the repo)
 if ! chmod -R 0755 "$tmpdir"; then
     echo "WARN: chmod -R 0755 failed for $tmpdir; continuing with existing filesystem permissions." >&2
@@ -681,6 +659,7 @@ if ! tar --sort=name \
     --owner=0 \
     --group=0 \
     --numeric-owner \
+    --mode=0755 \
     -cJf "$filename" ./*; then
     tar_status=$?
 fi
@@ -700,9 +679,14 @@ sha256=$(sha256sum "$filename" | awk '{print $1}')
 sha256_file="${filename}.sha256"
 printf '%s  %s\n' "$sha256" "$(basename "$filename")" > "$sha256_file"
 
-# Update version and md5 in plg file
+# Update version and package digests in plg file
 sed -i "s/<!ENTITY version.*>/<!ENTITY version \"$version\">/" "$plgfile"
 sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
+if grep -q '^<!ENTITY sha256 ' "$plgfile"; then
+    sed -i "s/<!ENTITY sha256.*>/<!ENTITY sha256 \"$sha256\">/" "$plgfile"
+else
+    sed -i "/^<!ENTITY md5 /a <!ENTITY sha256 \"$sha256\">" "$plgfile"
+fi
 
 # Keep CA template date aligned with the release version date.
 if [ -n "$xml_date" ]; then
@@ -712,6 +696,7 @@ fi
 # Update branch references in plg file (URLs use XML entities like &github;).
 rewrite_manifest_branch_metadata "$plgfile" "$version" "$branch"
 validate_manifest_branch_matrix "$plgfile" "$version"
+"${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "$CWD/scripts/generate_sbom.mjs")"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.

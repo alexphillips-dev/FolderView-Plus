@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "ar",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "إعدادات البحث",
+    "settings.search.label": "إعدادات البحث",
+    "settings.search.clear-label": "مسح إعدادات البحث",
+    "settings.search.clear-title": "مسح البحث",
+    "settings.search.scope": "النطاق",
+    "settings.search.scope-help": "اختر ما إذا كان البحث المتقدم يغطي علامة التبويب هذه أو كل علامة تبويب متقدمة",
+    "settings.search.scope-label": "نطاق البحث في الإعدادات المتقدمة",
+    "settings.search.scope-current": "علامة التبويب الحالية",
+    "settings.search.scope-all": "كلها متقدمة",
+    "settings.header.plugin-settings": "إعدادات البرنامج المساعد",
+    "settings.mode.title": "وضع الإعدادات",
+    "settings.mode.basic-label": "استخدم وضع الإعدادات الأساسية",
+    "settings.mode.advanced-label": "استخدم وضع الإعدادات المتقدمة",
+    "settings.wizard.title": "قم بتشغيل مساعد الإعداد",
+    "settings.tabs.basic": "الأساسية",
+    "settings.tabs.advanced": "متقدم",
+    "settings.tabs.wizard": "معالج",
+    "settings.privacy.title": "اخفاء الخصوصية",
+    "settings.privacy.mask-names": "أسماء الأقنعة والرموز",
+    "settings.privacy.mask-lan-ips": "قناع عناوين IP للشبكة المحلية",
+    "settings.privacy.mask-ports": "منافذ القناع",
+    "settings.privacy.lan-help": "ينطبق قناع LAN IP على جزء IP من عمود LAN IP:PORT الخاص بصفحة Docker. استخدم منافذ القناع لجزء المنفذ."
+}

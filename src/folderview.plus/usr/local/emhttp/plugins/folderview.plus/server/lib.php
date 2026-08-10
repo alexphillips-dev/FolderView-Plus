@@ -1,4 +1,9 @@
 <?php
+    require_once __DIR__ . '/lib.remote.php';
+    require_once __DIR__ . '/lib.process.php';
+    require_once __DIR__ . '/lib.filesystem-security.php';
+    require_once __DIR__ . '/lib.security.php';
+
     define('FV3_DEBUG_MODE', false); // << SET TO true TO ENABLE LOGGING TO FILE >>
     $fv3_debug_log_file = "/tmp/folder_view3_php_debug.log"; 
 
@@ -298,11 +303,14 @@
             return null;
         }
 
-        $command = "docker exec " . escapeshellarg($containerName) . " tailscale ip -4 2>/dev/null";
-        fv3_debug_log("    fv3_get_tailscale_ip_from_container: Executing: $command for $containerName");
-        $output = [];
-        $return_var = -1;
-        @exec($command, $output, $return_var);
+        try {
+            $processResult = fvplusRunProcessProfile('docker-tailscale-ip', ['name' => $containerName]);
+        } catch (Throwable $error) {
+            fv3_debug_log("    fv3_get_tailscale_ip_from_container: Process failed: " . $error->getMessage());
+            return null;
+        }
+        $output = (array)($processResult['output'] ?? []);
+        $return_var = (int)($processResult['exitCode'] ?? -1);
 
         if ($return_var === 0 && !empty($output) && filter_var(trim($output[0]), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ip = trim($output[0]);
@@ -330,12 +338,14 @@
             return null;
         }
 
-        $command = "docker exec " . escapeshellarg($containerName) . " tailscale status --peers=false --json 2>/dev/null";
-        fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Executing: $command for $containerName");
-        $output_lines = [];
-        $return_var = -1;
-        @exec($command, $output_lines, $return_var);
-        $json_output = implode("\n", $output_lines);
+        try {
+            $processResult = fvplusRunProcessProfile('docker-tailscale-status', ['name' => $containerName]);
+        } catch (Throwable $error) {
+            fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Process failed: " . $error->getMessage());
+            return null;
+        }
+        $return_var = (int)($processResult['exitCode'] ?? -1);
+        $json_output = trim((string)($processResult['stdout'] ?? ''));
 
         if ($return_var === 0 && !empty($json_output)) {
             $status_data = json_decode($json_output, true);
@@ -366,6 +376,11 @@
     const FVPLUS_PRIVACY_MODE_PREFS_SCHEMA = 3;
     const FVPLUS_CONFIG_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_CONFIG_MUTATION_LOCK_TIMEOUT_SECONDS = 10;
+    const FVPLUS_MUTATION_NONCE_TTL_SECONDS = 120;
+    const FVPLUS_MUTATION_NONCE_MAX_ACTIVE = 256;
+    const FVPLUS_MUTATION_TRANSACTION_TTL_SECONDS = 600;
+    const FVPLUS_MUTATION_TRANSACTION_MAX = 1000;
+    const FVPLUS_SECURITY_AUDIT_HISTORY_MAX = 200;
     const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;
     const FVPLUS_THEME_WORKSPACE_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
@@ -431,6 +446,8 @@
     require_once(__DIR__ . '/lib.preflight.php');
     require_once(__DIR__ . '/lib.prefs.php');
     require_once(__DIR__ . '/lib.diagnostics.php');
+    require_once(__DIR__ . '/lib.docker-runtime.php');
+    require_once(__DIR__ . '/lib.input-security.php');
 
     function fvplus_detect_runtime_plugin_conflicts(): array {
         $detected = [];
@@ -515,7 +532,7 @@
         echo '<li>Refresh this page to re-enable FolderView Plus.</li>';
         echo '</ol>';
         echo '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
-        echo '<button type="button" class="btn" onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
+        echo '<button type="button" class="btn" data-fv-onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
         echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;align-self:center;line-height:1.2;margin:0;white-space:nowrap;">Support Thread</a>';
         echo '</div>';
         echo '</div>';
@@ -818,14 +835,6 @@
         return "$configDir/request.token";
     }
 
-    function normalizeRequestTokenEnforcementMode(string $mode): string {
-        $normalized = strtolower(trim($mode));
-        if (in_array($normalized, ['off', 'compat', 'strict'], true)) {
-            return $normalized;
-        }
-        return 'compat';
-    }
-
     function getRequestTokenEnforcementMode(): string {
         return normalizeRequestTokenEnforcementMode(FVPLUS_REQUEST_TOKEN_ENFORCEMENT);
     }
@@ -833,6 +842,7 @@
     function ensureConfiguredRequestTokenFile(): void {
         $path = getOptionalRequestTokenPath();
         if (file_exists($path)) {
+            @chmod($path, 0600);
             return;
         }
         $parent = dirname($path);
@@ -850,7 +860,7 @@
         try {
             writeDurableFileAtomic($path, $token, ['mode' => 0600]);
         } catch (Throwable $error) {
-            // Request-token creation remains optional in compatibility mode.
+            // Read-only surfaces remain available; strict mutations fail closed below.
         }
     }
 
@@ -1014,20 +1024,6 @@
         return $requestFlag === '1';
     }
 
-    function requireMutationRequestGuard(): void {
-        if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
-            throw new RuntimeException('Unsupported method.');
-        }
-        $tokenMode = getRequestTokenEnforcementMode();
-        $tokenRequiredForBypass = $tokenMode !== 'off' && getConfiguredRequestToken() !== '';
-        $tokenValidated = validateOptionalRequestToken();
-        $headerValidated = hasExplicitMutationRequestHeader() && ($tokenValidated || !$tokenRequiredForBypass);
-        if (!isTrustedMutationContext() && !$headerValidated) {
-            throw new RuntimeException('Blocked by request guard.');
-        }
-        acquireConfigMutationLock();
-    }
-
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
         if (!headers_sent()) {
             header('Content-Type: application/json');
@@ -1107,6 +1103,9 @@
         }
         if ($error instanceof FVPlusConfigConflictException) {
             return 409;
+        }
+        if ($error instanceof FVPlusSecurityRequestException) {
+            return max(400, min(599, (int)$error->getCode()));
         }
         if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
             return 400;
@@ -2163,6 +2162,7 @@
         $fileFlushed = false;
         $directoryFlushed = false;
         try {
+            fvplusAssertDurableWriteTarget($path);
             $parent = dirname($path);
             fvplusStorageThrowInjectedFailure('parent-create', $path);
             if (!is_dir($parent) && !@mkdir($parent, 0770, true) && !is_dir($parent)) {
@@ -2178,6 +2178,10 @@
             $mode = $existingMode > 0 ? $existingMode : ($requestedMode > 0 ? $requestedMode : 0644);
             fvplusStorageThrowInjectedFailure('temp-create', $path);
             $tmpPath = createAtomicWriteTempPath($path);
+            if (is_link($tmpPath)) {
+                throw new RuntimeException("Durable storage temp path is unsafe for '$path'.");
+            }
+            @chmod($tmpPath, 0600);
             $handle = @fopen($tmpPath, 'c+b');
             if (!is_resource($handle)) {
                 throw new RuntimeException("Failed to open temp durable payload for '$path'.");
@@ -2717,12 +2721,20 @@
                     if (!in_array($type, $tabs, true)) {
                         continue;
                     }
+                    $content = (string)($file['content'] ?? '');
+                    $contentScan = fvplusThemeWorkspaceScanCss($content);
+                    if (count((array)($contentScan['severe'] ?? [])) > 0) {
+                        continue;
+                    }
                     $fileName = trim((string)($file['name'] ?? $file['path'] ?? 'theme.css'));
-                    $chunks[] = "/* Imported theme: $fileName */\n" . (string)($file['content'] ?? '');
+                    $chunks[] = "/* Imported theme: $fileName */\n" . $content;
                 }
             }
             if ($customCss !== '') {
-                $chunks[] = "/* Theme Workspace custom CSS */\n" . $customCss;
+                $customScan = fvplusThemeWorkspaceScanCss($customCss);
+                if (count((array)($customScan['severe'] ?? [])) === 0) {
+                    $chunks[] = "/* Theme Workspace custom CSS */\n" . $customCss;
+                }
             }
             $output = trim(implode("\n\n", array_filter($chunks, static function($chunk): bool {
                 return trim((string)$chunk) !== '';
@@ -2953,26 +2965,23 @@
     }
 
     function fvplusThemeWorkspaceScanCss(string $css): array {
-        $warnings = [];
         $severe = [];
         $rules = [
             ['pattern' => '/expression\s*\(/i', 'message' => 'CSS contains expression().'],
             ['pattern' => '/javascript\s*:/i', 'message' => 'CSS contains javascript: URLs.'],
-            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.']
+            ['pattern' => '/behavior\s*:/i', 'message' => 'CSS contains behavior: rules.'],
+            ['pattern' => '/-moz-binding\s*:/i', 'message' => 'CSS contains legacy executable binding rules.'],
+            ['pattern' => '/@import\b/i', 'message' => 'CSS contains @import, which is not permitted in managed themes.'],
+            ['pattern' => '/url\s*\(\s*["\']?(?:https?:)?\/\//i', 'message' => 'CSS contains an external network URL.'],
+            ['pattern' => '/url\s*\(\s*["\']?data:text\/html/i', 'message' => 'CSS contains a data:text/html URL.']
         ];
         foreach ($rules as $rule) {
             if (preg_match($rule['pattern'], $css)) {
                 $severe[] = $rule['message'];
             }
         }
-        if (preg_match('/@import\s+(url\()?["\']?(https?:)?\/\//i', $css)) {
-            $warnings[] = 'CSS contains remote @import rules.';
-        }
-        if (preg_match('/url\s*\(\s*["\']?data:text\/html/i', $css)) {
-            $warnings[] = 'CSS contains data:text/html URLs.';
-        }
         return [
-            'warnings' => array_values(array_unique($warnings)),
+            'warnings' => [],
             'severe' => array_values(array_unique($severe))
         ];
     }
@@ -2982,30 +2991,17 @@
         if ($requestUrl === '') {
             return ['ok' => false, 'error' => 'Empty URL.', 'content' => '', 'status' => ''];
         }
-        $statusLine = '';
-        $responseHeaders = [];
-        $context = stream_context_create([
-            'http' => [
-                'timeout' => max(2, min(20, $timeoutSeconds)),
-                'ignore_errors' => true,
-                'header' => "Cache-Control: no-cache\r\nPragma: no-cache\r\nUser-Agent: FolderViewPlus/1.0\r\nAccept: application/json, text/plain, */*\r\n"
-            ]
-        ]);
-        $content = @file_get_contents($requestUrl, false, $context);
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            $responseHeaders = $http_response_header;
-            $statusLine = (string)($http_response_header[0] ?? '');
-        }
-        if ($content === false) {
-            return ['ok' => false, 'error' => 'Unable to fetch remote content.', 'content' => '', 'status' => $statusLine];
-        }
-        return [
-            'ok' => preg_match('/\s2\d\d\s/', $statusLine) === 1 || $statusLine === '',
-            'error' => '',
-            'content' => (string)$content,
-            'status' => $statusLine,
-            'headers' => $responseHeaders
-        ];
+        $host = strtolower((string)(@parse_url($requestUrl, PHP_URL_HOST) ?: ''));
+        $maxBytes = $host === 'api.github.com'
+            ? 2 * 1024 * 1024
+            : FVPLUS_THEME_WORKSPACE_MAX_FILE_BYTES;
+        return fvplusFetchRemoteTextBounded(
+            $requestUrl,
+            ['github.com', 'raw.githubusercontent.com', 'api.github.com'],
+            $maxBytes,
+            $timeoutSeconds,
+            3
+        );
     }
 
     function fvplusThemeWorkspaceFetchJson(string $url, int $timeoutSeconds = 10): array {
@@ -3313,6 +3309,10 @@
 
     function saveThemeWorkspaceCustomize($variables, string $customCss): array {
         $workspace = readThemeWorkspace();
+        $scan = fvplusThemeWorkspaceScanCss($customCss);
+        if (count((array)($scan['severe'] ?? [])) > 0) {
+            throw new RuntimeException(implode(' ', (array)$scan['severe']));
+        }
         $workspace['variables'] = fvplusThemeWorkspaceNormalizeVariableMap($variables);
         $workspace['customCss'] = truncateUtf8String($customCss, FVPLUS_THEME_WORKSPACE_MAX_CUSTOM_CSS_BYTES);
         return writeThemeWorkspace($workspace);
@@ -3394,7 +3394,7 @@
         }
         $normalized = [];
         foreach ($value as $id => $folder) {
-            $safeId = trim((string)$id);
+            $safeId = normalizeFolderIdValue($id);
             if ($safeId === '' || !is_array($folder)) {
                 continue;
             }
@@ -4532,17 +4532,6 @@
         return false;
     }
 
-    function runShellActionCommand(string $command): array {
-        $output = [];
-        $exitCode = 0;
-        @exec($command . ' 2>&1', $output, $exitCode);
-        return [
-            'ok' => $exitCode === 0,
-            'exitCode' => (int)$exitCode,
-            'output' => array_slice(array_values($output), 0, 8)
-        ];
-    }
-
     function executeFolderRuntimeAction(string $type, string $action, array $items): array {
         $type = ensureType($type);
         $normalizedAction = strtolower(trim($action));
@@ -4597,24 +4586,18 @@
                 continue;
             }
 
-            if ($type === 'docker') {
-                $dockerAction = $normalizedAction === 'resume' ? 'unpause' : $normalizedAction;
-                $command = 'docker ' . $dockerAction . ' ' . escapeshellarg($name);
-            } else {
-                $vmAction = $normalizedAction;
-                if ($vmAction === 'start') {
-                    $command = 'virsh start ' . escapeshellarg($name);
-                } elseif ($vmAction === 'stop') {
-                    $command = 'virsh shutdown ' . escapeshellarg($name);
-                } elseif ($vmAction === 'pause') {
-                    $command = 'virsh suspend ' . escapeshellarg($name);
-                } else {
-                    $command = 'virsh resume ' . escapeshellarg($name);
-                }
+            $processProfile = $type === 'docker' ? 'docker-runtime' : 'virsh-runtime';
+            try {
+                $commandResult = fvplusRunRuntimeItemAction($type, $normalizedAction, $name);
+            } catch (Throwable $error) {
+                $commandResult = [
+                    'ok' => false,
+                    'exitCode' => 126,
+                    'output' => ['Allowlisted process could not start.']
+                ];
             }
 
             $executed++;
-            $commandResult = runShellActionCommand($command);
             if ($commandResult['ok']) {
                 $succeeded++;
             } else {
@@ -4629,7 +4612,7 @@
             $results[] = [
                 'item' => $name,
                 'state' => $stateKind,
-                'command' => $command,
+                'profile' => $processProfile,
                 'ok' => $commandResult['ok'],
                 'exitCode' => $commandResult['exitCode'],
                 'output' => $commandResult['output']
@@ -6033,6 +6016,11 @@
         }
         if (empty($id)) {
             $id = generateId();
+        } else {
+            $id = normalizeFolderIdValue($id);
+            if ($id === '') {
+                throw new InvalidArgumentException('Invalid folder identifier.');
+            }
         }
         $fileData = readRawFolderMap($type);
         $decodedContent = json_decode($content, true);
@@ -6514,7 +6502,7 @@
             return true;
         }
         if ($safeName === 'README.txt') {
-            return true;
+            return $includeMetadata;
         }
         $extension = strtolower((string)pathinfo($safeName, PATHINFO_EXTENSION));
         return $extension !== '' && in_array($extension, fvplusAllowedCustomIconExtensions(), true);
@@ -7058,31 +7046,6 @@
         return $allXmlTemplates;
     }
 
-    function getDockerTemplateIndexCached(DockerTemplates $dockerTemplates): array {
-        try {
-            $templateFiles = $dockerTemplates->getTemplates('all');
-        } catch (Throwable $error) {
-            fv3_debug_log("getDockerTemplateIndexCached: DockerTemplates->getTemplates('all') failed: " . $error->getMessage());
-            return [];
-        }
-        if (!is_array($templateFiles) || empty($templateFiles)) {
-            return [];
-        }
-        $signature = buildDockerTemplateSignature($templateFiles);
-        $cached = readDockerTemplateCache($signature);
-        if (is_array($cached)) {
-            return $cached;
-        }
-        try {
-            $templates = buildDockerTemplateIndex($templateFiles);
-        } catch (Throwable $error) {
-            fv3_debug_log("getDockerTemplateIndexCached: buildDockerTemplateIndex failed: " . $error->getMessage());
-            return [];
-        }
-        writeDockerTemplateCache($signature, $templates);
-        return $templates;
-    }
-
     function readInfoState(string $type, bool $preferLiveUpdateStatus = false): array {
         $type = ensureType($type);
         $info = [];
@@ -7125,6 +7088,7 @@
                 $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
                 $manager = getNormalizedDockerManagerFromLabels($labels);
                 $containerImage = DockerUtil::ensureImageTag(trim((string)($container['Image'] ?? '')));
+                $webuiMetadata = resolveDockerLightweightWebuiMetadata($labels, $manager);
 
                 $info[$name] = [
                     'name' => $name,
@@ -7145,7 +7109,12 @@
                         : null,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
-                    'folderLabel' => getFolderLabelValueFromLabels($labels)
+                    'folderLabel' => getFolderLabelValueFromLabels($labels),
+                    'WebUi' => $webuiMetadata['WebUi'],
+                    'TSWebUi' => $webuiMetadata['TSWebUi'],
+                    'Shell' => $webuiMetadata['Shell'],
+                    'webuiCapability' => $webuiMetadata['webuiCapability'],
+                    'webuiHydrationPending' => $webuiMetadata['webuiHydrationPending']
                 ];
             }
             ksort($info);
@@ -7447,6 +7416,8 @@
                     fv3_debug_log("  $containerName: Tailscale is NOT enabled or no TS URL defined in template/label.");
                 }
                 $ct['info']['State']['TSWebUi'] = $finalTsWebUi;
+                $ct['info']['State']['WebUiCapability'] = $rawWebUiString !== '' || $rawTsXmlUrl !== '';
+                $ct['info']['State']['WebUiHydrationPending'] = false;
                 fv3_debug_log("  $containerName: Resolved TS WebUi: '$finalTsWebUi'");
                 
                 $info[$containerName] = $ct;

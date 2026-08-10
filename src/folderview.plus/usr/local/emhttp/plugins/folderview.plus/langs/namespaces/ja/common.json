@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ja",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "キャンセル",
     "common.confirm": "確認",
     "common.confirm-type": "確認のため入力",
-    "common.dismiss": "消去",
-    "common.loading": "読み込み中…",
-    "common.notifications": "通知"
+    "common.loading": "読み込み中…"
 }

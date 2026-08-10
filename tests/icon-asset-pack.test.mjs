@@ -13,6 +13,7 @@ const buildScriptPath = path.join(repoRoot, 'scripts/build_icon_asset_pack.sh');
 const guardScriptPath = path.join(repoRoot, 'scripts/icon_asset_pack_guard.sh');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const installerPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh');
+const archivePreflightPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh');
 const endpointPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/third_party_icons.php');
 const diagnosticsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 
@@ -48,20 +49,91 @@ const toBashPath = (value) => {
     const match = normalized.match(/^([A-Za-z]):\/(.*)$/);
     return match ? `/mnt/${match[1].toLowerCase()}/${match[2]}` : normalized;
 };
-const installerCommandArgs = (pluginDir, configDir, cacheDir, checksum) => ([
-    '-c',
-    'FVPLUS_PLUGIN_DIR="$1" FVPLUS_CONFIG_DIR="$2" FVPLUS_ICON_PACK_CACHE_BASE="$3" FVPLUS_ICON_PACK_ARCHIVE="$4" /bin/bash "$5" "$6" "$7"',
-    '_',
-    toBashPath(pluginDir),
-    toBashPath(configDir),
-    toBashPath(cacheDir),
-    `asset-packs/folderview.plus-icons-${version}.txz`,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh',
-    version,
-    checksum
-]);
-const bashExecutable = process.platform === 'win32' ? 'wsl.exe' : 'bash';
-const bashArgs = (args) => process.platform === 'win32' ? ['--exec', 'bash', ...args] : args;
+const installerInvocation = (pluginDir, configDir, cacheDir, checksum) => {
+    const environment = {
+        FVPLUS_PLUGIN_DIR: toBashPath(pluginDir),
+        FVPLUS_CONFIG_DIR: toBashPath(configDir),
+        FVPLUS_ICON_PACK_CACHE_BASE: toBashPath(cacheDir),
+        FVPLUS_ICON_PACK_ARCHIVE: toBashPath(archivePath)
+    };
+    const script = toBashPath(installerPath);
+    if (process.platform === 'win32') {
+        return {
+            command: 'wsl.exe',
+            args: [
+                '--exec',
+                'env',
+                ...Object.entries(environment).map(([key, value]) => `${key}=${value}`),
+                '/bin/bash',
+                script,
+                version,
+                checksum
+            ],
+            env: process.env
+        };
+    }
+    return {
+        command: 'bash',
+        args: [script, version, checksum],
+        env: { ...process.env, ...environment }
+    };
+};
+const runInstaller = (pluginDir, configDir, cacheDir, checksum, useSpawn = false) => {
+    const pluginScriptsDir = path.join(pluginDir, 'scripts');
+    fs.mkdirSync(pluginScriptsDir, { recursive: true });
+    fs.copyFileSync(archivePreflightPath, path.join(pluginScriptsDir, 'archive_preflight.sh'));
+    const invocation = installerInvocation(pluginDir, configDir, cacheDir, checksum);
+    const options = { cwd: repoRoot, encoding: 'utf8', timeout: 120000, env: invocation.env };
+    return useSpawn
+        ? spawnSync(invocation.command, invocation.args, options)
+        : execFileSync(invocation.command, invocation.args, options);
+};
+const assertSymbolicLink = (targetPath) => {
+    const resolved = toBashPath(targetPath);
+    if (process.platform === 'win32') {
+        execFileSync('wsl.exe', ['--exec', 'test', '-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
+        return;
+    }
+    execFileSync('test', ['-L', resolved], { cwd: repoRoot, encoding: 'utf8' });
+};
+const runMaliciousArchivePreflight = (fixtureScript, extraEnv = {}) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-archive-preflight-'));
+    const shellTemp = toBashPath(tempDir);
+    const shellPreflight = toBashPath(archivePreflightPath);
+    const shell = [
+        'set -euo pipefail',
+        'cd "$1"',
+        'mkdir -p third-party-icons',
+        'printf \'{"version":"1.0.0"}\\n\' > asset-pack.json',
+        fixtureScript,
+        'tar -cJf malicious.txz asset-pack.json third-party-icons',
+        '/bin/bash "$2" malicious.txz icon-pack'
+    ].join('\n');
+    const command = process.platform === 'win32' ? 'wsl.exe' : 'bash';
+    const args = process.platform === 'win32'
+        ? [
+            '--exec',
+            'env',
+            ...Object.entries(extraEnv).map(([key, value]) => `${key}=${value}`),
+            'bash',
+            '-c',
+            shell,
+            'fvplus-preflight',
+            shellTemp,
+            shellPreflight
+        ]
+        : ['-c', shell, 'fvplus-preflight', shellTemp, shellPreflight];
+    try {
+        return spawnSync(command, args, {
+            cwd: repoRoot,
+            encoding: 'utf8',
+            timeout: 30000,
+            env: { ...process.env, ...extraEnv }
+        });
+    } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+};
 
 test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(version, /^\d+\.\d+\.\d+$/);
@@ -74,6 +146,7 @@ test('manifest pins a content-addressed versioned icon asset pack', () => {
     assert.match(plg, /<FILE Name="\/boot\/config\/plugins\/&name;\/folderview\.plus-icons-&iconPackVersion;\.txz">/);
     assert.match(plg, /<URL>&iconPackURL;<\/URL>/);
     assert.match(plg, /<MD5>&iconPackMd5;<\/MD5>/);
+    assert.match(plg, /<SHA256>&iconPackSha256;<\/SHA256>/);
 });
 
 test('icon content hashing is deterministic across Linux and Windows Git Bash', () => {
@@ -126,6 +199,11 @@ test('core packaging excludes icon files and carries asset identity metadata', (
 
 test('installer verifies, stages, activates, reuses, and links the pack', () => {
     assert.match(installer, /sha256sum "\$\{ICON_PACK_ARCHIVE\}"/);
+    assert.match(installer, /archive_preflight\.sh/);
+    assert.match(installer, /--no-same-owner --no-same-permissions/);
+    assert.match(installer, /find "\$\{ICON_PACK_STAGE\}" -xdev/);
+    assert.match(fs.readFileSync(archivePreflightPath, 'utf8'), /Archive contains a symbolic or hard link/);
+    assert.match(fs.readFileSync(archivePreflightPath, 'utf8'), /MAX_TOTAL_BYTES/);
     assert.match(installer, /ICON_PACK_STAGE=/);
     assert.match(installer, /ICON_PACK_PREVIOUS=/);
     assert.match(installer, /\.folderview-plus-asset-pack/);
@@ -140,18 +218,15 @@ test('installer verifies, stages, activates, reuses, and links the pack', () => 
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
-        execFileSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, sha256)), { cwd: repoRoot, encoding: 'utf8', timeout: 120000 });
+        runInstaller(pluginDir, configDir, cacheDir, sha256);
         const markerPath = path.join(cacheDir, `icons-${version}`, '.folderview-plus-asset-pack');
         assert.equal(fs.readFileSync(markerPath, 'utf8').trim(), `${version}:${sha256}`);
         assert.equal(fs.existsSync(path.join(pluginDir, 'icon-asset-pack.json')), true);
-        execFileSync(bashExecutable, bashArgs(['-c', 'test -L "$1"', '_', toBashPath(path.join(pluginDir, 'images', 'third-party-icons'))]), {
-            cwd: repoRoot,
-            encoding: 'utf8'
-        });
+        assertSymbolicLink(path.join(pluginDir, 'images', 'third-party-icons'));
 
         const sentinel = path.join(cacheDir, `icons-${version}`, 'reuse-sentinel');
         fs.writeFileSync(sentinel, 'keep', 'utf8');
-        execFileSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, sha256)), { cwd: repoRoot, encoding: 'utf8', timeout: 120000 });
+        runInstaller(pluginDir, configDir, cacheDir, sha256);
         assert.equal(fs.readFileSync(sentinel, 'utf8'), 'keep', 'a valid cached pack must be reused without extraction');
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -166,17 +241,26 @@ test('installer rejects a bad checksum before creating an active cache', () => {
     fs.mkdirSync(path.join(pluginDir, 'images'), { recursive: true });
     fs.mkdirSync(configDir, { recursive: true });
     try {
-        const result = spawnSync(bashExecutable, bashArgs(installerCommandArgs(pluginDir, configDir, cacheDir, '0'.repeat(64))), {
-            cwd: repoRoot,
-            encoding: 'utf8',
-            timeout: 120000
-        });
+        const result = runInstaller(pluginDir, configDir, cacheDir, '0'.repeat(64), true);
         assert.notEqual(result.status, 0);
         assert.match(result.stderr, /checksum verification failed/);
         assert.equal(fs.existsSync(path.join(cacheDir, `icons-${version}`)), false);
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
+});
+
+test('archive preflight rejects links and bounded-size violations before extraction', () => {
+    const linked = runMaliciousArchivePreflight('ln -s /etc/passwd third-party-icons/escape.svg');
+    assert.notEqual(linked.status, 0);
+    assert.match(linked.stderr, /symbolic or hard link/);
+
+    const oversized = runMaliciousArchivePreflight(
+        "printf '0123456789abcdef' > third-party-icons/large.svg",
+        { FVPLUS_ARCHIVE_MAX_ENTRY_BYTES: '8' }
+    );
+    assert.notEqual(oversized.status, 0);
+    assert.match(oversized.stderr, /entry exceeds the 8-byte limit/);
 });
 
 test('runtime and support diagnostics expose asset-pack identity', () => {

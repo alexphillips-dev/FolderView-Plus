@@ -2009,7 +2009,13 @@
         return array_values($actions);
     }
 
-    function diagnosticsBuildOverviewSummary(array $typesData, array $customIcons, array $update): array {
+    function diagnosticsBuildOverviewSummary(
+        array $typesData,
+        array $customIcons,
+        array $update,
+        array $runtimeIntegrity = [],
+        array $securityAudit = []
+    ): array {
         $cards = [];
         $errorCount = 0;
         $warningCount = 0;
@@ -2045,6 +2051,12 @@
             );
         }
 
+        if (($runtimeIntegrity['status'] ?? 'unavailable') === 'critical') {
+            $pathIssues[] = (string)($runtimeIntegrity['reason'] ?? 'Installed runtime integrity verification failed.');
+        }
+        if (($securityAudit['status'] ?? 'unavailable') === 'critical') {
+            $pathIssues[] = 'The security audit chain failed integrity verification.';
+        }
         $pathIssues = array_values(array_unique(array_filter(array_map('strval', $pathIssues))));
         $pathIssueCount = count($pathIssues);
         if ($pathIssueCount > 0) {
@@ -2057,7 +2069,9 @@
             $pathIssueCount > 0 ? sprintf('%d path or permission issue(s) detected.', $pathIssueCount) : 'Paths look healthy.',
             $pathIssueCount > 0
                 ? implode(' ', array_slice($pathIssues, 0, 2))
-                : 'Folder maps, prefs, and backups look readable and writable.',
+                : (($runtimeIntegrity['status'] ?? 'unavailable') === 'healthy'
+                    ? 'Folder maps, prefs, backups, and installed runtime files passed integrity checks.'
+                    : 'Folder maps, prefs, and backups look readable and writable.'),
             ['count' => $pathIssueCount]
         );
 
@@ -2226,6 +2240,8 @@
         $historyEvents = readDiagnosticsHistoryEvents(80);
         $customIcons = diagnosticsBuildCustomIconStorage($privacyMode);
         $update = checkRemotePluginUpdate();
+        $runtimeIntegrity = fvplus_get_runtime_integrity_snapshot($privacyMode);
+        $securityAudit = fvplus_get_security_audit_snapshot();
         return [
             'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
             'privacyMode' => $privacyMode,
@@ -2233,6 +2249,8 @@
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
             'durableStorage' => getDurableStorageRuntimeSnapshot(),
+            'runtimeIntegrity' => $runtimeIntegrity,
+            'securityAudit' => $securityAudit,
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
             'customIcons' => $customIcons,
             'importExportHistory' => [
@@ -2242,7 +2260,7 @@
             ],
             'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
             'update' => $update,
-            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update),
+            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update, $runtimeIntegrity, $securityAudit),
             'types' => $typesData
         ];
     }
@@ -2393,7 +2411,7 @@
             'sourceContentFingerprint' => preg_match('/^[a-f0-9]{64}$/', $sourceContentSha256)
                 ? 'sha256:' . $sourceContentSha256
                 : ($sourceTreeSha !== '' ? 'git-tree:' . $sourceTreeSha : null),
-            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
+            'sourceSnapshotMode' => in_array($sourceSnapshotMode, ['content', 'head', 'index', 'worktree', 'fast-worktree', 'unknown'], true)
                 ? $sourceSnapshotMode
                 : null,
             'sourceCommitExact' => $sourceCommitIsExact,
@@ -2761,6 +2779,8 @@
                 'customIcons' => $customIcons
             ],
             'durableStorage' => is_array($diagnostics['durableStorage'] ?? null) ? $diagnostics['durableStorage'] : [],
+            'runtimeIntegrity' => is_array($diagnostics['runtimeIntegrity'] ?? null) ? $diagnostics['runtimeIntegrity'] : [],
+            'securityAudit' => is_array($diagnostics['securityAudit'] ?? null) ? $diagnostics['securityAudit'] : [],
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
     }

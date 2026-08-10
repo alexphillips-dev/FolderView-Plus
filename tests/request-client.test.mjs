@@ -16,11 +16,15 @@ const createJQueryMock = (plan = []) => {
     const ajaxPrefilters = [];
     const ajaxCalls = [];
     let callCount = 0;
+    let plannedCallCount = 0;
 
     const ajax = (options) => {
         callCount += 1;
         ajaxCalls.push(options);
-        const step = plan[callCount - 1] || { type: 'success', data: '{}' };
+        const isNonceRequest = options?.url === '/plugins/folderview.plus/server/security.php';
+        const step = isNonceRequest
+            ? { type: 'success', data: { ok: true, nonce: 'a'.repeat(64) } }
+            : (plan[plannedCallCount++] || { type: 'success', data: '{}' });
         let doneHandler = null;
         let failHandler = null;
         let settled = false;
@@ -80,15 +84,13 @@ const createJQueryMock = (plan = []) => {
 const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
     const { $, getCallCount, getAjaxSetupCalls, getAjaxPrefilters, getAjaxCalls } = createJQueryMock(plan);
     const storage = new Map();
-    if (token) {
-        storage.set('fv.request.token', token);
-    }
+    const effectiveMetaToken = metaToken || token;
     const context = {
         window: {},
         document: {
             querySelector: (selector) => {
-                if (selector === 'meta[name="fv-request-token"]' && metaToken) {
-                    return { content: metaToken };
+                if (selector === 'meta[name="fv-request-token"]' && effectiveMetaToken) {
+                    return { content: effectiveMetaToken };
                 }
                 return null;
             }
@@ -150,7 +152,9 @@ test('request client generates trace IDs and sends them on mutation payload + he
     });
     assert.equal(response.ok, true);
 
-    const call = getAjaxCalls()[0] || {};
+    const nonceCall = getAjaxCalls()[0] || {};
+    const call = getAjaxCalls()[1] || {};
+    assert.equal(nonceCall.url, '/plugins/folderview.plus/server/security.php');
     assert.equal(call.method, 'POST');
     assert.match(String(call.headers?.['X-FV-Trace'] || ''), /^fv-/);
     assert.match(String(call.headers?.['X-FV-Transaction'] || ''), /^tx-/);
@@ -158,6 +162,8 @@ test('request client generates trace IDs and sends them on mutation payload + he
     assert.equal(call.data.token, 'tok-123');
     assert.equal(call.data._fv_trace, call.headers?.['X-FV-Trace']);
     assert.equal(call.data._fv_transaction, call.headers?.['X-FV-Transaction']);
+    assert.equal(call.data._fv_nonce, 'a'.repeat(64));
+    assert.equal(call.headers?.['X-FV-Nonce'], 'a'.repeat(64));
     assert.equal(response.transactionId, call.headers?.['X-FV-Transaction']);
 });
 
@@ -180,6 +186,7 @@ test('request client retries retryable failures and returns parsed JSON', async 
 
 test('request client does not retry aborted requests', async () => {
     const { api, getCallCount } = loadRequestClient({
+        token: 'tok-abort',
         plan: [
             { type: 'error', status: 0, textStatus: 'abort', errorThrown: 'abort' }
         ]
@@ -189,11 +196,12 @@ test('request client does not retry aborted requests', async () => {
         () => api.postJson('/plugins/folderview.plus/server/test.php', { ok: 1 }, { retries: 3 }),
         /trace:\s*fv-/
     );
-    assert.equal(getCallCount(), 1);
+    assert.equal(getCallCount(), 2);
 });
 
 test('request client surfaces backend JSON error details in thrown message', async () => {
     const { api, getCallCount } = loadRequestClient({
+        token: 'tok-backend-error',
         plan: [
             {
                 type: 'error',
@@ -211,11 +219,12 @@ test('request client surfaces backend JSON error details in thrown message', asy
         () => api.postJson('/plugins/folderview.plus/server/update.php', { type: 'docker' }, { retries: 0 }),
         /Missing required parameters/
     );
-    assert.equal(getCallCount(), 1);
+    assert.equal(getCallCount(), 2);
 });
 
 test('request client preserves HTTP status and response details for conflict recovery', async () => {
     const { api } = loadRequestClient({
+        token: 'tok-conflict',
         plan: [{
             type: 'error',
             textStatus: 'error',
@@ -246,10 +255,11 @@ test('request client appends mutation markers to POST payload for guard compatib
     });
 
     assert.equal(response.ok, true);
-    const call = getAjaxCalls()[0] || {};
+    const call = getAjaxCalls()[1] || {};
     assert.equal(call.method, 'POST');
     assert.equal(call.data._fv_request, '1');
     assert.equal(call.data.token, 'tok-123');
+    assert.equal(call.data._fv_nonce, 'a'.repeat(64));
 });
 
 test('request client retries reads but never replays mutations by default', async () => {
@@ -263,6 +273,7 @@ test('request client retries reads but never replays mutations by default', asyn
     assert.equal(readClient.getCallCount(), 2);
 
     const mutationClient = loadRequestClient({
+        token: 'tok-retry-policy',
         plan: [
             { type: 'error', status: 503, statusText: 'Service Unavailable' },
             { type: 'success', data: '{"ok":true}' }
@@ -272,7 +283,7 @@ test('request client retries reads but never replays mutations by default', asyn
         () => mutationClient.api.postJson('/plugins/folderview.plus/server/update.php', { type: 'docker' }),
         /HTTP 503/
     );
-    assert.equal(mutationClient.getCallCount(), 1);
+    assert.equal(mutationClient.getCallCount(), 2);
 });
 
 test('request client builds encoded URLs and exposes bounded sanitized diagnostics', async () => {

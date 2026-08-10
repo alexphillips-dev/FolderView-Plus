@@ -19,9 +19,6 @@ const toBashPath = (value) => {
     const match = normalized.match(/^([A-Za-z]):\/(.*)$/);
     return match ? `/mnt/${match[1].toLowerCase()}/${match[2]}` : normalized;
 };
-const bashExecutable = process.platform === 'win32' ? 'wsl.exe' : 'bash';
-const bashArgs = (args) => process.platform === 'win32' ? ['--exec', 'bash', ...args] : args;
-
 const runReport = ({ action = 'complete', current = '2026.07.19.16', previous = '2026.07.19.15', state = 'reused', scheduler = 'registered', stage = '', exitCode = '1', error = '' } = {}) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-install-report-'));
     const contextPath = path.join(tempDir, 'context');
@@ -43,18 +40,34 @@ const runReport = ({ action = 'complete', current = '2026.07.19.16', previous = 
         ''
     ].filter(Boolean).join('\n'));
     try {
-        const command = action === 'failure'
-            ? 'FVPLUS_INSTALL_CONTEXT_FILE="$1" /bin/bash "$2" failure "$3" 1.0.0 "$4" "$5" "$6"'
-            : 'FVPLUS_INSTALL_CONTEXT_FILE="$1" /bin/bash "$2" complete "$3" 1.0.0 "$4" "$5"';
-        return execFileSync(bashExecutable, bashArgs([
-            '-c', command, '_',
-            toBashPath(contextPath),
-            toBashPath(reportPath),
+        const reportArguments = [
+            action,
             current,
+            '1.0.0',
             toBashPath(statusPath),
-            action === 'failure' ? stage : scheduler,
-            exitCode
-        ]), { cwd: root, encoding: 'utf8' });
+            action === 'failure' ? stage : scheduler
+        ];
+        if (action === 'failure') {
+            reportArguments.push(exitCode);
+        }
+        if (process.platform === 'win32') {
+            return execFileSync('wsl.exe', [
+                '--exec',
+                'env',
+                `FVPLUS_INSTALL_CONTEXT_FILE=${toBashPath(contextPath)}`,
+                '/bin/bash',
+                toBashPath(reportPath),
+                ...reportArguments
+            ], { cwd: root, encoding: 'utf8' });
+        }
+        return execFileSync('bash', [reportPath, ...reportArguments], {
+            cwd: root,
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                FVPLUS_INSTALL_CONTEXT_FILE: contextPath
+            }
+        });
     } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
     }

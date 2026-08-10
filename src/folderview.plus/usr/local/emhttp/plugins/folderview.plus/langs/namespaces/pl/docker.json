@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "Obszar roboczy reguł",
     "docker.actions.empty-filter-help": "Pokaż puste foldery z narzędzi zanim je przefiltrujesz.",
     "docker.actions.reset-view": "Resetuj widok",
+    "docker.preview.open-webui": "Otwórz interfejs WWW",
+    "docker.preview.open-console": "Otwórz konsolę",
+    "docker.preview.view-logs": "Wyświetl logi",
+    "docker.provider.hybrid-label": "Starszy interfejs WebGUI Unraid z danymi GraphQL",
+    "docker.health.api-summary": "Docker API: $1 aktualizacja$2, $3 gotowy do przebudowy, $4 osierocony, $5 konflikt portów$6",
     "docker.views.folderview": "Widok folderów",
     "docker.views.host": "Lista hostów",
     "docker.views.command": "Polecenie",

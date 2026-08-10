@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "lv",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Iestatīšanas palīgs",
+    "wizard.welcome.kicker": "FolderView Plus iestatīšanas palīgs",
+    "wizard.welcome.title": "Sakārtojiet savus Docker konteinerus un virtuālās mašīnas mapēs.",
+    "wizard.welcome.description": "FolderView Plus palīdz grupēt saistītās lietotnes, priekšskatīt izmaiņas, pirms tās tiek lietotas, un pēc izvēles automātiski organizēt turpmākās lietotnes.",
+    "wizard.welcome.begin": "Sāciet iestatīšanu",
+    "wizard.welcome.skip": "Izlaist vedni",
+    "wizard.welcome.group-title": "Grupējiet saistītās lietotnes",
+    "wizard.welcome.group-description": "Saglabājiet multividi, lejupielādes, utilītas, mājas automatizāciju un citas lietotnes.",
+    "wizard.welcome.preview-title": "Priekšskatījums pirms pieteikšanās",
+    "wizard.welcome.preview-description": "Pirms kaut ko mainīsit, jūs pārskatīsit mapes, uzdevumus, noteikumus un iestatījumus.",
+    "wizard.welcome.automatic-title": "Sakārtojiet to automātiski",
+    "wizard.welcome.automatic-description": "Izvēles sākuma noteikumi var ievietot turpmākās atbilstošās lietotnes pareizajās mapēs.",
+    "wizard.navigation.next": "Tālāk",
+    "wizard.navigation.back": "Atpakaļ",
+    "wizard.navigation.begin": "Sāciet iestatīšanu",
+    "wizard.navigation.run-preview": "Palaist priekšskatījumu",
+    "wizard.navigation.apply": "Lietot iestatīšanu",
+    "wizard.navigation.show-details": "Rādīt detaļas",
+    "wizard.navigation.hide-details": "Slēpt detaļas",
+    "wizard.navigation.close": "Aizvērt",
+    "wizard.navigation.review": "Pārskats",
+    "wizard.navigation.go-to": "Dodieties uz $1",
+    "wizard.progress.step": "$1. darbība no $2",
+    "wizard.impact.live": "Reāllaika ietekme šim solim"
+}

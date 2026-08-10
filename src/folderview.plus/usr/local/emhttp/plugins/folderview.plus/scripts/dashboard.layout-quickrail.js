@@ -721,7 +721,7 @@
                     : { ok: true };
                 if (result?.ok === false) throw (result.error instanceof Error ? result.error : new Error(String(result.error || 'Unable to save dashboard view preference.')));
             } catch (error) {
-                ui?.toast?.({
+                ui?.alert?.({
                     title: translate('dashboard.quick.save-error-title', 'Dashboard view not saved'),
                     message: String(error?.message || translate('dashboard.quick.save-error-message', 'Unable to save the Dashboard view preference.')),
                     tone: 'danger'
@@ -784,14 +784,13 @@
                     deps.onResetView?.(resolvedType);
                 } else if (action === 'capture-diagnostics') {
                     const snapshot = deps.onCaptureDiagnostics?.(resolvedType);
-                    ui?.toast?.({
+                    ui?.announce?.({
                         title: snapshot
                             ? translate('dashboard.quick.capture-success-title', 'Layout diagnostics captured')
                             : translate('dashboard.quick.capture-unavailable-title', 'Layout diagnostics unavailable'),
                         message: snapshot
                             ? translate('dashboard.quick.capture-success-message', 'Reproduce the issue, then export a support bundle from FolderView Plus Settings.')
                             : translate('dashboard.quick.capture-unavailable-message', 'Expand the affected folder and try the capture again.'),
-                        tone: snapshot ? 'success' : 'warning'
                     });
                 } else if (action === 'open-settings') {
                     popover.close('settings', { restoreFocus: false });

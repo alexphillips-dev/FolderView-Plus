@@ -1,0 +1,1318 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "FolderView Plus",
+      "version": "2026.08.10.01",
+      "properties": [
+        {
+          "name": "folderview-plus:runtime-dependencies",
+          "value": "shipped-and-unraid-host-provided"
+        },
+        {
+          "name": "folderview-plus:component-scope",
+          "value": "runtime-development-and-ci-tooling"
+        },
+        {
+          "name": "folderview-plus:runtime-inventory",
+          "value": "scripts/runtime_components.json"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "application",
+      "name": "actions/attest",
+      "version": "36051bcae73b7c2a8a6945a48cbf80953c6baa35",
+      "scope": "optional",
+      "purl": "pkg:github/actions/attest@36051bcae73b7c2a8a6945a48cbf80953c6baa35",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "actions/cache",
+      "version": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
+      "scope": "optional",
+      "purl": "pkg:github/actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "actions/checkout",
+      "version": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "scope": "optional",
+      "purl": "pkg:github/actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "actions/dependency-review-action",
+      "version": "a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "scope": "optional",
+      "purl": "pkg:github/actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "actions/setup-node",
+      "version": "820762786026740c76f36085b0efc47a31fe5020",
+      "scope": "optional",
+      "purl": "pkg:github/actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "actions/upload-artifact",
+      "version": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "scope": "optional",
+      "purl": "pkg:github/actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "name": "ossf/scorecard-action",
+      "version": "2d1146689b8cda280b9bc96326124645441f03bc",
+      "scope": "optional",
+      "purl": "pkg:github/ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@bcoe/v8-coverage",
+      "version": "1.0.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@bcoe%2Fv8-coverage@1.0.2"
+    },
+    {
+      "type": "library",
+      "name": "@istanbuljs/schema",
+      "version": "0.1.6",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@istanbuljs%2Fschema@0.1.6"
+    },
+    {
+      "type": "library",
+      "name": "@jridgewell/resolve-uri",
+      "version": "3.1.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@jridgewell%2Fresolve-uri@3.1.2"
+    },
+    {
+      "type": "library",
+      "name": "@jridgewell/sourcemap-codec",
+      "version": "1.5.5",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@jridgewell%2Fsourcemap-codec@1.5.5"
+    },
+    {
+      "type": "library",
+      "name": "@jridgewell/trace-mapping",
+      "version": "0.3.31",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@jridgewell%2Ftrace-mapping@0.3.31"
+    },
+    {
+      "type": "library",
+      "name": "@kurkle/color",
+      "version": "0.2.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "424746c6b4d8652227e0395d81a2ee0a0f02c90e18883fab220bd777ae76d5ec"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/%40kurkle/color@0.2.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/kurkle/color"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "embedded-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@types/istanbul-lib-coverage",
+      "version": "2.0.6",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@types%2Fistanbul-lib-coverage@2.0.6"
+    },
+    {
+      "type": "library",
+      "name": "ansi-regex",
+      "version": "6.2.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ansi-regex@6.2.2"
+    },
+    {
+      "type": "library",
+      "name": "ansi-styles",
+      "version": "6.2.3",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ansi-styles@6.2.3"
+    },
+    {
+      "type": "library",
+      "name": "axe-core",
+      "version": "4.12.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/axe-core@4.12.1"
+    },
+    {
+      "type": "library",
+      "name": "balanced-match",
+      "version": "4.0.4",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/balanced-match@4.0.4"
+    },
+    {
+      "type": "library",
+      "name": "brace-expansion",
+      "version": "5.0.9",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/brace-expansion@5.0.9"
+    },
+    {
+      "type": "library",
+      "name": "c8",
+      "version": "12.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/c8@12.0.0"
+    },
+    {
+      "type": "library",
+      "name": "Chart.js",
+      "version": "3.9.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "424746c6b4d8652227e0395d81a2ee0a0f02c90e18883fab220bd777ae76d5ec"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chart.js@3.9.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/chartjs/Chart.js"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chart.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "chartjs-adapter-moment",
+      "version": "1.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abceceaf76c3027dd759776fab1a8ce2b9fa0ae5b56421a29eebc5395c1d7001"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chartjs-adapter-moment@1.0.1",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/chartjs/chartjs-adapter-moment"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-adapter-moment.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "chartjs-plugin-streaming",
+      "version": "2.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5dc54f52b17ce320201d3347f40cb9f7bafda6caa611d6444fa83292edb145e"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/chartjs-plugin-streaming@2.0.0",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/nagix/chartjs-plugin-streaming"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "CLDRPluralRuleParser",
+      "version": "vendored-snapshot",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14b18aeaae42b0c79c6992e464a22c8c261a3de1f15d0c1fb317cf6db5fdb449"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/santhoshtr/CLDRPluralRuleParser"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cliui",
+      "version": "9.0.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/cliui@9.0.1"
+    },
+    {
+      "type": "library",
+      "name": "convert-source-map",
+      "version": "2.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/convert-source-map@2.0.0"
+    },
+    {
+      "type": "library",
+      "name": "cross-spawn",
+      "version": "7.0.6",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/cross-spawn@7.0.6"
+    },
+    {
+      "type": "library",
+      "name": "emoji-regex",
+      "version": "10.6.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/emoji-regex@10.6.0"
+    },
+    {
+      "type": "library",
+      "name": "escalade",
+      "version": "3.2.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/escalade@3.2.0"
+    },
+    {
+      "type": "library",
+      "name": "find-up",
+      "version": "5.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/find-up@5.0.0"
+    },
+    {
+      "type": "library",
+      "name": "Font Awesome",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://fontawesome.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "foreground-child",
+      "version": "3.3.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/foreground-child@3.3.1"
+    },
+    {
+      "type": "library",
+      "name": "fsevents",
+      "version": "2.3.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fsevents@2.3.2"
+    },
+    {
+      "type": "library",
+      "name": "get-caller-file",
+      "version": "2.0.5",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/get-caller-file@2.0.5"
+    },
+    {
+      "type": "library",
+      "name": "get-east-asian-width",
+      "version": "1.6.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/get-east-asian-width@1.6.0"
+    },
+    {
+      "type": "library",
+      "name": "glob",
+      "version": "13.0.6",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/glob@13.0.6"
+    },
+    {
+      "type": "library",
+      "name": "has-flag",
+      "version": "4.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/has-flag@4.0.0"
+    },
+    {
+      "type": "library",
+      "name": "html-escaper",
+      "version": "2.0.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/html-escaper@2.0.2"
+    },
+    {
+      "type": "library",
+      "name": "isexe",
+      "version": "2.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/isexe@2.0.0"
+    },
+    {
+      "type": "library",
+      "name": "istanbul-lib-coverage",
+      "version": "3.2.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/istanbul-lib-coverage@3.2.2"
+    },
+    {
+      "type": "library",
+      "name": "istanbul-lib-report",
+      "version": "3.0.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/istanbul-lib-report@3.0.1"
+    },
+    {
+      "type": "library",
+      "name": "istanbul-reports",
+      "version": "3.2.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/istanbul-reports@3.2.0"
+    },
+    {
+      "type": "library",
+      "name": "jQuery UI MultiSelect Widget",
+      "version": "3.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a0d8bc7fbe00e9368bf52e3c91616cbd70c34de2f62b9e79645b81493ca8ac7c"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR GPL-2.0-or-later"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ehynds/jquery-ui-multiselect-widget"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.multiselect.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jQuery UI",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://jqueryui.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jquery",
+      "version": "3.7.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/jquery@3.7.1"
+    },
+    {
+      "type": "library",
+      "name": "jQuery",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://jquery.com/"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jquery.i18n",
+      "version": "vendored-snapshot",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc99c2f4b2f1942dca4a7f121dd7ac731dae4c7750e2031b7bdb963f4a5c2ebd"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT OR GPL-2.0-or-later"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/wikimedia/jquery.i18n"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.bidi.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.emitter.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.fallbacks.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.language.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js,src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/jquery.i18n.parser.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "locate-path",
+      "version": "6.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/locate-path@6.0.0"
+    },
+    {
+      "type": "library",
+      "name": "lru-cache",
+      "version": "11.5.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lru-cache@11.5.2"
+    },
+    {
+      "type": "library",
+      "name": "make-dir",
+      "version": "4.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/make-dir@4.0.0"
+    },
+    {
+      "type": "library",
+      "name": "minimatch",
+      "version": "10.2.5",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/minimatch@10.2.5"
+    },
+    {
+      "type": "library",
+      "name": "minipass",
+      "version": "7.1.3",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/minipass@7.1.3"
+    },
+    {
+      "type": "library",
+      "name": "Moment.js",
+      "version": "2.29.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b0023c5fda55a2d83850d8cc3b80d6fb8dd07c6b5c5bf716a3954061952987bc"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "purl": "pkg:npm/moment@2.29.4",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/moment/moment"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "shipped-runtime-library"
+        },
+        {
+          "name": "folderview-plus:files",
+          "value": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/include/moment.min.js"
+        },
+        {
+          "name": "folderview-plus:modified",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "opencc-js",
+      "version": "1.4.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT AND Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/opencc-js@1.4.1"
+    },
+    {
+      "type": "library",
+      "name": "p-limit",
+      "version": "3.1.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/p-limit@3.1.0"
+    },
+    {
+      "type": "library",
+      "name": "p-locate",
+      "version": "5.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/p-locate@5.0.0"
+    },
+    {
+      "type": "library",
+      "name": "path-exists",
+      "version": "4.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/path-exists@4.0.0"
+    },
+    {
+      "type": "library",
+      "name": "path-key",
+      "version": "3.1.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/path-key@3.1.1"
+    },
+    {
+      "type": "library",
+      "name": "path-scurry",
+      "version": "2.0.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/path-scurry@2.0.2"
+    },
+    {
+      "type": "library",
+      "name": "playwright-core",
+      "version": "1.62.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/playwright-core@1.62.0"
+    },
+    {
+      "type": "library",
+      "name": "playwright",
+      "version": "1.62.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/playwright@1.62.0"
+    },
+    {
+      "type": "library",
+      "name": "semver",
+      "version": "7.8.5",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/semver@7.8.5"
+    },
+    {
+      "type": "library",
+      "name": "shebang-command",
+      "version": "2.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/shebang-command@2.0.0"
+    },
+    {
+      "type": "library",
+      "name": "shebang-regex",
+      "version": "3.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/shebang-regex@3.0.0"
+    },
+    {
+      "type": "library",
+      "name": "signal-exit",
+      "version": "4.1.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/signal-exit@4.1.0"
+    },
+    {
+      "type": "library",
+      "name": "string-width",
+      "version": "7.2.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/string-width@7.2.0"
+    },
+    {
+      "type": "library",
+      "name": "strip-ansi",
+      "version": "7.2.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/strip-ansi@7.2.0"
+    },
+    {
+      "type": "library",
+      "name": "supports-color",
+      "version": "7.2.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/supports-color@7.2.0"
+    },
+    {
+      "type": "library",
+      "name": "SweetAlert",
+      "version": "unraid-provided",
+      "scope": "required",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/t4t5/sweetalert"
+        }
+      ],
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "unraid-host-provided-runtime-library"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "test-exclude",
+      "version": "8.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/test-exclude@8.0.0"
+    },
+    {
+      "type": "library",
+      "name": "v8-to-istanbul",
+      "version": "9.3.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/v8-to-istanbul@9.3.0"
+    },
+    {
+      "type": "library",
+      "name": "which",
+      "version": "2.0.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/which@2.0.2"
+    },
+    {
+      "type": "library",
+      "name": "wrap-ansi",
+      "version": "9.0.2",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/wrap-ansi@9.0.2"
+    },
+    {
+      "type": "library",
+      "name": "y18n",
+      "version": "5.0.8",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/y18n@5.0.8"
+    },
+    {
+      "type": "library",
+      "name": "yargs-parser",
+      "version": "21.1.1",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yargs-parser@21.1.1"
+    },
+    {
+      "type": "library",
+      "name": "yargs",
+      "version": "18.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yargs@18.0.0"
+    },
+    {
+      "type": "library",
+      "name": "yargs/node_modules/yargs-parser",
+      "version": "22.0.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yargs%2Fnode_modules%2Fyargs-parser@22.0.0"
+    },
+    {
+      "type": "library",
+      "name": "yocto-queue",
+      "version": "0.1.0",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/yocto-queue@0.1.0"
+    }
+  ]
+}

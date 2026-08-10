@@ -12,7 +12,7 @@
 
     const actionHandlers = new Map();
     const modalStack = [];
-    let toastRegion = null;
+    let announcer = null;
     let activePopover = null;
     let popoverSequence = 0;
     let delegatedRoot = null;
@@ -132,14 +132,17 @@
         return `<div class="fv-ui-field${error ? ' has-error' : ''}${className ? ` ${escapeHtml(className)}` : ''}">${label ? `<label${id ? ` for="${escapeHtml(id)}"` : ''}>${escapeHtml(label)}${required ? '<span aria-hidden="true"> *</span>' : ''}</label>` : ''}<div class="fv-ui-field-control">${control}</div>${help ? `<div class="fv-ui-field-help"${helpId ? ` id="${escapeHtml(helpId)}"` : ''}>${escapeHtml(help)}</div>` : ''}${error ? `<div class="fv-ui-field-error" role="alert"${errorId ? ` id="${escapeHtml(errorId)}"` : ''}><i class="fa fa-exclamation-circle" aria-hidden="true"></i>${escapeHtml(error)}</div>` : ''}</div>`;
     };
 
-    const dropdown = ({ id = '', name = '', options = [], value = '', multiple = false, disabled = false, attributes = '' } = {}) => {
+    const dropdown = ({
+        id = '', name = '', ariaLabel = '', options = [], value = '', multiple = false,
+        disabled = false, attributes = ''
+    } = {}) => {
         const selected = new Set(Array.isArray(value) ? value.map(String) : [String(value)]);
         const choices = options.map((option) => {
             const normalized = typeof option === 'object' ? option : { value: option, label: option };
             const optionValue = String(normalized.value ?? '');
             return `<option value="${escapeHtml(optionValue)}"${selected.has(optionValue) ? ' selected' : ''}${normalized.disabled ? ' disabled' : ''}>${escapeHtml(normalized.label ?? optionValue)}</option>`;
         }).join('');
-        return `<span class="fv-ui-select${multiple ? ' is-multiselect' : ''}"><select${id ? ` id="${escapeHtml(id)}"` : ''}${name ? ` name="${escapeHtml(name)}"` : ''}${multiple ? ' multiple' : ''}${disabled ? ' disabled' : ''} ${attributes}>${choices}</select>${multiple ? '' : '<i class="fa fa-angle-down" aria-hidden="true"></i>'}</span>`;
+        return `<span class="fv-ui-select${multiple ? ' is-multiselect' : ''}"><select${id ? ` id="${escapeHtml(id)}"` : ''}${name ? ` name="${escapeHtml(name)}"` : ''}${ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)}"` : ''}${multiple ? ' multiple' : ''}${disabled ? ' disabled' : ''} ${attributes}>${choices}</select>${multiple ? '' : '<i class="fa fa-angle-down" aria-hidden="true"></i>'}</span>`;
     };
 
     const emptyState = ({ title = '', message = '', icon = 'fa-inbox', action = '' } = {}) => `
@@ -391,38 +394,32 @@
         modal.closed.then(resolve);
     });
 
-    const ensureToastRegion = () => {
+    const ensureAnnouncer = () => {
         if (!host?.document?.body) return null;
-        if (toastRegion?.isConnected) return toastRegion;
-        toastRegion = host.document.createElement('div');
-        toastRegion.className = 'fv-ui-toast-region';
-        toastRegion.setAttribute('aria-label', translate('common.notifications', 'Notifications'));
-        host.document.body.append(toastRegion);
-        return toastRegion;
+        if (announcer?.isConnected) return announcer;
+        announcer = host.document.createElement('div');
+        announcer.className = 'fv-ui-announcer';
+        announcer.setAttribute('role', 'status');
+        announcer.setAttribute('aria-live', 'polite');
+        announcer.setAttribute('aria-atomic', 'true');
+        host.document.body.append(announcer);
+        return announcer;
     };
 
-    const toast = ({ title = '', message = '', tone = '', level = '', duration = null, durationMs = 4200, actionLabel = '', onAction = null } = {}) => {
-        const region = ensureToastRegion();
+    const announce = ({ title = '', message = '' } = {}) => {
+        const region = ensureAnnouncer();
         if (!region) return null;
-        const resolvedTone = normalizeTone(tone || level || 'info');
-        const element = host.document.createElement('article');
-        element.className = `fv-ui-toast is-${resolvedTone}`;
-        element.setAttribute('role', resolvedTone === 'danger' ? 'alert' : 'status');
-        element.innerHTML = `<span class="fv-ui-toast-icon">${iconMarkup(resolvedTone === 'success' ? 'fa-check-circle' : resolvedTone === 'danger' ? 'fa-exclamation-circle' : resolvedTone === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle')}</span><div class="fv-ui-toast-copy">${title ? `<strong>${escapeHtml(title)}</strong>` : ''}${message ? `<p>${escapeHtml(message)}</p>` : ''}</div>${actionLabel ? button({ label: actionLabel, size: 'sm', className: 'fv-ui-toast-action' }) : ''}${iconButton({ label: translate('common.dismiss', 'Dismiss'), icon: 'fa-times', size: 'sm', className: 'fv-ui-toast-close' })}`;
-        const close = () => {
-            if (!element.isConnected) return;
-            element.classList.add('is-leaving');
-            host.setTimeout(() => element.remove(), 180);
-        };
-        element.querySelector('.fv-ui-toast-close')?.addEventListener('click', close);
-        element.querySelector('.fv-ui-toast-action')?.addEventListener('click', () => {
-            onAction?.();
-            close();
-        });
-        region.append(element);
-        const timeout = Number(duration ?? durationMs);
-        if (timeout > 0) host.setTimeout(close, timeout);
-        return Object.freeze({ element, close });
+        const text = [title, message]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean)
+            .join('. ');
+        region.textContent = '';
+        host.setTimeout(() => {
+            if (region.isConnected) {
+                region.textContent = text;
+            }
+        }, 0);
+        return region;
     };
 
     const progress = ({ title = '', label = '', detail = '', value = 0, max = 100, cancellable = false, onCancel = null } = {}) => {
@@ -508,7 +505,7 @@
         openActionSheet,
         confirm,
         alert,
-        toast,
+        announce,
         progress,
         registerAction,
         dispatchAction,

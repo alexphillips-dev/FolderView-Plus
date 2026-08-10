@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "da",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Valgfrit",
+    "common.badges.recommended": "Anbefales",
+    "common.badges.can-delete": "Kan slette",
+    "common.close": "Luk",
+    "common.cancel": "Annuller",
+    "common.confirm": "Bekræft",
+    "common.confirm-type": "Skriv for at bekræfte",
+    "common.loading": "Indlæser..."
+}

@@ -97,7 +97,7 @@
                             ${svgIcon('info-circle', { className: 'fv-diagnostics-metric-icon' })}
                             <dt>${escapeHtml(translate('diagnostics.metrics.notices', 'Optional notices'))}</dt>
                             <dd>${escapeHtml(metrics.optionalCount)}</dd>
-                            <small>${escapeHtml(translate('diagnostics.metrics.informational', 'Informational only'))}</small>
+                            <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(translate('diagnostics.metrics.informational', 'Informational only'))}</small></dd>
                         </div>
                         <div class="fv-diagnostics-metric has-icon is-checked">
                             ${svgIcon('calendar', { className: 'fv-diagnostics-metric-icon' })}
@@ -108,13 +108,13 @@
                             ${svgIcon('package', { className: 'fv-diagnostics-metric-icon' })}
                             <dt>${escapeHtml(translate('diagnostics.metrics.version', 'Current version'))}</dt>
                             <dd>${escapeHtml(metrics.pluginVersion)}</dd>
-                            <small>${escapeHtml(metrics.updateLabel)}</small>
+                            <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(metrics.updateLabel)}</small></dd>
                         </div>
                         <div class="fv-diagnostics-metric is-core is-${escapeHtml(model.overall.status)}">
                             <dt>${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}</dt>
                             <dd>${escapeHtml(`${metrics.coreHealthy} / ${metrics.coreTotal}`)}</dd>
-                            <small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small>
-                            <span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span style="width: ${corePercent}%"></span></span>
+                            <dd class="fv-diagnostics-metric-note"><small>${escapeHtml(model.overall.status === 'healthy' ? 'All checks passed' : 'Review results below')}</small></dd>
+                            <dd class="fv-diagnostics-core-progress-wrap"><span class="fv-diagnostics-core-progress" role="progressbar" aria-label="${escapeHtml(translate('diagnostics.metrics.core-checks', 'Core checks'))}" aria-valuemin="0" aria-valuemax="${escapeHtml(metrics.coreTotal)}" aria-valuenow="${escapeHtml(metrics.coreHealthy)}"><span style="width: ${corePercent}%"></span></span></dd>
                         </div>
                     </dl>
                 </section>

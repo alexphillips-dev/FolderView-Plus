@@ -15,7 +15,7 @@ emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 ?>
 
-<script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script><script>
     folderi18n = () => {
         $('body').i18n();
     }
@@ -24,7 +24,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
     window.FolderViewPlusFatalRuntimeContext = {
         page: 'Settings',
         hostSelector: '#fv-settings-root',
-        unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
+        pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>, unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
         channel: 'unknown'
     };
 </script>
@@ -155,6 +155,8 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/theme.tokens.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/ui.primitives.css')?>">
 <link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.download-diagnostics.css')?>">
+<link rel="stylesheet" href="<?=fvplus_asset('/plugins/folderview.plus/styles/folderviewplus.bootstrap.css')?>">
 <script>
     window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     (function applySettingsHostThemeName(rawThemeName) {
@@ -178,7 +180,6 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
         }
     })(window.FolderViewPlusHostThemeName);
 </script>
-
 <div id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true">
 <div id="fv-settings-bootstrap-shell" class="fv-settings-bootstrap-shell" role="status" aria-live="polite">
     <div class="fv-settings-bootstrap-shell-card">
@@ -205,10 +206,10 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span id="fv-activity-center-summary" class="fv-activity-center-summary">Actions you run here will appear in this session history.</span>
         </div>
         <div class="fv-activity-center-actions">
-            <button id="fv-activity-center-toggle" type="button" onclick="toggleActivityCenterHistory()" aria-expanded="false">
+            <button id="fv-activity-center-toggle" type="button" data-fv-onclick="toggleActivityCenterHistory()" aria-expanded="false">
                 <i class="fa fa-history"></i> History
             </button>
-            <button id="fv-activity-center-clear" type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+            <button id="fv-activity-center-clear" type="button" data-fv-onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
         </div>
     </div>
     <div id="fv-activity-center-latest" class="fv-activity-center-latest is-empty">
@@ -248,8 +249,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                     <div class="fv-theme-import-row">
                         <input id="fv-theme-github-source" type="text" placeholder="owner/repo, owner/repo/tree/branch, or GitHub raw CSS URL">
-                        <button type="button" onclick="scanThemeWorkspaceGithub()"><i class="fa fa-search"></i> Scan theme</button>
-                        <button type="button" onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
+                        <button type="button" data-fv-onclick="scanThemeWorkspaceGithub()"><i class="fa fa-search"></i> Scan theme</button>
+                        <button type="button" data-fv-onclick="importThemeWorkspaceGithub()"><i class="fa fa-github"></i> Import from GitHub</button>
                     </div>
                     <div id="fv-theme-scan-result" class="fv-theme-scan-result" hidden></div>
                 </section>
@@ -259,7 +260,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <span class="settings-mini-title">Managed themes</span>
                             <p>Activate one imported theme at a time, check for updates, or remove themes you no longer use.</p>
                         </div>
-                        <button type="button" onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
+                        <button type="button" data-fv-onclick="checkThemeWorkspaceUpdates()"><i class="fa fa-refresh"></i> Check updates</button>
                     </div>
                     <div id="fv-theme-workspace-list" class="fv-theme-workspace-list">
                         <div class="fv-theme-empty-state">
@@ -280,7 +281,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-theme-customize-card">
                         <div class="fv-theme-card-head">
                             <span class="settings-mini-title">Color tokens</span>
-                            <button type="button" onclick="resetThemeWorkspaceTokens()"><i class="fa fa-undo"></i> Reset all</button>
+                            <button type="button" data-fv-onclick="resetThemeWorkspaceTokens()"><i class="fa fa-undo"></i> Reset all</button>
                         </div>
                         <div id="fv-theme-variable-grid" class="fv-theme-variable-grid"></div>
                     </div>
@@ -316,14 +317,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </div>
                 <div class="fv-theme-customize-actions">
-                    <button type="button" onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
-                    <button type="button" onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
+                    <button type="button" data-fv-onclick="saveThemeWorkspaceCustomize()"><i class="fa fa-save"></i> Save customization layer</button>
+                    <button type="button" data-fv-onclick="deactivateThemeWorkspaceTheme()"><i class="fa fa-ban"></i> Disable managed theme</button>
                 </div>
             </section>
         </div>
     </div>
 </div>
-
 
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">
@@ -331,13 +331,13 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="fv-basic-commandbar" aria-label="Docker folder controls">
             <label class="fv-basic-search" for="docker-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
-                <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
+                <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" data-fv-oninput="setFilterQuery('folders','docker',this.value)">
             </label>
-            <button type="button" class="fv-basic-control-btn" onclick="toggleBasicSettingsPanel('docker')" aria-controls="docker-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
+            <button type="button" class="fv-basic-control-btn" data-fv-onclick="toggleBasicSettingsPanel('docker')" aria-controls="docker-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
             <label class="fv-basic-sort" for="docker-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
                 <span>Sort</span>
-                <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
+                <select id="docker-sort-mode" data-fv-onchange="changeSortMode('docker', this.value)">
                     <option value="created">Created order</option>
                     <option value="created_newest">Created newest first</option>
                     <option value="created_oldest">Created oldest first</option>
@@ -347,13 +347,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
             </label>
-            <button type="button" class="fv-basic-add-btn" onclick="quickCreateStarterFolder('docker')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+            <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('docker')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
         </div>
         <div class="toolbar-actions">
-            <button type="button" data-i18n="[html]export-all" onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button type="button" data-i18n="[html]import-all" onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
-            <button type="button" onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
-            <button type="button" data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+            <button type="button" data-i18n="[html]export-all" data-fv-onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" data-i18n="[html]import-all" data-fv-onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" data-fv-onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
     <div id="docker-basic-summary" class="fv-basic-summary-grid" aria-label="Docker folder summary"></div>
@@ -371,32 +371,32 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="toolbar-sort-body">
             <div class="sort-row fv-view-settings-toolbar">
                 <span class="tree-visibility-controls">
-                    <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
-                    <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
+                    <button type="button" data-fv-onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" data-fv-onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
                 </span>
                 <span class="tree-visibility-controls tree-management-controls">
-                    <button id="docker-tree-history-undo" type="button" onclick="applyTreeMoveUndo('docker')" disabled><i class="fa fa-undo"></i> Undo</button>
-                    <button id="docker-tree-history-redo" type="button" onclick="applyTreeMoveRedo('docker')" disabled><i class="fa fa-repeat"></i> Redo</button>
-                    <button id="docker-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('docker')" aria-pressed="false" aria-describedby="docker-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
-                    <button id="docker-tree-scan" type="button" onclick="runTreeIntegrityCheck('docker')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
-                    <button id="docker-tree-repair" type="button" onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
+                    <button id="docker-tree-history-undo" type="button" data-fv-onclick="applyTreeMoveUndo('docker')" disabled><i class="fa fa-undo"></i> Undo</button>
+                    <button id="docker-tree-history-redo" type="button" data-fv-onclick="applyTreeMoveRedo('docker')" disabled><i class="fa fa-repeat"></i> Redo</button>
+                    <button id="docker-tree-reorder-toggle" type="button" data-fv-onclick="toggleMobileTreeReorderMode('docker')" aria-pressed="false" aria-describedby="docker-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
+                    <button id="docker-tree-scan" type="button" data-fv-onclick="runTreeIntegrityCheck('docker')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
+                    <button id="docker-tree-repair" type="button" data-fv-onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
                     <small id="docker-tree-reorder-help" class="fv-mobile-reorder-help">Shows touch-friendly move controls in the Order column.</small>
                 </span>
             </div>
             <div id="docker-quick-filters" class="folder-quick-filters">
-                <button type="button" data-filter="all" onclick="setQuickFolderFilter('docker','all')">All</button>
-                <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('docker','pinned')">Pinned</button>
-                <button type="button" data-filter="stopped" onclick="setQuickFolderFilter('docker','stopped')">Stopped</button>
-                <button type="button" data-filter="empty" onclick="setQuickFolderFilter('docker','empty')">Empty</button>
-                <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('docker','no-rules')">No rules</button>
-                <button type="button" data-filter="has-updates" onclick="setQuickFolderFilter('docker','has-updates')">Has updates</button>
+                <button type="button" data-filter="all" data-fv-onclick="setQuickFolderFilter('docker','all')">All</button>
+                <button type="button" data-filter="pinned" data-fv-onclick="setQuickFolderFilter('docker','pinned')">Pinned</button>
+                <button type="button" data-filter="stopped" data-fv-onclick="setQuickFolderFilter('docker','stopped')">Stopped</button>
+                <button type="button" data-filter="empty" data-fv-onclick="setQuickFolderFilter('docker','empty')">Empty</button>
+                <button type="button" data-filter="no-rules" data-fv-onclick="setQuickFolderFilter('docker','no-rules')">No rules</button>
+                <button type="button" data-filter="has-updates" data-fv-onclick="setQuickFolderFilter('docker','has-updates')">Has updates</button>
             </div>
             <div class="settings-cards-grid fv-view-settings-grid">
                 <div class="settings-mini-card fv-settings-card-layout">
                     <div class="fv-view-settings-card-title is-layout">Layout</div>
                     <label class="setting-select" for="docker-app-column-width">
                         <span>Application width</span>
-                        <select id="docker-app-column-width" onchange="changeVisibilityPref('docker', 'appColumnWidth', this.value)">
+                        <select id="docker-app-column-width" data-fv-onchange="changeVisibilityPref('docker', 'appColumnWidth', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -404,78 +404,78 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label class="setting-select" for="docker-status-mode">
                         <span>Status mode</span>
-                        <select id="docker-status-mode" onchange="changeStatusPref('docker', 'mode', this.value)">
+                        <select id="docker-status-mode" data-fv-onchange="changeStatusPref('docker', 'mode', this.value)">
                             <option value="summary">Summary</option>
                             <option value="dominant">Dominant</option>
                         </select>
                     </label>
                     <label class="setting-select" for="docker-status-display-mode">
                         <span>Status detail</span>
-                        <select id="docker-status-display-mode" onchange="changeStatusPref('docker', 'displayMode', this.value)">
+                        <select id="docker-status-display-mode" data-fv-onchange="changeStatusPref('docker', 'displayMode', this.value)">
                             <option value="simple">Simple</option>
                             <option value="balanced">Balanced</option>
                             <option value="detailed">Detailed</option>
                         </select>
                     </label>
-                    <label id="docker-status-trend-row" class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label id="docker-status-trend-row" class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" data-fv-onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
                     <div class="fv-settings-divider"></div>
                     <label class="setting-toggle fv-setting-switch">
                         <span class="fv-setting-copy"><strong>Attention accent</strong><small>Highlight important items</small></span>
-                        <input id="docker-status-attention-accent" type="checkbox" onchange="changeStatusPref('docker', 'attentionAccent', this.checked)">
+                        <input id="docker-status-attention-accent" type="checkbox" data-fv-onchange="changeStatusPref('docker', 'attentionAccent', this.checked)">
                     </label>
                     <label id="docker-status-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span class="fv-setting-copy"><strong>Status warn (%)</strong><small>Warn threshold for attention</small></span>
                         <span class="fv-setting-range-control">
                             <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-status-warn-threshold" aria-label="Status warning threshold">
-                            <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
+                            <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" data-fv-onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
                             <span aria-hidden="true">%</span>
                         </span>
                     </label>
                     <label class="setting-toggle fv-setting-checkbox-row">
-                        <input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
+                        <input id="docker-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)">
                         <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
                     </label>
                     <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-badges">
                     <div class="fv-view-settings-card-title is-folder">Folder badges</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"><span class="fv-setting-copy"><strong>Updates</strong><small>Show updates badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-running" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-stopped" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-badge-updates" type="checkbox" data-fv-onchange="changeBadgePref('docker', 'updates', this.checked)"><span class="fv-setting-copy"><strong>Updates</strong><small>Show updates badge</small></span></label>
                 </div>
                 <div class="settings-mini-card fv-settings-card-runtime">
                     <div class="fv-view-settings-card-title is-runtime">Runtime</div>
                     <label class="setting-select" for="docker-page-view-mode">
                         <span>Docker page view</span>
-                        <select id="docker-page-view-mode" onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
+                        <select id="docker-page-view-mode" data-fv-onchange="changeRuntimePref('docker', 'pageViewMode', this.value)">
                             <option value="folderview">FolderView</option>
                             <option value="host">No FolderView (host list only)</option>
                             <option value="command">Command view</option>
                         </select>
                     </label>
                     <div class="fv-setting-inline-pair">
-                        <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
+                        <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-live-refresh-enabled" type="checkbox" data-fv-onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
                         <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent fv-setting-compact-number">
-                            <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
+                            <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" data-fv-onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
                             <span aria-hidden="true">s</span>
                         </label>
                     </div>
                     <label class="setting-select" for="docker-performance-profile">
                         <span>Performance profile</span>
-                        <select id="docker-performance-profile" onchange="changeRuntimePref('docker', 'performanceProfile', this.value)">
+                        <select id="docker-performance-profile" data-fv-onchange="changeRuntimePref('docker', 'performanceProfile', this.value)">
                             <option value="standard">Standard</option>
                             <option value="adaptive">Adaptive (recommended)</option>
                             <option value="maximum">Maximum performance</option>
                         </select>
                     </label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-lazy-preview-enabled" type="checkbox" data-fv-onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
                     <label id="docker-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Preview threshold</span>
-                        <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
+                        <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" data-fv-onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
                     </label>
                     <label class="setting-select" for="docker-theme-compat-mode">
                         <span>Theme fallback mode</span>
-                        <select id="docker-theme-compat-mode" onchange="changeRuntimePref('docker', 'themeCompatibilityMode', this.value)">
+                        <select id="docker-theme-compat-mode" data-fv-onchange="changeRuntimePref('docker', 'themeCompatibilityMode', this.value)">
                             <option value="auto">Auto (recommended)</option>
                             <option value="host">Force host theme</option>
                             <option value="safe">Force safe palette</option>
@@ -493,9 +493,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div id="docker-folder-defaults-summary" class="setting-help">No Docker folder defaults saved yet.</div>
                     <div class="fv-view-defaults-actions">
-                        <button type="button" class="fv-folder-defaults-save" onclick="saveFolderDefaultsFromSelection('docker')"><i class="fa fa-bookmark"></i> Save as defaults</button>
-                        <button type="button" class="fv-folder-defaults-apply" onclick="applySavedFolderDefaultsToAll('docker')"><i class="fa fa-check"></i> Apply to all</button>
-                        <button type="button" class="fv-folder-defaults-clear" onclick="clearFolderDefaults('docker')"><i class="fa fa-eraser"></i> Clear</button>
+                        <button type="button" class="fv-folder-defaults-save" data-fv-onclick="saveFolderDefaultsFromSelection('docker')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" class="fv-folder-defaults-apply" data-fv-onclick="applySavedFolderDefaultsToAll('docker')"><i class="fa fa-check"></i> Apply to all</button>
+                        <button type="button" class="fv-folder-defaults-clear" data-fv-onclick="clearFolderDefaults('docker')"><i class="fa fa-eraser"></i> Clear</button>
                     </div>
                     <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
@@ -503,7 +503,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-view-settings-card-title is-layout">Dashboard</div>
                     <label class="setting-select" for="docker-dashboard-layout">
                         <span>Layout mode</span>
-                        <select id="docker-dashboard-layout" onchange="changeDashboardPref('docker', 'layout', this.value)">
+                        <select id="docker-dashboard-layout" data-fv-onchange="changeDashboardPref('docker', 'layout', this.value)">
                             <option value="classic">Classic</option>
                             <option value="legacy">Legacy</option>
                             <option value="fullwidth">Fullwidth</option>
@@ -513,26 +513,26 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
-                    <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
-                    <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
-                    <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
+                    <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
+                    <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
+                    <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
                     <label class="setting-select" for="docker-dashboard-preview-context">
                         <span>Container preview</span>
-                        <select id="docker-dashboard-preview-context" onchange="changeDashboardPref('docker', 'previewContext', this.value)">
+                        <select id="docker-dashboard-preview-context" data-fv-onchange="changeDashboardPref('docker', 'previewContext', this.value)">
                             <option value="native">Native menu</option>
                             <option value="advanced">Advanced popup</option>
                         </select>
                     </label>
                     <label id="docker-dashboard-preview-trigger-row" class="setting-select" for="docker-dashboard-preview-trigger">
                         <span>Preview activation</span>
-                        <select id="docker-dashboard-preview-trigger" onchange="changeDashboardPref('docker', 'previewTrigger', this.value)">
+                        <select id="docker-dashboard-preview-trigger" data-fv-onchange="changeDashboardPref('docker', 'previewTrigger', this.value)">
                             <option value="click">Click</option>
                             <option value="hover">Hover</option>
                         </select>
                     </label>
                     <label id="docker-dashboard-preview-graph-row" class="setting-select" for="docker-dashboard-preview-graph">
                         <span>Preview graph</span>
-                        <select id="docker-dashboard-preview-graph" onchange="changeDashboardPref('docker', 'previewGraph', this.value)">
+                        <select id="docker-dashboard-preview-graph" data-fv-onchange="changeDashboardPref('docker', 'previewGraph', this.value)">
                             <option value="0">None</option>
                             <option value="1">Combined</option>
                             <option value="2">Split</option>
@@ -542,20 +542,20 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label id="docker-dashboard-preview-graph-time-row" class="setting-inline-number" for="docker-dashboard-preview-graph-time">
                         <span>Graph time (sec)</span>
-                        <input id="docker-dashboard-preview-graph-time" type="number" min="5" max="600" step="5" onchange="changeDashboardPref('docker', 'previewGraphTime', this.value)">
+                        <input id="docker-dashboard-preview-graph-time" type="number" min="5" max="600" step="5" data-fv-onchange="changeDashboardPref('docker', 'previewGraphTime', this.value)">
                     </label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-health">
                     <div class="fv-view-settings-card-title is-health">Health summary &amp; Docker scoring</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Docker page summary badge</strong><small>Show live folder totals above the Docker table</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-cards-enabled" type="checkbox" data-fv-onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="docker-health-runtime-badge-enabled" type="checkbox" data-fv-onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>Docker page summary badge</strong><small>Show live folder totals above the Docker table</small></span></label>
                     <div class="fv-settings-divider"></div>
                     <label id="docker-health-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span>Warn stopped (%)</span>
                         <span class="fv-setting-range-control">
                             <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-health-warn-threshold" aria-label="Stopped warning threshold">
-                            <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
+                            <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" data-fv-onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
                             <span aria-hidden="true">%</span>
                         </span>
                     </label>
@@ -563,13 +563,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Critical stopped (%)</span>
                         <span class="fv-setting-range-control">
                             <input type="range" min="0" max="100" step="1" data-fv-number-target="docker-health-critical-threshold" aria-label="Stopped critical threshold">
-                            <input id="docker-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'criticalStoppedPercent', this.value)">
+                            <input id="docker-health-critical-threshold" type="number" min="0" max="100" step="1" data-fv-onchange="changeHealthPref('docker', 'criticalStoppedPercent', this.value)">
                             <span aria-hidden="true">%</span>
                         </span>
                     </label>
                     <label id="docker-health-policy-profile-row" class="setting-select">
                         <span>Scoring preset</span>
-                        <select id="docker-health-profile" onchange="changeHealthPref('docker', 'profile', this.value)">
+                        <select id="docker-health-profile" data-fv-onchange="changeHealthPref('docker', 'profile', this.value)">
                             <option value="strict">Strict (45 / 75)</option>
                             <option value="balanced">Balanced (60 / 90)</option>
                             <option value="lenient">Lenient (75 / 95)</option>
@@ -577,7 +577,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label id="docker-health-updates-mode-row" class="setting-select">
                         <span>Updates handling</span>
-                        <select id="docker-health-updates-mode" onchange="changeHealthPref('docker', 'updatesMode', this.value)">
+                        <select id="docker-health-updates-mode" data-fv-onchange="changeHealthPref('docker', 'updatesMode', this.value)">
                             <option value="maintenance">Maintenance</option>
                             <option value="warn">Warn</option>
                             <option value="ignore">Ignore</option>
@@ -585,7 +585,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label id="docker-health-all-stopped-mode-row" class="setting-select">
                         <span>All stopped mode</span>
-                        <select id="docker-health-all-stopped-mode" onchange="changeHealthPref('docker', 'allStoppedMode', this.value)">
+                        <select id="docker-health-all-stopped-mode" data-fv-onchange="changeHealthPref('docker', 'allStoppedMode', this.value)">
                             <option value="critical">Critical</option>
                             <option value="warn">Warn</option>
                         </select>
@@ -597,14 +597,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="setting-note">These masks apply while Privacy is enabled on the Docker page.</div>
                     <div class="settings-privacy-section">
                         <div id="docker-dashboard-privacy-options" class="settings-privacy-options">
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> <span data-i18n="settings.privacy.mask-lan-ips">Mask LAN IPs</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> <span data-i18n="settings.privacy.mask-ports">Mask ports</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
-                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-names" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskNames', this.checked)"> <span data-i18n="settings.privacy.mask-names">Mask names and icons</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-lan-ips" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskLocalIps', this.checked)"> <span data-i18n="settings.privacy.mask-lan-ips">Mask LAN IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-ports" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskPorts', this.checked)"> <span data-i18n="settings.privacy.mask-ports">Mask ports</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-volume-paths" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskVolumePaths', this.checked)"> <span data-i18n="privacy-mask-volume-paths">Mask volume paths</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-image-registry" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskImageRegistry', this.checked)"> <span data-i18n="privacy-mask-image-registries">Mask image registries</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-public-ips" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-interfaces" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="docker-dashboard-privacy-mask-external-urls" type="checkbox" data-fv-onchange="changeDashboardPref('docker', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
                         <div class="setting-help" data-i18n="settings.privacy.lan-help">LAN IP masking applies to the IP portion of the Docker page's LAN IP:PORT column. Use Mask ports for the port portion.</div>
                     </div>
@@ -613,7 +613,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-view-settings-card-title is-columns">Columns</div>
                     <label class="setting-select" for="docker-table-name-width">
                         <span>Name width</span>
-                        <select id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'name', this.value)">
+                        <select id="docker-table-name-width" data-fv-onchange="changeSettingsTableColumnWidthPreset('docker', 'name', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -621,7 +621,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label class="setting-select" for="docker-table-actions-width">
                         <span>Actions width</span>
-                        <select id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'actions', this.value)">
+                        <select id="docker-table-actions-width" data-fv-onchange="changeSettingsTableColumnWidthPreset('docker', 'actions', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -629,22 +629,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div class="fv-settings-density-label">View density</div>
                     <div class="fv-settings-density-control">
-                        <button type="button" data-fv-table-preset="docker:compact" onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
-                        <button type="button" data-fv-table-preset="docker:balanced" onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
-                        <button type="button" data-fv-table-preset="docker:detailed" onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
+                        <button type="button" data-fv-table-preset="docker:compact" data-fv-onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
+                        <button type="button" data-fv-table-preset="docker:balanced" data-fv-onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
+                        <button type="button" data-fv-table-preset="docker:detailed" data-fv-onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
                     </div>
                     <div class="fv-settings-divider"></div>
                     <div class="fv-settings-reset-actions">
-                        <button type="button" id="docker-table-reset-visibility" onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
-                        <button type="button" id="docker-table-reset-widths" onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
+                        <button type="button" id="docker-table-reset-visibility" data-fv-onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
+                        <button type="button" id="docker-table-reset-widths" data-fv-onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
                     </div>
                     <div class="fv-settings-column-toggles">
-                        <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
-                        <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
-                        <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
-                        <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
-                        <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
-                        <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
+                        <label class="setting-toggle"><input id="docker-col-members" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
+                        <label class="setting-toggle"><input id="docker-col-status" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
+                        <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
+                        <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
+                        <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
+                        <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" data-fv-onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
                     </div>
                     <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
@@ -687,13 +687,13 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="fv-basic-commandbar" aria-label="VM folder controls">
             <label class="fv-basic-search" for="vm-folder-filter">
                 <i class="fa fa-search" aria-hidden="true"></i>
-                <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
+                <input id="vm-folder-filter" type="text" placeholder="Search VM folders" data-fv-oninput="setFilterQuery('folders','vm',this.value)">
             </label>
-            <button type="button" class="fv-basic-control-btn" onclick="toggleBasicSettingsPanel('vm')" aria-controls="vm-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
+            <button type="button" class="fv-basic-control-btn" data-fv-onclick="toggleBasicSettingsPanel('vm')" aria-controls="vm-view-settings"><i class="fa fa-filter" aria-hidden="true"></i> Filters</button>
             <label class="fv-basic-sort" for="vm-sort-mode">
                 <i class="fa fa-sort-amount-asc" aria-hidden="true"></i>
                 <span>Sort</span>
-                <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
+                <select id="vm-sort-mode" data-fv-onchange="changeSortMode('vm', this.value)">
                     <option value="created">Created order</option>
                     <option value="created_newest">Created newest first</option>
                     <option value="created_oldest">Created oldest first</option>
@@ -703,13 +703,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="name_desc">Name (Z-A)</option>
                 </select>
             </label>
-            <button type="button" class="fv-basic-add-btn" onclick="quickCreateStarterFolder('vm')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
+            <button type="button" class="fv-basic-add-btn" data-fv-onclick="quickCreateStarterFolder('vm')"><i class="fa fa-plus" aria-hidden="true"></i> Add Folder Group</button>
         </div>
         <div class="toolbar-actions">
-            <button type="button" data-i18n="[html]export-all" onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button type="button" data-i18n="[html]import-all" onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
-            <button type="button" onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
-            <button type="button" data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+            <button type="button" data-i18n="[html]export-all" data-fv-onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" data-i18n="[html]import-all" data-fv-onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" data-fv-onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button type="button" data-i18n="[html]clear-all" data-fv-onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
     <div id="vm-basic-summary" class="fv-basic-summary-grid" aria-label="VM folder summary"></div>
@@ -727,31 +727,31 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="toolbar-sort-body">
             <div class="sort-row fv-view-settings-toolbar">
                 <span class="tree-visibility-controls">
-                    <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
-                    <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
+                    <button type="button" data-fv-onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" data-fv-onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
                 </span>
                 <span class="tree-visibility-controls tree-management-controls">
-                    <button id="vm-tree-history-undo" type="button" onclick="applyTreeMoveUndo('vm')" disabled><i class="fa fa-undo"></i> Undo</button>
-                    <button id="vm-tree-history-redo" type="button" onclick="applyTreeMoveRedo('vm')" disabled><i class="fa fa-repeat"></i> Redo</button>
-                    <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false" aria-describedby="vm-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
-                    <button id="vm-tree-scan" type="button" onclick="runTreeIntegrityCheck('vm')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
-                    <button id="vm-tree-repair" type="button" onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
+                    <button id="vm-tree-history-undo" type="button" data-fv-onclick="applyTreeMoveUndo('vm')" disabled><i class="fa fa-undo"></i> Undo</button>
+                    <button id="vm-tree-history-redo" type="button" data-fv-onclick="applyTreeMoveRedo('vm')" disabled><i class="fa fa-repeat"></i> Redo</button>
+                    <button id="vm-tree-reorder-toggle" type="button" data-fv-onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false" aria-describedby="vm-tree-reorder-help"><i class="fa fa-mobile"></i><span>Mobile reorder</span></button>
+                    <button id="vm-tree-scan" type="button" data-fv-onclick="runTreeIntegrityCheck('vm')"><i class="fa fa-stethoscope"></i><span>Tree scan</span></button>
+                    <button id="vm-tree-repair" type="button" data-fv-onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i><span>Tree repair</span></button>
                     <small id="vm-tree-reorder-help" class="fv-mobile-reorder-help">Shows touch-friendly move controls in the Order column.</small>
                 </span>
             </div>
             <div id="vm-quick-filters" class="folder-quick-filters">
-                <button type="button" data-filter="all" onclick="setQuickFolderFilter('vm','all')">All</button>
-                <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('vm','pinned')">Pinned</button>
-                <button type="button" data-filter="stopped" onclick="setQuickFolderFilter('vm','stopped')">Stopped</button>
-                <button type="button" data-filter="empty" onclick="setQuickFolderFilter('vm','empty')">Empty</button>
-                <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('vm','no-rules')">No rules</button>
+                <button type="button" data-filter="all" data-fv-onclick="setQuickFolderFilter('vm','all')">All</button>
+                <button type="button" data-filter="pinned" data-fv-onclick="setQuickFolderFilter('vm','pinned')">Pinned</button>
+                <button type="button" data-filter="stopped" data-fv-onclick="setQuickFolderFilter('vm','stopped')">Stopped</button>
+                <button type="button" data-filter="empty" data-fv-onclick="setQuickFolderFilter('vm','empty')">Empty</button>
+                <button type="button" data-filter="no-rules" data-fv-onclick="setQuickFolderFilter('vm','no-rules')">No rules</button>
             </div>
             <div class="settings-cards-grid fv-view-settings-grid">
                 <div class="settings-mini-card fv-settings-card-layout">
                     <div class="fv-view-settings-card-title is-layout">Layout</div>
                     <label class="setting-select" for="vm-app-column-width">
                         <span>Application width</span>
-                        <select id="vm-app-column-width" onchange="changeVisibilityPref('vm', 'appColumnWidth', this.value)">
+                        <select id="vm-app-column-width" data-fv-onchange="changeVisibilityPref('vm', 'appColumnWidth', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -759,69 +759,69 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label class="setting-select" for="vm-status-mode">
                         <span>Status mode</span>
-                        <select id="vm-status-mode" onchange="changeStatusPref('vm', 'mode', this.value)">
+                        <select id="vm-status-mode" data-fv-onchange="changeStatusPref('vm', 'mode', this.value)">
                             <option value="summary">Summary</option>
                             <option value="dominant">Dominant</option>
                         </select>
                     </label>
                     <label class="setting-select" for="vm-status-display-mode">
                         <span>Status detail</span>
-                        <select id="vm-status-display-mode" onchange="changeStatusPref('vm', 'displayMode', this.value)">
+                        <select id="vm-status-display-mode" data-fv-onchange="changeStatusPref('vm', 'displayMode', this.value)">
                             <option value="simple">Simple</option>
                             <option value="balanced">Balanced</option>
                             <option value="detailed">Detailed</option>
                         </select>
                     </label>
-                    <label id="vm-status-trend-row" class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label id="vm-status-trend-row" class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" data-fv-onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
                     <div class="fv-settings-divider"></div>
                     <label class="setting-toggle fv-setting-switch">
                         <span class="fv-setting-copy"><strong>Attention accent</strong><small>Highlight important items</small></span>
-                        <input id="vm-status-attention-accent" type="checkbox" onchange="changeStatusPref('vm', 'attentionAccent', this.checked)">
+                        <input id="vm-status-attention-accent" type="checkbox" data-fv-onchange="changeStatusPref('vm', 'attentionAccent', this.checked)">
                     </label>
                     <label id="vm-status-warn-threshold-row" class="setting-inline-number fv-setting-range-row">
                         <span class="fv-setting-copy"><strong>Status warn (%)</strong><small>Warn threshold for attention</small></span>
                         <span class="fv-setting-range-control">
                             <input type="range" min="0" max="100" step="1" data-fv-number-target="vm-status-warn-threshold" aria-label="Status warning threshold">
-                            <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
+                            <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" data-fv-onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
                             <span aria-hidden="true">%</span>
                         </span>
                     </label>
                     <label class="setting-toggle fv-setting-checkbox-row">
-                        <input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)">
+                        <input id="vm-hide-empty-folders" type="checkbox" data-fv-onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)">
                         <span class="fv-setting-copy"><strong>Hide empty folders</strong><small>Remove folders without members from this list</small></span>
                     </label>
                     <div class="setting-help">Balanced shows primary + mini counters. Detailed adds trend. Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-badges">
                     <div class="fv-view-settings-card-title is-folder">Folder badges</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-running" type="checkbox" data-fv-onchange="changeBadgePref('vm', 'running', this.checked)"><span class="fv-setting-copy"><strong>Running</strong><small>Show running badge</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-badge-stopped" type="checkbox" data-fv-onchange="changeBadgePref('vm', 'stopped', this.checked)"><span class="fv-setting-copy"><strong>Stopped</strong><small>Show stopped badge</small></span></label>
                 </div>
                 <div class="settings-mini-card fv-settings-card-runtime">
                     <div class="fv-view-settings-card-title is-runtime">Runtime</div>
                     <div class="fv-setting-inline-pair">
-                        <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
+                        <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-live-refresh-enabled" type="checkbox" data-fv-onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"><span class="fv-setting-copy"><strong>Live auto-refresh</strong><small>Automatically refresh data</small></span></label>
                         <label id="vm-live-refresh-seconds-row" class="setting-inline-number runtime-dependent fv-setting-compact-number">
-                            <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
+                            <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" aria-label="Live refresh interval in seconds" data-fv-onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
                             <span aria-hidden="true">s</span>
                         </label>
                     </div>
                     <label class="setting-select" for="vm-performance-profile">
                         <span>Performance profile</span>
-                        <select id="vm-performance-profile" onchange="changeRuntimePref('vm', 'performanceProfile', this.value)">
+                        <select id="vm-performance-profile" data-fv-onchange="changeRuntimePref('vm', 'performanceProfile', this.value)">
                             <option value="standard">Standard</option>
                             <option value="adaptive">Adaptive (recommended)</option>
                             <option value="maximum">Maximum performance</option>
                         </select>
                     </label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-lazy-preview-enabled" type="checkbox" data-fv-onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"><span class="fv-setting-copy"><strong>Defer large previews</strong><small>Improve performance on large libraries</small></span></label>
                     <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Preview threshold</span>
-                        <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
+                        <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" data-fv-onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
                     </label>
                     <label class="setting-select" for="vm-theme-compat-mode">
                         <span>Theme fallback mode</span>
-                        <select id="vm-theme-compat-mode" onchange="changeRuntimePref('vm', 'themeCompatibilityMode', this.value)">
+                        <select id="vm-theme-compat-mode" data-fv-onchange="changeRuntimePref('vm', 'themeCompatibilityMode', this.value)">
                             <option value="auto">Auto (recommended)</option>
                             <option value="host">Force host theme</option>
                             <option value="safe">Force safe palette</option>
@@ -839,9 +839,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div id="vm-folder-defaults-summary" class="setting-help">No VM folder defaults saved yet.</div>
                     <div class="fv-view-defaults-actions">
-                        <button type="button" class="fv-folder-defaults-save" onclick="saveFolderDefaultsFromSelection('vm')"><i class="fa fa-bookmark"></i> Save as defaults</button>
-                        <button type="button" class="fv-folder-defaults-apply" onclick="applySavedFolderDefaultsToAll('vm')"><i class="fa fa-check"></i> Apply to all</button>
-                        <button type="button" class="fv-folder-defaults-clear" onclick="clearFolderDefaults('vm')"><i class="fa fa-eraser"></i> Clear</button>
+                        <button type="button" class="fv-folder-defaults-save" data-fv-onclick="saveFolderDefaultsFromSelection('vm')"><i class="fa fa-bookmark"></i> Save as defaults</button>
+                        <button type="button" class="fv-folder-defaults-apply" data-fv-onclick="applySavedFolderDefaultsToAll('vm')"><i class="fa fa-check"></i> Apply to all</button>
+                        <button type="button" class="fv-folder-defaults-clear" data-fv-onclick="clearFolderDefaults('vm')"><i class="fa fa-eraser"></i> Clear</button>
                     </div>
                     <div class="setting-note">New folders inherit this saved profile when the folder editor opens in create mode.</div>
                 </div>
@@ -849,7 +849,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-view-settings-card-title is-layout">Dashboard</div>
                     <label class="setting-select" for="vm-dashboard-layout">
                         <span>Layout mode</span>
-                        <select id="vm-dashboard-layout" onchange="changeDashboardPref('vm', 'layout', this.value)">
+                        <select id="vm-dashboard-layout" data-fv-onchange="changeDashboardPref('vm', 'layout', this.value)">
                             <option value="classic">Classic</option>
                             <option value="legacy">Legacy</option>
                             <option value="fullwidth">Fullwidth</option>
@@ -859,46 +859,46 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="embossed" data-i18n="dashboard-layout-embossed">Embossed</option>
                         </select>
                     </label>
-                    <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
-                    <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
-                    <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
+                    <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
+                    <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
+                    <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
                     <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, label visibility controls, and privacy masking.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-health">
                     <div class="fv-view-settings-card-title is-health">Health summary &amp; VM resources</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>VM page summary badge</strong><small>Show live group totals above the VM table</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-cards-enabled" type="checkbox" data-fv-onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"><span class="fv-setting-copy"><strong>Show health summary</strong><small>Display the summary cards above this section</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-health-runtime-badge-enabled" type="checkbox" data-fv-onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"><span class="fv-setting-copy"><strong>VM page summary badge</strong><small>Show live group totals above the VM table</small></span></label>
                     <div class="fv-settings-divider"></div>
                     <label id="vm-resource-warn-vcpu-row" class="setting-inline-number">
                         <span>Resource warn vCPU</span>
-                        <input id="vm-resource-warn-vcpu" type="number" min="1" max="512" step="1" onchange="changeHealthPref('vm', 'resourceWarnVcpu', this.value)">
+                        <input id="vm-resource-warn-vcpu" type="number" min="1" max="512" step="1" data-fv-onchange="changeHealthPref('vm', 'resourceWarnVcpu', this.value)">
                     </label>
                     <label id="vm-resource-critical-vcpu-row" class="setting-inline-number">
                         <span>Resource critical vCPU</span>
-                        <input id="vm-resource-critical-vcpu" type="number" min="2" max="512" step="1" onchange="changeHealthPref('vm', 'resourceCriticalVcpu', this.value)">
+                        <input id="vm-resource-critical-vcpu" type="number" min="2" max="512" step="1" data-fv-onchange="changeHealthPref('vm', 'resourceCriticalVcpu', this.value)">
                     </label>
                     <label id="vm-resource-warn-gib-row" class="setting-inline-number">
                         <span>Resource warn GB</span>
-                        <input id="vm-resource-warn-gib" type="number" min="1" max="1024" step="1" onchange="changeHealthPref('vm', 'resourceWarnGiB', this.value)">
+                        <input id="vm-resource-warn-gib" type="number" min="1" max="1024" step="1" data-fv-onchange="changeHealthPref('vm', 'resourceWarnGiB', this.value)">
                     </label>
                     <label id="vm-resource-critical-gib-row" class="setting-inline-number">
                         <span>Resource critical GB</span>
-                        <input id="vm-resource-critical-gib" type="number" min="2" max="1024" step="1" onchange="changeHealthPref('vm', 'resourceCriticalGiB', this.value)">
+                        <input id="vm-resource-critical-gib" type="number" min="2" max="1024" step="1" data-fv-onchange="changeHealthPref('vm', 'resourceCriticalGiB', this.value)">
                     </label>
                     <div class="setting-help">VM resource thresholds control the warning and critical labels shown for vCPU and assigned memory. Docker-only scoring options are configured on the Docker tab.</div>
                 </div>
                 <div class="settings-mini-card fv-settings-card-privacy">
                     <div class="fv-view-settings-card-title is-privacy" data-i18n="settings.privacy.title">Privacy masking</div>
-                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-dashboard-privacy-mode" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"><span class="fv-setting-copy"><strong>Enable VM privacy</strong><small>Apply the selected masks to VM and Dashboard views</small></span></label>
+                    <label class="setting-toggle fv-setting-checkbox-row"><input id="vm-dashboard-privacy-mode" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMode', this.checked)"><span class="fv-setting-copy"><strong>Enable VM privacy</strong><small>Apply the selected masks to VM and Dashboard views</small></span></label>
                     <div class="fv-settings-divider"></div>
                     <div class="settings-privacy-section">
                         <div id="vm-dashboard-privacy-options" class="settings-privacy-options">
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
-                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-names" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskNames', this.checked)"> Mask names and icons</label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-disk-paths" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskVmDiskPaths', this.checked)"> <span data-i18n="privacy-mask-disk-paths">Mask disk paths</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-mac-addresses" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskMacAddresses', this.checked)"> <span data-i18n="privacy-mask-mac-addresses">Mask MAC addresses</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-public-ips" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskPublicIps', this.checked)"> <span data-i18n="privacy-mask-public-ips">Mask public IPs</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-interfaces" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskInterfaces', this.checked)"> <span data-i18n="privacy-mask-network-interfaces">Mask network interfaces</span></label>
+                            <label class="setting-toggle"><input id="vm-dashboard-privacy-mask-external-urls" type="checkbox" data-fv-onchange="changeDashboardPref('vm', 'privacyMaskExternalUrls', this.checked)"> <span data-i18n="privacy-mask-external-urls">Mask external URLs</span></label>
                         </div>
                     </div>
                 </div>
@@ -906,7 +906,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="fv-view-settings-card-title is-columns">Columns</div>
                     <label class="setting-select" for="vm-table-name-width">
                         <span>Name width</span>
-                        <select id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'name', this.value)">
+                        <select id="vm-table-name-width" data-fv-onchange="changeSettingsTableColumnWidthPreset('vm', 'name', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -914,7 +914,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <label class="setting-select" for="vm-table-actions-width">
                         <span>Actions width</span>
-                        <select id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'actions', this.value)">
+                        <select id="vm-table-actions-width" data-fv-onchange="changeSettingsTableColumnWidthPreset('vm', 'actions', this.value)">
                             <option value="compact">Compact</option>
                             <option value="standard">Standard</option>
                             <option value="wide">Wide</option>
@@ -922,23 +922,23 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </label>
                     <div class="fv-settings-density-label">View density</div>
                     <div class="fv-settings-density-control">
-                        <button type="button" data-fv-table-preset="vm:compact" onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
-                        <button type="button" data-fv-table-preset="vm:balanced" onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
-                        <button type="button" data-fv-table-preset="vm:detailed" onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
+                        <button type="button" data-fv-table-preset="vm:compact" data-fv-onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
+                        <button type="button" data-fv-table-preset="vm:balanced" data-fv-onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
+                        <button type="button" data-fv-table-preset="vm:detailed" data-fv-onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
                     </div>
                     <div class="fv-settings-divider"></div>
                     <div class="fv-settings-reset-actions">
-                        <button type="button" id="vm-table-reset-visibility" onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
-                        <button type="button" id="vm-table-reset-widths" onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
+                        <button type="button" id="vm-table-reset-visibility" data-fv-onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
+                        <button type="button" id="vm-table-reset-widths" data-fv-onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
                     </div>
                     <div class="fv-settings-column-toggles">
-                        <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
-                        <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
-                        <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
-                        <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
-                        <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
-                        <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
-                        <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
+                        <label class="setting-toggle"><input id="vm-col-members" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
+                        <label class="setting-toggle"><input id="vm-col-status" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
+                        <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
+                        <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
+                        <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
+                        <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
+                        <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" data-fv-onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
                     </div>
                     <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
@@ -983,8 +983,8 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Choose Docker or VMs, then create, order, and review automatic folder rules in one place.</span>
         </div>
         <div class="fv-rules-source-switch" role="tablist" aria-label="Rules source switcher">
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
         </div>
     </div>
 
@@ -1038,7 +1038,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="fv-rule-builder-field">
                     <label for="docker-rule-kind">When this field</label>
-                    <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
+                    <select id="docker-rule-kind" data-fv-onchange="toggleRuleKindFields('docker')">
                         <option value="name_contains">Name contains</option>
                         <option value="name_starts_with">Name starts with</option>
                         <option value="image_contains">Image contains</option>
@@ -1065,7 +1065,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </div>
             <div class="fv-rule-builder-actions">
-                <button type="button" class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add Docker rule</button>
+                <button type="button" class="rules-add-btn" data-fv-onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add Docker rule</button>
             </div>
         </div>
         <div class="fv-rule-stage">
@@ -1074,8 +1074,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Scan current containers and existing folders for safe rule ideas before saving anything.</span>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="scanSmartRuleSuggestions('docker')"><i class="fa fa-magic"></i> Scan Docker suggestions</button>
-                <button type="button" onclick="saveSelectedSmartRuleSuggestions('docker')"><i class="fa fa-check"></i> Save selected suggestions</button>
+                <button type="button" data-fv-onclick="scanSmartRuleSuggestions('docker')"><i class="fa fa-magic"></i> Scan Docker suggestions</button>
+                <button type="button" data-fv-onclick="saveSelectedSmartRuleSuggestions('docker')"><i class="fa fa-check"></i> Save selected suggestions</button>
             </div>
             <div id="docker-rule-suggestions" class="fv-rule-suggestion-list">Scan Docker suggestions to see rule ideas.</div>
         </div>
@@ -1085,14 +1085,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
             </div>
             <div class="fv-rule-toolbar">
-                <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
+                <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" data-fv-oninput="setFilterQuery('rules','docker',this.value)">
                 <div class="fv-rule-selection-actions">
-                    <button type="button" onclick="toggleAllRuleSelections('docker', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
-                    <button type="button" onclick="toggleAllRuleSelections('docker', false)"><i class="fa fa-square-o"></i> Clear selection</button>
-                    <button type="button" onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable</button>
-                    <button type="button" onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
-                    <button type="button" onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete</button>
-                    <button type="button" onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export</button>
+                    <button type="button" data-fv-onclick="toggleAllRuleSelections('docker', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
+                    <button type="button" data-fv-onclick="toggleAllRuleSelections('docker', false)"><i class="fa fa-square-o"></i> Clear selection</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export</button>
                 </div>
             </div>
             <div id="docker-rules-selection-summary" class="fv-rule-selection-summary">No Docker rules selected.</div>
@@ -1150,7 +1150,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="fv-rule-builder-field">
                     <label for="vm-rule-kind">When this field</label>
-                    <select id="vm-rule-kind" onchange="toggleRuleKindFields('vm')">
+                    <select id="vm-rule-kind" data-fv-onchange="toggleRuleKindFields('vm')">
                         <option value="name_contains">Name contains</option>
                         <option value="name_starts_with">Name starts with</option>
                         <option value="name_regex">Name regex</option>
@@ -1162,7 +1162,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </div>
             <div class="fv-rule-builder-actions">
-                <button type="button" class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add VM rule</button>
+                <button type="button" class="rules-add-btn" data-fv-onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add VM rule</button>
             </div>
         </div>
         <div class="fv-rule-stage">
@@ -1171,8 +1171,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Scan current VMs and existing folders for safe rule ideas before saving anything.</span>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="scanSmartRuleSuggestions('vm')"><i class="fa fa-magic"></i> Scan VM suggestions</button>
-                <button type="button" onclick="saveSelectedSmartRuleSuggestions('vm')"><i class="fa fa-check"></i> Save selected suggestions</button>
+                <button type="button" data-fv-onclick="scanSmartRuleSuggestions('vm')"><i class="fa fa-magic"></i> Scan VM suggestions</button>
+                <button type="button" data-fv-onclick="saveSelectedSmartRuleSuggestions('vm')"><i class="fa fa-check"></i> Save selected suggestions</button>
             </div>
             <div id="vm-rule-suggestions" class="fv-rule-suggestion-list">Scan VM suggestions to see rule ideas.</div>
         </div>
@@ -1182,14 +1182,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
             </div>
             <div class="fv-rule-toolbar">
-                <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
+                <input id="vm-rules-filter" type="text" placeholder="Search VM rules" data-fv-oninput="setFilterQuery('rules','vm',this.value)">
                 <div class="fv-rule-selection-actions">
-                    <button type="button" onclick="toggleAllRuleSelections('vm', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
-                    <button type="button" onclick="toggleAllRuleSelections('vm', false)"><i class="fa fa-square-o"></i> Clear selection</button>
-                    <button type="button" onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable</button>
-                    <button type="button" onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
-                    <button type="button" onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete</button>
-                    <button type="button" onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export</button>
+                    <button type="button" data-fv-onclick="toggleAllRuleSelections('vm', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
+                    <button type="button" data-fv-onclick="toggleAllRuleSelections('vm', false)"><i class="fa fa-square-o"></i> Clear selection</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete</button>
+                    <button type="button" data-fv-onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export</button>
                 </div>
             </div>
             <div id="vm-rules-selection-summary" class="fv-rule-selection-summary">No VM rules selected.</div>
@@ -1207,8 +1207,8 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Use the same source switch here to test one item, preview all assignments, and inspect conflicts.</span>
         </div>
         <div class="fv-rules-source-switch" role="tablist" aria-label="Rules troubleshooting source switcher">
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
-            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" data-fv-onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" data-fv-onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
         </div>
     </div>
 
@@ -1230,14 +1230,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <input id="docker-rule-test-compose" type="text" placeholder="Test compose project (optional)">
             </div>
             <div class="rule-test-samples">
-                <button type="button" onclick="applyRuleTestSample('docker','media')"><i class="fa fa-flask"></i> Media sample</button>
-                <button type="button" onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
-                <button type="button" onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
+                <button type="button" data-fv-onclick="applyRuleTestSample('docker','media')"><i class="fa fa-flask"></i> Media sample</button>
+                <button type="button" data-fv-onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
+                <button type="button" data-fv-onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="testAutoRule('docker')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
-                <button type="button" onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
-                <button type="button" onclick="applyRuleSimulatorAssignments('docker')"><i class="fa fa-check"></i> Apply previewed assignments</button>
+                <button type="button" data-fv-onclick="testAutoRule('docker')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
+                <button type="button" data-fv-onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+                <button type="button" data-fv-onclick="applyRuleSimulatorAssignments('docker')"><i class="fa fa-check"></i> Apply previewed assignments</button>
             </div>
             <div id="docker-rule-validation" class="inline-validation-hint"></div>
             <div id="docker-rule-test-output" class="rule-test-output">Enter a test container name to see which Docker rule wins.</div>
@@ -1249,7 +1249,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>See why Docker items are assigned, where overlaps exist, and which exclude rules are blocking matches.</span>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
+                <button type="button" data-fv-onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
             </div>
             <pre id="docker-conflict-output" class="diagnostics-output compact-output">Scan Docker conflicts to review overlapping rules and blocked items.</pre>
         </div>
@@ -1269,13 +1269,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
             </div>
             <div class="rule-test-samples">
-                <button type="button" onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
-                <button type="button" onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
+                <button type="button" data-fv-onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
+                <button type="button" data-fv-onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="testAutoRule('vm')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
-                <button type="button" onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
-                <button type="button" onclick="applyRuleSimulatorAssignments('vm')"><i class="fa fa-check"></i> Apply previewed assignments</button>
+                <button type="button" data-fv-onclick="testAutoRule('vm')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
+                <button type="button" data-fv-onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+                <button type="button" data-fv-onclick="applyRuleSimulatorAssignments('vm')"><i class="fa fa-check"></i> Apply previewed assignments</button>
             </div>
             <div id="vm-rule-validation" class="inline-validation-hint"></div>
             <div id="vm-rule-test-output" class="rule-test-output">Enter a test VM name to see which VM rule wins.</div>
@@ -1287,7 +1287,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>See why VMs are assigned, where overlaps exist, and which exclude rules are blocking matches.</span>
             </div>
             <div class="fv-rule-test-actions">
-                <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
+                <button type="button" data-fv-onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
             </div>
             <pre id="vm-conflict-output" class="diagnostics-output compact-output">Scan VM conflicts to review overlapping rules and blocked items.</pre>
         </div>
@@ -1333,7 +1333,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div class="bulk-row bulk-target-row">
                 <label for="docker-bulk-folder">Target folder</label>
                 <select id="docker-bulk-folder" data-fv-track-save="0"></select>
-                <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-list-alt"></i> Preview changes</button>
+                <button id="docker-bulk-assign-btn" type="button" data-fv-onclick="assignSelectedItems('docker')"><i class="fa fa-list-alt"></i> Preview changes</button>
             </div>
         </div>
         <div class="bulk-stage">
@@ -1342,11 +1342,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Filter the list, then choose the containers you want moved into the target folder.</span>
             </div>
             <div class="bulk-row bulk-filter-row">
-                <input id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0" oninput="filterBulkItems('docker', this.value)">
+                <input id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0" data-fv-oninput="filterBulkItems('docker', this.value)">
                 <div class="bulk-selection-actions">
-                    <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> All shown</button>
-                    <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
-                    <button type="button" onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> All shown</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
                 </div>
             </div>
             <div class="bulk-row bulk-meta-row">
@@ -1354,7 +1354,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="rules-help">Select the items you want to move. The plan updates live below.</span>
             </div>
             <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
-            <select id="docker-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
+            <select id="docker-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" data-fv-onchange="updateBulkSelectedCount('docker')"></select>
         </div>
         <div class="bulk-stage bulk-stage-review">
             <div class="bulk-stage-heading">
@@ -1364,7 +1364,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div id="docker-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
             <div id="docker-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
             <div class="bulk-result-actions is-hidden">
-                <button id="docker-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
+                <button id="docker-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
             </div>
         </div>
     </div>
@@ -1405,7 +1405,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div class="bulk-row bulk-target-row">
                 <label for="vm-bulk-folder">Target folder</label>
                 <select id="vm-bulk-folder" data-fv-track-save="0"></select>
-                <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-list-alt"></i> Preview changes</button>
+                <button id="vm-bulk-assign-btn" type="button" data-fv-onclick="assignSelectedItems('vm')"><i class="fa fa-list-alt"></i> Preview changes</button>
             </div>
         </div>
         <div class="bulk-stage">
@@ -1414,11 +1414,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Filter the list, then choose the VMs you want moved into the target folder.</span>
             </div>
             <div class="bulk-row bulk-filter-row">
-                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0" oninput="filterBulkItems('vm', this.value)">
+                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0" data-fv-oninput="filterBulkItems('vm', this.value)">
                 <div class="bulk-selection-actions">
-                    <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> All shown</button>
-                    <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
-                    <button type="button" onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> All shown</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
+                    <button type="button" data-fv-onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
                 </div>
             </div>
             <div class="bulk-row bulk-meta-row">
@@ -1426,7 +1426,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="rules-help">Select the VMs you want to move. The plan updates live below.</span>
             </div>
             <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
-            <select id="vm-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
+            <select id="vm-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" data-fv-onchange="updateBulkSelectedCount('vm')"></select>
         </div>
         <div class="bulk-stage bulk-stage-review">
             <div class="bulk-stage-heading">
@@ -1436,7 +1436,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <div id="vm-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
             <div id="vm-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
             <div class="bulk-result-actions is-hidden">
-                <button id="vm-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
+                <button id="vm-bulk-retry-failed" type="button" class="is-hidden" data-fv-onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
             </div>
         </div>
     </div>
@@ -1452,8 +1452,8 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="fv-operations-section-body">
             <div class="fv-rules-source-switch fv-operations-source-switch" role="tablist" aria-label="Operations source">
-                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="docker" onclick="setOperationsWorkspaceType('docker')">Docker</button>
-                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="vm" onclick="setOperationsWorkspaceType('vm')">VMs</button>
+                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="docker" data-fv-onclick="setOperationsWorkspaceType('docker')">Docker</button>
+                <button type="button" class="fv-rules-source-btn" data-fv-operations-source-toggle="vm" data-fv-onclick="setOperationsWorkspaceType('vm')">VMs</button>
             </div>
 
             <section class="fv-operations-source-panel" data-fv-operations-panel="docker">
@@ -1477,8 +1477,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                                 <option value="pause">Pause</option>
                                 <option value="resume">Resume</option>
                             </select>
-                            <button type="button" onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
-                            <button type="button" onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
+                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
+                            <button type="button" data-fv-onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
                         </div>
                         <div id="docker-runtime-preview-output" class="fv-operations-runtime-output">
                             <div class="fv-recovery-empty-state">
@@ -1496,7 +1496,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <div class="fv-operations-template-create">
                             <select id="docker-template-source-folder"></select>
                             <input id="docker-template-name" type="text" placeholder="Template name">
-                            <button type="button" onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save from folder</button>
+                            <button type="button" data-fv-onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save from folder</button>
                         </div>
                         <div id="docker-template-validation" class="inline-validation-hint"></div>
                         <div id="docker-operations-template-library" class="fv-operations-template-library">
@@ -1530,8 +1530,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                                 <option value="pause">Pause</option>
                                 <option value="resume">Resume</option>
                             </select>
-                            <button type="button" onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
-                            <button type="button" onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
+                            <button type="button" data-fv-onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
+                            <button type="button" data-fv-onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
                         </div>
                         <div id="vm-runtime-preview-output" class="fv-operations-runtime-output">
                             <div class="fv-recovery-empty-state">
@@ -1549,7 +1549,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <div class="fv-operations-template-create">
                             <select id="vm-template-source-folder"></select>
                             <input id="vm-template-name" type="text" placeholder="Template name">
-                            <button type="button" onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save from folder</button>
+                            <button type="button" data-fv-onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save from folder</button>
                         </div>
                         <div id="vm-template-validation" class="inline-validation-hint"></div>
                         <div id="vm-operations-template-library" class="fv-operations-template-library">
@@ -1605,8 +1605,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <span>Use this page to create restore points, restore a previous folder layout, compare two snapshots, or move your setup to another server.</span>
                 </div>
                 <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
-                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" data-fv-onclick="setRecoveryWorkspaceType('docker')">Docker</button>
+                    <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" data-fv-onclick="setRecoveryWorkspaceType('vm')">VMs</button>
                 </div>
             </div>
 
@@ -1624,9 +1624,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span class="rules-help">Restore the latest safe snapshot or create a manual checkpoint before making changes.</span>
                     </div>
                     <div class="backup-actions fv-recovery-primary-actions">
-                        <button type="button" onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
-                        <button type="button" onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
-                        <button type="button" onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+                        <button type="button" data-fv-onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
+                        <button type="button" data-fv-onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
+                        <button type="button" data-fv-onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
                     </div>
                     <div id="fv-recovery-safety-note" class="fv-recovery-callout">
                         Restoring always creates a fresh safety backup first.
@@ -1644,7 +1644,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span class="backup-compare-sep">vs</span>
                         <select id="recovery-backup-compare-right"></select>
                         <label class="backup-compare-prefs-toggle"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-                        <button type="button" onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
+                        <button type="button" data-fv-onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
                     </div>
                 </section>
 
@@ -1654,9 +1654,9 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span id="fv-recovery-policy-summary" class="rules-help">Manual backups only.</span>
                     </div>
                     <div class="schedule-row fv-recovery-policy-grid">
-                        <label><input id="recovery-backup-schedule-enabled" type="checkbox" onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
-                        <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
-                        <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
+                        <label><input id="recovery-backup-schedule-enabled" type="checkbox" data-fv-onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
+                        <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" data-fv-onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
+                        <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" data-fv-onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
                         <span id="recovery-backup-last-run" class="schedule-hint"></span>
                     </div>
                 </section>
@@ -1681,8 +1681,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <span class="rules-help">Move the full plugin environment between installs in one JSON file. This includes Docker folders, VM folders, preferences, folder defaults, and Theme Workspace customization.</span>
                 </div>
                 <div class="backup-actions fv-recovery-environment-actions">
-                    <button type="button" onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
-                    <button type="button" onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
+                    <button type="button" data-fv-onclick="exportEnvironmentSnapshot()"><i class="fa fa-download"></i> Export environment</button>
+                    <button type="button" data-fv-onclick="importEnvironmentSnapshot()"><i class="fa fa-upload"></i> Import environment</button>
                 </div>
                 <div id="fv-recovery-environment-summary" class="fv-recovery-history-list">
                     <div class="fv-recovery-empty-state">
@@ -1720,8 +1720,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
             </div>
             <div class="backup-actions fv-recovery-history-actions">
-                <button type="button" onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
-                <button type="button" onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
+                <button type="button" data-fv-onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
+                <button type="button" data-fv-onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
             </div>
             <div id="recovery-change-history-list" class="fv-recovery-change-history-list">
                 <div class="fv-recovery-empty-state">
@@ -1901,46 +1901,56 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
 </div>
 
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.view-settings.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
-<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>
+<script>
+window.FolderViewPlusSettingsLoaderManifest = Object.freeze({ moduleTimeoutMs: 12000,
+    foundation: Object.freeze([
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.ui.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.performance-telemetry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.prefs-store.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folder.settings-transfer.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.theme-workspace.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"
+    ]),
+    workspace: Object.freeze([
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-registry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.view-settings.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.tree-integrity.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.mobile-reorder.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.shared.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/runtime.transport.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>",
+        "<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.js')?>"
+    ])
+});
+</script>
+<script src="<?=fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.settings-loader.js')?>"></script>

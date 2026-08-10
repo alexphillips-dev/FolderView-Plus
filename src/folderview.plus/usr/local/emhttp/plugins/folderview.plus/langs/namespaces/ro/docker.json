@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ro",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "Spațiu de lucru reguli",
     "docker.actions.empty-filter-help": "Afișează folderele goale din Instrumente înainte de a le filtra.",
     "docker.actions.reset-view": "Resetează vizualizarea",
+    "docker.preview.open-webui": "Deschideți WebUI",
+    "docker.preview.open-console": "Deschide consola",
+    "docker.preview.view-logs": "Vizualizați jurnalele",
+    "docker.provider.hybrid-label": "Legacy Unraid WebGUI cu date GraphQL",
+    "docker.health.api-summary": "API Docker: $1 actualizare$2, $3 pregătit pentru reconstrucție, $4 orfan, $5 conflict de port$6",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Lista gazdă",
     "docker.views.command": "Comandă",

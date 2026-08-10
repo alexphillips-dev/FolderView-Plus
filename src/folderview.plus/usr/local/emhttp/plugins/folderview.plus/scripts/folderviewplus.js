@@ -172,6 +172,9 @@ const extractFatalBannerResponseSnippet = (error) => {
     return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
 };
 const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
+    if (fatalBanner && typeof fatalBanner.classifyError === 'function') {
+        return fatalBanner.classifyError(error, fallbackCategory);
+    }
     const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
     if (!message) {
         return fallbackCategory;
@@ -304,7 +307,6 @@ const renderBootstrapDependencyBanner = (missingModules) => {
         fatalBanner.reportMissingModules(missingModules, {
             context: 'Settings',
             hostSelector: '#fv-settings-root',
-            message: 'FolderView Plus could not start because required settings modules failed to load.',
             code: 'FVPLUS-SET-BOOT-001',
             phase: 'module-load'
         });
@@ -658,8 +660,6 @@ let statusSnapshotByType = {
 };
 let dockerUpdatesOnlyFilter = false;
 let activityFeedEntries = [];
-let toastSerial = 0;
-const pendingUndoTimers = new Map();
 const treeMoveUndoTimersByType = {
     docker: null,
     vm: null
@@ -1107,11 +1107,7 @@ const getOptionalRequestToken = () => {
             return fromMeta;
         }
     }
-    try {
-        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
-    } catch (_error) {
-        return '';
-    }
+    return '';
 };
 
 const slugifySectionKey = (text) => String(text || '')
@@ -3054,7 +3050,7 @@ const recoverBlankSettingsSurface = (reason = 'post-bootstrap') => {
     try {
         root.hidden = false;
         root.removeAttribute('aria-hidden');
-        root.classList.remove('fv-settings-bootstrap-pending');
+        root.classList.remove('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed');
         root.setAttribute('aria-busy', 'false');
         root.style.display = 'block';
         root.style.visibility = 'visible';
@@ -3135,7 +3131,7 @@ const revealSettingsBootstrapSurface = () => {
     if (!(root instanceof HTMLElement)) {
         return;
     }
-    root.classList.remove('fv-settings-bootstrap-pending');
+    root.classList.remove('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed');
     root.setAttribute('aria-busy', 'false');
     root.dataset.fvBootstrap = 'ready';
     const shell = document.getElementById('fv-settings-bootstrap-shell');
@@ -4163,6 +4159,7 @@ const getSettingsRuntimeActionsApi = (() => {
             showToastMessage,
             showError,
             downloadFile,
+            buildDownloadDiagnosticsEventDetails,
             toPrettyJson,
             trackDiagnosticsEvent,
             getPluginVersion: () => pluginVersion,
@@ -5868,21 +5865,16 @@ const applyTemplate = async (type, templateId, folderId) => {
 const showToastMessage = ({
     title = '',
     message = '',
-    level = 'info',
-    durationMs = 4200,
-    actionLabel = '',
-    onAction = null
+    level = 'info'
 } = {}) => {
-    if (window.FolderViewPlusUI?.toast) {
-        return window.FolderViewPlusUI.toast({
+    if (window.FolderViewPlusUI?.announce) {
+        return window.FolderViewPlusUI.announce({
             title,
-            message,
-            level: level === 'error' ? 'danger' : level,
-            durationMs,
-            actionLabel,
-            onAction
+            message
         });
     }
+    const logger = level === 'error' ? window.console?.error : window.console?.info;
+    logger?.call(window.console, `[FolderView Plus] ${title}${title && message ? ': ' : ''}${message}`);
     return null;
 };
 
@@ -5991,30 +5983,21 @@ const showActionSummaryToast = ({
     message = '',
     level = 'success',
     type = null,
-    focusFolderId = '',
-    durationMs = 4200
+    focusFolderId = ''
 } = {}) => {
     const target = normalizeFocusableFolderId(type, focusFolderId);
     showToastMessage({
         title,
         message,
-        level,
-        durationMs,
-        actionLabel: target ? 'Focus folder' : '',
-        onAction: () => {
-            if (!target) {
-                return;
-            }
-            if (!focusFolderRow(target.type, target.id)) {
-                showToastMessage({
-                    title: 'Folder not visible',
-                    message: 'Clear filters or refresh to locate this folder row.',
-                    level: 'warning',
-                    durationMs: 2600
-                });
-            }
-        }
+        level
     });
+    if (target && !focusFolderRow(target.type, target.id)) {
+        showToastMessage({
+            title: 'Folder not visible',
+            message: 'Clear filters or refresh to locate this folder row.',
+            level: 'warning'
+        });
+    }
 };
 
 const resolveFolderIdsByNames = (type, names = []) => {
@@ -6082,7 +6065,13 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
     const kind = String(eventType || '').trim();
     const scope = type === 'vm' ? 'VM' : (type === 'docker' ? 'Docker' : 'Plugin');
     if (kind === 'export') {
-        return `${scope} export generated`;
+        if (String(details.lifecycle || '') === 'synchronous-failure') {
+            return `${scope} export download request failed`;
+        }
+        return `${scope} export download requested (browser save unconfirmed)`;
+    }
+    if (kind === 'export_download_missing') {
+        return `${scope} export download reported missing`;
     }
     if (kind === 'import') {
         return `${scope} import applied (${details.creates || 0} create, ${details.updates || 0} update, ${details.deletes || 0} delete)`;
@@ -6127,12 +6116,6 @@ const showError = (title, error) => {
         action: error?.fvplusAction || safeTitle
     });
     addActivityEntry(`${String(title || 'Error')}: ${message}`, 'error');
-    showToastMessage({
-        title: safeTitle,
-        message,
-        level: 'error',
-        durationMs: 7000
-    });
     if (window.FolderViewPlusUI?.alert) {
         window.FolderViewPlusUI.alert({
             title: safeTitle,
@@ -6983,7 +6966,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? `Expand nested folders in ${folderNameRaw}`
             : `Collapse nested folders in ${folderNameRaw}`;
         const treeToggleHtml = hasChildren
-            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
+            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" data-fv-onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
             : '<span class="folder-tree-toggle-spacer" aria-hidden="true"></span>';
         const parentFolderId = String(hierarchyMeta?.parentById?.[id] || '').trim();
         const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
@@ -7070,7 +7053,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const runtimePendingText = runtimeState === 'unavailable' ? 'Runtime unavailable' : 'Loading runtime…';
         const runtimePendingIcon = runtimeState === 'unavailable' ? 'fa-exclamation-circle' : 'fa-circle-o-notch fa-spin';
         const statusSummaryChipHtml = runtimeReady
-            ? `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`
+            ? `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" data-fv-onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`
             : `<span class="status-chip-list"><span class="folder-runtime-status status-chip is-runtime-pending ${runtimeState === 'unavailable' ? 'is-unavailable' : ''}" role="status"><i class="fa ${runtimePendingIcon}" aria-hidden="true"></i><span>${escapeHtml(runtimePendingText)}</span></span></span>`;
         const includeZeroBreakdown = statusDisplayMode === 'detailed';
         const breakdownEntries = [
@@ -7184,7 +7167,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
-                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" data-fv-onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" data-fv-onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" data-fv-onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
                 + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);
@@ -7263,14 +7246,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const canMoveDown = siblingIndex >= 0 && siblingIndex < siblingIds.length - 1;
         const mobileMoveStepHtml = mobileTreeReorderMode
             ? (''
-                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move up within this level" aria-label="Move ${safeNameText} up within this level" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)" ${canMoveUp ? '' : 'disabled'}><i class="fa fa-arrow-up" aria-hidden="true"></i></button>`
-                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move down within this level" aria-label="Move ${safeNameText} down within this level" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)" ${canMoveDown ? '' : 'disabled'}><i class="fa fa-arrow-down" aria-hidden="true"></i></button>`)
+                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move up within this level" aria-label="Move ${safeNameText} up within this level" data-fv-onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)" ${canMoveUp ? '' : 'disabled'}><i class="fa fa-arrow-up" aria-hidden="true"></i></button>`
+                + `<button type="button" class="folder-tree-action fv-mobile-reorder-step" title="Move down within this level" aria-label="Move ${safeNameText} down within this level" data-fv-onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)" ${canMoveDown ? '' : 'disabled'}><i class="fa fa-arrow-down" aria-hidden="true"></i></button>`)
             : '';
         const dragHandleHtml = (hideOrderControls || mobileTreeReorderMode)
             ? ''
             : `<button type="button" class="folder-drag-handle" draggable="true" data-fv-drag-type="${escapeHtml(type)}" data-fv-drag-id="${escapeHtml(id)}" title="Drag to reorder within this level" aria-label="Drag ${safeNameText} to reorder within this level"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>`;
         const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
-            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" data-fv-onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
         const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
         const treeMoveTitle = treeMoveAvailable
@@ -7278,7 +7261,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : 'Tree move unavailable: no valid target folders.';
         const treeMoveButtonHtml = hideOrderControls
             ? ''
-            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
+            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" data-fv-onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
         const orderCellHtml = hideOrderControls
             ? ''
             : (''
@@ -7292,16 +7275,16 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
                 + `</div>`);
         rows.push(
-            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-parent="${escapeHtml(parentFolderId)}" data-folder-id="${escapeHtml(id)}" tabindex="0" data-fv-onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}">${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
-            + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
+            + `<td class="pinned-cell"><button type="button" class="folder-pin-switch ${pinnedClass}" role="switch" aria-checked="${pinned ? 'true' : 'false'}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(pinTitle)}" data-fv-onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><span class="folder-pin-switch-track"><span class="folder-pin-switch-knob"></span></span><span class="folder-pin-switch-label">${escapeHtml(pinnedText)}</span></button></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><span class="folder-actions-group"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></span></td>`
+            + `<td class="actions-cell"><span class="folder-actions-group"><button type="button" class="folder-action-btn" title="Edit folder" aria-label="Edit ${safeNameText}" data-fv-onclick="openSettingsFolderEditor('${type}','${escapeHtml(id)}')"><i class="fa fa-cog"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-v"></i></button></span></td>`
             + '</tr>'
         );
     }
@@ -7327,7 +7310,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all'))
         );
         const clearButton = showClearFilters
-            ? `<button type="button" class="folder-empty-clear-filter" onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
+            ? `<button type="button" class="folder-empty-clear-filter" data-fv-onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
             : '';
         if (folderCount <= 0 && !showClearFilters) {
             const title = isDockerType ? 'No Docker folders yet.' : 'No VM folders yet.';
@@ -7820,7 +7803,7 @@ const enhanceViewOrganizationWorkspace = (type) => {
                     </div>
                     <div class="fv-view-org-section-body fv-view-org-order-body"></div>
                     <div class="fv-view-org-order-actions">
-                        <button type="button" onclick="saveCurrentFolderOrderAsManual('${resolvedType}')"><i class="fa fa-save" aria-hidden="true"></i> Use current visible order</button>
+                        <button type="button" data-fv-onclick="saveCurrentFolderOrderAsManual('${resolvedType}')"><i class="fa fa-save" aria-hidden="true"></i> Use current visible order</button>
                     </div>
                     <div id="${resolvedType}-sort-mode-explainer" class="fv-view-org-guidance"></div>
                 </section>
@@ -8459,14 +8442,14 @@ const buildRuleCardHtml = (type, rule, globalIndex, isSelected) => {
 
     return `<div class="fv-rule-card${rule.enabled ? '' : ' is-disabled'}${issues.length > 0 ? ' is-invalid' : ''}" data-fv-rule-id="${escapeHtml(rule.id)}">
         <div class="fv-rule-card-select">
-            <input type="checkbox" ${checked} onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}', this.checked)" aria-label="Select ${escapeHtml(type === 'docker' ? 'Docker' : 'VM')} rule ${globalIndex + 1}">
+            <input type="checkbox" ${checked} data-fv-onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}', this.checked)" aria-label="Select ${escapeHtml(type === 'docker' ? 'Docker' : 'VM')} rule ${globalIndex + 1}">
         </div>
         <div class="fv-rule-card-main">
             <div class="fv-rule-card-top">
                 <span class="fv-rule-order-pill">Priority ${globalIndex + 1}</span>
                 <span class="rule-priority-actions">
-                    <button type="button" ${upDisabled} title="Move up" onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',-1)"><i class="fa fa-chevron-up"></i></button>
-                    <button type="button" ${downDisabled} title="Move down" onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',1)"><i class="fa fa-chevron-down"></i></button>
+                    <button type="button" ${upDisabled} title="Move up" data-fv-onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',-1)"><i class="fa fa-chevron-up"></i></button>
+                    <button type="button" ${downDisabled} title="Move down" data-fv-onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',1)"><i class="fa fa-chevron-down"></i></button>
                 </span>
             </div>
             <div class="fv-rule-card-summary">${escapeHtml(summaryCopy.summary)}</div>
@@ -8474,8 +8457,8 @@ const buildRuleCardHtml = (type, rule, globalIndex, isSelected) => {
             <div class="fv-rule-card-meta">${chips.join('')}</div>
         </div>
         <div class="fv-rule-card-actions">
-            <button type="button" onclick="toggleAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa ${stateIcon}"></i> ${escapeHtml(stateLabel)}</button>
-            <button type="button" onclick="deleteAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa fa-trash"></i> Delete</button>
+            <button type="button" data-fv-onclick="toggleAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa ${stateIcon}"></i> ${escapeHtml(stateLabel)}</button>
+            <button type="button" data-fv-onclick="deleteAutoRule('${type}','${escapeHtml(rule.id)}')"><i class="fa fa-trash"></i> Delete</button>
         </div>
     </div>`;
 };
@@ -8570,9 +8553,9 @@ const renderBackupRows = (type) => {
             <td>${reason}</td>
             <td>${count}</td>
             <td>
-                <button type="button" onclick="restoreBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-history"></i> Restore</button>
-                <button type="button" onclick="downloadBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-download"></i> Download</button>
-                <button type="button" onclick="deleteBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-trash"></i> Delete</button>
+                <button type="button" data-fv-onclick="restoreBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-history"></i> Restore</button>
+                <button type="button" data-fv-onclick="downloadBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-download"></i> Download</button>
+                <button type="button" data-fv-onclick="deleteBackupEntry('${type}','${escapeHtml(name)}')"><i class="fa fa-trash"></i> Delete</button>
             </td>
         </tr>`;
     });
@@ -8915,9 +8898,9 @@ const buildDockerStartOrderBatchHtml = (batch, index) => {
                     <span class="fv-docker-start-order-kind"><i class="fa ${isFolder ? 'fa-folder-o' : 'fa-cube'}"></i> ${isFolder ? 'Folder' : 'Container'}</span>
                     <strong>${escapeHtml(label)}</strong>
                     <div class="fv-docker-start-order-item-actions">
-                        <button type="button" onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'up')" ${itemIndex === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                        <button type="button" onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'down')" ${itemIndex >= items.length - 1 ? 'disabled' : ''}><i class="fa fa-chevron-down"></i></button>
-                        <button type="button" onclick="removeDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex})"><i class="fa fa-times"></i></button>
+                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'up')" ${itemIndex === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
+                        <button type="button" data-fv-onclick="moveDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex}, 'down')" ${itemIndex >= items.length - 1 ? 'disabled' : ''}><i class="fa fa-chevron-down"></i></button>
+                        <button type="button" data-fv-onclick="removeDockerStartOrderItem('${escapeHtml(safeId)}', ${itemIndex})"><i class="fa fa-times"></i></button>
                     </div>
                 </div>
             `;
@@ -8926,23 +8909,23 @@ const buildDockerStartOrderBatchHtml = (batch, index) => {
     return `
         <section class="fv-docker-start-order-batch">
             <div class="fv-docker-start-order-batch-head">
-                <input type="text" value="${escapeHtml(batch?.name || `Start batch ${index + 1}`)}" onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'name', this.value)" aria-label="Batch name">
+                <input type="text" value="${escapeHtml(batch?.name || `Start batch ${index + 1}`)}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'name', this.value)" aria-label="Batch name">
                 <div class="fv-docker-start-order-batch-actions">
-                    <button type="button" onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'up')" ${index === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
-                    <button type="button" onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'down')"><i class="fa fa-chevron-down"></i></button>
-                    <button type="button" onclick="removeDockerStartOrderBatch('${escapeHtml(safeId)}')"><i class="fa fa-trash"></i></button>
+                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'up')" ${index === 0 ? 'disabled' : ''}><i class="fa fa-chevron-up"></i></button>
+                    <button type="button" data-fv-onclick="moveDockerStartOrderBatch('${escapeHtml(safeId)}', 'down')"><i class="fa fa-chevron-down"></i></button>
+                    <button type="button" data-fv-onclick="removeDockerStartOrderBatch('${escapeHtml(safeId)}')"><i class="fa fa-trash"></i></button>
                 </div>
             </div>
             <div class="fv-docker-start-order-batch-settings">
-                <label>Delay after batch <input type="number" min="0" max="3600" step="1" value="${Number(batch?.delay) || 0}" onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'delay', this.value)"></label>
-                <label><input type="checkbox" ${batch?.useFolderOrder === false ? '' : 'checked'} onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'useFolderOrder', this.checked)"> Use folder member order</label>
-                <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
+                <label>Delay after batch <input type="number" min="0" max="3600" step="1" value="${Number(batch?.delay) || 0}" data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'delay', this.value)"></label>
+                <label><input type="checkbox" ${batch?.useFolderOrder === false ? '' : 'checked'} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'useFolderOrder', this.checked)"> Use folder member order</label>
+                <label><input type="checkbox" ${batch?.parallel === true ? 'checked' : ''} data-fv-onchange="updateDockerStartOrderBatch('${escapeHtml(safeId)}', 'parallel', this.checked)"> Parallel batch note</label>
             </div>
             <div class="fv-docker-start-order-add-row">
                 <select data-fv-start-folder="${escapeHtml(safeId)}">${folderSelectOptions}</select>
-                <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
+                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'folder')"><i class="fa fa-folder-o"></i> Add folder</button>
                 <select data-fv-start-container="${escapeHtml(safeId)}">${containerSelectOptions}</select>
-                <button type="button" onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
+                <button type="button" data-fv-onclick="addDockerStartOrderItem('${escapeHtml(safeId)}', 'container')"><i class="fa fa-cube"></i> Add container</button>
             </div>
             <div class="fv-docker-start-order-items">${itemHtml}</div>
         </section>
@@ -8953,14 +8936,14 @@ const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
     <div class="fv-docker-start-order-controls" data-fv-start-order-region="controls">
         <label class="setting-select">
             <span>Start order mode</span>
-            <select id="docker-start-order-mode" onchange="updateDockerStartOrderMode(this.value)">
+            <select id="docker-start-order-mode" data-fv-onchange="updateDockerStartOrderMode(this.value)">
                 <option value="docker-page" ${plan.mode === 'docker-page' ? 'selected' : ''}>Follow Docker page order</option>
                 <option value="custom-batches" ${plan.mode === 'custom-batches' ? 'selected' : ''}>Custom batch order</option>
             </select>
         </label>
         <label class="setting-select">
             <span>Remaining autostart containers</span>
-            <select id="docker-start-order-remaining" onchange="updateDockerStartOrderRemaining(this.value)">
+            <select id="docker-start-order-remaining" data-fv-onchange="updateDockerStartOrderRemaining(this.value)">
                 <option value="after" ${plan.remaining === 'after' ? 'selected' : ''}>Start after custom batches</option>
                 <option value="before" ${plan.remaining === 'before' ? 'selected' : ''}>Start before custom batches</option>
                 <option value="keep" ${plan.remaining === 'keep' ? 'selected' : ''}>Keep their current relative order</option>
@@ -8978,9 +8961,9 @@ const buildDockerStartOrderControlsHtml = (plan, customVisible) => `
 
 const buildDockerStartOrderToolbarHtml = (customVisible) => `
     <div class="fv-docker-start-order-toolbar" data-fv-start-order-region="toolbar">
-        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
-        <button type="button" onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
-        <button type="button" onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
+        ${customVisible ? '<button type="button" class="fv-docker-start-order-primary" data-fv-onclick="addDockerStartOrderBatch()"><i class="fa fa-plus"></i> Add batch</button>' : ''}
+        <button type="button" data-fv-onclick="refreshDockerStartOrderPreview()"><i class="fa fa-list"></i> Preview order</button>
+        <button type="button" data-fv-onclick="syncDockerStartOrderNow()"><i class="fa fa-refresh"></i> Sync now</button>
     </div>
 `;
 
@@ -9728,16 +9711,27 @@ const downloadType = async (type, id) => {
                 folder,
                 pluginVersion
             });
-            downloadFile(`${folder.name}.json`, toPrettyJson(payload));
-            setProgress(progressTotal, 'Export download started.');
+            const downloadAttempt = downloadFile(`${folder.name}.json`, toPrettyJson(payload), {
+                type: resolvedType,
+                mode: 'single',
+                surface: 'settings',
+                folderCount: 1,
+                schemaVersion: utils.EXPORT_SCHEMA_VERSION
+            });
+            setProgress(progressTotal, 'Export download requested.');
             await trackDiagnosticsEvent({
                 eventType: 'export',
                 type: resolvedType,
-                details: {
-                    mode: 'single',
-                    folderCount: 1,
-                    schemaVersion: utils.EXPORT_SCHEMA_VERSION
-                }
+                details: downloadAttempt
+                    ? buildDownloadDiagnosticsEventDetails(downloadAttempt)
+                    : {
+                        mode: 'single',
+                        folderCount: 1,
+                        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+                        lifecycle: 'download-dispatch-attempted',
+                        verdict: 'indeterminate',
+                        verdictCode: 'telemetry-module-unavailable'
+                    }
             });
             await new Promise((resolve) => setTimeout(resolve, 140));
             return;
@@ -9750,19 +9744,39 @@ const downloadType = async (type, id) => {
         });
 
         const name = resolvedType === 'docker' ? `${EXPORT_BASENAME}.json` : `${EXPORT_BASENAME} VM.json`;
-        downloadFile(name, toPrettyJson(payload));
-        setProgress(progressTotal, 'Export download started.');
+        const downloadAttempt = downloadFile(name, toPrettyJson(payload), {
+            type: resolvedType,
+            mode: 'full',
+            surface: 'settings',
+            folderCount: Object.keys(folders).length,
+            schemaVersion: utils.EXPORT_SCHEMA_VERSION
+        });
+        setProgress(progressTotal, 'Export download requested.');
         await trackDiagnosticsEvent({
             eventType: 'export',
             type: resolvedType,
-            details: {
-                mode: 'full',
-                folderCount: Object.keys(folders).length,
-                schemaVersion: utils.EXPORT_SCHEMA_VERSION
-            }
+            details: downloadAttempt
+                ? buildDownloadDiagnosticsEventDetails(downloadAttempt)
+                : {
+                    mode: 'full',
+                    folderCount: Object.keys(folders).length,
+                    schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+                    lifecycle: 'download-dispatch-attempted',
+                    verdict: 'indeterminate',
+                    verdictCode: 'telemetry-module-unavailable'
+                }
         });
         await new Promise((resolve) => setTimeout(resolve, 140));
     } catch (error) {
+        if (error?.fvplusDownloadAttempt) {
+            await trackDiagnosticsEvent({
+                eventType: 'export',
+                type: resolvedType,
+                status: 'error',
+                details: buildDownloadDiagnosticsEventDetails(error.fvplusDownloadAttempt)
+            });
+            renderDownloadAttemptStatus(error.fvplusDownloadAttempt);
+        }
         showError('Export failed', error);
     } finally {
         if (progressOpen) {
@@ -11109,7 +11123,7 @@ const restoreLatestBackup = (type) => {
     });
 };
 
-const downloadBackupEntry = (type, name) => {
+const downloadBackupEntry = async (type, name) => {
     let resolvedType;
     try {
         resolvedType = normalizeManagedType(type);
@@ -11123,47 +11137,30 @@ const downloadBackupEntry = (type, name) => {
         return;
     }
 
-    const frameName = `fv-download-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const iframe = document.createElement('iframe');
-    iframe.name = frameName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/plugins/folderview.plus/server/backup.php';
-    form.target = frameName;
-    form.style.display = 'none';
-
-    const addField = (fieldName, value) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = fieldName;
-        input.value = String(value ?? '');
-        form.appendChild(input);
-    };
-
-    addField('action', 'download_post');
-    addField('type', resolvedType);
-    addField('name', resolvedName);
-    const token = getOptionalRequestToken();
-    if (token) {
-        addField('token', token);
+    if (!requestClient || typeof requestClient.postBlob !== 'function') {
+        showError('Download failed', new Error('The secured download client is unavailable. Refresh the page and try again.'));
+        return;
     }
-
-    document.body.appendChild(form);
-    form.submit();
-
-    window.setTimeout(() => {
-        if (form.parentNode) {
-            form.parentNode.removeChild(form);
-        }
-    }, 1000);
-    window.setTimeout(() => {
-        if (iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
-        }
-    }, 20000);
+    try {
+        const blob = await requestClient.postBlob('/plugins/folderview.plus/server/backup.php', {
+            action: 'download_post',
+            type: resolvedType,
+            name: resolvedName
+        }, {
+            timeoutMs: 30000
+        });
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = resolvedName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+        showError('Download failed', error);
+    }
 };
 
 const deleteBackupEntry = (type, name) => {
@@ -12085,8 +12082,6 @@ if (window.FolderViewPlusUI?.registerAction) {
             fatalBanner.reportFatalError(error, {
                 context: 'Settings',
                 hostSelector: '#fv-settings-root',
-                title: 'Settings bootstrap failed',
-                message: 'FolderView Plus could not finish initializing the Settings page.',
                 code: 'FVPLUS-SET-BOOT-002',
                 phase: error?.fvplusPhase || 'bootstrap',
                 category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')

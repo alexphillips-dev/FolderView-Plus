@@ -15,12 +15,15 @@ const pluginPageSources = pluginPageFiles.map((entry) => ({
 }));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libSecurityPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.security.php');
 const libDiagnosticsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
 const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
@@ -48,11 +51,11 @@ test('lib.php keeps token rollout controls and secure API headers', () => {
     assert.match(libPhp, /X-Content-Type-Options: nosniff/);
 });
 
-test('backup endpoint supports guarded POST download and legacy fallback', () => {
+test('backup endpoint supports only the guarded POST download', () => {
     assert.match(backupPhp, /\$guardedReadActions\s*=\s*\['download_post'\]/);
     assert.match(backupPhp, /if \(\$action === 'download_post'\)/);
-    assert.match(backupPhp, /if \(\$action === 'download'\)/);
-    assert.match(backupPhp, /X-FV-Download-Mode: legacy-get/);
+    assert.doesNotMatch(backupPhp, /if \(\$action === 'download'\)/);
+    assert.doesNotMatch(backupPhp, /legacy-get/);
     assert.match(backupPhp, /X-Content-Type-Options: nosniff/);
 });
 
@@ -173,6 +176,14 @@ test('folder display scripts sanitize folder icon and name in HTML templates', (
     assert.match(dashboardJs, /const safeFolderIcon = sanitizeImageSrc\(folder\.icon, DEFAULT_FOLDER_ICON_PATH\)/);
 });
 
+test('third-party icon results use DOM construction instead of HTML string insertion', () => {
+    assert.match(folderEditorIconsJs, /const fragment = doc\.createDocumentFragment\(\);/);
+    assert.match(folderEditorIconsJs, /name\.textContent = iconName;/);
+    assert.match(folderEditorIconsJs, /folder\.textContent = iconFolder;/);
+    assert.match(folderEditorIconsJs, /grid\.get\(0\)\?\.appendChild\(fragment\);/);
+    assert.doesNotMatch(folderEditorIconsJs, /grid\.append\(rows\);/);
+});
+
 test('folder editor escapes custom action labels when rendering HTML', () => {
     assert.match(folderJs, /const safeActionName = escapeHtml\(entry\?\.name \|\| ''\)/);
     assert.match(folderJs, /const safeCfgName = escapeHtml\(cfg\.name \|\| ''\)/);
@@ -198,20 +209,25 @@ test('folder editor supports unicode names and secure guarded create/update post
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
 });
 
-test('request guard allows explicit mutation header fallback when token bypass is valid', () => {
+test('strict request guard requires the mutation marker, token, and same-origin context', () => {
     assert.match(libPhp, /function hasExplicitMutationRequestHeader\(\): bool/);
     assert.match(libPhp, /\$_POST\['_fv_request'\] \?\? \$_GET\['_fv_request'\] \?\? ''/);
-    assert.match(libPhp, /\$tokenRequiredForBypass = \$tokenMode !== 'off' && getConfiguredRequestToken\(\) !== '';/);
-    assert.match(libPhp, /hasExplicitMutationRequestHeader\(\) && \(\$tokenValidated \|\| !\$tokenRequiredForBypass\)/);
-    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = ''\) =>/);
+    assert.match(libSecurityPhp, /if \(\$tokenMode === 'strict'\)/);
+    assert.match(libSecurityPhp, /if \(getConfiguredRequestToken\(\) === ''\)/);
+    assert.match(libSecurityPhp, /!\$hasMutationMarker \|\| !validateOptionalRequestToken\(\) \|\| !isTrustedMutationContext\(\)/);
+    assert.match(requestClientJs, /const addMutationPayloadMarkers = \(method, data, token, traceId = '', nonce = ''\) =>/);
     assert.match(requestClientJs, /payload\._fv_request = '1';/);
+    assert.match(requestClientJs, /normalizedMethod === 'POST' && !token/);
+    assert.match(requestClientJs, /outcome: 'blocked-missing-token'/);
+    assert.doesNotMatch(requestClientJs, /localStorage\.getItem\(tokenStorageKey\)/);
+    assert.match(folderViewPlusJs, /requestClient\.postBlob\('\/plugins\/folderview\.plus\/server\/backup\.php'/);
     assert.match(folderViewPlusJs, /requestClient\.postJson\(url, data, options\)/);
 });
 
 test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
     assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
-    assert.match(dockerJs, /const openWebuiInNewTab = \(url\) =>/);
+    assert.match(dockerRuntimeSharedJs, /const openWebuiInNewTab = \(url\) =>/);
     assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
     assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
     assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI"/);
@@ -221,7 +237,7 @@ test('external links and popup actions enforce noopener protections', () => {
 });
 
 test('docker advanced popup sanitizes runtime metadata before rendering', () => {
-    assert.match(dockerJs, /const getSafeExternalUrl = \(value\) => \{/);
+    assert.match(dockerRuntimeSharedJs, /const getSafeExternalUrl = \(value\) => \{/);
     assert.match(dockerJs, /const safeIcon = sanitizeImageSrc\(labels\['net\.unraid\.docker\.icon'\] \|\| ''\);/);
     assert.match(dockerJs, /const safeContainerName = escapeHtml\(containerName\);/);
     assert.match(dockerJs, /data-container-name="\$\{safeContainerName\}"/);

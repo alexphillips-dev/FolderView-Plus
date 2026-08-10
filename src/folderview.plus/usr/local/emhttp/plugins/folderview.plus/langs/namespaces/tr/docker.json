@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "Kurallar çalışma alanı",
     "docker.actions.empty-filter-help": "Boş klasörleri filtrelemeden önce Araçlardan gösterin.",
     "docker.actions.reset-view": "Görünümü sıfırla",
+    "docker.preview.open-webui": "WebUI'yi açın",
+    "docker.preview.open-console": "Konsolu aç",
+    "docker.preview.view-logs": "Günlükleri görüntüle",
+    "docker.provider.hybrid-label": "GraphQL verileriyle Eski Unraid WebGUI'si",
+    "docker.health.api-summary": "Docker API'si: $1 güncelleme$2, $3 yeniden oluşturmaya hazır, $4 yetim, $5 bağlantı noktası çakışması$6",
     "docker.views.folderview": "Klasör Görünümü",
     "docker.views.host": "Ana bilgisayar listesi",
     "docker.views.command": "Komut",

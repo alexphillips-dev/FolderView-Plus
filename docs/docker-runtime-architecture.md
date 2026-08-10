@@ -11,12 +11,19 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - Detects legacy table, native component, and unknown Docker host generations before the legacy runtime initializes.
   - Owns the no-overlay coexistence decision and aggregate compatibility evidence.
 - `scripts/docker.runtime.providers.js`
-  - Defines legacy WebGUI, Unraid GraphQL, and unsupported providers for container listing, identity, subscriptions, actions, organization authority, and UI ownership.
+  - Defines legacy WebGUI, hybrid legacy/GraphQL, Unraid GraphQL, and unsupported providers for container listing, identity, subscriptions, actions, health metadata, guarded mutations, organization authority, and UI ownership.
+- `scripts/docker.runtime.container-model.js`
+  - Normalizes GraphQL, PHP runtime, and DOM fallback records into one immutable container contract.
+- `scripts/docker.runtime.provider-health.js`
+  - Owns bounded provider-health refresh, aggregate severity derivation, caching, and disposal outside the legacy runtime monolith.
+- `scripts/docker.runtime.layout-geometry.js`
+  - Owns DOM-independent geometry sampling and comparison used by Docker layout diagnostics.
+  - Separates whole-row movement from action movement inside a row so delayed hydration evidence identifies the actual source of visual bounce.
 - `scripts/docker.bootstrap.js`
   - Re-detects the fully parsed Docker host, prepares the selected provider, and loads the legacy runtime only after a complete legacy table contract is confirmed.
   - Keeps legacy CSS and custom Docker overrides disabled on native and unknown hosts.
 - `scripts/runtime.transport.js`
-  - Owns CSRF-aware GraphQL requests, schema capability detection, typed Docker actions, bounded subscription reconnect, stale/abort handling, and privacy-safe transport diagnostics.
+  - Owns CSRF-aware GraphQL requests, operation-signature capability detection, typed Docker actions and mutations, bounded subscription reconnect, stale/abort handling, and privacy-safe transport diagnostics.
 - `scripts/docker.runtime.shared.js`
   - `createRuntimeStateStore`: single source of truth for runtime UI state.
   - `createAsyncActionBoundary`: normalized async error handling and user-safe messaging.
@@ -32,6 +39,8 @@ This document tracks the staged modularization of `docker.js` while preserving U
 
 - `docker.bootstrap.js` is the only production loader for `docker.js`, which starts only for the complete legacy table contract. The runtime keeps legacy Docker rendering and domain orchestration while Unraid page integration goes through the shared host adapter.
 - The native Docker component remains owned by Unraid. FolderView Plus does not overlay it or mutate the prerelease organizer.
+- On the legacy table, UI ownership remains unchanged while the hybrid provider prefers schema-confirmed GraphQL reads and statistics.
+- Dashboard advanced previews open GraphQL statistics lazily and fall back to the host `docker_load` stream.
 - `docker.runtime.host-guards.js` is the Docker diagnostics facade over the shared adapter; it does not implement a second hook or selector system.
 - Shared modules own reusable primitives so feature logic is testable without large-file rewrites.
 - Store-backed state currently includes:
@@ -56,6 +65,8 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 - Unraid lifecycle globals (`loadlist`, `listview`, `openDocker`, `eventControl`, and `addDockerContainerContext`) are wrapped idempotently by the adapter, with compatibility aliases retained for host/plugin interoperability.
 - Context menu quick actions (Focus/Pin/Lock) are enhanced through the adapter rather than ad-hoc DOM logic.
 - CSS layout constants use tokenized variables with hard-coded fallback values to preserve legacy contracts.
+- Preview hydration diagnostics record unavailable WebUI slots, disconnected targets, absolute movement, row movement, and movement relative to the owning row without retaining container or folder identities.
+- The main Docker runtime line budget is ratcheted below its prior ceiling; layout comparison logic and noisy first-render debug work remain outside the hot orchestration path.
 
 ## Regression Prevention
 
@@ -64,6 +75,7 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
   - `tests/runtime-host-adapter.test.mjs`
   - `tests/docker-folder-row-quick-actions.test.mjs`
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
+  - `tests/docker-runtime-diagnostics-geometry.test.mjs`
   - `tests/unraid-docker-future-compatibility.test.mjs`
   - `tests/unraid-upstream-monitor.test.mjs`
 - Deterministic native-host browser coverage:
@@ -71,3 +83,5 @@ The runtime still uses an internal threshold state while resolving Adaptive and 
 - Perf telemetry snapshot is exposed as:
   - `window.getDockerRuntimePerfTelemetrySnapshot()`
   - `window.getVmRuntimePerfTelemetrySnapshot()`
+
+See [Unraid Docker API Integration](unraid-docker-api-integration.md) for the capability, fallback, mutation, privacy, and monitoring contracts.

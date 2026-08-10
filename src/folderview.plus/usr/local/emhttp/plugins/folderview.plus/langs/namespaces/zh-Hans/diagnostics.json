@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "这些捕获在导航到“设置”后保留渲染的仪表板几何形状。",
     "diagnostics.capture.review": "评论",
     "diagnostics.capture.ready": "准备好",
-    "diagnostics.capture.capture-again": "再次捕捉"
+    "diagnostics.capture.capture-again": "再次捕捉",
+    "diagnostics.bootstrap.reference": "参考编号",
+    "diagnostics.bootstrap.last-step": "最后完成的步骤",
+    "diagnostics.bootstrap.occurrences": "发生次数",
+    "diagnostics.bootstrap.retry": "重新尝试加载",
+    "diagnostics.bootstrap.reload": "重新加载页面",
+    "diagnostics.bootstrap.copy": "复制支持代码",
+    "diagnostics.bootstrap.download": "下载启动报告",
+    "diagnostics.bootstrap.copied": "已复制支持代码",
+    "diagnostics.bootstrap.copy-failed": "复制失败",
+    "diagnostics.bootstrap.downloaded": "已下载启动报告",
+    "diagnostics.bootstrap.download-failed": "下载失败",
+    "diagnostics.bootstrap.retrying": "正在重试…",
+    "diagnostics.bootstrap.retry-succeeded": "已恢复加载",
+    "diagnostics.bootstrap.retry-failed": "重试失败"
 }

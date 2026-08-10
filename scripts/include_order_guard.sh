@@ -47,6 +47,7 @@ const source = fs.readFileSync(pageFile, 'utf8');
 const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)*\.js/g)].map((match) => match[0]);
 
 const expectedOrder = [
+  'folderviewplus.csp-events.js',
   'folderviewplus.fatal-banner.js',
   'folderviewplus.utils.js',
   'folderviewplus.ui.js',
@@ -67,6 +68,7 @@ const expectedOrder = [
   'folderviewplus.smart-detect-config.js',
   'folderviewplus.starter-templates.js',
   'folderviewplus.support-bundle-preview.js',
+  'folderviewplus.download-diagnostics.js',
   'folderviewplus.support-bundle-browser.js',
   'folderviewplus.support-bundle-telemetry.js',
   'folderviewplus.diagnostics-view-model.js',
@@ -87,7 +89,8 @@ const expectedOrder = [
   'folderviewplus.import.js',
   'folderviewplus.updates.js',
   'folderviewplus.actions-support.js',
-  'folderviewplus.js'
+  'folderviewplus.js',
+  'folderviewplus.settings-loader.js'
 ];
 
 const includeSet = new Set(includes);

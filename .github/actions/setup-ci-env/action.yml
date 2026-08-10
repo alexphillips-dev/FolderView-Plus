@@ -15,12 +15,12 @@ runs:
   using: composite
   steps:
     - name: Setup Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: ${{ inputs.node-version }}
 
     - name: Restore npm cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.npm
         key: ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh', 'package-lock.json') }}
@@ -29,7 +29,7 @@ runs:
           ${{ runner.os }}-fvplus-npm-
 
     - name: Restore Playwright browser cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh', 'package-lock.json') }}

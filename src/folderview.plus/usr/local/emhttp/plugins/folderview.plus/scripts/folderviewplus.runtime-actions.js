@@ -38,6 +38,16 @@
         const showToastMessage = typeof deps.showToastMessage === 'function' ? deps.showToastMessage : (() => {});
         const showError = typeof deps.showError === 'function' ? deps.showError : (() => {});
         const downloadFile = typeof deps.downloadFile === 'function' ? deps.downloadFile : (() => {});
+        const buildDownloadDiagnosticsEventDetails = typeof deps.buildDownloadDiagnosticsEventDetails === 'function'
+            ? deps.buildDownloadDiagnosticsEventDetails
+            : ((attempt = {}) => ({
+                mode: String(attempt?.mode || 'other'),
+                folderCount: Math.max(0, Number(attempt?.folderCount) || 0),
+                schemaVersion: String(attempt?.exportSchemaVersion || ''),
+                lifecycle: String(attempt?.lifecycle || 'download-dispatch-attempted'),
+                verdict: String(attempt?.verdict?.status || 'indeterminate'),
+                verdictCode: String(attempt?.verdict?.code || 'browser-save-unconfirmed')
+            }));
         const toPrettyJson = typeof deps.toPrettyJson === 'function' ? deps.toPrettyJson : ((value) => JSON.stringify(value, null, 2));
         const trackDiagnosticsEvent = typeof deps.trackDiagnosticsEvent === 'function' ? deps.trackDiagnosticsEvent : (async () => {});
         const getPluginVersion = typeof deps.getPluginVersion === 'function' ? deps.getPluginVersion : (() => '0.0.0');
@@ -135,16 +145,39 @@
             payload.branchRootId = String(folderId || '').trim();
             payload.branchSize = branchIds.length;
             const baseName = String(sourceFolder.name || folderId || 'folder-branch').trim() || 'folder-branch';
-            downloadFile(`${baseName}-branch.json`, toPrettyJson(payload));
-            await trackDiagnosticsEvent({
-                eventType: 'export',
-                type: resolvedType,
-                details: {
+            try {
+                const downloadAttempt = downloadFile(`${baseName}-branch.json`, toPrettyJson(payload), {
+                    type: resolvedType,
                     mode: 'branch',
+                    surface: 'settings',
                     folderCount: branchIds.length,
                     schemaVersion: utils.EXPORT_SCHEMA_VERSION
+                });
+                await trackDiagnosticsEvent({
+                    eventType: 'export',
+                    type: resolvedType,
+                    details: downloadAttempt
+                        ? buildDownloadDiagnosticsEventDetails(downloadAttempt)
+                        : {
+                            mode: 'branch',
+                            folderCount: branchIds.length,
+                            schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+                            lifecycle: 'download-dispatch-attempted',
+                            verdict: 'indeterminate',
+                            verdictCode: 'telemetry-module-unavailable'
+                        }
+                });
+            } catch (error) {
+                if (error?.fvplusDownloadAttempt) {
+                    await trackDiagnosticsEvent({
+                        eventType: 'export',
+                        type: resolvedType,
+                        status: 'error',
+                        details: buildDownloadDiagnosticsEventDetails(error.fvplusDownloadAttempt)
+                    });
                 }
-            });
+                showError('Export failed', error);
+            }
         };
 
         const importFolderBranch = async (type, targetFolderId) => {

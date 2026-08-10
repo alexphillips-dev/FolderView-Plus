@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "Рабочее пространство правил",
     "docker.actions.empty-filter-help": "Показывать пустые папки из Инструментов до их фильтрации.",
     "docker.actions.reset-view": "Сбросить представление",
+    "docker.preview.open-webui": "Открыть веб-интерфейс",
+    "docker.preview.open-console": "Открыть консоль",
+    "docker.preview.view-logs": "Просмотр журналов",
+    "docker.provider.hybrid-label": "Устаревший веб-интерфейс Unraid с данными GraphQL",
+    "docker.health.api-summary": "API Docker: $1 update$2, $3 готов к перестроению, $4 потерян, $5 конфликт портов$6",
     "docker.views.folderview": "FolderView",
     "docker.views.host": "Список хостов",
     "docker.views.command": "Команда",

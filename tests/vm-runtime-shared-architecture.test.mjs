@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const vmLifecycleJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -19,6 +20,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     const snapshotIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
+    const rowActionsIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
     const hostAdapterIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
     const orderingIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
     const lifecycleIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js');
@@ -31,6 +33,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(snapshotIndex >= 0, 'runtime snapshot client include missing from VMs page');
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
+    assert.ok(rowActionsIndex >= 0, 'folder row action include missing from VMs page');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter include missing from VMs page');
     assert.ok(orderingIndex >= 0, 'shared folder ordering include missing from VMs page');
     assert.ok(lifecycleIndex >= 0, 'VM lifecycle coordinator include missing from VMs page');
@@ -46,6 +49,7 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
     assert.ok(snapshotIndex < runtimeIndex, 'runtime snapshot client must load before vm.js');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
+    assert.ok(stateObserverIndex < rowActionsIndex && rowActionsIndex < lifecycleIndex, 'folder row actions must load after state observers and before VM lifecycle/runtime');
     assert.ok(hostAdapterIndex < runtimeIndex, 'shared host adapter must load before vm.js');
     assert.ok(hostAdapterIndex < orderingIndex && orderingIndex < runtimeIndex, 'shared ordering must load after the host adapter and before vm.js');
     assert.ok(lifecycleIndex < runtimeIndex, 'VM lifecycle coordinator must load before vm.js');
@@ -109,6 +113,18 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /window\.dropDownButton = dropDownButton;/);
     assert.match(vmJs, /window\.editFolder = editFolder;/);
     assert.match(vmJs, /window\.createFolderBtn = createFolderBtn;/);
+    assert.match(vmJs, /vmBootstrapMissingModules\.push\('folder\.runtime\.row-actions\.js'\)/);
+    assert.match(vmJs, /const vmFolderRowActionsController = runtimeShared\.createFolderRowActionsController\(\{/);
+    assert.match(vmJs, /actionAttribute: 'data-fv-vm-folder-action'/);
+    assert.match(vmJs, /toggle: \(id\) => dropDownButton\(id\)/);
+    assert.match(vmJs, /edit: \(id\) => editFolder\(id\)/);
+    assert.match(vmJs, /context: \(id\) => addVMFolderContext\(id\)/);
+    assert.match(vmJs, /vmFolderRowActionsController\.decorate\(\$createdFolderRow, id\);/);
+    assert.match(vmJs, /bindVmFolderRowActions\(\);/);
+    assert.match(vmJs, /vmFolderRowActionsController\.destroy\(\);/);
+    assert.match(folderRowActionsJs, /\.removeAttr\('data-fv-onclick'\)/);
+    assert.match(folderRowActionsJs, /\.off\(eventName, selector\)[\s\S]*\.on\(eventName, selector/);
+    assert.match(folderRowActionsJs, /root\.FolderViewDockerRuntimeShared\.createFolderRowActionsController = api\.createController/);
 });
 
 test('vm CSS keeps VM-specific gutter tokens while shared stylesheet owns shared preview and dropdown rules', () => {

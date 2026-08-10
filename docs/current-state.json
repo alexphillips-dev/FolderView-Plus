@@ -101,6 +101,7 @@
       "docs/shared-ui-primitives.md",
       "docs/vm-runtime-architecture.md",
       "docs/visual-runtime-contract.md",
+      "docs/unraid-docker-api-integration.md",
       "docs/unraid-docker-interface-compatibility.md"
     ],
     "retiredTerms": [

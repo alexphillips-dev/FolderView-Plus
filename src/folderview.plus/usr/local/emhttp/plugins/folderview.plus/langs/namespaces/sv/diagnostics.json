@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Dessa fångar bevarar den renderade instrumentpanelsgeometrin efter navigering till Inställningar.",
     "diagnostics.capture.review": "Granska",
     "diagnostics.capture.ready": "Klar",
-    "diagnostics.capture.capture-again": "Fånga igen"
+    "diagnostics.capture.capture-again": "Fånga igen",
+    "diagnostics.bootstrap.reference": "Referens",
+    "diagnostics.bootstrap.last-step": "Senast slutförda steg",
+    "diagnostics.bootstrap.occurrences": "Förekomster",
+    "diagnostics.bootstrap.retry": "Försök läsa in igen",
+    "diagnostics.bootstrap.reload": "Läs om sidan",
+    "diagnostics.bootstrap.copy": "Kopiera supportkod",
+    "diagnostics.bootstrap.download": "Hämta startrapport",
+    "diagnostics.bootstrap.copied": "Supportkod kopierad",
+    "diagnostics.bootstrap.copy-failed": "Kopieringen misslyckades",
+    "diagnostics.bootstrap.downloaded": "Startrapport hämtad",
+    "diagnostics.bootstrap.download-failed": "Hämtningen misslyckades",
+    "diagnostics.bootstrap.retrying": "Försöker igen…",
+    "diagnostics.bootstrap.retry-succeeded": "Inläsningen återupptogs",
+    "diagnostics.bootstrap.retry-failed": "Nytt försök misslyckades"
 }

@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "ca",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Configuració de cerca",
+    "settings.search.label": "Configuració de cerca",
+    "settings.search.clear-label": "Esborra la cerca de configuració",
+    "settings.search.clear-title": "Esborra la cerca",
+    "settings.search.scope": "Àmbit",
+    "settings.search.scope-help": "Trieu si la cerca avançada cobreix aquesta pestanya o totes les pestanyes avançades",
+    "settings.search.scope-label": "Àmbit de cerca de configuració avançada",
+    "settings.search.scope-current": "Pestanya actual",
+    "settings.search.scope-all": "Tot avançat",
+    "settings.header.plugin-settings": "Configuració del connector",
+    "settings.mode.title": "Mode de configuració",
+    "settings.mode.basic-label": "Utilitzeu el mode de configuració bàsica",
+    "settings.mode.advanced-label": "Utilitzeu el mode de configuració avançada",
+    "settings.wizard.title": "Executeu l'assistent de configuració",
+    "settings.tabs.basic": "Bàsica",
+    "settings.tabs.advanced": "Avançat",
+    "settings.tabs.wizard": "Mag",
+    "settings.privacy.title": "Enmascarament de privadesa",
+    "settings.privacy.mask-names": "Noms i icones de màscares",
+    "settings.privacy.mask-lan-ips": "Enmascarar les IP de la LAN",
+    "settings.privacy.mask-ports": "Ports de màscara",
+    "settings.privacy.lan-help": "L'emmascarament d'IP LAN s'aplica a la part IP de la columna LAN IP:PORT de la pàgina Docker. Utilitzeu ports de màscara per a la part del port."
+}

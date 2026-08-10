@@ -14,6 +14,7 @@ const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-main-to-dev.yml');
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
+const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
@@ -66,7 +67,6 @@ const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
 const simulateMainRelease = fs.readFileSync(simulateMainReleasePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
-const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
@@ -82,6 +82,7 @@ const docsMetadataGuard = fs.readFileSync(docsMetadataGuardPath, 'utf8');
 const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
+const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
@@ -158,10 +159,12 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /Install smoke: \$run_install_smoke/);
     assert.match(pkgBuild, /--sort=name/);
     assert.match(pkgBuild, /--mtime='UTC 1970-01-01'/);
+    assert.match(pkgBuild, /--mode=0755/);
     assert.match(pkgBuild, /FVPLUS_ARCHIVE_DIR="\$archive_dir" bash "\$release_guard_script"/);
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /"sourceContentSha256": "\$\{build_source_content_sha256\}"/);
+    assert.match(pkgBuild, /build_git_snapshot_mode="content"/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
@@ -188,6 +191,12 @@ test('archive pruning script keeps newest versions and preserves current release
 test('release_guard blocks future-dated versions', () => {
     assert.match(releaseGuard, /Version date \(\$\{VERSION_DATE\}\) is in the future/);
     assert.match(releaseGuard, /TODAY_DATE="\$\(date \+\"%Y\.%m\.%d\"\)"/);
+});
+
+test('release_guard validates pull-request packages against the protected base channel', () => {
+    assert.match(releaseGuard, /GITHUB_BASE_REF/);
+    assert.match(releaseGuard, /GITHUB_BASE_REF:-}" =~ \^\(main\|dev\)\$/);
+    assert.match(releaseGuard, /EXPECTED_PLUGIN_BRANCH="\$\{GITHUB_BASE_REF\}"/);
 });
 
 test('release_guard enforces explicit changelog category contract for current version', () => {
@@ -273,10 +282,11 @@ test('remote publish guard validates raw manifest, archive, and checksum after p
     assert.match(remotePublishGuard, /plugin manifest/);
     assert.match(remotePublishGuard, /archive checksum/);
     assert.match(remotePublishGuard, /curl -fsSL/);
-    assert.match(remotePublishGuard, /curl -fsSI -L/);
+    assert.match(remotePublishGuard, /REMOTE_ARCHIVE_SHA256/);
+    assert.match(remotePublishGuard, /published archive bytes stale or mismatched/);
     assert.match(remotePublishGuard, /Remote manifest version mismatch/);
     assert.match(remotePublishGuard, /Remote checksum mismatch/);
-    assert.match(remotePublishGuard, /remote raw manifest, archive, and checksum match/);
+    assert.match(remotePublishGuard, /remote raw manifest, downloaded archive bytes, and checksum match/);
 });
 
 test('dev pushes that change shipped plugin files must bump the manifest version', () => {
@@ -429,6 +439,7 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /bash scripts\/docs_metadata_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/release_notes_consistency_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/workflow_self_check\.sh/);
+    assert.match(runCiSuite, /bash scripts\/actionlint_guard\.sh/);
     assert.match(runCiSuite, /bash scripts\/browser_smoke\.sh/);
     assert.match(runCiSuite, /bash scripts\/fixture_browser_tests\.sh/);
     assert.match(runCiSuite, /bash scripts\/theme_matrix_smoke\.sh/);
@@ -441,12 +452,29 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED/);
     assert.match(runCiSuite, /FVPLUS_CI_TIMINGS_PATH/);
+    assert.match(runCiSuite, /FVPLUS_UNRAID_MATRIX_REQUIRED="\$\{FVPLUS_UNRAID_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+    assert.match(runCiSuite, /FVPLUS_BROWSER_SMOKE_REQUIRED="\$\{FVPLUS_BROWSER_SMOKE_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+    assert.match(runCiSuite, /FVPLUS_THEME_MATRIX_REQUIRED="\$\{FVPLUS_THEME_MATRIX_REQUIRED:-\$\{RELEASE_MODE\}\}"/);
+});
+
+test('scheduled validation runs cross-browser fixtures and uses live Unraid targets when configured', () => {
+    assert.match(scheduledValidationWorkflow, /schedule:/);
+    assert.match(scheduledValidationWorkflow, /workflow_dispatch:/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
+    assert.match(scheduledValidationWorkflow, /live_configured/);
+    assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {
     assert.match(ciWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main\s*\n\s*-\s*dev\s*\n\s*-\s*reset-main/);
     assert.match(ciWorkflow, /detect-changes:/);
-    assert.match(ciWorkflow, /dorny\/paths-filter@v3/);
+    assert.match(ciWorkflow, /node scripts\/classify_ci_changes\.mjs/);
+    assert.doesNotMatch(ciWorkflow, /dorny\/paths-filter@/);
+    assert.match(ciWorkflow, /group:\s*folderview-plus-ci-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/);
+    assert.match(ciWorkflow, /cancel-in-progress:\s*true/);
     assert.match(ciWorkflow, /workflow_only/);
     assert.match(ciWorkflow, /docs_only/);
     assert.match(ciWorkflow, /needs_browser/);
@@ -470,16 +498,18 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(ciWorkflow, /bash scripts\/run_ci_suite\.sh --lane theme-matrix/);
     assert.match(ciWorkflow, /dev-release-preview/);
     assert.match(ciWorkflow, /ci-duration-report/);
-    assert.match(ciWorkflow, /actions\/upload-artifact@v4/);
+    assert.match(ciWorkflow, /actions\/upload-artifact@[0-9a-f]{40}\s+# v7/);
     assert.match(ciWorkflow, /tmp\/browser-smoke-artifacts/);
     assert.match(ciWorkflow, /tmp\/fixture-browser-artifacts/);
     assert.match(ciWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
+    const nodeTestJob = ciWorkflow.match(/^  node-tests:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+    assert.match(nodeTestJob, /Install Node test dependencies[\s\S]*npm ci --ignore-scripts/);
 
-    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
+    for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
         assert.match(workflow, /FVPLUS_FIXTURE_BROWSERS:\s*chromium,firefox,webkit/);
@@ -487,14 +517,13 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
     }
 
-    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
-    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
     assert.match(releaseOnMainWorkflow, /Run release validation suite/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
-    assert.match(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
+    assert.match(backmergeWorkflow, /bash scripts\/prepare_backmerge_dev_package\.sh/);
+    assert.doesNotMatch(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
@@ -510,7 +539,6 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 
     for (const jobName of [
-        'detect-changes',
         'lint-and-syntax',
         'node-tests',
         'browser-smoke',
@@ -521,6 +549,11 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         const job = ciWorkflow.match(jobPattern)?.[1] || '';
         assert.match(job, /fetch-depth:\s*1/, `${jobName} should use a shallow checkout`);
         assert.doesNotMatch(job, /fetch-depth:\s*0/, `${jobName} should not fetch full history`);
+    }
+    {
+        const detectJob = ciWorkflow.match(/^  detect-changes:\s*$([\s\S]*?)(?=^  [A-Za-z0-9_-]+:\s*$|(?![\s\S]))/m)?.[1] || '';
+        assert.match(detectJob, /fetch-depth:\s*2/, 'detect-changes should fetch pull-request merge parents');
+        assert.doesNotMatch(detectJob, /fetch-depth:\s*0/, 'detect-changes should not fetch full history');
     }
     for (const jobName of ['guard-suite', 'release-preview']) {
         const jobPattern = new RegExp(`^  ${jobName}:\\s*$([\\s\\S]*?)(?=^  [A-Za-z0-9_-]+:\\s*$|(?![\\s\\S]))`, 'm');
@@ -559,7 +592,6 @@ test('release-on-main validates remote raw publish artifacts before publishing r
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'30'/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'10'/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
-    assert.doesNotMatch(releaseMainWorkflow, /bash scripts\/remote_publish_guard\.sh/);
 });
 
 test('release notes builder supports curated per-version override files', () => {
@@ -578,28 +610,27 @@ test('release note parsers distinguish category headings from version headings',
     assert.match(releaseNotesConsistencyGuard, /const versionHeading = '\^###\[0-9\]\{4\}/);
 });
 
-test('release workflows serialize concurrent runs with shared release concurrency group', () => {
-    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
+test('release publishing serializes concurrent runs and enforces live validation', () => {
+    for (const workflow of [releaseOnMainWorkflow]) {
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
         assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*(?:'1'|\$\{\{[^}]+\}\})/);
-        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.1\.x,7\.2\.x'/);
+        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.2\.x,7\.3\.x'/);
         assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_THEMES:\s*'black,white'/);
     }
 });
 
-test('release workflows avoid failing when no files changed for commit step', () => {
-    for (const workflow of [releaseMainWorkflow]) {
-        assert.match(workflow, /bash scripts\/release_prepare\.sh --push-main/);
-    }
+test('release preparation keeps an explicit guarded push option for operator use', () => {
+    assert.match(releasePrepare, /PUSH_MAIN=0/);
+    assert.match(releasePrepare, /--push-main/);
+    assert.match(releasePrepare, /git push origin main/);
 });
 
-test('release-main builds and pushes main while release-on-main owns publishing and notes generation', () => {
-    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
-    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
-    assert.doesNotMatch(releaseMainWorkflow, /softprops\/action-gh-release/);
-    assert.doesNotMatch(releaseMainWorkflow, /Create GitHub Release/);
+test('release-on-main is the single authoritative release workflow', () => {
+    assert.equal(fs.existsSync(releaseMainWorkflowPath), false);
+    assert.match(releaseOnMainWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main/);
+    assert.match(releaseOnMainWorkflow, /workflow_dispatch:/);
     assert.match(releaseOnMainWorkflow, /Create or update GitHub release/);
     assert.match(releaseOnMainWorkflow, /bash scripts\/build_release_notes\.sh --version "\$\{VERSION\}" --output release_notes\.md/);
 });
@@ -782,7 +813,9 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(releaseNotesConsistencyGuard, /build_release_notes\.sh --version/);
     assert.match(releaseNotesConsistencyGuard, /Release On Main workflow is not using scripts\/build_release_notes\.sh/);
     assert.match(workflowSelfCheck, /Workflow self-check passed/);
-    assert.match(workflowSelfCheck, /change-aware fast lanes/);
+    assert.match(workflowSelfCheck, /repository-owned change classifier/);
+    assert.match(workflowSelfCheck, /single push and manual release publisher/);
+    assert.match(workflowSelfCheck, /pinned actionlint guard/);
     assert.match(workflowSelfCheck, /dev release preview artifact/);
     assert.match(workflowSelfCheck, /CI duration report artifact/);
 });
@@ -826,6 +859,7 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(reproBuildGuard, /Deterministic build guard passed/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_VERSION_OVERRIDE/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_ALLOW_STALE_STABLE/);
+    assert.match(reproBuildGuard, /repository archive differs from the reproducible build/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard skipped/);
     assert.match(mainBranchHistoryGuard, /FVPLUS_MAIN_HISTORY_BASE_REF/);
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
@@ -843,7 +877,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(unraidMatrixSmoke, /FVPLUS_THEME_HINT/);
     assert.match(docsMetadataGuard, /folderviewplus-desc/);
     assert.match(setupCiEnvAction, /Setup CI Environment/);
-    assert.match(setupCiEnvAction, /actions\/cache@v4/);
+    assert.match(setupCiEnvAction, /actions\/setup-node@[0-9a-f]{40}\s+# v7/);
+    assert.match(setupCiEnvAction, /actions\/cache@[0-9a-f]{40}\s+# v6/);
     assert.match(applyBranchProtection, /branches\/main\/protection/);
     assert.match(applyBranchProtection, /branches\/dev\/protection/);
     assert.match(applyBranchProtection, /Analyze \(JavaScript\)/);

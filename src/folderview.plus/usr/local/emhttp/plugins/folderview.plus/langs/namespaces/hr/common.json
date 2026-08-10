@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "hr",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Neobavezno",
+    "common.badges.recommended": "Preporučeno",
+    "common.badges.can-delete": "Može brisati",
+    "common.close": "Zatvori",
+    "common.cancel": "Odustani",
+    "common.confirm": "Potvrdi",
+    "common.confirm-type": "Upišite za potvrdu",
+    "common.loading": "učitavanje..."
+}

@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "pl",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Te przechwycenia zachowują wyrenderowaną geometrię pulpitu nawigacyjnego po przejściu do Ustawień.",
     "diagnostics.capture.review": "Recenzja",
     "diagnostics.capture.ready": "Gotowy",
-    "diagnostics.capture.capture-again": "Przechwytuj ponownie"
+    "diagnostics.capture.capture-again": "Przechwytuj ponownie",
+    "diagnostics.bootstrap.reference": "Odwołanie",
+    "diagnostics.bootstrap.last-step": "Ostatni ukończony krok",
+    "diagnostics.bootstrap.occurrences": "Wystąpienia",
+    "diagnostics.bootstrap.retry": "Spróbuj wczytać ponownie",
+    "diagnostics.bootstrap.reload": "Wczytaj stronę ponownie",
+    "diagnostics.bootstrap.copy": "Kopiuj kod pomocy",
+    "diagnostics.bootstrap.download": "Pobierz raport uruchamiania",
+    "diagnostics.bootstrap.copied": "Kod pomocy skopiowany",
+    "diagnostics.bootstrap.copy-failed": "Kopiowanie nie powiodło się",
+    "diagnostics.bootstrap.downloaded": "Raport uruchamiania pobrany",
+    "diagnostics.bootstrap.download-failed": "Pobieranie nie powiodło się",
+    "diagnostics.bootstrap.retrying": "Ponawianie próby…",
+    "diagnostics.bootstrap.retry-succeeded": "Wczytywanie wznowione",
+    "diagnostics.bootstrap.retry-failed": "Ponowna próba nie powiodła się"
 }

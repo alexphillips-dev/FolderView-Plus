@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "İptal",
     "common.confirm": "Onayla",
     "common.confirm-type": "Onaylamak için yazın",
-    "common.dismiss": "Bildirimi kapat",
-    "common.loading": "Yükleniyor…",
-    "common.notifications": "Bildirimler"
+    "common.loading": "Yükleniyor…"
 }

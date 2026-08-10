@@ -58,12 +58,16 @@ done
 
 fvplus::require_commands bash node php git find shellcheck npm npx
 export FVPLUS_RELEASE_MODE="${RELEASE_MODE}"
+export FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-${RELEASE_MODE}}"
+export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${RELEASE_MODE}}"
+export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${RELEASE_MODE}}"
 NODE_BIN="$(fvplus::resolve_platform_command node)"
 PHP_BIN="$(fvplus::resolve_platform_command php)"
 NPM_BIN="$(fvplus::resolve_platform_command npm)"
 NPX_BIN="$(fvplus::resolve_platform_command npx)"
 
 chmod +x \
+  scripts/actionlint_guard.sh \
   scripts/api_contract_guard.sh \
   scripts/browser_smoke.sh \
   scripts/dead_code_guard.sh \
@@ -173,8 +177,6 @@ lint_php_syntax() {
 }
 
 run_browser_smoke_if_needed() {
-  local default_required="0"
-  export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}" && [[ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]]; then
     fvplus::fail "Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set."
   fi
@@ -185,8 +187,6 @@ run_browser_smoke_if_needed() {
 }
 
 run_theme_matrix_if_needed() {
-  local default_required="0"
-  export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}" && [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
     fvplus::fail "Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set."
   fi
@@ -205,20 +205,26 @@ run_lane() {
       run_timed_step filter-view-settings-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/filter_view_settings_guard.mjs")"
       run_timed_step deprecation-contract "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/deprecation_guard.mjs")"
       run_timed_step architecture-contracts "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/architecture_contract_guard.mjs")"
+      run_timed_step sbom "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/generate_sbom.mjs")" --check
+      run_timed_step csp-readiness "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/csp_readiness_guard.mjs")"
+      run_timed_step action-pins "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/action_pin_guard.mjs")"
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax
       run_timed_step javascript-unused-symbols "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/js_unused_symbols_guard.mjs")"
       run_timed_step php-static-analysis "${PHP_BIN}" "$(fvplus::path_for_command "${PHP_BIN}" "scripts/php_unused_helpers_guard.php")"
+      run_timed_step phpstan bash scripts/phpstan_guard.sh
       ;;
     tests)
       run_timed_step node-mobile-tests "${NODE_BIN}" --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
       run_timed_step node-test-suite "${NODE_BIN}" --test tests/*.mjs
+      run_timed_step javascript-coverage "${NPM_BIN}" run test:coverage
       ;;
     workflow-tests)
       run_timed_step versioning-guard-tests "${NODE_BIN}" --test tests/versioning-guard.test.mjs tests/support-policy-contract.test.mjs
       ;;
     workflow-guards)
+      run_timed_step actionlint bash scripts/actionlint_guard.sh
       run_timed_step docs-metadata bash scripts/docs_metadata_guard.sh
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       run_timed_step workflow-self-check bash scripts/workflow_self_check.sh
@@ -228,12 +234,14 @@ run_lane() {
       run_timed_step release-notes-consistency bash scripts/release_notes_consistency_guard.sh
       ;;
     guards)
+      run_timed_step actionlint bash scripts/actionlint_guard.sh
       run_timed_step release-guard bash scripts/release_guard.sh
       run_timed_step install-smoke bash scripts/install_smoke.sh
       run_timed_step main-branch-history bash scripts/main_branch_history_guard.sh
       run_timed_step api-contract bash scripts/api_contract_guard.sh
       run_timed_step legacy-support bash scripts/legacy_support_guard.sh
       run_timed_step i18n-guard bash scripts/i18n_guard.sh
+      run_timed_step i18n-migration-budget "${NODE_BIN}" "$(fvplus::path_for_command "${NODE_BIN}" "scripts/i18n_migration_budget_guard.mjs")"
       run_timed_step lang-usage bash scripts/lang_usage_guard.sh
       run_timed_step include-order bash scripts/include_order_guard.sh
       run_timed_step theme-scope bash scripts/theme_scope_guard.sh

@@ -1,5 +1,22 @@
 {
   "schemaVersion": 1,
+  "budgets": {
+    "maxBrowserGlobals": 513,
+    "maxInlineActions": 79,
+    "maxFileLines": {
+      "scripts/folderviewplus.js": 12098,
+      "scripts/docker.js": 8840,
+      "scripts/docker.runtime.providers.js": 1140,
+      "scripts/runtime.transport.js": 1060,
+      "scripts/docker.runtime.container-model.js": 220,
+      "scripts/docker.runtime.layout-geometry.js": 70,
+      "scripts/docker.runtime.provider-health.js": 125,
+      "styles/folderviewplus.css": 14515,
+      "styles/folderviewplus.bootstrap.css": 59,
+      "server/lib.php": 7610,
+      "FolderViewPlus.page": 1957
+    }
+  },
   "moduleContracts": [
     {
       "file": "scripts/folderviewplus.settings-registry.js",
@@ -60,6 +77,30 @@
       "exports": ["normalizeFolderToken", "isFolderToken", "buildCustomOrder", "createOrderCursor"],
       "lifecycleFactories": [
         { "name": "createOrderCursor", "exports": ["destroy", "snapshot"] }
+      ]
+    },
+    {
+      "file": "scripts/docker.runtime.container-model.js",
+      "global": "FolderViewPlusDockerContainerModel",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["normalizeName", "deepFreeze", "normalizePort", "normalizeMount", "normalizeContainer", "identityTokens", "resolveContainerIdentity", "mergeContainers"]
+    },
+    {
+      "file": "scripts/docker.runtime.layout-geometry.js",
+      "global": "FolderViewPlusDockerLayoutGeometry",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["readNodeGeometry", "compareGeometry"]
+    },
+    {
+      "file": "scripts/docker.runtime.provider-health.js",
+      "global": "FolderViewPlusDockerProviderHealth",
+      "loader": "commonjs",
+      "typeChecked": true,
+      "exports": ["createController"],
+      "lifecycleFactories": [
+        { "name": "createController", "exports": ["refresh", "getModel", "getSnapshot", "dispose"] }
       ]
     },
     {

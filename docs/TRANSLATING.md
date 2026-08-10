@@ -90,9 +90,13 @@ The repository browser smoke run also activates `en-XA` and `ar-XB`, verifies la
 
 ## Regional locales
 
-Locale names follow BCP 47. Add a regional file only when the language actually differs, such as `pt-BR`, `pt-PT`, `zh-Hans`, or `zh-Hant`. The loader resolves the most specific available locale, then its base language, then English.
+Locale names follow BCP 47. Unraid underscore identifiers are normalized before resolution; for example, `zh_CN` becomes requested locale `zh-CN` and resolves to the canonical `zh-Hans` catalog. Add a regional file only when the language actually differs, such as `pt-BR`, `pt-PT`, `zh-Hans`, or `zh-Hant`. The browser runtime activates the resolved catalog while preserving the requested locale on the document and in diagnostics.
 
-FolderView Plus currently distinguishes `pt-BR`, `pt-PT`, and `zh-Hans`. Traditional Chinese requests deliberately fall back to English until a reviewed `zh-Hant` catalog exists; they must never silently receive Simplified Chinese text.
+FolderView Plus distinguishes `pt-BR`, `pt-PT`, `zh-Hans`, and `zh-Hant`. Generic Chinese plus Mainland China, Singapore, and Malaysia variants resolve to `zh-Hans`; Taiwan, Hong Kong, Macau, and explicit Traditional Chinese requests resolve to the independently translated `zh-Hant` catalog. Unraid `no_NO` resolves to canonical Norwegian Bokmål `nb`, while both Unraid `bn_BN` and standard `bn_BD` requests resolve to canonical Bengali `bn`.
+
+The Traditional Chinese maintenance path uses independent `zh-TW` translation followed by one pinned `opencc-s2twp-1.4.1` Taiwan normalization pass. The root catalog records that profile so repeated builds cannot reconvert already reviewed text. OpenCC is a development-only dependency and is never included in or executed by the installed Unraid plugin.
+
+The shipped Arabic catalog is right-to-left. Changes to shared UI layout must continue to pass both the production `ar` browser fixture and the synthetic `ar-XB` stress fixture; do not assume pseudo-localization alone proves that mixed Arabic text, container names, paths, ports, and version strings render correctly.
 
 ## Review workflow
 

@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "zh-Hant",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "新增自訂操作",
+    "editor.actions.standard": "標準型",
+    "editor.actions.user-script": "使用者指令碼",
+    "editor.actions.control-members": "控制選定的資料夾成員。",
+    "editor.actions.run-user-script": "從使用者指令碼外掛執行任務。",
+    "editor.members.toggle-preview-help": "將此成員保留在資料夾中，但在摺疊預覽中隱藏它",
+    "editor.members.visible": "可見",
+    "editor.members.auto-included": "通過正規表示式或標籤自動包含",
+    "editor.members.drag-reorder": "拖曳以重新排序",
+    "editor.members.move-up": "向上移動",
+    "editor.members.move-down": "下移"
+}

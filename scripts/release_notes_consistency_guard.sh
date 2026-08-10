@@ -45,7 +45,6 @@ const outputFile = process.argv[3];
 const root = process.argv[4];
 const plg = fs.readFileSync(path.join(root, 'folderview.plus.plg'), 'utf8');
 const releaseOnMain = fs.readFileSync(path.join(root, '.github/workflows/release-on-main.yml'), 'utf8');
-const releaseMain = fs.readFileSync(path.join(root, '.github/workflows/release-main.yml'), 'utf8');
 const rendered = fs.readFileSync(outputFile, 'utf8');
 const overridePath = path.join(root, 'docs', 'releases', `${version}.md`);
 const hasOverride = fs.existsSync(overridePath);
@@ -91,9 +90,5 @@ if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMain)) {
 if (!/--notes-file release_notes\.md/.test(releaseOnMain)) {
   fail('Release On Main workflow must publish GitHub releases from release_notes.md.');
 }
-if (/release_notes\.md/.test(releaseMain) && /gh release/.test(releaseMain)) {
-  fail('Release Main workflow must not own release note publishing.');
-}
-
 console.log('Release notes consistency guard passed.');
 NODE

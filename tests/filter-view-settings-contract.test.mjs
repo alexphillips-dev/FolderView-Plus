@@ -84,9 +84,15 @@ test('VM privacy has a persisted master activation and live runtime consumers', 
 });
 
 test('VM resource thresholds survive PHP normalization and remain ordered at limits', () => {
-    const libPath = path.join(pluginRoot, 'server/lib.php').replace(/\\/g, '/').replace(/'/g, "\\'");
-    const php = `require '${libPath}'; echo json_encode([normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>24,'vmResourceCriticalVcpus'=>48,'vmResourceWarnGiB'=>64,'vmResourceCriticalGiB'=>128]])['health'],normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>512,'vmResourceCriticalVcpus'=>512,'vmResourceWarnGiB'=>1024,'vmResourceCriticalGiB'=>1024]])['health']]);`;
-    const result = spawnSync('php', ['-r', php], { cwd: repoRoot, encoding: 'utf8' });
+    const php = `require getenv('FVPLUS_SETTINGS_LIB_PATH'); echo json_encode([normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>24,'vmResourceCriticalVcpus'=>48,'vmResourceWarnGiB'=>64,'vmResourceCriticalGiB'=>128]])['health'],normalizeTypePrefs(['health'=>['vmResourceWarnVcpus'=>512,'vmResourceCriticalVcpus'=>512,'vmResourceWarnGiB'=>1024,'vmResourceCriticalGiB'=>1024]])['health']]);`;
+    const result = spawnSync('php', ['-r', php], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        env: {
+            ...process.env,
+            FVPLUS_SETTINGS_LIB_PATH: path.join(pluginRoot, 'server/lib.php')
+        }
+    });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const [saved, bounded] = JSON.parse(result.stdout);
     assert.deepEqual({

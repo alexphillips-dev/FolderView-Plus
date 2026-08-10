@@ -69,6 +69,7 @@ build_once() {
     LC_ALL=C \
     LANG=C \
     FVPLUS_PKG_BUILD_DISABLE_FLOCK=1 \
+    FVPLUS_HISTORICAL_REBUILD=1 \
     FVPLUS_VERSION_OVERRIDE="${VERSION_OVERRIDE}" \
     bash "${PKG_BUILD_SCRIPT}" --output-dir "${output_dir}" --no-validate
   )
@@ -80,9 +81,13 @@ build_once "${out_b}"
 archive_name="folderview.plus-${VERSION_OVERRIDE}.txz"
 archive_a="${out_a}/${archive_name}"
 archive_b="${out_b}/${archive_name}"
+published_archive="${ROOT_DIR}/archive/${archive_name}"
 
 if [[ ! -f "${archive_a}" || ! -f "${archive_b}" ]]; then
   fvplus::fail "Deterministic build guard could not locate output archives (${archive_name})."
+fi
+if [[ ! -f "${published_archive}" ]]; then
+  fvplus::fail "Deterministic build guard could not locate the repository archive (${published_archive})."
 fi
 
 sha_a="$(sha256sum "${archive_a}" | awk '{print $1}')"
@@ -94,5 +99,9 @@ fi
 if ! cmp -s "${archive_a}" "${archive_b}"; then
   fvplus::fail "Deterministic build guard failed: archive bytes differ despite matching hash."
 fi
+published_sha="$(sha256sum "${published_archive}" | awk '{print $1}')"
+if [[ "${published_sha}" != "${sha_a}" ]] || ! cmp -s "${published_archive}" "${archive_a}"; then
+  fvplus::fail "Deterministic build guard failed: repository archive differs from the reproducible build (${published_sha} vs ${sha_a})."
+fi
 
-echo "Deterministic build guard passed for ${archive_name} (sha256: ${sha_a})."
+echo "Deterministic build guard passed for ${archive_name}; repository and isolated builds match (sha256: ${sha_a})."

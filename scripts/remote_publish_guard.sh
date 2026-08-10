@@ -7,7 +7,7 @@ PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
-fvplus::require_commands curl sed awk grep head mktemp sleep tr basename
+fvplus::require_commands curl sed awk grep head mktemp sleep tr basename sha256sum
 
 if [[ ! -f "${PLG_FILE}" ]]; then
   fvplus::fail "Missing plugin manifest: ${PLG_FILE}"
@@ -65,14 +65,6 @@ fetch_once() {
   return 0
 }
 
-probe_once() {
-  local url="$1"
-  if ! curl -fsSI -L --connect-timeout 20 --max-time 60 "${url}" >/dev/null; then
-    return 1
-  fi
-  return 0
-}
-
 TMP_BASE_DIR="${ROOT_DIR}/tmp"
 mkdir -p "${TMP_BASE_DIR}"
 TMP_DIR="$(mktemp -d "${TMP_BASE_DIR}/remote-publish.XXXXXX")"
@@ -83,6 +75,7 @@ trap cleanup_tmpdir EXIT
 
 REMOTE_PLG_FILE="${TMP_DIR}/folderview.plus.plg"
 REMOTE_CHECKSUM_FILE="${TMP_DIR}/folderview.plus.txz.sha256"
+REMOTE_ARCHIVE_FILE="${TMP_DIR}/folderview.plus.txz"
 PLUGIN_URL="$(expand_manifest_url "${PLUGIN_URL_TEMPLATE}")"
 ARCHIVE_URL="$(expand_manifest_url "${ARCHIVE_URL_TEMPLATE}")"
 CHECKSUM_URL="${ARCHIVE_URL}.sha256"
@@ -99,20 +92,33 @@ echo "Remote publish guard: archive=${ARCHIVE_URL}"
 LOCAL_CHECKSUM_LINE="$(normalize_checksum_line < "${CHECKSUM_FILE}" | head -n 1)"
 attempt=1
 while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
+  attempt_state="unknown"
   if ! fetch_once "${PLUGIN_URL}" "${REMOTE_PLG_FILE}"; then
-    :
-  elif ! probe_once "${ARCHIVE_URL}"; then
-    :
+    attempt_state="manifest unavailable"
+  elif ! fetch_once "${ARCHIVE_URL}" "${REMOTE_ARCHIVE_FILE}"; then
+    attempt_state="archive unavailable"
   elif ! fetch_once "${CHECKSUM_URL}" "${REMOTE_CHECKSUM_FILE}"; then
-    :
+    attempt_state="checksum unavailable"
   else
     REMOTE_VERSION="$(fvplus::read_plg_version "${REMOTE_PLG_FILE}")"
     REMOTE_PLUGIN_URL_TEMPLATE="$(fvplus::parse_plg_entity pluginURL "${REMOTE_PLG_FILE}")"
     REMOTE_ARCHIVE_URL_TEMPLATE="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "${REMOTE_PLG_FILE}" | head -n 1 || true)"
     REMOTE_CHECKSUM_LINE="$(normalize_checksum_line < "${REMOTE_CHECKSUM_FILE}" | head -n 1)"
+    REMOTE_ARCHIVE_SHA256="$(sha256sum "${REMOTE_ARCHIVE_FILE}" | awk '{print $1}')"
+    LOCAL_ARCHIVE_SHA256="$(awk 'NR == 1 { print $1 }' "${CHECKSUM_FILE}")"
 
-    if [[ "${REMOTE_VERSION}" == "${VERSION}" && "${REMOTE_PLUGIN_URL_TEMPLATE}" == "${PLUGIN_URL_TEMPLATE}" && "${REMOTE_ARCHIVE_URL_TEMPLATE}" == "${ARCHIVE_URL_TEMPLATE}" && "${REMOTE_CHECKSUM_LINE}" == "${LOCAL_CHECKSUM_LINE}" ]]; then
-      echo "Remote publish guard passed: remote raw manifest, archive, and checksum match ${VERSION}."
+    if [[ "${REMOTE_VERSION}" != "${VERSION}" ]]; then
+      attempt_state="manifest version stale (${REMOTE_VERSION:-unknown})"
+    elif [[ "${REMOTE_PLUGIN_URL_TEMPLATE}" != "${PLUGIN_URL_TEMPLATE}" ]]; then
+      attempt_state="manifest plugin URL mismatch"
+    elif [[ "${REMOTE_ARCHIVE_URL_TEMPLATE}" != "${ARCHIVE_URL_TEMPLATE}" ]]; then
+      attempt_state="manifest archive URL mismatch"
+    elif [[ "${REMOTE_CHECKSUM_LINE}" != "${LOCAL_CHECKSUM_LINE}" ]]; then
+      attempt_state="published checksum file stale or mismatched"
+    elif [[ "${REMOTE_ARCHIVE_SHA256}" != "${LOCAL_ARCHIVE_SHA256}" ]]; then
+      attempt_state="published archive bytes stale or mismatched"
+    else
+      echo "Remote publish guard passed: remote raw manifest, downloaded archive bytes, and checksum match ${VERSION}."
       exit 0
     fi
   fi
@@ -120,7 +126,7 @@ while [[ "${attempt}" -le "${ATTEMPTS_RAW}" ]]; do
   if [[ "${attempt}" -eq "${ATTEMPTS_RAW}" ]]; then
     fvplus::fail "Remote publish guard did not observe the expected release artifacts after ${ATTEMPTS_RAW} attempt(s)."
   fi
-  echo "Remote publish artifacts not ready yet (attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
+  echo "Remote publish artifacts not ready yet (${attempt_state}; attempt ${attempt}/${ATTEMPTS_RAW}); retrying in ${DELAY_SEC_RAW}s..." >&2
   sleep "${DELAY_SEC_RAW}"
   attempt=$((attempt + 1))
 done

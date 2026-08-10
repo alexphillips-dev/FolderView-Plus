@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "hu",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Választható",
+    "common.badges.recommended": "Ajánlott",
+    "common.badges.can-delete": "Lehet törölni",
+    "common.close": "Bezárás",
+    "common.cancel": "Mégsem",
+    "common.confirm": "Erősítse meg",
+    "common.confirm-type": "Írja be a megerősítéshez",
+    "common.loading": "Betöltés…"
+}

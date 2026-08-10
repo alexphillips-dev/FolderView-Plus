@@ -147,7 +147,7 @@
                 ).trim() || 'unknown',
                 provider: {
                     selected: detection.hostGeneration === HOST_GENERATIONS.LEGACY_DOCKER_TABLE
-                        ? 'legacy-webgui'
+                        ? 'hybrid-legacy-graphql'
                         : (detection.hostGeneration === HOST_GENERATIONS.NATIVE_DOCKER_VUE
                             ? 'unraid-graphql-pending'
                             : 'unsupported-unknown'),
@@ -166,12 +166,25 @@
                     ).trim() || 'unknown',
                     queryContainers: false,
                     queryShape: 'unknown',
+                    queryCapabilities: {
+                        targetedContainer: false,
+                        networks: false,
+                        portConflicts: false,
+                        logs: false,
+                        updateStatuses: false
+                    },
                     mutations: {
                         start: false,
                         stop: false,
                         restart: false,
                         pause: false,
-                        unpause: false
+                        unpause: false,
+                        removeContainer: false,
+                        updateContainer: false,
+                        updateContainers: false,
+                        updateAllContainers: false,
+                        updateAutostartConfiguration: false,
+                        refreshDockerDigests: false
                     },
                     subscriptions: {
                         dockerContainerStats: false
@@ -207,6 +220,10 @@
                     organizer: {
                         ...(base.graphql?.organizer || {}),
                         ...(evidence.graphql?.organizer || {})
+                    },
+                    queryCapabilities: {
+                        ...(base.graphql?.queryCapabilities || {}),
+                        ...(evidence.graphql?.queryCapabilities || {})
                     }
                 }
             });

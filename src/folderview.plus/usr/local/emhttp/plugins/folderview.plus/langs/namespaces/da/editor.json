@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "da",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Tilføj en tilpasset handling",
+    "editor.actions.standard": "Standard",
+    "editor.actions.user-script": "Brugerscript",
+    "editor.actions.control-members": "Styr valgte mappemedlemmer.",
+    "editor.actions.run-user-script": "Kør en opgave fra User Scripts plugin.",
+    "editor.members.toggle-preview-help": "Behold dette medlem i mappen, men skjul det fra den skjulte forhåndsvisning",
+    "editor.members.visible": "Synlig",
+    "editor.members.auto-included": "Automatisk inkluderet af regex eller etiket",
+    "editor.members.drag-reorder": "Træk for at omarrangere",
+    "editor.members.move-up": "Flyt op",
+    "editor.members.move-down": "Flyt ned"
+}

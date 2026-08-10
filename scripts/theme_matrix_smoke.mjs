@@ -18,6 +18,9 @@ const zoomLevels = String(process.env.FVPLUS_THEME_SMOKE_ZOOMS || '1,1.25,1.5')
 const screenshotArtifactDir = path.resolve(
     String(process.env.FVPLUS_THEME_SMOKE_ARTIFACT_DIR || path.join(process.cwd(), 'tmp', 'browser-smoke-artifacts', 'theme-matrix')).trim()
 );
+const captureLiveArtifacts = ['1', 'true', 'yes', 'on'].includes(
+    String(process.env.FVPLUS_THEME_SMOKE_CAPTURE_LIVE_ARTIFACTS || '').trim().toLowerCase()
+);
 
 const sanitizeSegment = (value) => String(value || '')
     .trim()
@@ -44,6 +47,9 @@ const captureScenarioScreenshot = async (page, {
     zoom,
     stage
 }) => {
+    if (!captureLiveArtifacts) {
+        return '';
+    }
     await ensureArtifactDir();
     const filename = [
         sanitizeSegment(label),

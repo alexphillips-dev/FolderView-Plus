@@ -19,7 +19,7 @@
             ui.badge({ label: 'Healthy', tone: 'success' }),
             ui.disclosure({ title: 'Technical details', body: '<p>Details body</p>' }),
             ui.field({ id: 'fixture-name', label: 'Name', control: '<input id="fixture-name">', error: 'Name is required' }),
-            ui.dropdown({ id: 'fixture-select', options: ['One', 'Two'], value: 'Two' }),
+            ui.dropdown({ id: 'fixture-select', ariaLabel: 'Fixture selection', options: ['One', 'Two'], value: 'Two' }),
             ui.emptyState({ title: 'No folders', message: 'Create a folder to begin.' }),
             ui.loadingState({ label: 'Loading folders', compact: true })
         ].join('');
@@ -28,7 +28,7 @@
         window.fixtureUI = {
             openConfirm: () => ui.confirm({ title: 'Delete folder?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }),
             openAlert: () => ui.alert({ title: 'Saved', message: 'Folder settings were saved.', tone: 'success' }),
-            showToast: () => ui.toast({ title: 'Complete', message: 'Operation completed.', tone: 'success', durationMs: 0 }),
+            announceStatus: () => ui.announce({ title: 'Complete', message: 'Operation completed.' }),
             showProgress: () => {
                 const controller = ui.progress({ title: 'Importing', label: 'Preparing', value: 1, max: 4, cancellable: true });
                 controller.update({ label: 'Saving folders', value: 3, detail: '3 of 4 steps complete' });

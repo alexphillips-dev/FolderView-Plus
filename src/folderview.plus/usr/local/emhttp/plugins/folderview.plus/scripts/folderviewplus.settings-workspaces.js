@@ -537,7 +537,7 @@
                     isRecoveryBackupEmpty(backup) ? '<span class="fv-recovery-history-badge is-warning">Empty</span>' : ''
                 ].join('');
                 return `
-                    <button type="button" class="fv-recovery-snapshot-item${activeClass}" onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
+                    <button type="button" class="fv-recovery-snapshot-item${activeClass}" data-fv-onclick="selectActiveRecoveryBackup('${escapeJsString(name)}')">
                         <span>
                             <strong>${escapeHtml(backupCreated)}</strong>
                             <small>${escapeHtml(`${backupReason} - ${backupCountLabel}`)}</small>
@@ -551,7 +551,7 @@
             return `
                 <div class="fv-recovery-history-picker-row">
                     <label for="recovery-backup-entry-select">Choose snapshot</label>
-                    <select id="recovery-backup-entry-select" onchange="selectActiveRecoveryBackup(this.value)">
+                    <select id="recovery-backup-entry-select" data-fv-onchange="selectActiveRecoveryBackup(this.value)">
                         ${optionsHtml}
                     </select>
                 </div>
@@ -569,10 +569,10 @@
                     </div>
                     ${isEmpty ? '<div class="fv-recovery-history-callout">This snapshot contains 0 folders. Restore Latest will skip it, but direct restore is still available if you intentionally select it.</div>' : ''}
                     <div class="backup-actions fv-recovery-history-actions-row">
-                        <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
-                        <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
-                        <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
-                        <button type="button" class="fv-recovery-danger-action" onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
+                        <button type="button" data-fv-onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
+                        <button type="button" data-fv-onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
+                        <button type="button" data-fv-onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" class="fv-recovery-danger-action" data-fv-onclick="deleteAllActiveRecoveryBackups()"><i class="fa fa-trash"></i> Delete all backups</button>
                     </div>
                 </article>
                 <div class="fv-recovery-snapshot-list">
@@ -1028,7 +1028,7 @@
             host.html(`
                 <div class="fv-operations-template-picker-row">
                     <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
-                    <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" onchange="selectOperationsTemplate('${resolvedType}', this.value)">
+                    <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" data-fv-onchange="selectOperationsTemplate('${resolvedType}', this.value)">
                         ${templateSelectOptions}
                     </select>
                 </div>
@@ -1045,9 +1045,9 @@
                         <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
                     </div>
                     <div class="backup-actions fv-operations-template-actions">
-                        <button type="button" onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
-                        <button type="button" onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
-                        <button type="button" onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
+                        <button type="button" data-fv-onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
+                        <button type="button" data-fv-onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
+                        <button type="button" data-fv-onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
                     </div>
                 </div>
             `);

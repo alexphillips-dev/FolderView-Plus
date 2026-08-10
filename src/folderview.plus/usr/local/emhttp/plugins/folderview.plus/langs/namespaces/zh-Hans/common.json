@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "zh-Hans",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "取消",
     "common.confirm": "确认",
     "common.confirm-type": "输入以确认",
-    "common.dismiss": "忽略",
-    "common.loading": "正在加载…",
-    "common.notifications": "通知"
+    "common.loading": "正在加载…"
 }

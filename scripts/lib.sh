@@ -32,6 +32,10 @@ fvplus::path_for_command() {
   fi
   if [[ "${translate_for_windows_runtime}" -eq 1 ]] && command -v wslpath >/dev/null 2>&1; then
     normalized_path="${target_path}"
+    if [[ "${normalized_path}" =~ ^[A-Za-z]:[\\/].* ]]; then
+      printf '%s\n' "${normalized_path//\//\\}"
+      return 0
+    fi
     if [[ "${normalized_path}" != /* && ! "${normalized_path}" =~ ^[A-Za-z]:[\\/].* ]]; then
       normalized_path="$(realpath -m "${normalized_path}" 2>/dev/null || printf '%s/%s' "$(pwd)" "${normalized_path}")"
     fi

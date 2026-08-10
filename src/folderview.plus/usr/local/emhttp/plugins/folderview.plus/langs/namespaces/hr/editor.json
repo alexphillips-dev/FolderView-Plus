@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "hr",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Dodajte prilagođenu radnju",
+    "editor.actions.standard": "Standardno",
+    "editor.actions.user-script": "Korisnička skripta",
+    "editor.actions.control-members": "Kontrolirajte odabrane članove mape.",
+    "editor.actions.run-user-script": "Pokrenite zadatak iz dodatka korisničke skripte.",
+    "editor.members.toggle-preview-help": "Zadrži ovog člana u mapi, ali ga sakrij iz sažetog pregleda",
+    "editor.members.visible": "Vidljivo",
+    "editor.members.auto-included": "Automatski uključeno regularnim izrazom ili oznakom",
+    "editor.members.drag-reorder": "Povucite za promjenu redoslijeda",
+    "editor.members.move-up": "Pomakni se gore",
+    "editor.members.move-down": "Pomakni se dolje"
+}

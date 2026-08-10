@@ -61,6 +61,12 @@ Use the signed-in local webGUI session:
 7. Confirm authentication, permission, rate-limit, partial-data, offline, timeout, abort, and stale-response paths are non-fatal.
 8. Confirm WebSocket reconnect is bounded and disposal prevents reconnect after navigation.
 9. Confirm every browser GraphQL request includes the available CSRF token.
+10. Confirm the operation matrix records arguments, return types, and deprecation state without retaining the raw schema.
+11. Confirm the legacy table selects `hybrid-legacy-graphql`, GraphQL supplies supported reads, and lifecycle actions still use `eventControl`.
+12. Confirm targeted reconciliation falls back to a list request when `docker.container(id)` is absent.
+13. Confirm port-conflict, update, rebuild, and orphan diagnostics contain aggregate counts only.
+14. Confirm the Dashboard statistics subscription opens only for a visible preview, falls back to `docker_load`, and closes on dismissal/navigation.
+15. Confirm update/remove/digest/autostart mutations are unavailable unless their exact schema operations are present.
 
 ## 6. Validate organizer ownership
 
@@ -73,6 +79,8 @@ The expected result remains:
 - FolderView Plus does not show a second folder hierarchy on the native page.
 
 Any proposed migration requires its own schema review, conflict model, backup/rollback design, explicit user confirmation, and cross-version tests.
+
+The Organizer qualification record exposed by the provider remains informational and always reports `integrationAllowed: false` until that separate review is complete.
 
 ## 7. Validate diagnostics and privacy
 
@@ -97,6 +105,14 @@ bash scripts/install_smoke.sh
 ```
 
 Also run configured live browser and theme matrix smoke tests against the prerelease host.
+
+The weekly `Scheduled Cross-Browser and Unraid Validation` workflow always runs the deterministic fixture suite in Chromium, Firefox, and WebKit. Configure all three repository secrets below to enable its live lane:
+
+- `FVPLUS_UNRAID_MATRIX`
+- `FVPLUS_BROWSER_SMOKE_URL`
+- `FVPLUS_THEME_MATRIX_URLS`
+
+The live lane explicitly marks the Unraid matrix, browser smoke, and theme matrix as required. Release-mode validation uses the same fail-closed contract.
 
 ## 9. Make the release decision
 

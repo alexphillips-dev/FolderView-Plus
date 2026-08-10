@@ -15,7 +15,7 @@ test('shared UI renderer exposes every required primitive with escaped output', 
     for (const method of [
         'svgIcon', 'button', 'iconButton', 'badge', 'disclosure', 'field', 'dropdown', 'multiselect',
         'emptyState', 'loadingState', 'openPopover', 'openModal', 'openActionSheet', 'confirm', 'alert',
-        'toast', 'progress', 'registerAction', 'dispatchAction', 'installDelegation'
+        'announce', 'progress', 'registerAction', 'dispatchAction', 'installDelegation'
     ]) assert.equal(typeof ui[method], 'function', `${method} must be public`);
 
     assert.match(ui.button({ label: '<Save>', action: 'save' }), /&lt;Save&gt;/);
@@ -35,9 +35,10 @@ test('shared UI renderer exposes every required primitive with escaped output', 
 test('shared primitive stylesheet is tokenized, responsive, and specificity-safe', () => {
     for (const selector of [
         '.fv-ui-svg-icon', '.fv-ui-button', '.fv-ui-icon-button', '.fv-ui-badge', '.fv-ui-disclosure', '.fv-ui-field',
-        '.fv-ui-select', '.fv-ui-popover', '.fv-ui-modal-backdrop', '.fv-ui-toast-region', '.fv-ui-progress-state',
+        '.fv-ui-select', '.fv-ui-popover', '.fv-ui-modal-backdrop', '.fv-ui-announcer', '.fv-ui-progress-state',
         '.fv-ui-empty-state', '.fv-ui-loading-state'
     ]) assert.ok(css.includes(selector), `${selector} must be styled`);
+    assert.doesNotMatch(css, /\.fv-ui-toast/);
     assert.match(css, /@media \(max-width: 620px\)/);
     assert.match(css, /prefers-reduced-motion/);
     assert.doesNotMatch(css, /!important\b/);

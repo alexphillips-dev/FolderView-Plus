@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "bn",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "একটি কাস্টম কর্ম যোগ করুন",
+    "editor.actions.standard": "স্ট্যান্ডার্ড",
+    "editor.actions.user-script": "ব্যবহারকারীর স্ক্রিপ্ট",
+    "editor.actions.control-members": "নির্বাচিত ফোল্ডার সদস্যদের নিয়ন্ত্রণ করুন।",
+    "editor.actions.run-user-script": "ইউজার স্ক্রিপ্ট প্লাগইন থেকে একটি টাস্ক চালান।",
+    "editor.members.toggle-preview-help": "এই সদস্যটিকে ফোল্ডারে রাখুন কিন্তু সঙ্কুচিত পূর্বরূপ থেকে লুকান৷",
+    "editor.members.visible": "দৃশ্যমান",
+    "editor.members.auto-included": "regex বা লেবেল দ্বারা স্বতঃ-অন্তর্ভুক্ত",
+    "editor.members.drag-reorder": "পুনরায় সাজাতে টেনে আনুন",
+    "editor.members.move-up": "উপরে সরান",
+    "editor.members.move-down": "নিচে সরান"
+}

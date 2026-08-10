@@ -66,7 +66,42 @@
         'registry' => fvplus_i18n_public_registry($catalogReport),
         'assets' => $localeAssets
     ];
+    $earlyMessageKeys = [
+        'diagnostics.bootstrap.reference',
+        'diagnostics.bootstrap.last-step',
+        'diagnostics.bootstrap.occurrences',
+        'diagnostics.bootstrap.retry',
+        'diagnostics.bootstrap.reload',
+        'diagnostics.bootstrap.copy',
+        'diagnostics.bootstrap.download',
+        'diagnostics.bootstrap.copied',
+        'diagnostics.bootstrap.copy-failed',
+        'diagnostics.bootstrap.downloaded',
+        'diagnostics.bootstrap.download-failed',
+        'diagnostics.bootstrap.retrying',
+        'diagnostics.bootstrap.retry-succeeded',
+        'diagnostics.bootstrap.retry-failed',
+        'diagnostics.cards.technical-details'
+    ];
+    $earlyEnglishCatalog = fvplus_i18n_read_catalog_file(__DIR__ . '/namespaces/en/diagnostics.json');
+    $earlyResolvedCatalog = $resolvedLocale === 'en'
+        ? $earlyEnglishCatalog
+        : fvplus_i18n_read_catalog_file(__DIR__ . "/namespaces/$resolvedLocale/diagnostics.json");
+    $earlyMessages = [];
+    foreach ($earlyMessageKeys as $earlyMessageKey) {
+        $earlyValue = $earlyResolvedCatalog[$earlyMessageKey] ?? $earlyEnglishCatalog[$earlyMessageKey] ?? '';
+        if (is_string($earlyValue) && $earlyValue !== '') {
+            $earlyMessages[$earlyMessageKey] = $earlyValue;
+        }
+    }
 ?>
+<script>
+window.FolderViewPlusEarlyI18n = Object.freeze(<?php echo json_encode([
+    'locale' => $resolvedLocale,
+    'direction' => $localeResolution['direction'] ?? 'ltr',
+    'messages' => $earlyMessages
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>);
+</script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js')?>"></script>

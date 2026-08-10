@@ -95,6 +95,7 @@ test('lib.php repairs custom icon directories and can clear missing custom icon 
     assert.match(libPhp, /return "\$configDir\/images\/custom";/);
     assert.match(libPhp, /function fvplusCustomIconRuntimeDirPath\(\): string/);
     assert.match(libPhp, /return "\$sourceDir\/images\/custom";/);
+    assert.match(libPhp, /if \(\$safeName === 'README\.txt'\) \{\s*return \$includeMetadata;/);
     assert.match(libPhp, /function fvplusEnsureCustomIconStorageReady\(bool \$requireWritable = false\): array/);
     assert.match(libPhp, /function fvplusBootstrapCustomIconStorage\(\): void/);
     assert.match(libPhp, /fvplusBootstrapCustomIconStorage\(\);/);
@@ -228,7 +229,7 @@ test('lib.php diagnostics include user-facing summary cards and recommended acti
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildRecommendedActions\s*\(/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildOverviewSummary\s*\(/);
     assert.match(libDiagnosticsPhp, /'recommendedActions'\s*=>\s*diagnosticsBuildRecommendedActions\(\$typesData, \$customIcons\)/);
-    assert.match(libDiagnosticsPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update\)/);
+    assert.match(libDiagnosticsPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update, \$runtimeIntegrity, \$securityAudit\)/);
     assert.match(libDiagnosticsPhp, /foreach\s*\(\['docker'\s*=>\s*'Docker config',\s*'vm'\s*=>\s*'VM config'\]/);
     assert.match(libDiagnosticsPhp, /'Storage and paths'/);
     assert.match(libDiagnosticsPhp, /'Custom icons'/);

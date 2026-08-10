@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "en",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "These captures preserve the rendered Dashboard geometry after navigation to Settings.",
     "diagnostics.capture.review": "Review",
     "diagnostics.capture.ready": "Ready",
-    "diagnostics.capture.capture-again": "Capture again"
+    "diagnostics.capture.capture-again": "Capture again",
+    "diagnostics.bootstrap.reference": "Reference",
+    "diagnostics.bootstrap.last-step": "Last completed step",
+    "diagnostics.bootstrap.occurrences": "Occurrences",
+    "diagnostics.bootstrap.retry": "Try loading again",
+    "diagnostics.bootstrap.reload": "Reload page",
+    "diagnostics.bootstrap.copy": "Copy support code",
+    "diagnostics.bootstrap.download": "Download startup report",
+    "diagnostics.bootstrap.copied": "Support code copied",
+    "diagnostics.bootstrap.copy-failed": "Copy failed",
+    "diagnostics.bootstrap.downloaded": "Startup report downloaded",
+    "diagnostics.bootstrap.download-failed": "Download failed",
+    "diagnostics.bootstrap.retrying": "Trying again…",
+    "diagnostics.bootstrap.retry-succeeded": "Loading resumed",
+    "diagnostics.bootstrap.retry-failed": "Try again failed"
 }

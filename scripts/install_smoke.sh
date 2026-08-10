@@ -45,6 +45,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page"
   "./usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page"
   "./usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page"
+  "./usr/local/emhttp/plugins/folderview.plus/runtime-integrity.json"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
@@ -53,6 +54,7 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.download-diagnostics.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view.js"
@@ -69,6 +71,8 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.csp-events.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/archive_preflight.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_icon_asset_pack.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/install_report.sh"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
@@ -78,11 +82,15 @@ REQUIRED_ARCHIVE_ENTRIES=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.process.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.filesystem-security.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/read.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/read_info.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/runtime_snapshot.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/security.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.runtime-snapshot.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/create.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update.php"
@@ -116,12 +124,38 @@ if [[ ! -d "${PLUGIN_DIR}" ]]; then
   exit 1
 fi
 
+"${NODE_BIN}" - "$(fvplus::path_for_command "${NODE_BIN}" "${PLUGIN_DIR}")" <<'NODE'
+const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.argv[2];
+const manifestPath = path.join(root, 'runtime-integrity.json');
+const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+if (manifest.schemaVersion !== 1 || manifest.algorithm !== 'sha256' || !Array.isArray(manifest.files)) {
+  throw new Error('Extracted runtime integrity manifest is invalid.');
+}
+for (const entry of manifest.files) {
+  const absolute = path.resolve(root, entry.path);
+  const relative = path.relative(root, absolute);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`Runtime integrity path escapes the plugin root: ${entry.path}`);
+  }
+  const contents = fs.readFileSync(absolute);
+  const digest = crypto.createHash('sha256').update(contents).digest('hex');
+  if (digest !== entry.sha256 || contents.length !== entry.size) {
+    throw new Error(`Runtime integrity verification failed for ${entry.path}`);
+  }
+}
+console.log(`Runtime integrity smoke verification passed for ${manifest.files.length} files.`);
+NODE
+
 REQUIRED_FILES=(
   "Folder.page"
   "FolderViewPlus.page"
   "folderview.plus.Docker.page"
   "folderview.plus.VMs.page"
   "folderview.plus.Dashboard.page"
+  "runtime-integrity.json"
   "scripts/folderviewplus.js"
   "scripts/folderviewplus.dirty.js"
   "scripts/folderviewplus.runtime-parity.js"
@@ -130,6 +164,7 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.smart-detect-config.js"
   "scripts/folderviewplus.starter-templates.js"
   "scripts/folderviewplus.support-bundle-preview.js"
+  "scripts/folderviewplus.download-diagnostics.js"
   "scripts/folderviewplus.support-bundle-telemetry.js"
   "scripts/folderviewplus.diagnostics-view-model.js"
   "scripts/folderviewplus.diagnostics-view.js"
@@ -144,8 +179,11 @@ REQUIRED_FILES=(
   "scripts/folderviewplus.bulk-assignment.js"
   "scripts/folderviewplus.runtime-actions.js"
   "scripts/folderviewplus.runtime-snapshot.js"
+  "scripts/folderviewplus.request.js"
   "scripts/folderviewplus.wizard.js"
   "scripts/folderviewplus.import.js"
+  "scripts/folderviewplus.csp-events.js"
+  "scripts/archive_preflight.sh"
   "scripts/install_icon_asset_pack.sh"
   "scripts/install_report.sh"
   "scripts/docker.runtime.hierarchy.js"
@@ -158,14 +196,19 @@ REQUIRED_FILES=(
   "scripts/folder.js"
   "styles/theme.tokens.css"
   "styles/folderviewplus.css"
+  "styles/folderviewplus.download-diagnostics.css"
   "styles/folder.css"
   "server/lib.php"
+  "server/lib.process.php"
+  "server/lib.filesystem-security.php"
+  "server/lib.security.php"
   "server/lib.diagnostics.php"
   "server/apply_folder_settings.php"
   "server/read.php"
   "server/read_info.php"
   "server/runtime_snapshot.php"
   "server/lib.runtime-snapshot.php"
+  "server/security.php"
   "server/create.php"
   "server/update.php"
   "server/delete.php"

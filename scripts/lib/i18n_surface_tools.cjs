@@ -12,11 +12,11 @@ const decodeEntities = (value) => String(value || '')
     .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
     .replace(/&#x([0-9a-f]+);/gi, (_match, code) => String.fromCodePoint(Number.parseInt(code, 16)))
     .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'");
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&amp;/gi, '&');
 
 const normalizePhrase = (value) => decodeEntities(value).replace(/\s+/g, ' ').trim();
 

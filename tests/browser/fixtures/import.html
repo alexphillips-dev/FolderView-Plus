@@ -6,9 +6,13 @@
     <title>FolderView Plus import fixture</title>
     <link rel="stylesheet" href="/plugin/styles/theme.tokens.css">
     <link rel="stylesheet" href="/plugin/styles/folderviewplus.css">
+    <link rel="stylesheet" href="/plugin/styles/folderviewplus.download-diagnostics.css">
     <style>body { background: #171717; color: #eee; font-family: Arial, sans-serif; }</style>
 </head>
 <body>
+    <div id="fv-settings-root">
+        <div id="docker-download-status" class="fv-download-status" role="status" aria-live="polite" hidden></div>
+    </div>
     <div id="import-preview-selection"></div>
     <div id="import-apply-progress-overlay" style="display:none"></div>
     <div id="import-apply-progress-dialog" style="display:none" role="dialog" aria-modal="true" aria-live="polite">
@@ -27,8 +31,13 @@
     </div>
     <script src="/vendor/jquery.js"></script>
     <script src="/fixtures/import.fixture.js"></script>
+    <script src="/plugin/scripts/folderviewplus.download-diagnostics.js"></script>
     <script src="/plugin/scripts/folderviewplus.import.js"></script>
     <script>
+        window.fixtureDiagnosticEvents = [];
+        window.trackDiagnosticsEvent = async (event) => {
+            window.fixtureDiagnosticEvents.push(event);
+        };
         window.fixtureImport = {
             openProgress: (type, total, options) => openImportApplyProgressDialog(type, total, options),
             updateProgress: (options) => updateImportApplyProgressDialog(options),
@@ -37,7 +46,15 @@
                 importSelectionState = buildOperationSelectionState(operations, folders);
                 renderOperationSelection();
             },
-            filteredSelection: (operations) => filterOperationsBySelection(operations)
+            filteredSelection: (operations) => filterOperationsBySelection(operations),
+            requestDownload: () => downloadFile('FolderView Plus Docker.json', '{"folders":{}}', {
+                type: 'docker',
+                mode: 'full',
+                surface: 'settings',
+                folderCount: 2,
+                schemaVersion: 3
+            }),
+            downloadAttempts: () => getDownloadDiagnosticsApi().readRecord()
         };
     </script>
 </body>

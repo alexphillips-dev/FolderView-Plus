@@ -39,6 +39,7 @@
             const background = document.createElement('button');
             background.type = 'button';
             background.className = 'switch-button-background';
+            background.setAttribute('aria-label', input.getAttribute('aria-label') || 'Toggle privacy');
             const thumb = document.createElement('span');
             thumb.className = 'switch-button-button';
             background.append(thumb);
@@ -80,7 +81,7 @@
         getShellClass: () => 'fvplus-docker-runtime-toggle-shell is-inline-cluster',
         buildMarkup: (state) => `
             <span class="fvplus-docker-runtime-toggle-label">Privacy</span>
-            <input id="fixture-privacy-toggle" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" ${state.enabled ? 'checked' : ''} ${state.pending ? 'disabled' : ''}>
+            <input id="fixture-privacy-toggle" class="basic-switch fvplus-docker-runtime-privacy-switch" type="checkbox" aria-label="Enable privacy masking" ${state.enabled ? 'checked' : ''} ${state.pending ? 'disabled' : ''}>
             <button id="fixture-privacy-menu-button" type="button" aria-expanded="${state.menuOpen ? 'true' : 'false'}">Options</button>
             <div id="fixture-privacy-menu" ${state.menuOpen ? '' : 'hidden'}>
                 <label><input type="checkbox" data-fvplus-privacy-option="privacyMaskNames" ${state.options.privacyMaskNames !== false ? 'checked' : ''}>Names</label>

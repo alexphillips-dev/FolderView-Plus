@@ -1,0 +1,31 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "ca",
+        "namespace": "wizard"
+    },
+    "wizard.title": "Assistent de configuració",
+    "wizard.welcome.kicker": "Assistent de configuració de FolderView Plus",
+    "wizard.welcome.title": "Organitzeu els vostres contenidors i màquines virtuals de Docker en carpetes.",
+    "wizard.welcome.description": "FolderView Plus ajuda a agrupar les aplicacions relacionades, a previsualitzar els canvis abans d'aplicar-los i, opcionalment, a mantenir les aplicacions futures organitzades automàticament.",
+    "wizard.welcome.begin": "Comenceu la configuració",
+    "wizard.welcome.skip": "Assistent de salts",
+    "wizard.welcome.group-title": "Aplicacions relacionades amb el grup",
+    "wizard.welcome.group-description": "Mantingueu junts els mitjans, les descàrregues, les utilitats, la domòtica i altres aplicacions.",
+    "wizard.welcome.preview-title": "Previsualitza abans de sol·licitar-ho",
+    "wizard.welcome.preview-description": "Revisaràs les carpetes, les tasques, les regles i la configuració abans que canviï res.",
+    "wizard.welcome.automatic-title": "Mantingueu-vos organitzat automàticament",
+    "wizard.welcome.automatic-description": "Les regles d'inici opcionals poden col·locar futures aplicacions coincidents a les carpetes adequades.",
+    "wizard.navigation.next": "A continuació",
+    "wizard.navigation.back": "Enrere",
+    "wizard.navigation.begin": "Comenceu la configuració",
+    "wizard.navigation.run-preview": "Executar la vista prèvia",
+    "wizard.navigation.apply": "Aplica la configuració",
+    "wizard.navigation.show-details": "Mostra els detalls",
+    "wizard.navigation.hide-details": "Amaga els detalls",
+    "wizard.navigation.close": "Tancar",
+    "wizard.navigation.review": "Revisió",
+    "wizard.navigation.go-to": "Vés a $1",
+    "wizard.progress.step": "Pas $1 de $2",
+    "wizard.impact.live": "Impacte en directe d'aquest pas"
+}

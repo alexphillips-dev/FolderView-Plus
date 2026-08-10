@@ -152,7 +152,7 @@
             return jq(`
                 <div class="fv-dashboard-advanced-preview preview-outbox preview-outbox-${shortId}">
                     <div class="fv-dashboard-advanced-preview-header">
-                        <img src="${icon}" class="img folder-img" alt="" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
+                        <img src="${icon}" class="img folder-img" alt="" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
                         <div class="fv-dashboard-advanced-preview-title">
                             <span class="blue-text appname">${name}</span>
                             <span class="fv-dashboard-advanced-preview-subtitle"><i class="fa fa-${statusIcon} ${statusClass}"></i> ${escapeHtml(i18n(statusKey, statusKey))}</span>
@@ -218,11 +218,11 @@
                     Promise.resolve()
                         .then(handler)
                         .catch((error) => {
-                            if (win?.FolderViewPlusUI?.toast) {
-                                win.FolderViewPlusUI.toast({
+                            if (win?.FolderViewPlusUI?.alert) {
+                                win.FolderViewPlusUI.alert({
                                     title: 'FolderView action failed',
                                     message: String(error?.message || 'FolderView action failed'),
-                                    level: 'danger'
+                                    tone: 'danger'
                                 });
                             }
                         });
@@ -340,6 +340,23 @@
                 mem: total > 0 ? (used / total) * 100 : 0
             };
         };
+        const parseGraphqlStats = (payload, ct, cpus = 1) => {
+            const stats = payload?.dockerContainerStats || payload?.data?.dockerContainerStats || null;
+            const shortId = String(ct?.shortId || ct?.info?.Id || '').trim();
+            const statsId = String(stats?.id || '').split(':').pop() || '';
+            if (!stats || !shortId || !(statsId === shortId || statsId.startsWith(shortId))) {
+                return null;
+            }
+            const cpuRaw = Number(stats.cpuPercent);
+            const memRaw = Number(stats.memPercent);
+            return {
+                cpu: Number.isFinite(cpuRaw) ? cpuRaw / Math.max(1, Number(cpus) || 1) : 0,
+                mem: Number.isFinite(memRaw) ? memRaw : 0,
+                memUsage: String(stats.memUsage || '').trim(),
+                netIO: String(stats.netIO || '').trim(),
+                blockIO: String(stats.blockIO || '').trim()
+            };
+        };
 
         const attachAdvancedPreview = ({ triggerEl, ct, folder = {}, id = '', settings = {}, cpus = 1 } = {}) => {
             if (!jq || !triggerEl || !ct || typeof jq.fn?.tooltipster !== 'function') {
@@ -354,14 +371,16 @@
             const MEM = [];
             let charts = [];
             let attachedListener = null;
+            let statsSubscription = null;
             let tooltipObserver = null;
-            const graphListener = (event) => {
+            const pushStats = (next) => {
+                if (!next) return;
                 const now = Date.now();
-                const next = parseStatsMessage(event, ct, cpus);
                 CPU.push({ x: now, y: next.cpu });
                 MEM.push({ x: now, y: next.mem });
                 updateCharts(charts);
             };
+            const graphListener = (event) => pushStats(parseStatsMessage(event, ct, cpus));
             $trigger.data('fvDashboardAdvancedPreviewAttached', true);
             $trigger.removeAttr('onclick');
             $trigger.tooltipster({
@@ -380,6 +399,31 @@
                 },
                 functionReady: function(_instance, helper) {
                     const tooltipDom = helper.tooltip && helper.tooltip.length ? helper.tooltip : jq(helper.tooltip);
+                    const bindLegacyStats = () => {
+                        if (
+                            attachedListener
+                            || !win?.dockerload
+                            || typeof win.dockerload.addEventListener !== 'function'
+                        ) {
+                            return;
+                        }
+                        win.dockerload.addEventListener('message', graphListener);
+                        attachedListener = 'sse';
+                    };
+                    const handleGraphqlStats = (payload) => {
+                        const next = parseGraphqlStats(payload, ct, cpus);
+                        if (!next) return;
+                        pushStats(next);
+                        const cpuText = `${Math.max(0, next.cpu).toFixed(1)}%`;
+                        tooltipDom.find(`.cpu-${ct.shortId}`).text(cpuText);
+                        tooltipDom.find(`span#cpu-${ct.shortId}`).css(
+                            'width',
+                            `${Math.max(0, Math.min(100, next.cpu)).toFixed(1)}%`
+                        );
+                        if (next.memUsage) {
+                            tooltipDom.find(`.mem-${ct.shortId}`).text(next.memUsage);
+                        }
+                    };
                     const mountCharts = () => {
                         if (tooltipDom.closest('html').length && charts.length === 0) {
                             charts = createCharts(tooltipDom, ct, settings, CPU, MEM);
@@ -403,9 +447,36 @@
                         });
                         tooltipObserver.observe(cpuTextElement, { childList: true });
                     }
-                    if (!attachedListener && win?.dockerload && typeof win.dockerload.addEventListener === 'function') {
-                        win.dockerload.addEventListener('message', graphListener);
-                        attachedListener = 'sse';
+                    const provider = win?.FolderViewPlusDockerProviders?.getDefault?.() || null;
+                    if (
+                        !statsSubscription
+                        && provider?.capabilities?.subscribeStats === true
+                        && typeof provider.subscribeStats === 'function'
+                    ) {
+                        statsSubscription = provider.subscribeStats({
+                            onData: handleGraphqlStats,
+                            onError: () => {},
+                            onStatus: (snapshot) => {
+                                const status = String(snapshot?.status || '');
+                                if (status === 'active') {
+                                    if (
+                                        attachedListener === 'sse'
+                                        && win?.dockerload
+                                        && typeof win.dockerload.removeEventListener === 'function'
+                                    ) {
+                                        win.dockerload.removeEventListener('message', graphListener);
+                                    }
+                                    attachedListener = 'graphql';
+                                } else if (['unavailable', 'failed'].includes(status)) {
+                                    if (attachedListener === 'graphql') attachedListener = null;
+                                    bindLegacyStats();
+                                }
+                            },
+                            subscriptionId: `fvplus-dashboard-stats-${String(ct.shortId || 'container')}`
+                        });
+                        bindLegacyStats();
+                    } else {
+                        bindLegacyStats();
                     }
                 },
                 functionAfter: function() {
@@ -413,6 +484,8 @@
                         win.dockerload.removeEventListener('message', graphListener);
                     }
                     attachedListener = null;
+                    statsSubscription?.();
+                    statsSubscription = null;
                     for (const chart of charts) {
                         try {
                             chart.destroy();
@@ -434,7 +507,8 @@
         return {
             attachAdvancedPreview,
             buildContent,
-            parseStatsMessage
+            parseStatsMessage,
+            parseGraphqlStats
         };
     };
 

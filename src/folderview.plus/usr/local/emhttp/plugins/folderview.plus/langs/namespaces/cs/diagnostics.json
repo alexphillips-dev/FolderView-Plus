@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "cs",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Tyto snímky zachovají vykreslenou geometrii řídicího panelu po navigaci do Nastavení.",
     "diagnostics.capture.review": "Recenze",
     "diagnostics.capture.ready": "Připraveno",
-    "diagnostics.capture.capture-again": "Znovu zachytit"
+    "diagnostics.capture.capture-again": "Znovu zachytit",
+    "diagnostics.bootstrap.reference": "Reference",
+    "diagnostics.bootstrap.last-step": "Poslední dokončený krok",
+    "diagnostics.bootstrap.occurrences": "Výskyty",
+    "diagnostics.bootstrap.retry": "Zkusit načíst znovu",
+    "diagnostics.bootstrap.reload": "Znovu načíst stránku",
+    "diagnostics.bootstrap.copy": "Kopírovat kód podpory",
+    "diagnostics.bootstrap.download": "Stáhnout zprávu o spuštění",
+    "diagnostics.bootstrap.copied": "Kód podpory zkopírován",
+    "diagnostics.bootstrap.copy-failed": "Kopírování se nezdařilo",
+    "diagnostics.bootstrap.downloaded": "Zpráva o spuštění stažena",
+    "diagnostics.bootstrap.download-failed": "Stahování se nezdařilo",
+    "diagnostics.bootstrap.retrying": "Probíhá další pokus…",
+    "diagnostics.bootstrap.retry-succeeded": "Načítání pokračuje",
+    "diagnostics.bootstrap.retry-failed": "Další pokus se nezdařil"
 }

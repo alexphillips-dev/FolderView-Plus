@@ -18,7 +18,8 @@ cat > "${TMP_DIR}/main.json" <<'EOF'
     "strict": true,
     "contexts": [
       "quality",
-      "Analyze (JavaScript)"
+      "Analyze (JavaScript)",
+      "Dependency Review"
     ]
   },
   "enforce_admins": false,
@@ -44,7 +45,8 @@ cat > "${TMP_DIR}/dev.json" <<'EOF'
   "required_status_checks": {
     "strict": true,
     "contexts": [
-      "quality"
+      "quality",
+      "Dependency Review"
     ]
   },
   "enforce_admins": false,

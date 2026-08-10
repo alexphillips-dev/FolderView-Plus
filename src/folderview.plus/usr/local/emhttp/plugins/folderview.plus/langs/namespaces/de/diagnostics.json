@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "de",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Bei diesen Aufnahmen bleibt die gerenderte Dashboard-Geometrie nach der Navigation zu den Einstellungen erhalten.",
     "diagnostics.capture.review": "Rezension",
     "diagnostics.capture.ready": "Bereit",
-    "diagnostics.capture.capture-again": "Erneut erfassen"
+    "diagnostics.capture.capture-again": "Erneut erfassen",
+    "diagnostics.bootstrap.reference": "Referenz",
+    "diagnostics.bootstrap.last-step": "Letzter abgeschlossener Schritt",
+    "diagnostics.bootstrap.occurrences": "Vorkommen",
+    "diagnostics.bootstrap.retry": "Erneut laden",
+    "diagnostics.bootstrap.reload": "Seite neu laden",
+    "diagnostics.bootstrap.copy": "Supportcode kopieren",
+    "diagnostics.bootstrap.download": "Startbericht herunterladen",
+    "diagnostics.bootstrap.copied": "Supportcode kopiert",
+    "diagnostics.bootstrap.copy-failed": "Kopieren fehlgeschlagen",
+    "diagnostics.bootstrap.downloaded": "Startbericht heruntergeladen",
+    "diagnostics.bootstrap.download-failed": "Download fehlgeschlagen",
+    "diagnostics.bootstrap.retrying": "Erneuter Versuch…",
+    "diagnostics.bootstrap.retry-succeeded": "Laden fortgesetzt",
+    "diagnostics.bootstrap.retry-failed": "Erneuter Versuch fehlgeschlagen"
 }

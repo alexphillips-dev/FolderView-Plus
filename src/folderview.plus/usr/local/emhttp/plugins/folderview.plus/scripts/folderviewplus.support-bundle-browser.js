@@ -250,6 +250,22 @@
             };
         };
 
+        const collectStartupIncident = (uiRedactor) => {
+            const api = root?.FolderViewPlusFatalBanner || null;
+            const snapshot = api && typeof api.getStartupIncidentSnapshot === 'function'
+                ? api.getStartupIncidentSnapshot()
+                : null;
+            if (!snapshot || typeof snapshot !== 'object' || snapshot.available !== true) {
+                return { available: false, schemaVersion: 1 };
+            }
+            return sanitizeUiRecord(
+                uiRedactor,
+                'uiTelemetry.startupIncident',
+                'startupIncident',
+                { ...snapshot, available: true }
+            );
+        };
+
         const collectDockerPageDiagnostics = (uiRedactor) => {
             const record = readClientDiagnosticsStorageRecord(storageKeys.dockerPage || '');
             if (!record || typeof record !== 'object' || Array.isArray(record)) {
@@ -453,6 +469,7 @@
             collectCurrentPageTelemetry,
             collectLoadedAssetTelemetry,
             collectBrowserConsoleErrors,
+            collectStartupIncident,
             collectDockerPageDiagnostics,
             collectDockerCompatibilityDiagnostics,
             collectDockerBulkUpdateTrace,

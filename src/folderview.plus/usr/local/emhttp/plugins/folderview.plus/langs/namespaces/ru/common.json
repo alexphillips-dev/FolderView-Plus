@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "ru",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "Отмена",
     "common.confirm": "Подтвердить",
     "common.confirm-type": "Введите для подтверждения",
-    "common.dismiss": "Скрыть",
-    "common.loading": "Загрузка…",
-    "common.notifications": "Уведомления"
+    "common.loading": "Загрузка…"
 }

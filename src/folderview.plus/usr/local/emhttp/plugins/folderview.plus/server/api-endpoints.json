@@ -1,10 +1,12 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "defaults": {
     "requestContentTypes": ["application/x-www-form-urlencoded", "multipart/form-data"],
     "responseContentTypes": ["application/json"],
     "maxRequestBytes": 2097152,
-    "requiredParameters": []
+    "requiredParameters": [],
+    "replayProtection": true,
+    "rateLimit": {"windowSeconds": 60, "maxRequests": 180}
   },
   "endpoints": {
     "apply_folder_settings.php": {
@@ -17,19 +19,18 @@
       "actions": {
         "list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type"], "auditCategory": "backup.list"},
         "read": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type", "name"], "auditCategory": "backup.read"},
-        "download": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": ["type", "name"], "responseType": "binary", "responseContentTypes": ["application/json"], "auditCategory": "backup.download"},
         "download_post": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "responseType": "binary", "responseContentTypes": ["application/json"], "auditCategory": "backup.download"},
         "create": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.create"},
-        "restore": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "auditCategory": "backup.restore"},
-        "restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore"},
-        "restore_latest_undo": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore"},
+        "restore": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "auditCategory": "backup.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
+        "restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
+        "restore_latest_undo": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
         "delete": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type", "name"], "auditCategory": "backup.delete"},
-        "delete_all": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.delete"},
+        "delete_all": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["type"], "auditCategory": "backup.delete", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
         "run_schedule": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "backup.schedule"},
         "rollback_list": {"methods": ["GET"], "access": "read-only", "requestToken": "none", "requiredParameters": [], "auditCategory": "recovery.list"},
         "rollback_checkpoint": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.checkpoint"},
-        "rollback_restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore"},
-        "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore"}
+        "rollback_restore_latest": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}},
+        "rollback_restore_previous": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": [], "auditCategory": "recovery.restore", "rateLimit": {"windowSeconds": 60, "maxRequests": 6}}
       }
     },
     "batch.php": {
@@ -63,13 +64,13 @@
         "report": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.report"},
         "support_bundle_preview": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.support-bundle-preview"},
         "support_bundle": {"methods": ["GET", "POST"], "access": "read-only", "requestToken": "none", "auditCategory": "diagnostics.support-bundle"},
-        "track_event": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["eventType"], "auditCategory": "diagnostics.event"},
-        "sync_docker_order": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
-        "normalize_prefs": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
-        "repair_config_metadata": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
-        "repair_paths": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
-        "repair_missing_custom_icons": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
-        "repair_orphaned_members": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair"},
+        "track_event": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "requiredParameters": ["eventType"], "auditCategory": "diagnostics.event", "replayProtection": false, "replayExemptReason": "Page-unload telemetry uses sendBeacon and cannot synchronously acquire a one-time nonce.", "rateLimit": {"windowSeconds": 60, "maxRequests": 240}},
+        "sync_docker_order": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
+        "normalize_prefs": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
+        "repair_config_metadata": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
+        "repair_paths": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
+        "repair_missing_custom_icons": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
+        "repair_orphaned_members": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.repair", "rateLimit": {"windowSeconds": 60, "maxRequests": 10}},
         "create_backup": {"methods": ["POST"], "access": "mutation", "requestToken": "mutation", "auditCategory": "diagnostics.backup"}
       }
     },
@@ -128,6 +129,21 @@
     "runtime_snapshot.php": {
       "methods": ["GET"], "access": "read-only", "requestToken": "none", "maxRequestBytes": 0,
       "requiredParameters": ["type"], "responseType": "json", "auditCategory": "runtime.snapshot"
+    },
+    "security.php": {
+      "methods": ["POST"], "access": "mutation", "requestToken": "bootstrap", "maxRequestBytes": 4096,
+      "requiredParameters": ["action", "endpoint"], "responseType": "json", "auditCategory": "security.nonce",
+      "replayProtection": false, "replayExemptReason": "This token-authenticated bootstrap endpoint issues the one-time nonce required by replay-protected mutations.",
+      "rateLimit": {"windowSeconds": 60, "maxRequests": 240},
+      "actionParameter": "action", "defaultAction": "issue_nonce",
+      "actions": {
+        "issue_nonce": {
+          "methods": ["POST"], "access": "mutation", "requestToken": "bootstrap",
+          "requiredParameters": ["action", "endpoint"], "auditCategory": "security.nonce",
+          "replayProtection": false, "replayExemptReason": "This token-authenticated bootstrap endpoint issues the one-time nonce required by replay-protected mutations.",
+          "rateLimit": {"windowSeconds": 60, "maxRequests": 240}
+        }
+      }
     },
     "sync_order.php": {
       "methods": ["POST"], "access": "mutation", "requestToken": "mutation",

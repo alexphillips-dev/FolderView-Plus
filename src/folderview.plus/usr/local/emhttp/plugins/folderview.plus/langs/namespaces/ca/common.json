@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "ca",
+        "namespace": "common"
+    },
+    "common.labels.optional": "Opcional",
+    "common.badges.recommended": "Recomanat",
+    "common.badges.can-delete": "Es pot eliminar",
+    "common.close": "Tancar",
+    "common.cancel": "Cancel·la",
+    "common.confirm": "Confirmeu",
+    "common.confirm-type": "Escriviu per confirmar",
+    "common.loading": "S'està carregant…"
+}

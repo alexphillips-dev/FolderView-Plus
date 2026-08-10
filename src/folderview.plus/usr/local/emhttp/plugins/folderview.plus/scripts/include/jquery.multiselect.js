@@ -73,22 +73,6 @@
       },
    };
 
-   /**
-    * Checks an option element for data-image-src
-    * and adds that as an image tag within the widget option
-    *
-    * @param {Node} option to pull an image from
-    * @param {Node} span to insert image tag into
-    */
-   function insertImage(option, span) {
-    var optionImageSrc = option.getAttribute('data-image-src');
-    if (optionImageSrc) {
-      var img = document.createElement('img');
-      img.setAttribute('src', optionImageSrc);
-      span.insertBefore(img, span.firstChild);
-    }
-  }
-
   /**
    * Retrieves the font size of the document
    * Defaults to 16px
@@ -477,9 +461,6 @@
       } else {
         span.textContent = option.textContent;
       }
-
-      // Icon images for each item.
-      insertImage(option, span);
 
       var label = document.createElement('label');
       label.setAttribute('for', inputID);

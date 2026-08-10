@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
-fvplus::require_commands awk sed bash
+fvplus::require_commands awk sed bash git
 
 VERSION=""
 OUTPUT=""
@@ -50,6 +50,38 @@ fi
 
 OVERRIDE_FILE="docs/releases/${VERSION}.md"
 
+append_provenance() {
+  local source_commit previous_ref compare_url archive_checksum total_commits
+  source_commit="$(git rev-parse HEAD)"
+  previous_ref="${FVPLUS_RELEASE_PREVIOUS_REF:-$(git describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)}"
+  archive_checksum=""
+  if [[ -f "archive/folderview.plus-${VERSION}.txz.sha256" ]]; then
+    archive_checksum="$(awk 'NR == 1 { print $1 }' "archive/folderview.plus-${VERSION}.txz.sha256")"
+  fi
+  {
+    printf '\n### Release provenance\n\n'
+    # shellcheck disable=SC2016
+    printf -- '- Source commit: `%s`\n' "${source_commit}"
+    # shellcheck disable=SC2016
+    printf -- '- Package SHA-256: `%s`\n' "${archive_checksum:-not-built}"
+    if [[ -n "${previous_ref}" ]] && git rev-parse --verify "${previous_ref}^{commit}" >/dev/null 2>&1; then
+      compare_url="https://github.com/alexphillips-dev/FolderView-Plus/compare/${previous_ref}...${source_commit}"
+      # shellcheck disable=SC2016
+      printf -- '- Previous stable reference: `%s`\n' "${previous_ref}"
+      printf -- '- Full source comparison: %s\n' "${compare_url}"
+      printf '\n### Included commit history\n\n'
+      # shellcheck disable=SC2016
+      git log --no-merges --format='- `%h` %s' "${previous_ref}..HEAD" --max-count=75
+      total_commits="$(git rev-list --count --no-merges "${previous_ref}..HEAD")"
+      if (( total_commits > 75 )); then
+        printf -- '- …and %s earlier commit(s); use the full source comparison above.\n' "$((total_commits - 75))"
+      fi
+    else
+      printf -- '- Previous stable reference: unavailable\n'
+    fi
+  } >> "${OUTPUT}"
+}
+
 if [[ -f "${OVERRIDE_FILE}" ]]; then
   cat > "${OUTPUT}" <<EOF
 ## FolderView Plus ${VERSION}
@@ -60,6 +92,7 @@ Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plu
 
 $(cat "${OVERRIDE_FILE}")
 EOF
+  append_provenance
   exit 0
 fi
 
@@ -93,3 +126,4 @@ Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plu
 ### Changes
 ${NOTES_BLOCK}
 EOF
+append_provenance

@@ -1,0 +1,30 @@
+type DockerContainer {
+  id: PrefixedID!
+  names: [String!]!
+  state: ContainerState!
+}
+
+type Docker {
+  containers: [DockerContainer!]!
+}
+
+type DockerMutations {
+  start(id: PrefixedID!): DockerContainer!
+}
+
+type Subscription {
+  dockerContainerStats: DockerContainerStats!
+}
+
+type DockerContainerStats {
+  id: PrefixedID!
+  cpuPercent: Float!
+}
+
+type Query {
+  docker: Docker!
+}
+
+type Mutation {
+  docker: DockerMutations!
+}

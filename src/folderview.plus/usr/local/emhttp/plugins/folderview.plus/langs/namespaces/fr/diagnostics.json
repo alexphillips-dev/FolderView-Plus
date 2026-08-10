@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "fr",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Ces captures préservent la géométrie rendue du tableau de bord après la navigation vers les paramètres.",
     "diagnostics.capture.review": "Examen",
     "diagnostics.capture.ready": "Prêt",
-    "diagnostics.capture.capture-again": "Capturez à nouveau"
+    "diagnostics.capture.capture-again": "Capturez à nouveau",
+    "diagnostics.bootstrap.reference": "Référence",
+    "diagnostics.bootstrap.last-step": "Dernière étape terminée",
+    "diagnostics.bootstrap.occurrences": "Occurrences",
+    "diagnostics.bootstrap.retry": "Réessayer le chargement",
+    "diagnostics.bootstrap.reload": "Recharger la page",
+    "diagnostics.bootstrap.copy": "Copier le code de support",
+    "diagnostics.bootstrap.download": "Télécharger le rapport de démarrage",
+    "diagnostics.bootstrap.copied": "Code de support copié",
+    "diagnostics.bootstrap.copy-failed": "Échec de la copie",
+    "diagnostics.bootstrap.downloaded": "Rapport de démarrage téléchargé",
+    "diagnostics.bootstrap.download-failed": "Échec du téléchargement",
+    "diagnostics.bootstrap.retrying": "Nouvelle tentative…",
+    "diagnostics.bootstrap.retry-succeeded": "Chargement repris",
+    "diagnostics.bootstrap.retry-failed": "La nouvelle tentative a échoué"
 }

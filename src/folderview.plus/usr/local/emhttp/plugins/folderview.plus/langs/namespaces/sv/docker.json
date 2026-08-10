@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "sv",
         "namespace": "docker"
     },
@@ -23,6 +23,11 @@
     "docker.actions.rules-workspace": "Regelarbetsyta",
     "docker.actions.empty-filter-help": "Visa tomma mappar från Verktyg innan de filtreras.",
     "docker.actions.reset-view": "Återställ vy",
+    "docker.preview.open-webui": "Öppna WebUI",
+    "docker.preview.open-console": "Öppna konsolen",
+    "docker.preview.view-logs": "Visa loggar",
+    "docker.provider.hybrid-label": "Äldre Unraid WebGUI med GraphQL-data",
+    "docker.health.api-summary": "Docker API: $1 uppdatering$2, $3 redo för ombyggnad, $4 föräldralös, $5 portkonflikt$6",
     "docker.views.folderview": "Mappvy",
     "docker.views.host": "Värdlista",
     "docker.views.command": "Kommandon",

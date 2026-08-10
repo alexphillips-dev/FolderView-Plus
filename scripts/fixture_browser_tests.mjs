@@ -17,6 +17,8 @@ const requestedBrowsers = String(process.env.FVPLUS_FIXTURE_BROWSERS || 'chromiu
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
 const browserTypes = { chromium, firefox, webkit };
+const axeScriptPath = path.join(rootDir, 'node_modules', 'axe-core', 'axe.min.js');
+const accessibilityEnabled = !/^(0|false|no|off)$/i.test(String(process.env.FVPLUS_FIXTURE_ACCESSIBILITY || '1'));
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const englishSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'en', 'legacy-surface.json'));
 const germanSurfaceCatalog = readJson(path.join(pluginDir, 'langs', 'namespaces', 'de', 'legacy-surface.json'));
@@ -58,7 +60,21 @@ const readRequestBody = (request) => new Promise((resolve, reject) => {
 const fixtureServer = http.createServer(async (request, response) => {
     try {
         const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-        if (requestUrl.pathname === '/api/echo') {
+        if (requestUrl.pathname === '/plugins/folderview.plus/server/security.php') {
+            const rawBody = await readRequestBody(request);
+            const body = Object.fromEntries(new URLSearchParams(rawBody));
+            assert.equal(request.method, 'POST');
+            assert.equal(body.action, 'issue_nonce');
+            assert.equal(body.endpoint, 'echo.php');
+            response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+            response.end(JSON.stringify({
+                ok: true,
+                nonce: 'a'.repeat(64)
+            }));
+            return;
+        }
+
+        if (requestUrl.pathname === '/api/echo.php') {
             const rawBody = await readRequestBody(request);
             const body = Object.fromEntries(new URLSearchParams(rawBody));
             response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -68,7 +84,8 @@ const fixtureServer = http.createServer(async (request, response) => {
                 headers: {
                     request: request.headers['x-fv-request'] || '',
                     token: request.headers['x-fv-token'] || '',
-                    trace: request.headers['x-fv-trace'] || ''
+                    trace: request.headers['x-fv-trace'] || '',
+                    nonce: request.headers['x-fv-nonce'] || ''
                 }
             }));
             return;
@@ -95,6 +112,8 @@ const fixtureServer = http.createServer(async (request, response) => {
             filePath = path.join(fixtureDir, 'vm-lifecycle.html');
         } else if (requestUrl.pathname === '/future-docker-host') {
             filePath = path.join(fixtureDir, 'future-docker-host.html');
+        } else if (requestUrl.pathname === '/docker-layout-stability') {
+            filePath = path.join(fixtureDir, 'docker-layout-stability.html');
         } else if (requestUrl.pathname.startsWith('/plugin/')) {
             filePath = safeResolve(pluginDir, requestUrl.pathname.slice('/plugin/'.length));
         } else if (requestUrl.pathname.startsWith('/fixtures/')) {
@@ -115,8 +134,9 @@ const fixtureServer = http.createServer(async (request, response) => {
         });
         fs.createReadStream(filePath).pipe(response);
     } catch (error) {
+        console.error('Fixture server request failed:', error);
         response.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-        response.end(String(error?.stack || error));
+        response.end('Internal fixture server error');
     }
 });
 
@@ -131,7 +151,7 @@ const tests = [];
 const test = (name, handler) => tests.push({ name, handler });
 const slug = (value) => String(value || 'test').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
 
-test('Shared UI primitives provide accessible modal, action, toast, and progress behavior', async ({ page }) => {
+test('Shared UI primitives provide accessible modal, action, status, and progress behavior', async ({ page }) => {
     await page.goto(`${baseUrl}/ui-primitives`, { waitUntil: 'load' });
     await page.click('[data-fv-ui-action="fixture-action"]');
     assert.equal(await page.evaluate(() => window.fixtureActionCount), 1);
@@ -152,9 +172,9 @@ test('Shared UI primitives provide accessible modal, action, toast, and progress
     await page.waitForSelector('.fv-ui-modal', { state: 'detached' });
     await page.evaluate(() => window.fixtureAlertPromise);
 
-    await page.evaluate(() => { window.fixtureUI.showToast(); });
-    assert.equal(await page.locator('.fv-ui-toast.is-success').count(), 1);
-    await page.click('.fv-ui-toast-close');
+    await page.evaluate(() => { window.fixtureUI.announceStatus(); });
+    await page.waitForFunction(() => document.querySelector('.fv-ui-announcer')?.textContent === 'Complete. Operation completed.');
+    assert.equal(await page.locator('.fv-ui-toast-region, .fv-ui-toast, .fv-toast-host, .fv-toast').count(), 0);
 
     await page.evaluate(() => { window.fixtureProgress = window.fixtureUI.showProgress(); });
     assert.equal(await page.locator('.fv-ui-progress-state progress').getAttribute('value'), '3');
@@ -225,9 +245,140 @@ test('Generated localization covers initial, attributed, parameterized, and dyna
     await page.waitForTimeout(150);
     const settledSnapshot = await page.evaluate(() => window.FolderViewPlusI18n.snapshot());
     assert.equal(snapshot.dynamicTranslationObserver, true);
-    assert.equal(snapshot.autoBoundMessageCount, 1581);
+    assert.equal(snapshot.autoBoundMessageCount, 1580);
     assert.ok(snapshot.autoTranslatedNodeCount >= 303);
     assert.equal(settledSnapshot.autoTranslatedNodeCount, snapshot.autoTranslatedNodeCount, 'localization must settle without observing its own writes forever');
+});
+
+test('Unraid zh_CN activates the canonical Simplified Chinese catalog in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.id = 'simplified-chinese-label';
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'zh_CN',
+            resolvedLocale: 'zh-Hans',
+            fallbackChain: ['zh-CN', 'zh-Hans', 'en'],
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'zh-Hans', namespace: 'common', url: '/plugin/langs/namespaces/zh-Hans/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'zh-CN');
+    assert.equal(result.snapshot.resolvedLocale, 'zh-Hans');
+    assert.equal(result.snapshot.activeLocale, 'zh-Hans');
+    assert.deepEqual(result.snapshot.fallbackChain, ['zh-CN', 'zh-Hans', 'en']);
+    assert.equal(result.documentLocale, 'zh-CN');
+    assert.equal(result.translatedLabel, '关闭');
+    assert.equal(result.directTranslation, '关闭');
+});
+
+test('Unraid zh_TW activates the canonical Traditional Chinese catalog in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'zh_TW',
+            resolvedLocale: 'zh-Hant',
+            fallbackChain: ['zh-TW', 'zh-Hant', 'en'],
+            direction: 'ltr',
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'zh-Hant', namespace: 'common', url: '/plugin/langs/namespaces/zh-Hant/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            documentDirection: document.documentElement.dir,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'zh-TW');
+    assert.equal(result.snapshot.resolvedLocale, 'zh-Hant');
+    assert.equal(result.snapshot.activeLocale, 'zh-Hant');
+    assert.equal(result.documentLocale, 'zh-TW');
+    assert.equal(result.documentDirection, 'ltr');
+    assert.equal(result.translatedLabel, '關閉');
+    assert.equal(result.directTranslation, '關閉');
+});
+
+test('Unraid ar_AR activates the Arabic catalog and production RTL direction in a real browser', async ({ page }) => {
+    await page.goto(`${baseUrl}/localization`, { waitUntil: 'load' });
+    await page.addScriptTag({ url: `${baseUrl}/vendor/jquery.js` });
+    for (const script of [
+        'CLDRPluralRuleParser.js', 'jquery.i18n.js', 'jquery.i18n.messagestore.js', 'jquery.i18n.fallbacks.js',
+        'jquery.i18n.language.js', 'jquery.i18n.parser.js', 'jquery.i18n.emitter.js', 'jquery.i18n.emitter.bidi.js'
+    ]) {
+        await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/include/${script}` });
+    }
+    await page.addScriptTag({ url: `${baseUrl}/plugin/scripts/folderviewplus.i18n.js` });
+    const result = await page.evaluate(async () => {
+        const label = document.createElement('span');
+        label.setAttribute('data-i18n', 'common.close');
+        label.textContent = 'Close';
+        document.body.append(label);
+        const snapshot = await window.FolderViewPlusI18n.configure({
+            requestedLocale: 'ar_AR',
+            resolvedLocale: 'ar',
+            fallbackChain: ['ar-AR', 'ar', 'en'],
+            direction: 'rtl',
+            namespaces: ['common'],
+            assets: [
+                { locale: 'en', namespace: 'common', url: '/plugin/langs/namespaces/en/common.json' },
+                { locale: 'ar', namespace: 'common', url: '/plugin/langs/namespaces/ar/common.json' }
+            ]
+        });
+        return {
+            snapshot,
+            documentLocale: document.documentElement.lang,
+            documentDirection: document.documentElement.dir,
+            translatedLabel: label.textContent,
+            directTranslation: window.FolderViewPlusI18n.t('common.close')
+        };
+    });
+
+    assert.equal(result.snapshot.requestedLocale, 'ar-AR');
+    assert.equal(result.snapshot.resolvedLocale, 'ar');
+    assert.equal(result.snapshot.activeLocale, 'ar');
+    assert.equal(result.documentLocale, 'ar-AR');
+    assert.equal(result.documentDirection, 'rtl');
+    assert.equal(result.translatedLabel, 'إغلاق');
+    assert.equal(result.directTranslation, 'إغلاق');
 });
 
 test('Docker action bar is idempotent and reports fixture counts', async ({ page }) => {
@@ -238,6 +389,41 @@ test('Docker action bar is idempotent and reports fixture counts', async ({ page
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-unassigned"] .fvplus-docker-action-count').textContent(), '1');
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-updates"] .fvplus-docker-action-count').textContent(), '1');
     assert.equal(await page.locator('[data-fvplus-docker-action="filter-empty"] .fvplus-docker-action-count').textContent(), '1');
+});
+
+test('Docker preview hydration and cached-width bootstrap preserve first-frame geometry', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixturePreviewActionStability.run());
+    assert.equal(result.consoleNodePreserved, true, 'console action node must be reconciled in place');
+    assert.equal(result.logsNodePreserved, true, 'logs action node must be reconciled in place');
+    assert.ok(result.consoleShiftPx <= 0.1, `console action shifted ${result.consoleShiftPx}px`);
+    assert.ok(result.logsShiftPx <= 0.1, `logs action shifted ${result.logsShiftPx}px`);
+    assert.equal(result.webuiReady, true);
+    assert.equal(result.pendingWebui, 0);
+    assert.equal(result.slotWidths.length, 3);
+    assert.equal(result.slotWidths.every((width) => Math.abs(width - 13) <= 0.1), true);
+    assert.equal(result.bootstrapWidth, 286);
+    assert.equal(result.firstVisibleWidth, 286);
+    assert.equal(result.settledWidth, result.firstVisibleWidth);
+});
+
+test('Docker folder context menu opens from the first folder-icon click', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureFolderContextFirstClick.run());
+    assert.equal(result.attachCount, 1, 'the first click must prepare the folder context menu once');
+    assert.equal(result.openCount, 1, 'the first click must reach the newly attached context-menu opener');
+    assert.equal(result.defaultPrevented, false, 'menu preparation must not cancel the opening click');
+});
+
+test('Docker folder Unpin intent is retained while the preceding Pin save settles', async ({ page }) => {
+    await page.goto(`${baseUrl}/docker-layout-stability`, { waitUntil: 'load' });
+    const result = await page.evaluate(() => window.fixtureQueuedFolderPinIntent.run());
+    assert.equal(result.queuedBeforeSave, true, 'Unpin must queue while Pin is saving');
+    assert.equal(result.pinnedBeforeSave, false, 'Unpin must update the visible state before Pin finishes saving');
+    assert.equal(result.pinned, false, 'one queued Unpin action must produce the requested final state');
+    assert.deepEqual(result.transitions, ['pinned', 'unpinned', 'pin-saved', 'unpin-saved']);
+    assert.equal(result.runningAfterSave, false);
+    assert.equal(result.queuedAfterSave, false);
 });
 
 test('Docker and VM host adapters share row, structure, and idempotent hook contracts', async ({ page }) => {
@@ -802,12 +988,14 @@ test('Docker Privacy toggle preserves its widget through optimistic, confirmed, 
 
 test('Standard request client sends mutation markers, token, and trace ID', async ({ page }) => {
     await page.goto(`${baseUrl}/runtime`, { waitUntil: 'load' });
-    const response = await page.evaluate(() => window.FolderViewPlusRequest.postJson('/api/echo', { hello: 'world' }));
+    const response = await page.evaluate(() => window.FolderViewPlusRequest.postJson('/api/echo.php', { hello: 'world' }));
     assert.equal(response.ok, true);
     assert.equal(response.body.hello, 'world');
     assert.equal(response.body._fv_request, '1');
+    assert.equal(response.body._fv_nonce, 'a'.repeat(64));
     assert.equal(response.headers.request, '1');
     assert.equal(response.headers.token, 'fixture-request-token-1234567890');
+    assert.equal(response.headers.nonce, 'a'.repeat(64));
     assert.match(response.headers.trace, /^fv-/);
 });
 
@@ -1325,6 +1513,7 @@ test('Diagnostics workspace renders stable health states without desktop or mobi
     await page.waitForTimeout(250);
 
     await page.evaluate(() => document.body.setAttribute('data-fvplus-host-theme', 'white'));
+    await page.waitForTimeout(250);
     layout = await readDiagnosticsLayout();
     assert.equal(layout.metricIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
     assert.equal(layout.systemIconColors.some((color) => color === 'rgb(0, 0, 0)'), false);
@@ -1374,7 +1563,7 @@ test('Mobile reorder persists click state and isolates Docker and VM controls', 
         root.classList.add('fv-mobile-compact');
         document.body.classList.add('fv-mobile-compact');
         root.insertAdjacentHTML('beforeend', `
-            <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false">Mobile reorder</button>
+            <button id="vm-tree-reorder-toggle" type="button" data-fv-onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false">Mobile reorder</button>
             <div class="folder-table"><table><tbody id="docker"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">Docker move</button></span></td><td>Docker</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
             <div class="folder-table"><table><tbody id="vms"><tr><td class="order-cell"><span class="row-order-actions"><button type="button">VM move</button></span></td><td>VM</td><td class="actions-cell">Actions</td></tr></tbody></table></div>
         `);
@@ -1497,6 +1686,39 @@ test('Import progress dialog reports deterministic progress and closes cleanly',
     assert.equal(await page.locator('#import-apply-progress-dialog').getAttribute('aria-hidden'), 'true');
 });
 
+test('Export download diagnostics report a missing file and retry from a direct user action', async ({ page }) => {
+    await page.goto(`${baseUrl}/import`, { waitUntil: 'load' });
+    await page.evaluate(() => window.fixtureImport.requestDownload());
+    const status = page.locator('#docker-download-status');
+    assert.equal(await status.isVisible(), true);
+    assert.equal(await status.locator('strong').textContent(), 'Download requested');
+    assert.match(
+        String(await status.locator('small').textContent()),
+        /Browsers do not provide a save-completion signal/
+    );
+
+    await status.locator('.fv-download-status-report').click();
+    await page.waitForFunction(() => (
+        window.fixtureImport.downloadAttempts().attempts[0]?.lifecycle === 'user-reported-missing'
+    ));
+    assert.equal(await status.locator('strong').textContent(), 'Download was not received');
+    assert.equal(await status.locator('.fv-download-status-retry').count(), 1);
+    assert.equal(
+        await page.evaluate(() => window.fixtureDiagnosticEvents.at(-1)?.eventType),
+        'export_download_missing'
+    );
+
+    const retryDownload = page.waitForEvent('download');
+    await status.locator('.fv-download-status-retry').click();
+    const download = await retryDownload;
+    assert.equal(download.suggestedFilename(), 'FolderView Plus Docker.json');
+    await page.waitForFunction(() => window.fixtureImport.downloadAttempts().attempts.length === 2);
+    assert.equal(await status.locator('strong').textContent(), 'Download retry requested');
+    const attempts = await page.evaluate(() => window.fixtureImport.downloadAttempts().attempts);
+    assert.equal(attempts[1].fallback.used, true);
+    assert.equal(attempts[1].fallback.retryOf, attempts[0].attemptId);
+});
+
 const report = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -1528,6 +1750,31 @@ try {
                 const result = { browser: browserName, name: entry.name, durationMs: 0, pass: false, errors: [] };
                 try {
                     await entry.handler({ page, context, browserName });
+                    if (accessibilityEnabled) {
+                        await page.addScriptTag({ path: axeScriptPath });
+                        const violations = await page.evaluate(async () => {
+                            const result = await window.axe.run(document, {
+                                runOnly: {
+                                    type: 'tag',
+                                    values: ['wcag2a', 'wcag2aa', 'wcag21aa']
+                                },
+                                resultTypes: ['violations']
+                            });
+                            return result.violations
+                                .filter((violation) => ['critical', 'serious'].includes(String(violation.impact || '')))
+                                .map((violation) => ({
+                                    id: violation.id,
+                                    impact: violation.impact,
+                                    help: violation.help,
+                                    nodes: violation.nodes.slice(0, 5).map((node) => ({
+                                        target: node.target,
+                                        summary: node.failureSummary,
+                                        html: node.html
+                                    }))
+                                }));
+                        });
+                        assert.deepEqual(violations, [], `axe accessibility violations:\n${JSON.stringify(violations, null, 2)}`);
+                    }
                     assert.deepEqual(browserErrors, [], `browser emitted errors:\n${browserErrors.join('\n')}`);
                     result.pass = true;
                     report.passed += 1;

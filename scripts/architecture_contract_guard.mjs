@@ -178,5 +178,27 @@ for (const removed of removedGlobals) {
     }
 }
 
+const budgets = schema.budgets || {};
+if (Number.isFinite(Number(budgets.maxBrowserGlobals)) && ownersByGlobal.size > Number(budgets.maxBrowserGlobals)) {
+    fail(`Browser global budget exceeded: ${ownersByGlobal.size} > ${budgets.maxBrowserGlobals}.`);
+}
+if (Number.isFinite(Number(budgets.maxInlineActions)) && pageActions.size > Number(budgets.maxInlineActions)) {
+    fail(`Inline action budget exceeded: ${pageActions.size} > ${budgets.maxInlineActions}.`);
+}
+for (const [relativePath, rawLimit] of Object.entries(budgets.maxFileLines || {})) {
+    const absolutePath = path.join(pluginRoot, relativePath);
+    if (!fs.existsSync(absolutePath)) {
+        fail(`File-line budget target does not exist: ${relativePath}.`);
+        continue;
+    }
+    const lineCount = fs.readFileSync(absolutePath, 'utf8').split(/\r?\n/).length;
+    const limit = Number(rawLimit);
+    if (!Number.isFinite(limit) || limit < 1) {
+        fail(`File-line budget is invalid for ${relativePath}: ${rawLimit}.`);
+    } else if (lineCount > limit) {
+        fail(`File-line budget exceeded for ${relativePath}: ${lineCount} > ${limit}. Extract new logic into a focused module.`);
+    }
+}
+
 assert.equal(failures.length, 0, failures.join('\n'));
-console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} module contracts, ${ownersByGlobal.size} browser globals, and ${pageActions.size} inline actions validated.`);
+console.log(`Architecture contract guard passed: ${schema.moduleContracts.length} module contracts, ${ownersByGlobal.size} browser globals, ${pageActions.size} inline actions, and ${Object.keys(budgets.maxFileLines || {}).length} file-line budgets validated.`);

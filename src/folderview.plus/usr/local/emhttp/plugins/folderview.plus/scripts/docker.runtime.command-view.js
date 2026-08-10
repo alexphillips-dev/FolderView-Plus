@@ -537,7 +537,7 @@
                                 <div class="fv-docker-command-member-tile ${escapeHtml(member.stateMeta.state)}${member.updateReady ? ' has-update' : ''}" data-member-name="${escapeHtml(member.name)}" data-member-id="${escapeHtml(member.id)}" data-member-webui-url="${escapeHtml(member.webuiUrl)}" data-member-shell="${escapeHtml(member.shell)}">
                                     <div class="fv-docker-command-member-surface hand" data-fv-command-member-surface="true" data-member-name="${escapeHtml(member.name)}">
                                         <span class="fv-docker-command-member-icon-wrap">
-                                            <img src="${member.icon}" class="fv-docker-command-member-icon" alt="" loading="lazy" onerror='this.src="${DOCKER_ICON_FALLBACK}"'>
+                                            <img src="${member.icon}" class="fv-docker-command-member-icon" alt="" loading="lazy" data-fv-onerror='this.src="${DOCKER_ICON_FALLBACK}"'>
                                         </span>
                                         <span class="fv-docker-command-member-content">
                                             <span class="fv-docker-command-member-pill">${escapeHtml(member.name)}</span>
@@ -557,7 +557,7 @@
                                 <article class="fv-docker-command-card" data-folder-id="${escapeHtml(card.folderId)}" style="--fv-docker-command-depth:${card.depth};">
                                     <div class="fv-docker-command-card-head">
                                         <div>
-                                            <div class="fv-docker-command-card-title"><img src="${folderIcon}" class="fv-docker-command-card-title-icon" alt="" loading="lazy" onerror='this.src="${DEFAULT_FOLDER_ICON}"'> ${escapeHtml(card.folder?.name || `Folder ${card.folderId}`)}</div>
+                                            <div class="fv-docker-command-card-title"><img src="${folderIcon}" class="fv-docker-command-card-title-icon" alt="" loading="lazy" data-fv-onerror='this.src="${DEFAULT_FOLDER_ICON}"'> ${escapeHtml(card.folder?.name || `Folder ${card.folderId}`)}</div>
                                             <div class="fv-docker-command-card-subtitle">${escapeHtml(subtitle)}</div>
                                         </div>
                                         <div class="fv-docker-command-card-flags">

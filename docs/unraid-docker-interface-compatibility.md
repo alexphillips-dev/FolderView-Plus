@@ -2,7 +2,7 @@
 
 This document defines how FolderView Plus coexists with the current table-based Unraid Docker page and the native component/API replacement being developed by Unraid.
 
-The upstream implementation was last reviewed on 2026-07-24. At that point, Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The implementation is therefore treated as prerelease and its organizer fields are not a stable third-party contract.
+The upstream implementation was last reviewed on 2026-07-25. At that point, Unraid's [`docker-containers-page` file modification](https://github.com/unraid/api/blob/main/api/src/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.ts) still returned `shouldApply: false`, while its replacement markup contained `<unraid-docker-container-overview>`. The implementation is therefore treated as prerelease and its organizer fields are not a stable third-party contract.
 
 ## Host generations
 
@@ -22,9 +22,10 @@ The detector records only aggregate booleans and versions. It does not record co
 
 ## Provider boundary
 
-`scripts/docker.runtime.providers.js` exposes the same operations through three providers:
+`scripts/docker.runtime.providers.js` exposes the same operations through four providers:
 
 - `legacy-webgui`
+- `hybrid-legacy-graphql`
 - `unraid-graphql`
 - `unsupported-unknown`
 
@@ -38,16 +39,18 @@ The boundary covers:
 - Describe the organization authority.
 - Describe whether FolderView Plus may own a UI surface.
 
-Dashboard actions resolve through this provider boundary. Current table-based hosts continue to use Unraid's `eventControl`. A host without that hook can use GraphQL only after the API schema confirms the required query and mutation.
+Legacy table hosts select the hybrid provider. It prefers GraphQL for schema-confirmed data and statistics while continuing to use Unraid's `eventControl` for host-owned lifecycle actions. A failed or unavailable GraphQL read falls back to legacy data without delaying the existing renderer. A host without `eventControl` can use GraphQL actions only after the API schema confirms the required query and mutation.
 
 ## GraphQL contract
 
-`scripts/runtime.transport.js` performs an availability and schema capability probe before using Docker API operations. It supports both:
+`scripts/runtime.transport.js` performs an availability and operation-signature capability probe before using Docker API operations. It supports both:
 
 - Current schema shape: `docker { containers { ... } }`
 - Previously documented shape: `dockerContainers { ... }`
 
 Lifecycle mutations use Unraid's `DockerMutations` and pass the API-returned container identity as `PrefixedID`. `resume` maps to the schema's `unpause` mutation. Start, stop, restart, pause, and unpause are enabled independently; an older API without restart support does not receive a restart request.
+
+The capability matrix also detects targeted reads, networks, port conflicts, bounded logs, update status, rich container fields, Docker statistics, update/remove/autostart mutations, and digest refresh. Feature-flagged fields remain unavailable when absent from introspection. Limited fallback probing enables only the container query shape it directly verifies.
 
 Requests:
 
@@ -58,6 +61,8 @@ Requests:
 - Keep raw server messages, identifiers, endpoints, and request values out of transport diagnostics.
 
 Subscriptions cleanly close and have bounded exponential reconnect behavior. When a compatible Docker subscription is unavailable, a provider can use non-overlapping polling.
+
+See [Unraid Docker API Integration](unraid-docker-api-integration.md) for the normalized model, hybrid provider, targeted reconciliation, aggregate health, guarded mutations, and privacy rules.
 
 ## Native organizer coexistence
 
@@ -95,11 +100,13 @@ The browser fixture `future-docker-host.html` verifies that a native page:
 
 ## Activation triggers
 
-`scripts/unraid_docker_upstream_monitor.sh` treats either of these as an activation signal:
+`scripts/unraid_docker_upstream_monitor.sh` treats any of these as a review signal:
 
 1. Upstream `docker-containers-page.modification.ts` changes to `shouldApply: true`.
 2. Supplied official release notes announce a native/new Docker page or interface.
+3. The tracked Docker GraphQL schema signature changes or a required capability disappears.
+4. The latest official Unraid API release differs from the reviewed baseline.
 
-An unrecognizable source shape is also a blocking signal because silently assuming the replacement remains disabled would be unsafe. The scheduled workflow `.github/workflows/unraid-docker-upstream-monitor.yml` checks the source and current Unraid release notes weekly and can be run manually.
+An unrecognizable source shape is also a blocking signal because silently assuming the replacement remains disabled would be unsafe. The scheduled workflow `.github/workflows/unraid-docker-upstream-monitor.yml` checks the source gate, GraphQL schema, API release, and current Unraid release notes weekly and can be run manually.
 
 See [Unraid Docker Prerelease Qualification](unraid-docker-prerelease-qualification.md) before changing the coexistence policy.

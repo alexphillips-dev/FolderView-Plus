@@ -12,7 +12,7 @@ const serverDir = serverDirArgIndex >= 0 && process.argv[serverDirArgIndex + 1]
 const manifestPath = path.join(serverDir, 'api-endpoints.json');
 const allowedMethods = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
 const allowedAccess = new Set(['read-only', 'mutation', 'mixed']);
-const allowedTokens = new Set(['none', 'mutation']);
+const allowedTokens = new Set(['none', 'mutation', 'bootstrap']);
 const allowedResponses = new Set(['json', 'text', 'binary', 'mixed']);
 
 function fail(message) {
@@ -51,11 +51,24 @@ function validateContract(contract, label, { allowMixed = false } = {}) {
     fail(`${label}.access must be ${allowMixed ? 'read-only, mutation, or mixed' : 'read-only or mutation'}.`);
   }
   if (!allowedTokens.has(contract.requestToken)) fail(`${label}.requestToken is invalid.`);
-  if (contract.access === 'mutation' && contract.requestToken !== 'mutation') {
-    fail(`${label} is mutating but does not require the mutation request guard.`);
+  if (contract.access === 'mutation' && !['mutation', 'bootstrap'].includes(contract.requestToken)) {
+    fail(`${label} is mutating but does not require an approved request guard.`);
   }
   if (contract.access === 'read-only' && contract.requestToken !== 'none') {
     fail(`${label} is read-only but declares a mutation token requirement.`);
+  }
+  if (typeof contract.replayProtection !== 'boolean') {
+    fail(`${label}.replayProtection must be a boolean.`);
+  }
+  if (contract.access === 'mutation' && contract.replayProtection === false
+      && (typeof contract.replayExemptReason !== 'string' || contract.replayExemptReason.trim() === '')) {
+    fail(`${label} disables replay protection without documenting replayExemptReason.`);
+  }
+  const rateLimit = contract.rateLimit;
+  if (!rateLimit || typeof rateLimit !== 'object'
+      || !Number.isInteger(rateLimit.windowSeconds) || rateLimit.windowSeconds < 1 || rateLimit.windowSeconds > 3600
+      || !Number.isInteger(rateLimit.maxRequests) || rateLimit.maxRequests < 1 || rateLimit.maxRequests > 10000) {
+    fail(`${label}.rateLimit must define bounded windowSeconds and maxRequests.`);
   }
   validateStringList(contract.requestContentTypes, `${label}.requestContentTypes`);
   validateStringList(contract.responseContentTypes, `${label}.responseContentTypes`, { nonEmpty: true });
@@ -81,7 +94,7 @@ function validateContract(contract, label, { allowMixed = false } = {}) {
 
 try {
   const manifest = readJson(manifestPath);
-  if (manifest.schemaVersion !== 1) fail('api-endpoints.json schemaVersion must be 1.');
+  if (manifest.schemaVersion !== 2) fail('api-endpoints.json schemaVersion must be 2.');
   if (!manifest.defaults || typeof manifest.defaults !== 'object') fail('api-endpoints.json must define defaults.');
   if (!manifest.endpoints || typeof manifest.endpoints !== 'object' || Array.isArray(manifest.endpoints)) {
     fail('api-endpoints.json must define an endpoints object.');
@@ -141,6 +154,9 @@ try {
   }
   if (!/requestToken[^\n]*mutation[\s\S]*?requireMutationRequestGuard\(\)/.test(contractLib)) {
     fail('The API contract runtime must route mutation declarations through requireMutationRequestGuard().');
+  }
+  if (!/requestToken[^\n]*bootstrap[\s\S]*?fvplus_require_nonce_bootstrap_guard\(\)/.test(contractLib)) {
+    fail('The API contract runtime must route nonce bootstrap declarations through fvplus_require_nonce_bootstrap_guard().');
   }
 } catch (error) {
   fail(error.message);

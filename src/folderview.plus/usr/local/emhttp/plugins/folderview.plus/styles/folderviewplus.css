@@ -12,8 +12,7 @@
     --fvplus-settings-safe-accent-soft: var(--fvplus-ui-accent-soft, var(--fvplus-graphite-accent-soft, rgba(255, 138, 31, 0.14)));
     --fvplus-settings-safe-focus-ring: var(--fvplus-ui-focus-ring, var(--fvplus-graphite-focus, rgba(74, 179, 255, 0.34)));
     --fvplus-settings-safe-surface-panel: var(--fvplus-ui-panel, var(--fvplus-theme-surface-panel, #171718));
-
-    --fvplus-theme-text-primary: var(--text, currentColor);
+    --fvplus-theme-text-primary: var(--text, var(--fvplus-settings-safe-text-primary));
     --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
     --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
     --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);
@@ -24,7 +23,6 @@
     --fvplus-theme-accent-soft: var(--fvplus-settings-safe-accent-soft);
     --fvplus-theme-focus-ring: var(--fvplus-settings-safe-focus-ring);
     --fvplus-theme-surface-panel: var(--fvplus-settings-safe-surface-panel);
-
     --fvplus-settings-text-primary: var(--fvplus-theme-text-primary, var(--fvplus-settings-safe-text-primary));
     --fvplus-settings-text-muted: var(--fvplus-theme-text-muted, var(--fvplus-settings-safe-text-muted));
     --fvplus-settings-text-dim: var(--fvplus-theme-text-dim, var(--fvplus-settings-safe-text-dim));
@@ -51,6 +49,8 @@
     --fvplus-settings-members-meta-text: rgba(187, 199, 219, 0.82);
     --fvplus-settings-nested-meta-text: rgba(194, 206, 224, 0.86);
     --fvplus-settings-chip-info: #9ecbff;
+    --fvplus-settings-export-action: #9ecbff;
+    --fvplus-settings-navigation-info: #9ecbff;
     --fvplus-settings-chip-info-border: rgba(113, 184, 255, 0.58);
     --fvplus-settings-chip-info-bg: rgba(113, 184, 255, 0.12);
     --fvplus-settings-chip-success: #93e19f;
@@ -89,84 +89,41 @@
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 255, 255, 0.065), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
-
-/* Keep the server-rendered Advanced workspace from flashing before the saved
- * mode, tab, and section state are restored. The shell is removed as soon as
- * config-only Docker and VM snapshots have painted the usable surface. */
-#fv-settings-root.fv-settings-bootstrap-pending > :not(#fv-settings-bootstrap-shell):not(#fvplus-fatal-banner) {
-    display: none !important;
-}
-
-.fv-settings-bootstrap-shell {
-    min-height: clamp(180px, 32vh, 320px);
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    color: var(--fvplus-settings-text-primary);
-}
-
-.fv-settings-bootstrap-shell[hidden],
-#fv-settings-root:not(.fv-settings-bootstrap-pending) > .fv-settings-bootstrap-shell {
-    display: none !important;
-}
-
-.fv-settings-bootstrap-shell-card {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    min-width: min(360px, 100%);
-    padding: 16px 18px;
-    border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
-    background: var(--fvplus-settings-surface-card);
-    box-shadow: var(--fvplus-settings-button-shadow);
-}
-
-.fv-settings-bootstrap-shell-icon {
-    display: inline-grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-    border-radius: 7px;
-    color: var(--fvplus-settings-chip-info);
-    background: var(--fvplus-settings-chip-info-bg);
-}
-
-.fv-settings-bootstrap-shell-copy {
-    display: grid;
-    gap: 3px;
-    min-width: 0;
-}
-
-.fv-settings-bootstrap-shell-copy strong {
-    font-size: 1.3rem;
-    line-height: 1.25;
-}
-
-.fv-settings-bootstrap-shell-copy span {
-    color: var(--fvplus-settings-text-muted);
-    font-size: 1.1rem;
-    line-height: 1.35;
-}
-
 html[data-fvplus-host-theme="white"] #fv-settings-root,
 body[data-fvplus-host-theme="white"] #fv-settings-root,
 html[data-fv-host-theme="white"] #fv-settings-root,
 body[data-fv-host-theme="white"] #fv-settings-root,
+body[data-fv-theme-class="light"] #fv-settings-root,
 #fv-settings-root[data-fv-theme-class="light"] {
+    --fvplus-settings-text-primary: #2b3441;
+    --fvplus-settings-text-muted: #556476;
+    --fvplus-settings-text-dim: #5f6b79;
+    --fvplus-settings-border-subtle: rgba(121, 133, 148, 0.2);
+    --fvplus-settings-border-faint: rgba(121, 133, 148, 0.14);
+    --fvplus-settings-surface-muted: rgba(102, 115, 133, 0.08);
+    --fvplus-settings-surface-strong: rgba(248, 249, 251, 0.96);
+    --fvplus-settings-surface-card: rgba(255, 255, 255, 0.98);
+    --fvplus-settings-surface-field: rgba(102, 115, 133, 0.08);
+    --fvplus-settings-surface-panel: rgba(248, 249, 251, 0.985);
+    --fvplus-settings-accent: #be6b18;
+    --fvplus-settings-accent-strong: #9a540f;
+    --fvplus-settings-accent-soft: rgba(190, 107, 24, 0.12);
+    --fvplus-settings-focus-ring: rgba(47, 110, 166, 0.32);
+    --fvplus-settings-button-fg: #17202c;
     --fvplus-settings-title-accent: #be6b18;
     --fvplus-settings-tree-guide: rgba(129, 140, 154, 0.48);
     --fvplus-settings-breadcrumb-text: rgba(89, 103, 120, 0.86);
     --fvplus-settings-members-meta-text: rgba(95, 108, 123, 0.82);
     --fvplus-settings-nested-meta-text: rgba(105, 117, 133, 0.86);
-    --fvplus-settings-chip-info: #2f6ea6;
+    --fvplus-settings-chip-info: #286393;
+    --fvplus-settings-export-action: #00243f;
+    --fvplus-settings-navigation-info: #0b4168;
     --fvplus-settings-chip-info-border: rgba(47, 110, 166, 0.34);
     --fvplus-settings-chip-info-bg: rgba(47, 110, 166, 0.10);
-    --fvplus-settings-chip-success: #287a43;
+    --fvplus-settings-chip-success: #226b39;
     --fvplus-settings-chip-success-border: rgba(40, 122, 67, 0.34);
     --fvplus-settings-chip-success-bg: rgba(40, 122, 67, 0.10);
-    --fvplus-settings-chip-warning: #9a6400;
+    --fvplus-settings-chip-warning: #805300;
     --fvplus-settings-chip-warning-border: rgba(154, 100, 0, 0.34);
     --fvplus-settings-chip-warning-bg: rgba(154, 100, 0, 0.12);
     --fvplus-settings-chip-danger: #b63737;
@@ -198,7 +155,6 @@ body[data-fv-host-theme="white"] #fv-settings-root,
     --fvplus-settings-button-quiet-shadow: inset 0 0 0 1px rgba(190, 107, 24, 0.06), 0 1px 2px rgba(113, 84, 52, 0.07);
     --fvplus-settings-button-quiet-shadow-hover: inset 0 0 0 1px rgba(190, 107, 24, 0.1), 0 2px 4px rgba(113, 84, 52, 0.1);
 }
-
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
@@ -6677,6 +6633,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-dashboard-capture-guide-action {
     justify-self: start;
+    color: var(--fvplus-settings-button-fg) !important;
     text-decoration: none;
 }
 
@@ -6830,7 +6787,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     ) !important;
     color: var(
         --fv-diagnostics-action-color,
-        var(--fvplus-settings-text-primary)
+        var(--fvplus-settings-button-fg)
     ) !important;
     box-shadow: var(
         --fv-diagnostics-action-shadow,
@@ -6868,7 +6825,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-primary {
     border-color: var(--fvplus-settings-border-subtle) !important;
     background: var(--fvplus-settings-button-bg-top) !important;
-    color: var(--fvplus-settings-text-primary) !important;
+    color: var(--fvplus-settings-button-fg) !important;
     box-shadow: var(--fvplus-settings-button-shadow) !important;
 }
 
@@ -6896,7 +6853,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-chip-info) 7%,
         var(--fvplus-settings-button-bg-top)
     );
-    --fv-diagnostics-action-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-color: var(--fvplus-settings-export-action);
     --fv-diagnostics-action-shadow:
         inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-chip-info) 7%, transparent),
         var(--fvplus-settings-button-shadow);
@@ -6906,7 +6863,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         var(--fvplus-settings-border-strong)
     );
     --fv-diagnostics-action-hover-background: var(--fvplus-settings-chip-info-bg);
-    --fv-diagnostics-action-hover-color: var(--fvplus-settings-chip-info);
+    --fv-diagnostics-action-hover-color: var(--fvplus-settings-export-action);
     --fv-diagnostics-action-hover-shadow:
         inset 0 0 0 1px color-mix(in srgb, var(--fvplus-settings-chip-info) 10%, transparent),
         var(--fvplus-settings-button-shadow-hover);
@@ -6915,7 +6872,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #fv-settings-root .fv-diagnostics-toolbar > .fv-ui-button.is-export > i {
     color: currentColor;
 }
-
 .fv-diagnostics-summary-surface {
     display: grid;
     gap: 0.8rem;
@@ -7113,6 +7069,17 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     font-size: 1.35rem;
     font-weight: 700;
     text-align: center;
+}
+
+.fv-diagnostics-metrics dd.fv-diagnostics-metric-note,
+.fv-diagnostics-metrics dd.fv-diagnostics-core-progress-wrap {
+    font-size: inherit;
+    font-weight: 400;
+}
+
+.fv-diagnostics-metrics dd.fv-diagnostics-core-progress-wrap {
+    display: flex;
+    justify-content: center;
 }
 
 .fv-diagnostics-metric.is-core {
@@ -8089,7 +8056,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 @media (prefers-reduced-motion: reduce) {
     .fv-diagnostics-card-details > summary i,
-    .fv-support-bundle-privacy-disclosure > i {
+    .fv-support-bundle-privacy-disclosure > i,
+    .fv-settings-bootstrap-shell .fa-spin {
+        animation: none;
         transition: none;
     }
 }
@@ -13530,7 +13499,7 @@ h2[data-fv-section].fv-search-match {
 }
 
 #fv-settings-root #fv-run-wizard {
-    color: var(--fvplus-settings-chip-info) !important;
+    color: var(--fvplus-settings-navigation-info) !important;
 }
 
 /* Start Order keeps its actions readable without making a normal action look selected. */
@@ -13657,42 +13626,6 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-root :is(.updates-chip.is-filter-active, .health-chip.is-filter-active) {
     box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
-}
-
-.fv-toast-host {
-    position: fixed;
-    right: 1rem;
-    bottom: calc(var(--fv-unraid-bottom-bar-offset) + 0.8rem);
-    z-index: 1300;
-    display: none;
-    gap: 0.42rem;
-    width: min(420px, calc(100vw - 1.6rem));
-    pointer-events: none;
-}
-
-.fv-toast {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.45rem;
-    align-items: center;
-    padding: 0.46rem 0.55rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 8px;
-    background: rgba(11, 14, 18, 0.97);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-    pointer-events: auto;
-}
-
-.fv-toast.is-success {
-    border-color: rgba(108, 214, 140, 0.5);
-}
-
-.fv-toast.is-warning {
-    border-color: rgba(255, 193, 94, 0.5);
-}
-
-.fv-toast.is-error {
-    border-color: rgba(255, 116, 116, 0.55);
 }
 
 tr.is-long-press-active {
@@ -14487,12 +14420,6 @@ body.fv-folder-action-sheet-open {
     .toolbar-actions > button {
         flex: 1 1 calc(50% - 0.5rem);
         min-width: 0;
-    }
-
-    .fv-toast-host {
-        left: 0.5rem;
-        right: 0.5rem;
-        width: auto;
     }
 
     .name-cell-content {

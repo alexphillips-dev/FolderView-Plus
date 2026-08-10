@@ -17,6 +17,8 @@ This folder holds project documentation that does not need to stay at the reposi
 - [TRANSLATING.md](TRANSLATING.md)
 - [TRANSLATION_PLATFORM.md](TRANSLATION_PLATFORM.md)
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- [Content Security Policy readiness](security/CSP_READINESS.md)
+- [Package trust and provenance](security/PACKAGE_TRUST.md)
 
 ## Architecture
 
@@ -27,6 +29,7 @@ This folder holds project documentation that does not need to stay at the reposi
 - [runtime-host-adapter.md](runtime-host-adapter.md)
 - [shared-ui-primitives.md](shared-ui-primitives.md)
 - [unraid-docker-interface-compatibility.md](unraid-docker-interface-compatibility.md)
+- [unraid-docker-api-integration.md](unraid-docker-api-integration.md)
 - [vm-runtime-architecture.md](vm-runtime-architecture.md)
 - [visual-runtime-contract.md](visual-runtime-contract.md)
 

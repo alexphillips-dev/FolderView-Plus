@@ -7,6 +7,7 @@
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
+    const downloadDiagnosticsModule = root?.FolderViewPlusDownloadDiagnostics || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
         'id',
         'uuid',
@@ -29,6 +30,7 @@
         'navigationPrefillId',
         'bootstrapRouteId',
         'bootstrapEffectiveId',
+        'incidentId',
         'stateSignature'
     ]));
 
@@ -54,7 +56,8 @@
         'pageUrl',
         'sourceUrl',
         'url',
-        'href'
+        'href',
+        'route'
     ]));
 
     const SUPPORT_BUNDLE_UI_DEBUG_TEXT_KEYS = Object.freeze(new Set([
@@ -351,6 +354,13 @@
             readClientDiagnosticsStorageRecord,
             storageKeys
         }) : null;
+        const downloadCollectors = (
+            downloadDiagnosticsModule
+            && typeof downloadDiagnosticsModule.createCollectors === 'function'
+        ) ? downloadDiagnosticsModule.createCollectors({
+            readClientDiagnosticsStorageRecord,
+            storageKeys
+        }) : null;
         const collectBrowserCapabilities = browserCollectors?.collectBrowserCapabilities || (() => ({}));
         const collectClientStorageDiagnostics = browserCollectors?.collectClientStorageDiagnostics || (() => ({
             localStorageAvailable: false,
@@ -376,6 +386,10 @@
             count: 0,
             entries: []
         }));
+        const collectStartupIncident = browserCollectors?.collectStartupIncident || (() => ({
+            available: false,
+            schemaVersion: 1
+        }));
         const collectDockerPageDiagnostics = browserCollectors?.collectDockerPageDiagnostics || (() => ({ available: false }));
         const collectDockerCompatibilityDiagnostics = browserCollectors?.collectDockerCompatibilityDiagnostics || (() => ({ available: false }));
         const collectDockerBulkUpdateTrace = browserCollectors?.collectDockerBulkUpdateTrace || (() => ({ available: false }));
@@ -392,6 +406,16 @@
         }));
         const collectDashboardLifecycleDiagnostics = browserCollectors?.collectDashboardLifecycleDiagnostics || (() => ({ available: false }));
         const collectVmLifecycleDiagnostics = browserCollectors?.collectVmLifecycleDiagnostics || (() => ({ available: false }));
+        const collectDownloadAttempts = downloadCollectors?.collectDownloadAttempts || (() => ({
+            schemaVersion: 1,
+            available: false,
+            count: 0,
+            confirmedFailureCount: 0,
+            probableRestrictionCount: 0,
+            indeterminateCount: 0,
+            latestVerdict: null,
+            attempts: []
+        }));
         const collectRuntimePerformanceDiagnostics = (uiRedactor) => {
             const surfaces = Object.fromEntries(Object.entries(storageKeys.runtimePerformance || {}).map(([surface, key]) => {
                 const record = readClientDiagnosticsStorageRecord(key);
@@ -520,6 +544,7 @@
                     pluginVersion: payload.bundleMeta?.pluginVersion || ''
                 })
             );
+            existingUiTelemetry.startupIncident = collectStartupIncident(uiRedactor);
             existingUiTelemetry.dockerDiagnostics = {
                 compatibility: collectDockerCompatibilityDiagnostics(uiRedactor),
                 pageSnapshot: collectDockerPageDiagnostics(uiRedactor),
@@ -533,6 +558,7 @@
             });
             existingUiTelemetry.dashboardLifecycle = collectDashboardLifecycleDiagnostics(uiRedactor);
             existingUiTelemetry.vmLifecycle = collectVmLifecycleDiagnostics(uiRedactor);
+            existingUiTelemetry.downloadAttempts = collectDownloadAttempts(uiRedactor);
             existingUiTelemetry.runtimePerformance = collectRuntimePerformanceDiagnostics(uiRedactor);
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
@@ -573,6 +599,7 @@
             collectCurrentPageTelemetry,
             collectLoadedAssetTelemetry,
             collectBrowserConsoleErrors,
+            collectStartupIncident,
             createUiTelemetryRedactor
         });
     };

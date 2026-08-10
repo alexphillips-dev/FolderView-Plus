@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Docker layout stability fixture</title>
+    <link rel="stylesheet" href="/plugin/styles/docker.css">
+    <style>
+        body {
+            margin: 24px;
+            background: #1b1b1b;
+            color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+
+        .folder-preview {
+            display: inline-flex;
+            min-height: 28px;
+            align-items: center;
+        }
+
+        #action-target {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        #width-probe {
+            width: var(--fvplus-docker-app-column-width);
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="folder-preview">
+        <span class="appname">Container</span>
+        <span id="action-target"></span>
+    </div>
+    <div id="folder-row" data-fv-folder-id="fixture-folder">
+        <span id="folder-context-target" class="folder-hand">
+            <span id="folder-context-child">Folder</span>
+        </span>
+        <a class="folder-appname">Edit</a>
+        <button class="folder-dropdown">Toggle</button>
+    </div>
+    <div id="width-probe"></div>
+
+    <script src="/vendor/jquery.js"></script>
+    <script src="/plugin/scripts/runtime.column-layout.js"></script>
+    <script src="/plugin/scripts/docker.runtime.preview-actions.js"></script>
+    <script src="/plugin/scripts/docker.runtime.shared.js"></script>
+    <script src="/plugin/scripts/folder.runtime.row-actions.js"></script>
+    <script>
+        const actionSettings = {
+            preview: 1,
+            preview_webui: true,
+            preview_console: true,
+            preview_logs: true
+        };
+        const actionsApi = window.FolderViewPlusDockerPreviewActions.createApi({
+            window,
+            document,
+            $: window.jQuery,
+            utils: {
+                resolvePreviewActionPrefs: () => ({
+                    preview_webui: true,
+                    preview_console: true,
+                    preview_logs: true
+                })
+            },
+            getSafeWebuiUrl: (value) => /^https?:\/\//.test(String(value || '')) ? String(value) : '',
+            openWebuiInNewTab: () => {},
+            openTerminal: () => {}
+        });
+        const layoutEngine = window.FolderViewPlusRuntimeColumnLayout.createColumnLayoutEngine({
+            minWidth: 118,
+            maxWidth: 1280,
+            presetWidths: { compact: 128, standard: 142, wide: 188 },
+            desktopVarName: '--fvplus-docker-app-column-width',
+            mobileVarName: '--fvplus-docker-app-column-width-mobile',
+            mobileScale: 1,
+            mobileMin: 136
+        });
+        const target = window.jQuery('#action-target');
+        const bootstrapWidth = layoutEngine.resolveBootstrapWidth({
+            baseline: 142,
+            cached: 142,
+            estimated: 286,
+            floor: 142
+        });
+        layoutEngine.applyCssWidthVars(bootstrapWidth);
+        actionsApi.appendDockerPreviewActionButtons(
+            target,
+            actionSettings,
+            'fixture-container',
+            '/bin/sh',
+            '',
+            { webuiCapability: true, webuiHydrating: true }
+        );
+
+        const consoleBefore = target.children('.folder-element-console').get(0);
+        const logsBefore = target.children('.folder-element-logs').get(0);
+        const consoleRectBefore = consoleBefore.getBoundingClientRect();
+        const logsRectBefore = logsBefore.getBoundingClientRect();
+        const firstVisibleWidth = document.querySelector('#width-probe').getBoundingClientRect().width;
+
+        window.fixturePreviewActionStability = {
+            run: () => new Promise((resolve) => {
+                window.setTimeout(() => {
+                    actionsApi.reconcileDockerPreviewActionButtons(
+                        target,
+                        actionSettings,
+                        'fixture-container',
+                        '/bin/bash',
+                        'https://example.invalid/',
+                        { webuiCapability: true, webuiHydrating: false }
+                    );
+                    layoutEngine.applyCssWidthVars(bootstrapWidth);
+                    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+                        const consoleAfter = target.children('.folder-element-console').get(0);
+                        const logsAfter = target.children('.folder-element-logs').get(0);
+                        const consoleRectAfter = consoleAfter.getBoundingClientRect();
+                        const logsRectAfter = logsAfter.getBoundingClientRect();
+                        const slotWidths = target.children('.fv-preview-action-slot').get().map((node) => (
+                            node.getBoundingClientRect().width
+                        ));
+                        resolve({
+                            consoleNodePreserved: consoleAfter === consoleBefore,
+                            logsNodePreserved: logsAfter === logsBefore,
+                            consoleShiftPx: Math.abs(consoleRectAfter.left - consoleRectBefore.left),
+                            logsShiftPx: Math.abs(logsRectAfter.left - logsRectBefore.left),
+                            webuiReady: target.children('.folder-element-webui.is-ready').length === 1,
+                            pendingWebui: target.children('.folder-element-webui.is-pending').length,
+                            slotWidths,
+                            bootstrapWidth,
+                            firstVisibleWidth,
+                            settledWidth: document.querySelector('#width-probe').getBoundingClientRect().width
+                        });
+                    }));
+                }, 120);
+            })
+        };
+
+        let contextAttachCount = 0;
+        let contextOpenCount = 0;
+        let contextDefaultPrevented = false;
+        let contextListener = null;
+        const contextTarget = document.querySelector('#folder-context-target');
+        const rowActionsController = window.FolderViewDockerRuntimeShared.createFolderRowActionsController({
+            window,
+            document,
+            $: window.jQuery,
+            namespace: 'fvFixtureFolderRowAction',
+            actionAttribute: 'data-fv-fixture-folder-action',
+            handlers: {
+                context: () => {
+                    contextAttachCount += 1;
+                    if (contextListener) {
+                        contextTarget.removeEventListener('click', contextListener);
+                    }
+                    contextListener = (event) => {
+                        contextOpenCount += 1;
+                        contextDefaultPrevented = event.defaultPrevented;
+                    };
+                    contextTarget.addEventListener('click', contextListener);
+                },
+                edit: () => {},
+                toggle: () => {}
+            }
+        });
+        rowActionsController.decorate(window.jQuery('#folder-row'), 'fixture-folder');
+        rowActionsController.bind();
+        window.fixtureFolderContextFirstClick = {
+            run: () => {
+                document.querySelector('#folder-context-child').click();
+                return {
+                    attachCount: contextAttachCount,
+                    openCount: contextOpenCount,
+                    defaultPrevented: contextDefaultPrevented
+                };
+            }
+        };
+
+        window.fixtureQueuedFolderPinIntent = {
+            run: async () => {
+                const runner = window.FolderViewDockerRuntimeShared.createSafeUiActionRunner();
+                let releasePin;
+                const pinSave = new Promise((resolve) => {
+                    releasePin = resolve;
+                });
+                const transitions = [];
+                let pinned = false;
+                const applyIntent = (nextPinned) => {
+                    if (pinned === nextPinned) {
+                        return;
+                    }
+                    pinned = nextPinned;
+                    transitions.push(nextPinned ? 'pinned' : 'unpinned');
+                };
+                const pin = runner.run('docker-pin:fixture-folder', async (intent) => {
+                    await pinSave;
+                    transitions.push('pin-saved');
+                    if (intent.isLatest()) {
+                        applyIntent(true);
+                    }
+                }, { onIntent: () => applyIntent(true) });
+                const unpin = runner.run('docker-pin:fixture-folder', async (intent) => {
+                    transitions.push('unpin-saved');
+                    if (intent.isLatest()) {
+                        applyIntent(false);
+                    }
+                }, { queueIfBusy: true, onIntent: () => applyIntent(false) });
+                const queuedBeforeSave = runner.isQueued('docker-pin:fixture-folder');
+                const pinnedBeforeSave = pinned;
+                releasePin();
+                await Promise.all([pin, unpin]);
+                return {
+                    queuedBeforeSave,
+                    pinnedBeforeSave,
+                    pinned,
+                    transitions,
+                    runningAfterSave: runner.isRunning('docker-pin:fixture-folder'),
+                    queuedAfterSave: runner.isQueued('docker-pin:fixture-folder')
+                };
+            }
+        };
+    </script>
+</body>
+</html>

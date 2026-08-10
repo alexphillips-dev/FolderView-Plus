@@ -1,0 +1,15 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "zh-Hant",
+        "namespace": "common"
+    },
+    "common.labels.optional": "可選",
+    "common.badges.recommended": "推薦",
+    "common.badges.can-delete": "可以刪除",
+    "common.close": "關閉",
+    "common.cancel": "取消",
+    "common.confirm": "確認",
+    "common.confirm-type": "輸入以確認",
+    "common.loading": "載入中..."
+}

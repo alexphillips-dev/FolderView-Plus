@@ -6,8 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.07.24.13">
-<!ENTITY md5 "ee002084a42ad5aaf596477ee4ea33a1">
+<!ENTITY version "2026.08.10.02">
+<!ENTITY md5 "2c32d0a5dde4e6d43273366b463090ac">
+<!ENTITY sha256 "fd4768fbbb8a5434cf0b7bbb220e31301a4ed5af44bb49a50d58316fc110f3ae">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,105 +18,511 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.07.24.13
-# FolderView Plus 2026.07.24.13
-This stable follow-up corrects cross-browser rendering of the Diagnostics support-bundle overview after the `2026.07.24.12` release.
+###2026.08.10.02
+## FolderView Plus 2026.08.10.02
+This stable release promotes every validated development change since stable `2026.07.24.13`.
+### Runtime architecture and maintainability
+- Performance: Split Settings startup into a small first-paint foundation and an interaction/idle-deferred workspace while preserving strict dependency order.
+- Reliability: Add per-module startup timing, bounded timeouts, failed-module identification, version evidence, and one resumable retry instead of allowing a stalled asset to leave Settings blank.
+- Maintenance: Extract focused modules for remote retrieval, Docker layout geometry, container normalization, download diagnostics, support-bundle comparison, and Settings workspace behavior.
+- Maintenance: Ratchet architecture budgets for browser globals, inline actions, and the largest JavaScript, CSS, PHP, and page files.
+- Quality: Expand JavaScript coverage thresholds, PHPStan analysis, dead-code checks, localization migration budgets, and deterministic browser/runtime performance contracts.
+- Docs: Add current architecture, browser-support, Docker compatibility, diagnostics privacy, package storage, security, and release-integrity guidance.
+### Docker API compatibility and first-render stability
+- Feature: Add operation-level GraphQL capability discovery for Docker queries, mutations, subscriptions, arguments, return types, and deprecation metadata.
+- Feature: Add a hybrid legacy/GraphQL provider that prefers schema-confirmed reads and statistics while leaving current Unraid lifecycle actions authoritative.
+- Compatibility: Normalize GraphQL, PHP, and DOM container records into one immutable model with stable runtime identity and metadata.
+- Reliability: Fall back safely when GraphQL is unavailable or incomplete, reject stale responses, abort owned requests, and dispose subscriptions across navigation.
+- Feature: Add targeted single-container reconciliation and aggregate update, orphan, rebuild, and port-conflict health checks.
+- Privacy: Keep Docker logs on demand and export only aggregate compatibility and health evidence in sanitized diagnostics.
+- Fix: Reserve WebUI, console, and log action slots during the first preview render so later metadata cannot shift existing controls.
+- Fix: Reconcile Docker preview actions in place and provide lightweight WebUI capability hints before full template hydration.
+- Fix: Measure localized folder/status content before showing rows and use a schema-, algorithm-, and content-aware Application-column width cache.
+- Diagnostics: Record privacy-safe first-render timing, width stages, action-slot availability, row motion, and within-row action displacement.
+- Maintenance: Track upstream Unraid Docker schema, API releases, source-gate changes, and activation announcements without enabling prerelease organizer mutations.
+### Security update sequence
+- Security: Require explicit mutation markers, trusted same-origin context, per-install request tokens, and fail-closed token availability for protected POST actions.
+- Security: Add target-bound, short-lived, one-time mutation nonces, transaction replay rejection, bounded endpoint rate limits, and standards-based retry guidance.
+- Security: Enforce endpoint method, action, content-type, request-size, and parameter contracts through the shared API manifest.
+- Security: Restrict folder identifiers, prototype-sensitive keys, external links, WebUI navigation, popup names, image URLs, and localized rich text before browser or server use.
+- Security: Preflight icon archives for traversal, links, special files, depth, count, per-file size, total size, and expected top-level content before private staged activation.
+- Security: Constrain durable writes to approved roots, reject symbolic-link path components, and use restrictive atomic temporary files.
+- Security: Replace direct shell execution with one allowlisted, shell-free `proc_open` boundary using fixed executable candidates, argument arrays, output caps, and timeouts.
+- Security: Replace plugin-owned inline event handlers with a delegated declarative bridge that does not use `eval` or the `Function` constructor.
+- Security: Reject executable managed-theme content, remote imports, external network URLs, and HTML data URLs before persistence or rendering.
+- Security: Generate and verify a deterministic SHA-256 runtime-integrity manifest covering expected files, permissions, and unexpected executable content.
+- Security: Record a bounded HMAC hash-chained security audit containing only sanitized action metadata, random trace IDs, status, and timestamps.
+- Security: Pin all external GitHub Actions, expand CodeQL coverage, add dependency-review and OpenSSF Scorecard workflows, and maintain high-severity merge protection.
+- Privacy: Disable live-system artifact capture by default and prevent CI/release workflows from uploading private Unraid screenshots, URLs, logs, or support data.
+- Security: Publish SHA-256 package and icon-pack digests, a complete CycloneDX runtime/workflow SBOM, GitHub OIDC provenance, and SBOM attestations.
+- Diagnostics: Surface sanitized runtime-integrity and security-audit health without exposing payloads, names, paths, addresses, tokens, or nonces.
+### Folder interaction reliability
+- Fix: Route Docker and VM folder icon, name, edit, expand, and menu behavior through an idempotent shared delegated-action controller.
+- Fix: Prepare folder context menus during the capture phase so the first folder-icon click opens the newly attached Unraid menu.
+- Fix: Retain the newest Pin or Unpin intent while an earlier preference save is still in flight.
+- Fix: Update visible Pin/Unpin order, badge, and menu state immediately while preserving revision checks, server verification, rollback, and stale-render protection.
+- Reliability: Remove duplicate handlers during repeated navigation and release owned capture/delegated listeners during teardown.
+- Diagnostics: Treat the shared folder-action controller as required and ignore only the exact managed icon-pack activation record during runtime-integrity scans.
+### Diagnostics, exports, and user experience
+- UI/UX: Remove lower-right completion popups from Settings and Dashboard while preserving nonvisual live-region announcements and actionable modal failures.
+- Reliability: Keep destructive-action recovery in Advanced > Recovery and retain inline tree-move Undo/Redo controls instead of short-lived popup Undo actions.
+- Diagnostics: Add bounded privacy-safe download lifecycles for Docker, VM, and plugin configuration exports without claiming that a browser save completed.
+- UI/UX: Show missing-download and retry controls beside export actions, retaining the latest payload briefly so a direct user click can retry with fresh activation.
+- Privacy: Exclude export names, configuration contents, workload identities, paths, addresses, and identifiers from download diagnostics and support bundles.
+- Reliability: Replace generic bootstrap failures with a shared startup-incident model across Settings, Docker, VM, Dashboard, and Folder Editor.
+- Diagnostics: Preserve the latest sanitized startup incident for 24 hours in browser-session storage, including module outcomes and recovery history after navigation or successful recovery.
+- Accessibility: Add plain-language startup summaries, visible reference codes, keyboard focus, live-region semantics, focus indicators, reduced-motion behavior, and translated recovery actions.
+- Privacy: Sanitize copied support codes and downloadable startup reports by default, reducing URLs to routes and masking private hosts, addresses, and filesystem paths.
+- Diagnostics: Add a privacy-safe command-line comparison tool for sanitized support bundles and more precise browser/runtime evidence for troubleshooting.
+### Localization and accessibility
+- Fix: Activate the canonical resolved browser catalog so Unraid `zh_CN` sessions use complete Simplified Chinese instead of falling back to English.
+- Localization: Add complete Arabic, Bengali, Catalan, Croatian, Danish, Hungarian, Latvian, Norwegian Bokmål, and Traditional Chinese catalogs.
+- Compatibility: Map native Unraid regional identifiers for all supported Chinese variants and the expanded language set to canonical plugin locales.
+- Accessibility: Enable production RTL direction for Arabic and validate locale selection, rendered translations, direction changes, and pseudo-locale restoration in real browsers.
+- Localization: Apply a pinned build-time Taiwan normalization profile for independently translated Traditional Chinese without adding an Unraid runtime dependency.
+- Quality: Enforce locale-specific plural forms, placeholders, markup order, catalog completeness, HTML safety, and exact link targets across all 27 locales.
+- Quality: Make startup-banner translation calls statically discoverable so strict unused-key validation covers every early recovery message.
+- Localization: Advance the catalog to revision `2026.08.10.1` with 2,060 complete messages per locale, including startup recovery vocabulary.
+### Release, CI, and supply-chain reliability
+- Reliability: Prevent package-version reuse by considering manifests, archives, branches, remote state, and tags during allocation.
+- Reliability: Make package provenance content-addressed and normalize tar ownership, timestamps, ordering, and permissions for byte-identical Windows/WSL/Linux builds.
+- Quality: Compare two isolated packages and the checked-in archive byte for byte during deterministic-build validation.
+- Reliability: Require stable releases to pass configured live Unraid version, browser, and theme matrices in addition to deterministic fixtures.
+- Test: Add weekly cross-browser validation in Chromium, Firefox, and WebKit plus expanded mobile, RTL, accessibility, theme, interaction, security, and extreme-load coverage.
+- Maintenance: Add remote raw manifest/archive/checksum verification, archive retention auditing, release provenance, stable comparison links, and bounded commit history.
+- Fix: Correct Linux CI dependency installation, cross-platform path handling, Settings diagnostics initialization, stylesheet budgets, WebKit theme contrast, and canonical line-ending packaging drift found while monitoring dev releases.
+- Regression guard: Cover GraphQL capability/fallback behavior, runtime disposal, first-frame geometry, mutation security, filesystem/process boundaries, folder interactions, downloads, localization, startup recovery, packaging, and publication workflows.
+
+
+###2026.08.10.01
+## FolderView Plus 2026.08.10.01
+### Recoverable startup diagnostics
+- Reliability: Replace generic bootstrap failures with a shared startup-incident model across Settings, Docker, VM, Dashboard, and the folder editor.
+- Reliability: Add a bounded **Try loading again** action that resumes the Settings loader from the failed module, cache-busts only that retry, and keeps reload available as the safe fallback.
+- Diagnostics: Record module stage, outcome, duration, asset version, retry state, resource timing, last completed step, and recovery history without exposing private runtime values.
+- Diagnostics: Preserve the latest startup incident for 24 hours in browser-session storage so a sanitized support bundle can include the failure after navigation or successful recovery.
+- Privacy: Make copied support codes and downloadable startup reports sanitized by default, reducing URLs to routes and masking private hosts, addresses, and filesystem paths.
+- Accessibility: Add plain-language failure summaries, visible reference codes, keyboard focus, live-region semantics, focus indicators, reduced-motion handling, and translated recovery actions.
+- Localization: Add the startup recovery vocabulary to all 27 supported locales and advance the complete 2,060-message catalog to revision `2026.08.10.1`.
+- Performance: Stage Settings workspace modules after an idle or interaction opportunity and apply a 12-second per-module timeout so stalled assets fail predictably instead of leaving a blank page.
+- Maintenance: Document the incident lifecycle, module-loader telemetry, support workflow, and recovery behavior; refresh CSP readiness metadata and deterministic browser contracts.
+- Regression guard: Add fault-injection coverage for failed and stalled assets, one-shot recovery, CSP classification, sanitized persistence, support-bundle redaction, Settings failure presentation, and cross-surface bootstrap wiring.
+
+
+###2026.08.06.02
+## FolderView Plus 2026.08.06.02
+### Expanded Unraid language coverage
+- Localization: Add complete 2,049-message catalogs for Arabic, Bengali, Catalan, Croatian, Danish, Hungarian, Latvian, Norwegian Bokmål, and Traditional Chinese across Docker, VM, Dashboard, Settings, diagnostics, setup, import, and legacy surfaces.
+- Compatibility: Map Unraid language identifiers to canonical plugin locales, including `ar_AR`, `bn_BN`, `bn_BD`, `ca_CA`, `da_DA`, `hr_HR`, `hu_HU`, `lv_LV`, `no_NO`, `nb_NO`, `zh_TW`, `zh_HK`, `zh_MO`, and `zh_Hant`.
+- Accessibility: Activate Arabic with RTL document direction and add browser coverage for locale selection, rendered translations, direction changes, and pseudo-locale restoration.
+- Localization: Add an independently translated `zh-Hant` catalog and apply a pinned, build-time Taiwan phrase normalization profile without adding a runtime dependency to the Unraid package.
+- Quality: Enforce locale-specific plural requirements for Arabic, Croatian, Czech, Latvian, Polish, Romanian, Russian, and Ukrainian while preserving placeholders, markup order, and exact link targets.
+- Maintenance: Add explicit scaffolding and targeted refinement options so future catalog maintenance can fill missing root and namespaced messages without silently rewriting accepted translations.
+- Regression guard: Expand unit and real-browser coverage for all 27 shipped locales, canonical Unraid aliases, native locale labels, RTL behavior, catalog completeness, HTML safety, and deterministic catalog generation.
+- Docs: Document all active locale mappings, Arabic RTL behavior, Traditional Chinese normalization, and the current translation-maintenance workflow.
+- Security: Pin the development-only `opencc-js` translation-normalization tool, refresh the complete SBOM, and update the lockfile to resolve the reported high-severity transitive `brace-expansion` advisory.
+
+
+###2026.08.06.01
+## FolderView Plus 2026.08.06.01
+### Chinese locale compatibility
+- Fix: Activate the canonical resolved catalog in the browser so Unraid `zh_CN` sessions render the complete Simplified Chinese interface instead of falling back to English.
+- Localization: Support generic Chinese plus Mainland China, Singapore, Malaysia, and explicit `zh-Hans` identifiers through the existing 2,049-message Simplified Chinese catalog.
+- Compatibility: Preserve the normalized Unraid-requested locale in document metadata and diagnostics while using `zh-Hans` for translation, formatting, collation, and pseudo-locale restoration.
+- Reliability: Keep Taiwan, Hong Kong, Macau, and explicit `zh-Hant` requests on the English fallback until a separately reviewed Traditional Chinese catalog is available.
+- Regression guard: Cover underscore normalization, regional alias resolution, translated runtime output, pseudo-locale restoration, and native Chinese labels across all primary plugin surfaces.
+
+
+###2026.07.29.04
+## FolderView Plus 2026.07.29.04
+### Reproducible package correction
+- Quality: Rebuild the development package from the repository's canonical LF-normalized source so its bytes match a clean Linux checkout.
+- Reliability: Preserve the export-download diagnostics and support-bundle behavior introduced in `2026.07.29.03` without runtime changes.
+- Quality: Keep deterministic-build enforcement authoritative across Windows development and GitHub Actions.
+
+
+###2026.07.29.03
+## FolderView Plus 2026.07.29.03
+### Diagnostic module hardening
+- Refactor: Move export-download lifecycle recording and support-bundle normalization into a dedicated module so the general browser telemetry collector remains within its established architecture and performance boundaries.
+- Reliability: Preserve the inline missing-download report, direct retry, privacy-safe metadata, and sanitized support-bundle evidence through the focused module load path.
+- Regression guard: Add the new module to include-order, CSP, install, package-integrity, architecture, and performance contracts.
+### CI cleanup
+- Maintenance: Remove the retired `common.dismiss` and `common.notifications` localization keys left behind by the popup notification removal.
+- Localization: Regenerate all 18 complete locale catalogs at revision `2026.07.29.2` with 2,049 aggregate messages and no unused explicit keys.
+- Quality: Refresh the tracked performance and CSP inventories after accepting the new dedicated diagnostics asset.
+
+
+###2026.07.29.02
+## FolderView Plus 2026.07.29.02
+### Export download diagnostics
+- Diagnostics: Record a bounded, privacy-safe lifecycle for Docker, VM, and plugin configuration downloads so support bundles can distinguish payload generation, browser dispatch, synchronous failures, and user-confirmed missing downloads.
+- Privacy: Store only fixed-schema metadata such as export type, surface, size bucket, browser capabilities, and lifecycle outcome; export names, configuration content, container names, paths, addresses, and identifiers are never persisted in download diagnostics.
+- Diagnostics: Include recent download attempts and aggregate outcomes in sanitized support bundles without claiming a browser save completed when the browser does not provide a completion signal.
+### Inline recovery
+- UI/UX: Show export-download status next to the export controls with clear “Download didn’t start” and “Retry download” actions instead of popup notifications.
+- Reliability: Keep a short-lived in-memory copy of the latest export payload so a direct user click can retry the browser download with fresh user activation.
+- Accessibility: Provide theme-aware, responsive, keyboard-accessible status and recovery controls with localized text across all 18 supported locales.
+### Validation and packaging
+- Quality: Add unit and browser-fixture coverage for privacy boundaries, missing-download reporting, synchronous failures, retry behavior, and support-bundle telemetry.
+- Quality: Verify the dedicated download-diagnostics stylesheet is present and byte-identical in built and installed plugin artifacts.
+
+
+###2026.07.29.01
+## FolderView Plus 2026.07.29.01
+### Popup notification removal
+- UI/UX: Completely remove the lower-right action-completion popup system from Settings and Dashboard surfaces.
+- Accessibility: Preserve action status feedback through a nonvisual polite live region without creating visible notification cards.
+- Reliability: Continue presenting actionable failures through the existing modal error dialog instead of an easy-to-miss transient popup.
+### Persistent recovery
+- Reliability: Record destructive-action safety backups in the Activity Center and direct recovery through Advanced > Recovery instead of a ten-second popup Undo button.
+- Reliability: Preserve backup creation, restore workflows, and the dedicated inline tree-move Undo/Redo controls.
+### Cleanup and coverage
+- Maintenance: Remove the retired toast renderer, DOM host, animation, responsive styles, legacy hidden toast CSS, timers, and unused state.
+- Localization: Remove the retired notification-only strings and regenerate the complete 18-locale surface catalogs.
+- Quality: Add browser and contract coverage proving action announcements remain accessible and no popup notification host is rendered.
+
+
+###2026.07.28.09
+## FolderView Plus 2026.07.28.09
+### Immediate folder pin feedback
+- Fix: Docker folder Pin and Unpin actions now update the visible folder order, pin badge, and menu state immediately instead of waiting for a server preference read.
+- Fix: VM folder Pin and Unpin actions use the same immediate interaction behavior for runtime parity.
+### Reliable asynchronous persistence
+- Fix: Older Pin or Unpin save completions can no longer repaint over a newer user selection while preference requests are still settling.
+- Reliability: Server-authoritative preference merging, post-save read-back verification, stale-render protection, and rollback on the latest save failure remain enabled.
+- Quality: Added shared intent-generation coverage and a browser regression that verifies Unpin is visible before an outstanding Pin save completes.
+
+
+###2026.07.28.08
+# FolderView Plus 2026.07.28.08
+This interaction reliability update ensures a folder's Unpin request is not
+lost while its preceding Pin preference save is still settling.
+## Folder interactions
+- Fix: Retain one latest reversible folder Pin or Unpin intent instead of
+  silently discarding it when the same folder already has a save in flight.
+- Fix: Capture the requested pinned state when the Docker or VM menu action is
+  selected so queued work cannot be reinterpreted after asynchronous state
+  changes.
+- Reliability: Preserve duplicate suppression for non-queued actions and
+  continue to serialize preference writes through the existing revision,
+  rollback, and persistence guards.
+## Regression coverage
+- Test: Exercise queued, replaced, completed, and default duplicate-suppression
+  behavior in the shared safe UI action runner.
+- Test: Add a Chromium fixture proving one Unpin selection is retained while
+  the preceding Pin save settles and produces an unpinned final state.
+
+
+###2026.07.28.07
+# FolderView Plus 2026.07.28.07
+This focused reliability update restores first-click folder menu behavior after
+the shared row-action security migration.
+## Folder interactions
+- Fix: Prepare Docker and VM folder context menus during the capture phase so
+  the initiating icon click reaches Unraid's newly attached menu opener.
+- Fix: Keep folder edit and expand controls on the existing delegated action
+  path, and avoid cancelling or double-dispatching context-menu clicks.
+- Maintenance: Preserve idempotent binding and teardown for both native capture
+  and delegated folder-row listeners across repeated page navigation.
+## Regression coverage
+- Test: Verify the shared row-action controller dispatches each action once,
+  does not cancel context-menu clicks, and releases both listener types.
+- Test: Add a Chromium fixture proving one folder-icon click prepares and opens
+  the context menu without requiring a second click.
+
+
+###2026.07.28.06
+# FolderView Plus 2026.07.28.06
+This reliability update restores folder interactions after the declarative
+event security migration and removes false Storage and paths failures caused by
+managed or retired installed runtime files.
+## Folder interactions
+- Fix: Route Docker and VM folder icon, name, and expand controls through one
+  shared delegated-action controller instead of the declarative compatibility
+  bridge.
+- Fix: Bind each folder action once, remove the legacy action attribute during
+  row creation, and release the delegated handler when the page is unloaded.
+- Diagnostics: Treat the shared folder-action controller as a required runtime
+  module so a missing or stale asset produces a specific bootstrap finding.
+## Runtime integrity
+- Diagnostics: Exclude the exact generated `icon-asset-pack.json` activation
+  record from unexpected executable-file findings while continuing to flag
+  every other unmanifested JSON, script, style, shell, or PHP file.
+- Maintenance: Remove the retired native-organizer and Docker member-menu
+  scripts from the installed plugin directory during upgrades.
+## Regression coverage
+- Test: Exercise folder action decoration, single-dispatch behavior, teardown,
+  Docker and VM module ordering, managed runtime-file handling, obsolete-file
+  cleanup, browser fixtures, and runtime performance budgets.
+
+
+###2026.07.28.05
+# FolderView Plus 2026.07.28.05
+This security update adds continuous runtime assurance, replay-resistant
+mutations, auditable security events, and stronger repository supply-chain
+checks without exporting sensitive request or system data.
+## Request and mutation security
+- Security: Require short-lived, target-bound, one-time nonces for shared API
+  requests and reject expired, mismatched, or reused mutation authorization.
+- Security: Reject replayed mutation transaction identifiers, apply bounded
+  endpoint-specific rate limits, and return standards-based retry guidance.
+- Security: Remove the legacy GET backup-download path and route downloads
+  through the guarded POST request client.
+- Security: Add a dedicated nonce bootstrap endpoint with explicit API-contract
+  metadata and fail-closed endpoint, action, content-type, and request-size
+  enforcement.
+## Runtime integrity and diagnostics
+- Security: Generate a deterministic SHA-256 runtime integrity manifest inside
+  every plugin package and verify expected files, permissions, and unexpected
+  executable content at runtime.
+- Security: Record a bounded HMAC hash-chained audit trail for security decisions
+  using only sanitized action metadata, random trace identifiers, status, and
+  timestamps.
+- Diagnostics: Include sanitized runtime-integrity and security-audit health in
+  diagnostics and support bundles without exposing payloads, names, paths,
+  addresses, tokens, nonces, or other private values.
+- Security: Verify packaged runtime-manifest coverage and hashes during release
+  validation and installation smoke testing.
+## Repository and supply-chain assurance
+- Security: Upgrade CodeQL to the immutable v4 action and add a high-severity
+  dependency-review merge gate with an explicit license policy.
+- Security: Add a scheduled OpenSSF Scorecard workflow that publishes SARIF
+  findings through GitHub code scanning with least-privilege permissions.
+- Security: Require Dependency Review in managed branch-protection policy and
+  expand the CycloneDX SBOM to cover the complete shipped runtime and workflow
+  surface.
+- Docs: Document mutation authorization, replay protection, rate limiting,
+  runtime integrity, audit privacy, package verification, and security-response
+  expectations.
+- Test: Add functional regression coverage for nonce consumption, target
+  binding, replay rejection, rate limits, path confinement, audit-chain tamper
+  detection, runtime-manifest verification, workflow policy, and package
+  integrity.
+
+
+###2026.07.28.04
+# FolderView Plus 2026.07.28.04
+This security update strengthens archive handling, operating-system boundaries,
+browser injection defenses, durable storage, managed themes, and release
+provenance without removing compatibility fallbacks required by Unraid.
+## Archive and filesystem security
+- Security: Preflight icon asset-pack archives before extraction with strict path,
+  file-type, entry-count, nesting-depth, per-file-size, and total-size limits.
+- Security: Reject archive links, special files, traversal paths, unexpected
+  top-level content, and post-extraction filesystem objects.
+- Security: Use private temporary staging, restrictive permissions, protected
+  cleanup, and atomic activation for verified icon packs.
+- Security: Constrain durable writes to approved plugin and Docker storage roots,
+  reject symbolic-link components, and create atomic temporary files with mode
+  `0600`.
+- Security: Harden custom-icon upload staging and reject symbolic-link source,
+  destination, rename, and deletion paths.
+## Process and browser security
+- Security: Replace direct shell execution with one allowlisted, shell-free
+  `proc_open` boundary for Docker, VM, and Tailscale operations.
+- Security: Validate runtime object names and actions, use fixed executable
+  candidates and argument arrays, cap output, and terminate timed-out processes.
+- Security: Replace plugin-owned inline event handlers with a delegated,
+  declarative event bridge that uses an explicit function allowlist and restricted
+  argument grammar without `eval` or the `Function` constructor.
+- Security: Add a deterministic CSP-readiness report and CI guard while retaining
+  report-only guidance because FolderView Plus shares its document with Unraid and
+  other plugins.
+## Theme and release supply-chain security
+- Security: Reject executable legacy CSS, remote imports, external network URLs,
+  and HTML data URLs from managed or custom themes before persistence and render.
+- Security: Publish SHA-256 package and icon-pack digests in the Unraid manifest
+  while retaining MD5 only for compatibility.
+- Security: Validate package SHA-256 sidecars and embedded build metadata during
+  release and installation checks.
+- Security: Publish commit-pinned GitHub OIDC provenance and CycloneDX SBOM
+  attestations for stable release archives.
+- Docs: Document package verification, attestation verification, CSP constraints,
+  and the expanded vulnerability-reporting scope.
+- Test: Add regression contracts for archive limits, shell-free argument handling,
+  durable-path containment, declarative event bindings, CSP readiness, package
+  checksums, provenance, and SBOM attestations.
+
+
+###2026.07.28.02
+# FolderView Plus 2026.07.28.02
+- Security: Build third-party icon results with DOM nodes and text properties instead of appending an HTML string.
+- Security: Keep localized rich-text fallback content inert through direct `textContent` assignment.
+- Security: Normalize every encoded npm scope marker when generating CycloneDX package URLs.
+- Test: Add regression contracts for DOM-only third-party icon rendering and complete SBOM purl normalization.
+
+
+###2026.07.28.01
+# FolderView Plus 2026.07.28.01
+This security update hardens every plugin mutation path, removes live-system evidence from automated artifacts, resolves actionable CodeQL findings, and publishes a complete runtime dependency inventory.
+## Request and input security
+- Security: Require the explicit mutation marker, a valid per-install request token, and a trusted same-origin request context for every protected POST action.
+- Security: Fail closed when the request token is unavailable and stop accepting browser-local token fallbacks.
+- Security: Include the mutation marker and page token in the raw backup download POST workflow.
+- Security: Restrict folder identifiers to a bounded safe character set and reject prototype-sensitive property names on both browser and server normalization paths.
+- Security: Sanitize external links, Docker WebUI launches, popup names, image URLs, and translated rich text before they reach browser navigation or DOM sinks.
+- Security: Replace predictable diagnostic identifiers with Web Crypto-backed runtime IDs where the browser supports them.
+## Code scanning and merge protection
+- Security: Expand CodeQL push and pull-request coverage to both `dev` and `main`.
+- Security: Add regression contracts for mutation-token enforcement, privacy-safe workflow artifacts, CodeQL branch coverage, and the runtime SBOM.
+- Maintenance: Record the CodeQL security-severity baseline, triage decisions, and high-or-higher merge policy.
+- Maintenance: Remove dynamic shell/interpreter construction from affected test harnesses and avoid returning local stack details from fixture servers.
+## Artifact privacy
+- Privacy: Disable live Unraid screenshot, report, and URL capture by default unless an operator explicitly opts in locally.
+- Privacy: Stop CI, scheduled validation, release, and back-merge workflows from uploading live-system screenshots or logs.
+- Privacy: Retain only synthetic fixture and release/package artifacts needed to validate repository behavior.
+## Runtime software bill of materials
+- Security: Generate a CycloneDX SBOM that inventories all shipped browser libraries, embedded subcomponents, Unraid-provided runtime dependencies, npm development packages, and pinned GitHub Actions.
+- Security: Verify every file under `scripts/include` is classified and hash each shipped runtime component.
+- Docs: Document the canonical runtime component inventory and the command used to regenerate the SBOM.
+
+
+###2026.07.27.03
+# FolderView Plus 2026.07.27.03
+- Reliability: Keep the settings stylesheet within its enforced architecture budget on Linux and Windows.
+- Test: Scope diagnostics toolbar theme assertions to their exact CSS blocks and current theme-aware color tokens.
+
+
+###2026.07.27.02
+# FolderView Plus 2026.07.27.02
+This dev update strengthens release validation, expands automated compatibility coverage, repairs localization completeness, and adds more precise Docker first-load diagnostics.
+## Release and scheduled validation
+- Reliability: Make release-mode validation fail closed when the Unraid version matrix, browser smoke target, or theme matrix target is missing.
+- Reliability: Add a weekly and manually dispatchable workflow that runs deterministic fixtures in Chromium, Firefox, and WebKit.
+- Reliability: Run required live Unraid guards, browser smoke, and theme-matrix validation from the scheduled workflow whenever all protected target secrets are configured.
+- Maintenance: Update the pinned Playwright development dependency used by browser validation.
+- Accessibility: Strengthen light-theme button and navigation contrast after WebKit/Axe identified insufficient contrast in Diagnostics controls.
+## Docker diagnostics and architecture
+- Diagnostics: Distinguish whole-row movement from action movement within a row during delayed Docker metadata hydration.
+- Diagnostics: Record aggregate unavailable WebUI slots, disconnected action targets, and bounded absolute, relative, and row movement without retaining workload identities.
+- Maintenance: Extract reusable layout measurement and comparison into a typed, executable Docker runtime module.
+- Performance: Remove noisy first-render debug work from the Docker folder hot path and ratchet the main runtime line budget below its previous ceiling.
+- Regression guard: Add executable geometry tests, load-order checks, architecture contracts, and coverage for the extracted layout module.
+## Quality and localization
+- Fix: Add the missing semantic labels for Docker WebUI, console, and log preview actions to every supported catalog.
+- Maintenance: Expand c8 coverage enforcement to diagnostics view models, Docker container normalization, Docker geometry, and future-host compatibility.
+- Maintenance: Raise PHPStan to level 2 and extend analysis to the validation and API-contract libraries.
+- Docs: Record the scheduled/live qualification contract, expanded analysis scope, and privacy-safe layout evidence.
+
+
+###2026.07.27.01
+# FolderView Plus 2026.07.27.01
+This dev update removes the visible Docker first-load bounce by stabilizing preview actions and sizing the Application column before folder rows become visible.
+## Docker first-frame stability
+- Fix: Reserve fixed WebUI, console, and log action slots from the first folder-preview render so delayed WebUI metadata no longer shifts the existing action icons.
+- Fix: Reconcile preview actions in place during full Docker metadata hydration instead of removing and rebuilding the complete action group.
+- Performance: Expose safe WebUI capability, direct URL, and shell hints in the lightweight Docker state response so compatible preview actions can render without waiting for the full template pass.
+- Accessibility: Give the icon-only WebUI, console, and log actions explicit accessible names and tooltips.
+## Application column sizing
+- Fix: Measure localized folder names and status summaries before committing visible folder rows, then apply the measured width in the same render turn.
+- Reliability: Replace the legacy width cache with a schema-versioned, algorithm-versioned, content-signature-aware cache that cannot override a larger current measurement.
+- Reliability: Keep the first-frame cache bootstrap bounded and validate the cached schema, algorithm, mode, and width before applying it.
+- Maintenance: Move reusable width-cache, localized measurement, and bootstrap selection logic into the shared runtime column-layout module.
+## Diagnostics and regression coverage
+- Diagnostics: Add privacy-safe Docker layout-stability evidence for hydration timing, width stages, fixed action-slot state, action displacement, and scoped layout-shift observations.
+- Maintenance: Move Docker layout telemetry into the diagnostics module with single-owner observer lifecycle handling, and extract Docker template-cache orchestration from the main server library.
+- Regression guard: Add a delayed-hydration Chromium fixture that verifies stable action nodes, sub-pixel action displacement, fixed slot widths, and identical first-visible and settled Application-column widths.
+- Regression guard: Cover lightweight WebUI metadata, cache signature validation, pre-visible width reconciliation, support-bundle telemetry, and state/full snapshot-token parity.
+
+
+###2026.07.25.05
+# FolderView Plus 2026.07.25.05
+This dev update prepares FolderView Plus for Unraid's evolving Docker API while preserving the current Docker page and its proven fallback paths.
+## Docker API compatibility
+- Feature: Add operation-level GraphQL capability discovery for Docker queries, mutations, subscriptions, argument signatures, return types, and deprecation metadata.
+- Feature: Introduce a hybrid legacy/GraphQL provider that keeps Unraid's current WebGUI in control while preferring schema-confirmed API reads, container statistics, health metadata, and supported mutations.
+- Compatibility: Normalize GraphQL, PHP runtime, and DOM container records into one immutable model with stable identity, ports, mounts, networks, template links, update state, orphan state, autostart metadata, and size fields.
+- Reliability: Keep legacy Docker startup non-blocking, fall back safely when GraphQL is unavailable or incomplete, reject stale responses, abort owned work on disposal, and avoid duplicate subscriptions across navigation.
+## Runtime data and health
+- Feature: Consume Docker statistics subscriptions in Dashboard previews with automatic fallback to Unraid's existing `docker_load` stream.
+- Feature: Add targeted single-container reconciliation and aggregate Docker health checks for updates, rebuild readiness, orphaned containers, and container or LAN port conflicts.
+- Feature: Add capability-gated update, digest refresh, removal, and autostart mutation adapters while keeping lifecycle buttons on the established Unraid host bridge.
+- Privacy: Keep logs bounded and on demand, expose only aggregate compatibility and health evidence to diagnostics, and prevent raw container metadata from entering sanitized support bundles.
+## Upstream readiness
+- Maintenance: Add a tracked Docker schema signature, latest Unraid API release baseline, and a cross-platform monitor that signals schema drift, new API releases, source-gate activation, release-note announcements, or unavailable upstream evidence.
+- Compatibility: Keep Native Docker Organizer integration qualification-only until the upstream page contract is explicitly enabled and validated; no prerelease organizer read or write mutation is activated.
+- Docs: Add the Docker API integration contract and update compatibility, runtime architecture, prerelease qualification, and repository-current-state guidance.
+- Localization: Add the hybrid-provider and aggregate-health messages across all 18 locale catalogs while preserving the zero-growth legacy localization budget.
+## Regression coverage
+- Regression guard: Cover capability discovery, partial and permission responses, subscription cleanup, normalized records, hybrid selection, targeted reconciliation, guarded mutations, aggregate health, privacy-safe diagnostics, page include order, and navigation disposal.
+- Regression guard: Cover upstream schema changes, newer API releases, unavailable schema evidence, source-gate activation, and release-note activation signals.
+
+
+###2026.07.25.04
+# FolderView Plus 2026.07.25.04
+This dev follow-up restores reliable Settings startup when the activity diagnostics workspace initializes.
+## Settings reliability
+- Fix: Register the activity diagnostics API and module-ready marker before optional workspace rendering so a panel-specific failure cannot be misreported as a missing script.
+- Reliability: Make repeated module evaluation idempotent, isolate activity diagnostics declarations, and contain each optional diagnostics startup failure independently.
+- Maintenance: Remove an unused timestamp helper exposed by the stricter module scope.
+- Regression guard: Execute the shipped activity diagnostics script twice in one browser-like context, verify it owns only one startup handler, and confirm registration precedes optional startup work.
+
+
+###2026.07.25.03
+# FolderView Plus 2026.07.25.03
+This dev follow-up completes cross-platform archive reproducibility.
+## Release integrity
+- Fix: Normalize every packaged file and directory mode to `0755` in the tar stream so Windows/WSL and native Linux builds produce identical metadata.
+- Regression guard: Continue comparing two isolated builds and the checked-in repository archive byte for byte.
+
+
+###2026.07.25.02
+# FolderView Plus 2026.07.25.02
+This dev follow-up closes two Linux CI findings discovered while monitoring the full `2026.07.25.01` publication.
+## Release integrity
+- Reliability: Make archive provenance content-addressed so the checked-in package can be reproduced byte for byte from its containing commit without a self-referential Git SHA.
+- Reliability: Require the reproducibility guard to compare both isolated builds directly with the repository archive.
+## Continuous integration
+- Fix: Install lockfile-pinned Node dependencies before the node test lane so the enforced `c8` coverage command is available on clean GitHub runners.
+- Regression guard: Verify that the node test job retains its dependency-install step.
+
+
+###2026.07.25.01
+# FolderView Plus 2026.07.25.01
+This dev release completes the repository-wide maintainability, compatibility, security, accessibility, diagnostics, and release-integrity sequence.
+## Runtime architecture
+- Performance: Load the Settings workspace in explicit foundation and deferred stages so the first usable interface is available sooner and module failures report a dedicated loader diagnostic.
+- Performance: Move the Settings bootstrap shell into a small first-paint stylesheet and retain a bounded interaction/idle fallback for deferred modules.
+- Maintenance: Extract remote retrieval into a focused server module and document the current browser, PHP, package, diagnostics, and native Docker integration boundaries.
+- Reliability: Strengthen architecture budgets for browser globals, inline actions, and the largest JavaScript, CSS, PHP, and page files.
+## Security and privacy
+- Security: Restrict remote theme and GitHub retrieval to HTTPS, approved hosts, port 443, bounded redirects, response-size limits, and explicit timeouts.
+- Security: Add regression coverage for disallowed schemes, hosts, ports, redirect targets, and oversized responses.
+- Privacy: Add a sanitized support-bundle comparison tool that reports bounded structural differences without exposing machine identity or protected values.
+- Privacy: Document the package's sanitization and diagnostics design decisions.
+## Accessibility and themes
+- Accessibility: Run Axe WCAG A/AA checks across every deterministic browser fixture and report actionable node-level failures.
+- Accessibility: Add accessible names for dropdowns and Docker privacy controls, a semantic toast region, and valid Diagnostics definition-list structure.
+- Compatibility: Replace unsafe inherited text-color fallbacks, improve light-theme contrast, and keep fixture host surfaces representative of Unraid themes.
+- Quality: Add enforced JavaScript coverage thresholds for core preferences, view-settings, and support-bundle comparison behavior.
+## Release integrity and supply chain
+- Reliability: Prevent package-version reuse by considering manifests, archives, local and remote branches, and tags during version allocation.
+- Reliability: Rebuild a fresh dev package after stable backmerges and verify remote manifest, checksum, and downloaded archive bytes after publication.
+- Security: Pin every external GitHub Action to an immutable commit and enable weekly Dependabot updates for Actions and npm tooling.
+- Security: Generate and validate a CycloneDX SBOM for npm and GitHub Actions dependencies.
+- Reliability: Make stable release workflows fail closed unless the required live Unraid browser and theme matrices cover supported 7.0.x, 7.2.x, and 7.3.x systems.
+- Maintenance: Enrich generated release notes with source provenance, package SHA-256, stable comparison links, and bounded commit history.
+## Maintainability and diagnostics
+- Quality: Add pinned PHPStan analysis for the extracted remote-fetch boundary and correct Windows/WSL path handling so static analysis cannot silently skip its configuration.
+- Quality: Add artifact-history auditing, documented retention policy, localization migration budgets, and immutable-Action policy checks to shared validation.
+- Diagnostics: Add a privacy-safe command-line comparator for two sanitized support bundles and document its troubleshooting workflow.
+- Docs: Add architecture decision records for branch package integrity, browser support, native Docker safe mode, diagnostic privacy, and package storage, plus a consolidated maintainability guide.
+- Maintenance: Let the upstream Unraid Docker monitor open or update a deduplicated compatibility issue when tracked implementation signals change.
+## Validation
+- Test: Expand loader lifecycle, remote-fetch security, bundle comparison, accessibility, theme compatibility, versioning, and workflow contracts.
+- Test: Exercise deterministic Chromium fixtures with Axe and retain runtime-performance budgets through the extreme 250-folder/2,000-item scenario.
+
+
+###2026.07.24.14
+# FolderView Plus 2026.07.24.14
+This dev-channel synchronization packages the cross-browser Diagnostics correction that was validated and published in stable `2026.07.24.13`.
 ## Diagnostics
-- Fix: Preserve seven distinct semantic background and border treatments for the support-bundle section icons in Chromium, Firefox, and WebKit.
-- Compatibility: Replace a browser-dependent `color-mix()` background calculation with explicit translucent theme-safe values while retaining each section's existing foreground icon color.
-- Test: Keep the cross-browser Diagnostics fixture strict so all seven support-bundle icon colors and backgrounds must remain distinct.
-
-
-###2026.07.24.12
-# FolderView Plus 2026.07.24.12
-This stable release contains every change made on `dev` since stable `2026.07.21.12`. It delivers a complete Filter and view settings redesign, a rebuilt Diagnostics experience and support-bundle workflow, more reliable Docker and VM lifecycle reconciliation, restored Docker privacy masking, preparation for Unraid's evolving Docker interface, and a broad maintainability and regression-testing pass.
-## Dashboard and runtime behavior
-- Fix: Reconcile Dashboard folders and members after Docker containers transition from stopped to started without requiring a page reload.
-- Fix: Keep the Dashboard Started only filter synchronized with live member state, retain the necessary folder hierarchy for running descendants, and hide folders whose members are all stopped.
-- Fix: Apply Docker and VM context-menu state from the latest runtime snapshot so lifecycle actions match the entity's actual state.
-- Fix: Remove stale spinner, icon, class, and color state after lifecycle actions while preserving canonical host-provided icons.
-- Reliability: Use a bounded, state-aware lifecycle refresh window so slower Docker and VM transitions can settle before the UI declares completion.
-- Reliability: Cancel stale lifecycle reconciliation when a newer action supersedes it and ignore responses from obsolete page generations.
-- Reliability: Fall back to one native host refresh only when incremental Dashboard reconciliation cannot confirm the requested state.
-- Feature: Extend VM Dashboard lifecycle parity across start, stop, pause, resume, restart, hibernate, wake, force stop, and console-related state transitions.
-- Performance: Reconcile affected Dashboard entities incrementally instead of broadly reloading the host page.
-- Privacy: Keep lifecycle telemetry bounded and redact entity names and other sensitive runtime values.
-- UI/UX: Increase Activity Center secondary and action-label sizing for better readability.
-## Filter and view settings
-- UI/UX: Completely redesign Filter and view settings into a compact, card-based workspace with clearer grouping, hierarchy, spacing, controls, and responsive behavior.
-- UI/UX: Reduce the section's overall scale and title size while retaining readable labels, descriptions, keyboard focus, and touch targets.
-- UI/UX: Reorganize Layout, Folder badges, Runtime, Folder defaults, Dashboard, Health cards, Privacy masking, and Columns into focused modules that explain their effects.
-- UI/UX: Improve Expand all, Collapse all, Mobile reorder, Tree scan, and Tree repair controls with consistent state, feedback, and lifecycle handling.
-- Feature: Make advanced preview settings persist and apply immediately to active Docker and VM views.
-- Fix: Make Health cards visibility, Runtime summary badge, scoring profiles, Updates handling, warning thresholds, critical thresholds, and All stopped mode affect the rendered Dashboard as described.
-- Fix: Separate Docker health scoring from VM threshold evaluation so Docker-only conditions cannot distort VM health results.
-- Fix: Apply health-profile changes immediately and keep health-derived filter badges synchronized across Settings tabs.
-- Fix: Normalize VM thresholds and preserve the VM privacy master switch through save, hydration, navigation, and runtime consumption.
-- Fix: Make the All stopped Warning mode produce the intended warning severity instead of being treated as critical or ignored.
-- Maintenance: Remove the Compact card layout setting and every persisted, rendered, localized, and runtime compatibility residue associated with it.
-- Maintenance: Remove deprecated or inert settings resize paths, retired editor modes, orphaned member-menu branches, obsolete actions, and no-op Compose suggestions.
-- Compatibility: Keep settings controls registered in typed metadata, normalize persisted values before use, and retain explicit compatibility handling for supported legacy preferences.
-## Diagnostics and support workflow
-- UI/UX: Rebuild the Advanced Diagnostics tab around a clear action toolbar, overall-health summary, priority findings, core system checks, optional findings, Dashboard evidence, support-bundle overview, and privacy disclosure.
-- UI/UX: Add a compact health hero with centered Optional notices, Last checked, Current version, and Core checks metrics plus theme-aware SVG icons and a status progress bar.
-- UI/UX: Give Run health check, Retest performance, and Export support bundle distinct but theme-consistent action styling, and remove the redundant Copy issue report action.
-- UI/UX: Align system-health timestamps consistently at the bottom-left of each card and standardize the Theme timestamp label to Checked.
-- UI/UX: Remove healthy Performance Budgets and Localization cards from the interface while retaining their collectors, telemetry, and warning-level findings.
-- UI/UX: Remove the Technical details dropdowns from optional diagnostic cards to reduce clutter.
-- UI/UX: Replace the removed Suggested fixes panel, one-click repair recommendations, related rendering paths, styles, actions, and localization with direct findings that describe the current state.
-- Diagnostics: Add first-class Dashboard visual captures containing viewport, orientation, touch mode, scale, card geometry, grid, overflow, and render-health evidence.
-- Diagnostics: Preserve a recent Dashboard capture across navigation to Settings and refresh the support preview immediately when new evidence is available.
-- Diagnostics: Add freshness and version-mismatch guidance so support bundles distinguish current visual evidence from stale or incompatible captures.
-- Diagnostics: Organize support findings by rendering, configuration, runtime, storage, icons, theme, localization, and update domains without allowing unavailable optional data to obscure confirmed health.
-- Diagnostics: Base domain health on the latest completed health check and present a single actionable unavailable-state explanation instead of multiple misleading unavailable cards.
-- Diagnostics: Add explicit unchecked, running, stale, completed, notice, warning, and failure states to the health-check view model.
-- Diagnostics: Expand the support-bundle overview with schema version, section coverage, preview time, descriptions, semantic theme-aware icons, and the inclusion state of all seven bundle sections.
-- Diagnostics: Add a guided Dashboard evidence workflow that explains how to open the affected page, reproduce the layout, capture it, return to Settings, and export.
-- Privacy: Keep diagnostic fingerprints bounded and privacy-safe while retaining enough geometry and capability context to compare affected systems.
-- Privacy: Expand the Privacy and sanitization disclosure with clear Hashed, Masked, Omitted, and Truncated definitions, per-bundle hash scope, and consistent colored badges.
-- Privacy: Keep the disclosure trigger anchored when expanded, center its privacy badges, use equal-sized detail cards, and expose richer descriptions without increasing the collapsed row height.
-- Accessibility: Add meaningful status semantics, keyboard focus, accessible labels, and theme-aware icon contrast throughout the redesigned Diagnostics interface.
-## Docker privacy masking
-- Fix: Prevent the Docker-page Privacy switch from visually bouncing during optimistic preference persistence and cross-tab synchronization.
-- Fix: Restore actual Docker-page masking when Unraid's switch widget emits its user change through jQuery rather than a native bubbled event.
-- Reliability: Bind the stable Privacy input once, suppress saves during programmatic synchronization, and reconcile optimistic, confirmed, external, and failed-save states.
-- Fix: Keep names, icons, LAN IPs, ports, paths, registries, public IPs, interfaces, and external URLs synchronized with the saved masking controls.
-- Test: Cover native and jQuery-only switch events, duplicate-handler prevention, cross-tab updates, optimistic state, save confirmation, rollback, and stable host-widget reuse.
-## Unraid Docker compatibility
-- Maintenance: Remove the unsupported Native Docker Organizer base-API probe, mutation path, notice card, action handling, telemetry, and localization that could not provide a reliable integration.
-- Compatibility: Preserve the supported Docker runtime transport while classifying legacy, native, and unknown host interfaces explicitly.
-- Compatibility: Add capability-aware providers for the legacy Docker page, GraphQL-based host implementations, and unsupported interfaces without assuming unavailable operations.
-- Compatibility: Add guarded GraphQL query shapes, CSRF handling, reconnect behavior, bounded polling, stale-response cleanup, and action capability checks.
-- Compatibility: Prevent FolderView Plus from mounting duplicate overlays when a compatible native organizer surface is present.
-- Diagnostics: Record privacy-safe Docker host-interface and capability evidence so future Unraid changes can be diagnosed without exposing container or host identifiers.
-- Maintenance: Add an upstream Docker compatibility tracker and native-interface fixtures to make future Unraid implementation changes visible before release.
-- Test: Exercise legacy, native, GraphQL, unsupported, reconnect, capability, duplicate-overlay, and stale-generation Docker host paths.
-## Architecture and maintainability
-- Maintenance: Split Settings responsibilities into typed metadata, registry, sections, table, tree, workspace, lifecycle, request, persistence, and runtime-action modules.
-- Reliability: Add explicit initialization and teardown ownership so repeated page navigation cannot duplicate handlers, observers, timers, host hooks, or pending requests.
-- Fix: Correct the Settings bootstrap initialization order that could raise `Cannot access 'normalizeHealthSeverityFilterMode' before initialization`.
-- Reliability: Validate required Settings modules before bootstrap and preserve actionable fatal diagnostics when a required contract is unavailable.
-- Maintenance: Formalize deprecated settings and compatibility guards so removed controls cannot silently return as inert UI or stale runtime branches.
-- Maintenance: Remove unreachable functions, unused localization messages, dead rendering branches, obsolete selectors, abandoned UI state, and generated residue identified by repository-wide reachability audits.
-- Reliability: Extract Diagnostics view-model and renderer responsibilities into testable modules instead of coupling collection, state derivation, and markup generation.
-- Fix: Correct cursor and repeated-hydration edge cases discovered while modularizing the Settings runtime.
-- Maintenance: Add architecture and global-contract guards that catch oversized modules, accidental globals, duplicate ownership, and reintroduction of retired code.
-## Localization, themes, and accessibility
-- Localization: Update all 18 supported locale catalogs for the redesigned settings, diagnostics, privacy, Dashboard capture, Docker compatibility, and health-status experiences.
-- Localization: Keep source-message catalogs and namespace counts synchronized after removing deprecated controls and adding new diagnostics.
-- UI/UX: Make diagnostic SVG icons and action states readable across dark, light, and Unraid theme variants.
-- UI/UX: Give support-bundle section icons distinct semantic colors without relying on filled orange glyphs.
-- Accessibility: Preserve keyboard navigation, visible focus, reduced-motion behavior, responsive layout, and readable text sizing in the new Settings and Diagnostics surfaces.
-## Quality and release engineering
-- Test: Expand browser lifecycle fixtures for Docker and VM actions, Started only filtering, repeated navigation, Settings hydration, diagnostics refresh, privacy masking, and theme rendering.
-- Test: Add contract and regression coverage for all active Filter and view settings so each visible control has a read, render, mutation, persistence, and runtime-consumption path.
-- Test: Add diagnostics view-model, bundle-preview, visual-capture, sanitization, localization, lifecycle, and unavailable-state coverage.
-- Test: Add executable guards for deprecated settings, dead-code reachability, module boundaries, global ownership, release-note consistency, packaging, and installation.
-- Reliability: Keep dev and stable packaging under release, checksum, archive-retention, install-smoke, and remote-publication guards.
-## Compatibility and upgrade notes
-- Compatibility: No manual configuration migration is required; existing supported folder, view, health, privacy, Dashboard, Docker, and VM preferences continue to normalize on load.
-- Compatibility: Users should hard-refresh the Unraid webGUI after updating so the redesigned JavaScript, CSS, SVG, and localization assets replace cached development builds.
-- Compatibility: Native or future Docker interfaces are detected conservatively; unsupported capabilities are reported diagnostically without breaking the legacy Docker and Dashboard experiences.
+- Fix: Keep all seven support-bundle section icon backgrounds and borders distinct in Chromium, Firefox, and WebKit.
+- Compatibility: Use explicit translucent semantic icon-tile colors instead of the browser-dependent background `color-mix()` calculation.
+## Release engineering
+- Maintenance: Rebuild the dev archive from the post-release backmerge so its packaged stylesheet exactly matches the merged source.
+- Reliability: Advance the dev package beyond stable `2026.07.24.13` to preserve update ordering and avoid reusing an existing stable package version.
 
 
 ###2026.07.24.11
@@ -7836,11 +8243,13 @@ This stable release contains every change made on `dev` since stable `2026.07.21
     <FILE Name="/boot/config/plugins/&name;/folderview.plus-icons-&iconPackVersion;.txz">
         <URL>&iconPackURL;</URL>
         <MD5>&iconPackMd5;</MD5>
+        <SHA256>&iconPackSha256;</SHA256>
     </FILE>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
         <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
+        <SHA256>&sha256;</SHA256>
     </FILE>
 
     <FILE Run="/bin/bash">
@@ -7862,6 +8271,8 @@ This stable release contains every change made on `dev` since stable `2026.07.21
             mkdir -p /boot/config/plugins/&name;/styles
             mkdir -p /boot/config/plugins/&name;/scripts
             find /boot/config/plugins/&name; -maxdepth 1 -type f -name '&name;-[0-9]*.txz' ! -name '&name;-&version;.txz' -delete
+            install_stage="obsolete runtime cleanup"
+            rm -f "&plugdir;/scripts/folderviewplus.native-organizer.js" "&plugdir;/scripts/docker.member-menu.js"
             install_stage="icon pack activation"
             FVPLUS_ICON_PACK_STATUS_FILE="${icon_status}" /bin/bash "&plugdir;/scripts/install_icon_asset_pack.sh" "&iconPackVersion;" "&iconPackSha256;"
             install_stage="scheduled backup registration"

@@ -63,7 +63,7 @@ fvplus_json_try(function (): array {
         ? ($_POST['type'] ?? '')
         : ($_REQUEST['type'] ?? '')));
 
-    $streamBackupDownload = static function (string $downloadType, string $name, string $mode = 'legacy_get'): void {
+    $streamBackupDownload = static function (string $downloadType, string $name): void {
         $downloadType = ensureType($downloadType);
         $path = getBackupSnapshotPath($downloadType, $name);
         if (!file_exists($path)) {
@@ -72,7 +72,7 @@ fvplus_json_try(function (): array {
         try {
             appendDiagnosticsHistoryEvent('backup_download', $downloadType, [
                 'name' => basename($path),
-                'mode' => $mode
+                'mode' => 'post_nonce'
             ], 'ok', 'server');
         } catch (Throwable $err) {
             // Non-fatal.
@@ -87,15 +87,9 @@ fvplus_json_try(function (): array {
         exit;
     };
 
-    if ($action === 'download') {
-        $name = (string)($_REQUEST['name'] ?? '');
-        header('X-FV-Download-Mode: legacy-get');
-        $streamBackupDownload($type, $name, 'legacy_get');
-    }
-
     if ($action === 'download_post') {
         $name = (string)($_POST['name'] ?? '');
-        $streamBackupDownload($type, $name, 'post_token');
+        $streamBackupDownload($type, $name);
     }
 
     if ($action === 'create') {

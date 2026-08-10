@@ -1,0 +1,108 @@
+name: Scheduled Cross-Browser and Unraid Validation
+
+on:
+  schedule:
+    - cron: '17 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: folderview-plus-scheduled-validation
+  cancel-in-progress: true
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      live_configured: ${{ steps.detect.outputs.live_configured }}
+    env:
+      FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
+      FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+      FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+    steps:
+      - name: Detect live validation configuration
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          configured=true
+          for value in \
+            "${FVPLUS_UNRAID_MATRIX}" \
+            "${FVPLUS_BROWSER_SMOKE_URL}" \
+            "${FVPLUS_THEME_MATRIX_URLS}"; do
+            if [[ -z "${value}" ]]; then
+              configured=false
+            fi
+          done
+          echo "live_configured=${configured}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "## Scheduled validation configuration"
+            echo
+            echo "- Cross-browser fixtures: required"
+            echo "- Live Unraid matrix configured: \`${configured}\`"
+            if [[ "${configured}" != 'true' ]]; then
+              echo "- Action required: configure FVPLUS_UNRAID_MATRIX, FVPLUS_BROWSER_SMOKE_URL, and FVPLUS_THEME_MATRIX_URLS repository secrets."
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  cross-browser-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Run Chromium, Firefox, and WebKit fixtures
+        env:
+          FVPLUS_FIXTURE_BROWSERS: chromium,firefox,webkit
+        shell: bash
+        run: bash scripts/run_ci_suite.sh --lane fixture-browser
+
+      - name: Upload fixture artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: scheduled-cross-browser-${{ github.run_id }}
+          path: tmp/fixture-browser-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+
+  live-unraid:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: configuration
+    if: needs.configuration.outputs.live_configured == 'true'
+    env:
+      FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
+      FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
+      FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+      FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
+      FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+      FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
+      FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
+      FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+      FVPLUS_THEME_MATRIX_REQUIRED: '1'
+      FVPLUS_THEME_REQUIRED_LABELS: black,white
+      FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
+      FVPLUS_THEME_SMOKE_BROWSERS: chromium,firefox,webkit
+      FVPLUS_THEME_SMOKE_ZOOMS: 1,1.25,1.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
+      - name: Run required live validation
+        shell: bash
+        run: |
+          bash scripts/run_ci_suite.sh \
+            --lane guards \
+            --lane browser-smoke \
+            --lane theme-matrix

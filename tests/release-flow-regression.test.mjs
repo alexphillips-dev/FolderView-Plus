@@ -107,6 +107,7 @@ test('pkg_build dry-run falls back to manifest branch when git branch detection 
     });
 
     copyFileIntoTemp(tempRoot, 'pkg_build.sh');
+    copyFileIntoTemp(tempRoot, 'scripts/generate_runtime_integrity_manifest.mjs');
     writeFile(path.join(tempRoot, 'folderview.plus.plg'), `<?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
 <!ENTITY name "folderview.plus">

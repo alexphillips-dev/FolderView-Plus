@@ -1,0 +1,18 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "lv",
+        "namespace": "editor"
+    },
+    "editor.actions.add-custom": "Pievienojiet pielāgotu darbību",
+    "editor.actions.standard": "Standarta",
+    "editor.actions.user-script": "Lietotāja skripts",
+    "editor.actions.control-members": "Kontrolējiet atlasītos mapes dalībniekus.",
+    "editor.actions.run-user-script": "Palaidiet uzdevumu no spraudņa User Scripts.",
+    "editor.members.toggle-preview-help": "Saglabājiet šo dalībnieku mapē, bet paslēpiet to sakļautajā priekšskatījumā",
+    "editor.members.visible": "Redzams",
+    "editor.members.auto-included": "Automātiski iekļauts regulārā izteiksmē vai etiķetē",
+    "editor.members.drag-reorder": "Velciet, lai pārkārtotu",
+    "editor.members.move-up": "Pārvietojieties uz augšu",
+    "editor.members.move-down": "Pārvietojieties uz leju"
+}

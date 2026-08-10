@@ -126,7 +126,7 @@
                 const imageStyle = form.preview_grayscale?.checked === true || (previewMode === 2 && previewStatusMode === 'grayscale' && state.label !== 'Started') ? ' style="filter: grayscale(100%);"' : '';
                 return `
                     <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
-                        <img src="${memberIcon}" alt="" onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
+                        <img src="${memberIcon}" alt="" data-fv-onerror="this.src='${deps.iconFallbackPath || ''}';"${imageStyle}>
                         ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
                         ${previewMode === 2
                             ? (previewStatusMode === 'symbol' ? `<span class="fv-live-member-status is-symbol" style="color:${stateColor};" title="${stateLabel}"><i class="fa fa-circle" aria-hidden="true"></i></span>` : '')
@@ -152,7 +152,7 @@
                     const nestedPreviewSourceId = escapeHtml(nestedPreviewModel.sourceId || '');
                     memberPreviewItems.push(`
                         <span class="fv-live-member fv-live-member-preview-${previewMode} fv-live-member-child-folder" data-nested-preview-source="${nestedPreviewSourceId}" data-nested-preview-child="${nestedPreviewChildId}">
-                            <img src="${nestedPreviewIcon}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                            <img src="${nestedPreviewIcon}" alt="" data-fv-onerror="this.src='${deps.defaultFolderIconPath || ''}';">
                             ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${nestedPreviewName}</span>`}
                             ${previewMode === 2
                                 ? (previewStatusMode === 'symbol' ? '<span class="fv-live-member-status is-symbol" title="Nested folder"><i class="fa fa-folder" aria-hidden="true"></i></span>' : '')
@@ -178,7 +178,7 @@
                     <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-preview-border-glow:0 0 10px ${borderColor}, 0 0 18px ${borderColor};--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
                         <div class="fv-live-folder-head">
                             <div class="fv-live-folder-anchor">
-                                <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
+                                <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" data-fv-onerror="this.src='${deps.defaultFolderIconPath || ''}';">
                                 <div class="fv-live-folder-copy">
                                     <strong>${escapeHtml(name)}</strong>
                                     <span>${deps.previewModeLabels?.[previewMode] || 'Unknown'} preview</span>

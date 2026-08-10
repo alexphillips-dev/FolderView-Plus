@@ -10,7 +10,7 @@
 <Description>
 FolderView Plus organizes Docker, VM, and Dashboard views into folders in Unraid, with starter setup tools, rules, bulk assignment, recovery, templates, and diagnostics.
 </Description>
-<Date>2026-07-24</Date>
+<Date>2026-08-10</Date>
 <MinVer>7.0.0</MinVer>
 <ExtraSearchTerms>folder view docker vm dashboard organization groups sorting import export backup recovery rules templates diagnostics</ExtraSearchTerms>
 <Support>https://forums.unraid.net/topic/197631-plugin-folderview-plus/</Support>

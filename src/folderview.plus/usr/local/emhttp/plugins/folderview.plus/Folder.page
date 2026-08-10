@@ -11,7 +11,7 @@ Markdown="false"
     }
 </script>
 <?php
-$fvplusI18nNamespaces = ['editor'];
+$fvplusI18nNamespaces = ['editor', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -82,6 +82,7 @@ try {
     ];
 }
 ?>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.csp-events.js')?>"></script>
 <script>
     window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
@@ -153,6 +154,17 @@ try {
         }
     })(window.FolderViewPlusHostThemeName);
 </script>
+<script>
+window.FolderViewPlusFatalRuntimeContext = {
+    page: 'Folder Editor',
+    hostSelector: '.canvas',
+    pluginVersion: <?=json_encode($folderEditorPageBuildVersion ?: 'unknown')?>,
+    unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
+    channel: 'unknown',
+    presentation: 'embedded'
+};
+</script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
 <script>
     (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
         const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
@@ -255,6 +267,19 @@ try {
             }
         };
         win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics() {
+            if (win.FolderViewPlusFatalBanner?.getStartupIncidentSnapshot?.()?.available === true) {
+                const copied = await win.FolderViewPlusFatalBanner.copyDiagnostics();
+                if (copied) {
+                    const incidentButton = doc.getElementById('fvFolderEditorBootstrapCopy');
+                    if (incidentButton) {
+                        const originalHtml = incidentButton.getAttribute('data-default-html') || incidentButton.innerHTML;
+                        incidentButton.setAttribute('data-default-html', originalHtml);
+                        incidentButton.textContent = 'Copied';
+                        win.setTimeout(() => { incidentButton.innerHTML = originalHtml; }, 1400);
+                    }
+                    return;
+                }
+            }
             const text = buildDiagnosticsText();
             try {
                 if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
@@ -316,15 +341,40 @@ try {
             if (stage) {
                 win.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
             }
+            if (bannerState.tone === 'invalid' || bannerState.tone === 'warning') {
+                const category = String(stage || '').includes('asset') || String(stage || '').includes('script')
+                    ? 'missing-asset'
+                    : 'runtime-failed';
+                win.FolderViewPlusFatalBanner?.captureIncident?.({
+                    context: 'Folder Editor',
+                    code: bannerState.tone === 'invalid' ? 'FVPLUS-EDT-BOOT-001' : 'FVPLUS-EDT-BOOT-002',
+                    phase: String(stage || 'folder-editor-bootstrap'),
+                    category,
+                    severity: bannerState.tone === 'invalid' ? 'fatal' : 'degraded',
+                    userTitle: String(bannerState.summary || 'Folder Editor startup problem'),
+                    userMessage: String(bannerState.details || 'The Folder Editor did not finish loading.'),
+                    details: stage ? [`Stage: ${String(stage)}`] : []
+                });
+            }
             syncSurfaceState();
         };
         doc.addEventListener('click', (event) => {
-            const target = event.target instanceof Element ? event.target.closest('#fvFolderEditorBootstrapCopy') : null;
+            const target = event.target instanceof Element
+                ? event.target.closest('#fvFolderEditorBootstrapCopy, #fvFolderEditorBootstrapRetry, #fvFolderEditorBootstrapReload, #fvFolderEditorBootstrapDownload')
+                : null;
             if (!target) {
                 return;
             }
             event.preventDefault();
-            void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
+            if (target.id === 'fvFolderEditorBootstrapRetry') {
+                void win.FolderViewPlusFatalBanner?.runRecovery?.('retry');
+            } else if (target.id === 'fvFolderEditorBootstrapReload') {
+                win.location.reload();
+            } else if (target.id === 'fvFolderEditorBootstrapDownload') {
+                win.FolderViewPlusFatalBanner?.downloadDiagnostics?.();
+            } else {
+                void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
+            }
         });
         syncSurfaceState();
     })(window, document);
@@ -335,6 +385,7 @@ try {
         const assetVersion = encodeURIComponent(buildVersion);
         const runtimeMode = 'modern';
         const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        let bootAttempt = 0;
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
         const scriptQueue = [
             '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
@@ -404,7 +455,12 @@ try {
         const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
             const script = doc.createElement('script');
             const separator = relativePath.includes('?') ? '&' : '?';
-            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}`;
+            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}&attempt=${bootAttempt}`;
+            const moduleName = relativePath.split('/').pop() || relativePath;
+            const startedAt = new Date().toISOString();
+            const startedMs = Date.now();
+            let settled = false;
+            let timeoutId = null;
             script.src = src;
             script.async = false;
             script.defer = false;
@@ -413,21 +469,52 @@ try {
                 script.id = 'fv-folder-editor-runtime-script';
                 script.dataset.runtime = runtimeMode;
             }
+            win.FolderViewPlusFatalBanner?.recordModuleEvent?.({
+                name: moduleName,
+                stage: 'folder-editor-runtime',
+                outcome: 'loading',
+                startedAt,
+                version: buildVersion
+            });
+            const finish = (outcome, error = null) => {
+                if (settled) return;
+                settled = true;
+                if (timeoutId !== null) win.clearTimeout(timeoutId);
+                win.FolderViewPlusFatalBanner?.recordModuleEvent?.({
+                    name: moduleName,
+                    stage: 'folder-editor-runtime',
+                    outcome,
+                    startedAt,
+                    completedAt: new Date().toISOString(),
+                    durationMs: Date.now() - startedMs,
+                    version: buildVersion
+                });
+                if (outcome === 'loaded') {
+                    resolve();
+                    return;
+                }
+                script.remove();
+                reject(error || new Error(`Failed to load ${relativePath}`));
+            };
             script.onload = () => {
                 if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
                     win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', src);
                 }
-                resolve();
+                finish('loaded');
             };
             script.onerror = () => {
                 if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
                     win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', src);
                 }
-                reject(new Error(`Failed to load ${relativePath}`));
+                finish('failed', new Error(`Failed to load ${relativePath}`));
             };
+            timeoutId = win.setTimeout(() => {
+                finish('timed-out', new Error(`Timed out loading ${relativePath}`));
+            }, 8000);
             doc.body.appendChild(script);
         });
-        const run = () => {
+        const run = ({ propagateFailure = false } = {}) => {
+            bootAttempt += 1;
             win.FolderViewPlusFolderEditorRuntimeLoaded = false;
             win.FolderViewPlusFolderEditorRuntimeBootStage = 'page-boot-loader';
             win.FolderViewPlusFolderEditorRuntimeLastError = '';
@@ -438,15 +525,20 @@ try {
             scriptQueue.forEach((relativePath, index) => {
                 chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
             });
-            chain.catch((error) => {
+            return chain.catch((error) => {
                 report(
                     'Folder editor runtime assets failed to load.',
                     String(error?.message || error || 'Unknown runtime asset failure.'),
                     'invalid',
                     'runtime-asset-load-failed'
                 );
+                if (propagateFailure) {
+                    throw error;
+                }
+                return null;
             });
         };
+        win.FolderViewPlusFatalBanner?.registerRecoveryHandler?.('retry', () => run({ propagateFailure: true }));
         if (doc.readyState === 'loading') {
             doc.addEventListener('DOMContentLoaded', run, { once: true });
         } else {
@@ -506,13 +598,16 @@ try {
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
-    <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">
+    <form id="fvFolderEditorForm" class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" data-fv-onsubmit="submitForm(this, false); return false">
         <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
             <div class="fv-editor-status-row">
                 <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
                 <pre id="fvFolderEditorBootstrapDetailsText" class="fv-validation-details warning">Copy the diagnostics below if the folder editor failed to open the requested folder.</pre>
                 <div class="fv-editor-status-tools">
-                    <button type="button" id="fvFolderEditorBootstrapCopy" class="fv-section-tool" data-default-html="<i class=&quot;fa fa-clipboard&quot; aria-hidden=&quot;true&quot;></i> Copy diagnostics"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy diagnostics</button>
+                    <button type="button" id="fvFolderEditorBootstrapRetry" class="fv-section-tool"><i class="fa fa-repeat" aria-hidden="true"></i> <span data-i18n="diagnostics.bootstrap.retry">Try loading again</span></button>
+                    <button type="button" id="fvFolderEditorBootstrapReload" class="fv-section-tool"><i class="fa fa-refresh" aria-hidden="true"></i> <span data-i18n="diagnostics.bootstrap.reload">Reload page</span></button>
+                    <button type="button" id="fvFolderEditorBootstrapCopy" class="fv-section-tool" data-default-html="<i class=&quot;fa fa-clipboard&quot; aria-hidden=&quot;true&quot;></i> Copy support code"><i class="fa fa-clipboard" aria-hidden="true"></i> <span data-i18n="diagnostics.bootstrap.copy">Copy support code</span></button>
+                    <button type="button" id="fvFolderEditorBootstrapDownload" class="fv-section-tool"><i class="fa fa-download" aria-hidden="true"></i> <span data-i18n="diagnostics.bootstrap.download">Download startup report</span></button>
                 </div>
                 <details id="fvFolderEditorBootstrapDisclosure" class="fv-editor-bootstrap-disclosure">
                     <summary class="fv-editor-bootstrap-summary">Bootstrap diagnostics</summary>
@@ -561,8 +656,8 @@ try {
             <dl>
                 <dt data-i18n="icon">Icon:</dt>
                 <dd class="fv-icon-dd">
-                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
-                    <input type="text" name="icon" value=""  oninput="updateIcon(this)">
+                    <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" data-fv-onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                    <input type="text" name="icon" value=""  data-fv-oninput="updateIcon(this)">
                     <div class="fv-icon-input-actions">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
@@ -723,7 +818,7 @@ try {
                 <dt data-i18n="folder-webui">Folder WebUI:</dt>
                 <dd>
                     <img class="img" style="visibility: hidden;">
-                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" onchange="updateForm()" />
+                    <input class="basic-switch" name="folder_webui" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -751,7 +846,7 @@ try {
                 <dt data-i18n="preview">Preview:</dt>
                 <dd>
                     <img class="img" style="visibility: hidden;">
-                    <select name="preview" onchange="updateForm()">
+                    <select name="preview" data-fv-onchange="updateForm()">
                         <option value="0" data-i18n="preview-option-0">None</option>
                         <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
                         <option value="2" data-i18n="preview-option-2">Only icon (clean)</option>
@@ -999,7 +1094,7 @@ try {
                     <dl>
                         <dt data-i18n="preview-vertical-bars">Preview vertical bars:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_vertical_bars" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1017,7 +1112,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_vertical_bars_color" style="height:28px;vertical-align:middle;">
                                         <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBarDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBarDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1040,7 +1135,7 @@ try {
                 <div class="basic">
                     <dl>
                         <dt data-i18n="preview-row-separators">Preview row separators:</dt>
-                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" onchange="updateForm()" /></dd>
+                        <dd><input class="basic-switch" name="preview_row_separator" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" /></dd>
                     </dl>
                     <blockquote class="inline_help"><p data-i18n="preview-row-separators-tooltip">Add a horizontal separator between compact preview rows.</p></blockquote>
                 </div>
@@ -1060,7 +1155,7 @@ try {
                     <dl>
                         <dt data-i18n="border">Show preview border:</dt>
                         <dd>
-                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="preview_border" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
@@ -1078,7 +1173,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
                                         <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBorderDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetPreviewBorderDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1102,7 +1197,7 @@ try {
                             <dl>
                                 <dt>Preview border glow:</dt>
                                 <dd>
-                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" onchange="updateForm()" />
+                                    <input class="basic-switch" name="preview_border_glow" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                                 </dd>
                             </dl>
                             <blockquote class="inline_help">
@@ -1120,7 +1215,7 @@ try {
                         <dt>Chevron style:</dt>
                         <dd>
                             <img class="img" style="visibility: hidden;">
-                            <select name="dropdown_style" onchange="updateForm()">
+                            <select name="dropdown_style" data-fv-onchange="updateForm()">
                                 <option value="minimal" selected>Minimal</option>
                                 <option value="boxed">Boxed</option>
                                 <option value="ghost">Ghost</option>
@@ -1144,7 +1239,7 @@ try {
                                     <div class="fv-inline-control-row">
                                         <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
                                         <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;">
-                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetDropdownColorDefaults();">
+                                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetDropdownColorDefaults();">
                                             <i class="fa fa-repeat" aria-hidden="true"></i>
                                         </button>
                                     </div>
@@ -1167,7 +1262,7 @@ try {
                         <dt data-i18n="context">Preview Context:</dt>
                         <dd>
                             <img class="img" style="visibility: hidden;">
-                            <select name="context" onchange="updateForm()">
+                            <select name="context" data-fv-onchange="updateForm()">
                                 <option value="0" data-i18n="context-option-0">None</option>
                                 <option value="1" data-i18n="context-option-1" selected>Default</option>
                                 <option value="2" data-i18n="context-option-2">Advanced</option>
@@ -1261,7 +1356,7 @@ try {
                                 <input type="color" name="status_color_stopped" style="height:28px;vertical-align:middle;">
                             </label>
                         </div>
-                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetStatusColorDefaults();">
+                        <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetStatusColorDefaults();">
                             <i class="fa fa-repeat" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -1290,13 +1385,13 @@ try {
                 <dd class="fv-accent-color-dd">
                     <div class="fv-accent-control-row">
                         <div class="fv-accent-enable-control">
-                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
+                            <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" data-fv-onchange="updateForm()" />
                         </div>
                         <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
                             <span class="fv-accent-inline-label">Bar color</span>
                             <div class="fv-inline-control-row">
                                 <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
-                                <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <button type="button" class="fv-inline-reset-btn" data-fv-onclick="event.preventDefault(); resetFolderAccentDefaults();">
                                     <i class="fa fa-repeat" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -1509,7 +1604,7 @@ try {
             <dl>
                 <dt data-i18n="regex">Regex:</dt>
                 <dd>
-                    <input type="text" name="regex" oninput="updateRegex(this)" value="">
+                    <input type="text" name="regex" data-fv-oninput="updateRegex(this)" value="">
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1544,7 +1639,7 @@ try {
             <dl>
                 <dt>​</dt>
                 <dd>
-                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
+                    <button type="button" class="custom-action fv-custom-action-button" aria-haspopup="dialog" data-fv-onclick="customAction(); return false;"><i class="fa fa-plus" aria-hidden="true"></i> <span data-i18n="editor.actions.add-custom">Add a custom action</span></button>
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -1554,10 +1649,10 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
-        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." onclick="applyFolderSettingsToFolders(); return false;">
-        <input class="folder-btn-copy" type="button" value="Save as copy" onclick="submitForm(this.form, true); return false;">
-        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
-        <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
+        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." data-fv-onclick="applyFolderSettingsToFolders(); return false;">
+        <input class="folder-btn-copy" type="button" value="Save as copy" data-fv-onclick="submitForm(this.form, true); return false;">
+        <input class="folder-btn-reset" type="button" value="Reset unsaved changes" data-fv-onclick="resetUnsavedChanges(); return false;">
+        <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" data-fv-onclick="cancelBtn()">
         <span id="unsavedIndicator" class="folder-unsaved-indicator" style="display:none;">Unsaved changes</span>
         <div id="fvFolderMembersSection" class="basic fv-folder-members-section" hidden>
             <dl>

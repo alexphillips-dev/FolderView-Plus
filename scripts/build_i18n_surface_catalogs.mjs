@@ -4,30 +4,102 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const tools = require('./lib/i18n_surface_tools.cjs');
+const OpenCC = require('opencc-js');
 const repoRoot = path.resolve(process.cwd());
 const pluginDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
 const langDir = path.join(pluginDir, 'langs');
 const namespaceRoot = path.join(langDir, 'namespaces');
-const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.07.24.1';
+const catalogVersion = process.env.FVPLUS_I18N_CATALOG_VERSION || '2026.08.10.1';
 const catalogDate = process.env.FVPLUS_I18N_CATALOG_DATE || new Date().toISOString().slice(0, 10);
 const translateMissing = process.argv.includes('--translate');
-const locales = fs.readdirSync(langDir)
-    .filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))
-    .map((name) => name.replace(/\.json$/, ''))
-    .sort((left, right) => left === 'en' ? -1 : (right === 'en' ? 1 : left.localeCompare(right)));
+const scaffoldArgument = process.argv.find((argument) => argument.startsWith('--scaffold='));
+const requestedScaffolds = scaffoldArgument
+    ? scaffoldArgument.slice('--scaffold='.length).split(',').map((locale) => locale.trim()).filter(Boolean)
+    : [];
+const retranslateEnglishArgument = process.argv.find((argument) => argument.startsWith('--retranslate-english='));
+const retranslateEnglishLocales = new Set(retranslateEnglishArgument
+    ? retranslateEnglishArgument.slice('--retranslate-english='.length).split(',').map((locale) => locale.trim()).filter(Boolean)
+    : []);
+const retranslateMatchesArgument = process.argv.find((argument) => argument.startsWith('--retranslate-matches='));
+const retranslateMatchLocales = new Map((retranslateMatchesArgument
+    ? retranslateMatchesArgument.slice('--retranslate-matches='.length).split(',')
+    : []).map((pair) => pair.split(':').map((locale) => locale.trim())).filter((pair) => pair.length === 2 && pair.every(Boolean)));
 const targetLocales = Object.freeze({
-    cs: 'cs', de: 'de', es: 'es', fr: 'fr', it: 'it', ja: 'ja', ko: 'ko', nl: 'nl', pl: 'pl',
-    'pt-BR': 'pt', 'pt-PT': 'pt', ro: 'ro', ru: 'ru', sv: 'sv', tr: 'tr', uk: 'uk', 'zh-Hans': 'zh-CN'
+    ar: 'ar', bn: 'bn', ca: 'ca', cs: 'cs', da: 'da', de: 'de', es: 'es', fr: 'fr', hr: 'hr', hu: 'hu',
+    it: 'it', ja: 'ja', ko: 'ko', lv: 'lv', nb: 'no', nl: 'nl', pl: 'pl', 'pt-BR': 'pt', 'pt-PT': 'pt',
+    ro: 'ro', ru: 'ru', sv: 'sv', tr: 'tr', uk: 'uk', 'zh-Hans': 'zh-CN', 'zh-Hant': 'zh-TW'
+});
+const traditionalChineseNormalizationProfile = 'opencc-s2twp-1.4.1';
+const normalizeTraditionalChinese = OpenCC.Converter({ from: 'cn', to: 'twp' });
+const scaffoldDefinitions = Object.freeze({
+    ar: { direction: 'rtl', nativeName: 'العربية' },
+    bn: { direction: 'ltr', nativeName: 'বাংলা' },
+    ca: { direction: 'ltr', nativeName: 'Català' },
+    da: { direction: 'ltr', nativeName: 'Dansk' },
+    hr: { direction: 'ltr', nativeName: 'Hrvatski' },
+    hu: { direction: 'ltr', nativeName: 'Magyar' },
+    lv: { direction: 'ltr', nativeName: 'Latviešu' },
+    nb: { direction: 'ltr', nativeName: 'Norsk bokmål' },
+    'zh-Hant': { direction: 'ltr', nativeName: '繁體中文' }
 });
 
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const writeJson = (file, value) => fs.writeFileSync(file, `${JSON.stringify(value, null, 4)}\n`, 'utf8');
+const scaffoldLocale = (locale) => {
+    const definition = scaffoldDefinitions[locale];
+    if (!definition) throw new Error(`No scaffold definition is registered for ${locale}.`);
+    const rootFile = path.join(langDir, `${locale}.json`);
+    if (!fs.existsSync(rootFile)) {
+        writeJson(rootFile, {
+            '@metadata': {
+                authors: ['FolderView Plus maintainers'],
+                'catalog-version': catalogVersion,
+                direction: definition.direction,
+                'last-reviewed': null,
+                'last-updated': catalogDate,
+                locale,
+                'native-name': definition.nativeName,
+                reviewed: false,
+                'source-revision': '',
+                status: 'partial',
+                'translated-messages': 0,
+                'total-source-messages': 1
+            }
+        });
+    }
+    const localeNamespaceRoot = path.join(namespaceRoot, locale);
+    fs.mkdirSync(localeNamespaceRoot, { recursive: true });
+    for (const file of fs.readdirSync(path.join(namespaceRoot, 'en')).filter((name) => name.endsWith('.json'))) {
+        const namespaceFile = path.join(localeNamespaceRoot, file);
+        if (fs.existsSync(namespaceFile)) continue;
+        writeJson(namespaceFile, {
+            '@metadata': {
+                'catalog-version': catalogVersion,
+                locale,
+                namespace: path.basename(file, '.json')
+            }
+        });
+    }
+    console.log(`Scaffolded ${locale}.`);
+};
+for (const locale of requestedScaffolds) scaffoldLocale(locale);
+const locales = fs.readdirSync(langDir)
+    .filter((name) => /^[a-z]{2,3}(?:-[A-Za-z0-9]+)*\.json$/.test(name))
+    .map((name) => name.replace(/\.json$/, ''))
+    .sort((left, right) => left === 'en' ? -1 : (right === 'en' ? 1 : left.localeCompare(right)));
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const placeholderSignature = (value) => (
     [...new Set(String(value || '').match(/\$\d+/g) || [])].sort().join('|')
 );
 const protectPlaceholders = (value) => String(value || '').replace(/\$(\d+)/g, '__FVPLUS_PARAM_$1__');
 const restorePlaceholders = (value) => String(value || '').replace(/__FVPLUS_PARAM_(\d+)__/gi, '$$$1');
+const normalizeLocaleMessages = (locale, messages) => locale === 'zh-Hant'
+    ? Object.fromEntries(Object.entries(messages).map(([key, value]) => [key, normalizeTraditionalChinese(value)]))
+    : messages;
+const shouldRetranslate = (locale, current, english, comparison) => (
+    (retranslateEnglishLocales.has(locale) && current === english)
+    || (retranslateMatchLocales.has(locale) && current === comparison)
+);
 const { byPhrase, fileCounts } = tools.collectSurfaceCandidates(pluginDir);
 const phrases = [...byPhrase.keys()].sort((left, right) => left.localeCompare(right));
 const englishMessages = Object.fromEntries(phrases.map((phrase) => [tools.keyForPhrase(phrase), phrase]));
@@ -49,6 +121,10 @@ const batchesFor = (entries, maxChars = 4200) => {
     if (current.length > 0) batches.push(current);
     return batches;
 };
+const reviewBatchesFor = (entries, locale) => batchesFor(
+    entries,
+    retranslateEnglishLocales.has(locale) || retranslateMatchLocales.has(locale) ? 600 : 4200
+);
 
 const translateBatch = async (batch, target, attempt = 1) => {
     const sentinels = batch.slice(1).map((_entry, index) => `__FVPLUS_${String(index + 1).padStart(4, '0')}__`);
@@ -105,16 +181,27 @@ const buildLocaleMessages = async (locale) => {
     const existing = fs.existsSync(file) ? readJson(file) : {};
     const messages = {};
     const missing = [];
+    const comparisonLocale = retranslateMatchLocales.get(locale);
+    const comparison = comparisonLocale
+        ? readJson(path.join(namespaceRoot, comparisonLocale, 'legacy-surface.json'))
+        : {};
     for (const [key, english] of Object.entries(englishMessages)) {
         const prior = existing[key];
-        if (typeof prior === 'string' && prior.trim() && placeholderSignature(prior) === placeholderSignature(english)) messages[key] = prior;
+        if (
+            typeof prior === 'string'
+            && prior.trim()
+            && placeholderSignature(prior) === placeholderSignature(english)
+            && !shouldRetranslate(locale, prior, english, comparison[key])
+        ) messages[key] = prior;
         else missing.push([key, english]);
     }
     if (locale === 'en') return englishMessages;
     if (missing.length > 0 && !translateMissing) {
         throw new Error(`${locale} is missing ${missing.length} surface translations; rerun with --translate.`);
     }
-    for (const batch of batchesFor(missing)) Object.assign(messages, await translateBatch(batch, targetLocales[locale] || locale));
+    for (const batch of reviewBatchesFor(missing, locale)) {
+        Object.assign(messages, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
+    }
     return Object.fromEntries(Object.entries(messages).sort(([left], [right]) => left.localeCompare(right)));
 };
 
@@ -136,6 +223,36 @@ await Promise.all(Array.from({ length: workers }, async () => {
     }
 }));
 
+const englishRootCatalog = readJson(path.join(langDir, 'en.json'));
+const englishRootEntries = Object.entries(englishRootCatalog).filter(([key, value]) => (
+    key !== '@metadata' && typeof value === 'string'
+));
+for (const locale of locales.filter((name) => name !== 'en')) {
+    const rootFile = path.join(langDir, `${locale}.json`);
+    const catalog = readJson(rootFile);
+    const comparisonLocale = retranslateMatchLocales.get(locale);
+    const comparison = comparisonLocale ? readJson(path.join(langDir, `${comparisonLocale}.json`)) : {};
+    const missing = englishRootEntries.filter(([key, english]) => (
+        typeof catalog[key] !== 'string'
+        || !catalog[key].trim()
+        || placeholderSignature(catalog[key]) !== placeholderSignature(english)
+        || shouldRetranslate(locale, catalog[key], english, comparison[key])
+    ));
+    if (missing.length > 0 && !translateMissing) {
+        throw new Error(`${locale}.json is missing ${missing.length} legacy translations; rerun with --translate.`);
+    }
+    for (const batch of reviewBatchesFor(missing, locale)) {
+        Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
+    }
+    writeJson(rootFile, Object.fromEntries([
+        ['@metadata', catalog['@metadata']],
+        ...englishRootEntries.map(([key]) => [key, catalog[key]])
+    ]));
+    if (missing.length > 0) {
+        console.log(`Completed ${locale}.json: translated ${missing.length} missing messages.`);
+    }
+}
+
 const namespaceNames = fs.readdirSync(path.join(namespaceRoot, 'en')).filter((name) => name.endsWith('.json')).sort();
 for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-surface.json')) {
     const englishCatalog = readJson(path.join(namespaceRoot, 'en', namespaceName));
@@ -145,16 +262,21 @@ for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-sur
     for (const locale of locales.filter((name) => name !== 'en')) {
         const namespaceFile = path.join(namespaceRoot, locale, namespaceName);
         const catalog = readJson(namespaceFile);
+        const comparisonLocale = retranslateMatchLocales.get(locale);
+        const comparison = comparisonLocale
+            ? readJson(path.join(namespaceRoot, comparisonLocale, namespaceName))
+            : {};
         const missing = englishEntries.filter(([key, english]) => (
             typeof catalog[key] !== 'string'
             || !catalog[key].trim()
             || placeholderSignature(catalog[key]) !== placeholderSignature(english)
+            || shouldRetranslate(locale, catalog[key], english, comparison[key])
         ));
         if (missing.length > 0 && !translateMissing) {
             throw new Error(`${locale}/${namespaceName} is missing ${missing.length} translations; rerun with --translate.`);
         }
-        for (const batch of batchesFor(missing)) {
-            Object.assign(catalog, await translateBatch(batch, targetLocales[locale] || locale));
+        for (const batch of reviewBatchesFor(missing, locale)) {
+            Object.assign(catalog, normalizeLocaleMessages(locale, await translateBatch(batch, targetLocales[locale] || locale)));
         }
         const ordered = Object.fromEntries([
             ['@metadata', catalog['@metadata']],
@@ -164,6 +286,31 @@ for (const namespaceName of namespaceNames.filter((name) => name !== 'legacy-sur
         if (missing.length > 0) {
             console.log(`Completed ${locale}/${namespaceName}: translated ${missing.length} missing messages.`);
         }
+    }
+}
+
+const traditionalRoot = path.join(langDir, 'zh-Hant.json');
+if (fs.existsSync(traditionalRoot)) {
+    const traditionalCatalog = readJson(traditionalRoot);
+    if (traditionalCatalog['@metadata']?.['normalization-profile'] !== traditionalChineseNormalizationProfile) {
+        for (const file of [
+            traditionalRoot,
+            ...fs.readdirSync(path.join(namespaceRoot, 'zh-Hant'))
+                .filter((name) => name.endsWith('.json'))
+                .map((name) => path.join(namespaceRoot, 'zh-Hant', name))
+        ]) {
+            const catalog = readJson(file);
+            for (const [key, value] of Object.entries(catalog)) {
+                if (key !== '@metadata' && typeof value === 'string') {
+                    catalog[key] = normalizeTraditionalChinese(value);
+                }
+            }
+            if (file === traditionalRoot) {
+                catalog['@metadata']['normalization-profile'] = traditionalChineseNormalizationProfile;
+            }
+            writeJson(file, catalog);
+        }
+        console.log(`Normalized zh-Hant with ${traditionalChineseNormalizationProfile}.`);
     }
 }
 

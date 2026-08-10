@@ -19,7 +19,7 @@ test('every detected legacy UI phrase is represented by one stable generated key
     const english = messagesOnly(readJson(path.join(namespacesRoot, 'en/legacy-surface.json')));
     const expected = Object.fromEntries([...surface.byPhrase.keys()].sort().map((phrase) => [surfaceTools.keyForPhrase(phrase), phrase]));
 
-    assert.equal(surface.byPhrase.size, 1581);
+    assert.equal(surface.byPhrase.size, 1580);
     assert.deepEqual(english, expected);
     assert.equal(new Set(Object.keys(english)).size, surface.byPhrase.size);
 });
@@ -29,7 +29,7 @@ test('all shipped surface catalogs are complete and preserve runtime parameters'
     const englishKeys = Object.keys(english).sort();
     const locales = fs.readdirSync(namespacesRoot).filter((entry) => fs.statSync(path.join(namespacesRoot, entry)).isDirectory());
 
-    assert.equal(locales.length, 18);
+    assert.equal(locales.length, 27);
     for (const locale of locales) {
         const catalog = messagesOnly(readJson(path.join(namespacesRoot, locale, 'legacy-surface.json')));
         assert.deepEqual(Object.keys(catalog).sort(), englishKeys, `${locale} surface keys must match English`);
@@ -47,10 +47,10 @@ test('the extraction report and runtime enforce zero-debt initial and dynamic co
     const builder = fs.readFileSync(path.join(repoRoot, 'scripts/build_i18n_surface_catalogs.mjs'), 'utf8');
     const loader = fs.readFileSync(path.join(langsRoot, 'script.php'), 'utf8');
 
-    assert.equal(report['catalog-version'], '2026.07.24.1');
+    assert.equal(report['catalog-version'], '2026.08.10.1');
     assert.equal(report['candidate-count'], 0);
-    assert.equal(report['auto-bound-message-count'], 1581);
-    assert.equal(report['catalog-message-count'], 2044);
+    assert.equal(report['auto-bound-message-count'], 1580);
+    assert.equal(report['catalog-message-count'], 2060);
     assert.match(runtime, /rebuildAutoPhraseIndex/);
     assert.match(runtime, /resolveAutoTranslation/);
     assert.match(runtime, /observeDynamicTranslations/);

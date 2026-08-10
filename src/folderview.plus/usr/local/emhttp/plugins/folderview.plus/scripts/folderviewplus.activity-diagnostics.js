@@ -1,3 +1,7 @@
+(function folderViewPlusActivityDiagnosticsModule(window, document) {
+if (window.FolderViewPlusDiagnosticsModuleLoaded === true) {
+    return;
+}
 const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
 const diagnosticsUtils = window.FolderViewPlusUtils || null;
 const diagnosticsPrefsStoreModule = window.FolderViewPlusPrefsStore || null;
@@ -56,16 +60,6 @@ const diagnosticsEscapeHtml = (value) => {
         .replace(/'/g, '&#039;');
 };
 const diagnosticsToPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
-const diagnosticsFormatTimestamp = (isoString) => {
-    if (diagnosticsUtils && typeof diagnosticsUtils.formatTimestamp === 'function') {
-        return diagnosticsUtils.formatTimestamp(isoString);
-    }
-    if (!isoString) {
-        return 'Unknown';
-    }
-    const date = new Date(isoString);
-    return Number.isNaN(date.getTime()) ? String(isoString) : date.toLocaleString();
-};
 const diagnosticsDownloadFile = (name, content) => {
     if (typeof window.downloadFile === 'function') {
         window.downloadFile(name, content);
@@ -684,6 +678,7 @@ const getSupportBundleTelemetryApi = () => {
                 dashboardVisualVm: 'fv.support.bundle.dashboard.visual.vm.v1',
                 dashboardLifecycle: 'fv.support.bundle.dashboard.lifecycle.v1',
                 vmLifecycle: 'fv.support.bundle.vm.lifecycle.v1',
+                downloadAttempts: 'fv.support.bundle.downloadAttempts.v1',
                 runtimePerformance: {
                     docker: 'fv.support.bundle.runtime.performance.docker.v1',
                     vm: 'fv.support.bundle.runtime.performance.vm.v1',
@@ -722,6 +717,9 @@ const collectSupportBundleUiTelemetry = (bundle) => {
         browserConsoleErrors: fatalBanner && typeof fatalBanner.getBrowserConsoleErrorSnapshot === 'function'
             ? fatalBanner.getBrowserConsoleErrorSnapshot()
             : { count: 0, entries: [] },
+        startupIncident: fatalBanner && typeof fatalBanner.getStartupIncidentSnapshot === 'function'
+            ? fatalBanner.getStartupIncidentSnapshot()
+            : { available: false, schemaVersion: 1 },
         folderEditorDebug: collectFolderEditorDebugDiagnostics(),
         theme: collectThemeTelemetrySnapshot(),
         localization: window.FolderViewPlusI18n?.snapshot?.() || {
@@ -2196,18 +2194,6 @@ const runThemeSelfHeal = async () => {
     }
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        renderActivityFeed();
-        runThemeDiagnostics();
-        initializeClientDiagnosticsPanels();
-    }, { once: true });
-} else {
-    renderActivityFeed();
-    runThemeDiagnostics();
-    initializeClientDiagnosticsPanels();
-}
-
 Object.assign(window, {
     lastDiagnostics,
     ACTIVITY_FEED_MAX_ENTRIES,
@@ -2320,3 +2306,30 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     collectClientPerformanceTelemetry
 });
 window.FolderViewPlusDiagnosticsModuleLoaded = true;
+
+const initializeActivityDiagnosticsRuntime = () => {
+    const startupActions = [
+        ['activity feed', renderActivityFeed],
+        ['theme diagnostics', runThemeDiagnostics],
+        ['diagnostics panels', initializeClientDiagnosticsPanels]
+    ];
+    for (const [label, action] of startupActions) {
+        try {
+            const result = action();
+            if (result && typeof result.catch === 'function') {
+                result.catch((error) => {
+                    diagnosticsShowError(`Unable to initialize ${label}`, error);
+                });
+            }
+        } catch (error) {
+            diagnosticsShowError(`Unable to initialize ${label}`, error);
+        }
+    }
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeActivityDiagnosticsRuntime, { once: true });
+} else {
+    initializeActivityDiagnosticsRuntime();
+}
+})(window, document);

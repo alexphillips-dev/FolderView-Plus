@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "it",
         "namespace": "common"
     },
@@ -11,7 +11,5 @@
     "common.cancel": "Annulla",
     "common.confirm": "Conferma",
     "common.confirm-type": "Digita per confermare",
-    "common.dismiss": "Ignora",
-    "common.loading": "Caricamento…",
-    "common.notifications": "Notifiche"
+    "common.loading": "Caricamento…"
 }

@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "zh-Hant",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "搜尋設定",
+    "settings.search.label": "搜尋設定",
+    "settings.search.clear-label": "清除設定搜尋",
+    "settings.search.clear-title": "清除搜尋",
+    "settings.search.scope": "適用範圍",
+    "settings.search.scope-help": "選擇高階搜尋是否涵蓋此選項卡或每個進階選項卡",
+    "settings.search.scope-label": "進階設定搜尋範圍",
+    "settings.search.scope-current": "目前選項卡",
+    "settings.search.scope-all": "全部先進",
+    "settings.header.plugin-settings": "外掛設定",
+    "settings.mode.title": "設定模式",
+    "settings.mode.basic-label": "使用基本設定模式",
+    "settings.mode.advanced-label": "使用進階設定模式",
+    "settings.wizard.title": "執行設定助手",
+    "settings.tabs.basic": "基礎",
+    "settings.tabs.advanced": "進階",
+    "settings.tabs.wizard": "嚮導",
+    "settings.privacy.title": "隱私遮蔽",
+    "settings.privacy.mask-names": "蒙版名稱和圖示",
+    "settings.privacy.mask-lan-ips": "遮罩 LAN IP",
+    "settings.privacy.mask-ports": "面罩埠",
+    "settings.privacy.lan-help": "LAN IP 遮罩適用於 Docker 頁面的 LAN IP:PORT 欄位的 IP 部分。連線埠部分使用 Mask ports。"
+}

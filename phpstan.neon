@@ -1,0 +1,12 @@
+parameters:
+    level: 2
+    paths:
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.remote.php
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.api-contract.php
+    scanFiles:
+        - src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/langs/registry.php
+    fileExtensions:
+        - php
+    tmpDir: tmp/phpstan
+    reportUnmatchedIgnoredErrors: true

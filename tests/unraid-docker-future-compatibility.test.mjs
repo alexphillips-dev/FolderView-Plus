@@ -14,12 +14,19 @@ const pluginRoot = path.join(
 const scriptsRoot = path.join(pluginRoot, 'scripts');
 const compatibility = require(path.join(scriptsRoot, 'runtime.host-compatibility.js'));
 const transport = require(path.join(scriptsRoot, 'runtime.transport.js'));
+const containerModel = require(path.join(scriptsRoot, 'docker.runtime.container-model.js'));
 const providers = require(path.join(scriptsRoot, 'docker.runtime.providers.js'));
+const providerHealth = require(path.join(scriptsRoot, 'docker.runtime.provider-health.js'));
+const dashboardAdvancedPreview = require(path.join(scriptsRoot, 'dashboard.advanced-preview.js'));
 const supportBundleBrowser = require(path.join(scriptsRoot, 'folderviewplus.support-bundle-browser.js'));
 const bootstrapSource = fs.readFileSync(path.join(scriptsRoot, 'docker.bootstrap.js'), 'utf8');
 const dockerSource = fs.readFileSync(path.join(scriptsRoot, 'docker.js'), 'utf8');
 const dashboardAdvancedPreviewSource = fs.readFileSync(
     path.join(scriptsRoot, 'dashboard.advanced-preview.js'),
+    'utf8'
+);
+const dockerProviderHealthSource = fs.readFileSync(
+    path.join(scriptsRoot, 'docker.runtime.provider-health.js'),
     'utf8'
 );
 const dockerPage = fs.readFileSync(path.join(pluginRoot, 'folderview.plus.Docker.page'), 'utf8');
@@ -248,12 +255,49 @@ const graphqlResponse = (data, { status = 200, errors = null } = {}) => ({
     }
 });
 
+const capabilityType = (type) => {
+    if (type.endsWith('!')) {
+        return { kind: 'NON_NULL', name: null, ofType: capabilityType(type.slice(0, -1)) };
+    }
+    if (type.startsWith('[') && type.endsWith(']')) {
+        return { kind: 'LIST', name: null, ofType: capabilityType(type.slice(1, -1)) };
+    }
+    return { kind: 'SCALAR', name: type, ofType: null };
+};
+const mutationCapabilityField = (name) => {
+    const argumentsByOperation = {
+        start: { id: 'PrefixedID!' },
+        stop: { id: 'PrefixedID!' },
+        restart: { id: 'PrefixedID!' },
+        pause: { id: 'PrefixedID!' },
+        unpause: { id: 'PrefixedID!' },
+        removeContainer: { id: 'PrefixedID!', withImage: 'Boolean' },
+        updateContainer: { id: 'PrefixedID!' },
+        updateContainers: { ids: '[PrefixedID!]!' },
+        updateAllContainers: {},
+        updateAutostartConfiguration: {
+            entries: '[DockerAutostartEntryInput!]!',
+            persistUserPreferences: 'Boolean'
+        }
+    };
+    return {
+        name,
+        args: Object.entries(argumentsByOperation[name] || {}).map(([argumentName, type]) => ({
+            name: argumentName,
+            defaultValue: null,
+            type: capabilityType(type)
+        })),
+        type: capabilityType(name === 'removeContainer' ? 'Boolean!' : 'DockerContainer!')
+    };
+};
+
 const capabilityPayload = ({
     currentQuery = true,
     legacyQuery = false,
     restart = true,
     organizer = true,
-    subscription = true
+    subscription = true,
+    rich = true
 } = {}) => ({
     queryType: {
         fields: [
@@ -265,6 +309,7 @@ const capabilityPayload = ({
     mutationType: {
         fields: [
             { name: 'docker' },
+            ...(rich ? [{ name: 'refreshDockerDigests' }] : []),
             ...(organizer ? [{ name: 'createDockerFolder' }] : [])
         ]
     },
@@ -274,12 +319,59 @@ const capabilityPayload = ({
     dockerType: {
         fields: [
             ...(currentQuery ? [{ name: 'containers' }] : []),
+            ...(currentQuery && rich
+                ? ['container', 'networks', 'portConflicts', 'logs', 'containerUpdateStatuses']
+                    .map((name) => ({ name }))
+                : []),
             ...(organizer ? [{ name: 'organizer' }] : [])
         ]
     },
     dockerMutationsType: {
-        fields: ['start', 'stop', 'pause', 'unpause', ...(restart ? ['restart'] : [])]
-            .map((name) => ({ name }))
+        fields: [
+            'start',
+            'stop',
+            'pause',
+            'unpause',
+            ...(restart ? ['restart'] : []),
+            ...(rich
+                ? [
+                    'removeContainer',
+                    'updateContainer',
+                    'updateContainers',
+                    'updateAllContainers',
+                    'updateAutostartConfiguration'
+                ]
+                : [])
+        ]
+            .map(mutationCapabilityField)
+    },
+    dockerContainerType: {
+        fields: rich
+            ? [
+                'id',
+                'names',
+                'state',
+                'status',
+                'autoStart',
+                'image',
+                'ports',
+                'mounts',
+                'autoStartOrder',
+                'autoStartWait',
+                'templatePath',
+                'iconUrl',
+                'webUiUrl',
+                'shell',
+                'isOrphaned',
+                'isUpdateAvailable',
+                'isRebuildReady'
+            ].map((name) => ({ name }))
+            : []
+    },
+    dockerAutostartInput: {
+        inputFields: rich
+            ? ['id', 'autoStart', 'wait'].map((name) => ({ name }))
+            : []
     }
 });
 
@@ -323,8 +415,68 @@ const createGraphqlWindow = (options = {}) => {
                             names: ['/current-app'],
                             state: 'RUNNING',
                             status: 'Up',
-                            autoStart: true
+                            autoStart: true,
+                            image: 'example/current:latest',
+                            ports: [{ ip: '0.0.0.0', privatePort: 8080, publicPort: 8080, type: 'TCP' }],
+                            mounts: [{ Type: 'bind', Source: '/mnt/user/appdata/current', Destination: '/config' }],
+                            autoStartOrder: 2,
+                            autoStartWait: 5,
+                            templatePath: '/boot/config/plugins/dockerMan/templates-user/my-current.xml',
+                            iconUrl: '/plugins/dynamix.docker.manager/images/question.png',
+                            webUiUrl: 'http://[IP]:[PORT:8080]',
+                            shell: 'bash',
+                            isOrphaned: false,
+                            isUpdateAvailable: true,
+                            isRebuildReady: false
                         }]
+                    }
+                });
+            }
+            if (body.query.includes('FVPlusDockerContainer(')) {
+                return graphqlResponse({
+                    docker: {
+                        container: {
+                            id: body.variables.id,
+                            names: ['/current-app'],
+                            state: 'RUNNING',
+                            status: 'Up',
+                            autoStart: true,
+                            image: 'example/current:latest',
+                            ports: [],
+                            mounts: [],
+                            isOrphaned: false,
+                            isUpdateAvailable: false,
+                            isRebuildReady: false
+                        }
+                    }
+                });
+            }
+            if (body.query.includes('FVPlusDockerPortConflicts')) {
+                return graphqlResponse({
+                    docker: {
+                        portConflicts: {
+                            containerPorts: [{
+                                privatePort: 8080,
+                                type: 'TCP',
+                                containers: [
+                                    { id: 'server:abcdef1234567890', name: 'current-app' },
+                                    { id: 'server:fedcba0987654321', name: 'other-app' }
+                                ]
+                            }],
+                            lanPorts: []
+                        }
+                    }
+                });
+            }
+            if (body.query.includes('FVPlusDockerUpdate(')) {
+                return graphqlResponse({
+                    docker: {
+                        updateContainer: {
+                            id: body.variables.id,
+                            names: ['/current-app'],
+                            state: 'RUNNING',
+                            status: 'Up'
+                        }
                     }
                 });
             }
@@ -358,7 +510,16 @@ test('GraphQL transport sends CSRF, detects versions and operation capabilities,
     assert.equal(snapshot.query.shape, 'docker.containers');
     assert.equal(snapshot.mutation.start, true);
     assert.equal(snapshot.mutation.restart, false);
+    assert.equal(snapshot.mutation.updateContainer, true);
+    assert.equal(snapshot.mutation.updateAutostartConfiguration, true);
+    assert.equal(snapshot.rootMutation.refreshDockerDigests, true);
     assert.equal(snapshot.subscription.dockerContainerStats, true);
+    assert.equal(snapshot.query.container, true);
+    assert.equal(snapshot.query.portConflicts, true);
+    assert.equal(snapshot.query.logs, true);
+    assert.equal(snapshot.containerFields.iconUrl, true);
+    assert.equal(snapshot.operations.getContainer.available, true);
+    assert.equal(snapshot.operations.updateContainer.available, true);
     assert.equal(snapshot.organizer.query, true);
     assert.equal(snapshot.organizer.mutation, true);
     assert.ok(harness.calls.every((call) => call.headers['x-csrf-token'] === 'fixture-csrf-token'));
@@ -370,6 +531,31 @@ test('GraphQL transport sends CSRF, detects versions and operation capabilities,
         ),
         (error) => error.category === 'capability-unavailable'
     );
+
+    const incompatibleUpdate = {
+        ...snapshot,
+        operations: {
+            ...snapshot.operations,
+            updateContainer: {
+                ...snapshot.operations.updateContainer,
+                arguments: [{
+                    name: 'id',
+                    type: 'ID!',
+                    required: true,
+                    hasDefault: false
+                }]
+            }
+        }
+    };
+    const callCount = harness.calls.length;
+    await assert.rejects(
+        () => transport.runDockerMutation(
+            { operation: 'updateContainer', containerId: 'server:abcdef1234567890' },
+            { window: harness.window, capabilitySnapshot: incompatibleUpdate }
+        ),
+        (error) => error.category === 'capability-unavailable'
+    );
+    assert.equal(harness.calls.length, callCount, 'signature drift must fail before a request is sent');
 });
 
 test('GraphQL transport classifies permission and partial-data responses without exposing server detail', async () => {
@@ -536,6 +722,239 @@ test('GraphQL provider supports current and documented legacy container query sh
     }
 });
 
+test('shared Docker container model normalizes GraphQL and PHP-shaped runtime data', () => {
+    const graphql = containerModel.normalizeContainer({
+        id: 'server:abcdef1234567890',
+        names: ['/current-app'],
+        state: 'RUNNING',
+        autoStart: true,
+        ports: [{ ip: '0.0.0.0', privatePort: 8080, publicPort: 18080, type: 'TCP' }],
+        mounts: [{ Type: 'bind', Source: '/mnt/user/appdata/current', Destination: '/config' }],
+        isUpdateAvailable: true
+    }, { source: 'unraid-graphql' });
+    const php = containerModel.normalizeContainer({
+        shortId: 'fedcba098765',
+        info: {
+            Id: 'fedcba0987654321',
+            Name: 'legacy-app',
+            Config: { Image: 'example/legacy:latest' },
+            State: { Running: true, Paused: false, Autostart: true }
+        },
+        Mounts: []
+    }, { source: 'legacy-runtime' });
+    assert.equal(graphql.name, 'current-app');
+    assert.equal(graphql.state, 'running');
+    assert.equal(graphql.ports[0].publicPort, 18080);
+    assert.equal(graphql.mounts[0].destination, '/config');
+    assert.equal(graphql.isUpdateAvailable, true);
+    assert.equal(php.name, 'legacy-app');
+    assert.equal(php.image, 'example/legacy:latest');
+    assert.equal(php.state, 'running');
+    assert.equal(php.autoStart, true);
+    assert.equal(
+        containerModel.resolveContainerIdentity('abcdef123456', [graphql, php]),
+        graphql
+    );
+});
+
+test('legacy Docker UI selects hybrid provider with GraphQL reads and host-owned actions', async () => {
+    const harness = createGraphqlWindow();
+    const hostActions = [];
+    harness.window.eventControl = (request, refreshTarget) => {
+        hostActions.push({ request, refreshTarget });
+    };
+    const registry = providers.createRegistry({
+        window: harness.window,
+        compatibilityModule: compatibility,
+        transport
+    });
+    const provider = registry.select({
+        hostGeneration: compatibility.HOST_GENERATIONS.LEGACY_DOCKER_TABLE
+    });
+    assert.equal(provider.id, providers.PROVIDER_IDS.HYBRID_LEGACY_GRAPHQL);
+    const containers = await provider.listContainers({ force: true });
+    assert.equal(containers[0].source, 'unraid-graphql');
+    assert.equal(containers[0].iconUrl, '/plugins/dynamix.docker.manager/images/question.png');
+    await provider.executeAction({ action: 'start', container: 'abcdef1234567890' });
+    assert.equal(hostActions.length, 1);
+    assert.equal(hostActions[0].request.action, 'start');
+    assert.equal(hostActions[0].refreshTarget, 'loadlist');
+    assert.equal(
+        harness.calls.filter((call) => call.body.query.includes('mutation FVPlusDockerStart')).length,
+        0,
+        'legacy UI lifecycle actions remain owned by eventControl'
+    );
+    registry.dispose();
+});
+
+test('hybrid capability discovery never blocks legacy Docker runtime activation', async () => {
+    let resolveProbe;
+    let probeSettled = false;
+    let discoverySignal = null;
+    const pendingProbe = new Promise((resolve) => {
+        resolveProbe = (value) => {
+            probeSettled = true;
+            resolve(value);
+        };
+    });
+    const window = {
+        eventControl() {},
+        fetch() {},
+        document: createDocument([])
+    };
+    const registry = providers.createRegistry({
+        window,
+        compatibilityModule: compatibility,
+        compatibilityController: { updateProviderEvidence() {} },
+        transport: {
+            getCapabilitySnapshot: () => ({
+                checkedAt: null,
+                endpointAvailable: false,
+                query: {},
+                mutation: {},
+                rootMutation: {},
+                subscription: {},
+                organizer: {}
+            }),
+            probeCapabilities: (options) => {
+                discoverySignal = options.signal;
+                return pendingProbe;
+            },
+            runDockerAction: async () => ({ transport: 'host-event-control' }),
+            subscribe: () => () => {}
+        }
+    });
+    const prepared = await registry.prepare({
+        hostGeneration: compatibility.HOST_GENERATIONS.LEGACY_DOCKER_TABLE
+    });
+    assert.equal(prepared.id, providers.PROVIDER_IDS.HYBRID_LEGACY_GRAPHQL);
+    assert.equal(probeSettled, false, 'legacy preparation resolves before GraphQL discovery');
+    resolveProbe({
+        endpointAvailable: false,
+        query: {},
+        mutation: {},
+        rootMutation: {},
+        subscription: {},
+        organizer: {}
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(discoverySignal?.aborted, false);
+    registry.dispose();
+    assert.equal(discoverySignal?.aborted, true);
+});
+
+test('GraphQL provider uses targeted reconciliation, aggregate health, and guarded update mutation', async () => {
+    const harness = createGraphqlWindow();
+    const provider = providers.createGraphqlProvider({
+        window: harness.window,
+        transport
+    });
+    await provider.listContainers({ force: true });
+    const targeted = await provider.getContainer('abcdef123456');
+    assert.equal(targeted.id, 'server:abcdef1234567890');
+    assert.equal(targeted.isUpdateAvailable, false);
+    const health = await provider.health.getSummary({ force: true });
+    assert.equal(health.detailsAvailable, true);
+    assert.equal(health.containerPortConflictCount, 1);
+    assert.equal(health.affectedContainerCount, 2);
+    assert.equal(Object.hasOwn(health, 'containerIds'), false);
+    await provider.mutations.update({ container: 'abcdef123456' });
+    assert.ok(
+        harness.calls.some((call) => call.body.query.includes('mutation FVPlusDockerUpdate('))
+    );
+    assert.ok(
+        harness.calls.filter((call) => call.body.query.includes('FVPlusDockerContainer(')).length >= 2
+    );
+    provider.dispose();
+});
+
+test('Dashboard GraphQL stats parser accepts matching prefixed ids and rejects unrelated data', () => {
+    const api = dashboardAdvancedPreview.createApi({});
+    assert.deepEqual(
+        api.parseGraphqlStats({
+            dockerContainerStats: {
+                id: 'server:abcdef1234567890',
+                cpuPercent: 24,
+                memPercent: 50,
+                memUsage: '512MB / 1GB',
+                netIO: '1MB / 2MB',
+                blockIO: '3MB / 4MB'
+            }
+        }, { shortId: 'abcdef123456' }, 2),
+        {
+            cpu: 12,
+            mem: 50,
+            memUsage: '512MB / 1GB',
+            netIO: '1MB / 2MB',
+            blockIO: '3MB / 4MB'
+        }
+    );
+    assert.equal(
+        api.parseGraphqlStats({
+            dockerContainerStats: { id: 'server:other', cpuPercent: 1, memPercent: 1 }
+        }, { shortId: 'abcdef123456' }, 1),
+        null
+    );
+});
+
+test('provider health controller derives aggregate severity and has a disposal boundary', async () => {
+    const controller = providerHealth.createController({
+        providerRegistry: {
+            getDefault: () => ({
+                health: {
+                    getLastSummary: () => null,
+                    getSummary: async () => ({
+                        checkedAt: new Date().toISOString(),
+                        detailsAvailable: true,
+                        updateAvailableCount: 2,
+                        rebuildReadyCount: 1,
+                        orphanedCount: 1,
+                        containerPortConflictCount: 1,
+                        lanPortConflictCount: 1
+                    })
+                }
+            })
+        }
+    });
+    await controller.refresh({ force: true });
+    const model = controller.getModel();
+    assert.equal(model.severity, 'danger');
+    assert.equal(model.updates, 2);
+    assert.equal(model.rebuilds, 1);
+    assert.equal(model.orphaned, 1);
+    assert.equal(model.conflicts, 2);
+    assert.match(model.text, /2 port conflicts/);
+    controller.dispose();
+    assert.equal(controller.getSnapshot().disposed, true);
+});
+
+test('provider health disposal aborts an in-flight aggregate request', async () => {
+    let capturedSignal = null;
+    let resolveHealth;
+    const controller = providerHealth.createController({
+        providerRegistry: {
+            getDefault: () => ({
+                health: {
+                    getLastSummary: () => null,
+                    getSummary: (options) => {
+                        capturedSignal = options.signal;
+                        return new Promise((resolve) => {
+                            resolveHealth = resolve;
+                        });
+                    }
+                }
+            })
+        }
+    });
+    const pending = controller.refresh({ force: true });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(capturedSignal?.aborted, false);
+    controller.dispose();
+    assert.equal(capturedSignal?.aborted, true);
+    resolveHealth(null);
+    assert.equal(await pending, null);
+});
+
 test('transport diagnostics expose only aggregate GraphQL evidence', async () => {
     const harness = createGraphqlWindow();
     await transport.probeCapabilities({ window: harness.window, force: true });
@@ -600,12 +1019,19 @@ test('Docker and Dashboard pages load compatibility and provider modules in depe
         const transportIndex = page.indexOf('/plugins/folderview.plus/scripts/runtime.transport.js');
         const hostAdapterIndex = page.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
         const compatibilityIndex = page.indexOf('/plugins/folderview.plus/scripts/runtime.host-compatibility.js');
+        const containerModelIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.container-model.js');
         const providersIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.providers.js');
+        const providerHealthIndex = page.indexOf('/plugins/folderview.plus/scripts/docker.runtime.provider-health.js');
         const runtimeIndex = page.indexOf(runtimeAsset);
         assert.ok(transportIndex >= 0, `${label} transport include is missing`);
         assert.ok(hostAdapterIndex >= 0, `${label} host adapter include is missing`);
         assert.ok(compatibilityIndex > hostAdapterIndex, `${label} compatibility detector must load after the host adapter`);
-        assert.ok(providersIndex > compatibilityIndex, `${label} providers must load after compatibility detection`);
+        assert.ok(containerModelIndex > compatibilityIndex, `${label} container model must load after compatibility detection`);
+        assert.ok(providersIndex > containerModelIndex, `${label} providers must load after the container model`);
+        if (label === 'Docker') {
+            assert.ok(providerHealthIndex > providersIndex, 'Docker provider health must load after providers');
+            assert.ok(runtimeIndex > providerHealthIndex, 'Docker runtime must load after provider health');
+        }
         assert.ok(runtimeIndex > providersIndex, `${label} runtime must load after provider registration`);
     }
     assert.match(dockerPage, /window\.FolderViewPlusDockerHostCompatibilityDecision\s*=/);
@@ -618,4 +1044,19 @@ test('Dashboard actions use provider capabilities and contain rejected action pr
     assert.match(dashboardAdvancedPreviewSource, /dockerActionProvider\?\.capabilities\?\.executeActions === true/);
     assert.match(dashboardAdvancedPreviewSource, /Promise\.resolve\(\)\s*\.then\(handler\)\s*\.catch/);
     assert.match(dashboardAdvancedPreviewSource, /FolderView action failed/);
+});
+
+test('legacy Docker health badge consumes only aggregate provider health metadata', () => {
+    assert.match(dockerSource, /FolderViewPlusDockerProviderHealth\?\.createController/);
+    assert.match(dockerSource, /dockerProviderHealthController\?\.getModel/);
+    assert.match(dockerProviderHealthSource, /health\.getSummary/);
+    assert.match(dockerProviderHealthSource, /containerPortConflictCount/);
+    assert.match(dockerProviderHealthSource, /lanPortConflictCount/);
+    assert.match(dockerProviderHealthSource, /updateAvailableCount/);
+    assert.match(dockerProviderHealthSource, /rebuildReadyCount/);
+    assert.match(dockerProviderHealthSource, /orphanedCount/);
+    assert.doesNotMatch(
+        dockerProviderHealthSource,
+        /summary\.(?:containerIds|containerNames|paths|urls)/
+    );
 });

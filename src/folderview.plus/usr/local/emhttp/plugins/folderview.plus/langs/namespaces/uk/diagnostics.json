@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "uk",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Ці знімки зберігають відтворену геометрію інформаційної панелі після переходу до налаштувань.",
     "diagnostics.capture.review": "огляд",
     "diagnostics.capture.ready": "Готовий",
-    "diagnostics.capture.capture-again": "Захоплення знову"
+    "diagnostics.capture.capture-again": "Захоплення знову",
+    "diagnostics.bootstrap.reference": "Посилання",
+    "diagnostics.bootstrap.last-step": "Останній завершений крок",
+    "diagnostics.bootstrap.occurrences": "Кількість повторень",
+    "diagnostics.bootstrap.retry": "Спробувати завантажити знову",
+    "diagnostics.bootstrap.reload": "Перезавантажити сторінку",
+    "diagnostics.bootstrap.copy": "Копіювати код підтримки",
+    "diagnostics.bootstrap.download": "Завантажити звіт про запуск",
+    "diagnostics.bootstrap.copied": "Код підтримки скопійовано",
+    "diagnostics.bootstrap.copy-failed": "Не вдалося скопіювати",
+    "diagnostics.bootstrap.downloaded": "Звіт про запуск завантажено",
+    "diagnostics.bootstrap.download-failed": "Не вдалося завантажити",
+    "diagnostics.bootstrap.retrying": "Повторна спроба…",
+    "diagnostics.bootstrap.retry-succeeded": "Завантаження відновлено",
+    "diagnostics.bootstrap.retry-failed": "Повторна спроба не вдалася"
 }

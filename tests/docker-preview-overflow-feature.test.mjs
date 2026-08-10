@@ -76,10 +76,13 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(sharedRuntimeJs, /const restoreLinearPreviewLayout = \(\$preview,\s*settings = \{\}\) =>/);
     assert.match(sharedRuntimeJs, /const finalizePreviewRows = \(\$preview,\s*rowSlices = \[\],\s*settings = \{\}\) =>/);
     assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
-    assert.match(dockerJs, /const shouldRenderPreviewWebuiPlaceholder = \(settings = \{\}, webuiQuickActionEnabled = false\) =>/);
-    assert.match(dockerJs, /settings\?\.preview_vertical_bars === true/);
-    assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
-    assert.match(dockerJs, /fv-preview-webui-placeholder/);
+    assert.match(dockerPreviewActionsScript, /const reconcileDockerPreviewActionButtons = \(\$target,[\s\S]*options = \{\}\) =>/);
+    assert.match(dockerPreviewActionsScript, /ensureDockerPreviewActionSlot/);
+    assert.match(dockerPreviewActionsScript, /data-fv-preview-action-slot/);
+    assert.doesNotMatch(
+        dockerPreviewActionsScript,
+        /\$target\.children\('span\.folder-element-webui, span\.folder-element-console, span\.folder-element-logs/
+    );
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
     assert.match(dockerJs, /const shouldHidePreviewStatus = previewStatusMode === 'none';/);
     assert.match(dockerJs, /\['none', 'hide', 'hidden', 'off', 'false', '0', 'no'\]\.includes\(normalized\)/);
@@ -244,8 +247,8 @@ test('docker styles support multi-row previews without the removed member action
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*height:\s*1\.35em/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*margin:\s*0 0 0 6px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-docker-preview-card \{/);
-    assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{/);
-    assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
+    assert.match(dockerCss, /\.folder-preview \.fv-preview-action-slot \{/);
+    assert.match(dockerCss, /\.folder-preview \.fv-preview-action-slot\.is-pending,[\s\S]*visibility:\s*hidden/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder-icon \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-folder-preview-child-icon \{[\s\S]*width:\s*36px/);

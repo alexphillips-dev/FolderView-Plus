@@ -3,10 +3,18 @@
   "private": true,
   "scripts": {
     "test:browser-fixtures": "node scripts/fixture_browser_tests.mjs",
-    "test:runtime-performance": "node scripts/runtime_performance_benchmarks.mjs"
+    "test:runtime-performance": "node scripts/runtime_performance_benchmarks.mjs",
+    "test:coverage": "c8 --check-coverage --lines 70 --functions 65 --branches 60 --statements 70 --include=src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js --include=src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.view-settings.js --include=src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.diagnostics-view-model.js --include=src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.container-model.js --include=src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js --include=scripts/lib/support_bundle_compare.mjs node --test tests/folderviewplus-utils.test.mjs tests/view-settings-behavior.test.mjs tests/diagnostics-view-model.test.mjs tests/docker-runtime-diagnostics-geometry.test.mjs tests/unraid-docker-future-compatibility.test.mjs tests/support-bundle-comparator.test.mjs",
+    "sbom": "node scripts/generate_sbom.mjs",
+    "sbom:check": "node scripts/generate_sbom.mjs --check",
+    "csp:check": "node scripts/csp_readiness_guard.mjs",
+    "compare:support-bundles": "node scripts/compare_support_bundles.mjs"
   },
   "devDependencies": {
+    "axe-core": "4.12.1",
+    "c8": "12.0.0",
     "jquery": "3.7.1",
-    "playwright": "1.61.1"
+    "opencc-js": "1.4.1",
+    "playwright": "1.62.0"
   }
 }

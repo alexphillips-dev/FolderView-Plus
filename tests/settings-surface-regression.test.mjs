@@ -7,7 +7,10 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
-const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const settingsCss = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.bootstrap.css'
+].map((relativePath) => read(relativePath)).join('\n');
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const themeWorkspacePhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/theme_workspace.php');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
@@ -32,7 +35,7 @@ test('settings first paint is cloaked until config-only folder data is ready', (
     assert.match(settingsPage, /id="fv-settings-root" class="fv-theme-safe fv-settings-bootstrap-pending" aria-busy="true"/);
     assert.match(settingsPage, /id="fv-settings-bootstrap-shell"[\s\S]*Loading FolderView Plus settings/);
     assert.match(settingsCss, /#fv-settings-root\.fv-settings-bootstrap-pending > :not\(#fv-settings-bootstrap-shell\):not\(#fvplus-fatal-banner\)/);
-    assert.match(settingsJs, /const revealSettingsBootstrapSurface = \(\) => \{[\s\S]*classList\.remove\('fv-settings-bootstrap-pending'\)/);
+    assert.match(settingsJs, /const revealSettingsBootstrapSurface = \(\) => \{[\s\S]*classList\.remove\('fv-settings-bootstrap-pending', 'fv-settings-bootstrap-failed'\)/);
     assert.match(settingsJs, /const result = await refreshCoreData\(\);[\s\S]*setSettingsMode\(settingsUiState\.mode\);[\s\S]*revealSettingsBootstrapSurface\(\);/);
 });
 
@@ -110,7 +113,6 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const diagnosticsShowError = \(title, error\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsEscapeHtml = \(value\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsToPrettyJson = \(value\) =>/);
-    assert.match(diagnosticsJs, /const diagnosticsFormatTimestamp = \(isoString\) => \{/);
     assert.match(diagnosticsJs, /const diagnosticsDownloadFile = \(name, content\) => \{/);
     assert.match(diagnosticsJs, /escapeHtml:\s*diagnosticsEscapeHtml/);
     assert.match(diagnosticsJs, /showError:\s*diagnosticsShowError/);
@@ -211,7 +213,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.doesNotMatch(diagnosticsJs, /repair_missing_custom_icons:\s*Object\.freeze\(\{|repair_orphaned_members:\s*Object\.freeze\(\{|repairMissingIconsAction/);
     assert.match(diagnosticsJs, /const themeCard = hasResults \? buildThemeDiagnosticsSummaryCard\(\) : null;/);
     assert.match(diagnosticsJs, /return response;/);
-    assert.match(diagnosticsJs, /runThemeDiagnostics\(\);\s*initializeClientDiagnosticsPanels\(\);/);
+    assert.match(diagnosticsJs, /\['theme diagnostics', runThemeDiagnostics\],\s*\['diagnostics panels', initializeClientDiagnosticsPanels\]/);
+    assert.match(diagnosticsJs, /for \(const \[label, action\] of startupActions\) \{\s*try \{\s*const result = action\(\);[\s\S]*result\.catch\(\(error\) => \{[\s\S]*diagnosticsShowError\(`Unable to initialize \$\{label\}`, error\);/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
     assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);
     assert.doesNotMatch(diagnosticsJs, /bundle\.clientTelemetry = existingClientTelemetry;/);
@@ -302,7 +305,7 @@ test('theme workspace lives in its own Appearance advanced tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="theme-workspace" data-fv-advanced="1" data-fv-advanced-group="appearance">Theme workspace<\/h2>/);
     assert.match(settingsPage, /id="fv-theme-workspace-summary"/);
     assert.match(settingsPage, /id="fv-theme-scan-result"/);
-    assert.match(settingsPage, /onclick="scanThemeWorkspaceGithub\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="scanThemeWorkspaceGithub\(\)"/);
     assert.match(settingsPage, /id="fv-theme-preview-sample"/);
     assert.match(themeWorkspaceJs, /scanGithub:\s*\(source\) => safeAction\('Theme scan'/);
     assert.match(themeWorkspaceJs, /updateTheme:\s*\(themeId\) => safeAction\('Theme update'/);
@@ -341,13 +344,13 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.match(settingsPage, /id="recovery-change-history-list"/);
-    assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
-    assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
-    assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
-    assert.match(settingsPage, /onclick="exportEnvironmentSnapshot\(\)"/);
-    assert.match(settingsPage, /onclick="importEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="restoreLatestActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="createActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="runActiveRecoveryScheduler\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="exportEnvironmentSnapshot\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="importEnvironmentSnapshot\(\)"/);
     assert.match(settingsPage, /id="fv-recovery-environment-summary"/);
-    assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsPage, /data-fv-onclick="undoActiveRecoveryChange\(\)"/);
     assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
@@ -432,8 +435,8 @@ test('diagnostics tab uses a dedicated responsive workspace and support flow', (
     assert.match(settingsCss, /\.fv-diagnostics-workspace\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-hero\s*\{[\s\S]*grid-template-columns:\s*minmax\(310px,\s*1\.15fr\)\s*minmax\(440px,\s*2fr\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics\s*\{[\s\S]*align-self:\s*center;/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[\s\S]*border-color:\s*var\(--fvplus-settings-border-subtle\)[\s\S]*color:\s*var\(--fvplus-settings-text-primary\)/);
-    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-export\s*\{[\s\S]*--fv-diagnostics-action-color:\s*var\(--fvplus-settings-chip-info\);/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-primary\s*\{[^}]*border-color:\s*var\(--fvplus-settings-border-subtle\)[^}]*color:\s*var\(--fvplus-settings-button-fg\)/);
+    assert.match(settingsCss, /#fv-settings-root \.fv-diagnostics-toolbar > \.fv-ui-button\.is-export\s*\{[^}]*--fv-diagnostics-action-color:\s*var\(--fvplus-settings-export-action\);/);
     assert.match(settingsCss, /\.fv-diagnostics-metrics dt\s*\{[\s\S]*font-size:\s*1\.3rem;[\s\S]*text-align:\s*center;/);
     assert.match(settingsCss, /\.fv-diagnostics-metric\.has-icon \.fv-diagnostics-metric-icon\s*\{[\s\S]*position:\s*absolute;[\s\S]*top:\s*0\.65rem;[\s\S]*left:\s*0\.75rem;/);
     assert.match(settingsCss, /\.fv-diagnostics-metric\.is-version \.fv-diagnostics-metric-icon\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);

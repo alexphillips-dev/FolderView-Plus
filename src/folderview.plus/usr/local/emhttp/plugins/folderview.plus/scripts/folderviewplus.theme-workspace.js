@@ -240,9 +240,9 @@
                         </div>
                         ${theme.warnings.map((warning) => `<div class="fv-theme-workspace-entry-warning">${escapeHtml(warning)}</div>`).join('')}
                         <div class="fv-theme-workspace-entry-actions">
-                            <button type="button" onclick="activateThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-paint-brush"></i> Activate</button>
-                            <button type="button" onclick="updateThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-refresh"></i> Update</button>
-                            <button type="button" onclick="deleteThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-trash"></i> Delete</button>
+                            <button type="button" data-fv-onclick="activateThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-paint-brush"></i> Activate</button>
+                            <button type="button" data-fv-onclick="updateThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-refresh"></i> Update</button>
+                            <button type="button" data-fv-onclick="deleteThemeWorkspaceTheme('${escapeHtml(theme.id)}')"><i class="fa fa-trash"></i> Delete</button>
                         </div>
                     </div>
                 `;

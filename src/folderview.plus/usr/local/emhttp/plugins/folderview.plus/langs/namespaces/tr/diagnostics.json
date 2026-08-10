@@ -1,6 +1,6 @@
 {
     "@metadata": {
-        "catalog-version": "2026.07.24.1",
+        "catalog-version": "2026.08.10.1",
         "locale": "tr",
         "namespace": "diagnostics"
     },
@@ -103,5 +103,19 @@
     "diagnostics.capture.help": "Bu yakalamalar, Ayarlar'a gittikten sonra oluşturulan Kontrol Paneli geometrisini korur.",
     "diagnostics.capture.review": "İncele",
     "diagnostics.capture.ready": "Hazır",
-    "diagnostics.capture.capture-again": "Tekrar yakala"
+    "diagnostics.capture.capture-again": "Tekrar yakala",
+    "diagnostics.bootstrap.reference": "Referans",
+    "diagnostics.bootstrap.last-step": "Son tamamlanan adım",
+    "diagnostics.bootstrap.occurrences": "Oluşumlar",
+    "diagnostics.bootstrap.retry": "Yüklemeyi tekrar dene",
+    "diagnostics.bootstrap.reload": "Sayfayı yeniden yükle",
+    "diagnostics.bootstrap.copy": "Destek kodunu kopyala",
+    "diagnostics.bootstrap.download": "Başlangıç raporunu indir",
+    "diagnostics.bootstrap.copied": "Destek kodu kopyalandı",
+    "diagnostics.bootstrap.copy-failed": "Kopyalama başarısız",
+    "diagnostics.bootstrap.downloaded": "Başlangıç raporu indirildi",
+    "diagnostics.bootstrap.download-failed": "İndirme başarısız",
+    "diagnostics.bootstrap.retrying": "Tekrar deneniyor…",
+    "diagnostics.bootstrap.retry-succeeded": "Yükleme devam ediyor",
+    "diagnostics.bootstrap.retry-failed": "Tekrar deneme başarısız"
 }

@@ -350,12 +350,57 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 
-    const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+    let generatedIdCounter = 0;
+    const createSecureRuntimeId = (prefix = 'fvplus') => {
+        const safePrefix = String(prefix || 'fvplus').replace(/[^A-Za-z0-9._-]/g, '').slice(0, 32) || 'fvplus';
+        const cryptoApi = typeof globalThis !== 'undefined' ? globalThis.crypto : null;
+        if (cryptoApi && typeof cryptoApi.randomUUID === 'function') {
+            return `${safePrefix}-${cryptoApi.randomUUID()}`;
+        }
+        if (cryptoApi && typeof cryptoApi.getRandomValues === 'function') {
+            const bytes = new Uint8Array(16);
+            cryptoApi.getRandomValues(bytes);
+            const token = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+            return `${safePrefix}-${token}`;
+        }
+        generatedIdCounter = (generatedIdCounter + 1) % Number.MAX_SAFE_INTEGER;
+        return `${safePrefix}-${Date.now().toString(36)}-${generatedIdCounter.toString(36)}`;
+    };
+
+    const sanitizeImageUrl = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
         const raw = String(value || '').trim();
-        if (!raw || /^javascript:/i.test(raw)) {
+        if (!raw) {
             return fallback;
         }
-        return escapeHtml(raw);
+        if (raw.startsWith('/') && !raw.startsWith('//')) {
+            return raw;
+        }
+        if (/^data:image\/(?:png|jpe?g|gif|webp|avif|bmp|x-icon|vnd\.microsoft\.icon);base64,[a-z0-9+/=\s]+$/i.test(raw)) {
+            return raw;
+        }
+        try {
+            const parsed = new URL(raw);
+            if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+                return fallback;
+            }
+            return parsed.href;
+        } catch (_error) {
+            return fallback;
+        }
+    };
+
+    const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        return escapeHtml(sanitizeImageUrl(value, fallback));
+    };
+
+    const FOLDER_ID_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/;
+    const RESERVED_FOLDER_IDS = new Set(['__proto__', 'prototype', 'constructor']);
+    const normalizeFolderId = (value) => {
+        const id = String(value || '').trim();
+        if (!FOLDER_ID_PATTERN.test(id) || RESERVED_FOLDER_IDS.has(id.toLowerCase())) {
+            return '';
+        }
+        return id;
     };
 
     const getFolderStatusColors = (settings) => {
@@ -400,11 +445,16 @@
         }
         const output = {};
         for (const [rawId, expanded] of Object.entries(value)) {
-            const id = String(rawId || '').trim();
+            const id = normalizeFolderId(rawId);
             if (!id) {
                 continue;
             }
-            output[id] = expanded === true;
+            Object.defineProperty(output, id, {
+                value: expanded === true,
+                enumerable: true,
+                configurable: true,
+                writable: true
+            });
         }
         return output;
     };
@@ -540,7 +590,7 @@
         const rawParentId = typeof value.parentId === 'string'
             ? value.parentId
             : (typeof value.parent_id === 'string' ? value.parent_id : '');
-        normalized.parentId = String(rawParentId || '').trim();
+        normalized.parentId = normalizeFolderId(rawParentId);
         normalized.containers = normalizeFolderMembers(value.containers);
         normalized.settings = isPlainObject(value.settings) ? { ...value.settings } : {};
         normalized.actions = Array.isArray(value.actions) ? value.actions.slice(0, 200) : [];
@@ -559,7 +609,7 @@
         }
         const output = {};
         for (const [id, folder] of Object.entries(value)) {
-            const normalizedId = String(id || '').trim();
+            const normalizedId = normalizeFolderId(id);
             if (normalizedId === '' || Object.prototype.hasOwnProperty.call(output, normalizedId)) {
                 continue;
             }
@@ -567,7 +617,12 @@
             if (!normalizedFolder) {
                 continue;
             }
-            output[normalizedId] = normalizedFolder;
+            Object.defineProperty(output, normalizedId, {
+                value: normalizedFolder,
+                enumerable: true,
+                configurable: true,
+                writable: true
+            });
         }
         return output;
     };
@@ -2252,8 +2307,11 @@
         createFrameScheduler,
         createIdleTaskQueue,
         createBatchedStorageWriter,
+        createSecureRuntimeId,
         escapeHtml,
+        sanitizeImageUrl,
         sanitizeImageSrc,
+        normalizeFolderId,
         normalizeFolderMap,
         normalizeFolderMembers,
         normalizeAppColumnWidth,

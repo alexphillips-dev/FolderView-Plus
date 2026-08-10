@@ -6,7 +6,7 @@ Markdown="false"
 ---
 <?php
 $type = 'vm';
-$fvplusI18nNamespaces = ['vm'];
+$fvplusI18nNamespaces = ['vm', 'diagnostics'];
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
@@ -38,7 +38,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script>
     $(document).ready(() => {
         folderi18n = () => {
-            $('<input type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">').insertAfter('table#kvm_table');
+            $('<input type="button" data-fv-onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">').insertAfter('table#kvm_table');
             $('body').i18n();
             $('[type="button"]').i18n();
         }
@@ -65,6 +65,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/runtime.folder-ordering.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js')?>"></script>
+<script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/folder.runtime.row-actions.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/vm.runtime.lifecycle.js')?>"></script>
 <script src="<?php fvplus_asset('/plugins/folderview.plus/scripts/vm.js')?>"></script>
 

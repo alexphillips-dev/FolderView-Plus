@@ -1,20 +1,28 @@
 <?php
 
 if (!defined('FVPLUS_I18N_CATALOG_VERSION')) {
-    define('FVPLUS_I18N_CATALOG_VERSION', '2026.07.24.1');
+    define('FVPLUS_I18N_CATALOG_VERSION', '2026.08.10.1');
 }
 
 if (!function_exists('fvplus_i18n_registry')) {
     function fvplus_i18n_registry(): array {
         return [
             'en' => ['name' => 'English', 'nativeName' => 'English', 'direction' => 'ltr', 'status' => 'source', 'reviewed' => true],
+            'ar' => ['name' => 'Arabic', 'nativeName' => 'العربية', 'direction' => 'rtl', 'status' => 'complete', 'reviewed' => true],
+            'bn' => ['name' => 'Bengali', 'nativeName' => 'বাংলা', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'ca' => ['name' => 'Catalan', 'nativeName' => 'Català', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'cs' => ['name' => 'Czech', 'nativeName' => 'Čeština', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'da' => ['name' => 'Danish', 'nativeName' => 'Dansk', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'de' => ['name' => 'German', 'nativeName' => 'Deutsch', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'es' => ['name' => 'Spanish', 'nativeName' => 'Español', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'fr' => ['name' => 'French', 'nativeName' => 'Français', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'hr' => ['name' => 'Croatian', 'nativeName' => 'Hrvatski', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'hu' => ['name' => 'Hungarian', 'nativeName' => 'Magyar', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'it' => ['name' => 'Italian', 'nativeName' => 'Italiano', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'ja' => ['name' => 'Japanese', 'nativeName' => '日本語', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'ko' => ['name' => 'Korean', 'nativeName' => '한국어', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'lv' => ['name' => 'Latvian', 'nativeName' => 'Latviešu', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'nb' => ['name' => 'Norwegian Bokmål', 'nativeName' => 'Norsk bokmål', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'nl' => ['name' => 'Dutch', 'nativeName' => 'Nederlands', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'pl' => ['name' => 'Polish', 'nativeName' => 'Polski', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'pt-BR' => ['name' => 'Portuguese (Brazil)', 'nativeName' => 'Português (Brasil)', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
@@ -24,7 +32,8 @@ if (!function_exists('fvplus_i18n_registry')) {
             'sv' => ['name' => 'Swedish', 'nativeName' => 'Svenska', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'tr' => ['name' => 'Turkish', 'nativeName' => 'Türkçe', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
             'uk' => ['name' => 'Ukrainian', 'nativeName' => 'Українська', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
-            'zh-Hans' => ['name' => 'Chinese (Simplified)', 'nativeName' => '简体中文', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true]
+            'zh-Hans' => ['name' => 'Chinese (Simplified)', 'nativeName' => '简体中文', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true],
+            'zh-Hant' => ['name' => 'Chinese (Traditional)', 'nativeName' => '繁體中文', 'direction' => 'ltr', 'status' => 'complete', 'reviewed' => true]
         ];
     }
 }
@@ -77,10 +86,12 @@ if (!function_exists('fvplus_i18n_locale_candidates')) {
             } elseif (in_array($requestedLower, ['zh-tw', 'zh-hk', 'zh-mo', 'zh-hant'], true)) {
                 $regionalAlias = 'zh-Hant';
             }
+        } elseif ($language === 'no') {
+            $regionalAlias = 'nb';
         } elseif ($requestedLower === 'pt') {
             $regionalAlias = 'pt-PT';
         }
-        $baseCandidate = $language === 'zh' ? null : $language;
+        $baseCandidate = in_array($language, ['no', 'zh'], true) ? null : $language;
         return array_values(array_unique(array_filter([$requested, $regionalAlias, $baseCandidate, 'en'])));
     }
 }

@@ -28,6 +28,10 @@ test('dashboard folder action errors do not trigger an immediate second reload',
 });
 
 test('vm pin persistence and folder action error handling avoid stale reloads', () => {
+    assert.match(vmJs, /const toggleVmFolderPin = async \(folderId,\s*requestedPinned = !isVmFolderPinned\(folderId\)\) =>/);
+    assert.match(vmJs, /toggleVmFolderPin\(id,\s*!pinned\);/);
+    assert.match(vmJs, /queueIfBusy:\s*true,\s*onIntent:\s*\(\) => \{[\s\S]*applyVmPinnedFolderIds\(nextPinned\);[\s\S]*refreshVmFolderQuickActionStates\(\);/);
+    assert.match(vmJs, /async \(intent\) => \{[\s\S]*if \(!intent\.isLatest\(\)\) \{\s*return;\s*\}/);
     assert.match(vmJs, /applyVmPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*refreshVmFolderQuickActionStates\(\);/s);
     assert.doesNotMatch(vmJs, /applyVmPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*refreshVmFolderQuickActionStates\(\);\s*queueLoadlistRefresh\(/s);
     assert.match(vmJs, /const assertVmPrefsSaveResponse = \(response, fallbackMessage = 'Failed to save VM preferences\.'\) => \{/);

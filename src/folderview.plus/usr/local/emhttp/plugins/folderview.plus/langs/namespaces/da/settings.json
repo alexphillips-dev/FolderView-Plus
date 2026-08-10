@@ -1,0 +1,29 @@
+{
+    "@metadata": {
+        "catalog-version": "2026.08.10.1",
+        "locale": "da",
+        "namespace": "settings"
+    },
+    "settings.search.placeholder": "Søgeindstillinger",
+    "settings.search.label": "Søgeindstillinger",
+    "settings.search.clear-label": "Ryd indstillingssøgning",
+    "settings.search.clear-title": "Ryd søgning",
+    "settings.search.scope": "Omfang",
+    "settings.search.scope-help": "Vælg, om Avanceret søgning dækker denne fane eller hver Avanceret fane",
+    "settings.search.scope-label": "Avanceret indstillinger søgeomfang",
+    "settings.search.scope-current": "Aktuel fane",
+    "settings.search.scope-all": "Alle avancerede",
+    "settings.header.plugin-settings": "Plugin-indstillinger",
+    "settings.mode.title": "Indstillingstilstand",
+    "settings.mode.basic-label": "Brug grundlæggende indstillingstilstand",
+    "settings.mode.advanced-label": "Brug avancerede indstillinger",
+    "settings.wizard.title": "Kør opsætningsassistent",
+    "settings.tabs.basic": "Grundlæggende",
+    "settings.tabs.advanced": "Avanceret",
+    "settings.tabs.wizard": "Troldmand",
+    "settings.privacy.title": "Privatlivsmaskering",
+    "settings.privacy.mask-names": "Maske navne og ikoner",
+    "settings.privacy.mask-lan-ips": "Maske LAN-IP'er",
+    "settings.privacy.mask-ports": "Maskeporte",
+    "settings.privacy.lan-help": "LAN IP-maskering gælder for IP-delen af Docker-sidens LAN IP:PORT-kolonne. Brug maskeporte til portdelen."
+}

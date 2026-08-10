@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderRowActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
 const runtimeHostAdapterJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.host-adapter.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
@@ -17,6 +18,7 @@ const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plug
 const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const dockerRuntimeHostGuardsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
 const dockerRuntimeDiagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+const dockerRuntimeLayoutGeometryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
 const dockerRuntimeReconcileJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
 const dockerCommandViewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -42,6 +44,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const snapshotIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.runtime-snapshot.js');
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
+    const rowActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.row-actions.js');
     const hostAdapterIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.host-adapter.js');
     const orderingIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/runtime.folder-ordering.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
@@ -51,6 +54,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const runtimeActionsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.actions.js');
     const hostGuardsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.host-guards.js');
     const diagnosticsIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.diagnostics.js');
+    const layoutGeometryIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.layout-geometry.js');
     const reconcileIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.reconcile.js');
     const commandViewIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.command-view.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
@@ -63,6 +67,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(snapshotIndex >= 0, 'runtime snapshot client include is missing');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
+    assert.ok(rowActionsIndex >= 0, 'folder row action script include is missing');
     assert.ok(hostAdapterIndex >= 0, 'shared host adapter script include is missing');
     assert.ok(orderingIndex >= 0, 'shared folder ordering script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
@@ -98,16 +103,25 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeHierarchyIndex < runtimeActionsIndex, 'docker hierarchy helpers must load before docker.runtime.actions.js');
     assert.ok(runtimeActionsIndex < hostGuardsIndex, 'docker action helpers must load before docker.runtime.host-guards.js');
     assert.ok(hostGuardsIndex < diagnosticsIndex, 'docker host guards must load before docker.runtime.diagnostics.js');
+    assert.ok(layoutGeometryIndex >= 0 && layoutGeometryIndex < diagnosticsIndex, 'layout geometry must load before docker diagnostics');
     assert.ok(diagnosticsIndex < reconcileIndex, 'docker diagnostics helpers must load before docker.runtime.reconcile.js');
     assert.ok(reconcileIndex < commandViewIndex, 'docker reconcile helpers must load before docker.runtime.command-view.js');
     assert.ok(commandViewIndex < runtimeIndex, 'docker command-view helpers must load before docker.js');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
+    assert.ok(stateObserverIndex < rowActionsIndex && rowActionsIndex < runtimeIndex, 'folder row actions must load after state observers and before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(themeTokensCssIndex < sharedCssIndex, 'theme token stylesheet must load before runtime.shared.css');
     assert.ok(sharedCssIndex < commandViewCssIndex, 'shared runtime stylesheet must load before docker.command-view.css');
     assert.ok(commandViewCssIndex < dockerCssIndex, 'docker command-view stylesheet must load before docker.css');
     assert.doesNotMatch(dockerPage, /docker\.runtime\.(?:tree-explorer|orbit-view)\.js/);
     assert.doesNotMatch(dockerPage, /docker\.(?:tree-explorer|orbit-view)\.css/);
+});
+
+test('docker layout geometry is extracted behind a focused executable module', () => {
+    assert.match(dockerRuntimeLayoutGeometryJs, /FolderViewPlusDockerLayoutGeometry/);
+    assert.match(dockerRuntimeLayoutGeometryJs, /readNodeGeometry/);
+    assert.match(dockerRuntimeLayoutGeometryJs, /compareGeometry/);
+    assert.match(dockerRuntimeDiagnosticsJs, /require\('\.\/docker\.runtime\.layout-geometry\.js'\)/);
 });
 
 test('docker runtime uses the shared host adapter as its Unraid integration boundary', () => {
@@ -231,7 +245,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{[\s\S]*runtimeInfoApi\.syncDockerHostRowUpdateStatesFromDom\(names\)/);
     assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*runtimeInfoApi\.ensureDockerHostRowUpdateObserver\(\)/);
     assert.match(dockerJs, /const normalizeDockerRuntimeInfoMap = \(source,\s*previousMap = null\) => \{[\s\S]*runtimeInfoApi\.normalizeDockerRuntimeInfoMap\(source,\s*previousMap\)/);
-    assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = ''\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
+    assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\) => \{[\s\S]*previewActionsApi\.appendDockerPreviewActionButtons\(/);
     assert.match(dockerJs, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers,\s*changedNames = null\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers,\s*changedNames\)/);
     assert.match(dockerJs, /const applyNestedFolderHierarchy = \(\) => \{[\s\S]*hierarchyApi\.applyNestedFolderHierarchy\(\);/);
     assert.match(dockerJs, /const dropDownButton = \(id,\s*persistState = true\) => \{[\s\S]*hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
@@ -267,6 +281,18 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /window\.forceUpdateFolder = forceUpdateFolder;/);
     assert.match(dockerJs, /window\.updateFolder = updateFolder;/);
     assert.match(dockerJs, /window\.createFolderBtn = createFolderBtn;/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folder\.runtime\.row-actions\.js'\)/);
+    assert.match(dockerJs, /const dockerFolderRowActionsController = dockerRuntimeShared\.createFolderRowActionsController\(\{/);
+    assert.match(dockerJs, /actionAttribute: 'data-fv-docker-folder-action'/);
+    assert.match(dockerJs, /toggle: \(id\) => dropDownButton\(id\)/);
+    assert.match(dockerJs, /edit: \(id\) => editFolder\(id\)/);
+    assert.match(dockerJs, /context: \(id\) => addDockerFolderContext\(id\)/);
+    assert.match(dockerJs, /dockerFolderRowActionsController\.decorate\(\$createdFolderRow, id\);/);
+    assert.match(dockerJs, /bindDockerFolderRowActions\(\);/);
+    assert.match(dockerJs, /dockerFolderRowActionsController\.destroy\(\);/);
+    assert.match(folderRowActionsJs, /\.removeAttr\('data-fv-onclick'\)/);
+    assert.match(folderRowActionsJs, /\.off\(eventName, selector\)[\s\S]*\.on\(eventName, selector/);
+    assert.match(folderRowActionsJs, /root\.FolderViewDockerRuntimeShared\.createFolderRowActionsController = api\.createController/);
 });
 
 test('docker command-view stylesheet only hides the host table when the isolated command module is mounted', () => {
@@ -300,7 +326,7 @@ test('docker command-view renders visible member tiles instead of name-only chip
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-pill"/);
     assert.match(dockerCommandViewJs, /class="fv-docker-command-member-icon"/);
     assert.match(dockerCommandViewJs, /appendDockerPreviewActionButtons\(/);
-    assert.match(dockerJs, /appendDockerPreviewActionButtons:\s*\(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = ''\)\s*=>/);
+    assert.match(dockerJs, /appendDockerPreviewActionButtons:\s*\(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = '',\s*options = \{\}\)\s*=>/);
     assert.match(dockerCommandViewJs, /const openFolderCardWebuis = \(folderCard\) =>/);
     assert.match(dockerCommandViewJs, /if \(requestBundle\.fullInfo\)/);
     assert.doesNotMatch(dockerCommandViewJs, /fv-docker-command-member-menu/);

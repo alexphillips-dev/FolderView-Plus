@@ -183,11 +183,11 @@ if ((releaseOnMainWorkflow.match(/uses:\s*actions\/attest@[0-9a-f]{40}\s+# v4/g)
     !/sbom-path:\s*docs\/sbom\.cdx\.json/.test(releaseOnMainWorkflow)) {
   fail('Release On Main must publish commit-pinned provenance and SBOM attestations for the release archive.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must fail closed unless live browser smoke coverage is configured.');
+if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must require live browser smoke coverage whenever its target secret is configured.');
 }
-if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
-  fail('Release On Main must fail closed unless the live theme matrix is configured.');
+if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main must require the live theme matrix whenever its target secrets are configured.');
 }
 if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');

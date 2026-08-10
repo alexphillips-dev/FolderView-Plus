@@ -84,13 +84,13 @@ test('SBOM purl normalization replaces every encoded scope marker', () => {
     assert.doesNotMatch(generator, /encodeURIComponent\(name\)\.replace\('%40', '@'\)/);
 });
 
-test('CycloneDX SBOM has a deterministic UUID serial accepted by the attestation action', () => {
+test('CycloneDX SBOM has a deterministic SHA-256 UUIDv8 serial accepted by the attestation action', () => {
     const sbom = JSON.parse(read('docs/sbom.cdx.json'));
     assert.equal(sbom.bomFormat, 'CycloneDX');
     assert.match(sbom.specVersion, /^1\.[0-9]+$/);
     assert.match(
         sbom.serialNumber,
-        /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+        /^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
     );
     assert.match(read('scripts/generate_sbom.mjs'), /folderview-plus:\$\{version\}/);
 });

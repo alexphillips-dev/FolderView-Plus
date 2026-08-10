@@ -107,7 +107,7 @@ const workflowFiles = [
 const actionKeys = new Set();
 for (const file of workflowFiles) {
     const source = fs.readFileSync(file, 'utf8');
-    for (const match of source.matchAll(/uses:\s*([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)@([0-9a-f]{40})/g)) {
+    for (const match of source.matchAll(/uses:\s*([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)(?:\/[A-Za-z0-9_.-]+)*@([0-9a-f]{40})/g)) {
         const [, name, revision] = match;
         const key = `${name}@${revision}`;
         if (actionKeys.has(key)) continue;

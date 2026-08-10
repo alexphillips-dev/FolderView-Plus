@@ -105,6 +105,19 @@
     },
     {
       "type": "application",
+      "name": "github/codeql-action",
+      "version": "5595ccaf912efad79be6eef63a5619ff05969be3",
+      "scope": "optional",
+      "purl": "pkg:github/github/codeql-action@5595ccaf912efad79be6eef63a5619ff05969be3",
+      "properties": [
+        {
+          "name": "folderview-plus:usage",
+          "value": "build-only-github-action"
+        }
+      ]
+    },
+    {
+      "type": "application",
       "name": "ossf/scorecard-action",
       "version": "2d1146689b8cda280b9bc96326124645441f03bc",
       "scope": "optional",
@@ -269,7 +282,7 @@
     {
       "type": "library",
       "name": "axe-core",
-      "version": "4.12.1",
+      "version": "4.13.0",
       "scope": "optional",
       "licenses": [
         {
@@ -278,7 +291,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/axe-core@4.12.1"
+      "purl": "pkg:npm/axe-core@4.13.0"
     },
     {
       "type": "library",
@@ -1048,7 +1061,7 @@
     {
       "type": "library",
       "name": "playwright-core",
-      "version": "1.62.0",
+      "version": "1.62.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1057,12 +1070,12 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright-core@1.62.0"
+      "purl": "pkg:npm/playwright-core@1.62.1"
     },
     {
       "type": "library",
       "name": "playwright",
-      "version": "1.62.0",
+      "version": "1.62.1",
       "scope": "optional",
       "licenses": [
         {
@@ -1071,7 +1084,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/playwright@1.62.0"
+      "purl": "pkg:npm/playwright@1.62.1"
     },
     {
       "type": "library",

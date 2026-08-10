@@ -1064,10 +1064,7 @@ const runFolderEditorInteractionSmoke = async (page, {
     const savedActionName = `Smoke action saved ${Date.now()}`;
     const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-${sanitizeToken(type)}-folder-editor.png`;
     const screenshotPath = captureLiveArtifacts ? path.join(artifactRoot, screenshotName) : '';
-    let cleanupDetails = {
-        deletedIds: [],
-        remainingIds: []
-    };
+    let cleanupDetails;
     let reorderSkippedReason = '';
     let selectedMembers = [];
     let previewOrder = [];

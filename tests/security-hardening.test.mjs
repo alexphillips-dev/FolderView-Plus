@@ -16,7 +16,6 @@ const pluginPageSources = pluginPageFiles.map((entry) => ({
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const libSecurityPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.security.php');
-const libDiagnosticsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerRuntimeSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');

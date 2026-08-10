@@ -89,7 +89,7 @@
             Object.entries(details && typeof details === 'object' ? details : {}).forEach(([key, value]) => {
                 if (typeof value === 'boolean' || typeof value === 'string') {
                     normalized[key] = value;
-                } else if (value !== null && value !== '' && Number.isFinite(Number(value))) {
+                } else if (value !== null && Number.isFinite(Number(value))) {
                     normalized[key] = Math.round(Number(value) * 10) / 10;
                 }
             });

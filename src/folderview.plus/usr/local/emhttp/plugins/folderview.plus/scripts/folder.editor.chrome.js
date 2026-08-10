@@ -295,7 +295,7 @@
     const getVisibleSectionKeys = () => Object.keys(SECTION_META);
 
     const normalizeSectionKey = (sectionKey, mode = currentMode) => {
-        const visible = getVisibleSectionKeys(mode);
+        const visible = getVisibleSectionKeys();
         const preferred = String(sectionKey || '').trim();
         if (visible.includes(preferred)) {
             return preferred;

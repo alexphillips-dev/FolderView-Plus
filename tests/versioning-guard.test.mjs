@@ -15,6 +15,7 @@ const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-m
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const scheduledValidationWorkflowPath = path.join(repoRoot, '.github/workflows/scheduled-validation.yml');
+const scheduledWorkflowHealthPath = path.join(repoRoot, '.github/workflows/scheduled-workflow-health.yml');
 const setupCiEnvActionPath = path.join(repoRoot, '.github/actions/setup-ci-env/action.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
@@ -57,7 +58,6 @@ const jsUnusedSymbolsBaselinePath = path.join(repoRoot, 'scripts/js_unused_symbo
 const eslintUnusedConfigPath = path.join(repoRoot, 'scripts/eslint-unused.config.mjs');
 const phpUnusedHelpersGuardPath = path.join(repoRoot, 'scripts/php_unused_helpers_guard.php');
 const phpUnusedHelpersBaselinePath = path.join(repoRoot, 'scripts/php_unused_helpers_baseline.json');
-const readmePath = path.join(repoRoot, 'README.md');
 const visualRuntimeContractPath = path.join(repoRoot, 'docs/visual-runtime-contract.md');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
@@ -83,6 +83,7 @@ const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const releaseNotesConsistencyGuard = fs.readFileSync(releaseNotesConsistencyGuardPath, 'utf8');
 const runCiSuite = fs.readFileSync(runCiSuitePath, 'utf8');
 const scheduledValidationWorkflow = fs.readFileSync(scheduledValidationWorkflowPath, 'utf8');
+const scheduledWorkflowHealth = fs.readFileSync(scheduledWorkflowHealthPath, 'utf8');
 const workflowSelfCheck = fs.readFileSync(path.join(repoRoot, 'scripts/workflow_self_check.sh'), 'utf8');
 const syncMainToDev = fs.readFileSync(syncMainToDevPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
@@ -112,7 +113,6 @@ const jsUnusedSymbolsBaseline = JSON.parse(fs.readFileSync(jsUnusedSymbolsBaseli
 const eslintUnusedConfig = fs.readFileSync(eslintUnusedConfigPath, 'utf8');
 const phpUnusedHelpersGuard = fs.readFileSync(phpUnusedHelpersGuardPath, 'utf8');
 const phpUnusedHelpersBaseline = JSON.parse(fs.readFileSync(phpUnusedHelpersBaselinePath, 'utf8'));
-const readme = fs.readFileSync(readmePath, 'utf8');
 const visualRuntimeContract = fs.readFileSync(visualRuntimeContractPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
@@ -465,7 +465,18 @@ test('scheduled validation runs cross-browser fixtures and uses live Unraid targ
     assert.match(scheduledValidationWorkflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
     assert.match(scheduledValidationWorkflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
     assert.match(scheduledValidationWorkflow, /live_configured/);
+    assert.match(scheduledValidationWorkflow, /Live Unraid validation configuration required/);
     assert.match(scheduledValidationWorkflow, /bash scripts\/run_ci_suite\.sh --lane fixture-browser/);
+});
+
+test('scheduled workflow watchdog alerts on missing weekly successes and closes recovered alerts', () => {
+    assert.match(scheduledWorkflowHealth, /schedule:/);
+    assert.match(scheduledWorkflowHealth, /workflow_dispatch:/);
+    assert.match(scheduledWorkflowHealth, /actions:\s*read/);
+    assert.match(scheduledWorkflowHealth, /issues:\s*write/);
+    assert.match(scheduledWorkflowHealth, /node scripts\/scheduled_workflow_health\.mjs/);
+    assert.match(scheduledWorkflowHealth, /Scheduled workflow health requires attention/);
+    assert.match(scheduledWorkflowHealth, /gh issue close/);
 });
 
 test('validation workflows delegate to the shared ci suite with dev coverage, fast lanes, caches, and release smoke enforcement', () => {

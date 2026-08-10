@@ -164,8 +164,8 @@ const detectSetupAssistantDefaultsFromContext = (context = null) => {
     const totalBackups = Math.max(0, Number(source.dockerBackups) || 0) + Math.max(0, Number(source.vmBackups) || 0);
     const hasExistingData = source.hasExistingData === true || totalFolders > 0 || totalRules > 0;
 
-    let route = hasExistingData ? 'migrate' : 'new';
-    let mode = hasExistingData ? 'advanced' : 'basic';
+    let route;
+    let mode;
     let quickPreset = 'balanced';
     const reasonParts = [];
 

@@ -2156,7 +2156,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     $folderIcon.show();
-    let folderStatusKind = 'stopped';
+    let folderStatusKind;
     if (started > 0) {
         folderStatusKind = 'running';
         $folderIcon.attr('class', 'fa fa-play started folder-load-status');
@@ -2708,11 +2708,11 @@ const folderCustomAction = async (id, action) => {
                 } else if(act.type === 1) {
                     const args = act.script_args || '';
                     if(act.script_sync) {
-                        let scriptVariables = {}
-                        let rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-                        rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1] });
+                        const scriptVariables = {};
+                        const rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
+                        rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1]; });
                         if(scriptVariables['directPHP']) {
-                            $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}})
+                            $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}});
                         } else {
                             $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}});
                         }
@@ -3963,7 +3963,7 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
         let num = "";
         for (let index = 0; index < containers.length - 1; index++) {
             containers[index] = containers[index].replace(folderFixRegex, '');
-            num += index + ';'
+            num += index + ';';
         }
         data.set('names', containers.join(';'));
         data.set('index', num);
@@ -3992,7 +3992,7 @@ addEventListener("keydown", (e) => {
         folderDebugMode = true;
         loadlist();
     }
-})
+});
 
 window.addEventListener('pagehide', () => {
     clearLiveRefreshTimer();

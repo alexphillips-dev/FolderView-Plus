@@ -1066,7 +1066,7 @@
             }
             const seen = new Set([safeId]);
             let current = safeId;
-            while (current) {
+            while (true) {
                 const rawParentId = String(normalizedFolders[current]?.parentId || normalizedFolders[current]?.parent_id || '').trim();
                 if (!rawParentId || rawParentId === current || !Object.prototype.hasOwnProperty.call(normalizedFolders, rawParentId) || seen.has(rawParentId)) {
                     break;

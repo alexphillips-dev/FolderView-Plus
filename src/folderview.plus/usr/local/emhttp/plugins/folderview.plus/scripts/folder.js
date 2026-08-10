@@ -660,7 +660,7 @@ const getComposeProjectFromLabels = (labels) => {
 const rgbToHex = (rgb) => {
     rgb = rgb.slice(4, -1).split(', ');
     return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
-}
+};
 
 const normalizeHexColor = typeof folderContract?.normalizeHexColor === 'function'
     ? folderContract.normalizeHexColor
@@ -2401,7 +2401,7 @@ const getVisibleEditorSectionKeys = () => Object.entries(SECTION_META)
     .map(([key]) => key);
 
 const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
-    const visibleSections = getVisibleEditorSectionKeys(mode);
+    const visibleSections = getVisibleEditorSectionKeys();
     const preferredSection = String(sectionKey || '').trim();
     if (visibleSections.includes(preferredSection)) {
         return preferredSection;
@@ -2498,7 +2498,7 @@ const toggleAdvancedSectionCollapse = (sectionKey) => {
 };
 
 const applyAdvancedMode = () => {
-    editorMode = normalizeEditorMode(editorMode);
+    editorMode = normalizeEditorMode();
     const showAdvanced = true;
     activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
     $('#fvHeroMode').text('All sections');
@@ -5190,7 +5190,7 @@ const submitForm = async (e, saveAsCopy = false) => {
     location.href = loc.join('/');
     
     return false;
-}
+};
 
 /**
  * Handles the button to return to the tab
@@ -5242,7 +5242,7 @@ const customAction = (action = undefined) => {
         modes: 0,
         conatiners: [],
         script_icon: ''
-    }
+    };
     if(action !== undefined) {
         config = JSON.parse(atob($('input[name*="custom_action"]').map((i, e) => $(e).val()).get()[action]));
     }

@@ -9351,7 +9351,7 @@ const refreshType = async (type, options = {}) => {
         }
     }
 
-    let normalizedPrefs = utils.normalizePrefs({});
+    let normalizedPrefs;
     let normalizeErrorMessage = '';
     try {
         normalizedPrefs = utils.normalizePrefs(rawPrefs || {});
@@ -9920,7 +9920,6 @@ const importType = async (type) => {
     } catch (error) {
         if (progressOpen) {
             closeImportApplyProgressDialog();
-            progressOpen = false;
         }
         let rollbackMessage = 'No rollback backup available.';
         if (transactionBackup && transactionBackup.name) {

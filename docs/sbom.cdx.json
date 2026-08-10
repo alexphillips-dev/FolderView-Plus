@@ -1,13 +1,13 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:a5f86fe5-568c-8cf8-b968-07aded6b8e4d",
+  "serialNumber": "urn:uuid:393bf67b-ce1a-8b16-b8d9-4bf53cafc173",
   "version": 1,
   "metadata": {
     "component": {
       "type": "application",
       "name": "FolderView Plus",
-      "version": "2026.08.10.03",
+      "version": "2026.08.10.04",
       "properties": [
         {
           "name": "folderview-plus:runtime-dependencies",
@@ -457,7 +457,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14b18aeaae42b0c79c6992e464a22c8c261a3de1f15d0c1fb317cf6db5fdb449"
+          "content": "ea016afc19b76b01d630dbef09fe886b8f1db318a669fa5591911566aa8f7b96"
         }
       ],
       "licenses": [
@@ -482,7 +482,7 @@
         },
         {
           "name": "folderview-plus:modified",
-          "value": "false"
+          "value": "true"
         }
       ]
     },
@@ -750,7 +750,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0d8bc7fbe00e9368bf52e3c91616cbd70c34de2f62b9e79645b81493ca8ac7c"
+          "content": "ad98a9efe0ecd128fb1a153c0045d50a941a43ebc9785c02561c3c977af3edcb"
         }
       ],
       "licenses": [
@@ -837,7 +837,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc99c2f4b2f1942dca4a7f121dd7ac731dae4c7750e2031b7bdb963f4a5c2ebd"
+          "content": "6869c1bad5a6cc92c448dd5a238cd29377252e492bc00336b2a57db2f90830a2"
         }
       ],
       "licenses": [
@@ -862,7 +862,7 @@
         },
         {
           "name": "folderview-plus:modified",
-          "value": "false"
+          "value": "true"
         }
       ]
     },

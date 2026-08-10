@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.10.03">
-<!ENTITY md5 "5816fac7ccfe4bae1acb68d0609b96af">
-<!ENTITY sha256 "af00cdbdc49b87e1116191a34d0aaa90a88819322cde5aa7c63c980f1ed9d367">
+<!ENTITY version "2026.08.10.04">
+<!ENTITY md5 "53b95a84acfd75325696892acefdef34">
+<!ENTITY sha256 "a1580b0e720eda3480e389ac386202416bb69e6f3b03eac68d1f6b7305698269">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,21 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.10.04
+## FolderView Plus 2026.08.10.04
+This development build strengthens scheduled compatibility monitoring and clears the existing CodeQL quality backlog.
+### Monitoring and workflow reliability
+- Fix: Prove the scheduled cross-browser workflow in Chromium, Firefox, and WebKit and report when encrypted live-Unraid validation targets are not configured.
+- Maintenance: Add a daily watchdog that opens a deduplicated alert when either weekly monitoring workflow lacks a recent successful run and closes the alert after recovery.
+- Compatibility: Review Unraid API v4.37.0, confirm the Docker GraphQL signature is unchanged and the native Docker activation gate remains disabled, and advance the tracked upstream baseline.
+- Maintenance: Close resolved upstream compatibility alerts automatically after a reviewed baseline succeeds.
+### Code quality and security analysis
+- Security: Remove the environment-derived repository root from the archive preflight test that triggered CodeQL's shell-command flow warning.
+- Quality: Correct all existing first-party and vendored JavaScript CodeQL findings without dismissing alerts, including undeclared variables, unused assignments, ignored arguments, and semicolon hazards.
+- Security: Enforce a zero-open-CodeQL-alert policy for every newly analyzed commit before strengthening main-branch merge protection.
+- Security: Regenerate the runtime SBOM and explicitly identify the three locally corrected vendored libraries as modified snapshots.
+
 
 ###2026.08.10.03
 ## FolderView Plus 2026.08.10.03

@@ -1301,7 +1301,7 @@
                     if (currentIndex < 0) {
                         return;
                     }
-                    let nextIndex = currentIndex;
+                    let nextIndex;
                     if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
                         nextIndex = Math.min(items.length - 1, currentIndex + 1);
                     } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {

@@ -5,8 +5,9 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(process.cwd());
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const plgPath = path.join(repoRoot, 'folderview.plus.plg');
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
 const buildScriptPath = path.join(repoRoot, 'scripts/build_icon_asset_pack.sh');

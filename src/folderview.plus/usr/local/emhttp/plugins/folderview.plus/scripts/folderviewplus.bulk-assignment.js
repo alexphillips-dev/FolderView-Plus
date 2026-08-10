@@ -341,8 +341,8 @@
             const state = getBulkState(type);
             const folderSelect = documentRef?.getElementById?.(`${type}-bulk-folder`);
             const folderSelectDisabled = folderSelect instanceof HTMLSelectElement && folderSelect.disabled === true;
-            let icon = 'fa-list-alt';
-            let label = 'Preview changes';
+            let icon;
+            let label;
             let disabled = false;
             if (state.applying === true) {
                 icon = 'fa-spinner fa-spin';

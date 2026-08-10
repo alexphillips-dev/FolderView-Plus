@@ -1338,7 +1338,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
     const autostartClass = autostart ? ' autostart' : '';
     let itemMarkup = '';
-    let triggerSelector = '.fv-preview-trigger';
+    let triggerSelector;
 
     if (compactMultiRow) {
         switch (previewMode) {
@@ -2248,7 +2248,6 @@ const runDockerRuntimeWidthReflow = (reason = 'direct', options = {}) => {
     dockerRuntimeWidthState.lastReason = String(reason || 'direct');
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.measure;
     const appliedWidth = applyDockerRuntimeColumnWidths(null, options);
-    dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.apply;
     dockerRuntimeWidthState.phase = DOCKER_RUNTIME_WIDTH_PHASES.idle;
     return appliedWidth;
 };
@@ -6221,7 +6220,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     load = {
                         cpu: parseFloat(load[1].replace('%', ''))/cpus,
                         mem: load[2].split(' / ')
-                    }
+                    };
                     load.mem = memToB(load.mem[0]) / memToB(load.mem[1]) * 100;
                     CPU.push({
                         x: now,
@@ -6732,7 +6731,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     $folderIcon.show();
-    let folderStatusKind = 'stopped';
+    let folderStatusKind;
     if (started > 0) {
         folderStatusKind = 'running';
         $folderIcon.attr('class', 'fa fa-play started folder-load-status');
@@ -8070,7 +8069,7 @@ const memToB = (mem) => {
         return 0;
     }
 
-    let multiplier = 1;
+    let multiplier;
     switch (unit) {
         case 'Bytes': case 'B': multiplier = 1; break; // Added Bytes
         case 'KiB': multiplier = 2 ** 10; break;
@@ -8763,7 +8762,7 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
         const containers = data.get('names').split(';');
         let num = "";
         for (let index = 0; index < containers.length - 1; index++) {
-            num += index + ';'
+            num += index + ';';
         }
         data.set('index', num);
         options.data = data.toString();

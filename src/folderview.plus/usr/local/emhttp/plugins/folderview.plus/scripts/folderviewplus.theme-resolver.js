@@ -60,6 +60,8 @@
         return themeColorParserCanvasContext;
     };
 
+    const setThemeColorParserFillStyle = (context, value) => Reflect.set(context, 'fillStyle', value);
+
     const parseThemeColorToRgba = (value) => {
         const raw = String(value || '').trim();
         if (!raw || raw === 'transparent' || raw === 'currentcolor') {
@@ -99,8 +101,8 @@
         if (!parserContext) {
             return null;
         }
-        parserContext.fillStyle = '#000000';
-        parserContext.fillStyle = raw;
+        setThemeColorParserFillStyle(parserContext, '#000000');
+        setThemeColorParserFillStyle(parserContext, raw);
         const normalized = String(parserContext.fillStyle || '').trim();
         if (!normalized) {
             return null;

@@ -27,10 +27,10 @@
     "evalCalls": 0,
     "functionConstructors": 0,
     "dynamicScriptCreation": 5,
-    "htmlStringSinks": 43
+    "htmlStringSinks": 40
   },
   "sinkControlSummary": {
-    "controlled": 43,
+    "controlled": 40,
     "review-required": 0
   },
   "readiness": {
@@ -229,36 +229,6 @@
       "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
       "controlStatus": "controlled",
       "controlEvidence": "The preview image source is a fixed plugin asset path."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js",
-      "line": 112,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js",
-      "line": 137,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js",
-      "line": 147,
-      "sink": ".innerHTML =",
-      "risk": "high",
-      "dataClass": "persisted-or-runtime-data",
-      "requiredControl": "Safe DOM construction or contextual escaping at every interpolation boundary.",
-      "controlStatus": "controlled",
-      "controlEvidence": "Safe DOM or text-only construction is visible at the sink boundary."
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js",
@@ -657,18 +627,6 @@
       "functionConstructors": 0,
       "dynamicScriptCreation": 0,
       "htmlStringSinks": 5
-    },
-    {
-      "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.diagnostics-bootstrap.js",
-      "inlineEventAttributes": 0,
-      "inlineScriptBlocks": 0,
-      "externalScriptTags": 0,
-      "inlineStyleBlocks": 0,
-      "inlineStyleAttributes": 0,
-      "evalCalls": 0,
-      "functionConstructors": 0,
-      "dynamicScriptCreation": 0,
-      "htmlStringSinks": 3
     },
     {
       "path": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js",

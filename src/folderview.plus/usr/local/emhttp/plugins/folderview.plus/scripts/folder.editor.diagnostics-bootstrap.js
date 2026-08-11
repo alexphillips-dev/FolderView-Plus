@@ -8,6 +8,30 @@
             debug: 'Bootstrap: waiting for folder editor runtime.',
             tone: 'info'
         };
+        const buttonTemplates = new WeakMap();
+        const buttonStatusTimers = new WeakMap();
+        const flashButtonStatus = (button, message, delayMs) => {
+            if (!button) {
+                return;
+            }
+            if (!buttonTemplates.has(button)) {
+                buttonTemplates.set(
+                    button,
+                    Array.from(button.childNodes, (child) => child.cloneNode(true))
+                );
+            }
+            const activeTimer = buttonStatusTimers.get(button);
+            if (activeTimer) {
+                win.clearTimeout(activeTimer);
+            }
+            button.replaceChildren(doc.createTextNode(String(message || '')));
+            const timer = win.setTimeout(() => {
+                const template = buttonTemplates.get(button) || [];
+                button.replaceChildren(...template.map((child) => child.cloneNode(true)));
+                buttonStatusTimers.delete(button);
+            }, delayMs);
+            buttonStatusTimers.set(button, timer);
+        };
         const buildDiagnosticsSnapshot = () => ({
             checkedAt: new Date().toISOString(),
             summary: String(bannerState.summary || '(empty)'),
@@ -104,13 +128,7 @@
             if (win.FolderViewPlusFatalBanner?.getStartupIncidentSnapshot?.()?.available === true) {
                 const copied = await win.FolderViewPlusFatalBanner.copyDiagnostics();
                 if (copied) {
-                    const incidentButton = doc.getElementById('fvFolderEditorBootstrapCopy');
-                    if (incidentButton) {
-                        const originalHtml = incidentButton.getAttribute('data-default-html') || incidentButton.innerHTML;
-                        incidentButton.setAttribute('data-default-html', originalHtml);
-                        incidentButton.textContent = 'Copied';
-                        win.setTimeout(() => { incidentButton.innerHTML = originalHtml; }, 1400);
-                    }
+                    flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copied', 1400);
                     return;
                 }
             }
@@ -128,25 +146,9 @@
                     doc.execCommand('copy');
                     doc.body.removeChild(textarea);
                 }
-                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
-                if (button) {
-                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
-                    button.setAttribute('data-default-html', originalHtml);
-                    button.textContent = 'Copied';
-                    win.setTimeout(() => {
-                        button.innerHTML = originalHtml;
-                    }, 1400);
-                }
+                flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copied', 1400);
             } catch (_error) {
-                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
-                if (button) {
-                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
-                    button.setAttribute('data-default-html', originalHtml);
-                    button.textContent = 'Copy failed';
-                    win.setTimeout(() => {
-                        button.innerHTML = originalHtml;
-                    }, 1800);
-                }
+                flashButtonStatus(doc.getElementById('fvFolderEditorBootstrapCopy'), 'Copy failed', 1800);
             }
         };
         win.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap({

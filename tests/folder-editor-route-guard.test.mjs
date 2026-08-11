@@ -71,6 +71,10 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /id="fvFolderEditorBootstrapDebug"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapCopy"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapDisclosure"/);
+    assert.doesNotMatch(folderPage, /data-default-html=/);
+    assert.match(folderDiagnosticsBootstrapJs, /button\.replaceChildren\(doc\.createTextNode/);
+    assert.match(folderDiagnosticsBootstrapJs, /button\.replaceChildren\(\.\.\.template\.map/);
+    assert.doesNotMatch(folderDiagnosticsBootstrapJs, /\.innerHTML\s*=/);
     assert.match(folderDiagnosticsBootstrapJs, /syncSurfaceState\(\);/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /const pageReportFolderEditorBootstrap = typeof root\.FolderViewPlusReportFolderEditorBootstrap === 'function'/);

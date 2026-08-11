@@ -6,9 +6,9 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.08.10.05">
-<!ENTITY md5 "a0f9bf2f7bf99286762c7f6ef230e8cb">
-<!ENTITY sha256 "40b16e0e2bf06869b8e27fed8d18d429044bff770add7441c044412e8da8072c">
+<!ENTITY version "2026.08.10.06">
+<!ENTITY md5 "3e49d1a16df5886d01fc3e98a35a8a7c">
+<!ENTITY sha256 "530f778c6ded32e0c3f76f9f98b0bedbaddeb54ad45405f755c444f61cdb1901">
 <!ENTITY iconPackVersion "1.0.0">
 <!ENTITY iconPackMd5 "a149c36b41339949bb5c1eecad550704">
 <!ENTITY iconPackSha256 "992f6c3544a8a3c1db80b861472fdd8b3d499f20f81796ed71405a10beb750bd">
@@ -17,6 +17,18 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.08.10.06
+## FolderView Plus 2026.08.10.06
+This development build closes the remote CI findings from the CSP hardening release and strengthens its regression coverage.
+### DOM injection hardening
+- Security: Restore the folder-editor diagnostics copy button from cloned DOM nodes instead of reinterpreting saved button markup through `innerHTML`.
+- Security: Remove the obsolete HTML-valued button attribute and make the inline-script regression assertion case-insensitive.
+- Security: Reduce the reviewed first-party HTML-string sink inventory from 43 to 40 while retaining zero unreviewed sinks.
+### Validation reliability
+- Quality: Teach the strict localization usage guard to recognize programmatic `dataset.i18n` and `setAttribute('data-i18n', ...)` references.
+- Quality: Add source contracts that prevent the folder-editor diagnostics bootstrap from reintroducing HTML-string button restoration.
+
 
 ###2026.08.10.05
 ## FolderView Plus 2026.08.10.05

@@ -117,7 +117,7 @@ test('language bootstrap version-tags plugin translation assets', () => {
     assert.match(langScriptPhp, /emitJsonBootstrapMeta\('fvplus-i18n-config'/);
     assert.match(langScriptPhp, /folderviewplus\.i18n-early-bootstrap\.js/);
     assert.match(langScriptPhp, /folderviewplus\.i18n-bootstrap\.js/);
-    assert.doesNotMatch(langScriptPhp, /<script\s*>/);
+    assert.doesNotMatch(langScriptPhp, /<script\s*>/i);
 });
 
 test('live GET endpoints that drive page freshness emit no-cache headers', () => {
